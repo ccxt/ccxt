@@ -33,7 +33,7 @@ function test_watch_my_trades($exchange, $skipped_properties, $symbol) {
                 assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
                 $now = $exchange->milliseconds();
                 for ($i = 0; $i < count($response); $i++) {
-                    test_trade($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);
+                    test_trade($exchange, $skipped_properties, $method, $response[$i], $symbol, $now, false);
                 }
                 assert_timestamp_order($exchange, $method, $symbol, $response);
             }

@@ -10,7 +10,37 @@ namespace ccxt
 
         public BigInteger integer { get; set; } = 0;
 
-        public long baseNumber { get; set; } = 10;
+        // static bounded lookup table for 10^n, n in [0, 128] — mirrors the TS
+        // implementation; never invalidated, uniform O(1) cost for any input
+        // (falls back to exponentiation for exponents beyond the table)
+        private static readonly BigInteger[] powersOfTen = BuildPowersOfTen();
+
+        private static BigInteger[] BuildPowersOfTen()
+        {
+            var powers = new BigInteger[129];
+            powers[0] = 1;
+            for (var i = 1; i <= 128; i++)
+            {
+                powers[i] = powers[i - 1] * 10;
+            }
+            return powers;
+        }
+
+        // returns 10 raised to the given non-negative exponent, from the static
+        // bounded lookup table with an exponentiation fallback past its end
+        private static BigInteger powerOfTen(int exponent)
+        {
+            return (exponent < powersOfTen.Length) ? powersOfTen[exponent] : BigInteger.Pow(10, exponent);
+        }
+
+        // fast internal constructor used by the arithmetic methods — accepts the
+        // already-computed integer directly, avoiding a ToString/Parse round-trip
+        // per operation (the public object constructor keeps its exact signature)
+        internal Precise(BigInteger number, int dec)
+        {
+            this.integer = number;
+            this.decimals = dec;
+        }
 
         public Precise(object number2, object dec2 = null)
         {
@@ -19,19 +49,30 @@ namespace ccxt
             if (dec == Int32.MinValue)
             {
                 var modified = 0;
-                var numberLowerCase = ((string)number).ToLower();
-                if (numberLowerCase.IndexOf('e') > -1)
+                // scientific notation is rare — only locate an exponent marker
+                // when one is present, instead of lowercasing every input
+                var str = number;
+                var eIndex = str.IndexOf('e');
+                if (eIndex < 0)
                 {
-                    var parts = numberLowerCase.Split('e');
-                    number = parts[0];
-                    modified = int.Parse(parts[1]);
+                    eIndex = str.IndexOf('E');
                 }
-                var decimalIndex = number.IndexOf('.');
-                var newDecimals = (decimalIndex > -1) ? number.Length - decimalIndex - 1 : 0;
-                this.decimals = newDecimals;
-                var integerString = number.Replace(".", "");
-                this.integer = BigInteger.Parse(integerString);
-                this.decimals = Convert.ToInt32(this.decimals) - modified;
+                if (eIndex > -1)
+                {
+                    modified = int.Parse(str.Substring(eIndex + 1));
+                    str = str.Substring(0, eIndex);
+                }
+                var decimalIndex = str.IndexOf('.');
+                if (decimalIndex > -1)
+                {
+                    this.decimals = str.Length - decimalIndex - 1 - modified;
+                    this.integer = BigInteger.Parse(str.Substring(0, decimalIndex) + str.Substring(decimalIndex + 1));
+                }
+                else
+                {
+                    this.decimals = -modified;
+                    this.integer = BigInteger.Parse(str);
+                }
             }
             else
             {
@@ -44,87 +85,87 @@ namespace ccxt
         {
             var integer = this.integer * other.integer;
             var decimals = Convert.ToInt32(this.decimals) + Convert.ToInt32(other.decimals);
-            return new Precise(integer.ToString(), decimals);
+            return new Precise(integer, decimals);
         }
 
         public Precise div(Precise other, object precision2 = null)
         {
-            precision2 = precision2 ?? 18;
-            var precision = Convert.ToInt32(precision2);
+            var precision = (precision2 != null) ? Convert.ToInt32(precision2) : 18;
             var distance = precision - Convert.ToInt32(this.decimals) + Convert.ToInt32(other.decimals);
-            BigInteger numerator = 0;
+            BigInteger numerator;
             if (distance == 0)
             {
                 numerator = this.integer;
             }
             else if (distance < 0)
             {
-                var exponent = BigInteger.Pow(baseNumber, -distance);
-                numerator = this.integer / exponent;
+                numerator = this.integer / powerOfTen(-distance);
             }
             else
             {
-                var exponent = BigInteger.Pow(baseNumber, distance);
-                numerator = this.integer * exponent;
+                numerator = this.integer * powerOfTen(distance);
             }
             var result = numerator / other.integer;
-            return new Precise(result.ToString(), precision);
+            return new Precise(result, precision);
         }
 
         public Precise add(Precise other)
         {
-            if (this.decimals == other.decimals)
+            var thisDecimals = Convert.ToInt32(this.decimals);
+            var otherDecimals = Convert.ToInt32(other.decimals);
+            if (thisDecimals == otherDecimals)
             {
-                var integerResult = (long)this.integer + (long)other.integer;
-                return new Precise(integerResult.ToString(), Convert.ToInt32(this.decimals));
+                return new Precise(this.integer + other.integer, thisDecimals);
             }
-            else
+            if (thisDecimals > otherDecimals)
             {
-                Precise smaller = null;
-                Precise bigger = null;
-                if (Convert.ToInt32(this.decimals) < Convert.ToInt32(other.decimals))
-                {
-                    smaller = this;
-                    bigger = other;
-                }
-                else
-                {
-                    smaller = other;
-                    bigger = this;
-                }
-                var exponent = (int)bigger.decimals - (int)smaller.decimals;
-                var normalized = smaller.integer * new BigInteger(Math.Pow((double)baseNumber, exponent));
-                var result = normalized + bigger.integer;
-                return new Precise(result.ToString(), (int)bigger.decimals);
+                var scaledOther = other.integer * powerOfTen(thisDecimals - otherDecimals);
+                return new Precise(scaledOther + this.integer, thisDecimals);
             }
+            var scaledThis = this.integer * powerOfTen(otherDecimals - thisDecimals);
+            return new Precise(scaledThis + other.integer, otherDecimals);
         }
 
         public Precise mod(Precise other)
         {
-            var rationizerNumerator = Math.Max(-Convert.ToInt32(this.decimals) + Convert.ToInt32(other.decimals), 0);
-            var numerator = this.integer * BigInteger.Pow(this.baseNumber, rationizerNumerator);
-            var rationizerDenominator = Math.Max(-Convert.ToInt32(other.decimals) + Convert.ToInt32(this.decimals), 0);
-            var denominator = other.integer * BigInteger.Pow(this.baseNumber, rationizerDenominator);
+            var thisDecimals = Convert.ToInt32(this.decimals);
+            var otherDecimals = Convert.ToInt32(other.decimals);
+            var rationizerNumerator = Math.Max(otherDecimals - thisDecimals, 0);
+            var numerator = this.integer * powerOfTen(rationizerNumerator);
+            var rationizerDenominator = Math.Max(thisDecimals - otherDecimals, 0);
+            var denominator = other.integer * powerOfTen(rationizerDenominator);
             var result = BigInteger.Remainder(numerator, denominator);
-            return new Precise(result.ToString(), rationizerDenominator + Convert.ToInt32(other.decimals));
+            return new Precise(result, rationizerDenominator + otherDecimals);
         }
 
         public Precise sub(Precise other)
         {
-            var negative = new Precise((-other.integer).ToString(), Convert.ToInt32(other.decimals));
-            return this.add(negative);
+            var thisDecimals = Convert.ToInt32(this.decimals);
+            var otherDecimals = Convert.ToInt32(other.decimals);
+            if (thisDecimals == otherDecimals)
+            {
+                return new Precise(this.integer - other.integer, thisDecimals);
+            }
+            // inline of add (this, neg (other)) without the intermediate instance
+            if (thisDecimals > otherDecimals)
+            {
+                var scaledOther = other.integer * powerOfTen(thisDecimals - otherDecimals);
+                return new Precise(this.integer - scaledOther, thisDecimals);
+            }
+            var scaledThis = this.integer * powerOfTen(otherDecimals - thisDecimals);
+            return new Precise(scaledThis - other.integer, otherDecimals);
         }
 
         public Precise or(Precise other)
         {
             var integer = this.integer | other.integer;
             var decimals = Convert.ToInt32(this.decimals) + Convert.ToInt32(other.decimals);
-            return new Precise(integer.ToString(), decimals);
+            return new Precise(integer, decimals);
         }
 
         public Precise neg()
         {
-            return new Precise((-this.integer).ToString(), Convert.ToInt32(this.decimals));
+            return new Precise(BigInteger.Negate(this.integer), Convert.ToInt32(this.decimals));
         }
 
         public Precise min(Precise other)
@@ -137,38 +178,69 @@ namespace ccxt
             return this.gt(other) ? this : other;
         }
 
+        // aligned comparison without intermediate instance allocation:
+        // aligns the operand with fewer decimals by multiplying its integer
+        // by 10^difference, then compares the scaled integers
+        public int compare(Precise other)
+        {
+            var thisDecimals = Convert.ToInt32(this.decimals);
+            var otherDecimals = Convert.ToInt32(other.decimals);
+            if (thisDecimals == otherDecimals)
+            {
+                if (this.integer == other.integer)
+                {
+                    return 0;
+                }
+                return (this.integer < other.integer) ? -1 : 1;
+            }
+            if (thisDecimals > otherDecimals)
+            {
+                var scaledOther = other.integer * powerOfTen(thisDecimals - otherDecimals);
+                if (this.integer == scaledOther)
+                {
+                    return 0;
+                }
+                return (this.integer < scaledOther) ? -1 : 1;
+            }
+            var scaledThis = this.integer * powerOfTen(otherDecimals - thisDecimals);
+            if (scaledThis == other.integer)
+            {
+                return 0;
+            }
+            return (scaledThis < other.integer) ? -1 : 1;
+        }
+
         public bool gt(Precise other)
         {
-            var sum = this.sub(other);
-            return sum.integer > 0;
+            return this.compare(other) > 0;
         }
 
         public bool ge(Precise other)
         {
-            var sum = this.sub(other);
-            return sum.integer >= 0;
+            return this.compare(other) >= 0;
         }
 
         public bool lt(Precise other)
         {
-            return other.gt(this);
+            return this.compare(other) < 0;
         }
 
         public bool le(Precise other)
         {
-            return other.ge(this);
+            return this.compare(other) <= 0;
         }
 
         public Precise abs()
         {
-            var result = this.integer < 0 ? this.integer * -1 : this.integer;
-            return new Precise(result.ToString(), Convert.ToInt32(this.decimals));
+            var result = this.integer < 0 ? BigInteger.Negate(this.integer) : this.integer;
+            return new Precise(result, Convert.ToInt32(this.decimals));
         }
 
-        public Precise reduce()
+        // internal: strips trailing zero digits from the integer representation
+        // and returns the reduced digit string (sign included) so callers that
+        // immediately stringify avoid a second integer-to-string conversion
+        private string reduceDigits()
         {
-            // var decimalValue = Convert.ToDouble(this.integer, CultureInfo.InvariantCulture);
-            // var str = decimalValue.ToString(CultureInfo.InvariantCulture);
             var str = this.integer.ToString();
             var start = str.Length - 1;
             if (start == 0)
@@ -177,9 +249,9 @@ namespace ccxt
                 {
                     this.decimals = 0;
                 }
-                return this;
+                return str;
             }
-            var i = 0;
+            int i;
             for (i = start; i >= 0; i--)
             {
                 if (str[i] != '0')
@@ -190,10 +262,19 @@ namespace ccxt
             var difference = start - i;
             if (difference == 0)
             {
-                return this;
+                return str;
             }
             this.decimals = Convert.ToInt32(this.decimals) - difference;
-            this.integer = BigInteger.Parse((str.Substring(0, i + 1)));
+            var reduced = str.Substring(0, i + 1);
+            this.integer = BigInteger.Parse(reduced);
+            return reduced;
+        }
+
+        // reduces the representation in place, returns the instance so calls
+        // can be chained (precise.reduce().ToString())
+        public Precise reduce()
+        {
+            this.reduceDigits();
             return this;
         }
 
@@ -204,53 +285,27 @@ namespace ccxt
             return this.integer == other.integer && Convert.ToInt32(this.decimals) == Convert.ToInt32(other.decimals);
         }
 
-        // public string ToString()
-        // {
-        //     return this.reduce().ToString();
-        // }
-
         public override string ToString()
         {
-            this.reduce();
+            var digits = this.reduceDigits();
             var sign = "";
-            BigInteger abs = 0;
-            if (this.integer < 0)
+            if (digits[0] == '-')
             {
                 sign = "-";
-                abs = -this.integer;
+                digits = digits.Substring(1);
             }
-            else
+            var dec = Convert.ToInt32(this.decimals);
+            if (dec <= 0)
             {
-                abs = this.integer;
+                return (dec == 0) ? sign + digits : sign + digits + new string('0', -dec);
             }
-            // var decimalValue = Convert.ToDecimal(abs, CultureInfo.InvariantCulture);
-            // var absParsed = decimalValue.ToString(CultureInfo.InvariantCulture);
-            var absParsed = abs.ToString();
-            var padSize = (Convert.ToInt32(this.decimals) > 0) ? Convert.ToInt32(this.decimals) : 0;
-            var integerArray = absParsed.PadLeft(padSize, '0').ToString().ToList().Select(x => x.ToString()).ToList();
-            var index = integerArray.Count - Convert.ToInt32(this.decimals);
-            var item = "";
-            if (index == 0)
+            if (digits.Length <= dec)
             {
-                item = "0.";
+                return sign + "0." + new string('0', dec - digits.Length) + digits;
             }
-            else if (Convert.ToInt32(this.decimals) < 0)
-            {
-                item = string.Concat(Enumerable.Repeat("0", -Convert.ToInt32(this.decimals)));
-            }
-            else if (Convert.ToInt32(this.decimals) == 0)
-            {
-                item = "";
-            }
-            else
-            {
-                item = ".";
-            }
-            var arrayIndex = index > integerArray.Count ? integerArray.Count : index;
-            integerArray.Insert(arrayIndex, item);
-            return sign + string.Join("", integerArray);
+            var index = digits.Length - dec;
+            return sign + digits.Substring(0, index) + "." + digits.Substring(index);
         }
-
 
         static public string stringMul(object string1, object string2)
         {
@@ -372,7 +427,5 @@ namespace ccxt
         }
 
     }
-
-    // }
 
 }

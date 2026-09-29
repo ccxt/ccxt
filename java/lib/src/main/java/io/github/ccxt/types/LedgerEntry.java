@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class LedgerEntry {
+public final class LedgerEntry extends TypedMap {
     public String id;
     public Long timestamp;
     public String datetime;
@@ -24,6 +24,7 @@ public final class LedgerEntry {
 
     @SuppressWarnings("unchecked")
     public LedgerEntry(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");

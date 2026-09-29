@@ -6,7 +6,7 @@ import Exchange from './abstract/coinone.js';
 import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, CurrencyInterface, DepositAddress, Dict, Int, Market, NullableDict, FeeString, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, DepositAddress, Dict, Int, List, Market, NullableDict, FeeString, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -135,87 +135,89 @@ export default class coinone extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'orderbook',
-                        'ticker',
-                        'ticker_utc',
-                        'trades',
-                    ],
+                    'get': {
+                        'orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker_utc': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'v2Public': {
-                    'get': [
-                        'range_units',
-                        'markets/{quote_currency}',
-                        'markets/{quote_currency}/{target_currency}',
-                        'orderbook/{quote_currency}/{target_currency}',
-                        'trades/{quote_currency}/{target_currency}',
-                        'ticker_new/{quote_currency}',
-                        'ticker_new/{quote_currency}/{target_currency}',
-                        'ticker_utc_new/{quote_currency}',
-                        'ticker_utc_new/{quote_currency}/{target_currency}',
-                        'currencies',
-                        'currencies/{currency}',
-                        'chart/{quote_currency}/{target_currency}',
-                    ],
+                    'get': {
+                        'range_units': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets/{quote_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbook/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker_new/{quote_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker_new/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker_utc_new/{quote_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker_utc_new/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'currencies': { 'cost': 1 } as Endpoint<Dict>,
+                        'currencies/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'chart/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'account/deposit_address',
-                        'account/btc_deposit_address',
-                        'account/balance',
-                        'account/daily_balance',
-                        'account/user_info',
-                        'account/virtual_account',
-                        'order/cancel_all',
-                        'order/cancel',
-                        'order/limit_buy',
-                        'order/limit_sell',
-                        'order/complete_orders',
-                        'order/limit_orders',
-                        'order/order_info',
-                        'transaction/auth_number',
-                        'transaction/history',
-                        'transaction/krw/history',
-                        'transaction/btc',
-                        'transaction/coin',
-                    ],
+                    'post': {
+                        'account/deposit_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/btc_deposit_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/daily_balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/user_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/virtual_account': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/cancel_all': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/limit_buy': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/limit_sell': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/complete_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/limit_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/order_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/auth_number': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/krw/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/btc': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/coin': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'v2Private': {
-                    'post': [
-                        'account/balance',
-                        'account/deposit_address',
-                        'account/user_info',
-                        'account/virtual_account',
-                        'order/cancel',
-                        'order/limit_buy',
-                        'order/limit_sell',
-                        'order/limit_orders',
-                        'order/complete_orders',
-                        'order/query_order',
-                        'transaction/auth_number',
-                        'transaction/btc',
-                        'transaction/history',
-                        'transaction/krw/history',
-                    ],
+                    'post': {
+                        'account/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/deposit_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/user_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/virtual_account': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/limit_buy': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/limit_sell': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/limit_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/complete_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/query_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/auth_number': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/btc': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/krw/history': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'v2_1Private': {
-                    'post': [
-                        'account/balance/all',
-                        'account/balance',
-                        'account/trade_fee',
-                        'account/trade_fee/{quote_currency}/{target_currency}',
-                        'order/limit',
-                        'order/cancel',
-                        'order/cancel/all',
-                        'order/open_orders',
-                        'order/open_orders/all',
-                        'order/complete_orders',
-                        'order/complete_orders/all',
-                        'order/info',
-                        'transaction/krw/history',
-                        'transaction/coin/history',
-                        'transaction/coin/withdrawal/limit',
-                    ],
+                    'post': {
+                        'account/balance/all': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/trade_fee': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/trade_fee/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/limit': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/cancel/all': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/open_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/open_orders/all': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/complete_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/complete_orders/all': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/info': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/krw/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/coin/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/coin/withdrawal/limit': { 'cost': 1 } as Endpoint<Dict>,
+                        'event/order-reward/programs': { 'cost': 1 } as Endpoint<Dict>,
+                        'event/order-reward/history': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -306,7 +308,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.v2PublicGetCurrencies (params);
         //
         //     {
@@ -337,7 +339,10 @@ export default class coinone extends Exchange {
         const code = this.safeCurrencyCode (id);
         const isWithdrawEnabled = this.safeString (rawCurrency, 'withdraw_status', '') === 'normal';
         const isDepositEnabled = this.safeString (rawCurrency, 'deposit_status', '') === 'normal';
-        const type = (code !== 'KRW') ? 'crypto' : 'fiat';
+        let type: Str = 'fiat';
+        if (code !== 'KRW') {
+            type = 'crypto';
+        }
         return this.safeCurrencyStructure ({
             'id': id,
             'code': code,
@@ -371,7 +376,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const request: Dict = {
             'quote_currency': 'KRW',
         };
@@ -410,14 +415,17 @@ export default class coinone extends Exchange {
         //     }
         //
         const tickers = this.safeList (response, 'tickers', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < tickers.length; i++) {
-            const entry = this.safeValue (tickers, i);
+            const entry = this.safeDict (tickers, i);
             const id = this.safeString (entry, 'id');
             const baseId = this.safeStringUpper (entry, 'target_currency');
             const quoteId = this.safeStringUpper (entry, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -482,7 +490,7 @@ export default class coinone extends Exchange {
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            const balance = balances[currencyId];
+            const balance = this.safeDict (balances, currencyId);
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeString (balance, 'avail');
@@ -502,7 +510,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -520,7 +528,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -570,18 +578,18 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {
             'quote_currency': 'KRW',
         };
         let market: Market = undefined;
         let response = undefined;
-        if (symbols !== undefined) {
-            const first = this.safeString (symbols, 0);
+        if (symbolsNormalized !== undefined) {
+            const first = this.safeString (symbolsNormalized, 0);
             market = this.market (first);
             request['quote_currency'] = market['quote'];
             request['target_currency'] = market['base'];
@@ -622,8 +630,8 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'tickers', []);
-        return this.parseTickers (data, symbols);
+        const data: Dict[] = this.safeList (response, 'tickers', []);
+        return this.parseTickers (data, symbolsNormalized);
     }
 
     /**
@@ -635,7 +643,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -718,8 +726,12 @@ export default class coinone extends Exchange {
         const quoteId = this.safeString (ticker, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        let symbol: Str = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+        }
         return this.safeTicker ({
-            'symbol': base + '/' + quote,
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high'),
@@ -767,7 +779,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (trade, 'timestamp');
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         const isSellerMaker = this.safeBool (trade, 'is_seller_maker');
         let side: Str = undefined;
         if (isSellerMaker !== undefined) {
@@ -782,7 +794,12 @@ export default class coinone extends Exchange {
             feeCostString = Precise.stringAbs (feeCostString);
             let feeRateString = this.safeString (trade, 'feeRate');
             feeRateString = Precise.stringAbs (feeRateString);
-            const feeCurrencyCode = (side === 'sell') ? market['quote'] : market['base'];
+            let feeCurrencyCode: Str = undefined;
+            if (side === 'sell') {
+                feeCurrencyCode = marketResolved['quote'];
+            } else {
+                feeCurrencyCode = marketResolved['base'];
+            }
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -795,7 +812,7 @@ export default class coinone extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'order': orderId,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -803,7 +820,7 @@ export default class coinone extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -817,7 +834,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -848,7 +865,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'transactions', []);
+        const data: Dict[] = this.safeList (response, 'transactions', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -865,7 +882,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         const orderType = (type as string).toUpperCase (); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
         const orderSide = (side as string).toUpperCase (); // unified lowercase order sides, same override rule
         if (orderType !== 'LIMIT') {
@@ -909,7 +926,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -1015,8 +1032,8 @@ export default class coinone extends Exchange {
         let symbol: Str = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
-            market = this.safeMarket (symbol, market, '/');
         }
+        const marketResolved = (symbol !== undefined) ? this.safeMarket (symbol, market, '/') : market;
         let timestamp = this.safeTimestamp2 (order, 'timestamp', 'updatedAt');
         if (timestamp === undefined) {
             timestamp = this.safeInteger2 (order, 'ordered_at', 'updated_at'); // v2.1 sends milliseconds
@@ -1046,7 +1063,10 @@ export default class coinone extends Exchange {
         let fee: FeeString = undefined;
         const feeCostString = this.safeString (order, 'fee');
         if (feeCostString !== undefined) {
-            const feeCurrencyCode = (side === 'sell') ? quote : base;
+            let feeCurrencyCode: Str = base;
+            if (side === 'sell') {
+                feeCurrencyCode = quote;
+            }
             fee = {
                 'cost': feeCostString,
                 'rate': this.safeString2 (order, 'feeRate', 'fee_rate'),
@@ -1075,7 +1095,7 @@ export default class coinone extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1088,7 +1108,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if (symbol === undefined) {
@@ -1134,7 +1154,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -1166,7 +1186,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const completeOrders = this.safeList (response, 'completeOrders', []);
+        const completeOrders: Dict[] = this.safeList (response, 'completeOrders', []);
         return this.parseTrades (completeOrders, market, since, limit);
     }
 
@@ -1179,7 +1199,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
         }
@@ -1217,7 +1237,7 @@ export default class coinone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddresses (codes: Strings = undefined, params: Dict = {}): Promise<DepositAddress[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1241,15 +1261,15 @@ export default class coinone extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = walletAddress[key];
-            if ((!value) || (value === '-1')) {
+            const value = this.safeString (walletAddress, key);
+            if ((value === undefined) || (value === null) || (value === '') || (value === '-1')) {
                 continue;
             }
             const parts = key.split ('_');
-            const currencyId = this.safeValue (parts, 0);
-            const secondPart = this.safeValue (parts, 1);
+            const currencyId = this.safeString (parts, 0);
+            const secondPart = this.safeString (parts, 1);
             const code = this.safeCurrencyCode (currencyId);
-            let depositAddress = this.safeValue (result, code);
+            let depositAddress = this.safeDict (result, code);
             if (depositAddress === undefined) {
                 depositAddress = {
                     'info': value,
@@ -1274,21 +1294,39 @@ export default class coinone extends Exchange {
         return result as DepositAddress[];
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const request = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api']['rest'] + '/';
-        if (api === 'v2Public') {
-            url = this.urls['api']['v2Public'] + '/';
-            api = 'public';
-        } else if (api === 'v2Private') {
-            url = this.urls['api']['v2Private'] + '/';
-        } else if (api === 'v2_1Private') {
-            url = this.urls['api']['v2_1Private'] + '/';
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        if (api === 'public') {
+        let url = apiUrl + '/';
+        const isPublic = (api === 'public') || (api === 'v2Public');
+        if (api === 'v2Public') {
+            const apiUrl2 = this.safeString (this.urls['api'], 'v2Public');
+            if (apiUrl2 === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = apiUrl2 + '/';
+        } else if (api === 'v2Private') {
+            const apiUrl3 = this.safeString (this.urls['api'], 'v2Private');
+            if (apiUrl3 === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = apiUrl3 + '/';
+        } else if (api === 'v2_1Private') {
+            const apiUrl4 = this.safeString (this.urls['api'], 'v2_1Private');
+            if (apiUrl4 === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = apiUrl4 + '/';
+        }
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
+        if (isPublic) {
             url += request;
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else {
@@ -1306,16 +1344,18 @@ export default class coinone extends Exchange {
                 'nonce': nonce,
             }, params));
             const payload = this.stringToBase64 (json);
-            body = payload;
+            requestBody = payload;
             const secret = this.secret.toUpperCase ();
             const signature = this.hmac (this.encode (payload), this.encode (secret), sha512);
-            headers = {
+            requestHeaders = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,
                 'X-COINONE-SIGNATURE': signature,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResolved = (requestBody === undefined) ? body : requestBody;
+        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

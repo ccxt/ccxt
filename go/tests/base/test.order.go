@@ -7,12 +7,12 @@ import "github.com/ccxt/ccxt/go/v4"
 
 func TestOrder(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, symbol any, now any) {
 	// prediction-market orders are keyed by an outcome handle, not a `symbol`
-	if IsTrue(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
+	if EvalTruthy(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
 		skippedProperties = exchange.Extend(map[string]any{
 			"symbol": true,
 		}, skippedProperties)
 	}
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"info":               map[string]any{},
 		"id":                 "123",
 		"clientOrderId":      "1234",
@@ -35,7 +35,7 @@ func TestOrder(exchange ccxt.ICoreExchange, skippedProperties any, method any, e
 		"fee":                map[string]any{},
 		"trades":             []any{},
 	}
-	var emptyAllowedFor any = []any{"clientOrderId", "stopPrice", "trades", "timestamp", "datetime", "lastTradeTimestamp", "average", "type", "timeInForce", "postOnly", "side", "price", "amount", "cost", "filled", "remaining", "status", "fee"} // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
+	var emptyAllowedFor []any = []any{"clientOrderId", "stopPrice", "trades", "timestamp", "datetime", "lastTradeTimestamp", "average", "type", "timeInForce", "postOnly", "side", "price", "amount", "cost", "filled", "remaining", "status", "fee"} // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now)
 	//
@@ -53,15 +53,15 @@ func TestOrder(exchange ccxt.ICoreExchange, skippedProperties any, method any, e
 	AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0")
 	AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.SafeString(entry, "remaining"))
 	AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.SafeString(entry, "filled"))
-	if !IsTrue((InOp(skippedProperties, "trades"))) {
-		var skippedNew any = exchange.DeepExtend(skippedProperties, map[string]any{
+	if !(InOp(skippedProperties, "trades")) {
+		var skippedNew map[string]any = exchange.DeepExtend(skippedProperties, map[string]any{
 			"timestamp": true,
 			"datetime":  true,
 			"side":      true,
 		})
-		if IsTrue(!IsEqual(GetValue(entry, "trades"), nil)) {
-			for i := 0; IsLessThan(i, GetArrayLength(GetValue(entry, "trades"))); i++ {
-				TestTrade(exchange, skippedNew, method, GetValue(GetValue(entry, "trades"), i), symbol, now)
+		if !IsEqual(GetValue(entry, "trades"), nil) {
+			for i := 0; i < GetArrayLength(GetValue(entry, "trades")); i++ {
+				TestTrade(exchange, skippedNew, method, GetValue(GetValue(entry, "trades"), i), symbol, now, false)
 			}
 		}
 	}

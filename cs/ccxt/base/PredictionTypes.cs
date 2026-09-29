@@ -313,7 +313,7 @@ public struct PredictionTickers
 
     public PredictionTickers(object tickers2)
     {
-        var tickers = (Dictionary<string, object>)tickers2;
+        var tickers = (IDictionary<string, object>)tickers2;
         info = Helper.GetInfo(tickers);
         this.tickers = new Dictionary<string, PredictionTicker>();
         foreach (var ticker in tickers)
@@ -374,6 +374,14 @@ public struct PredictionOutcome
     public Precision? precision;
     public Dictionary<string, object> info;
 
+
+    // venue-only source keys with no struct field; kept so the struct round-trips losslessly
+    public Dictionary<string, object>? extra;
+
+    private static readonly HashSet<string> PredictionOutcomeKeys = new HashSet<string> {
+        "outcome", "outcomeId", "label", "market", "marketId", "event", "price", "bid", "ask", "active", "winner", "settleFraction", "precision", "info",
+    };
+
     public PredictionOutcome(object outcome2)
     {
         var outcomeDict = (Dictionary<string, object>)outcome2;
@@ -391,6 +399,7 @@ public struct PredictionOutcome
         settleFraction = Exchange.SafeFloat(outcomeDict, "settleFraction");
         precision = Exchange.SafeValue(outcomeDict, "precision") != null ? new Precision(Exchange.SafeValue(outcomeDict, "precision")) : null;
         info = Helper.GetInfo(outcomeDict);
+        extra = Helper.GetExtra(outcomeDict, PredictionOutcomeKeys);
     }
 }
 
@@ -428,6 +437,14 @@ public struct PredictionMarket
     public string? image;
     public Dictionary<string, object> info;
 
+
+    // venue-only source keys with no struct field; kept so the struct round-trips losslessly
+    public Dictionary<string, object>? extra;
+
+    private static readonly HashSet<string> PredictionMarketKeys = new HashSet<string> {
+        "id", "market", "event", "marketType", "executionModel", "title", "description", "outcomes", "underlying", "floorStrike", "capStrike", "strikeType", "collateral", "active", "closed", "resolved", "resolvedOutcome", "settlementValue", "created", "createdDatetime", "end", "endDatetime", "volume", "liquidity", "openInterest", "tickSize", "limits", "fees", "resolutionSource", "image", "info",
+    };
+
     public PredictionMarket(object market2)
     {
         var marketDict = (Dictionary<string, object>)market2;
@@ -462,6 +479,7 @@ public struct PredictionMarket
         resolutionSource = Exchange.SafeString(marketDict, "resolutionSource");
         image = Exchange.SafeString(marketDict, "image");
         info = Helper.GetInfo(marketDict);
+        extra = Helper.GetExtra(marketDict, PredictionMarketKeys);
     }
 }
 
@@ -488,6 +506,14 @@ public struct PredictionEvent
     public string? url;
     public Dictionary<string, object> info;
 
+
+    // venue-only source keys with no struct field; kept so the struct round-trips losslessly
+    public Dictionary<string, object>? extra;
+
+    private static readonly HashSet<string> PredictionEventKeys = new HashSet<string> {
+        "id", "event", "title", "description", "slug", "category", "tags", "markets", "mutuallyExclusive", "active", "resolved", "volume", "liquidity", "created", "createdDatetime", "end", "endDatetime", "image", "url", "info",
+    };
+
     public PredictionEvent(object event2)
     {
         var eventDict = (Dictionary<string, object>)event2;
@@ -511,6 +537,7 @@ public struct PredictionEvent
         image = Exchange.SafeString(eventDict, "image");
         url = Exchange.SafeString(eventDict, "url");
         info = Helper.GetInfo(eventDict);
+        extra = Helper.GetExtra(eventDict, PredictionEventKeys);
     }
 }
 

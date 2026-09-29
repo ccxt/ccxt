@@ -92,7 +92,7 @@ class bydfi extends \ccxt\async\bydfi {
         );
     }
 
-    public function request_id() {
+    public function request_id(): float {
         $this->lock_id();
         $reqid = $this->sum($this->safe_integer($this->options, 'reqid', 0), 1);
         $this->options['reqid'] = $reqid;
@@ -100,79 +100,87 @@ class bydfi extends \ccxt\async\bydfi {
         return $reqid;
     }
 
-    public function watch_public(mixed $messageHashes, mixed $channels, $params = array(), $subscription = array()) {
-        return Async\async(function () use ($messageHashes, $channels, $params, $subscription) {
-            $url = $this->urls['api']['ws'];
-            $id = $this->request_id();
-            $subscriptionParams = array(
-                'id' => $id,
-            );
-            $unsubscribe = $this->safe_bool($params, 'unsubscribe', false);
-            $method = 'SUBSCRIBE';
-            if ($unsubscribe) {
-                $method = 'UNSUBSCRIBE';
-                $params = $this->omit($params, 'unsubscribe');
-                $subscriptionParams['unsubscribe'] = true;
-                $subscriptionParams['messageHashes'] = $messageHashes;
-            }
-            $message = array(
-                'id' => $id,
-                'method' => $method,
-                'params' => $channels,
-            );
-            return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($message, $params), $messageHashes, $this->extend($subscriptionParams, $subscription)));
-        })();
+    public function watch_public(array $messageHashes, ?array $channels, $params = array(), array $subscription = array()) {
+        return Async\async(self::do_watch_public(...))($messageHashes, $channels, $params, $subscription);
     }
 
-    public function watch_private(mixed $messageHashes, $params = array()) {
-        return Async\async(function () use ($messageHashes, $params) {
-            $this->check_required_credentials();
-            $url = $this->urls['api']['ws'];
-            $subHash = 'private';
-            $client = $this->client($url);
-            $privateSubscription = $this->safe_value($client->subscriptions, $subHash);
-            $subscription = array();
-            if ($privateSubscription === null) {
-                $id = $this->request_id();
-                $timestamp = (string) $this->milliseconds();
-                $payload = $this->apiKey . $timestamp;
-                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'hex');
-                $request = array(
-                    'id' => $id,
-                    'method' => 'LOGIN',
-                    'params' => array(
-                        'apiKey' => $this->apiKey,
-                        'timestamp' => $timestamp,
-                        'sign' => $signature,
-                    ),
-                );
-                $params = $this->deep_extend($request, $params);
-                $subscription['id'] = $id;
-            }
-            return Async\await($this->watch_multiple($url, $messageHashes, $params, array( 'private' ), $subscription));
-        })();
+    private function do_watch_public(array $messageHashes, ?array $channels, $params = array(), array $subscription = array()) {
+        $url = $this->urls['api']['ws'];
+        $id = $this->request_id();
+        $subscriptionParams = array(
+            'id' => $id,
+        );
+        $unsubscribe = $this->safe_bool($params, 'unsubscribe', false);
+        $method = 'SUBSCRIBE';
+        $paramsOmitted = ($unsubscribe === true) ? $this->omit($params, 'unsubscribe') : $params;
+        if ($unsubscribe === true) {
+            $method = 'UNSUBSCRIBE';
+            $subscriptionParams['unsubscribe'] = true;
+            $subscriptionParams['messageHashes'] = $messageHashes;
+        }
+        $message = array(
+            'id' => $id,
+            'method' => $method,
+            'params' => $channels,
+        );
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($message, $paramsOmitted), $messageHashes, $this->extend($subscriptionParams, $subscription)));
+    }
+
+    public function watch_private(array $messageHashes, $params = array()) {
+        return Async\async(self::do_watch_private(...))($messageHashes, $params);
+    }
+
+    private function do_watch_private(array $messageHashes, $params = array()) {
+        $this->check_required_credentials();
+        $url = $this->urls['api']['ws'];
+        $subHash = 'private';
+        $client = $this->client($url);
+        $privateSubscription = $this->safe_value($client->subscriptions, $subHash);
+        $subscription = array();
+        $paramsLogin = null;
+        if ($privateSubscription === null) {
+            $id = $this->request_id();
+            $timestamp = (string) $this->milliseconds();
+            $payload = $this->apiKey . $timestamp;
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'hex');
+            $request = array(
+                'id' => $id,
+                'method' => 'LOGIN',
+                'params' => array(
+                    'apiKey' => $this->apiKey,
+                    'timestamp' => $timestamp,
+                    'sign' => $signature,
+                ),
+            );
+            $paramsLogin = $this->deep_extend($request, $params);
+            $subscription['id'] = $id;
+        }
+        $paramsResolved = ($paramsLogin !== null) ? $paramsLogin : $params;
+        return Async\await($this->watch_multiple($url, $messageHashes, $paramsResolved, array( 'private' ), $subscription));
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://developers.bydfi.com/en/futures/websocket-$market#ticker-by-$symbol
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $marketId = $market['id'];
-            $messageHash = 'ticker::' . $symbol;
-            $channel = $marketId . '@ticker';
-            return Async\await($this->watch_public(array( $messageHash ), array( $channel ), $params));
-        })();
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://developers.bydfi.com/en/futures/websocket-$market#ticker-by-$symbol
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $marketId = $market['id'];
+        $messageHash = 'ticker::' . $symbol;
+        $channel = $marketId . '@ticker';
+        return Async\await($this->watch_public(array( $messageHash ), array( $channel ), $params));
     }
 
     public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -189,92 +197,96 @@ class bydfi extends \ccxt\async\bydfi {
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             *
-             * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-$symbol
-             * @see https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
-             *
-             * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         *
+         * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-$symbol
+         * @see https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
+         *
+         * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols, null, true);
+        $messageHashes = array();
+        $messageHash = 'ticker::';
+        $channels = array();
+        $channel = '@ticker';
+        if ($symbolsNormalized === null) {
+            $messageHashes[] = $messageHash . 'all';
+            $channels[] = '!ticker@arr';
+        } else {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $symbol = $symbolsNormalized[$i];
+                $marketId = $this->market_id($symbol);
+                $messageHashes[] = $messageHash . $symbol;
+                $channels[] = $marketId . $channel;
             }
-            $symbols = $this->market_symbols($symbols, null, true);
-            $messageHashes = array();
-            $messageHash = 'ticker::';
-            $channels = array();
-            $channel = '@ticker';
-            if ($symbols === null) {
-                $messageHashes[] = $messageHash . 'all';
-                $channels[] = '!ticker@arr';
-            } else {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
-                    $marketId = $this->market_id($symbol);
-                    $messageHashes[] = $messageHash . $symbol;
-                    $channels[] = $marketId . $channel;
-                }
-            }
-            Async\await($this->watch_public($messageHashes, $channels, $params));
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        })();
+        }
+        Async\await($this->watch_public($messageHashes, $channels, $params));
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
     }
 
     public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             *
-             * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-$symbol
-             * @see https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
-             *
-             * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            $symbols = $this->market_symbols($symbols, null, true);
-            $messageHashes = array();
-            $messageHash = 'unsubscribe::ticker::';
-            $channels = array();
-            $channel = '@ticker';
-            $subscription = array(
-                'topic' => 'ticker',
-            );
-            if ($symbols === null) {
-                // all tickers and tickers for specific $symbols are different $channels
-                // we need to unsubscribe from all ticker $channels
-                $subHashes = $this->get_message_hashes_for_tickers_unsubscription();
-                $subscription['subHashIsPrefix'] = true;
-                for ($i = 0; $i < count($subHashes); $i++) {
-                    $subHash = $this->safe_string($subHashes, $i);
-                    if ($subHash !== null) {
-                        $parts = explode('::', $subHash);
-                        $symbol = $this->safe_string($parts, 1);
-                        if ($symbol === 'all') {
-                            continue;
-                        }
-                        $marketId = $this->market_id($symbol);
-                        $channels[] = $marketId . $channel;
+        return Async\async(self::do_un_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_un_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         *
+         * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-$symbol
+         * @see https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
+         *
+         * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        $symbolsNormalized = $this->market_symbols($symbols, null, true);
+        $messageHashes = array();
+        $messageHash = 'unsubscribe::ticker::';
+        $channels = array();
+        $channel = '@ticker';
+        $subscription = array(
+            'topic' => 'ticker',
+        );
+        if ($symbolsNormalized === null) {
+            // all tickers and tickers for specific symbols are different channels
+            // we need to unsubscribe from all ticker channels
+            $subHashes = $this->get_message_hashes_for_tickers_unsubscription();
+            $subscription['subHashIsPrefix'] = true;
+            for ($i = 0; $i < count($subHashes); $i++) {
+                $subHash = $this->safe_string($subHashes, $i);
+                if ($subHash !== null) {
+                    $parts = explode('::', $subHash);
+                    $symbol = $this->safe_string($parts, 1);
+                    if ($symbol === 'all') {
+                        continue;
                     }
-                }
-                $messageHashes[] = $messageHash;
-                $channels[] = '!ticker@arr';
-            } else {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
                     $marketId = $this->market_id($symbol);
-                    $messageHashes[] = $messageHash . $symbol;
                     $channels[] = $marketId . $channel;
                 }
-                $subscription['symbols'] = $symbols;
             }
-            $params = $this->extend($params, array( 'unsubscribe' => true ));
-            return Async\await($this->watch_public($messageHashes, $channels, $params, $subscription));
-        })();
+            $messageHashes[] = $messageHash;
+            $channels[] = '!ticker@arr';
+        } else {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $symbol = $symbolsNormalized[$i];
+                $marketId = $this->market_id($symbol);
+                $messageHashes[] = $messageHash . $symbol;
+                $channels[] = $marketId . $channel;
+            }
+            $subscription['symbols'] = $symbolsNormalized;
+        }
+        $paramsExtended = $this->extend($params, array( 'unsubscribe' => true ));
+        return Async\await($this->watch_public($messageHashes, $channels, $paramsExtended, $subscription));
     }
 
     public function get_message_hashes_for_tickers_unsubscription() {
@@ -292,17 +304,17 @@ class bydfi extends \ccxt\async\bydfi {
         return $messageHashes;
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
-        //         "s" => "KAS-USDT",
-        //         "c" => 0.04543,
-        //         "e" => "24hrTicker",
-        //         "E" => 1766528295905,
-        //         "v" => 98278925,
-        //         "h" => 0.04685,
-        //         "l" => 0.04404,
-        //         "o" => 0.04657
+        //         "s": "KAS-USDT",
+        //         "c": 0.04543,
+        //         "e": "24hrTicker",
+        //         "E": 1766528295905,
+        //         "v": 98278925,
+        //         "h": 0.04685,
+        //         "l": 0.04404,
+        //         "o": 0.04657
         //     }
         //
         $ticker = $this->parse_ticker($message);
@@ -313,23 +325,25 @@ class bydfi extends \ccxt\async\bydfi {
         $client->resolve($this->tickers, 'ticker::all');
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, close price, and the volume of a market
-             *
-             * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
-            return $result[$symbol][$timeframe];
-        })();
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+         *
+         * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
+        return $result[$symbol][$timeframe];
     }
 
     public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
@@ -341,99 +355,104 @@ class bydfi extends \ccxt\async\bydfi {
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         return $this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params);
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
-             *
-             * @see https://developers.bydfi.com/en/futures/websocket-$market#candlestick-data
-             *
-             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and $timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of $candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
-             */
-            $symbolsLength = count($symbolsAndTimeframes);
-            if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
-                throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and $timeframes, like  ['ETH/USDC', '1m']");
-            }
-            Async\await($this->load_markets());
-            $channels = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-                $symbolAndTimeframe = $symbolsAndTimeframes[$i];
-                $marketId = $this->safe_string($symbolAndTimeframe, 0);
-                $market = $this->market($marketId);
-                $tf = $this->safe_string($symbolAndTimeframe, 1);
-                $timeframes = $this->safe_dict($this->options, 'timeframes', array());
-                $interval = $this->safe_string($timeframes, $tf, $tf);
-                $channels[] = $market['id'] . '@kline_' . $interval;
-                $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $interval;
-            }
-            list($symbol, $timeframe, $candles) = Async\await($this->watch_public($messageHashes, $channels, $params));
-            if ($this->newUpdates) {
-                $limit = $candles->getLimit($symbol, $limit);
-            }
-            $filtered = $this->filter_by_since_limit($candles, $since, $limit, 0, true);
-            return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
-        })();
+        return Async\async(self::do_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
+         *
+         * @see https://developers.bydfi.com/en/futures/websocket-$market#candlestick-data
+         *
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and $timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of $candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         */
+        $symbolsLength = count($symbolsAndTimeframes);
+        if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
+            throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
+        }
+        Async\await($this->load_markets());
+        $channels = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+            $symbolAndTimeframe = $this->safe_list($symbolsAndTimeframes, $i);
+            $marketId = $this->safe_string($symbolAndTimeframe, 0);
+            $market = $this->market($marketId);
+            $tf = $this->safe_string($symbolAndTimeframe, 1);
+            $timeframes = $this->safe_dict($this->options, 'timeframes', array());
+            $interval = $this->safe_string($timeframes, $tf, $tf);
+            $channels[] = $market['id'] . '@kline_' . $interval;
+            $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $interval;
+        }
+        list($symbol, $timeframe, $candles) = Async\await($this->watch_public($messageHashes, $channels, $params));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $candles->getLimit($symbol, $limit);
+        }
+        $filtered = $this->filter_by_since_limit($candles, $since, $limitResolved, 0, true);
+        return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
     }
 
     public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbolsAndTimeframes, $params) {
-            /**
-             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://developers.bydfi.com/en/futures/websocket-$market#candlestick-data
-             *
-             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            $symbolsLength = count($symbolsAndTimeframes);
-            if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
-                throw new ArgumentsRequired($this->id . " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
-            }
-            Async\await($this->load_markets());
-            $channels = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-                $symbolAndTimeframe = $symbolsAndTimeframes[$i];
-                $marketId = $this->safe_string($symbolAndTimeframe, 0);
-                $market = $this->market($marketId);
-                $tf = $this->safe_string($symbolAndTimeframe, 1);
-                $interval = $this->safe_string($this->timeframes, $tf, $tf);
-                $channels[] = $market['id'] . '@kline_' . $interval;
-                $messageHashes[] = 'unsubscribe::ohlcv::' . $market['symbol'] . '::' . $interval;
-            }
-            $params = $this->extend($params, array( 'unsubscribe' => true ));
-            $subscription = array(
-                'topic' => 'ohlcv',
-                'symbolsAndTimeframes' => $symbolsAndTimeframes,
-            );
-            return Async\await($this->watch_public($messageHashes, $channels, $params, $subscription));
-        })();
+        return Async\async(self::do_un_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $params);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    private function do_un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()) {
+        /**
+         * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://developers.bydfi.com/en/futures/websocket-$market#candlestick-data
+         *
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        $symbolsLength = count($symbolsAndTimeframes);
+        if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
+            throw new ArgumentsRequired($this->id . " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
+        }
+        Async\await($this->load_markets());
+        $channels = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+            $symbolAndTimeframe = $this->safe_list($symbolsAndTimeframes, $i);
+            $marketId = $this->safe_string($symbolAndTimeframe, 0);
+            $market = $this->market($marketId);
+            $tf = $this->safe_string($symbolAndTimeframe, 1);
+            $interval = $this->safe_string($this->timeframes, $tf, $tf);
+            $channels[] = $market['id'] . '@kline_' . $interval;
+            $messageHashes[] = 'unsubscribe::ohlcv::' . $market['symbol'] . '::' . $interval;
+        }
+        $paramsExtended = $this->extend($params, array( 'unsubscribe' => true ));
+        $subscription = array(
+            'topic' => 'ohlcv',
+            'symbolsAndTimeframes' => $symbolsAndTimeframes,
+        );
+        return Async\await($this->watch_public($messageHashes, $channels, $paramsExtended, $subscription));
+    }
+
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
-        //         "s" => "ETH-USDC",
-        //         "c" => 2956.13,
-        //         "t" => 1766506860000,
-        //         "T" => 1766506920000,
-        //         "e" => "kline",
-        //         "v" => 3955,
-        //         "h" => 2956.41,
-        //         "i" => "1m",
-        //         "l" => 2956.05,
-        //         "o" => 2956.05
+        //         "s": "ETH-USDC",
+        //         "c": 2956.13,
+        //         "t": 1766506860000,
+        //         "T": 1766506920000,
+        //         "e": "kline",
+        //         "v": 3955,
+        //         "h": 2956.41,
+        //         "i": "1m",
+        //         "l": 2956.05,
+        //         "o": 2956.05
         //     }
         //
         $marketId = $this->safe_string($message, 's');
@@ -485,91 +504,95 @@ class bydfi extends \ccxt\async\bydfi {
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://developers.bydfi.com/en/futures/websocket-$market#limited-$depth-information
-             *
-             * @param {string[]} $symbols unified array of $symbols
-             * @param {int} [$limit] the maximum amount of order book entries to return (default and max is 100)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols, null, false);
-            $depth = '100';
-            list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'depth', $depth);
-            $frequency = '100ms';
-            list($frequency, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'frequency', $frequency);
-            $channelSuffix = '';
-            if ($frequency === '100ms') {
-                $channelSuffix = '@100ms';
-            }
-            $channels = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $channels[] = $market['id'] . '@depth' . $depth . $channelSuffix;
-                $messageHashes[] = 'orderbook::' . $symbol;
-            }
-            $orderbook = Async\await($this->watch_public($messageHashes, $channels, $params));
-            return $orderbook->limit();
-        })();
+        return Async\async(self::do_watch_order_book_for_symbols(...))($symbols, $limit, $params);
+    }
+
+    private function do_watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://developers.bydfi.com/en/futures/websocket-$market#limited-$depth-information
+         *
+         * @param {string[]} $symbols unified array of $symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return (default and max is 100)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
+        $depth = '100';
+        list($depthOption, $paramsDepth) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'depth', $depth);
+        $frequency = '100ms';
+        list($frequencyOption, $paramsFrequency) = $this->handle_option_string_and_params($paramsDepth, 'watchOrderBookForSymbols', 'frequency', $frequency);
+        $channelSuffix = '';
+        if ($frequencyOption === '100ms') {
+            $channelSuffix = '@100ms';
+        }
+        $channels = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
+            $market = $this->market($symbol);
+            $channels[] = $market['id'] . '@depth' . $depthOption . $channelSuffix;
+            $messageHashes[] = 'orderbook::' . $symbol;
+        }
+        $orderbook = Async\await($this->watch_public($messageHashes, $channels, $paramsFrequency));
+        return $orderbook->limit();
     }
 
     public function un_watch_order_book_for_symbols(array $symbols, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://developers.bydfi.com/en/futures/websocket-$market#limited-$depth-information
-             *
-             * @param {string[]} $symbols unified array of $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols, null, false);
-            $depth = '100';
-            list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'depth', $depth);
-            $frequency = '100ms';
-            list($frequency, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'frequency', $frequency);
-            $channelSuffix = '';
-            if ($frequency === '100ms') {
-                $channelSuffix = '@100ms';
-            }
-            $channels = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $channels[] = $market['id'] . '@depth' . $depth . $channelSuffix;
-                $messageHashes[] = 'unsubscribe::orderbook::' . $symbol;
-            }
-            $subscription = array(
-                'topic' => 'orderbook',
-                'symbols' => $symbols,
-            );
-            $params = $this->extend($params, array( 'unsubscribe' => true ));
-            return Async\await($this->watch_public($messageHashes, $channels, $params, $subscription));
-        })();
+        return Async\async(self::do_un_watch_order_book_for_symbols(...))($symbols, $params);
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    private function do_un_watch_order_book_for_symbols(array $symbols, $params = array()) {
+        /**
+         * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://developers.bydfi.com/en/futures/websocket-$market#limited-$depth-information
+         *
+         * @param {string[]} $symbols unified array of $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
+        $depth = '100';
+        list($depthOption, $paramsDepth) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'depth', $depth);
+        $frequency = '100ms';
+        list($frequencyOption, $paramsFrequency) = $this->handle_option_string_and_params($paramsDepth, 'watchOrderBookForSymbols', 'frequency', $frequency);
+        $channelSuffix = '';
+        if ($frequencyOption === '100ms') {
+            $channelSuffix = '@100ms';
+        }
+        $channels = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
+            $market = $this->market($symbol);
+            $channels[] = $market['id'] . '@depth' . $depthOption . $channelSuffix;
+            $messageHashes[] = 'unsubscribe::orderbook::' . $symbol;
+        }
+        $subscription = array(
+            'topic' => 'orderbook',
+            'symbols' => $symbolsNormalized,
+        );
+        $paramsExtended = $this->extend($paramsFrequency, array( 'unsubscribe' => true ));
+        return Async\await($this->watch_public($messageHashes, $channels, $paramsExtended, $subscription));
+    }
+
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
-        //         "a" => array( array( 150000, 15 ), ... ),
-        //         "b" => array( array( 90450.7, 3615 ), ... ),
-        //         "s" => "BTC-USDT",
-        //         "e" => "depthUpdate",
-        //         "E" => 1766577624512
+        //         "a": [ [ 150000, 15 ], ... ],
+        //         "b": [ [ 90450.7, 3615 ], ... ],
+        //         "s": "BTC-USDT",
+        //         "e": "depthUpdate",
+        //         "E": 1766577624512
         //     }
         //
         $marketId = $this->safe_string($message, 's');
@@ -587,88 +610,93 @@ class bydfi extends \ccxt\async\bydfi {
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple orders made by the user
-             *
-             * @see https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push
-             *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $symbols = null;
-            if ($symbol !== null) {
-                $symbols = array( $symbol );
-            }
-            return Async\await($this->watch_orders_for_symbols($symbols, $since, $limit, $params));
-        })();
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple orders made by the user
+         *
+         * @see https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push
+         *
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $symbols = null;
+        if ($symbol !== null) {
+            $symbols = array( $symbol );
+        }
+        return Async\await($this->watch_orders_for_symbols($symbols, $since, $limit, $params));
     }
 
     public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             *
-             * @see https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push
-             *
-             * @param {string[]} $symbols unified $symbol of the market to fetch $orders for
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols, null, true);
-            $messageHashes = array();
-            if ($symbols === null) {
-                $messageHashes[] = 'orders';
-            } else {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
-                    $messageHashes[] = 'orders::' . $symbol;
-                }
-            }
-            $orders = Async\await($this->watch_private($messageHashes, $params));
-            if ($this->newUpdates) {
-                $first = $this->safe_value($orders, 0);
-                $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $orders->getLimit($tradeSymbol, $limit);
-            }
-            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_orders_for_symbols(...))($symbols, $since, $limit, $params);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    private function do_watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         *
+         * @see https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push
+         *
+         * @param {string[]} $symbols unified $symbol of the market to fetch $orders for
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols, null, true);
+        $messageHashes = array();
+        if ($symbolsNormalized === null) {
+            $messageHashes[] = 'orders';
+        } else {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $symbol = $symbolsNormalized[$i];
+                $messageHashes[] = 'orders::' . $symbol;
+            }
+        }
+        $orders = Async\await($this->watch_private($messageHashes, $params));
+        $first = $this->safe_dict($orders, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $orders->getLimit($tradeSymbol, $limit);
+        }
+        return $this->filter_by_since_limit($orders, $since, $limitResolved, 'timestamp', true);
+    }
+
+    public function handle_order(Client $client, array $message) {
         //
         //     {
-        //         "T" => 1766588450558,
-        //         "E" => 1766588450685,
-        //         "e" => "ORDER_TRADE_UPDATE",
-        //         "o" => {
-        //             "S" => "BUY",
-        //             "ap" => "0",
-        //             "cpt" => false,
-        //             "ct" => "future",
-        //             "ev" => "0",
-        //             "fee" => "0",
-        //             "lv" => 2,
-        //             "mt" => "isolated",
-        //             "o" => "7409609004526010368",
-        //             "p" => "1000",
-        //             "ps" => "BOTH",
-        //             "pt" => "ONE_WAY",
-        //             "ro" => false,
-        //             "s" => "ETH-USDC",
-        //             "st" => "NEW",
-        //             "t" => "LIMIT",
-        //             "tp" => "0",
-        //             "u" => "0.001",
-        //             "v" => "2"
+        //         "T": 1766588450558,
+        //         "E": 1766588450685,
+        //         "e": "ORDER_TRADE_UPDATE",
+        //         "o": {
+        //             "S": "BUY",
+        //             "ap": "0",
+        //             "cpt": false,
+        //             "ct": "future",
+        //             "ev": "0",
+        //             "fee": "0",
+        //             "lv": 2,
+        //             "mt": "isolated",
+        //             "o": "7409609004526010368",
+        //             "p": "1000",
+        //             "ps": "BOTH",
+        //             "pt": "ONE_WAY",
+        //             "ro": false,
+        //             "s": "ETH-USDC",
+        //             "st": "NEW",
+        //             "t": "LIMIT",
+        //             "tp": "0",
+        //             "u": "0.001",
+        //             "v": "2"
         //         }
         //     }
         //
@@ -694,29 +722,29 @@ class bydfi extends \ccxt\async\bydfi {
     public function parse_ws_order(array $order, ?array $market = null): array {
         //
         //     {
-        //         "S" => "BUY",
-        //         "ap" => "0",
-        //         "cpt" => false,
-        //         "ct" => "future",
-        //         "ev" => "0",
-        //         "fee" => "0",
-        //         "lv" => 2,
-        //         "mt" => "isolated",
-        //         "o" => "7409609004526010368",
-        //         "p" => "1000",
-        //         "ps" => "BOTH",
-        //         "pt" => "ONE_WAY",
-        //         "ro" => false,
-        //         "s" => "ETH-USDC",
-        //         "st" => "NEW",
-        //         "t" => "LIMIT",
-        //         "tp" => "0",
-        //         "u" => "0.001",
-        //         "v" => "2"
+        //         "S": "BUY",
+        //         "ap": "0",
+        //         "cpt": false,
+        //         "ct": "future",
+        //         "ev": "0",
+        //         "fee": "0",
+        //         "lv": 2,
+        //         "mt": "isolated",
+        //         "o": "7409609004526010368",
+        //         "p": "1000",
+        //         "ps": "BOTH",
+        //         "pt": "ONE_WAY",
+        //         "ro": false,
+        //         "s": "ETH-USDC",
+        //         "st": "NEW",
+        //         "t": "LIMIT",
+        //         "tp": "0",
+        //         "u": "0.001",
+        //         "v": "2"
         //     }
         //
         $marketId = $this->safe_string($order, 's');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $rawStatus = $this->safe_string($order, 'st');
         $rawType = $this->safe_string($order, 't');
         $fee = null;
@@ -724,7 +752,7 @@ class bydfi extends \ccxt\async\bydfi {
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => Precise::string_abs($feeCost),
-                'currency' => $market['quote'],
+                'currency' => $marketResolved['quote'],
             );
         }
         return $this->safe_order(array(
@@ -736,7 +764,7 @@ class bydfi extends \ccxt\async\bydfi {
             'lastTradeTimestamp' => null,
             'lastUpdateTimestamp' => null,
             'status' => $this->parse_order_status($rawStatus),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $this->parseOrderType($rawType),
             'timeInForce' => null,
             'postOnly' => null,
@@ -753,83 +781,85 @@ class bydfi extends \ccxt\async\bydfi {
             'trades' => null,
             'fee' => $fee,
             'average' => $this->omit_zero($this->safe_string($order, 'ap')),
-        ), $market);
+        ), $marketResolved);
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * watch all open $positions
-             *
-             * @see https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push
-             *
-             * @param {string[]} [$symbols] list of unified market $symbols
-             * @param {int} [$since] the earliest time in ms to fetch $positions for
-             * @param {int} [$limit] the maximum number of $positions to retrieve
-             * @param {array} $params extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols, null, true);
-            $messageHashes = array();
-            $messageHash = 'positions';
-            if ($symbols === null) {
-                $messageHashes[] = $messageHash;
-            } else {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
-                    $messageHashes[] = $messageHash . '::' . $symbol;
-                }
-            }
-            $positions = Async\await($this->watch_private($messageHashes, $params));
-            if ($this->newUpdates) {
-                return $positions;
-            }
-            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_positions(...))($symbols, $since, $limit, $params);
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watch all open $positions
+         *
+         * @see https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {int} [$since] the earliest time in ms to fetch $positions for
+         * @param {int} [$limit] the maximum number of $positions to retrieve
+         * @param {array} $params extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols, null, true);
+        $messageHashes = array();
+        $messageHash = 'positions';
+        if ($symbolsNormalized === null) {
+            $messageHashes[] = $messageHash;
+        } else {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $symbol = $symbolsNormalized[$i];
+                $messageHashes[] = $messageHash . '::' . $symbol;
+            }
+        }
+        $positions = Async\await($this->watch_private($messageHashes, $params));
+        if ($this->newUpdates) {
+            return $positions;
+        }
+        return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
+    }
+
+    public function handle_positions(Client $client, array $message) {
         //
         //     {
-        //         "a" => {
-        //             "B" => array(
+        //         "a": {
+        //             "B": [
         //                 {
-        //                     "a" => "USDC",
-        //                     "ba" => "0",
-        //                     "im" => "1.46282986",
-        //                     "om" => "0",
-        //                     "tfm" => "1.46282986",
-        //                     "wb" => "109.86879703"
+        //                     "a": "USDC",
+        //                     "ba": "0",
+        //                     "im": "1.46282986",
+        //                     "om": "0",
+        //                     "tfm": "1.46282986",
+        //                     "wb": "109.86879703"
         //                 }
-        //             ),
-        //             "m" => "ORDER",
-        //             "p" => array(
-        //                 array(
-        //                     "S" => "1",
-        //                     "ap" => "2925.81666667",
-        //                     "c" => "USDC",
-        //                     "ct" => "FUTURE",
-        //                     "l" => 2,
-        //                     "lq" => "1471.1840621072728637",
-        //                     "lv" => "0",
-        //                     "ma" => "0",
-        //                     "mt" => "ISOLATED",
-        //                     "pm" => "1.4628298566666665",
-        //                     "pt" => "ONEWAY",
-        //                     "rp" => "-0.00036721",
-        //                     "s" => "ETH-USDC",
-        //                     "t" => "0",
-        //                     "uq" => "0.001",
-        //                     "v" => "1"
+        //             ],
+        //             "m": "ORDER",
+        //             "p": [
+        //                 {
+        //                     "S": "1",
+        //                     "ap": "2925.81666667",
+        //                     "c": "USDC",
+        //                     "ct": "FUTURE",
+        //                     "l": 2,
+        //                     "lq": "1471.1840621072728637",
+        //                     "lv": "0",
+        //                     "ma": "0",
+        //                     "mt": "ISOLATED",
+        //                     "pm": "1.4628298566666665",
+        //                     "pt": "ONEWAY",
+        //                     "rp": "-0.00036721",
+        //                     "s": "ETH-USDC",
+        //                     "t": "0",
+        //                     "uq": "0.001",
+        //                     "v": "1"
         //                 }
-        //             )
-        //         ),
-        //         "T" => 1766592694451,
-        //         "E" => 1766592694554,
-        //         "e" => "ACCOUNT_UPDATE"
+        //             ]
+        //         },
+        //         "T": 1766592694451,
+        //         "E": 1766592694554,
+        //         "e": "ACCOUNT_UPDATE"
         //     }
         //
         $data = $this->safe_dict($message, 'a', array());
@@ -853,35 +883,35 @@ class bydfi extends \ccxt\async\bydfi {
         $client->resolve(array( $parsedPosition ), $symbolMessageHash);
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null) {
+    public function parse_ws_position(array $position, ?array $market = null): array {
         //
         //     {
-        //         "S" => "1",
-        //         "ap" => "2925.81666667",
-        //         "c" => "USDC",
-        //         "ct" => "FUTURE",
-        //         "l" => 2,
-        //         "lq" => "1471.1840621072728637",
-        //         "lv" => "0",
-        //         "ma" => "0",
-        //         "mt" => "ISOLATED",
-        //         "pm" => "1.4628298566666665",
-        //         "pt" => "ONEWAY",
-        //         "rp" => "-0.00036721",
-        //         "s" => "ETH-USDC",
-        //         "t" => "0",
-        //         "uq" => "0.001",
-        //         "v" => "1"
+        //         "S": "1",
+        //         "ap": "2925.81666667",
+        //         "c": "USDC",
+        //         "ct": "FUTURE",
+        //         "l": 2,
+        //         "lq": "1471.1840621072728637",
+        //         "lv": "0",
+        //         "ma": "0",
+        //         "mt": "ISOLATED",
+        //         "pm": "1.4628298566666665",
+        //         "pt": "ONEWAY",
+        //         "rp": "-0.00036721",
+        //         "s": "ETH-USDC",
+        //         "t": "0",
+        //         "uq": "0.001",
+        //         "v": "1"
         //     }
         //
         $marketId = $this->safe_string($position, 's');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $rawPositionSide = $this->safe_string($position, 'S');
         $positionMode = $this->safe_string($position, 'pt');
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'entryPrice' => $this->parse_number($this->safe_string($position, 'ap')),
             'markPrice' => null,
             'lastPrice' => null,
@@ -917,36 +947,38 @@ class bydfi extends \ccxt\async\bydfi {
     }
 
     public function watch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * watch balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $url = $this->urls['api']['ws'];
-            $client = $this->client($url);
-            $this->fetch_balance_snapshot($client);
-            $options = $this->safe_dict($this->options, 'watchBalance');
-            $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
-            $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
-            if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
-                Async\await($client->future('fetchBalanceSnapshot'));
-            }
-            $messageHash = 'balance';
-            return Async\await($this->watch_private(array( $messageHash ), $params));
-        })();
+        return Async\async(self::do_watch_balance(...))($params);
+    }
+
+    private function do_watch_balance($params = array()) {
+        /**
+         * watch balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $url = $this->urls['api']['ws'];
+        $client = $this->client($url);
+        $this->fetch_balance_snapshot($client);
+        $options = $this->safe_dict($this->options, 'watchBalance');
+        $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
+        $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
+        if (($fetchBalanceSnapshot === true) && ($awaitBalanceSnapshot === true)) {
+            Async\await($client->future('fetchBalanceSnapshot'));
+        }
+        $messageHash = 'balance';
+        return Async\await($this->watch_private(array( $messageHash ), $params));
     }
 
     public function fetch_balance_snapshot(Client $client) {
-        $options = $this->safe_value($this->options, 'watchBalance');
+        $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
-        if ($fetchBalanceSnapshot) {
+        if ($fetchBalanceSnapshot === true) {
             $messageHash = 'fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -955,59 +987,61 @@ class bydfi extends \ccxt\async\bydfi {
         }
     }
 
-    public function load_balance_snapshot(Client $client, mixed $messageHash) {
-        return Async\async(function () use ($client, $messageHash) {
-            $params = array(
-                'type' => 'swap',
-            );
-            $response = Async\await($this->fetch_balance($params));
-            $this->balance = $this->extend($response, $this->balance);
-            // don't remove the $future from the .futures cache
-            $future = $client->futures[$messageHash];
-            $future->resolve();
-            $client->resolve($this->balance, 'balance');
-        })();
+    public function load_balance_snapshot(Client $client, string $messageHash) {
+        return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash);
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    private function do_load_balance_snapshot(Client $client, string $messageHash) {
+        $params = array(
+            'type' => 'swap',
+        );
+        $response = Async\await($this->fetch_balance($params));
+        $this->balance = $this->extend($response, $this->balance);
+        // don't remove the future from the .futures cache
+        $future = $client->futures[$messageHash];
+        $future->resolve();
+        $client->resolve($this->balance, 'balance');
+    }
+
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
-        //         "a" => {
-        //             "B" => array(
+        //         "a": {
+        //             "B": [
         //                 {
-        //                     "a" => "USDC",
-        //                     "ba" => "0",
-        //                     "im" => "1.46282986",
-        //                     "om" => "0",
-        //                     "tfm" => "1.46282986",
-        //                     "wb" => "109.86879703"
+        //                     "a": "USDC",
+        //                     "ba": "0",
+        //                     "im": "1.46282986",
+        //                     "om": "0",
+        //                     "tfm": "1.46282986",
+        //                     "wb": "109.86879703"
         //                 }
-        //             ),
-        //             "m" => "ORDER",
-        //             "p" => array(
-        //                 array(
-        //                     "S" => "1",
-        //                     "ap" => "2925.81666667",
-        //                     "c" => "USDC",
-        //                     "ct" => "FUTURE",
-        //                     "l" => 2,
-        //                     "lq" => "1471.1840621072728637",
-        //                     "lv" => "0",
-        //                     "ma" => "0",
-        //                     "mt" => "ISOLATED",
-        //                     "pm" => "1.4628298566666665",
-        //                     "pt" => "ONEWAY",
-        //                     "rp" => "-0.00036721",
-        //                     "s" => "ETH-USDC",
-        //                     "t" => "0",
-        //                     "uq" => "0.001",
-        //                     "v" => "1"
+        //             ],
+        //             "m": "ORDER",
+        //             "p": [
+        //                 {
+        //                     "S": "1",
+        //                     "ap": "2925.81666667",
+        //                     "c": "USDC",
+        //                     "ct": "FUTURE",
+        //                     "l": 2,
+        //                     "lq": "1471.1840621072728637",
+        //                     "lv": "0",
+        //                     "ma": "0",
+        //                     "mt": "ISOLATED",
+        //                     "pm": "1.4628298566666665",
+        //                     "pt": "ONEWAY",
+        //                     "rp": "-0.00036721",
+        //                     "s": "ETH-USDC",
+        //                     "t": "0",
+        //                     "uq": "0.001",
+        //                     "v": "1"
         //                 }
-        //             )
-        //         ),
-        //         "T" => 1766592694451,
-        //         "E" => 1766592694554,
-        //         "e" => "ACCOUNT_UPDATE"
+        //             ]
+        //         },
+        //         "T": 1766592694451,
+        //         "E": 1766592694554,
+        //         "e": "ACCOUNT_UPDATE"
         //     }
         //
         $messageHash = 'balance';
@@ -1021,7 +1055,7 @@ class bydfi extends \ccxt\async\bydfi {
                 'datetime' => $this->iso8601($timestamp),
             );
             for ($i = 0; $i < count($balances); $i++) {
-                $balance = $balances[$i];
+                $balance = $this->safe_dict($balances, $i);
                 $currencyId = $this->safe_string($balance, 'a');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
@@ -1037,18 +1071,18 @@ class bydfi extends \ccxt\async\bydfi {
         }
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //     {
-        //         "result" => true,
-        //         "id" => 1
+        //         "result": true,
+        //         "id": 1
         //     }
         //
         $id = $this->safe_string($message, 'id');
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_dict($subscriptionsById, $id, array());
         $isUnSubMessage = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($isUnSubMessage) {
+        if ($isUnSubMessage === true) {
             $this->handle_un_subscription($client, $subscription);
         }
         return $message;
@@ -1065,22 +1099,22 @@ class bydfi extends \ccxt\async\bydfi {
         $this->clean_cache($subscription);
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
         //     {
-        //         "id" => 1,
-        //         "result" => "pong"
+        //         "id": 1,
+        //         "result": "pong"
         //     }
         //
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, array $message) {
         //
         //     {
-        //         "msg" => "Service error",
-        //         "code" => "-1"
+        //         "msg": "Service error",
+        //         "code": "-1"
         //     }
         //
         $code = $this->safe_string($message, 'code');
@@ -1092,7 +1126,7 @@ class bydfi extends \ccxt\async\bydfi {
         throw new ExchangeError($feedback);
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $code = $this->safe_string($message, 'code');
         if ($code !== null && ($code !== '0')) {
             $this->handle_error_message($client, $message);

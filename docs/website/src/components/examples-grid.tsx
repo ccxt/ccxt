@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { IconType } from 'react-icons';
-import { SiJavascript, SiPython, SiTypescript, SiPhp, SiGo } from 'react-icons/si';
+import { SiJavascript, SiPython, SiTypescript, SiPhp, SiGo, SiRust } from 'react-icons/si';
 import { TbBrandCSharp } from 'react-icons/tb';
 import { DiJava } from 'react-icons/di';
 
@@ -13,6 +13,9 @@ const LANGS: { id: string; name: string; blurb: string; Icon: IconType; color: s
   { id: 'cs', name: 'C#', blurb: '.NET examples', Icon: TbBrandCSharp, color: '#9B4F96' },
   { id: 'go', name: 'Go', blurb: 'Go modules', Icon: SiGo, color: '#00ADD8' },
   { id: 'java', name: 'Java', blurb: 'Java (JVM)', Icon: DiJava, color: '#E76F00' },
+  // Rust's brand mark is black/near-black — unreadable on the dark theme, so tint the
+  // card with the community orange (#DEA584, the rust-lang.org accent) like the others.
+  { id: 'rust', name: 'Rust', blurb: 'async Rust (Tokio)', Icon: SiRust, color: '#DEA584' },
 ];
 
 export function ExamplesGrid() {

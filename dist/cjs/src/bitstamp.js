@@ -47,6 +47,7 @@ class bitstamp extends bitstamp$1["default"] {
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -66,8 +67,8 @@ class bitstamp extends bitstamp$1["default"] {
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
-                'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
@@ -158,276 +159,287 @@ class bitstamp extends bitstamp$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'ohlc/{pair}/': 1,
-                        'order_book/{pair}/': 1,
-                        'ticker/': 1,
-                        'ticker_hour/{pair}/': 1,
-                        'ticker/{pair}/': 1,
-                        'transactions/{pair}/': 1,
-                        'trading-pairs-info/': 1,
-                        'markets/': 1,
-                        'currencies/': 1,
-                        'eur_usd/': 1,
-                        'travel_rule/vasps/': 1,
-                        'funding_rate/{market_symbol}/': 1,
-                        'funding_rate_history/{pair}/': 1,
+                        'ohlc/{pair}/': { 'cost': 1 },
+                        'order_book/{pair}/': { 'cost': 1 },
+                        'ticker/': { 'cost': 1 },
+                        'ticker_hour/{pair}/': { 'cost': 1 },
+                        'ticker/{pair}/': { 'cost': 1 },
+                        'transactions/{pair}/': { 'cost': 1 },
+                        'trading-pairs-info/': { 'cost': 1 },
+                        'markets/': { 'cost': 1 },
+                        'currencies/': { 'cost': 1 },
+                        'eur_usd/': { 'cost': 1 },
+                        'travel_rule/vasps/': { 'cost': 1 },
+                        'funding_rate/{market_symbol}/': { 'cost': 1 },
+                        'funding_rate_history/{pair}/': { 'cost': 1 },
+                        'derivatives/market_hours/': { 'cost': 1 },
+                        'derivatives/market_hours/{market_symbol}/': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'travel_rule/contacts/': 1,
-                        'contacts/{contact_uuid}/': 1,
-                        'earn/subscriptions/': 1,
-                        'earn/transactions/': 1,
-                        'trade_history/': 1,
-                        'trade_history/{pair}': 1,
+                        'travel_rule/contacts/': { 'cost': 1 },
+                        'contacts/{contact_uuid}/': { 'cost': 1 },
+                        'travel_rule/utxo/xpub_registrations/': { 'cost': 1 },
+                        'travel_rule/utxo/xpub_registrations/{registration_id}/': { 'cost': 1 },
+                        'travel_rule/address_verification/': { 'cost': 1 },
+                        'crypto-transactions/deposits/': { 'cost': 1 },
+                        'earn/subscriptions/': { 'cost': 1 },
+                        'earn/transactions/': { 'cost': 1 },
+                        'trade_history/': { 'cost': 1 },
+                        'trade_history/{pair}': { 'cost': 1 },
                     },
                     'post': {
-                        'account_balances/': 1,
-                        'account_balances/{currency}/': 1,
-                        'balance/': 1,
-                        'balance/{pair}/': 1,
-                        'bch_withdrawal/': 1,
-                        'bch_address/': 1,
-                        'user_transactions/': 1,
-                        'user_transactions/{pair}/': 1,
-                        'crypto-transactions/': 1,
-                        'open_order': 1,
-                        'open_orders/all/': 1,
-                        'open_orders/{pair}/': 1,
-                        'replace_order/': 1,
-                        'order_status/': 1,
-                        'cancel_order/': 1,
-                        'cancel_all_orders/': 1,
-                        'cancel_all_orders/{pair}/': 1,
-                        'buy/{pair}/': 1,
-                        'buy/market/{pair}/': 1,
-                        'buy/instant/{pair}/': 1,
-                        'sell/{pair}/': 1,
-                        'sell/market/{pair}/': 1,
-                        'sell/instant/{pair}/': 1,
-                        'transfer-to-main/': 1,
-                        'transfer-from-main/': 1,
-                        'my_trading_pairs/': 1,
-                        'fees/trading/': 1,
-                        'fees/trading/{market_symbol}': 1,
-                        'fees/withdrawal/': 1,
-                        'fees/withdrawal/{currency}/': 1,
-                        'withdrawal-requests/': 1,
-                        'withdrawal/open/': 1,
-                        'withdrawal/status/': 1,
-                        'withdrawal/cancel/': 1,
-                        'liquidation_address/new/': 1,
-                        'liquidation_address/info/': 1,
-                        'btc_unconfirmed/': 1,
-                        'websockets_token/': 1,
-                        'revoke_all_api_keys/': 1,
-                        'get_max_order_amount/': 1,
+                        'account_balances/': { 'cost': 1 },
+                        'account_balances/{currency}/': { 'cost': 1 },
+                        'balance/': { 'cost': 1 },
+                        'balance/{pair}/': { 'cost': 1 },
+                        'bch_withdrawal/': { 'cost': 1 },
+                        'bch_address/': { 'cost': 1 },
+                        'user_transactions/': { 'cost': 1 },
+                        'user_transactions/{pair}/': { 'cost': 1 },
+                        'crypto-transactions/': { 'cost': 1 },
+                        'crypto-transactions/deposits/{deposit_id}/reject/': { 'cost': 1 },
+                        'open_order': { 'cost': 1 },
+                        'open_orders/all/': { 'cost': 1 },
+                        'open_orders/{pair}/': { 'cost': 1 },
+                        'replace_order/': { 'cost': 1 },
+                        'order_status/': { 'cost': 1 },
+                        'cancel_order/': { 'cost': 1 },
+                        'cancel_all_orders/': { 'cost': 1 },
+                        'cancel_all_orders/{pair}/': { 'cost': 1 },
+                        'buy/{pair}/': { 'cost': 1 },
+                        'buy/market/{pair}/': { 'cost': 1 },
+                        'buy/instant/{pair}/': { 'cost': 1 },
+                        'sell/{pair}/': { 'cost': 1 },
+                        'sell/market/{pair}/': { 'cost': 1 },
+                        'sell/instant/{pair}/': { 'cost': 1 },
+                        'transfer-to-main/': { 'cost': 1 },
+                        'transfer-from-main/': { 'cost': 1 },
+                        'my_trading_pairs/': { 'cost': 1 },
+                        'fees/trading/': { 'cost': 1 },
+                        'fees/trading/{market_symbol}': { 'cost': 1 },
+                        'fees/withdrawal/': { 'cost': 1 },
+                        'fees/withdrawal/{currency}/': { 'cost': 1 },
+                        'withdrawal-requests/': { 'cost': 1 },
+                        'withdrawal/open/': { 'cost': 1 },
+                        'withdrawal/status/': { 'cost': 1 },
+                        'withdrawal/cancel/': { 'cost': 1 },
+                        'liquidation_address/new/': { 'cost': 1 },
+                        'liquidation_address/info/': { 'cost': 1 },
+                        'btc_unconfirmed/': { 'cost': 1 },
+                        'websockets_token/': { 'cost': 1 },
+                        'revoke_all_api_keys/': { 'cost': 1 },
+                        'get_max_order_amount/': { 'cost': 1 },
+                        'order_data/': { 'cost': 1 },
+                        'account_order_data/': { 'cost': 1 },
                         // individual coins
-                        'btc_withdrawal/': 1,
-                        'btc_address/': 1,
-                        'ripple_withdrawal/': 1,
-                        'ripple_address/': 1,
-                        'ltc_withdrawal/': 1,
-                        'ltc_address/': 1,
-                        'eth_withdrawal/': 1,
-                        'eth_address/': 1,
-                        'xrp_withdrawal/': 1,
-                        'xrp_address/': 1,
-                        'xlm_withdrawal/': 1,
-                        'xlm_address/': 1,
-                        'pax_withdrawal/': 1,
-                        'pax_address/': 1,
-                        'link_withdrawal/': 1,
-                        'link_address/': 1,
-                        'usdc_withdrawal/': 1,
-                        'usdc_address/': 1,
-                        'omg_withdrawal/': 1,
-                        'omg_address/': 1,
-                        'dai_withdrawal/': 1,
-                        'dai_address/': 1,
-                        'knc_withdrawal/': 1,
-                        'knc_address/': 1,
-                        'mkr_withdrawal/': 1,
-                        'mkr_address/': 1,
-                        'zrx_withdrawal/': 1,
-                        'zrx_address/': 1,
-                        'gusd_withdrawal/': 1,
-                        'gusd_address/': 1,
-                        'aave_withdrawal/': 1,
-                        'aave_address/': 1,
-                        'bat_withdrawal/': 1,
-                        'bat_address/': 1,
-                        'uma_withdrawal/': 1,
-                        'uma_address/': 1,
-                        'snx_withdrawal/': 1,
-                        'snx_address/': 1,
-                        'uni_withdrawal/': 1,
-                        'uni_address/': 1,
-                        'yfi_withdrawal/': 1,
-                        'yfi_address/': 1,
-                        'audio_withdrawal/': 1,
-                        'audio_address/': 1,
-                        'crv_withdrawal/': 1,
-                        'crv_address/': 1,
-                        'algo_withdrawal/': 1,
-                        'algo_address/': 1,
-                        'comp_withdrawal/': 1,
-                        'comp_address/': 1,
-                        'grt_withdrawal/': 1,
-                        'grt_address/': 1,
-                        'usdt_withdrawal/': 1,
-                        'usdt_address/': 1,
-                        'eurt_withdrawal/': 1,
-                        'eurt_address/': 1,
-                        'matic_withdrawal/': 1,
-                        'matic_address/': 1,
-                        'sushi_withdrawal/': 1,
-                        'sushi_address/': 1,
-                        'chz_withdrawal/': 1,
-                        'chz_address/': 1,
-                        'enj_withdrawal/': 1,
-                        'enj_address/': 1,
-                        'alpha_withdrawal/': 1,
-                        'alpha_address/': 1,
-                        'ftt_withdrawal/': 1,
-                        'ftt_address/': 1,
-                        'storj_withdrawal/': 1,
-                        'storj_address/': 1,
-                        'axs_withdrawal/': 1,
-                        'axs_address/': 1,
-                        'sand_withdrawal/': 1,
-                        'sand_address/': 1,
-                        'hbar_withdrawal/': 1,
-                        'hbar_address/': 1,
-                        'rgt_withdrawal/': 1,
-                        'rgt_address/': 1,
-                        'fet_withdrawal/': 1,
-                        'fet_address/': 1,
-                        'skl_withdrawal/': 1,
-                        'skl_address/': 1,
-                        'cel_withdrawal/': 1,
-                        'cel_address/': 1,
-                        'sxp_withdrawal/': 1,
-                        'sxp_address/': 1,
-                        'ada_withdrawal/': 1,
-                        'ada_address/': 1,
-                        'slp_withdrawal/': 1,
-                        'slp_address/': 1,
-                        'ftm_withdrawal/': 1,
-                        'ftm_address/': 1,
-                        'perp_withdrawal/': 1,
-                        'perp_address/': 1,
-                        'dydx_withdrawal/': 1,
-                        'dydx_address/': 1,
-                        'gala_withdrawal/': 1,
-                        'gala_address/': 1,
-                        'shib_withdrawal/': 1,
-                        'shib_address/': 1,
-                        'amp_withdrawal/': 1,
-                        'amp_address/': 1,
-                        'sgb_withdrawal/': 1,
-                        'sgb_address/': 1,
-                        'avax_withdrawal/': 1,
-                        'avax_address/': 1,
-                        'wbtc_withdrawal/': 1,
-                        'wbtc_address/': 1,
-                        'ctsi_withdrawal/': 1,
-                        'ctsi_address/': 1,
-                        'cvx_withdrawal/': 1,
-                        'cvx_address/': 1,
-                        'imx_withdrawal/': 1,
-                        'imx_address/': 1,
-                        'nexo_withdrawal/': 1,
-                        'nexo_address/': 1,
-                        'ust_withdrawal/': 1,
-                        'ust_address/': 1,
-                        'ant_withdrawal/': 1,
-                        'ant_address/': 1,
-                        'gods_withdrawal/': 1,
-                        'gods_address/': 1,
-                        'rad_withdrawal/': 1,
-                        'rad_address/': 1,
-                        'band_withdrawal/': 1,
-                        'band_address/': 1,
-                        'inj_withdrawal/': 1,
-                        'inj_address/': 1,
-                        'rly_withdrawal/': 1,
-                        'rly_address/': 1,
-                        'rndr_withdrawal/': 1,
-                        'rndr_address/': 1,
-                        'vega_withdrawal/': 1,
-                        'vega_address/': 1,
-                        '1inch_withdrawal/': 1,
-                        '1inch_address/': 1,
-                        'ens_withdrawal/': 1,
-                        'ens_address/': 1,
-                        'mana_withdrawal/': 1,
-                        'mana_address/': 1,
-                        'lrc_withdrawal/': 1,
-                        'lrc_address/': 1,
-                        'ape_withdrawal/': 1,
-                        'ape_address/': 1,
-                        'mpl_withdrawal/': 1,
-                        'mpl_address/': 1,
-                        'euroc_withdrawal/': 1,
-                        'euroc_address/': 1,
-                        'sol_withdrawal/': 1,
-                        'sol_address/': 1,
-                        'dot_withdrawal/': 1,
-                        'dot_address/': 1,
-                        'near_withdrawal/': 1,
-                        'near_address/': 1,
-                        'doge_withdrawal/': 1,
-                        'doge_address/': 1,
-                        'flr_withdrawal/': 1,
-                        'flr_address/': 1,
-                        'dgld_withdrawal/': 1,
-                        'dgld_address/': 1,
-                        'ldo_withdrawal/': 1,
-                        'ldo_address/': 1,
-                        'travel_rule/contacts/': 1,
-                        'earn/subscribe/': 1,
-                        'earn/subscriptions/setting/': 1,
-                        'earn/unsubscribe': 1,
-                        'wecan_withdrawal/': 1,
-                        'wecan_address/': 1,
-                        'trac_withdrawal/': 1,
-                        'trac_address/': 1,
-                        'eurcv_withdrawal/': 1,
-                        'eurcv_address/': 1,
-                        'pyusd_withdrawal/': 1,
-                        'pyusd_address/': 1,
-                        'lmwr_withdrawal/': 1,
-                        'lmwr_address/': 1,
-                        'pepe_withdrawal/': 1,
-                        'pepe_address/': 1,
-                        'blur_withdrawal/': 1,
-                        'blur_address/': 1,
-                        'vext_withdrawal/': 1,
-                        'vext_address/': 1,
-                        'cspr_withdrawal/': 1,
-                        'cspr_address/': 1,
-                        'vchf_withdrawal/': 1,
-                        'vchf_address/': 1,
-                        'veur_withdrawal/': 1,
-                        'veur_address/': 1,
-                        'truf_withdrawal/': 1,
-                        'truf_address/': 1,
-                        'wif_withdrawal/': 1,
-                        'wif_address/': 1,
-                        'smt_withdrawal/': 1,
-                        'smt_address/': 1,
-                        'sui_withdrawal/': 1,
-                        'sui_address/': 1,
-                        'jup_withdrawal/': 1,
-                        'jup_address/': 1,
-                        'ondo_withdrawal/': 1,
-                        'ondo_address/': 1,
-                        'boba_withdrawal/': 1,
-                        'boba_address/': 1,
-                        'pyth_withdrawal/': 1,
-                        'pyth_address/': 1,
+                        'btc_withdrawal/': { 'cost': 1 },
+                        'btc_address/': { 'cost': 1 },
+                        'ripple_withdrawal/': { 'cost': 1 },
+                        'ripple_address/': { 'cost': 1 },
+                        'ltc_withdrawal/': { 'cost': 1 },
+                        'ltc_address/': { 'cost': 1 },
+                        'eth_withdrawal/': { 'cost': 1 },
+                        'eth_address/': { 'cost': 1 },
+                        'xrp_withdrawal/': { 'cost': 1 },
+                        'xrp_address/': { 'cost': 1 },
+                        'xlm_withdrawal/': { 'cost': 1 },
+                        'xlm_address/': { 'cost': 1 },
+                        'pax_withdrawal/': { 'cost': 1 },
+                        'pax_address/': { 'cost': 1 },
+                        'link_withdrawal/': { 'cost': 1 },
+                        'link_address/': { 'cost': 1 },
+                        'usdc_withdrawal/': { 'cost': 1 },
+                        'usdc_address/': { 'cost': 1 },
+                        'omg_withdrawal/': { 'cost': 1 },
+                        'omg_address/': { 'cost': 1 },
+                        'dai_withdrawal/': { 'cost': 1 },
+                        'dai_address/': { 'cost': 1 },
+                        'knc_withdrawal/': { 'cost': 1 },
+                        'knc_address/': { 'cost': 1 },
+                        'mkr_withdrawal/': { 'cost': 1 },
+                        'mkr_address/': { 'cost': 1 },
+                        'zrx_withdrawal/': { 'cost': 1 },
+                        'zrx_address/': { 'cost': 1 },
+                        'gusd_withdrawal/': { 'cost': 1 },
+                        'gusd_address/': { 'cost': 1 },
+                        'aave_withdrawal/': { 'cost': 1 },
+                        'aave_address/': { 'cost': 1 },
+                        'bat_withdrawal/': { 'cost': 1 },
+                        'bat_address/': { 'cost': 1 },
+                        'uma_withdrawal/': { 'cost': 1 },
+                        'uma_address/': { 'cost': 1 },
+                        'snx_withdrawal/': { 'cost': 1 },
+                        'snx_address/': { 'cost': 1 },
+                        'uni_withdrawal/': { 'cost': 1 },
+                        'uni_address/': { 'cost': 1 },
+                        'yfi_withdrawal/': { 'cost': 1 },
+                        'yfi_address/': { 'cost': 1 },
+                        'audio_withdrawal/': { 'cost': 1 },
+                        'audio_address/': { 'cost': 1 },
+                        'crv_withdrawal/': { 'cost': 1 },
+                        'crv_address/': { 'cost': 1 },
+                        'algo_withdrawal/': { 'cost': 1 },
+                        'algo_address/': { 'cost': 1 },
+                        'comp_withdrawal/': { 'cost': 1 },
+                        'comp_address/': { 'cost': 1 },
+                        'grt_withdrawal/': { 'cost': 1 },
+                        'grt_address/': { 'cost': 1 },
+                        'usdt_withdrawal/': { 'cost': 1 },
+                        'usdt_address/': { 'cost': 1 },
+                        'eurt_withdrawal/': { 'cost': 1 },
+                        'eurt_address/': { 'cost': 1 },
+                        'matic_withdrawal/': { 'cost': 1 },
+                        'matic_address/': { 'cost': 1 },
+                        'sushi_withdrawal/': { 'cost': 1 },
+                        'sushi_address/': { 'cost': 1 },
+                        'chz_withdrawal/': { 'cost': 1 },
+                        'chz_address/': { 'cost': 1 },
+                        'enj_withdrawal/': { 'cost': 1 },
+                        'enj_address/': { 'cost': 1 },
+                        'alpha_withdrawal/': { 'cost': 1 },
+                        'alpha_address/': { 'cost': 1 },
+                        'ftt_withdrawal/': { 'cost': 1 },
+                        'ftt_address/': { 'cost': 1 },
+                        'storj_withdrawal/': { 'cost': 1 },
+                        'storj_address/': { 'cost': 1 },
+                        'axs_withdrawal/': { 'cost': 1 },
+                        'axs_address/': { 'cost': 1 },
+                        'sand_withdrawal/': { 'cost': 1 },
+                        'sand_address/': { 'cost': 1 },
+                        'hbar_withdrawal/': { 'cost': 1 },
+                        'hbar_address/': { 'cost': 1 },
+                        'rgt_withdrawal/': { 'cost': 1 },
+                        'rgt_address/': { 'cost': 1 },
+                        'fet_withdrawal/': { 'cost': 1 },
+                        'fet_address/': { 'cost': 1 },
+                        'skl_withdrawal/': { 'cost': 1 },
+                        'skl_address/': { 'cost': 1 },
+                        'cel_withdrawal/': { 'cost': 1 },
+                        'cel_address/': { 'cost': 1 },
+                        'sxp_withdrawal/': { 'cost': 1 },
+                        'sxp_address/': { 'cost': 1 },
+                        'ada_withdrawal/': { 'cost': 1 },
+                        'ada_address/': { 'cost': 1 },
+                        'slp_withdrawal/': { 'cost': 1 },
+                        'slp_address/': { 'cost': 1 },
+                        'ftm_withdrawal/': { 'cost': 1 },
+                        'ftm_address/': { 'cost': 1 },
+                        'perp_withdrawal/': { 'cost': 1 },
+                        'perp_address/': { 'cost': 1 },
+                        'dydx_withdrawal/': { 'cost': 1 },
+                        'dydx_address/': { 'cost': 1 },
+                        'gala_withdrawal/': { 'cost': 1 },
+                        'gala_address/': { 'cost': 1 },
+                        'shib_withdrawal/': { 'cost': 1 },
+                        'shib_address/': { 'cost': 1 },
+                        'amp_withdrawal/': { 'cost': 1 },
+                        'amp_address/': { 'cost': 1 },
+                        'sgb_withdrawal/': { 'cost': 1 },
+                        'sgb_address/': { 'cost': 1 },
+                        'avax_withdrawal/': { 'cost': 1 },
+                        'avax_address/': { 'cost': 1 },
+                        'wbtc_withdrawal/': { 'cost': 1 },
+                        'wbtc_address/': { 'cost': 1 },
+                        'ctsi_withdrawal/': { 'cost': 1 },
+                        'ctsi_address/': { 'cost': 1 },
+                        'cvx_withdrawal/': { 'cost': 1 },
+                        'cvx_address/': { 'cost': 1 },
+                        'imx_withdrawal/': { 'cost': 1 },
+                        'imx_address/': { 'cost': 1 },
+                        'nexo_withdrawal/': { 'cost': 1 },
+                        'nexo_address/': { 'cost': 1 },
+                        'ust_withdrawal/': { 'cost': 1 },
+                        'ust_address/': { 'cost': 1 },
+                        'ant_withdrawal/': { 'cost': 1 },
+                        'ant_address/': { 'cost': 1 },
+                        'gods_withdrawal/': { 'cost': 1 },
+                        'gods_address/': { 'cost': 1 },
+                        'rad_withdrawal/': { 'cost': 1 },
+                        'rad_address/': { 'cost': 1 },
+                        'band_withdrawal/': { 'cost': 1 },
+                        'band_address/': { 'cost': 1 },
+                        'inj_withdrawal/': { 'cost': 1 },
+                        'inj_address/': { 'cost': 1 },
+                        'rly_withdrawal/': { 'cost': 1 },
+                        'rly_address/': { 'cost': 1 },
+                        'rndr_withdrawal/': { 'cost': 1 },
+                        'rndr_address/': { 'cost': 1 },
+                        'vega_withdrawal/': { 'cost': 1 },
+                        'vega_address/': { 'cost': 1 },
+                        '1inch_withdrawal/': { 'cost': 1 },
+                        '1inch_address/': { 'cost': 1 },
+                        'ens_withdrawal/': { 'cost': 1 },
+                        'ens_address/': { 'cost': 1 },
+                        'mana_withdrawal/': { 'cost': 1 },
+                        'mana_address/': { 'cost': 1 },
+                        'lrc_withdrawal/': { 'cost': 1 },
+                        'lrc_address/': { 'cost': 1 },
+                        'ape_withdrawal/': { 'cost': 1 },
+                        'ape_address/': { 'cost': 1 },
+                        'mpl_withdrawal/': { 'cost': 1 },
+                        'mpl_address/': { 'cost': 1 },
+                        'euroc_withdrawal/': { 'cost': 1 },
+                        'euroc_address/': { 'cost': 1 },
+                        'sol_withdrawal/': { 'cost': 1 },
+                        'sol_address/': { 'cost': 1 },
+                        'dot_withdrawal/': { 'cost': 1 },
+                        'dot_address/': { 'cost': 1 },
+                        'near_withdrawal/': { 'cost': 1 },
+                        'near_address/': { 'cost': 1 },
+                        'doge_withdrawal/': { 'cost': 1 },
+                        'doge_address/': { 'cost': 1 },
+                        'flr_withdrawal/': { 'cost': 1 },
+                        'flr_address/': { 'cost': 1 },
+                        'dgld_withdrawal/': { 'cost': 1 },
+                        'dgld_address/': { 'cost': 1 },
+                        'ldo_withdrawal/': { 'cost': 1 },
+                        'ldo_address/': { 'cost': 1 },
+                        'travel_rule/contacts/': { 'cost': 1 },
+                        'travel_rule/utxo/xpub_registrations/': { 'cost': 1 },
+                        'travel_rule/utxo/xpub_registrations/{registration_id}/revoke/': { 'cost': 1 },
+                        'earn/subscribe/': { 'cost': 1 },
+                        'earn/subscriptions/setting/': { 'cost': 1 },
+                        'earn/unsubscribe': { 'cost': 1 },
+                        'wecan_withdrawal/': { 'cost': 1 },
+                        'wecan_address/': { 'cost': 1 },
+                        'trac_withdrawal/': { 'cost': 1 },
+                        'trac_address/': { 'cost': 1 },
+                        'eurcv_withdrawal/': { 'cost': 1 },
+                        'eurcv_address/': { 'cost': 1 },
+                        'pyusd_withdrawal/': { 'cost': 1 },
+                        'pyusd_address/': { 'cost': 1 },
+                        'lmwr_withdrawal/': { 'cost': 1 },
+                        'lmwr_address/': { 'cost': 1 },
+                        'pepe_withdrawal/': { 'cost': 1 },
+                        'pepe_address/': { 'cost': 1 },
+                        'blur_withdrawal/': { 'cost': 1 },
+                        'blur_address/': { 'cost': 1 },
+                        'vext_withdrawal/': { 'cost': 1 },
+                        'vext_address/': { 'cost': 1 },
+                        'cspr_withdrawal/': { 'cost': 1 },
+                        'cspr_address/': { 'cost': 1 },
+                        'vchf_withdrawal/': { 'cost': 1 },
+                        'vchf_address/': { 'cost': 1 },
+                        'veur_withdrawal/': { 'cost': 1 },
+                        'veur_address/': { 'cost': 1 },
+                        'truf_withdrawal/': { 'cost': 1 },
+                        'truf_address/': { 'cost': 1 },
+                        'wif_withdrawal/': { 'cost': 1 },
+                        'wif_address/': { 'cost': 1 },
+                        'smt_withdrawal/': { 'cost': 1 },
+                        'smt_address/': { 'cost': 1 },
+                        'sui_withdrawal/': { 'cost': 1 },
+                        'sui_address/': { 'cost': 1 },
+                        'jup_withdrawal/': { 'cost': 1 },
+                        'jup_address/': { 'cost': 1 },
+                        'ondo_withdrawal/': { 'cost': 1 },
+                        'ondo_address/': { 'cost': 1 },
+                        'boba_withdrawal/': { 'cost': 1 },
+                        'boba_address/': { 'cost': 1 },
+                        'pyth_withdrawal/': { 'cost': 1 },
+                        'pyth_address/': { 'cost': 1 },
                     },
                 },
             },
@@ -662,6 +674,9 @@ class bitstamp extends bitstamp$1["default"] {
             const [baseId, quoteId] = [this.safeString(market, 'base_currency'), this.safeString(market, 'counter_currency')];
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             let settleId = undefined;
             const marketTypeRaw = this.safeString(market, 'market_type');
             let symbol = base + '/' + quote;
@@ -683,7 +698,7 @@ class bitstamp extends bitstamp$1["default"] {
                 }
             }
             const isSpot = (type === 'spot');
-            const settle = settleId ? this.safeCurrencyCode(settleId) : undefined;
+            const settle = (settleId !== undefined && settleId !== '') ? this.safeCurrencyCode(settleId) : undefined;
             result.push({
                 'id': this.safeString(market, 'market_symbol'),
                 'symbol': symbol,
@@ -779,7 +794,7 @@ class bitstamp extends bitstamp$1["default"] {
     async fetchMarketsFromCache(params = {}) {
         // this method is now redundant
         // currencies are now fetched before markets
-        const options = this.safeValue(this.options, 'fetchMarkets', {});
+        const options = this.safeDict(this.options, 'fetchMarkets', {});
         const timestamp = this.safeInteger(options, 'timestamp');
         const expires = this.safeInteger(options, 'expires', 1000);
         const now = this.milliseconds();
@@ -833,42 +848,41 @@ class bitstamp extends bitstamp$1["default"] {
         //         },
         //     ]
         //
-        this.options['_temp_currencies_result'] = {};
-        const result = this.parseCurrencies(response);
-        const finalResult = this.deepExtend(result, this.options['_temp_currencies_result']);
-        delete this.options['_temp_currencies_result'];
-        return finalResult;
+        return this.parseCurrencies(response);
     }
-    parseCurrency(rawCurrency) {
-        const market = rawCurrency;
-        const existing = this.safeDict(this.options, '_temp_currencies_result', {});
-        const [baseId, quoteId] = [this.safeString(market, 'base_currency'), this.safeString(market, 'counter_currency')];
-        const base = this.safeCurrencyCode(baseId);
-        const quote = this.safeCurrencyCode(quoteId);
-        const description = this.safeString(market, 'description');
-        if (description === undefined) {
-            throw new errors.ExchangeError(this.id + ' parseCurrency() missing description');
-        }
-        const [baseDescription, quoteDescription] = description.split(' / ');
-        const minimumOrder = this.safeString(market, 'minimum_order_value');
-        if (minimumOrder === undefined) {
-            throw new errors.ExchangeError(this.id + ' parseCurrency() missing minimumOrder');
-        }
-        const parts = minimumOrder.split(' ');
-        const cost = parts[0];
-        if ((base === undefined) || !(base in existing)) {
-            const baseDecimals = this.safeInteger(market, 'base_decimals');
-            if (base !== undefined) {
-                this.options['_temp_currencies_result'][base] = this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, undefined, market);
+    parseCurrencies(rawCurrencies) {
+        // each market row yields two currencies so the accumulation happens
+        // in a local dictionary here instead of a temp key inside this.options
+        // because the shared scratch key raced between concurrent
+        // fetchCurrencies invocations in the multi threaded runtimes
+        const result = {};
+        const arr = this.toArray(rawCurrencies);
+        for (let i = 0; i < arr.length; i++) {
+            const market = arr[i];
+            const [baseId, quoteId] = [this.safeString(market, 'base_currency'), this.safeString(market, 'counter_currency')];
+            const base = this.safeCurrencyCode(baseId);
+            const quote = this.safeCurrencyCode(quoteId);
+            const description = this.safeString(market, 'description');
+            if (description === undefined) {
+                throw new errors.ExchangeError(this.id + ' parseCurrencies() missing description');
+            }
+            const [baseDescription, quoteDescription] = description.split(' / ');
+            const minimumOrder = this.safeString(market, 'minimum_order_value');
+            if (minimumOrder === undefined) {
+                throw new errors.ExchangeError(this.id + ' parseCurrencies() missing minimumOrder');
+            }
+            const parts = minimumOrder.split(' ');
+            const cost = parts[0];
+            if ((base !== undefined) && !(base in result)) {
+                const baseDecimals = this.safeInteger(market, 'base_decimals');
+                result[base] = this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, undefined, market);
+            }
+            if ((quote !== undefined) && !(quote in result)) {
+                const counterDecimals = this.safeInteger(market, 'counter_decimals');
+                result[quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
             }
         }
-        if ((quote === undefined) || !(quote in existing)) {
-            const counterDecimals = this.safeInteger(market, 'counter_decimals');
-            if (quote !== undefined) {
-                this.options['_temp_currencies_result'][quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
-            }
-        }
-        return this.safeValue(this.options['_temp_currencies_result'], quote);
+        return result;
     }
     /**
      * @method
@@ -1046,7 +1060,7 @@ class bitstamp extends bitstamp$1["default"] {
         if (currencyId !== undefined) {
             return currencyId;
         }
-        transaction = this.omit(transaction, [
+        const transactionOmitted = this.omit(transaction, [
             'fee',
             'price',
             'datetime',
@@ -1054,11 +1068,11 @@ class bitstamp extends bitstamp$1["default"] {
             'status',
             'id',
         ]);
-        const ids = Object.keys(transaction);
+        const ids = Object.keys(transactionOmitted);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             if (id.indexOf('_') < 0) {
-                const value = this.safeInteger(transaction, id);
+                const value = this.safeInteger(transactionOmitted, id);
                 if ((value !== undefined) && (value !== 0)) {
                     return id;
                 }
@@ -1067,7 +1081,7 @@ class bitstamp extends bitstamp$1["default"] {
         return undefined;
     }
     getMarketFromTrade(trade) {
-        trade = this.omit(trade, [
+        const tradeOmitted = this.omit(trade, [
             'fee',
             'price',
             'datetime',
@@ -1076,10 +1090,10 @@ class bitstamp extends bitstamp$1["default"] {
             'order_id',
             'side',
         ]);
-        const currencyIds = Object.keys(trade);
+        const currencyIds = Object.keys(tradeOmitted);
         const numCurrencyIds = currencyIds.length;
         if (numCurrencyIds > 2) {
-            throw new errors.ExchangeError(this.id + ' getMarketFromTrade() too many keys: ' + this.json(currencyIds) + ' in the trade: ' + this.json(trade));
+            throw new errors.ExchangeError(this.id + ' getMarketFromTrade() too many keys: ' + this.json(currencyIds) + ' in the trade: ' + this.json(tradeOmitted));
         }
         if (numCurrencyIds === 2) {
             let marketId = currencyIds[0] + currencyIds[1];
@@ -1142,30 +1156,38 @@ class bitstamp extends bitstamp$1["default"] {
         const type = undefined;
         let costString = this.safeString(trade, 'cost');
         let rawMarketId = undefined;
+        // resolved in the key scan below, falling back to the passed market
+        let marketResolved = market;
         if (market === undefined) {
             const keys = Object.keys(trade);
             for (let i = 0; i < keys.length; i++) {
                 const currentKey = keys[i];
                 if (currentKey !== 'order_id' && currentKey.indexOf('_') >= 0) {
                     rawMarketId = currentKey;
-                    market = this.safeMarket(rawMarketId, market, '_');
+                    marketResolved = this.safeMarket(rawMarketId, marketResolved, '_');
                 }
             }
         }
         // if the market is still not defined
         // try to deduce it from used keys
-        if (market === undefined) {
-            market = this.getMarketFromTrade(trade);
+        if (marketResolved === undefined) {
+            marketResolved = this.getMarketFromTrade(trade);
         }
         const feeCostString = this.safeString(trade, 'fee');
-        const feeCurrency = this.safeString(market, 'quote');
-        const priceId = (rawMarketId !== undefined) ? rawMarketId : this.safeString(market, 'id');
+        const feeCurrency = this.safeString(marketResolved, 'quote');
+        let priceId = undefined;
+        if (rawMarketId !== undefined) {
+            priceId = rawMarketId;
+        }
+        else {
+            priceId = this.safeString(marketResolved, 'id');
+        }
         priceString = this.safeString(trade, priceId, priceString);
-        amountString = this.safeString(trade, this.safeString(market, 'baseId'), amountString);
-        costString = this.safeString(trade, this.safeString(market, 'quoteId'), costString);
+        amountString = this.safeString(trade, this.safeString(marketResolved, 'baseId'), amountString);
+        costString = this.safeString(trade, this.safeString(marketResolved, 'quoteId'), costString);
         // this endpoint is not aligned with "markets" endpoint
-        const baseIdLower = this.safeStringLower(market, 'baseId');
-        const quoteIdLower = this.safeStringLower(market, 'quoteId');
+        const baseIdLower = this.safeStringLower(marketResolved, 'baseId');
+        const quoteIdLower = this.safeStringLower(marketResolved, 'quoteId');
         const dashedIdLower = baseIdLower + '_' + quoteIdLower;
         if (priceString === undefined) {
             priceString = this.safeString(trade, dashedIdLower);
@@ -1176,7 +1198,7 @@ class bitstamp extends bitstamp$1["default"] {
         if (costString === undefined) {
             costString = this.safeString(trade, quoteIdLower);
         }
-        symbol = this.safeString(market, 'symbol');
+        symbol = this.safeString(marketResolved, 'symbol');
         const datetimeString = this.safeString2(trade, 'date', 'datetime');
         let timestamp = undefined;
         if (datetimeString !== undefined) {
@@ -1239,7 +1261,7 @@ class bitstamp extends bitstamp$1["default"] {
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1312,6 +1334,7 @@ class bitstamp extends bitstamp$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1324,27 +1347,49 @@ class bitstamp extends bitstamp$1["default"] {
             'step': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe(timeframe);
+        const until = this.safeInteger(params, 'until');
+        const untilIsDefined = (until !== undefined);
+        const limitResolved = (limit === undefined) ? 1000 : limit;
         if (limit === undefined) {
             if (since === undefined) {
-                request['limit'] = 1000; // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
+                request['limit'] = limitResolved;
+                if (untilIsDefined) {
+                    const end = this.parseToInt(until / 1000);
+                    request['start'] = end - (duration * limitResolved) - 1;
+                    request['end'] = end;
+                }
             }
             else {
-                limit = 1000;
                 const start = this.parseToInt(since / 1000);
                 request['start'] = start;
-                request['end'] = this.sum(start, duration * (limit - 1));
-                request['limit'] = limit;
+                if (untilIsDefined) {
+                    request['end'] = this.parseToInt(until / 1000);
+                }
+                else {
+                    request['end'] = this.sum(start, duration * limitResolved - 1);
+                }
+                request['limit'] = limitResolved;
             }
         }
         else {
             if (since !== undefined) {
                 const start = this.parseToInt(since / 1000);
                 request['start'] = start;
-                request['end'] = this.sum(start, duration * (limit - 1));
+                let end = this.sum(start, duration * limitResolved - 1);
+                if (untilIsDefined) {
+                    end = Math.min(end, this.parseToInt(until / 1000));
+                }
+                request['end'] = end;
             }
-            request['limit'] = Math.min(limit, 1000); // min 1, max 1000
+            else if (untilIsDefined) {
+                const end = this.parseToInt(until / 1000);
+                request['end'] = end;
+                request['start'] = end - (duration * limitResolved) - 1;
+            }
+            request['limit'] = Math.min(limitResolved, 1000); // min 1, max 1000
         }
-        const response = await this.publicGetOhlcPair(this.extend(request, params));
+        const paramsOmitted = this.omit(params, 'until');
+        const response = await this.publicGetOhlcPair(this.extend(request, paramsOmitted));
         //
         //     {
         //         "data": {
@@ -1357,9 +1402,9 @@ class bitstamp extends bitstamp$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const ohlc = this.safeList(data, 'ohlc', []);
-        return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
+        return this.parseOHLCVs(ohlc, market, timeframe, since, limitResolved);
     }
     parseBalance(response) {
         const finalResponse = response; // java req
@@ -1368,11 +1413,12 @@ class bitstamp extends bitstamp$1["default"] {
             'timestamp': undefined,
             'datetime': undefined,
         };
+        let responseList = response;
         if (response === undefined) {
-            response = [];
+            responseList = [];
         }
-        for (let i = 0; i < response.length; i++) {
-            const currencyBalance = response[i];
+        for (let i = 0; i < responseList.length; i++) {
+            const currencyBalance = this.safeDict(responseList, i);
             const currencyId = this.safeString(currencyBalance, 'currency');
             const currencyCode = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -1535,7 +1581,7 @@ class bitstamp extends bitstamp$1["default"] {
         const ids = Object.keys(currencies);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const fees = this.safeValue(response, i, {});
+            const fees = this.safeDict(response, i, {});
             const code = this.safeCurrencyCode(id);
             if ((codes !== undefined) && !this.inArray(code, codes)) {
                 continue;
@@ -1581,7 +1627,7 @@ class bitstamp extends bitstamp$1["default"] {
         const result = this.depositWithdrawFee(fee);
         const code = this.safeString(currency, 'code');
         for (let j = 0; j < fee.length; j++) {
-            const networkEntry = fee[j];
+            const networkEntry = this.safeDict(fee, j);
             const networkId = this.safeString(networkEntry, 'network');
             const networkCode = this.networkIdToCode(networkId, code);
             const withdrawFee = this.safeNumber(networkEntry, 'fee');
@@ -1634,33 +1680,33 @@ class bitstamp extends bitstamp$1["default"] {
         const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit(params, ['clientOrderId']);
         }
+        const paramsOmitted = (clientOrderId !== undefined) ? this.omit(params, ['clientOrderId']) : params;
         let response = undefined;
         const capitalizedSide = this.capitalize(side);
         if (type === 'market') {
             if (capitalizedSide === 'Buy') {
-                response = await this.privatePostBuyMarketPair(this.extend(request, params));
+                response = await this.privatePostBuyMarketPair(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privatePostSellMarketPair(this.extend(request, params));
+                response = await this.privatePostSellMarketPair(this.extend(request, paramsOmitted));
             }
         }
         else if (type === 'instant') {
             if (capitalizedSide === 'Buy') {
-                response = await this.privatePostBuyInstantPair(this.extend(request, params));
+                response = await this.privatePostBuyInstantPair(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privatePostSellInstantPair(this.extend(request, params));
+                response = await this.privatePostSellInstantPair(this.extend(request, paramsOmitted));
             }
         }
         else {
             request['price'] = this.priceToPrecision(symbol, price);
             if (capitalizedSide === 'Buy') {
-                response = await this.privatePostBuyPair(this.extend(request, params));
+                response = await this.privatePostBuyPair(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privatePostSellPair(this.extend(request, params));
+                response = await this.privatePostSellPair(this.extend(request, paramsOmitted));
             }
         }
         const orderResponse = (response === undefined) ? {} : response;
@@ -1697,12 +1743,12 @@ class bitstamp extends bitstamp$1["default"] {
         const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit(params, ['clientOrderId']);
         }
         else {
             request['id'] = id;
         }
-        const response = await this.privatePostReplaceOrder(this.extend(request, params));
+        const paramsOmitted = (clientOrderId !== undefined) ? this.omit(params, ['clientOrderId']) : params;
+        const response = await this.privatePostReplaceOrder(this.extend(request, paramsOmitted));
         const order = this.parseOrder(response, market);
         order['type'] = type;
         return order;
@@ -1797,12 +1843,12 @@ class bitstamp extends bitstamp$1["default"] {
         const request = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit(params, ['client_order_id', 'clientOrderId']);
         }
         else {
             request['id'] = id;
         }
-        const response = await this.privatePostOrderStatus(this.extend(request, params));
+        const paramsOmitted = (clientOrderId !== undefined) ? this.omit(params, ['client_order_id', 'clientOrderId']) : params;
+        const response = await this.privatePostOrderStatus(this.extend(request, paramsOmitted));
         return this.parseOrderStatus(this.safeString(response, 'status'));
     }
     /**
@@ -1827,12 +1873,12 @@ class bitstamp extends bitstamp$1["default"] {
         const request = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit(params, ['client_order_id', 'clientOrderId']);
         }
         else {
             request['id'] = id;
         }
-        const response = await this.privatePostOrderStatus(this.extend(request, params));
+        const paramsOmitted = (clientOrderId !== undefined) ? this.omit(params, ['client_order_id', 'clientOrderId']) : params;
+        const response = await this.privatePostOrderStatus(this.extend(request, paramsOmitted));
         //
         //      {
         //          "status": "Finished",
@@ -1870,17 +1916,21 @@ class bitstamp extends bitstamp$1["default"] {
             await this.loadMarkets();
         }
         const request = {};
-        let method = 'privatePostUserTransactions';
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['pair'] = market['id'];
-            method += 'Pair';
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (symbol !== undefined) {
+            response = await this.privatePostUserTransactionsPair(this.extend(request, params));
+        }
+        else {
+            response = await this.privatePostUserTransactions(this.extend(request, params));
+        }
         const result = this.filterBy(response, 'type', '2');
         return this.parseTrades(result, market, since, limit);
     }
@@ -1899,15 +1949,14 @@ class bitstamp extends bitstamp$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params);
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate);
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let request = {};
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1916,11 +1965,11 @@ class bitstamp extends bitstamp$1["default"] {
         if (since !== undefined) {
             request['since_timestamp'] = Math.round(since / 1000);
         }
-        [request, params] = this.handleUntilOption('until_timestamp', request, params, 0.001);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('until_timestamp', request, paramsPaginate, 0.001);
         if (limit !== undefined) {
-            request['limit'] = limit;
+            requestUntil['limit'] = limit;
         }
-        const response = await this.publicGetFundingRateHistoryPair(this.extend(request, params));
+        const response = await this.publicGetFundingRateHistoryPair(this.extend(requestUntil, paramsUntil));
         //
         //     {
         //         "market": "BTC/USD-PERP",
@@ -1932,7 +1981,7 @@ class bitstamp extends bitstamp$1["default"] {
         //         ]
         //     }
         //
-        const values = this.safeValue(response, 'funding_rate_history', []);
+        const values = this.safeList(response, 'funding_rate_history', []);
         return this.parseFundingRateHistories(values, market, since, limit);
     }
     parseFundingRateHistory(contract, market = undefined) {
@@ -2243,9 +2292,23 @@ class bitstamp extends bitstamp$1["default"] {
         //        "market": "BTC/USD"
         //    }
         //
-        const id = this.safeString(order, 'id');
-        const clientOrderId = this.safeString(order, 'client_order_id');
-        let side = this.safeString(order, 'type');
+        // editOrder
+        //
+        //    {
+        //        "order_id": 1453282316578816,
+        //        "order_type": "0",
+        //        "market": "BTC/USD",
+        //        "amount": "0.02035278",
+        //        "price": "2100.45",
+        //        "datetime": "2025-10-17T14:23:01.725000Z",
+        //        "orig_order_id": 1453282316578816,
+        //        "orig_client_order_id": "my-original-order-123",
+        //        "status": "Open"
+        //    }
+        //
+        const id = this.safeString2(order, 'id', 'order_id');
+        const clientOrderId = this.safeString2(order, 'client_order_id', 'orig_client_order_id');
+        let side = this.safeString2(order, 'type', 'order_type');
         if (side !== undefined) {
             side = (side === '1') ? 'sell' : 'buy';
         }
@@ -2255,7 +2318,7 @@ class bitstamp extends bitstamp$1["default"] {
         const symbol = this.safeSymbol(marketId, market, '/');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const amount = this.safeString(order, 'amount');
-        const transactions = this.safeValue(order, 'transactions', []);
+        const transactions = this.safeList(order, 'transactions', []);
         const price = this.safeString(order, 'price');
         return this.safeOrder({
             'id': id,
@@ -2355,14 +2418,17 @@ class bitstamp extends bitstamp$1["default"] {
         else {
             const parsedTransaction = this.parseTransaction(item, currency);
             let direction = undefined;
+            const hasTransactionCurrency = !('amount' in item) && ('currency' in parsedTransaction) && (parsedTransaction['currency'] !== undefined);
+            let currencyResolved = currency;
+            if (hasTransactionCurrency) {
+                currencyResolved = this.currency(this.safeString(parsedTransaction, 'currency'));
+            }
             if ('amount' in item) {
                 const amount = this.safeString(item, 'amount');
                 direction = Precise["default"].stringGt(amount, '0') ? 'in' : 'out';
             }
             else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
-                const currencyCode = this.safeString(parsedTransaction, 'currency');
-                currency = this.currency(currencyCode);
-                const amount = this.safeString(item, currency['id']);
+                const amount = this.safeString(item, this.safeString(currencyResolved, 'id'));
                 direction = Precise["default"].stringGt(amount, '0') ? 'in' : 'out';
             }
             return this.safeLedgerEntry({
@@ -2381,7 +2447,7 @@ class bitstamp extends bitstamp$1["default"] {
                 'after': undefined,
                 'status': parsedTransaction['status'],
                 'fee': parsedTransaction['fee'],
-            }, currency);
+            }, currencyResolved);
         }
     }
     /**
@@ -2447,14 +2513,16 @@ class bitstamp extends bitstamp$1["default"] {
         //         "next_funding_time": "1644406050"
         //     }
         //
+        // the websocket funding_rate channel additionally carries mark_price and index_price
+        //
         const currentTime = this.safeIntegerProduct(fundingRate, 'timestamp', 1000);
         const nextFundingRateTimestamp = this.safeIntegerProduct(fundingRate, 'next_funding_time', 1000);
         const marketId = this.safeString(fundingRate, 'market');
         return {
             'info': fundingRate,
             'symbol': this.safeSymbol(marketId, market),
-            'markPrice': undefined,
-            'indexPrice': undefined,
+            'markPrice': this.safeNumber(fundingRate, 'mark_price'),
+            'indexPrice': this.safeNumber(fundingRate, 'index_price'),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': currentTime,
@@ -2536,8 +2604,9 @@ class bitstamp extends bitstamp$1["default"] {
             throw new errors.NotSupported(this.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!');
         }
         const name = this.getCurrencyName(code);
-        const method = 'privatePost' + this.capitalize(name) + 'Address';
-        const response = await this[method](params);
+        // the per-currency implicit methods (privatePostBtcAddress etc.) all route
+        // through request(), called here directly to avoid dynamic dispatch
+        const response = await this.request(name + '_address/', 'private', 'POST', params);
         const address = this.safeString(response, 'address');
         const tag = this.safeString2(response, 'memo_id', 'destination_tag');
         this.checkAddress(address);
@@ -2565,7 +2634,7 @@ class bitstamp extends bitstamp$1["default"] {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2574,29 +2643,30 @@ class bitstamp extends bitstamp$1["default"] {
             'amount': amount,
         };
         let currency = undefined;
-        let method = undefined;
+        let response = undefined;
         if (!this.isFiat(code)) {
             const name = this.getCurrencyName(code);
-            method = 'privatePost' + this.capitalize(name) + 'Withdrawal';
             if (code === 'XRP') {
-                if (tag !== undefined) {
-                    request['destination_tag'] = tag;
+                if (tagWithdrawTag !== undefined) {
+                    request['destination_tag'] = tagWithdrawTag;
                 }
             }
             else if (code === 'XLM' || code === 'HBAR') {
-                if (tag !== undefined) {
-                    request['memo_id'] = tag;
+                if (tagWithdrawTag !== undefined) {
+                    request['memo_id'] = tagWithdrawTag;
                 }
             }
             request['address'] = address;
+            // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
+            // route through request(), called here directly to avoid dynamic dispatch
+            response = await this.request(name + '_withdrawal/', 'private', 'POST', this.extend(request, paramsWithdrawTag));
         }
         else {
-            method = 'privatePostWithdrawalOpen';
             currency = this.currency(code);
             request['iban'] = address;
             request['account_currency'] = currency['id'];
+            response = await this.privatePostWithdrawalOpen(this.extend(request, paramsWithdrawTag));
         }
-        const response = await this[method](this.extend(request, params));
         return this.parseTransaction(response, currency);
     }
     /**
@@ -2674,12 +2744,29 @@ class bitstamp extends bitstamp$1["default"] {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/';
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/';
         url += this.version + '/';
         url += this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
+        const isPrivatePost = (api !== 'public') && (method === 'POST');
+        // an empty POST triggers an API0020 error, so empty requests send a dummy object
+        // https://github.com/ccxt/ccxt/issues/6846
+        const emptyPostBody = this.urlencode({ 'foo': 'bar' });
+        let postBody = emptyPostBody;
+        if (Object.keys(query).length > 0) {
+            postBody = this.urlencode(query);
+        }
+        let requestBody = body;
+        if (isPrivatePost) {
+            requestBody = postBody;
+        }
+        let privateHeaders = undefined;
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -2690,34 +2777,26 @@ class bitstamp extends bitstamp$1["default"] {
             const xAuthTimestamp = this.milliseconds().toString();
             const xAuthVersion = 'v2';
             let contentType = '';
-            headers = {
+            privateHeaders = {
                 'X-Auth': xAuth,
                 'X-Auth-Nonce': xAuthNonce,
                 'X-Auth-Timestamp': xAuthTimestamp,
                 'X-Auth-Version': xAuthVersion,
             };
             if (method === 'POST') {
-                if (Object.keys(query).length) {
-                    body = this.urlencode(query);
-                    contentType = 'application/x-www-form-urlencoded';
-                    headers['Content-Type'] = contentType;
-                }
-                else {
-                    // sending an empty POST request will trigger
-                    // an API0020 error returned by the exchange
-                    // therefore for empty requests we send a dummy object
-                    // https://github.com/ccxt/ccxt/issues/6846
-                    body = this.urlencode({ 'foo': 'bar' });
-                    contentType = 'application/x-www-form-urlencoded';
-                    headers['Content-Type'] = contentType;
-                }
+                contentType = 'application/x-www-form-urlencoded';
+                privateHeaders['Content-Type'] = contentType;
             }
-            const authBody = body ? body : '';
+            let authBody = '';
+            if (requestBody !== undefined && requestBody !== '') {
+                authBody = requestBody;
+            }
             const auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
-            headers['X-Auth-Signature'] = signature;
+            privateHeaders['X-Auth-Signature'] = signature;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const requestHeaders = (api === 'public') ? headers : privateHeaders;
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
@@ -2753,7 +2832,7 @@ class bitstamp extends bitstamp$1["default"] {
                 errors$1.push(reasonInner);
             }
             else {
-                const all = this.safeValue(reasonInner, '__all__', []);
+                const all = this.safeList(reasonInner, '__all__', []);
                 for (let i = 0; i < all.length; i++) {
                     errors$1.push(all[i]);
                 }

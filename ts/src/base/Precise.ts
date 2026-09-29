@@ -3,6 +3,22 @@ import { Str, Int } from './types.js';
 const zero = BigInt (0);
 const minusOne = BigInt (-1);
 const base = BigInt (10);
+// static bounded lookup table for 10^n, n in [0, 128] — order-independent,
+// never invalidated, uniform O(1) cost for any input (falls back to
+// exponentiation for exponents beyond the table)
+const powersOfTen: bigint[] = [ BigInt (1) ];
+for (let i = 1; i <= 128; i++) {
+    powersOfTen.push (powersOfTen[i - 1] * base);
+}
+
+/**
+ * @description returns 10 raised to the given non-negative exponent, from a static bounded lookup table with an exponentiation fallback past its end
+ * @param {number} exponent non-negative integer exponent
+ * @returns {bigint} 10 raised to the exponent
+ */
+function powerOfTen (exponent: number): bigint {
+    return (exponent < powersOfTen.length) ? powersOfTen[exponent] : base ** BigInt (exponent);
+}
 class Precise {
     decimals: number;
 
@@ -12,18 +28,28 @@ class Precise {
 
     constructor (number: bigint | string, decimals: Int = undefined) {
         if (decimals === undefined) {
+            let str = number as string;
             let modifier = 0;
-            number = (number as string).toLowerCase ();
-            if (number.indexOf ('e') > -1) {
-                let modifierString = '0';
-                [ number, modifierString ] = number.split ('e');
-                modifier = parseInt (modifierString);
+            // scientific notation is rare — only locate an exponent marker
+            // when one is present, instead of lowercasing every input
+            let eIndex = str.indexOf ('e');
+            if (eIndex === -1) {
+                eIndex = str.indexOf ('E');
             }
-            const decimalIndex = number.indexOf ('.');
-            this.decimals = (decimalIndex > -1) ? number.length - decimalIndex - 1 : 0;
-            const integerString = number.replace ('.', '');
-            this.integer = BigInt (integerString);
-            this.decimals = this.decimals - modifier;
+            if (eIndex > -1) {
+                modifier = parseInt (str.slice (eIndex + 1));
+                str = str.slice (0, eIndex);
+            }
+            const decimalIndex = str.indexOf ('.');
+            if (decimalIndex > -1) {
+                this.decimals = str.length - decimalIndex - 1 - modifier;
+                this.integer = BigInt (str.slice (0, decimalIndex) + str.slice (decimalIndex + 1));
+            } else {
+                // note: 0 - modifier (not -modifier) keeps decimals +0 for
+                // integer inputs instead of negative zero
+                this.decimals = 0 - modifier;
+                this.integer = BigInt (str);
+            }
         } else {
             this.integer = number as bigint;
             this.decimals = decimals;
@@ -42,11 +68,9 @@ class Precise {
         if (distance === 0) {
             numerator = this.integer;
         } else if (distance < 0) {
-            const exponent = base ** BigInt (-distance);
-            numerator = this.integer / exponent;
+            numerator = this.integer / powerOfTen (-distance);
         } else {
-            const exponent = base ** BigInt (distance);
-            numerator = this.integer * exponent;
+            numerator = this.integer * powerOfTen (distance);
         }
         const result = numerator / other.integer;
         return new Precise (result, precision);
@@ -56,27 +80,38 @@ class Precise {
         if (this.decimals === other.decimals) {
             const integerResult = this.integer + other.integer;
             return new Precise (integerResult, this.decimals);
-        } else {
-            const [ smaller, bigger ] = (this.decimals > other.decimals) ? [ other, this ] : [ this, other ];
-            const exponent = bigger.decimals - smaller.decimals;
-            const normalised = smaller.integer * (base ** BigInt (exponent));
-            const result = normalised + bigger.integer;
-            return new Precise (result, bigger.decimals);
         }
+        const diff = this.decimals - other.decimals;
+        if (diff > 0) {
+            const scaledOther = other.integer * powerOfTen (diff);
+            return new Precise (scaledOther + this.integer, this.decimals);
+        }
+        const scaledThis = this.integer * powerOfTen (-diff);
+        return new Precise (scaledThis + other.integer, other.decimals);
     }
 
     mod (other: Precise) {
         const rationizerNumerator = Math.max (-this.decimals + other.decimals, 0);
-        const numerator = this.integer * (base ** BigInt (rationizerNumerator));
+        const numerator = this.integer * powerOfTen (rationizerNumerator);
         const rationizerDenominator = Math.max (-other.decimals + this.decimals, 0);
-        const denominator = other.integer * (base ** BigInt (rationizerDenominator));
+        const denominator = other.integer * powerOfTen (rationizerDenominator);
         const result = numerator % denominator;
         return new Precise (result, rationizerDenominator + other.decimals);
     }
 
     sub (other: Precise) {
-        const negative = new Precise (-other.integer, other.decimals);
-        return this.add (negative);
+        if (this.decimals === other.decimals) {
+            return new Precise (this.integer - other.integer, this.decimals);
+        }
+        // inline of add (this, neg (other)) without the intermediate instance
+        const thisIsBigger = this.decimals > other.decimals;
+        const smallerInteger = thisIsBigger ? other.integer : this.integer;
+        const biggerInteger = thisIsBigger ? this.integer : other.integer;
+        const biggerDecimals = thisIsBigger ? this.decimals : other.decimals;
+        const smallerDecimals = thisIsBigger ? other.decimals : this.decimals;
+        const normalised = smallerInteger * powerOfTen (biggerDecimals - smallerDecimals);
+        const result = thisIsBigger ? (biggerInteger - normalised) : (normalised - biggerInteger);
+        return new Precise (result, biggerDecimals);
     }
 
     abs () {
@@ -100,45 +135,80 @@ class Precise {
         return this.gt (other) ? this : other;
     }
 
+    // aligned comparison without intermediate instance allocation:
+    // aligns the operand with fewer decimals by multiplying its integer
+    // by 10^difference, then compares the scaled integers
+    compare (other: Precise): number {
+        if (this.decimals === other.decimals) {
+            if (this.integer === other.integer) {
+                return 0;
+            }
+            return (this.integer < other.integer) ? -1 : 1;
+        }
+        const diff = this.decimals - other.decimals;
+        if (diff > 0) {
+            const scaledOther = other.integer * powerOfTen (diff);
+            if (this.integer === scaledOther) {
+                return 0;
+            }
+            return (this.integer < scaledOther) ? -1 : 1;
+        }
+        const scaledThis = this.integer * powerOfTen (-diff);
+        if (scaledThis === other.integer) {
+            return 0;
+        }
+        return (scaledThis < other.integer) ? -1 : 1;
+    }
+
     gt (other: Precise) {
-        const sum = this.sub (other);
-        return sum.integer > 0;
+        return this.compare (other) > 0;
     }
 
     ge (other: Precise) {
-        const sum = this.sub (other);
-        return sum.integer >= 0;
+        return this.compare (other) >= 0;
     }
 
     lt (other: Precise) {
-        return other.gt (this);
+        return this.compare (other) < 0;
     }
 
     le (other: Precise) {
-        return other.ge (this);
+        return this.compare (other) <= 0;
     }
 
-    reduce () {
+    // internal: strips trailing zero digits from the integer representation
+    // and returns the reduced digit string (sign included) so callers that
+    // immediately stringify avoid a second integer-to-string conversion
+    reduceDigits () {
         const string = this.integer.toString ();
         const start = string.length - 1;
         if (start === 0) {
             if (string === '0') {
                 this.decimals = 0;
             }
-            return this;
+            return string;
         }
         let i;
         for (i = start; i >= 0; i--) {
-            if (string.charAt (i) !== '0') {
+            if (string.charCodeAt (i) !== 48) {
                 break;
             }
         }
         const difference = start - i;
         if (difference === 0) {
-            return this;
+            return string;
         }
         this.decimals -= difference;
-        this.integer = BigInt (string.slice (0, i + 1));
+        const reduced = string.slice (0, i + 1);
+        this.integer = BigInt (reduced);
+        return reduced;
+    }
+
+    // reduces the representation in place, returns the instance so calls
+    // can be chained (precise.reduce ().toString ())
+    reduce () {
+        this.reduceDigits ();
+        return this;
     }
 
     equals (other: any) {
@@ -148,31 +218,21 @@ class Precise {
     }
 
     toString () {
-        this.reduce ();
-        let sign;
-        let abs;
-        if (this.integer < 0) {
+        let digits = this.reduceDigits ();
+        let sign = '';
+        if (digits.charCodeAt (0) === 45) { // '-'
             sign = '-';
-            abs = -this.integer;
-        } else {
-            sign = '';
-            abs = this.integer;
+            digits = digits.slice (1);
         }
-        const integerArray = Array.from (abs.toString (Number (base)).padStart (this.decimals, '0'));
-        const index = integerArray.length - this.decimals;
-        let item;
-        if (index === 0) {
-            // if we are adding to the front
-            item = '0.';
-        } else if (this.decimals < 0) {
-            item = '0'.repeat (-this.decimals);
-        } else if (this.decimals === 0) {
-            item = '';
-        } else {
-            item = '.';
+        const decimals = this.decimals;
+        if (decimals <= 0) {
+            return sign + digits + '0'.repeat (-decimals);
         }
-        integerArray.splice (index, 0, item);
-        return sign + integerArray.join ('');
+        if (digits.length <= decimals) {
+            return sign + '0.' + digits.padStart (decimals, '0');
+        }
+        const index = digits.length - decimals;
+        return sign + digits.slice (0, index) + '.' + digits.slice (index);
     }
 
     static stringMul (string1: Str, string2: Str) {

@@ -401,9 +401,9 @@
                     "min_deposit": "0.50000000"
                 }
             },
-            "ARB": {
+            "ARBITRUM": {
                 "id": "arbitrum",
-                "network": "ARB",
+                "network": "ARBITRUM",
                 "limits": {
                     "withdraw": {
                         "min": 1,
@@ -647,9 +647,9 @@
         "fee": null,
         "fees": {},
         "networks": {
-            "ARB": {
+            "ARBITRUM": {
                 "id": "arbitrum",
-                "network": "ARB",
+                "network": "ARBITRUM",
                 "limits": {
                     "withdraw": {
                         "min": 0.01,
@@ -864,9 +864,9 @@
         "fee": null,
         "fees": {},
         "networks": {
-            "ARB": {
+            "ARBITRUM": {
                 "id": "arbitrum",
-                "network": "ARB",
+                "network": "ARBITRUM",
                 "limits": {
                     "withdraw": {
                         "min": 1,

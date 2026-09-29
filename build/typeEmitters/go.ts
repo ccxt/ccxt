@@ -117,6 +117,16 @@ const TYPE_OVERRIDES: Record<string, Record<string, string>> = {
 
 const PLAIN_ACCESSOR = /^(?:Safe(?:Float|Int64|String|Bool)Typed\(\s*\w+\s*,\s*(?:"[^"]*"|\d+)\s*\)|GetInfo\(\s*\w+\s*\))$/;
 
+const PLAIN_STRING_KEY_ACCESSOR = /^(Safe(?:Float|Int64|String|Bool)Typed\(\s*\w+\s*,\s*")([^"]*)("\s*\))$/;
+
+/** a kept plain accessor keeps its width from the port, but its JSON key must follow
+    ts/src/base/types.ts — a drifted key (e.g. Position.ContractSize reading
+    "contractsSize", #29528) self-heals on the next regeneration. numeric-index and
+    GetInfo accessors carry no string key and pass through unchanged */
+function plainAccessorWithTsKey (expr: string, tsName: string): string {
+    return expr.replace (PLAIN_STRING_KEY_ACCESSOR, '$1' + tsName + '$3');
+}
+
 /** `'info'` and `"info"` are legal TS member names — MarginModification quotes all of its. */
 function tsFieldName (field: IRField): string {
     const raw = field.name;
@@ -349,6 +359,8 @@ function goTypeFor (ir: TypesIR, field: IRField): string | undefined {
     if (field.kind === 'dict') {
         const value = field.elementType === undefined ? '' : field.elementType.trim ();
         if (ir.byName[value] === undefined) {
+            // a literal `Dictionary<any>` (CurrencyInterface.networks) is a bag the port
+            // may have given a synthesised value type — its own declaration wins
             return undefined;
         }
         return 'map[string]' + goTypeName (value);
@@ -357,6 +369,11 @@ function goTypeFor (ir: TypesIR, field: IRField): string | undefined {
         return undefined;
     }
     const resolved = resolveTs (ir, field.tsType);
+    if (resolved === 'Dictionary<any>') {
+        // the `Dict` / `NullableDict` aliases (TradingFeeInterface.tiers): a free-form
+        // map with no declared value type — the untyped Go map
+        return 'map[string]any';
+    }
     if (resolved === 'string') {
         return '*string';
     }
@@ -420,7 +437,11 @@ function defaultExpr (goType: string, key: string, accessor: string, isInfo: boo
         return 'SafeBoolTyped(' + accessor + ', "' + key + '")';
     }
     if (goType === 'map[string]any') {
-        return isInfo ? 'GetInfo(' + accessor + ')' : undefined;
+        if (isInfo) {
+            return 'GetInfo(' + accessor + ')';
+        }
+        // a free-form `Dict` member: keep whatever map the payload carries, nil otherwise
+        return 'SafeMapTyped(' + accessor + ', "' + key + '")';
     }
     if (goType === '[]string') {
         return helpers['NewStringArray'] ? 'NewStringArray(' + accessor + '["' + key + '"])' : undefined;
@@ -597,8 +618,9 @@ function planInterface (ir: TypesIR, goName: string, type: IRType, learned: Lear
             expr = learnedExpr; // hand-written (bespoke expression), keep it
         } else if (learnedExpr !== undefined && !typeChanged) {
             // the Go port is authoritative for the accessor width (TS can't tell int
-            // from float), so a learned Safe*Typed accessor wins when the type is kept
-            expr = learnedExpr;
+            // from float), so a learned Safe*Typed accessor wins when the type is kept —
+            // but its JSON key is rewritten from the TS source of truth
+            expr = plainAccessorWithTsKey (learnedExpr, tsName);
         } else {
             // the type changed (drift fix) or there is no learned expression — the
             // accessor must be regenerated from the NEW type

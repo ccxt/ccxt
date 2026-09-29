@@ -54,7 +54,6 @@
 * [fetchPositionHistory](#fetchpositionhistory)
 * [fetchPositions](#fetchpositions)
 * [fetchPosition](#fetchposition)
-* [fetchCrossBorrowRate](#fetchcrossborrowrate)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [watchOHLCV](#watchohlcv)
 * [watchOrderBook](#watchorderbook)
@@ -490,6 +489,7 @@ create a trade order
 | params.cost | <code>float</code> | No | *market orders only* the cost of the order in units of the base currency |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
 | params.postOnly | <code>bool</code> | No | If true, the order will only be posted to the order book and not executed immediately |
+| params.timeInForce | <code>string</code> | No | "GTC", "IOC" or "PO"; IOC and PO are limit-order only, not supported for stop orders |
 | params.clientOrderId | <code>string</code> | No | a unique id for the order |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null |
 
@@ -1204,27 +1204,6 @@ whitebit.fetchPosition (symbol, params?)
 ```
 
 
-<a name="fetchCrossBorrowRate" id="fetchcrossborrowrate"></a>
-
-### fetchCrossBorrowRate{docsify-ignore}
-fetch the rate of interest to borrow a currency for margin trading
-
-**Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/?id=borrow-rate-structure)
-
-**See**: https://docs.whitebit.com/private/http-main-v4/#get-plans  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-whitebit.fetchCrossBorrowRate (code, params?)
-```
-
-
 <a name="fetchFundingRateHistory" id="fetchfundingratehistory"></a>
 
 ### fetchFundingRateHistory{docsify-ignore}
@@ -1424,6 +1403,8 @@ watch balance and get the amount of funds available for trading or funds locked 
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>str</code> | No | spot or contract if not provided this.options['defaultType'] is used |
+| params.fetchBalanceSnapshot | <code>bool</code> | No | whether to fetch the initial balance snapshot over REST, default is true |
+| params.awaitBalanceSnapshot | <code>bool</code> | No | whether to wait for the balance snapshot before providing updates, default is true |
 
 
 ```javascript

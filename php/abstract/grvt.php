@@ -7,304 +7,880 @@ namespace ccxt\abstract;
 
 
 abstract class grvt extends \ccxt\Exchange {
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_get_api_v1_deposit_addresses($params = array()) {
+        return $this->request('api/v1/deposit/addresses', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_get_api_v1_bridge_withdrawal_info($params = array()) {
+        return $this->request('api/v1/bridge/withdrawal-info', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_get_api_v1_bridge_withdrawal_status($params = array()) {
+        return $this->request('api/v1/bridge/withdrawal-status', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_get_api_v1_referral_epochs($params = array()) {
+        return $this->request('api/v1/referral/epochs', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_get_api_v1_referral_points($params = array()) {
+        return $this->request('api/v1/referral/points', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_get_api_v1_referral_data($params = array()) {
+        return $this->request('api/v1/referral/data', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_get_api_v1_referral_indirect_data($params = array()) {
+        return $this->request('api/v1/referral/indirect_data', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateedge_post_auth_api_key_login($params = array()) {
         return $this->request('auth/api_key/login', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateedge_post_auth_wallet_login($params = array()) {
         return $this->request('auth/wallet/login', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_post_auth_builder_authorize($params = array()) {
+        return $this->request('auth/builder/authorize', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_post_api_v1_deposit_generate_address($params = array()) {
+        return $this->request('api/v1/deposit/generate-address', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_post_api_v1_bridge_withdrawal_quote($params = array()) {
+        return $this->request('api/v1/bridge/withdrawal-quote', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_post_api_v1_bridge_withdraw($params = array()) {
+        return $this->request('api/v1/bridge/withdraw', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicmarket_post_full_v1_instrument($params = array()) {
         return $this->request('full/v1/instrument', 'publicMarket', 'POST', $params, null, null, array("cost" => 4));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicmarket_post_full_v1_all_instruments($params = array()) {
         return $this->request('full/v1/all_instruments', 'publicMarket', 'POST', $params, null, null, array("cost" => 4));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicmarket_post_full_v1_instruments($params = array()) {
         return $this->request('full/v1/instruments', 'publicMarket', 'POST', $params, null, null, array("cost" => 4));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicmarket_post_full_v1_currency($params = array()) {
         return $this->request('full/v1/currency', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicmarket_post_full_v1_margin_rules($params = array()) {
         return $this->request('full/v1/margin_rules', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicmarket_post_full_v1_mini($params = array()) {
         return $this->request('full/v1/mini', 'publicMarket', 'POST', $params, null, null, array("cost" => 4));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicmarket_post_full_v1_ticker($params = array()) {
         return $this->request('full/v1/ticker', 'publicMarket', 'POST', $params, null, null, array("cost" => 4));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicmarket_post_full_v1_book($params = array()) {
         return $this->request('full/v1/book', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicmarket_post_full_v1_trade($params = array()) {
         return $this->request('full/v1/trade', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicmarket_post_full_v1_trade_history($params = array()) {
         return $this->request('full/v1/trade_history', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicmarket_post_full_v1_kline($params = array()) {
         return $this->request('full/v1/kline', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicmarket_post_full_v1_funding($params = array()) {
         return $this->request('full/v1/funding', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicmarket_post_full_v1_supported_assets($params = array()) {
+        return $this->request('full/v1/supported_assets', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicmarket_post_full_v1_get_all_collateral_asset_info($params = array()) {
+        return $this->request('full/v1/get_all_collateral_asset_info', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_create_order($params = array()) {
         return $this->request('full/v1/create_order', 'privateTrading', 'POST', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_cancel_order($params = array()) {
         return $this->request('full/v1/cancel_order', 'privateTrading', 'POST', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_cancel_on_disconnect($params = array()) {
         return $this->request('full/v1/cancel_on_disconnect', 'privateTrading', 'POST', $params, null, null, array("cost" => 100));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_cancel_all_orders($params = array()) {
         return $this->request('full/v1/cancel_all_orders', 'privateTrading', 'POST', $params, null, null, array("cost" => 50));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_order($params = array()) {
         return $this->request('full/v1/order', 'privateTrading', 'POST', $params, null, null, array("cost" => 20));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_order_history($params = array()) {
         return $this->request('full/v1/order_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 20));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_open_orders($params = array()) {
         return $this->request('full/v1/open_orders', 'privateTrading', 'POST', $params, null, null, array("cost" => 20));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_fill_history($params = array()) {
         return $this->request('full/v1/fill_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 20));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_positions($params = array()) {
         return $this->request('full/v1/positions', 'privateTrading', 'POST', $params, null, null, array("cost" => 20));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_funding_payment_history($params = array()) {
         return $this->request('full/v1/funding_payment_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_get_sub_accounts($params = array()) {
         return $this->request('full/v1/get_sub_accounts', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_account_summary($params = array()) {
         return $this->request('full/v1/account_summary', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_account_history($params = array()) {
         return $this->request('full/v1/account_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_aggregated_account_summary($params = array()) {
         return $this->request('full/v1/aggregated_account_summary', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_funding_account_summary($params = array()) {
         return $this->request('full/v1/funding_account_summary', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_transfer($params = array()) {
         return $this->request('full/v1/transfer', 'privateTrading', 'POST', $params, null, null, array("cost" => 100));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_deposit_history($params = array()) {
         return $this->request('full/v1/deposit_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 100));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_transfer_history($params = array()) {
         return $this->request('full/v1/transfer_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 100));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_withdrawal($params = array()) {
         return $this->request('full/v1/withdrawal', 'privateTrading', 'POST', $params, null, null, array("cost" => 100));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_withdrawal_history($params = array()) {
         return $this->request('full/v1/withdrawal_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 100));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_add_position_margin($params = array()) {
         return $this->request('full/v1/add_position_margin', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_get_position_margin_limits($params = array()) {
         return $this->request('full/v1/get_position_margin_limits', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_set_position_config($params = array()) {
         return $this->request('full/v1/set_position_config', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_set_initial_leverage($params = array()) {
         return $this->request('full/v1/set_initial_leverage', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_get_all_initial_leverage($params = array()) {
         return $this->request('full/v1/get_all_initial_leverage', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_set_derisk_mm_ratio($params = array()) {
         return $this->request('full/v1/set_derisk_mm_ratio', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_vault_burn_tokens($params = array()) {
         return $this->request('full/v1/vault_burn_tokens', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_vault_invest($params = array()) {
         return $this->request('full/v1/vault_invest', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_vault_investor_summary($params = array()) {
         return $this->request('full/v1/vault_investor_summary', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_vault_redeem($params = array()) {
         return $this->request('full/v1/vault_redeem', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_vault_redeem_cancel($params = array()) {
         return $this->request('full/v1/vault_redeem_cancel', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_vault_view_redemption_queue($params = array()) {
         return $this->request('full/v1/vault_view_redemption_queue', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_vault_manager_investor_history($params = array()) {
         return $this->request('full/v1/vault_manager_investor_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_authorize_builder($params = array()) {
         return $this->request('full/v1/authorize_builder', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_get_authorized_builders($params = array()) {
         return $this->request('full/v1/get_authorized_builders', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatetrading_post_full_v1_builder_fill_history($params = array()) {
         return $this->request('full/v1/builder_fill_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_create_rfq($params = array()) {
+        return $this->request('full/v1/create_rfq', 'privateTrading', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_cancel_rfq($params = array()) {
+        return $this->request('full/v1/cancel_rfq', 'privateTrading', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_ecn_from_broker($params = array()) {
+        return $this->request('full/v1/ecn_from_broker', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v2_bulk_orders($params = array()) {
+        return $this->request('full/v2/bulk_orders', 'privateTrading', 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_position_history($params = array()) {
+        return $this->request('full/v1/position_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_interest_payment_history($params = array()) {
+        return $this->request('full/v1/interest_payment_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_get_collateral_preference($params = array()) {
+        return $this->request('full/v1/get_collateral_preference', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_spot_account_summary($params = array()) {
+        return $this->request('full/v1/spot_account_summary', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_set_indicative_prices($params = array()) {
+        return $this->request('full/v1/set_indicative_prices', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_withdrawal_fee($params = array()) {
+        return $this->request('full/v1/withdrawal_fee', 'privateTrading', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgeGetApiV1DepositAddresses($params = array()) {
+        return $this->request('api/v1/deposit/addresses', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgeGetApiV1BridgeWithdrawalInfo($params = array()) {
+        return $this->request('api/v1/bridge/withdrawal-info', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgeGetApiV1BridgeWithdrawalStatus($params = array()) {
+        return $this->request('api/v1/bridge/withdrawal-status', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgeGetApiV1ReferralEpochs($params = array()) {
+        return $this->request('api/v1/referral/epochs', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgeGetApiV1ReferralPoints($params = array()) {
+        return $this->request('api/v1/referral/points', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgeGetApiV1ReferralData($params = array()) {
+        return $this->request('api/v1/referral/data', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgeGetApiV1ReferralIndirectData($params = array()) {
+        return $this->request('api/v1/referral/indirect_data', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateEdgePostAuthApiKeyLogin($params = array()) {
         return $this->request('auth/api_key/login', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateEdgePostAuthWalletLogin($params = array()) {
         return $this->request('auth/wallet/login', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgePostAuthBuilderAuthorize($params = array()) {
+        return $this->request('auth/builder/authorize', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgePostApiV1DepositGenerateAddress($params = array()) {
+        return $this->request('api/v1/deposit/generate-address', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgePostApiV1BridgeWithdrawalQuote($params = array()) {
+        return $this->request('api/v1/bridge/withdrawal-quote', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgePostApiV1BridgeWithdraw($params = array()) {
+        return $this->request('api/v1/bridge/withdraw', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicMarketPostFullV1Instrument($params = array()) {
         return $this->request('full/v1/instrument', 'publicMarket', 'POST', $params, null, null, array("cost" => 4));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicMarketPostFullV1AllInstruments($params = array()) {
         return $this->request('full/v1/all_instruments', 'publicMarket', 'POST', $params, null, null, array("cost" => 4));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicMarketPostFullV1Instruments($params = array()) {
         return $this->request('full/v1/instruments', 'publicMarket', 'POST', $params, null, null, array("cost" => 4));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicMarketPostFullV1Currency($params = array()) {
         return $this->request('full/v1/currency', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicMarketPostFullV1MarginRules($params = array()) {
         return $this->request('full/v1/margin_rules', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicMarketPostFullV1Mini($params = array()) {
         return $this->request('full/v1/mini', 'publicMarket', 'POST', $params, null, null, array("cost" => 4));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicMarketPostFullV1Ticker($params = array()) {
         return $this->request('full/v1/ticker', 'publicMarket', 'POST', $params, null, null, array("cost" => 4));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicMarketPostFullV1Book($params = array()) {
         return $this->request('full/v1/book', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicMarketPostFullV1Trade($params = array()) {
         return $this->request('full/v1/trade', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicMarketPostFullV1TradeHistory($params = array()) {
         return $this->request('full/v1/trade_history', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicMarketPostFullV1Kline($params = array()) {
         return $this->request('full/v1/kline', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicMarketPostFullV1Funding($params = array()) {
         return $this->request('full/v1/funding', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicMarketPostFullV1SupportedAssets($params = array()) {
+        return $this->request('full/v1/supported_assets', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicMarketPostFullV1GetAllCollateralAssetInfo($params = array()) {
+        return $this->request('full/v1/get_all_collateral_asset_info', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1CreateOrder($params = array()) {
         return $this->request('full/v1/create_order', 'privateTrading', 'POST', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1CancelOrder($params = array()) {
         return $this->request('full/v1/cancel_order', 'privateTrading', 'POST', $params, null, null, array("cost" => 5));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1CancelOnDisconnect($params = array()) {
         return $this->request('full/v1/cancel_on_disconnect', 'privateTrading', 'POST', $params, null, null, array("cost" => 100));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1CancelAllOrders($params = array()) {
         return $this->request('full/v1/cancel_all_orders', 'privateTrading', 'POST', $params, null, null, array("cost" => 50));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1Order($params = array()) {
         return $this->request('full/v1/order', 'privateTrading', 'POST', $params, null, null, array("cost" => 20));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1OrderHistory($params = array()) {
         return $this->request('full/v1/order_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 20));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1OpenOrders($params = array()) {
         return $this->request('full/v1/open_orders', 'privateTrading', 'POST', $params, null, null, array("cost" => 20));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1FillHistory($params = array()) {
         return $this->request('full/v1/fill_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 20));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1Positions($params = array()) {
         return $this->request('full/v1/positions', 'privateTrading', 'POST', $params, null, null, array("cost" => 20));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1FundingPaymentHistory($params = array()) {
         return $this->request('full/v1/funding_payment_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1GetSubAccounts($params = array()) {
         return $this->request('full/v1/get_sub_accounts', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1AccountSummary($params = array()) {
         return $this->request('full/v1/account_summary', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1AccountHistory($params = array()) {
         return $this->request('full/v1/account_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1AggregatedAccountSummary($params = array()) {
         return $this->request('full/v1/aggregated_account_summary', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1FundingAccountSummary($params = array()) {
         return $this->request('full/v1/funding_account_summary', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1Transfer($params = array()) {
         return $this->request('full/v1/transfer', 'privateTrading', 'POST', $params, null, null, array("cost" => 100));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1DepositHistory($params = array()) {
         return $this->request('full/v1/deposit_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 100));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1TransferHistory($params = array()) {
         return $this->request('full/v1/transfer_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 100));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1Withdrawal($params = array()) {
         return $this->request('full/v1/withdrawal', 'privateTrading', 'POST', $params, null, null, array("cost" => 100));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1WithdrawalHistory($params = array()) {
         return $this->request('full/v1/withdrawal_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 100));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1AddPositionMargin($params = array()) {
         return $this->request('full/v1/add_position_margin', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1GetPositionMarginLimits($params = array()) {
         return $this->request('full/v1/get_position_margin_limits', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1SetPositionConfig($params = array()) {
         return $this->request('full/v1/set_position_config', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1SetInitialLeverage($params = array()) {
         return $this->request('full/v1/set_initial_leverage', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1GetAllInitialLeverage($params = array()) {
         return $this->request('full/v1/get_all_initial_leverage', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1SetDeriskMmRatio($params = array()) {
         return $this->request('full/v1/set_derisk_mm_ratio', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1VaultBurnTokens($params = array()) {
         return $this->request('full/v1/vault_burn_tokens', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1VaultInvest($params = array()) {
         return $this->request('full/v1/vault_invest', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1VaultInvestorSummary($params = array()) {
         return $this->request('full/v1/vault_investor_summary', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1VaultRedeem($params = array()) {
         return $this->request('full/v1/vault_redeem', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1VaultRedeemCancel($params = array()) {
         return $this->request('full/v1/vault_redeem_cancel', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1VaultViewRedemptionQueue($params = array()) {
         return $this->request('full/v1/vault_view_redemption_queue', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1VaultManagerInvestorHistory($params = array()) {
         return $this->request('full/v1/vault_manager_investor_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1AuthorizeBuilder($params = array()) {
         return $this->request('full/v1/authorize_builder', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1GetAuthorizedBuilders($params = array()) {
         return $this->request('full/v1/get_authorized_builders', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateTradingPostFullV1BuilderFillHistory($params = array()) {
         return $this->request('full/v1/builder_fill_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1CreateRfq($params = array()) {
+        return $this->request('full/v1/create_rfq', 'privateTrading', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1CancelRfq($params = array()) {
+        return $this->request('full/v1/cancel_rfq', 'privateTrading', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1EcnFromBroker($params = array()) {
+        return $this->request('full/v1/ecn_from_broker', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV2BulkOrders($params = array()) {
+        return $this->request('full/v2/bulk_orders', 'privateTrading', 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1PositionHistory($params = array()) {
+        return $this->request('full/v1/position_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1InterestPaymentHistory($params = array()) {
+        return $this->request('full/v1/interest_payment_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1GetCollateralPreference($params = array()) {
+        return $this->request('full/v1/get_collateral_preference', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1SpotAccountSummary($params = array()) {
+        return $this->request('full/v1/spot_account_summary', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1SetIndicativePrices($params = array()) {
+        return $this->request('full/v1/set_indicative_prices', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1WithdrawalFee($params = array()) {
+        return $this->request('full/v1/withdrawal_fee', 'privateTrading', 'POST', $params, null, null, array("cost" => 100));
     }
 }

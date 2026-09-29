@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official binancecoinm API documentation:** [binance-docs.github.io](https://binance-docs.github.io/apidocs/delivery/en/) · [binance-docs.github.io](https://binance-docs.github.io/apidocs/spot/en) · [developers.binance.com](https://developers.binance.com/en)
 
-> 792 implicit endpoints across 20 access groups.
+> 822 implicit endpoints across 20 access groups.
 
 ## sapi
 
@@ -285,6 +285,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `sapiGetPortfolioPmloanHistory` | GET | `portfolio/pmloan-history` | 5 |
 | `sapiGetPortfolioEarnAssetBalance` | GET | `portfolio/earn-asset-balance` | 150 |
 | `sapiGetPortfolioDeltaMode` | GET | `portfolio/delta-mode` | 150 |
+| `sapiGetPortfolioMarginCallLevel` | GET | `portfolio/margin-call-level` | 150 |
 | `sapiGetStakingProductList` | GET | `staking/productList` | 0.1 |
 | `sapiGetStakingPosition` | GET | `staking/position` | 0.1 |
 | `sapiGetStakingStakingRecord` | GET | `staking/stakingRecord` | 0.1 |
@@ -324,6 +325,15 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `sapiGetAccumulatorProductList` | GET | `accumulator/product/list` | 0.1 |
 | `sapiGetAccumulatorProductPositionList` | GET | `accumulator/product/position/list` | 0.1 |
 | `sapiGetAccumulatorProductSumHolding` | GET | `accumulator/product/sum-holding` | 0.1 |
+| `sapiGetEquityMarketExchangeInfo` | GET | `equity/market/exchangeInfo` | 0.1 |
+| `sapiGetEquityMarketTokenizedAssets` | GET | `equity/market/tokenized-assets` | 0.1 |
+| `sapiGetEquityMarketQuote` | GET | `equity/market/quote` | 0.1 |
+| `sapiGetEquityOrderOpenOrders` | GET | `equity/order/open-orders` | 0.1 |
+| `sapiGetEquityOrderHistory` | GET | `equity/order/history` | 0.1 |
+| `sapiGetEquityOrderDetail` | GET | `equity/order/detail` | 0.1 |
+| `sapiGetEquityTradeHistory` | GET | `equity/trade/history` | 0.1 |
+| `sapiGetEquityTokenizedConvertStatus` | GET | `equity/tokenized/convert-status` | 0.1 |
+| `sapiGetEquityTokenizedHistory` | GET | `equity/tokenized/history` | 0.1 |
 | `sapiPostAssetDust` | POST | `asset/dust` | 0.06667 |
 | `sapiPostAssetDustBtc` | POST | `asset/dust-btc` | 0.1 |
 | `sapiPostAssetTransfer` | POST | `asset/transfer` | 6.0003 |
@@ -433,6 +443,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `sapiPostPortfolioRedeem` | POST | `portfolio/redeem` | 20 |
 | `sapiPostPortfolioEarnAssetTransfer` | POST | `portfolio/earn-asset-transfer` | 150 |
 | `sapiPostPortfolioDeltaMode` | POST | `portfolio/delta-mode` | 150 |
+| `sapiPostPortfolioMarginCallLevel` | POST | `portfolio/margin-call-level` | 150 |
 | `sapiPostLendingAutoInvestPlanAdd` | POST | `lending/auto-invest/plan/add` | 0.1 |
 | `sapiPostLendingAutoInvestPlanEdit` | POST | `lending/auto-invest/plan/edit` | 0.1 |
 | `sapiPostLendingAutoInvestPlanEditStatus` | POST | `lending/auto-invest/plan/edit-status` | 0.1 |
@@ -448,8 +459,16 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `sapiPostDciProductSubscribe` | POST | `dci/product/subscribe` | 0.1 |
 | `sapiPostDciProductAutoCompoundEdit` | POST | `dci/product/auto_compound/edit` | 0.1 |
 | `sapiPostAccumulatorProductSubscribe` | POST | `accumulator/product/subscribe` | 0.1 |
+| `sapiPostEquityOrderPlace` | POST | `equity/order/place` | 0.1 |
+| `sapiPostEquityOrderCancel` | POST | `equity/order/cancel` | 0.1 |
+| `sapiPostEquityOrderCancelAll` | POST | `equity/order/cancel-all` | 0.1 |
+| `sapiPostEquityTokenizedMint` | POST | `equity/tokenized/mint` | 0.1 |
+| `sapiPostEquityTokenizedRedeem` | POST | `equity/tokenized/redeem` | 0.1 |
+| `sapiPostEquityAccountDisclaimer` | POST | `equity/account/disclaimer` | 0.1 |
+| `sapiPostEquityListenKey` | POST | `equity/listenKey` | 0.1 |
 | `sapiPutUserDataStream` | PUT | `userDataStream` | 0.1 |
 | `sapiPutUserDataStreamIsolated` | PUT | `userDataStream/isolated` | 0.1 |
+| `sapiDeletePortfolioMarginCallLevel` | DELETE | `portfolio/margin-call-level` | 150 |
 | `sapiDeleteMarginOpenOrders` | DELETE | `margin/openOrders` | 0.1 |
 | `sapiDeleteMarginOrder` | DELETE | `margin/order` | 0.006667 |
 | `sapiDeleteMarginOrderList` | DELETE | `margin/orderList` | 0.006667 |
@@ -624,7 +643,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `fapiPublicGetPremiumIndex` | GET | `premiumIndex` | 1 |
 | `fapiPublicGetTicker24hr` | GET | `ticker/24hr` | 1 |
 | `fapiPublicGetTickerPrice` | GET | `ticker/price` | 1 |
-| `fapiPublicGetTickerBookTicker` | GET | `ticker/bookTicker` | 1 |
+| `fapiPublicGetTickerBookTicker` | GET | `ticker/bookTicker` | 2 |
 | `fapiPublicGetOpenInterest` | GET | `openInterest` | 1 |
 | `fapiPublicGetIndexInfo` | GET | `indexInfo` | 1 |
 | `fapiPublicGetAssetIndex` | GET | `assetIndex` | 1 |
@@ -804,6 +823,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `eapiPrivatePostCountdownCancelAllHeartBeat` | POST | `countdownCancelAllHeartBeat` | 10 |
 | `eapiPrivatePostBlockOrderCreate` | POST | `block/order/create` | 5 |
 | `eapiPrivatePostBlockOrderExecute` | POST | `block/order/execute` | 5 |
+| `eapiPrivatePostStockContract` | POST | `stock/contract` | 50 |
 | `eapiPrivatePutListenKey` | PUT | `listenKey` | 1 |
 | `eapiPrivatePutBlockOrderCreate` | PUT | `block/order/create` | 5 |
 | `eapiPrivateDeleteOrder` | DELETE | `order` | 1 |
@@ -833,7 +853,11 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetTickerPrice` | GET | `ticker/price` | 0.4 |
 | `publicGetTickerBookTicker` | GET | `ticker/bookTicker` | 0.4 |
 | `publicGetExchangeInfo` | GET | `exchangeInfo` | 4 |
+| `publicGetExecutionRules` | GET | `executionRules` | 0.4 |
 | `publicGetAvgPrice` | GET | `avgPrice` | 0.4 |
+| `publicGetReferencePrice` | GET | `referencePrice` | 0.4 |
+| `publicGetReferencePriceCalculation` | GET | `referencePrice/calculation` | 0.4 |
+| `publicGetHistoricalBlockTrades` | GET | `historicalBlockTrades` | 5 |
 | `publicPutUserDataStream` | PUT | `userDataStream` | 0.4 |
 | `publicPostUserDataStream` | POST | `userDataStream` | 0.4 |
 | `publicDeleteUserDataStream` | DELETE | `userDataStream` | 0.4 |
@@ -890,6 +914,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `papiGetUmConditionalOpenOrders` | GET | `um/conditional/openOrders` | 1 |
 | `papiGetUmConditionalOrderHistory` | GET | `um/conditional/orderHistory` | 1 |
 | `papiGetUmConditionalAllOrders` | GET | `um/conditional/allOrders` | 1 |
+| `papiGetUmAlgoAlgoOrder` | GET | `um/algo/algoOrder` | 1 |
+| `papiGetUmAlgoOpenAlgoOrders` | GET | `um/algo/openAlgoOrders` | 1 |
+| `papiGetUmAlgoAllAlgoOrders` | GET | `um/algo/allAlgoOrders` | 5 |
 | `papiGetCmConditionalOpenOrder` | GET | `cm/conditional/openOrder` | 1 |
 | `papiGetCmConditionalOpenOrders` | GET | `cm/conditional/openOrders` | 1 |
 | `papiGetCmConditionalOrderHistory` | GET | `cm/conditional/orderHistory` | 1 |
@@ -946,6 +973,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `papiGetRateLimitOrder` | GET | `rateLimit/order` | 1 |
 | `papiPostUmOrder` | POST | `um/order` | 1 |
 | `papiPostUmConditionalOrder` | POST | `um/conditional/order` | 1 |
+| `papiPostUmAlgoOrder` | POST | `um/algo/order` | 1 |
 | `papiPostCmOrder` | POST | `cm/order` | 1 |
 | `papiPostCmConditionalOrder` | POST | `cm/conditional/order` | 1 |
 | `papiPostMarginOrder` | POST | `margin/order` | 1 |
@@ -972,6 +1000,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `papiDeleteUmConditionalOrder` | DELETE | `um/conditional/order` | 1 |
 | `papiDeleteUmAllOpenOrders` | DELETE | `um/allOpenOrders` | 1 |
 | `papiDeleteUmConditionalAllOpenOrders` | DELETE | `um/conditional/allOpenOrders` | 1 |
+| `papiDeleteUmAlgoOrder` | DELETE | `um/algo/order` | 1 |
+| `papiDeleteUmAlgoAllOpenOrders` | DELETE | `um/algo/allOpenOrders` | 1 |
 | `papiDeleteCmOrder` | DELETE | `cm/order` | 1 |
 | `papiDeleteCmConditionalOrder` | DELETE | `cm/conditional/order` | 1 |
 | `papiDeleteCmAllOpenOrders` | DELETE | `cm/allOpenOrders` | 1 |

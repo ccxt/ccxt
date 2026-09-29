@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use React\Async;
@@ -86,448 +87,494 @@ class pacifica extends \ccxt\async\pacifica {
         $this->options['ws']['options']['headers'] = $headers;
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * create a trade $order
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/trading-operations/create-market-$order
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/trading-operations/create-limit-$order
-             *
-             * @param {string} $symbol unified $symbol of the market to create an $order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
-             * @param {float|null} [$params->stopLossPrice] the $price that a stop loss $order is triggered at (optional provide stopLossCloid)
-             * @param {float|null} [$params->takeProfitPrice] the $price that a take profit $order is triggered at (optional provide takeProfitCloid)
-             * @param {string|null} [$params->timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
-             * @param {bool|null} [$params->reduceOnly] Ensures that the executed $order does not flip the opened position.
-             * @param {string|null} [$params->clientOrderId] client $order id, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
-             * @param {int|null} [$params->expiryWindow] time to live in milliseconds
-             * @param {string|null} [$params->agentAddress] only if agent wallet in use.
-             * @param {string|null} [$params->originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
-             * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            list($request, $operationType) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-            $params = $this->omit($params, array(
-                'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
-                'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow', 'agentAddress', 'originAddress',
-            ));
-            $isTestnet = $this->isSandboxModeEnabled;
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $wsRequest = $this->wrap_as_post_action($operationType, $request);
-            $requestId = $this->safe_string($wsRequest, 'id');
-            if ($operationType === 'create_stop_order') {
-                throw new NotSupported($this->id . ' createOrderWs() do not support stop $order $type of $order-> Check provided arguments correctly!');
-            } elseif ($operationType === 'set_position_tpsl') {
-                throw new NotSupported($this->id . ' createOrderWs() do not support set position tpsl $type of $order-> Check provided arguments correctly!');
-            }
-            $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
-            //
-            // market $order
-            // {
-            //   "code" => 200,
-            //   "data" => array(
-            //     "I" => "79f948fd-7556-4066-a128-083f3ea49322",
-            //     "i" => 645953,
-            //     "s" => "BTC"
-            //   ),
-            //   "id" => "660065de-8f32-46ad-ba1e-83c93d3e3966",
-            //   "t" => 1749223025962,
-            //   "type" => "create_market_order"
-            // }
-            //
-            // limit $order
-            // {
-            //   "code" => 200,
-            //   "data" => array(
-            //     "I" => "79f948fd-7556-4066-a128-083f3ea49322",
-            //     "i" => 645953,
-            //     "s" => "BTC"
-            //   ),
-            //   "id" => "660065de-8f32-46ad-ba1e-83c93d3e3966",
-            //   "t" => 1749223025962,
-            //   "type" => "create_order"
-            // }
-            //
-            $code = $this->safe_integer($response, 'code');
-            $success = false;
-            if ($code === 200) {
-                $success = true;
-            }
-            $status = null;
-            if (!$success) {
-                $status = 'rejected';
-            } else {
-                $status = 'open';
-            }
-            $order = $this->safe_dict($response, 'data', array());
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_create_order_ws(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade $order
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/trading-operations/create-market-$order
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/trading-operations/create-limit-$order
+         *
+         * @param {string} $symbol unified $symbol of the market to create an $order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
+         * @param {float|null} [$params->stopLossPrice] the $price that a stop loss $order is triggered at (optional provide stopLossCloid)
+         * @param {float|null} [$params->takeProfitPrice] the $price that a take profit $order is triggered at (optional provide takeProfitCloid)
+         * @param {string|null} [$params->timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
+         * @param {bool|null} [$params->reduceOnly] Ensures that the executed $order does not flip the opened position.
+         * @param {string|null} [$params->clientOrderId] client $order id, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
+         * @param {int|null} [$params->expiryWindow] time to live in milliseconds
+         * @param {string|null} [$params->agentAddress] only if agent wallet in use.
+         * @param {string|null} [$params->originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        list($request, $operationType) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+        $isTestnet = $this->isSandboxModeEnabled;
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        $wsRequest = $this->wrap_as_post_action($operationType, $request);
+        $requestId = $this->safe_string($wsRequest, 'id');
+        if ($operationType === 'create_stop_order') {
+            throw new NotSupported($this->id . ' createOrderWs() do not support stop order type of order. Check provided arguments correctly!');
+        } elseif ($operationType === 'set_position_tpsl') {
+            throw new NotSupported($this->id . ' createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!');
+        }
+        $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
+        //
+        // market order
+        // {
+        //   "code": 200,
+        //   "data": {
+        //     "I": "79f948fd-7556-4066-a128-083f3ea49322",
+        //     "i": 645953,
+        //     "s": "BTC"
+        //   },
+        //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
+        //   "t": 1749223025962,
+        //   "type": "create_market_order"
+        // }
+        //
+        // limit order
+        // {
+        //   "code": 200,
+        //   "data": {
+        //     "I": "79f948fd-7556-4066-a128-083f3ea49322",
+        //     "i": 645953,
+        //     "s": "BTC"
+        //   },
+        //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
+        //   "t": 1749223025962,
+        //   "type": "create_order"
+        // }
+        //
+        $code = $this->safe_integer($response, 'code');
+        $success = false;
+        if ($code === 200) {
+            $success = true;
+        }
+        $status = null;
+        if (!$success) {
+            $status = 'rejected';
+        } else {
+            $status = 'open';
+        }
+        $order = $this->safe_dict($response, 'data', array());
+        $orderId = $this->safe_string($order, 'i');
+        $clientOrderId = $this->safe_string($order, 'I');
+        return $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
+    }
+
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_edit_order_ws(...))($id, $symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+        /**
+         * edit a trade $order
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/trading-operations/edit-$order
+         *
+         * @param {string} $id edit $order $id
+         * @param {string} $symbol unified $symbol of the $market to edit an $order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the $order is to be fulfilled, in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] client $order $id, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
+         * @param {int|null} [$params->expiryWindow] time to live in milliseconds
+         * @param {string|null} [$params->agentAddress] only if agent wallet in use
+         * @param {string|null} [$params->originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
+         */
+        $batchOperationType = 'edit_order';
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $market, $params);
+        $isTestnet = $this->isSandboxModeEnabled;
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        $wsRequest = $this->wrap_as_post_action($batchOperationType, $request);
+        $requestId = $this->safe_string($wsRequest, 'id');
+        $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
+        // {
+        //   "code": 200,
+        //   "data": {
+        //     "I": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+        //     "i": 645954,
+        //     "s": "BTC"
+        //   },
+        //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
+        //   "t": 1749223026150,
+        //   "type": "edit_order"
+        // }
+        $code = $this->safe_integer($response, 'code');
+        $success = false;
+        if ($code === 200) {
+            $success = true;
+        }
+        $status = null;
+        if (!$success) {
+            $status = 'rejected';
+        } else {
+            $status = 'open';
+        }
+        $order = $this->safe_dict($response, 'data', array());
+        $orderId = $this->safe_string($order, 'i');
+        $clientOrderId = $this->safe_string($order, 'I');
+        return $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
+    }
+
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_cancel_orders_ws(...))($ids, $symbol, $params);
+    }
+
+    private function do_cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()) {
+        /**
+         * cancel multiple orders
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/trading-operations/batch-$order
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/trading-operations/cancel-$order
+         *
+         * @param {string[]} $ids $order $ids
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string|string[]} [$params->clientOrderId] client $order $ids, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
+         * @param {int|null} [$params->expiryWindow] time to live in milliseconds
+         * @param {string|null} [$params->agentAddress] only if agent wallet in use
+         * @param {string|null} [$params->originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+         * @return {array} an list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
+         */
+        $batchOperationType = 'batch_orders';
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . 'cancelOrders() requires a "symbol" argument!');
+        }
+        $request = $this->cancelOrdersRequest($ids, $symbol, $params);
+        $isTestnet = $this->isSandboxModeEnabled;
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        $wsRequest = $this->wrap_as_post_action($batchOperationType, $request);
+        $requestId = $this->safe_string($wsRequest, 'id');
+        $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
+        //
+        // {
+        //   "code": 200,
+        //   "data": {
+        //     "results": [
+        //       {
+        //         "success": true,
+        //         "order_id": 645953,
+        //         "client_order_id": "57a5efb1-bb96-49a5-8bfd-f25d5f22bc7e",
+        //         "symbol": "BTC"
+        //       },
+        //       {
+        //         "success": true,
+        //         "order_id": 645954,
+        //         "symbol": "ETH"
+        //       }
+        //     ]
+        //   },
+        //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
+        //   "t": 1749223025962,
+        //   "type": "batch_orders"
+        // }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $results = $this->safe_list($data, 'results', array());
+        $ordersToReturn = array();
+        for ($i = 0; $i < count($results); $i++) {
+            $order = $this->safe_dict($results, $i);
+            $error = $this->safe_string($order, 'error');
+            $success = $this->safe_bool($order, 'success', false);
+            $marketId = $this->safe_string($order, 'symbol');
+            $market = $this->safe_market($marketId);
             $orderId = $this->safe_string($order, 'i');
             $clientOrderId = $this->safe_string($order, 'I');
-            return $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
-        })();
-    }
-
-    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * edit a trade $order
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/trading-operations/edit-$order
-             *
-             * @param {string} $id edit $order $id
-             * @param {string} $symbol unified $symbol of the $market to edit an $order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the $order is to be fulfilled, in units of the quote currency
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->clientOrderId] client $order $id, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
-             * @param {int|null} [$params->expiryWindow] time to live in milliseconds
-             * @param {string|null} [$params->agentAddress] only if agent wallet in use
-             * @param {string|null} [$params->originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
-             * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
-             */
-            $batchOperationType = 'edit_order';
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $market, $params);
-            $params = $this->omit($params, array( 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderId' ));
-            $isTestnet = $this->isSandboxModeEnabled;
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $wsRequest = $this->wrap_as_post_action($batchOperationType, $request);
-            $requestId = $this->safe_string($wsRequest, 'id');
-            $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
-            // {
-            //   "code" => 200,
-            //   "data" => array(
-            //     "I" => "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-            //     "i" => 645954,
-            //     "s" => "BTC"
-            //   ),
-            //   "id" => "660065de-8f32-46ad-ba1e-83c93d3e3966",
-            //   "t" => 1749223026150,
-            //   "type" => "edit_order"
-            // }
-            $code = $this->safe_integer($response, 'code');
-            $success = false;
-            if ($code === 200) {
-                $success = true;
-            }
             $status = null;
-            if (!$success) {
-                $status = 'rejected';
+            if (($error !== null) || ($success !== true)) {
+                $status = 'closed';
             } else {
-                $status = 'open';
+                $status = 'canceled';
             }
-            $order = $this->safe_dict($response, 'data', array());
-            $orderId = $this->safe_string($order, 'i');
-            $clientOrderId = $this->safe_string($order, 'I');
-            return $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
-        })();
+            $ordersToReturn[] = $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $market['symbol'] ));
+        }
+        return $ordersToReturn;
     }
 
-    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($ids, $symbol, $params) {
-            /**
-             * cancel multiple orders
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/trading-operations/batch-$order
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/trading-operations/cancel-$order
-             *
-             * @param {string[]} $ids $order $ids
-             * @param {string} [$symbol] unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string|string[]} [$params->clientOrderId] client $order $ids, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
-             * @param {int|null} [$params->expiryWindow] time to live in milliseconds
-             * @param {string|null} [$params->agentAddress] only if agent wallet in use
-             * @param {string|null} [$params->originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
-             * @return {array} an list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
-             */
-            $batchOperationType = 'batch_orders';
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . 'cancelOrders() requires a "symbol" argument!');
-            }
-            $request = $this->cancelOrdersRequest($ids, $symbol, $params);
-            $params = $this->omit($params, array( 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderIds' ));
-            $isTestnet = $this->isSandboxModeEnabled;
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $wsRequest = $this->wrap_as_post_action($batchOperationType, $request);
-            $requestId = $this->safe_string($wsRequest, 'id');
-            $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
-            //
-            // {
-            //   "code" => 200,
-            //   "data" => {
-            //     "results" => array(
-            //       array(
-            //         "success" => true,
-            //         "order_id" => 645953,
-            //         "client_order_id" => "57a5efb1-bb96-49a5-8bfd-f25d5f22bc7e",
-            //         "symbol" => "BTC"
-            //       ),
-            //       array(
-            //         "success" => true,
-            //         "order_id" => 645954,
-            //         "symbol" => "ETH"
-            //       }
-            //     )
-            //   ),
-            //   "id" => "660065de-8f32-46ad-ba1e-83c93d3e3966",
-            //   "t" => 1749223025962,
-            //   "type" => "batch_orders"
-            // }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            $results = $this->safe_list($data, 'results', array());
-            $ordersToReturn = array();
-            for ($i = 0; $i < count($results); $i++) {
-                $order = $results[$i];
-                $error = $this->safe_string($order, 'error');
-                $success = $this->safe_bool($order, 'success', false);
-                $marketId = $this->safe_string($order, 'symbol');
-                $market = $this->safe_market($marketId);
-                $orderId = $this->safe_string($order, 'i');
-                $clientOrderId = $this->safe_string($order, 'I');
-                $status = null;
-                if (($error !== null) || (!$success)) {
-                    $status = 'closed';
-                } else {
-                    $status = 'canceled';
-                }
-                $ordersToReturn[] = $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $market['symbol'] ));
-            }
-            return $ordersToReturn;
-        })();
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_cancel_order_ws(...))($id, $symbol, $params);
     }
 
-    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open $order
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/trading-operations/cancel-$order
-             *
-             * @param {string} $id $order $id
-             * @param {string} $symbol unified $symbol of the market the $order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool|null} [$params->stop] necessary if this is to cancel a stop $order->
-             * @param {string|null} [$params->clientOrderId] client $order $id, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
-             * @param {int|null} [$params->expiryWindow] time to live in milliseconds
-             * @param {string|null} [$params->agentAddress] only if agent wallet in use
-             * @param {string|null} [$params->originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
-             */
-            $operationType = 'cancel_order';
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a $symbol argument');
-            }
-            $request = $this->cancel_order_request($id, $symbol, $params);
-            $params = $this->omit($params, array( 'originAddress', 'agentAddress', 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ));
-            $isTestnet = $this->isSandboxModeEnabled;
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $wsRequest = $this->wrap_as_post_action($operationType, $request);
-            $requestId = $this->safe_string($wsRequest, 'id');
-            $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
-            //
-            //  {
-            //   "code" => 200,
-            //   "data" => array(
-            //     "I" => "79f948fd-7556-4066-a128-083f3ea49322",
-            //     "i" => null,
-            //     "s" => "BTC"
-            //   ),
-            //   "id" => "1bb2b72f-f545-4938-8a38-c5cda8823675",
-            //   "t" => 1749223343610,
-            //   "type" => "cancel_order"
-            // }
-            //
-            $code = $this->safe_integer($response, 'code');
-            $success = false;
-            if ($code === 200) {
-                $success = true;
-            }
-            $status = null;
-            if (!$success) {
-                $status = 'rejected';
-            } else {
-                $status = 'open';
-            }
-            $order = $this->safe_dict($response, 'data', array());
-            $orderId = $this->safe_string($order, 'i');
-            $clientOrderId = $this->safe_string($order, 'I');
-            return $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
-        })();
+    private function do_cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open $order
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/trading-operations/cancel-$order
+         *
+         * @param {string} $id $order $id
+         * @param {string} $symbol unified $symbol of the market the $order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {bool|null} [$params->stop] necessary if this is to cancel a stop $order->
+         * @param {string|null} [$params->clientOrderId] client $order $id, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
+         * @param {int|null} [$params->expiryWindow] time to live in milliseconds
+         * @param {string|null} [$params->agentAddress] only if agent wallet in use
+         * @param {string|null} [$params->originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
+         */
+        $operationType = 'cancel_order';
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a symbol argument');
+        }
+        $request = $this->cancel_order_request($id, $symbol, $params);
+        $isTestnet = $this->isSandboxModeEnabled;
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        $wsRequest = $this->wrap_as_post_action($operationType, $request);
+        $requestId = $this->safe_string($wsRequest, 'id');
+        $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
+        //
+        //  {
+        //   "code": 200,
+        //   "data": {
+        //     "I": "79f948fd-7556-4066-a128-083f3ea49322",
+        //     "i": null,
+        //     "s": "BTC"
+        //   },
+        //   "id": "1bb2b72f-f545-4938-8a38-c5cda8823675",
+        //   "t": 1749223343610,
+        //   "type": "cancel_order"
+        // }
+        //
+        $code = $this->safe_integer($response, 'code');
+        $success = false;
+        if ($code === 200) {
+            $success = true;
+        }
+        $status = null;
+        if (!$success) {
+            $status = 'rejected';
+        } else {
+            $status = 'open';
+        }
+        $order = $this->safe_dict($response, 'data', array());
+        $orderId = $this->safe_string($order, 'i');
+        $clientOrderId = $this->safe_string($order, 'I');
+        return $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * cancel all open orders in a market
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/trading-operations/cancel-all-orders
-             *
-             * @param {string} $symbol (optional) unified market $symbol of the market to cancel orders in.
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean|null} [$params->excludeReduceOnly] whether to exclude reduce-only orders
-             * @param {int|null} [$params->expiryWindow] time to live in milliseconds
-             * @param {string|null} [$params->agentAddress] only if agent wallet in use
-             * @param {string|null} [$params->originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $operationType = 'cancel_all_orders';
-            $request = $this->cancelAllOrdersRequest($symbol, $params);
-            $params = $this->omit($params, array( 'excludeReduceOnly', 'agentAddress', 'originAddress', 'expiryWindow' ));
-            $isTestnet = $this->isSandboxModeEnabled;
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $wsRequest = $this->wrap_as_post_action($operationType, $request);
-            $requestId = $this->safe_string($wsRequest, 'id');
-            $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
-            //  {
-            //   "code" => 200,
-            //   "data" => array(
-            //     "cancelled_count" => 10
-            //   ),
-            //   "id" => "b86b4f45-49da-4191-84e2-93e141acdeab",
-            //   "t" => 1749221787291,
-            //   "type" => "cancel_all_orders"
-            // }
-            //
-            return array(
-                $this->safe_order(array(
-                    'info' => $response,
-                )),
-            );
-        })();
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_cancel_all_orders_ws(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders_ws(?string $symbol = null, $params = array()) {
+        /**
+         * cancel all open orders in a market
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/trading-operations/cancel-all-orders
+         *
+         * @param {string} $symbol (optional) unified market $symbol of the market to cancel orders in.
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean|null} [$params->excludeReduceOnly] whether to exclude reduce-only orders
+         * @param {int|null} [$params->expiryWindow] time to live in milliseconds
+         * @param {string|null} [$params->agentAddress] only if agent wallet in use
+         * @param {string|null} [$params->originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $operationType = 'cancel_all_orders';
+        $request = $this->cancelAllOrdersRequest($symbol, $params);
+        $isTestnet = $this->isSandboxModeEnabled;
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        $wsRequest = $this->wrap_as_post_action($operationType, $request);
+        $requestId = $this->safe_string($wsRequest, 'id');
+        $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
+        //  {
+        //   "code": 200,
+        //   "data": {
+        //     "cancelled_count": 10
+        //   },
+        //   "id": "b86b4f45-49da-4191-84e2-93e141acdeab",
+        //   "t": 1749221787291,
+        //   "type": "cancel_all_orders"
+        // }
+        //
+        return array(
+            $this->safe_order(array(
+                'info' => $response,
+            )),
+        );
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/orderbook
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int|null} [$params->aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            $this->setup_api_key_headers();
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $aggLevel = null;
-            list($aggLevel, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'aggLevel', 1);
-            $messageHash = 'orderbook:' . $symbol;
-            $isTestnet = $this->isSandboxModeEnabled;
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $request = array(
-                'method' => 'subscribe',
-                'params' => array(
-                    'source' => 'book',
-                    'symbol' => $market['id'],
-                    'agg_level' => $aggLevel,
-                ),
-            );
-            $message = $this->extend($request, $params);
-            $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
-            return $orderbook->limit();
-        })();
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/orderbook
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int|null} [$params->aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        $this->setup_api_key_headers();
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        list($aggLevel, $paramsAggLevel) = $this->handle_option_integer_and_params($params, 'watchOrderBook', 'aggLevel', 1);
+        $messageHash = 'orderbook:' . $symbol;
+        $isTestnet = $this->isSandboxModeEnabled;
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        $request = array(
+            'method' => 'subscribe',
+            'params' => array(
+                'source' => 'book',
+                'symbol' => $market['id'],
+                'agg_level' => $aggLevel,
+            ),
+        );
+        $message = $this->extend($request, $paramsAggLevel);
+        $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        return $orderbook->limit();
     }
 
     public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/orderbook
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int|null} [$params->aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $aggLevel = null;
-            list($aggLevel, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'aggLevel', 1);
-            $subMessageHash = 'orderbook:' . $symbol;
-            $messageHash = 'unsubscribe:' . $subMessageHash;
-            $isTestnet = $this->isSandboxModeEnabled;
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $request = array(
-                'method' => 'unsubscribe',
-                'params' => array(
-                    'source' => 'book',
-                    'symbol' => $market['id'],
-                    'agg_level' => $aggLevel,
-                ),
-            );
-            $message = $this->extend($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
-        })();
+        return Async\async(self::do_un_watch_order_book(...))($symbol, $params);
     }
 
-    public function handle_order_book(mixed $client, mixed $message) {
+    private function do_un_watch_order_book(string $symbol, $params = array()) {
+        /**
+         * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/orderbook
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int|null} [$params->aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        list($aggLevel, $paramsAggLevel) = $this->handle_option_integer_and_params($params, 'watchOrderBook', 'aggLevel', 1);
+        $subMessageHash = 'orderbook:' . $symbol;
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        $isTestnet = $this->isSandboxModeEnabled;
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        $request = array(
+            'method' => 'unsubscribe',
+            'params' => array(
+                'source' => 'book',
+                'symbol' => $market['id'],
+                'agg_level' => $aggLevel,
+            ),
+        );
+        $message = $this->extend($request, $paramsAggLevel);
+        return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+    }
+
+    public function handle_order_book(Client $client, array $message) {
         //
         // {
-        //   "channel" => "book",
-        //   "data" => {
-        //     "l" => array(
-        //       array(
-        //         array(
-        //           "a" => "37.86",
-        //           "n" => 4,
-        //           "p" => "157.47"
-        //         ),
-        //         // ... other aggegated bid $levels
-        //       ),
-        //       array(
-        //         array(
-        //           "a" => "12.7",
-        //           "n" => 2,
-        //           "p" => "157.49"
-        //         ),
-        //         array(
-        //           "a" => "44.45",
-        //           "n" => 3,
-        //           "p" => "157.5"
-        //         ),
-        //         // ... other aggregated ask $levels
-        //       )
-        //     ),
-        //     "s" => "SOL",
-        //     "t" => 1749051881187,
-        //     "li" => 1559885104 // sequence id - last order id
+        //   "channel": "book",
+        //   "data": {
+        //     "l": [
+        //       [
+        //         {
+        //           "a": "37.86",
+        //           "n": 4,
+        //           "p": "157.47"
+        //         },
+        //         // ... other aggegated bid levels
+        //       ],
+        //       [
+        //         {
+        //           "a": "12.7",
+        //           "n": 2,
+        //           "p": "157.49"
+        //         },
+        //         {
+        //           "a": "44.45",
+        //           "n": 3,
+        //           "p": "157.5"
+        //         },
+        //         // ... other aggregated ask levels
+        //       ]
+        //     ],
+        //     "s": "SOL",
+        //     "t": 1749051881187,
+        //     "li": 1559885104 // sequence id - last order id
         //   }
         // }
         //
@@ -543,7 +590,7 @@ class pacifica extends \ccxt\async\pacifica {
         $timestamp = $this->safe_integer($entry, 't');
         $snapshot = $this->parse_order_book($result, $symbol, $timestamp, 'bids', 'asks', 'p', 'a');
         $nonce = $this->safe_integer($entry, 'li');
-        if ($nonce) {
+        if (($nonce !== null) && ($nonce !== 0)) {
             $snapshot['nonce'] = $nonce;
         }
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
@@ -557,183 +604,217 @@ class pacifica extends \ccxt\async\pacifica {
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/prices
-             *
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
-            return $tickers[$symbol];
-        })();
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/prices
+         *
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
+        return $tickers[$symbol];
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/prices
-             *
-             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            $this->setup_api_key_headers();
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols, null, true);
-            $messageHash = 'tickers';
-            $isTestnet = $this->isSandboxModeEnabled;
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $request = array(
-                'method' => 'subscribe',
-                'params' => array(
-                    'source' => 'prices',
-                ),
-            );
-            $tickers = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-            if ($this->newUpdates) {
-                return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
-            }
-            return $this->tickers;
-        })();
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/prices
+         *
+         * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        $this->setup_api_key_headers();
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols, null, true);
+        $messageHash = 'tickers';
+        $isTestnet = $this->isSandboxModeEnabled;
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        $request = array(
+            'method' => 'subscribe',
+            'params' => array(
+                'source' => 'prices',
+            ),
+        );
+        $tickers = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        if ($this->newUpdates) {
+            return $this->filter_by_array_tickers($tickers, 'symbol', $symbolsNormalized);
+        }
+        return $this->tickers;
     }
 
     public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/prices
-             *
-             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols, null, true);
-            $subMessageHash = 'tickers';
-            $messageHash = 'unsubscribe:' . $subMessageHash;
-            $isTestnet = $this->isSandboxModeEnabled;
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $request = array(
-                'method' => 'unsubscribe',
-                'params' => array(
-                    'source' => 'prices',
-                ),
-            );
-            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        })();
+        return Async\async(self::do_un_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_un_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/prices
+         *
+         * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $this->market_symbols($symbols, null, true);
+        $subMessageHash = 'tickers';
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        $isTestnet = $this->isSandboxModeEnabled;
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        $request = array(
+            'method' => 'unsubscribe',
+            'params' => array(
+                'source' => 'prices',
+            ),
+        );
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made by the user
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/account-$trades
-             *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string|null} [$params->account] will default to options' walletAddress if not provided
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $userAddress = null;
-            list($userAddress, $params) = $this->handleOriginAndSingleAddress('watchMyTrades', $params);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $messageHash = 'myTrades';
-            if ($symbol !== null) {
-                $symbol = $this->symbol($symbol);
-                $messageHash .= ':' . $symbol;
-            }
-            $isTestnet = $this->isSandboxModeEnabled;
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $request = array(
-                'method' => 'subscribe',
-                'params' => array(
-                    'source' => 'account_trades',
-                    'account' => $userAddress,
-                ),
-            );
-            $message = $this->extend($request, $params);
-            $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made by the user
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/account-$trades
+         *
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string|null} [$params->account] will default to options' walletAddress if not provided
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        list($userAddress, $paramsOriginAndSingleAddress) = $this->handleOriginAndSingleAddress('watchMyTrades', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $messageHash = 'myTrades';
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $symbolResolved = $this->symbol($symbol);
+            $messageHash .= ':' . $symbolResolved;
+        }
+        $isTestnet = $this->isSandboxModeEnabled;
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        $request = array(
+            'method' => 'subscribe',
+            'params' => array(
+                'source' => 'account_trades',
+                'account' => $userAddress,
+            ),
+        );
+        $message = $this->extend($request, $paramsOriginAndSingleAddress);
+        $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches information on multiple trades made by the user
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/account-trades
-             *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string|null} [$params->account] will default to options' walletAddress if not provided
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol !== null) {
-                throw new NotSupported($this->id . ' unWatchMyTrades does not support a $symbol argument, unWatch from all markets only');
-            }
-            $userAddress = null;
-            list($userAddress, $params) = $this->handleOriginAndSingleAddress('unWatchMyTrades', $params);
-            $messageHash = 'unsubscribe:myTrades';
-            $isTestnet = $this->isSandboxModeEnabled;
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $request = array(
-                'method' => 'unsubscribe',
-                'params' => array(
-                    'source' => 'account_trades',
-                    'account' => $userAddress,
-                ),
-            );
-            $message = $this->extend($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
-        })();
+        return Async\async(self::do_un_watch_my_trades(...))($symbol, $params);
     }
 
-    public function handle_ws_tickers(Client $client, mixed $message) {
+    private function do_un_watch_my_trades(?string $symbol = null, $params = array()) {
+        /**
+         * unWatches information on multiple trades made by the user
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/account-trades
+         *
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string|null} [$params->account] will default to options' walletAddress if not provided
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol !== null) {
+            throw new NotSupported($this->id . ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only');
+        }
+        list($userAddress, $paramsOriginAndSingleAddress) = $this->handleOriginAndSingleAddress('unWatchMyTrades', $params);
+        $messageHash = 'unsubscribe:myTrades';
+        $isTestnet = $this->isSandboxModeEnabled;
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        $request = array(
+            'method' => 'unsubscribe',
+            'params' => array(
+                'source' => 'account_trades',
+                'account' => $userAddress,
+            ),
+        );
+        $message = $this->extend($request, $paramsOriginAndSingleAddress);
+        return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+    }
+
+    public function handle_ws_tickers(Client $client, array $message): bool {
         //
         // {
-        //     "channel" => "prices",
-        //     "data" => array(
+        //     "channel": "prices",
+        //     "data": [
         //         {
-        //             "funding" => "0.0000125",
-        //             "mark" => "105473",
-        //             "mid" => "105476",
-        //             "next_funding" => "0.0000125",
-        //             "open_interest" => "0.00524",
-        //             "oracle" => "105473",
-        //             "symbol" => "BTC",
-        //             "timestamp" => 1749051612681,
-        //             "volume_24h" => "63265.87522",
-        //             "yesterday_price" => "955476"
+        //             "funding": "0.0000125",
+        //             "mark": "105473",
+        //             "mid": "105476",
+        //             "next_funding": "0.0000125",
+        //             "open_interest": "0.00524",
+        //             "oracle": "105473",
+        //             "symbol": "BTC",
+        //             "timestamp": 1749051612681,
+        //             "volume_24h": "63265.87522",
+        //             "yesterday_price": "955476"
         //         }
-        //         // ... other $symbol prices
-        //     ),
+        //         // ... other symbol prices
+        //     ],
         // }
         //
         $parsedTickers = array();
@@ -752,33 +833,33 @@ class pacifica extends \ccxt\async\pacifica {
         return true;
     }
 
-    public function parse_ws_ticker(mixed $rawTicker, ?array $market = null): array {
+    public function parse_ws_ticker(array $rawTicker, ?array $market = null): array {
         return $this->parse_ticker($rawTicker, $market);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         // {
-        //   "channel" => "account_trades",
-        //   "data" => array(
+        //   "channel": "account_trades",
+        //   "data": [
         //     {
-        //       "h" => 80063441, // history id
-        //       "i" => 1559912767, // oid
-        //       "I" => null, // cloid
-        //       "u" => "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa", // account address
-        //       "s" => "BTC",  // $symbol
-        //       "p" => "89477", // price
-        //       "o" => "89505", // entry price
-        //       "a" => "0.00036", // amount
-        //       "te" => "fulfill_taker",
-        //       "ts" => "close_long",
-        //       "tc" => "normal", // trade type
-        //       "f" => "0.012885", // fee
-        //       "n" => "-0.022965", // pnl
-        //       "t" => 1765018588190,
-        //       "li" => 1559912767
+        //       "h": 80063441, // history id
+        //       "i": 1559912767, // oid
+        //       "I": null, // cloid
+        //       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa", // account address
+        //       "s": "BTC",  // symbol
+        //       "p": "89477", // price
+        //       "o": "89505", // entry price
+        //       "a": "0.00036", // amount
+        //       "te": "fulfill_taker",
+        //       "ts": "close_long",
+        //       "tc": "normal", // trade type
+        //       "f": "0.012885", // fee
+        //       "n": "-0.022965", // pnl
+        //       "t": 1765018588190,
+        //       "li": 1559912767
         //     }
-        //   )
+        //   ]
         // }
         //
         if ($this->myTrades === null) {
@@ -806,98 +887,115 @@ class pacifica extends \ccxt\async\pacifica {
             $currentMessageHash = 'myTrades:' . $keys[$i];
             $client->resolve($trades, $currentMessageHash);
         }
-        // non-$symbol specific
+        // non-symbol specific
         $messageHash = 'myTrades';
         $client->resolve($trades, $messageHash);
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made in a $market
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/trades
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'trade:' . $symbol;
-            $isTestnet = $this->isSandboxModeEnabled;
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $request = array(
-                'method' => 'subscribe',
-                'params' => array(
-                    'source' => 'trades',
-                    'symbol' => $market['id'],
-                ),
-            );
-            $message = $this->extend($request, $params);
-            $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made in a $market
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/trades
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $messageHash = 'trade:' . $symbolValue;
+        $isTestnet = $this->isSandboxModeEnabled;
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        $request = array(
+            'method' => 'subscribe',
+            'params' => array(
+                'source' => 'trades',
+                'symbol' => $market['id'],
+            ),
+        );
+        $message = $this->extend($request, $params);
+        $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches information on multiple trades made in a $market
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/trades
-             *
-             * @param {string} $symbol unified $market $symbol of the $market trades were made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $subMessageHash = 'trade:' . $symbol;
-            $messageHash = 'unsubscribe:' . $subMessageHash;
-            $isTestnet = $this->isSandboxModeEnabled;
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $request = array(
-                'method' => 'unsubscribe',
-                'params' => array(
-                    'source' => 'trades',
-                    'symbol' => $market['id'],
-                ),
-            );
-            $message = $this->extend($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
-        })();
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * unWatches information on multiple trades made in a $market
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/trades
+         *
+         * @param {string} $symbol unified $market $symbol of the $market trades were made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $subMessageHash = 'trade:' . $symbolValue;
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        $isTestnet = $this->isSandboxModeEnabled;
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        $request = array(
+            'method' => 'unsubscribe',
+            'params' => array(
+                'source' => 'trades',
+                'symbol' => $market['id'],
+            ),
+        );
+        $message = $this->extend($request, $params);
+        return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+    }
+
+    public function handle_trades(Client $client, array $message) {
         //
         // {
-        //   "channel" => "trades",
-        //   "data" => array(
+        //   "channel": "trades",
+        //   "data": [
         //     {
-        //       "h" => 80062522,
-        //       "s" => "BTC",
-        //       "a" => "0.00001",
-        //       "p" => "89471",
-        //       "d" => "close_short",
-        //       "tc" => "normal",
-        //       "t" => 1765018379085,
-        //       "li" => 1559885104
+        //       "h": 80062522,
+        //       "s": "BTC",
+        //       "a": "0.00001",
+        //       "p": "89471",
+        //       "d": "close_short",
+        //       "tc": "normal",
+        //       "t": 1765018379085,
+        //       "li": 1559885104
         //     }
-        //   )
+        //   ]
         // }
         //
         $entry = $this->safe_list($message, 'data', array());
@@ -925,42 +1023,42 @@ class pacifica extends \ccxt\async\pacifica {
         // fetchMyTrades
         //
         //    {
-        //       "h" => 80063441, // history $id
-        //       "i" => 1559912767, // oid
-        //       "I" => null, // cloid
-        //       "u" => "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa", // account address
-        //       "s" => "BTC",  // $symbol
-        //       "p" => "89477", // $price
-        //       "o" => "89505", // entry $price
-        //       "a" => "0.00036", // $amount
-        //       "te" => "fulfill_taker",
-        //       "ts" => "close_long",
-        //       "tc" => "normal", // $trade type
-        //       "f" => "0.012885", // $fee
-        //       "n" => "-0.022965", // pnl
-        //       "t" => 1765018588190,
-        //       "li" => 1559912767
+        //       "h": 80063441, // history id
+        //       "i": 1559912767, // oid
+        //       "I": null, // cloid
+        //       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa", // account address
+        //       "s": "BTC",  // symbol
+        //       "p": "89477", // price
+        //       "o": "89505", // entry price
+        //       "a": "0.00036", // amount
+        //       "te": "fulfill_taker",
+        //       "ts": "close_long",
+        //       "tc": "normal", // trade type
+        //       "f": "0.012885", // fee
+        //       "n": "-0.022965", // pnl
+        //       "t": 1765018588190,
+        //       "li": 1559912767
         //     }
         //
         // fetchTrades
         //
         //     {
-        //       "h" => 80062522,
-        //       "s" => "BTC",
-        //       "a" => "0.00001",
-        //       "p" => "89471",
-        //       "d" => "close_short",
-        //       "tc" => "normal",
-        //       "t" => 1765018379085,
-        //       "li" => 1559885104
+        //       "h": 80062522,
+        //       "s": "BTC",
+        //       "a": "0.00001",
+        //       "p": "89471",
+        //       "d": "close_short",
+        //       "tc": "normal",
+        //       "t": 1765018379085,
+        //       "li": 1559885104
         //     }
         //
         $timestamp = $this->safe_integer($trade, 't');
         $price = $this->safe_string($trade, 'p');
         $amount = $this->safe_string($trade, 'a');
         $marketId = $this->safe_string($trade, 's');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $id = $this->safe_string($trade, 'h');
         $fee = $this->safe_string($trade, 'f');
         $side = $this->safe_string_2($trade, 'ts', 'd');
@@ -979,7 +1077,7 @@ class pacifica extends \ccxt\async\pacifica {
             $takerOrMaker = ($eventType === 'fulfill_maker') ? 'maker' : 'taker';
         }
         $orderId = $this->safe_string($trade, 'i');
-        // public trades have no $orderId
+        // public trades have no orderId
         if ($orderId === null) {
             $takerOrMaker = null;
         }
@@ -997,100 +1095,117 @@ class pacifica extends \ccxt\async\pacifica {
             'amount' => $amount,
             'cost' => null,
             'fee' => array( 'cost' => $fee, 'currency' => 'USDC' ),
-        ), $market);
+        ), $marketResolved);
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/candle
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $isTestnet = $this->isSandboxModeEnabled;
-            $parsedTf = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $request = array(
-                'method' => 'subscribe',
-                'params' => array(
-                    'source' => 'candle',
-                    'symbol' => $market['id'],
-                    'interval' => $parsedTf,
-                ),
-            );
-            $messageHash = 'candles:' . $parsedTf . ':' . $symbol;
-            $message = $this->extend($request, $params);
-            $ohlcv = Async\await($this->watch($url, $messageHash, $message, $messageHash));
-            if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        })();
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/candle
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $isTestnet = $this->isSandboxModeEnabled;
+        $parsedTf = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        $request = array(
+            'method' => 'subscribe',
+            'params' => array(
+                'source' => 'candle',
+                'symbol' => $market['id'],
+                'interval' => $parsedTf,
+            ),
+        );
+        $messageHash = 'candles:' . $parsedTf . ':' . $symbolValue;
+        $message = $this->extend($request, $params);
+        $ohlcv = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
+        }
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/candle
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $isTestnet = $this->isSandboxModeEnabled;
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $request = array(
-                'method' => 'unsubscribe',
-                'params' => array(
-                    'source' => 'candle',
-                    'symbol' => $market['id'],
-                    'interval' => $timeframe,
-                ),
-            );
-            $subMessageHash = 'candles:' . $timeframe . ':' . $symbol;
-            $messagehash = 'unsubscribe:' . $subMessageHash;
-            $message = $this->extend($request, $params);
-            return Async\await($this->watch($url, $messagehash, $message, $messagehash));
-        })();
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    private function do_un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/candle
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $isTestnet = $this->isSandboxModeEnabled;
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        $request = array(
+            'method' => 'unsubscribe',
+            'params' => array(
+                'source' => 'candle',
+                'symbol' => $market['id'],
+                'interval' => $timeframe,
+            ),
+        );
+        $subMessageHash = 'candles:' . $timeframe . ':' . $symbolValue;
+        $messagehash = 'unsubscribe:' . $subMessageHash;
+        $message = $this->extend($request, $params);
+        return Async\await($this->watch($url, $messagehash, $message, $messagehash));
+    }
+
+    public function handle_ohlcv(Client $client, array $message) {
         //
         // {
-        //   "channel" => "candle",
-        //   "data" => {
-        //     "t" => 1749052260000,
-        //     "T" => 1749052320000,
-        //     "s" => "SOL",
-        //     "i" => "1m",
-        //     "o" => "157.3",
-        //     "c" => "157.32",
-        //     "h" => "157.32",
-        //     "l" => "157.3",
-        //     "v" => "1.22",
-        //     "n" => 8
+        //   "channel": "candle",
+        //   "data": {
+        //     "t": 1749052260000,
+        //     "T": 1749052320000,
+        //     "s": "SOL",
+        //     "i": "1m",
+        //     "o": "157.3",
+        //     "c": "157.32",
+        //     "h": "157.32",
+        //     "l": "157.3",
+        //     "v": "1.22",
+        //     "n": 8
         //   }
         // }
         //
@@ -1105,7 +1220,7 @@ class pacifica extends \ccxt\async\pacifica {
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        $symbolOhlcvs = $this->safe_value($this->ohlcvs, $symbol, array());
+        $symbolOhlcvs = $this->safe_dict($this->ohlcvs, $symbol, array());
         $ohlcv = $this->safe_value($symbolOhlcvs, $timeframe);
         if ($ohlcv === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -1119,113 +1234,129 @@ class pacifica extends \ccxt\async\pacifica {
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/account-order-updates
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string|null} [$params->account] will default to options' walletAddress if not provided
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $userAddress = null;
-            list($userAddress, $params) = $this->handleOriginAndSingleAddress('watchOrders', $params);
-            $market = null;
-            $messageHash = 'order';
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $messageHash = $messageHash . ':' . $symbol;
-            }
-            $isTestnet = $this->isSandboxModeEnabled;
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $request = array(
-                'method' => 'subscribe',
-                'params' => array(
-                    'source' => 'account_order_updates',
-                    'account' => $userAddress,
-                ),
-            );
-            $message = $this->extend($request, $params);
-            $orders = Async\await($this->watch($url, $messageHash, $message, $messageHash));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/account-order-updates
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string|null} [$params->account] will default to options' walletAddress if not provided
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        list($userAddress, $paramsOriginAndSingleAddress) = $this->handleOriginAndSingleAddress('watchOrders', $params);
+        $market = null;
+        $messageHash = 'order';
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbolResolved = $this->safe_string($market, 'symbol');
+            $messageHash = $messageHash . ':' . $symbolResolved;
+        }
+        $isTestnet = $this->isSandboxModeEnabled;
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        $request = array(
+            'method' => 'subscribe',
+            'params' => array(
+                'source' => 'account_order_updates',
+                'account' => $userAddress,
+            ),
+        );
+        $message = $this->extend($request, $paramsOriginAndSingleAddress);
+        $orders = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches information on multiple orders made by the user
-             *
-             * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/account-order-updates
-             *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string|null} [$params->account] will default to options' walletAddress if not provided
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol !== null) {
-                throw new NotSupported($this->id . ' unWatchOrders() does not support a $symbol argument, unWatch from all markets only');
-            }
-            $messageHash = 'unsubscribe:order';
-            $isTestnet = $this->isSandboxModeEnabled;
-            $urlKey = ($isTestnet) ? 'test' : 'api';
-            $url = $this->urls[$urlKey]['ws']['public'];
-            $userAddress = null;
-            list($userAddress, $params) = $this->handleOriginAndSingleAddress('unWatchOrders', $params);
-            $request = array(
-                'method' => 'unsubscribe',
-                'params' => array(
-                    'source' => 'account_order_updates',
-                    'account' => $userAddress,
-                ),
-            );
-            $message = $this->extend($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
-        })();
+        return Async\async(self::do_un_watch_orders(...))($symbol, $params);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    private function do_un_watch_orders(?string $symbol = null, $params = array()) {
+        /**
+         * unWatches information on multiple orders made by the user
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/account-order-updates
+         *
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string|null} [$params->account] will default to options' walletAddress if not provided
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol !== null) {
+            throw new NotSupported($this->id . ' unWatchOrders() does not support a symbol argument, unWatch from all markets only');
+        }
+        $messageHash = 'unsubscribe:order';
+        $isTestnet = $this->isSandboxModeEnabled;
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
+        }
+        list($userAddress, $paramsOriginAndSingleAddress) = $this->handleOriginAndSingleAddress('unWatchOrders', $params);
+        $request = array(
+            'method' => 'unsubscribe',
+            'params' => array(
+                'source' => 'account_order_updates',
+                'account' => $userAddress,
+            ),
+        );
+        $message = $this->extend($request, $paramsOriginAndSingleAddress);
+        return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+    }
+
+    public function handle_order(Client $client, array $message) {
         // not snapshot, only updates
         // {
-        //   "channel" => "account_order_updates",
-        //   "data" => array(
+        //   "channel": "account_order_updates",
+        //   "data": [
         //     {
-        //       "i" => 1559665358,
-        //       "I" => null,
-        //       "u" => "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",
-        //       "s" => "BTC",
-        //       "d" => "bid",
-        //       "p" => "89501",
-        //       "ip" => "89501",
-        //       "lp" => "89501",
-        //       "a" => "0.00012",
-        //       "f" => "0.00012",
-        //       "oe" => "fulfill_limit",
-        //       "os" => "filled",
-        //       "ot" => "limit",
-        //       "sp" => null,
-        //       "si" => null,
-        //       "r" => false,
-        //       "ct" => 1765017049008,
-        //       "ut" => 1765017219639,
-        //       "li" => 1559696133
+        //       "i": 1559665358,
+        //       "I": null,
+        //       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",
+        //       "s": "BTC",
+        //       "d": "bid",
+        //       "p": "89501",
+        //       "ip": "89501",
+        //       "lp": "89501",
+        //       "a": "0.00012",
+        //       "f": "0.00012",
+        //       "oe": "fulfill_limit",
+        //       "os": "filled",
+        //       "ot": "limit",
+        //       "sp": null,
+        //       "si": null,
+        //       "r": false,
+        //       "ct": 1765017049008,
+        //       "ut": 1765017219639,
+        //       "li": 1559696133
         //     }
-        //   )
+        //   ]
         // }
         $data = $this->safe_list($message, 'data', array());
         if ($this->orders === null) {
@@ -1257,10 +1388,10 @@ class pacifica extends \ccxt\async\pacifica {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         // 'rl' key is present only when a rate-limited API key is used
-        // array("id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":array("r":1245,"q":1250,"t":56))
+        // {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
         //
         $error = $this->safe_string($message, 'err', '');
         $postType = $this->safe_string($message, 'type', '');
@@ -1351,22 +1482,22 @@ class pacifica extends \ccxt\async\pacifica {
         $this->clean_cache($topicStructure);
     }
 
-    public function handle_subscription_response(Client $client, mixed $message) {
+    public function handle_subscription_response(Client $client, array $message) {
         //  {
-        //      "channel" => "subscribe",
-        //      "data" => {
-        //          "source" => "book",
-        //          "symbol" => "SOL",
-        //          "agg_level" => 1
+        //      "channel": "subscribe",
+        //      "data": {
+        //          "source": "book",
+        //          "symbol": "SOL",
+        //          "agg_level": 1
         //      }
         //  }
         //
         //  {
-        //      "channel" => "unsubscribe",
-        //      "data" => {
-        //          "source" => "book",
-        //          "symbol" => "SOL",
-        //          "agg_level" => 1
+        //      "channel": "unsubscribe",
+        //      "data": {
+        //          "source": "book",
+        //          "symbol": "SOL",
+        //          "agg_level": 1
         //      }
         //  }
         //
@@ -1406,7 +1537,7 @@ class pacifica extends \ccxt\async\pacifica {
         //     }
         // }
         //
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $postType = $this->safe_string($message, 'type');
@@ -1448,10 +1579,10 @@ class pacifica extends \ccxt\async\pacifica {
         );
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
         //   {
-        //       "channel" => "pong"
+        //       "channel": "pong"
         //   }
         //
         $client->lastPong = $this->safe_integer($message, 'pong', $this->milliseconds());
@@ -1479,28 +1610,28 @@ class pacifica extends \ccxt\async\pacifica {
         //
         // market order
         // {
-        //   "code" => 200,
-        //   "data" => array(
-        //     "I" => "79f948fd-7556-4066-a128-083f3ea49322",
-        //     "i" => 645953,
-        //     "s" => "BTC"
-        //   ),
-        //   "id" => "660065de-8f32-46ad-ba1e-83c93d3e3966",
-        //   "t" => 1749223025962,
-        //   "type" => "create_market_order"
+        //   "code": 200,
+        //   "data": {
+        //     "I": "79f948fd-7556-4066-a128-083f3ea49322",
+        //     "i": 645953,
+        //     "s": "BTC"
+        //   },
+        //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
+        //   "t": 1749223025962,
+        //   "type": "create_market_order"
         // }
         //
         // limit order
         // {
-        //   "code" => 200,
-        //   "data" => array(
-        //     "I" => "79f948fd-7556-4066-a128-083f3ea49322",
-        //     "i" => 645953,
-        //     "s" => "BTC"
-        //   ),
-        //   "id" => "660065de-8f32-46ad-ba1e-83c93d3e3966",
-        //   "t" => 1749223025962,
-        //   "type" => "create_order"
+        //   "code": 200,
+        //   "data": {
+        //     "I": "79f948fd-7556-4066-a128-083f3ea49322",
+        //     "i": 645953,
+        //     "s": "BTC"
+        //   },
+        //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
+        //   "t": 1749223025962,
+        //   "type": "create_order"
         // }
         //
         $id = $this->safe_string($message, 'id');

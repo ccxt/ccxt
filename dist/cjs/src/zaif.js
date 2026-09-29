@@ -107,56 +107,59 @@ class zaif extends zaif$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'depth/{pair}': 1,
-                        'currencies/{pair}': 1,
-                        'currencies/all': 1,
-                        'currency_pairs/{pair}': 1,
-                        'currency_pairs/all': 1,
-                        'last_price/{pair}': 1,
-                        'ticker/{pair}': 1,
-                        'trades/{pair}': 1,
+                        'depth/{pair}': { 'cost': 1 },
+                        'currencies/{pair}': { 'cost': 1 },
+                        'currencies/all': { 'cost': 1 },
+                        'currency_pairs/{pair}': { 'cost': 1 },
+                        'currency_pairs/all': { 'cost': 1 },
+                        'last_price/{pair}': { 'cost': 1 },
+                        'ticker/{pair}': { 'cost': 1 },
+                        'trades/{pair}': { 'cost': 1 },
+                        'vasp_info/{vasp_master_id}': { 'cost': 1 },
+                        'country_info/{code}': { 'cost': 1 },
+                        'corp_type_id_info/{id}': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'post': {
-                        'active_orders': 5, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
-                        'cancel_order': 5,
-                        'deposit_history': 5,
-                        'get_id_info': 5,
-                        'get_info': 10, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
-                        'get_info2': 5, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
-                        'get_personal_info': 5,
-                        'trade': 5,
-                        'trade_history': 50, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
-                        'withdraw': 5,
-                        'withdraw_history': 5,
+                        'active_orders': { 'cost': 5 }, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
+                        'cancel_order': { 'cost': 5 },
+                        'deposit_history': { 'cost': 5 },
+                        'get_id_info': { 'cost': 5 },
+                        'get_info': { 'cost': 10 }, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
+                        'get_info2': { 'cost': 5 }, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
+                        'get_personal_info': { 'cost': 5 },
+                        'trade': { 'cost': 5 },
+                        'trade_history': { 'cost': 50 }, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
+                        'withdraw': { 'cost': 5 },
+                        'withdraw_history': { 'cost': 5 },
                     },
                 },
                 'ecapi': {
                     'post': {
-                        'createInvoice': 1, // unverified
-                        'getInvoice': 1,
-                        'getInvoiceIdsByOrderNumber': 1,
-                        'cancelInvoice': 1,
+                        'createInvoice': { 'cost': 1 }, // unverified
+                        'getInvoice': { 'cost': 1 },
+                        'getInvoiceIdsByOrderNumber': { 'cost': 1 },
+                        'cancelInvoice': { 'cost': 1 },
                     },
                 },
                 'tlapi': {
                     'post': {
-                        'get_positions': 66, // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
-                        'position_history': 66, // 10 in 60 seconds
-                        'active_positions': 5, // 20 in 10 seconds
-                        'create_position': 33, // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
-                        'change_position': 33, // 3 in 10 seconds
-                        'cancel_position': 33, // 3 in 10 seconds
+                        'get_positions': { 'cost': 66 }, // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
+                        'position_history': { 'cost': 66 }, // 10 in 60 seconds
+                        'active_positions': { 'cost': 5 }, // 20 in 10 seconds
+                        'create_position': { 'cost': 33 }, // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
+                        'change_position': { 'cost': 33 }, // 3 in 10 seconds
+                        'cancel_position': { 'cost': 33 }, // 3 in 10 seconds
                     },
                 },
                 'fapi': {
                     'get': {
-                        'groups/{group_id}': 1, // testing
-                        'last_price/{group_id}/{pair}': 1,
-                        'ticker/{group_id}/{pair}': 1,
-                        'trades/{group_id}/{pair}': 1,
-                        'depth/{group_id}/{pair}': 1,
+                        'groups/{group_id}': { 'cost': 1 }, // testing
+                        'last_price/{group_id}/{pair}': { 'cost': 1 },
+                        'ticker/{group_id}/{pair}': { 'cost': 1 },
+                        'trades/{group_id}/{pair}': { 'cost': 1 },
+                        'depth/{group_id}/{pair}': { 'cost': 1 },
                     },
                 },
             },
@@ -269,6 +272,9 @@ class zaif extends zaif$1["default"] {
         const [baseId, quoteId] = name.split('/');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         return this.safeMarketStructure({
             'id': id,
@@ -321,14 +327,14 @@ class zaif extends zaif$1["default"] {
         });
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'return', {});
-        const deposit = this.safeValue(balances, 'deposit');
+        const balances = this.safeDict(response, 'return', {});
+        const deposit = this.safeDict(balances, 'deposit');
         const result = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const funds = this.safeValue(balances, 'funds', {});
+        const funds = this.safeDict(balances, 'funds', {});
         const currencyIds = Object.keys(funds);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -511,7 +517,7 @@ class zaif extends zaif$1["default"] {
         const request = {
             'pair': market['id'],
         };
-        let response = await this.publicGetTradesPair(this.extend(request, params));
+        const response = await this.publicGetTradesPair(this.extend(request, params));
         //
         //      [
         //          {
@@ -524,14 +530,15 @@ class zaif extends zaif$1["default"] {
         //          }, ...
         //      ]
         //
-        const numTrades = response.length;
+        let trades = this.toArray(response);
+        const numTrades = trades.length;
         if (numTrades === 1) {
-            const firstTrade = response[0];
-            if (!Object.keys(firstTrade).length) {
-                response = [];
+            const firstTrade = this.safeDict(trades, 0, {});
+            if (Object.keys(firstTrade).length === 0) {
+                trades = [];
             }
         }
-        return this.parseTrades(response, market, since, limit);
+        return this.parseTrades(trades, market, since, limit);
     }
     /**
      * @method
@@ -561,9 +568,10 @@ class zaif extends zaif$1["default"] {
             'price': price,
         };
         const response = await this.privatePostTrade(this.extend(request, params));
+        const data = this.safeDict(response, 'return', {});
         return this.safeOrder({
             'info': response,
-            'id': response['return']['order_id'].toString(),
+            'id': data['order_id'].toString(),
         }, market);
     }
     /**
@@ -678,7 +686,8 @@ class zaif extends zaif$1["default"] {
             request['currency_pair'] = market['id'];
         }
         const response = await this.privatePostActiveOrders(this.extend(request, params));
-        return this.parseOrders(response['return'], market, since, limit);
+        const data = this.safeDict(response, 'return', {});
+        return this.parseOrders(data, market, since, limit);
     }
     /**
      * @method
@@ -710,8 +719,15 @@ class zaif extends zaif$1["default"] {
             market = this.market(symbol);
             request['currency_pair'] = market['id'];
         }
+        if (since !== undefined) {
+            request['since'] = this.parseToInt(since / 1000);
+        }
+        if (limit !== undefined) {
+            request['count'] = Math.min(limit, 1000);
+        }
         const response = await this.privatePostTradeHistory(this.extend(request, params));
-        return this.parseOrders(response['return'], market, since, limit);
+        const data = this.safeDict(response, 'return', {});
+        return this.parseOrders(data, market, since, limit);
     }
     /**
      * @method
@@ -726,7 +742,7 @@ class zaif extends zaif$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -742,10 +758,10 @@ class zaif extends zaif$1["default"] {
             // 'message': 'Hi!', // XEM and others
             // 'opt_fee': 0.003, // BTC and MONA only
         };
-        if (tag !== undefined) {
-            request['message'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['message'] = tagWithdrawTag;
         }
-        const result = await this.privatePostWithdraw(this.extend(request, params));
+        const result = await this.privatePostWithdraw(this.extend(request, paramsWithdrawTag));
         //
         //     {
         //         "success": 1,
@@ -779,13 +795,13 @@ class zaif extends zaif$1["default"] {
         //         }
         //     }
         //
-        currency = this.safeCurrency(undefined, currency);
+        const currencyResolved = this.safeCurrency(undefined, currency);
         let fee = undefined;
-        const feeCost = this.safeValue(transaction, 'fee');
+        const feeCost = this.safeNumber(transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': currency['code'],
+                'currency': currencyResolved['code'],
             };
         }
         return {
@@ -799,7 +815,7 @@ class zaif extends zaif$1["default"] {
             'addressTo': undefined,
             'amount': undefined,
             'type': undefined,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'status': undefined,
             'updated': undefined,
             'tagFrom': undefined,
@@ -817,7 +833,12 @@ class zaif extends zaif$1["default"] {
         return nonce.toFixed(8);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['rest'] + '/';
+        const baseApiUrl = this.safeString(this.urls['api'], 'rest');
+        if (baseApiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl = baseApiUrl;
+        let url = baseUrl + '/';
         if (api === 'public') {
             url += 'api/' + this.version + '/' + this.implodeParams(path, params);
         }
@@ -836,15 +857,16 @@ class zaif extends zaif$1["default"] {
                 url += 'tapi';
             }
             const nonce = this.customNonce();
-            body = this.urlencode(this.extend({
+            const bodyEncoded = this.urlencode(this.extend({
                 'method': path,
                 'nonce': nonce,
             }, params));
-            headers = {
+            const headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac(this.encode(body), this.encode(this.secret), sha2_js.sha512),
+                'Sign': this.hmac(this.encode(bodyEncoded), this.encode(this.secret), sha2_js.sha512),
             };
+            return { 'url': url, 'method': method, 'body': bodyEncoded, 'headers': headersSigned };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -863,7 +885,7 @@ class zaif extends zaif$1["default"] {
             throw new errors.ExchangeError(feedback); // unknown message
         }
         const success = this.safeBool(response, 'success', true);
-        if (!success) {
+        if (success !== true) {
             throw new errors.ExchangeError(feedback);
         }
         return undefined;

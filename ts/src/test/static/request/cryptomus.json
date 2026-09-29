@@ -118,7 +118,7 @@
                     0.001,
                     2000
                 ],
-                "output": "{\"market\":\"ETH_USDT\",\"direction\":\"buy\",\"tag\":\"ccxt\",\"quantity\":\"0.001\",\"price\":2000}"
+                "output": { "market": "ETH_USDT", "direction": "buy", "tag": "ccxt", "quantity": "0.001", "price": 2000 }
             },
             {
                 "description": "Create market buy order",
@@ -131,7 +131,7 @@
                     5,
                     1
                 ],
-                "output": "{\"market\":\"ETH_USDT\",\"direction\":\"buy\",\"tag\":\"ccxt\",\"value\":\"5\"}"
+                "output": { "market": "ETH_USDT", "direction": "buy", "tag": "ccxt", "value": "5" }
             },
             {
                 "description": "Create market sell order",
@@ -143,7 +143,7 @@
                     "sell",
                     0.005
                 ],
-                "output": "{\"market\":\"ETH_USDT\",\"direction\":\"sell\",\"tag\":\"ccxt\",\"quantity\":\"0.005\"}"
+                "output": { "market": "ETH_USDT", "direction": "sell", "tag": "ccxt", "quantity": "0.005" }
             }
         ],
         "cancelOrder": [
@@ -154,7 +154,7 @@
                 "input": [
                     "01JNEC5GG01YCAM77F57SYQX43"
                 ],
-                "output": "{}"
+                "output": {}
             }
         ]
     }

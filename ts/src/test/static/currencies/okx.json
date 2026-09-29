@@ -1458,9 +1458,9 @@
                     "wdTickSz": "8"
                 }
             },
-            "ARBONE": {
+            "ARBITRUM": {
                 "id": "ETH-Arbitrum One",
-                "network": "ARBONE",
+                "network": "ARBITRUM",
                 "active": null,
                 "deposit": true,
                 "withdraw": true,
@@ -2290,9 +2290,9 @@
         "fee": 0,
         "fees": {},
         "networks": {
-            "ARBONE": {
+            "ARBITRUM": {
                 "id": "USDT-Arbitrum One",
-                "network": "ARBONE",
+                "network": "ARBITRUM",
                 "active": null,
                 "deposit": true,
                 "withdraw": true,
@@ -3947,9 +3947,9 @@
                     "wdTickSz": "6"
                 }
             },
-            "ARBONE": {
+            "ARBITRUM": {
                 "id": "USDC-Arbitrum One",
-                "network": "ARBONE",
+                "network": "ARBITRUM",
                 "active": null,
                 "deposit": true,
                 "withdraw": true,

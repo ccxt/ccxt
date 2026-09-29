@@ -52,52 +52,54 @@ class extended extends \ccxt\async\extended {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://api.docs.extended.exchange/#order-book-stream
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->depth] set to '1' to receive best bid and ask snapshots only
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'orderbook:' . $symbol;
-            $query = $this->urlencode($params);
-            $url = $this->urls['api']['ws'] . '/orderbooks/' . $market['id'];
-            if (strlen($query) > 0) {
-                $url .= '?' . $query;
-            }
-            $orderbook = Async\await($this->watch($url, $messageHash, null, $messageHash, array(
-                'symbol' => $symbol,
-                'limit' => $limit,
-            )));
-            return $orderbook->limit();
-        })();
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://api.docs.extended.exchange/#order-book-stream
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->depth] set to '1' to receive best bid and ask snapshots only
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $messageHash = 'orderbook:' . $symbolValue;
+        $query = $this->urlencode($params);
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/orderbooks/' . $market['id'];
+        if (strlen($query) > 0) {
+            $url .= '?' . $query;
+        }
+        $orderbook = Async\await($this->watch($url, $messageHash, null, $messageHash, array(
+            'symbol' => $symbolValue,
+            'limit' => $limit,
+        )));
+        return $orderbook->limit();
+    }
+
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
-        //         "ts" => 1701563440000,
-        //         "type" => "SNAPSHOT",
-        //         "data" => array(
-        //             "m" => "BTC-USD",
-        //             "b" => array(
-        //                 array( "p" => "25670", "q" => "0.1" )
-        //             ),
-        //             "a" => array(
-        //                 array( "p" => "25770", "q" => "0.1" )
-        //             )
-        //         ),
-        //         "seq" => 1
+        //         "ts": 1701563440000,
+        //         "type": "SNAPSHOT",
+        //         "data": {
+        //             "m": "BTC-USD",
+        //             "b": [
+        //                 { "p": "25670", "q": "0.1" }
+        //             ],
+        //             "a": [
+        //                 { "p": "25770", "q": "0.1" }
+        //             ]
+        //         },
+        //         "seq": 1
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
@@ -151,114 +153,128 @@ class extended extends \ccxt\async\extended {
     }
 
     public function watch_private(string $messageHash, ?array $subscription = null) {
-        return Async\async(function () use ($messageHash, $subscription) {
-            $this->check_required_credentials();
-            $url = $this->urls['api']['ws'] . '/account';
-            if (($this->clients === null) || !(is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
-                $defaultOptions = array(
-                    'ws' => array(
-                        'options' => array(
-                            'headers' => array(),
-                        ),
+        return Async\async(self::do_watch_private(...))($messageHash, $subscription);
+    }
+
+    private function do_watch_private(string $messageHash, ?array $subscription = null) {
+        $this->check_required_credentials();
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/account';
+        if (($this->clients === null) || !(is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
+            $defaultOptions = array(
+                'ws' => array(
+                    'options' => array(
+                        'headers' => array(),
                     ),
-                );
-                $this->extend_exchange_options($defaultOptions);
-                $originalOptions = $this->options['ws']['options'];
-                $originalHeaders = $this->safe_dict($originalOptions, 'headers', array());
-                $this->options['ws']['options'] = $this->extend($this->extend(array(), $originalOptions), array(
-                    'headers' => $this->extend($this->extend(array(
-                        'User-Agent' => $this->userAgents['chrome'],
-                    ), $originalHeaders), array(
-                        'X-Api-Key' => $this->apiKey,
-                    )),
-                ));
-                $this->client($url);
-                $this->options['ws']['options'] = $originalOptions;
-            }
-            return Async\await($this->watch($url, $messageHash, null, $messageHash, $subscription));
-        })();
+                ),
+            );
+            $this->extend_exchange_options($defaultOptions);
+            $originalOptions = $this->options['ws']['options'];
+            $originalHeaders = $this->safe_dict($originalOptions, 'headers', array());
+            $this->options['ws']['options'] = $this->extend($this->extend(array(), $originalOptions), array(
+                'headers' => $this->extend($this->extend(array(
+                    'User-Agent' => $this->userAgents['chrome'],
+                ), $originalHeaders), array(
+                    'X-Api-Key' => $this->apiKey,
+                )),
+            ));
+            $this->client($url);
+            $this->options['ws']['options'] = $originalOptions;
+        }
+        return Async\await($this->watch($url, $messageHash, null, $messageHash, $subscription));
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             *
-             * @see https://api.docs.extended.exchange/#account-updates-stream
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $messageHash = 'orders';
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $messageHash .= ':' . $symbol;
-            }
-            $orders = Async\await($this->watch_private($messageHash, array(
-                'symbol' => $symbol,
-                'limit' => $limit,
-            )));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         *
+         * @see https://api.docs.extended.exchange/#account-updates-stream
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $messageHash = 'orders';
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbolResolved = $this->safe_string($market, 'symbol');
+            $messageHash .= ':' . $symbolResolved;
+        }
+        $orders = Async\await($this->watch_private($messageHash, array(
+            'symbol' => $symbolResolved,
+            'limit' => $limit,
+        )));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function watch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * watches balance updates
-             *
-             * @see https://api.docs.extended.exchange/#account-updates-stream
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            return Async\await($this->watch_private('balance', $params));
-        })();
+        return Async\async(self::do_watch_balance(...))($params);
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    private function do_watch_balance($params = array()) {
+        /**
+         * watches balance updates
+         *
+         * @see https://api.docs.extended.exchange/#account-updates-stream
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        return Async\await($this->watch_private('balance', $params));
+    }
+
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
-        //         "type" => "BALANCE",
-        //         "data" => {
-        //             "balance" => array(
-        //                 "collateralName" => "BTC",
-        //                 "balance" => "100.000000",
-        //                 "equity" => "20.000000",
-        //                 "availableForTrade" => "3.000000",
-        //                 "availableForWithdrawal" => "4.000000",
-        //                 "updatedTime" => 1699976104901
-        //             ),
-        //             "spotBalances" => array(
-        //                 array(
-        //                     "asset" => "BTC",
-        //                     "balance" => "0.5",
-        //                     "availableToWithdraw" => "0.5",
-        //                     "updatedAt" => 1701563440
+        //         "type": "BALANCE",
+        //         "data": {
+        //             "balance": {
+        //                 "collateralName": "BTC",
+        //                 "balance": "100.000000",
+        //                 "equity": "20.000000",
+        //                 "availableForTrade": "3.000000",
+        //                 "availableForWithdrawal": "4.000000",
+        //                 "updatedTime": 1699976104901
+        //             },
+        //             "spotBalances": [
+        //                 {
+        //                     "asset": "BTC",
+        //                     "balance": "0.5",
+        //                     "availableToWithdraw": "0.5",
+        //                     "updatedAt": 1701563440
         //                 }
-        //             )
-        //         ),
-        //         "ts" => 1715885952304,
-        //         "seq" => 1
+        //             ]
+        //         },
+        //         "ts": 1715885952304,
+        //         "seq": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
         $data = $this->safe_dict($message, 'data', array());
-        $result = array(
-            'info' => $data,
-        );
+        $this->balance['info'] = $data;
         $balance = $this->safe_dict($data, 'balance');
         if ($balance !== null) {
             $currencyId = $this->safe_string($balance, 'collateralName');
@@ -267,7 +283,7 @@ class extended extends \ccxt\async\extended {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'availableForWithdrawal');
                 $account['total'] = $this->safe_string($balance, 'balance');
-                $result[$code] = $account;
+                $this->balance[$code] = $account;
             }
         }
         $spotBalances = $this->safe_list($data, 'spotBalances', array());
@@ -279,74 +295,78 @@ class extended extends \ccxt\async\extended {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($spotBalance, 'availableToWithdraw');
                 $account['total'] = $this->safe_string($spotBalance, 'balance');
-                $result[$code] = $account;
+                $this->balance[$code] = $account;
             }
         }
         $timestamp = $this->safe_integer($message, 'ts');
-        $result['timestamp'] = $timestamp;
-        $result['datetime'] = $this->iso8601($timestamp);
-        $this->balance = $this->safe_balance($this->deep_extend($this->balance, $result));
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $this->iso8601($timestamp);
+        $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, 'balance');
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made by the user
-             *
-             * @see https://api.docs.extended.exchange/#account-updates-stream
-             *
-             * @param {string} [$symbol] unified $market $symbol of the $trades
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $messageHash = 'myTrades';
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $messageHash .= ':' . $symbol;
-            }
-            $trades = Async\await($this->watch_private($messageHash, array(
-                'symbol' => $symbol,
-                'limit' => $limit,
-            )));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made by the user
+         *
+         * @see https://api.docs.extended.exchange/#account-updates-stream
+         *
+         * @param {string} [$symbol] unified $market $symbol of the $trades
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $messageHash = 'myTrades';
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbolResolved = $this->safe_string($market, 'symbol');
+            $messageHash .= ':' . $symbolResolved;
+        }
+        $trades = Async\await($this->watch_private($messageHash, array(
+            'symbol' => $symbolResolved,
+            'limit' => $limit,
+        )));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
+    }
+
+    public function handle_my_trades(Client $client, array $message) {
         //
         //     {
-        //         "type" => "TRADE",
-        //         "data" => {
-        //             "trades" => array(
-        //                 array(
-        //                     "id" => 1784963886257016832,
-        //                     "accountId" => 3017,
-        //                     "market" => "BTC-USD",
-        //                     "orderId" => 9223372036854775808,
-        //                     "externalOrderId" => "ext-1",
-        //                     "side" => "BUY",
-        //                     "price" => "58853.4000000000000000",
-        //                     "qty" => "0.0900000000000000",
-        //                     "value" => "5296.8060000000000000",
-        //                     "fee" => "0.0000000000000000",
-        //                     "tradeType" => "DELEVERAGE",
-        //                     "createdTime" => 1701563440000,
-        //                     "isTaker" => true
+        //         "type": "TRADE",
+        //         "data": {
+        //             "trades": [
+        //                 {
+        //                     "id": 1784963886257016832,
+        //                     "accountId": 3017,
+        //                     "market": "BTC-USD",
+        //                     "orderId": 9223372036854775808,
+        //                     "externalOrderId": "ext-1",
+        //                     "side": "BUY",
+        //                     "price": "58853.4000000000000000",
+        //                     "qty": "0.0900000000000000",
+        //                     "value": "5296.8060000000000000",
+        //                     "fee": "0.0000000000000000",
+        //                     "tradeType": "DELEVERAGE",
+        //                     "createdTime": 1701563440000,
+        //                     "isTaker": true
         //                 }
-        //             )
-        //         ),
-        //         "ts" => 1715886400000,
-        //         "seq" => 1
+        //             ]
+        //         },
+        //         "ts": 1715886400000,
+        //         "seq": 1
         //     }
         //
         if ($this->myTrades === null) {
@@ -383,59 +403,61 @@ class extended extends \ccxt\async\extended {
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * watches information on multiple $positions
-             *
-             * @see https://api.docs.extended.exchange/#account-updates-stream
-             *
-             * @param {string[]} [$symbols] unified market $symbols
-             * @param {int} [$since] the earliest time in ms to fetch $positions for
-             * @param {int} [$limit] the maximum number of position structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $messageHash = 'positions';
-            if ($symbols !== null) {
-                $messageHash .= '::' . implode(',', $symbols);
-            }
-            $positions = Async\await($this->watch_private($messageHash, array(
-                'symbols' => $symbols,
-                'limit' => $limit,
-            )));
-            if ($this->newUpdates) {
-                return $positions;
-            }
-            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_positions(...))($symbols, $since, $limit, $params);
     }
 
-    public function handle_positions(Client $client, mixed $message) {
+    private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $positions
+         *
+         * @see https://api.docs.extended.exchange/#account-updates-stream
+         *
+         * @param {string[]} [$symbols] unified market $symbols
+         * @param {int} [$since] the earliest time in ms to fetch $positions for
+         * @param {int} [$limit] the maximum number of position structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $messageHash = 'positions';
+        if ($symbolsNormalized !== null) {
+            $messageHash .= '::' . implode(',', $symbolsNormalized);
+        }
+        $positions = Async\await($this->watch_private($messageHash, array(
+            'symbols' => $symbolsNormalized,
+            'limit' => $limit,
+        )));
+        if ($this->newUpdates) {
+            return $positions;
+        }
+        return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
+    }
+
+    public function handle_positions(Client $client, array $message) {
         //
         //     {
-        //         "type" => "POSITION",
-        //         "data" => {
-        //             "positions" => array(
-        //                 array(
-        //                     "id" => 1,
-        //                     "accountId" => 1,
-        //                     "market" => "BTC-USD",
-        //                     "side" => "LONG",
-        //                     "leverage" => "10",
-        //                     "size" => "0.1",
-        //                     "value" => "4000",
-        //                     "openPrice" => "39000",
-        //                     "markPrice" => "40000",
-        //                     "updatedAt" => 1701563440000
+        //         "type": "POSITION",
+        //         "data": {
+        //             "positions": [
+        //                 {
+        //                     "id": 1,
+        //                     "accountId": 1,
+        //                     "market": "BTC-USD",
+        //                     "side": "LONG",
+        //                     "leverage": "10",
+        //                     "size": "0.1",
+        //                     "value": "4000",
+        //                     "openPrice": "39000",
+        //                     "markPrice": "40000",
+        //                     "updatedAt": 1701563440000
         //                 }
-        //             )
-        //         ),
-        //         "ts" => 1715886400000,
-        //         "seq" => 1
+        //             ]
+        //         },
+        //         "ts": 1715886400000,
+        //         "seq": 1
         //     }
         //
         if ($this->positions === null) {
@@ -473,35 +495,35 @@ class extended extends \ccxt\async\extended {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function handle_orders(Client $client, mixed $message) {
+    public function handle_orders(Client $client, array $message) {
         //
         //     {
-        //         "type" => "ORDER",
-        //         "data" => {
-        //             "orders" => array(
-        //                 array(
-        //                     "id" => 1791181340771614723,
-        //                     "accountId" => 1791181340771614721,
-        //                     "externalId" => "-1771812132822291885",
-        //                     "market" => "BTC-USD",
-        //                     "type" => "LIMIT",
-        //                     "side" => "BUY",
-        //                     "status" => "NEW",
-        //                     "price" => "12400.000000",
-        //                     "averagePrice" => "13140.000000",
-        //                     "qty" => "10.000000",
-        //                     "filledQty" => "3.513000",
-        //                     "payedFee" => "0.513000",
-        //                     "reduceOnly" => true,
-        //                     "postOnly" => false,
-        //                     "createdTime" => 1715885888571,
-        //                     "updatedTime" => 1715885888571,
-        //                     "expireTime" => 1715885888571
+        //         "type": "ORDER",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "id": 1791181340771614723,
+        //                     "accountId": 1791181340771614721,
+        //                     "externalId": "-1771812132822291885",
+        //                     "market": "BTC-USD",
+        //                     "type": "LIMIT",
+        //                     "side": "BUY",
+        //                     "status": "NEW",
+        //                     "price": "12400.000000",
+        //                     "averagePrice": "13140.000000",
+        //                     "qty": "10.000000",
+        //                     "filledQty": "3.513000",
+        //                     "payedFee": "0.513000",
+        //                     "reduceOnly": true,
+        //                     "postOnly": false,
+        //                     "createdTime": 1715885888571,
+        //                     "updatedTime": 1715885888571,
+        //                     "expireTime": 1715885888571
         //                 }
-        //             )
-        //         ),
-        //         "ts" => 1715885884837,
-        //         "seq" => 1
+        //             ]
+        //         },
+        //         "ts": 1715885884837,
+        //         "seq": 1
         //     }
         //
         if ($this->orders === null) {
@@ -538,44 +560,46 @@ class extended extends \ccxt\async\extended {
     }
 
     public function watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watch the current funding rate
-             *
-             * @see https://api.docs.extended.exchange/#funding-rates-stream
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'fundingRate:' . $symbol;
-            $query = $this->urlencode($params);
-            $url = $this->urls['api']['ws'] . '/funding/' . $market['id'];
-            if (strlen($query) > 0) {
-                $url .= '?' . $query;
-            }
-            return Async\await($this->watch($url, $messageHash, null, $messageHash, array(
-                'symbol' => $symbol,
-                'messageHash' => $messageHash,
-            )));
-        })();
+        return Async\async(self::do_watch_funding_rate(...))($symbol, $params);
     }
 
-    public function handle_funding_rate(Client $client, mixed $message) {
+    private function do_watch_funding_rate(string $symbol, $params = array()) {
+        /**
+         * watch the current funding rate
+         *
+         * @see https://api.docs.extended.exchange/#funding-rates-stream
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $messageHash = 'fundingRate:' . $symbolValue;
+        $query = $this->urlencode($params);
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/funding/' . $market['id'];
+        if (strlen($query) > 0) {
+            $url .= '?' . $query;
+        }
+        return Async\await($this->watch($url, $messageHash, null, $messageHash, array(
+            'symbol' => $symbolValue,
+            'messageHash' => $messageHash,
+        )));
+    }
+
+    public function handle_funding_rate(Client $client, array $message) {
         //
         //     {
-        //         "ts" => 1701563440000,
-        //         "data" => array(
-        //             "m" => "BTC-USD",
-        //             "T" => 1701563440000,
-        //             "f" => "0.001"
-        //         ),
-        //         "seq" => 2
+        //         "ts": 1701563440000,
+        //         "data": {
+        //             "m": "BTC-USD",
+        //             "T": 1701563440000,
+        //             "f": "0.001"
+        //         },
+        //         "seq": 2
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
@@ -586,14 +610,14 @@ class extended extends \ccxt\async\extended {
         $client->resolve($fundingRate, $messageHash);
     }
 
-    public function parse_ws_funding_rate(mixed $fundingRate, ?array $market = null, mixed $message = null): array {
+    public function parse_ws_funding_rate(array $fundingRate, ?array $market = null, ?array $message = null): array {
         $marketId = $this->safe_string($fundingRate, 'm');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($message, 'ts');
         $fundingTimestamp = $this->safe_integer($fundingRate, 'T');
         return array(
             'info' => $fundingRate,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'markPrice' => null,
             'indexPrice' => null,
             'interestRate' => null,
@@ -614,46 +638,48 @@ class extended extends \ccxt\async\extended {
     }
 
     public function watch_mark_price(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a mark price for a specific $market
-             *
-             * @see https://api.docs.extended.exchange/#mark-price-stream
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'markPrice:' . $symbol;
-            $query = $this->urlencode($params);
-            $url = $this->urls['api']['ws'] . '/prices/mark/' . $market['id'];
-            if (strlen($query) > 0) {
-                $url .= '?' . $query;
-            }
-            return Async\await($this->watch($url, $messageHash, null, $messageHash, array(
-                'name' => 'markPrice',
-                'symbol' => $symbol,
-                'messageHash' => $messageHash,
-            )));
-        })();
+        return Async\async(self::do_watch_mark_price(...))($symbol, $params);
     }
 
-    public function handle_mark_price(Client $client, mixed $message) {
+    private function do_watch_mark_price(string $symbol, $params = array()) {
+        /**
+         * watches a mark price for a specific $market
+         *
+         * @see https://api.docs.extended.exchange/#mark-price-stream
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $messageHash = 'markPrice:' . $symbolValue;
+        $query = $this->urlencode($params);
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/prices/mark/' . $market['id'];
+        if (strlen($query) > 0) {
+            $url .= '?' . $query;
+        }
+        return Async\await($this->watch($url, $messageHash, null, $messageHash, array(
+            'name' => 'markPrice',
+            'symbol' => $symbolValue,
+            'messageHash' => $messageHash,
+        )));
+    }
+
+    public function handle_mark_price(Client $client, array $message) {
         //
         //     {
-        //         "type" => "MP",
-        //         "data" => array(
-        //             "m" => "BTC-USD",
-        //             "p" => "80988.400408625006",
-        //             "ts" => 0
-        //         ),
-        //         "ts" => 1778641421485,
-        //         "seq" => 1
+        //         "type": "MP",
+        //         "data": {
+        //             "m": "BTC-USD",
+        //             "p": "80988.400408625006",
+        //             "ts": 0
+        //         },
+        //         "ts": 1778641421485,
+        //         "seq": 1
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
@@ -677,56 +703,59 @@ class extended extends \ccxt\async\extended {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a particular $symbol
-             *
-             * @see https://api.docs.extended.exchange/#$trades-stream
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'trades:' . $symbol;
-            $query = $this->urlencode($params);
-            $url = $this->urls['api']['ws'] . '/publicTrades/' . $market['id'];
-            if (strlen($query) > 0) {
-                $url .= '?' . $query;
-            }
-            $trades = Async\await($this->watch($url, $messageHash, null, $messageHash, array(
-                'symbol' => $symbol,
-                'limit' => $limit,
-            )));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         *
+         * @see https://api.docs.extended.exchange/#$trades-stream
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $messageHash = 'trades:' . $symbolValue;
+        $query = $this->urlencode($params);
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/publicTrades/' . $market['id'];
+        if (strlen($query) > 0) {
+            $url .= '?' . $query;
+        }
+        $trades = Async\await($this->watch($url, $messageHash, null, $messageHash, array(
+            'symbol' => $symbolValue,
+            'limit' => $limit,
+        )));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+    }
+
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
-        //         "ts" => 1701563440000,
-        //         "data" => array(
+        //         "ts": 1701563440000,
+        //         "data": [
         //             {
-        //                 "m" => "BTC-USD",
-        //                 "S" => "BUY",
-        //                 "tT" => "TRADE",
-        //                 "T" => 1701563440000,
-        //                 "p" => "25670",
-        //                 "q" => "0.1",
-        //                 "i" => 25124
+        //                 "m": "BTC-USD",
+        //                 "S": "BUY",
+        //                 "tT": "TRADE",
+        //                 "T": 1701563440000,
+        //                 "p": "25670",
+        //                 "q": "0.1",
+        //                 "i": 25124
         //             }
-        //         ),
-        //         "seq" => 2
+        //         ],
+        //         "seq": 2
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
@@ -760,72 +789,75 @@ class extended extends \ccxt\async\extended {
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
-             *
-             * @see https://api.docs.extended.exchange/#candles-stream
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->candleType] candle type => 'trades' (default), 'mark-prices', or 'index-prices'
-             * @param {string} [$params->price] *ignored if $params->candleType is set* 'mark' or 'index' for mark $price and index $price candles
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $price = $this->safe_string($params, 'price');
-            $candleType = $this->safe_string($params, 'candleType');
-            if ($candleType === null) {
-                if ($price === 'mark') {
-                    $candleType = 'mark-prices';
-                } elseif ($price === 'index') {
-                    $candleType = 'index-prices';
-                } else {
-                    $candleType = 'trades';
-                }
-            }
-            $params = $this->omit($params, array( 'candleType', 'price' ));
-            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $messageHash = 'ohlcv:' . $symbol . ':' . $timeframe . ':' . $candleType;
-            $query = $this->urlencode($this->extend(array( 'interval' => $interval ), $params));
-            $url = $this->urls['api']['ws'] . '/candles/' . $market['id'] . '/' . $candleType . '?' . $query;
-            $ohlcv = Async\await($this->watch($url, $messageHash, null, $messageHash, array(
-                'name' => 'ohlcv',
-                'symbol' => $symbol,
-                'timeframe' => $timeframe,
-                'candleType' => $candleType,
-                'limit' => $limit,
-                'messageHash' => $messageHash,
-            )));
-            if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        })();
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    private function do_watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+         *
+         * @see https://api.docs.extended.exchange/#candles-stream
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->candleType] candle type => 'trades' (default), 'mark-prices', or 'index-prices'
+         * @param {string} [$params->price] *ignored if $params->candleType is set* 'mark' or 'index' for mark $price and index $price candles
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $price = $this->safe_string($params, 'price');
+        $candleType = $this->safe_string($params, 'candleType');
+        if ($candleType === null) {
+            if ($price === 'mark') {
+                $candleType = 'mark-prices';
+            } elseif ($price === 'index') {
+                $candleType = 'index-prices';
+            } else {
+                $candleType = 'trades';
+            }
+        }
+        $paramsOmitted = $this->omit($params, array( 'candleType', 'price' ));
+        $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $messageHash = 'ohlcv:' . $symbolValue . ':' . $timeframe . ':' . $candleType;
+        $query = $this->urlencode($this->extend(array( 'interval' => $interval ), $paramsOmitted));
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/candles/' . $market['id'] . '/' . $candleType . '?' . $query;
+        $ohlcv = Async\await($this->watch($url, $messageHash, null, $messageHash, array(
+            'name' => 'ohlcv',
+            'symbol' => $symbolValue,
+            'timeframe' => $timeframe,
+            'candleType' => $candleType,
+            'limit' => $limit,
+            'messageHash' => $messageHash,
+        )));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
+        }
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
+    }
+
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
-        //         "ts" => 1695738675123,
-        //         "data" => array(
+        //         "ts": 1695738675123,
+        //         "data": [
         //             {
-        //                 "T" => 1695738674000,
-        //                 "o" => "1000.0000",
-        //                 "l" => "800.0000",
-        //                 "h" => "2400.0000",
-        //                 "c" => "2100.0000",
-        //                 "v" => "10.0000"
+        //                 "T": 1695738674000,
+        //                 "o": "1000.0000",
+        //                 "l": "800.0000",
+        //                 "h": "2400.0000",
+        //                 "c": "2100.0000",
+        //                 "v": "10.0000"
         //             }
-        //         ),
-        //         "seq" => 1
+        //         ],
+        //         "seq": 1
         //     }
         //
         $subscription = $this->find_subscription($client, 'ohlcv');
@@ -835,9 +867,14 @@ class extended extends \ccxt\async\extended {
         $symbol = $this->safe_string($subscription, 'symbol');
         $timeframe = $this->safe_string($subscription, 'timeframe');
         $candleType = $this->safe_string($subscription, 'candleType');
-        $cacheKey = ($candleType === 'trades') ? $timeframe : $timeframe . ':' . $candleType;
+        $cacheKey = null;
+        if ($candleType === 'trades') {
+            $cacheKey = $timeframe;
+        } else {
+            $cacheKey = $timeframe . ':' . $candleType;
+        }
         $messageHash = $this->safe_string($subscription, 'messageHash');
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->ohlcvs[$symbol], $cacheKey);
         if ($stored === null) {
             $defaultLimit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -872,11 +909,11 @@ class extended extends \ccxt\async\extended {
         return null;
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
-        //     array( "status" => "ERROR", "error" => array( "code" => 1001, "message" => "Market not found." ) )
+        //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         //
-        $error = $this->safe_value($message, 'error');
+        $error = $this->safe_dict($message, 'error');
         if ($error === null) {
             return false;
         }
@@ -888,8 +925,8 @@ class extended extends \ccxt\async\extended {
         throw new ExchangeError($feedback);
     }
 
-    public function handle_message(Client $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+    public function handle_message(Client $client, array $message) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $type = $this->safe_string($message, 'type');
@@ -903,23 +940,30 @@ class extended extends \ccxt\async\extended {
                 $this->handle_ohlcv($client, $message);
             }
         } elseif ($data !== null) {
+            // an account frame may carry several sections at once, so these are
+            // not mutually exclusive and must not fall through to the order book
+            $isAccountUpdate = false;
             if (($type === 'ORDER') || (is_array($data) && array_key_exists('orders' ?? '', $data))) {
                 $this->handle_orders($client, $message);
+                $isAccountUpdate = true;
             }
             if (($type === 'TRADE') || (is_array($data) && array_key_exists('trades' ?? '', $data))) {
                 $this->handle_my_trades($client, $message);
+                $isAccountUpdate = true;
             }
             if (($type === 'POSITION') || (is_array($data) && array_key_exists('positions' ?? '', $data))) {
                 $this->handle_positions($client, $message);
+                $isAccountUpdate = true;
             }
             if (($type === 'BALANCE') || (is_array($data) && array_key_exists('balance' ?? '', $data)) || (is_array($data) && array_key_exists('spotBalances' ?? '', $data))) {
                 $this->handle_balance($client, $message);
+                $isAccountUpdate = true;
             }
             if ($type === 'MP') {
                 $this->handle_mark_price($client, $message);
             } elseif (is_array($data) && array_key_exists('f' ?? '', $data)) {
                 $this->handle_funding_rate($client, $message);
-            } else {
+            } elseif (!$isAccountUpdate) {
                 $this->handle_order_book($client, $message);
             }
         }

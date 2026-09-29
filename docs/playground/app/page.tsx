@@ -79,15 +79,20 @@ export default function Page() {
     [language],
   );
 
-  const loadExample = useCallback(
-    (id: string) => {
-      if (!isRunnable(language)) return;
-      const ex = examples.find((e) => e.id === id);
-      if (!ex) return;
-      setCodeByLang((prev) => ({ ...prev, [language]: codeFor(ex, language) }));
-    },
-    [language],
-  );
+  const loadExample = useCallback((id: string) => {
+    const ex = examples.find((e) => e.id === id);
+    if (!ex) return;
+    // Fill every runnable tab at once, so switching languages shows the same
+    // example instead of whatever was there before. (Same shape as the
+    // assistant's multi-language fill.)
+    setCodeByLang((prev) => {
+      const next = { ...prev };
+      for (const l of languages) {
+        if (l.available) next[l.id as RunnableLanguageId] = codeFor(ex, l.id as RunnableLanguageId);
+      }
+      return next;
+    });
+  }, []);
 
   const onRun = useCallback(async () => {
     if (!isRunnable(language)) return;

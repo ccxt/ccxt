@@ -7,750 +7,1017 @@
 
 package ccxt
 
-func (this *BingxCore) FundV1PrivateGetAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("fundV1PrivateGetAccountBalance", args...)
+// FundV1PrivateGetAccountBalance returns a channel that yields a JSON object.
+func (this *Bingx) FundV1PrivateGetAccountBalance(args ...any) <-chan any {
+	return this.Fetch2Async("account/balance", []string{"fund", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV1PublicGetServerTime(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PublicGetServerTime", args...)
+// SpotV1PublicGetServerTime returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PublicGetServerTime(args ...any) <-chan any {
+	return this.Fetch2Async("server/time", []string{"spot", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV1PublicGetCommonSymbols(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PublicGetCommonSymbols", args...)
+// SpotV1PublicGetCommonSymbols returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PublicGetCommonSymbols(args ...any) <-chan any {
+	return this.Fetch2Async("common/symbols", []string{"spot", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV1PublicGetMarketTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PublicGetMarketTrades", args...)
+// SpotV1PublicGetMarketTrades returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PublicGetMarketTrades(args ...any) <-chan any {
+	return this.Fetch2Async("market/trades", []string{"spot", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV1PublicGetMarketDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PublicGetMarketDepth", args...)
+// SpotV1PublicGetMarketDepth returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PublicGetMarketDepth(args ...any) <-chan any {
+	return this.Fetch2Async("market/depth", []string{"spot", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV1PublicGetMarketKline(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PublicGetMarketKline", args...)
+// SpotV1PublicGetMarketKline returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PublicGetMarketKline(args ...any) <-chan any {
+	return this.Fetch2Async("market/kline", []string{"spot", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV1PublicGetTicker24hr(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PublicGetTicker24hr", args...)
+// SpotV1PublicGetTicker24hr returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PublicGetTicker24hr(args ...any) <-chan any {
+	return this.Fetch2Async("ticker/24hr", []string{"spot", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV1PublicGetTickerPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PublicGetTickerPrice", args...)
+// SpotV1PublicGetTickerPrice returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PublicGetTickerPrice(args ...any) <-chan any {
+	return this.Fetch2Async("ticker/price", []string{"spot", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV1PublicGetTickerBookTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PublicGetTickerBookTicker", args...)
+// SpotV1PublicGetTickerBookTicker returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PublicGetTickerBookTicker(args ...any) <-chan any {
+	return this.Fetch2Async("ticker/bookTicker", []string{"spot", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV1PrivateGetTradeQuery(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetTradeQuery", args...)
+// SpotV1PrivateGetTradeQuery returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivateGetTradeQuery(args ...any) <-chan any {
+	return this.Fetch2Async("trade/query", []string{"spot", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV1PrivateGetTradeOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetTradeOpenOrders", args...)
+// SpotV1PrivateGetTradeOpenOrders returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivateGetTradeOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/openOrders", []string{"spot", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV1PrivateGetTradeHistoryOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetTradeHistoryOrders", args...)
+// SpotV1PrivateGetTradeHistoryOrders returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivateGetTradeHistoryOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/historyOrders", []string{"spot", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV1PrivateGetTradeMyTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetTradeMyTrades", args...)
+// SpotV1PrivateGetTradeMyTrades returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivateGetTradeMyTrades(args ...any) <-chan any {
+	return this.Fetch2Async("trade/myTrades", []string{"spot", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SpotV1PrivateGetUserCommissionRate(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetUserCommissionRate", args...)
+// SpotV1PrivateGetUserCommissionRate returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivateGetUserCommissionRate(args ...any) <-chan any {
+	return this.Fetch2Async("user/commissionRate", []string{"spot", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SpotV1PrivateGetAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetAccountBalance", args...)
+// SpotV1PrivateGetAccountBalance returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivateGetAccountBalance(args ...any) <-chan any {
+	return this.Fetch2Async("account/balance", []string{"spot", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SpotV1PrivateGetOcoOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetOcoOrderList", args...)
+// SpotV1PrivateGetOcoOrderList returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivateGetOcoOrderList(args ...any) <-chan any {
+	return this.Fetch2Async("oco/orderList", []string{"spot", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SpotV1PrivateGetOcoOpenOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetOcoOpenOrderList", args...)
+// SpotV1PrivateGetOcoOpenOrderList returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivateGetOcoOpenOrderList(args ...any) <-chan any {
+	return this.Fetch2Async("oco/openOrderList", []string{"spot", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SpotV1PrivateGetOcoHistoryOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetOcoHistoryOrderList", args...)
+// SpotV1PrivateGetOcoHistoryOrderList returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivateGetOcoHistoryOrderList(args ...any) <-chan any {
+	return this.Fetch2Async("oco/historyOrderList", []string{"spot", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SpotV1PrivatePostTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostTradeOrder", args...)
+// SpotV1PrivatePostTradeOrder returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivatePostTradeOrder(args ...any) <-chan any {
+	return this.Fetch2Async("trade/order", []string{"spot", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SpotV1PrivatePostTradeCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostTradeCancel", args...)
+// SpotV1PrivatePostTradeCancel returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivatePostTradeCancel(args ...any) <-chan any {
+	return this.Fetch2Async("trade/cancel", []string{"spot", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SpotV1PrivatePostTradeBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostTradeBatchOrders", args...)
+// SpotV1PrivatePostTradeBatchOrders returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivatePostTradeBatchOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/batchOrders", []string{"spot", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SpotV1PrivatePostTradeOrderCancelReplace(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostTradeOrderCancelReplace", args...)
+// SpotV1PrivatePostTradeOrderCancelReplace returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivatePostTradeOrderCancelReplace(args ...any) <-chan any {
+	return this.Fetch2Async("trade/order/cancelReplace", []string{"spot", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SpotV1PrivatePostTradeCancelOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostTradeCancelOrders", args...)
+// SpotV1PrivatePostTradeCancelOrders returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivatePostTradeCancelOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/cancelOrders", []string{"spot", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SpotV1PrivatePostTradeCancelOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostTradeCancelOpenOrders", args...)
+// SpotV1PrivatePostTradeCancelOpenOrders returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivatePostTradeCancelOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/cancelOpenOrders", []string{"spot", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SpotV1PrivatePostTradeCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostTradeCancelAllAfter", args...)
+// SpotV1PrivatePostTradeCancelAllAfter returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivatePostTradeCancelAllAfter(args ...any) <-chan any {
+	return this.Fetch2Async("trade/cancelAllAfter", []string{"spot", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SpotV1PrivatePostOcoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostOcoOrder", args...)
+// SpotV1PrivatePostOcoOrder returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivatePostOcoOrder(args ...any) <-chan any {
+	return this.Fetch2Async("oco/order", []string{"spot", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SpotV1PrivatePostOcoCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostOcoCancel", args...)
+// SpotV1PrivatePostOcoCancel returns a channel that yields a JSON object.
+func (this *Bingx) SpotV1PrivatePostOcoCancel(args ...any) <-chan any {
+	return this.Fetch2Async("oco/cancel", []string{"spot", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SpotV2PublicGetMarketDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV2PublicGetMarketDepth", args...)
+// SpotV2PublicGetMarketDepth returns a channel that yields a JSON object.
+func (this *Bingx) SpotV2PublicGetMarketDepth(args ...any) <-chan any {
+	return this.Fetch2Async("market/depth", []string{"spot", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV2PublicGetMarketKline(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV2PublicGetMarketKline", args...)
+// SpotV2PublicGetMarketKline returns a channel that yields a JSON object.
+func (this *Bingx) SpotV2PublicGetMarketKline(args ...any) <-chan any {
+	return this.Fetch2Async("market/kline", []string{"spot", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV2PublicGetTickerPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV2PublicGetTickerPrice", args...)
+// SpotV2PublicGetTickerPrice returns a channel that yields a JSON object.
+func (this *Bingx) SpotV2PublicGetTickerPrice(args ...any) <-chan any {
+	return this.Fetch2Async("ticker/price", []string{"spot", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV3PrivateGetGetAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV3PrivateGetGetAssetTransfer", args...)
+// SpotV2PublicGetQuoteBookTicker returns a channel that yields a JSON object.
+func (this *Bingx) SpotV2PublicGetQuoteBookTicker(args ...any) <-chan any {
+	return this.Fetch2Async("quote/bookTicker", []string{"spot", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV3PrivateGetAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV3PrivateGetAssetTransfer", args...)
+// SpotV2PublicGetQuoteDepth returns a channel that yields a JSON object.
+func (this *Bingx) SpotV2PublicGetQuoteDepth(args ...any) <-chan any {
+	return this.Fetch2Async("quote/depth", []string{"spot", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV3PrivateGetCapitalDepositHisrec(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV3PrivateGetCapitalDepositHisrec", args...)
+// SpotV2PublicGetQuoteHistoricalKlines returns a channel that yields a JSON object.
+func (this *Bingx) SpotV2PublicGetQuoteHistoricalKlines(args ...any) <-chan any {
+	return this.Fetch2Async("quote/historicalKlines", []string{"spot", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV3PrivateGetCapitalWithdrawHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV3PrivateGetCapitalWithdrawHistory", args...)
+// SpotV2PublicGetQuoteHistoricalTrades returns a channel that yields a JSON object.
+func (this *Bingx) SpotV2PublicGetQuoteHistoricalTrades(args ...any) <-chan any {
+	return this.Fetch2Async("quote/historicalTrades", []string{"spot", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SpotV3PrivatePostPostAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV3PrivatePostPostAssetTransfer", args...)
+// SpotV2PublicGetQuoteKlines returns a channel that yields a JSON object.
+func (this *Bingx) SpotV2PublicGetQuoteKlines(args ...any) <-chan any {
+	return this.Fetch2Async("quote/klines", []string{"spot", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV1PublicGetTickerPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PublicGetTickerPrice", args...)
+// SpotV2PublicGetQuotePrice returns a channel that yields a JSON object.
+func (this *Bingx) SpotV2PublicGetQuotePrice(args ...any) <-chan any {
+	return this.Fetch2Async("quote/price", []string{"spot", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV1PublicGetMarketHistoricalTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PublicGetMarketHistoricalTrades", args...)
+// SpotV2PublicGetQuoteTicker returns a channel that yields a JSON object.
+func (this *Bingx) SpotV2PublicGetQuoteTicker(args ...any) <-chan any {
+	return this.Fetch2Async("quote/ticker", []string{"spot", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV1PublicGetMarketMarkPriceKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PublicGetMarketMarkPriceKlines", args...)
+// SpotV2PublicGetQuoteTrades returns a channel that yields a JSON object.
+func (this *Bingx) SpotV2PublicGetQuoteTrades(args ...any) <-chan any {
+	return this.Fetch2Async("quote/trades", []string{"spot", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV1PublicGetTradeMultiAssetsRules(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PublicGetTradeMultiAssetsRules", args...)
+// SpotV3PrivateGetGetAssetTransfer returns a channel that yields a JSON object.
+func (this *Bingx) SpotV3PrivateGetGetAssetTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("get/asset/transfer", []string{"spot", "v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV1PublicGetTradingRules(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PublicGetTradingRules", args...)
+// SpotV3PrivateGetAssetTransfer returns a channel that yields a JSON object.
+func (this *Bingx) SpotV3PrivateGetAssetTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("asset/transfer", []string{"spot", "v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV1PrivateGetPositionSideDual(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetPositionSideDual", args...)
+// SpotV3PrivateGetCapitalDepositHisrec returns a channel that yields a JSON array.
+func (this *Bingx) SpotV3PrivateGetCapitalDepositHisrec(args ...any) <-chan any {
+	return this.Fetch2Async("capital/deposit/hisrec", []string{"spot", "v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV1PrivateGetTradeBatchCancelReplace(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetTradeBatchCancelReplace", args...)
+// SpotV3PrivateGetCapitalWithdrawHistory returns a channel that yields a JSON array.
+func (this *Bingx) SpotV3PrivateGetCapitalWithdrawHistory(args ...any) <-chan any {
+	return this.Fetch2Async("capital/withdraw/history", []string{"spot", "v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV1PrivateGetTradeFullOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetTradeFullOrder", args...)
+// SpotV3PrivatePostPostAssetTransfer returns a channel that yields a JSON object.
+func (this *Bingx) SpotV3PrivatePostPostAssetTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("post/asset/transfer", []string{"spot", "v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV1PrivateGetMaintMarginRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetMaintMarginRatio", args...)
+// SwapV1PublicGetTickerPrice returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PublicGetTickerPrice(args ...any) <-chan any {
+	return this.Fetch2Async("ticker/price", []string{"swap", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV1PrivateGetTradePositionHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetTradePositionHistory", args...)
+// SwapV1PublicGetMarketHistoricalTrades returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PublicGetMarketHistoricalTrades(args ...any) <-chan any {
+	return this.Fetch2Async("market/historicalTrades", []string{"swap", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV1PrivateGetPositionMarginHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetPositionMarginHistory", args...)
+// SwapV1PublicGetMarketMarkPriceKlines returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PublicGetMarketMarkPriceKlines(args ...any) <-chan any {
+	return this.Fetch2Async("market/markPriceKlines", []string{"swap", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV1PrivateGetTwapOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetTwapOpenOrders", args...)
+// SwapV1PublicGetTradeMultiAssetsRules returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PublicGetTradeMultiAssetsRules(args ...any) <-chan any {
+	return this.Fetch2Async("trade/multiAssetsRules", []string{"swap", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV1PrivateGetTwapHistoryOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetTwapHistoryOrders", args...)
+// SwapV1PublicGetTradingRules returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PublicGetTradingRules(args ...any) <-chan any {
+	return this.Fetch2Async("tradingRules", []string{"swap", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV1PrivateGetTwapOrderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetTwapOrderDetail", args...)
+// SwapV1PrivateGetPositionSideDual returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivateGetPositionSideDual(args ...any) <-chan any {
+	return this.Fetch2Async("positionSide/dual", []string{"swap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV1PrivateGetTradeAssetMode(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetTradeAssetMode", args...)
+// SwapV1PrivateGetTradeBatchCancelReplace returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivateGetTradeBatchCancelReplace(args ...any) <-chan any {
+	return this.Fetch2Async("trade/batchCancelReplace", []string{"swap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV1PrivateGetUserMarginAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetUserMarginAssets", args...)
+// SwapV1PrivateGetTradeFullOrder returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivateGetTradeFullOrder(args ...any) <-chan any {
+	return this.Fetch2Async("trade/fullOrder", []string{"swap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV1PrivatePostTradeAmend(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTradeAmend", args...)
+// SwapV1PrivateGetMaintMarginRatio returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivateGetMaintMarginRatio(args ...any) <-chan any {
+	return this.Fetch2Async("maintMarginRatio", []string{"swap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV1PrivatePostTradeCancelReplace(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTradeCancelReplace", args...)
+// SwapV1PrivateGetTradePositionHistory returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivateGetTradePositionHistory(args ...any) <-chan any {
+	return this.Fetch2Async("trade/positionHistory", []string{"swap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV1PrivatePostPositionSideDual(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostPositionSideDual", args...)
+// SwapV1PrivateGetPositionMarginHistory returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivateGetPositionMarginHistory(args ...any) <-chan any {
+	return this.Fetch2Async("positionMargin/history", []string{"swap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV1PrivatePostTradeBatchCancelReplace(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTradeBatchCancelReplace", args...)
+// SwapV1PrivateGetTwapOpenOrders returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivateGetTwapOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("twap/openOrders", []string{"swap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV1PrivatePostTradeClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTradeClosePosition", args...)
+// SwapV1PrivateGetTwapHistoryOrders returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivateGetTwapHistoryOrders(args ...any) <-chan any {
+	return this.Fetch2Async("twap/historyOrders", []string{"swap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV1PrivatePostTradeGetVst(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTradeGetVst", args...)
+// SwapV1PrivateGetTwapOrderDetail returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivateGetTwapOrderDetail(args ...any) <-chan any {
+	return this.Fetch2Async("twap/orderDetail", []string{"swap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV1PrivatePostTwapOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTwapOrder", args...)
+// SwapV1PrivateGetTradeAssetMode returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivateGetTradeAssetMode(args ...any) <-chan any {
+	return this.Fetch2Async("trade/assetMode", []string{"swap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV1PrivatePostTwapCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTwapCancelOrder", args...)
+// SwapV1PrivateGetUserMarginAssets returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivateGetUserMarginAssets(args ...any) <-chan any {
+	return this.Fetch2Async("user/marginAssets", []string{"swap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV1PrivatePostTradeAssetMode(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTradeAssetMode", args...)
+// SwapV1PrivatePostTradeAmend returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivatePostTradeAmend(args ...any) <-chan any {
+	return this.Fetch2Async("trade/amend", []string{"swap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV1PrivatePostTradeReverse(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTradeReverse", args...)
+// SwapV1PrivatePostTradeCancelReplace returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivatePostTradeCancelReplace(args ...any) <-chan any {
+	return this.Fetch2Async("trade/cancelReplace", []string{"swap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV1PrivatePostTradeAutoAddMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTradeAutoAddMargin", args...)
+// SwapV1PrivatePostPositionSideDual returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivatePostPositionSideDual(args ...any) <-chan any {
+	return this.Fetch2Async("positionSide/dual", []string{"swap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV2PublicGetServerTime(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetServerTime", args...)
+// SwapV1PrivatePostTradeBatchCancelReplace returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivatePostTradeBatchCancelReplace(args ...any) <-chan any {
+	return this.Fetch2Async("trade/batchCancelReplace", []string{"swap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV2PublicGetQuoteContracts(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuoteContracts", args...)
+// SwapV1PrivatePostTradeClosePosition returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivatePostTradeClosePosition(args ...any) <-chan any {
+	return this.Fetch2Async("trade/closePosition", []string{"swap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV2PublicGetQuotePrice(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuotePrice", args...)
+// SwapV1PrivatePostTradeGetVst returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivatePostTradeGetVst(args ...any) <-chan any {
+	return this.Fetch2Async("trade/getVst", []string{"swap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV2PublicGetQuoteDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuoteDepth", args...)
+// SwapV1PrivatePostTwapOrder returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivatePostTwapOrder(args ...any) <-chan any {
+	return this.Fetch2Async("twap/order", []string{"swap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV2PublicGetQuoteTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuoteTrades", args...)
+// SwapV1PrivatePostTwapCancelOrder returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivatePostTwapCancelOrder(args ...any) <-chan any {
+	return this.Fetch2Async("twap/cancelOrder", []string{"swap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV2PublicGetQuotePremiumIndex(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuotePremiumIndex", args...)
+// SwapV1PrivatePostTradeAssetMode returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivatePostTradeAssetMode(args ...any) <-chan any {
+	return this.Fetch2Async("trade/assetMode", []string{"swap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV2PublicGetQuoteFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuoteFundingRate", args...)
+// SwapV1PrivatePostTradeReverse returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivatePostTradeReverse(args ...any) <-chan any {
+	return this.Fetch2Async("trade/reverse", []string{"swap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV2PublicGetQuoteKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuoteKlines", args...)
+// SwapV1PrivatePostTradeAutoAddMargin returns a channel that yields a JSON object.
+func (this *Bingx) SwapV1PrivatePostTradeAutoAddMargin(args ...any) <-chan any {
+	return this.Fetch2Async("trade/autoAddMargin", []string{"swap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV2PublicGetQuoteOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuoteOpenInterest", args...)
+// SwapV2PublicGetServerTime returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PublicGetServerTime(args ...any) <-chan any {
+	return this.Fetch2Async("server/time", []string{"swap", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV2PublicGetQuoteTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuoteTicker", args...)
+// SwapV2PublicGetQuoteContracts returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PublicGetQuoteContracts(args ...any) <-chan any {
+	return this.Fetch2Async("quote/contracts", []string{"swap", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV2PublicGetQuoteBookTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuoteBookTicker", args...)
+// SwapV2PublicGetQuotePrice returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PublicGetQuotePrice(args ...any) <-chan any {
+	return this.Fetch2Async("quote/price", []string{"swap", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV2PrivateGetUserBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetUserBalance", args...)
+// SwapV2PublicGetQuoteDepth returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PublicGetQuoteDepth(args ...any) <-chan any {
+	return this.Fetch2Async("quote/depth", []string{"swap", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV2PrivateGetUserPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetUserPositions", args...)
+// SwapV2PublicGetQuoteTrades returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PublicGetQuoteTrades(args ...any) <-chan any {
+	return this.Fetch2Async("quote/trades", []string{"swap", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV2PrivateGetUserIncome(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetUserIncome", args...)
+// SwapV2PublicGetQuotePremiumIndex returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PublicGetQuotePremiumIndex(args ...any) <-chan any {
+	return this.Fetch2Async("quote/premiumIndex", []string{"swap", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeOpenOrders", args...)
+// SwapV2PublicGetQuoteFundingRate returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PublicGetQuoteFundingRate(args ...any) <-chan any {
+	return this.Fetch2Async("quote/fundingRate", []string{"swap", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeOpenOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeOpenOrder", args...)
+// SwapV2PublicGetQuoteKlines returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PublicGetQuoteKlines(args ...any) <-chan any {
+	return this.Fetch2Async("quote/klines", []string{"swap", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeOrder", args...)
+// SwapV2PublicGetQuoteOpenInterest returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PublicGetQuoteOpenInterest(args ...any) <-chan any {
+	return this.Fetch2Async("quote/openInterest", []string{"swap", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeMarginType(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeMarginType", args...)
+// SwapV2PublicGetQuoteTicker returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PublicGetQuoteTicker(args ...any) <-chan any {
+	return this.Fetch2Async("quote/ticker", []string{"swap", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeLeverage", args...)
+// SwapV2PublicGetQuoteBookTicker returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PublicGetQuoteBookTicker(args ...any) <-chan any {
+	return this.Fetch2Async("quote/bookTicker", []string{"swap", "v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeForceOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeForceOrders", args...)
+// SwapV2PrivateGetUserBalance returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateGetUserBalance(args ...any) <-chan any {
+	return this.Fetch2Async("user/balance", []string{"swap", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeAllOrders", args...)
+// SwapV2PrivateGetUserPositions returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateGetUserPositions(args ...any) <-chan any {
+	return this.Fetch2Async("user/positions", []string{"swap", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeAllFillOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeAllFillOrders", args...)
+// SwapV2PrivateGetUserIncome returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateGetUserIncome(args ...any) <-chan any {
+	return this.Fetch2Async("user/income", []string{"swap", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeFillHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeFillHistory", args...)
+// SwapV2PrivateGetTradeOpenOrders returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateGetTradeOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/openOrders", []string{"swap", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV2PrivateGetUserIncomeExport(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetUserIncomeExport", args...)
+// SwapV2PrivateGetTradeOpenOrder returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateGetTradeOpenOrder(args ...any) <-chan any {
+	return this.Fetch2Async("trade/openOrder", []string{"swap", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV2PrivateGetUserCommissionRate(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetUserCommissionRate", args...)
+// SwapV2PrivateGetTradeOrder returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateGetTradeOrder(args ...any) <-chan any {
+	return this.Fetch2Async("trade/order", []string{"swap", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV2PrivateGetQuoteBookTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetQuoteBookTicker", args...)
+// SwapV2PrivateGetTradeMarginType returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateGetTradeMarginType(args ...any) <-chan any {
+	return this.Fetch2Async("trade/marginType", []string{"swap", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradeGetVst(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradeGetVst", args...)
+// SwapV2PrivateGetTradeLeverage returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateGetTradeLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("trade/leverage", []string{"swap", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradeOrder", args...)
+// SwapV2PrivateGetTradeForceOrders returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateGetTradeForceOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/forceOrders", []string{"swap", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradeBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradeBatchOrders", args...)
+// SwapV2PrivateGetTradeAllOrders returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateGetTradeAllOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/allOrders", []string{"swap", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradeCloseAllPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradeCloseAllPositions", args...)
+// SwapV2PrivateGetTradeAllFillOrders returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateGetTradeAllFillOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/allFillOrders", []string{"swap", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradeCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradeCancelAllAfter", args...)
+// SwapV2PrivateGetTradeFillHistory returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateGetTradeFillHistory(args ...any) <-chan any {
+	return this.Fetch2Async("trade/fillHistory", []string{"swap", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradeMarginType(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradeMarginType", args...)
+// SwapV2PrivateGetTradePositionHistory returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateGetTradePositionHistory(args ...any) <-chan any {
+	return this.Fetch2Async("trade/positionHistory", []string{"swap", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradeLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradeLeverage", args...)
+// SwapV2PrivateGetUserIncomeExport returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateGetUserIncomeExport(args ...any) <-chan any {
+	return this.Fetch2Async("user/income/export", []string{"swap", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradePositionMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradePositionMargin", args...)
+// SwapV2PrivateGetUserCommissionRate returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateGetUserCommissionRate(args ...any) <-chan any {
+	return this.Fetch2Async("user/commissionRate", []string{"swap", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradeOrderTest(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradeOrderTest", args...)
+// SwapV2PrivateGetQuoteBookTicker returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateGetQuoteBookTicker(args ...any) <-chan any {
+	return this.Fetch2Async("quote/bookTicker", []string{"swap", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SwapV2PrivateDeleteTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateDeleteTradeOrder", args...)
+// SwapV2PrivatePostTradeGetVst returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivatePostTradeGetVst(args ...any) <-chan any {
+	return this.Fetch2Async("trade/getVst", []string{"swap", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SwapV2PrivateDeleteTradeBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateDeleteTradeBatchOrders", args...)
+// SwapV2PrivatePostTradeOrder returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivatePostTradeOrder(args ...any) <-chan any {
+	return this.Fetch2Async("trade/order", []string{"swap", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV2PrivateDeleteTradeAllOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateDeleteTradeAllOpenOrders", args...)
+// SwapV2PrivatePostTradeBatchOrders returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivatePostTradeBatchOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/batchOrders", []string{"swap", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV3PublicGetQuoteKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV3PublicGetQuoteKlines", args...)
+// SwapV2PrivatePostTradeCloseAllPositions returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivatePostTradeCloseAllPositions(args ...any) <-chan any {
+	return this.Fetch2Async("trade/closeAllPositions", []string{"swap", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SwapV3PrivateGetUserBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV3PrivateGetUserBalance", args...)
+// SwapV2PrivatePostTradeCancelAllAfter returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivatePostTradeCancelAllAfter(args ...any) <-chan any {
+	return this.Fetch2Async("trade/cancelAllAfter", []string{"swap", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) CswapV1PublicGetMarketContracts(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PublicGetMarketContracts", args...)
+// SwapV2PrivatePostTradeMarginType returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivatePostTradeMarginType(args ...any) <-chan any {
+	return this.Fetch2Async("trade/marginType", []string{"swap", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) CswapV1PublicGetMarketPremiumIndex(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PublicGetMarketPremiumIndex", args...)
+// SwapV2PrivatePostTradeLeverage returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivatePostTradeLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("trade/leverage", []string{"swap", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) CswapV1PublicGetMarketOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PublicGetMarketOpenInterest", args...)
+// SwapV2PrivatePostTradePositionMargin returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivatePostTradePositionMargin(args ...any) <-chan any {
+	return this.Fetch2Async("trade/positionMargin", []string{"swap", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) CswapV1PublicGetMarketKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PublicGetMarketKlines", args...)
+// SwapV2PrivatePostTradeOrderTest returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivatePostTradeOrderTest(args ...any) <-chan any {
+	return this.Fetch2Async("trade/order/test", []string{"swap", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CswapV1PublicGetMarketDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PublicGetMarketDepth", args...)
+// SwapV2PrivateDeleteTradeOrder returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateDeleteTradeOrder(args ...any) <-chan any {
+	return this.Fetch2Async("trade/order", []string{"swap", "v2", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CswapV1PublicGetMarketTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PublicGetMarketTicker", args...)
+// SwapV2PrivateDeleteTradeBatchOrders returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateDeleteTradeBatchOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/batchOrders", []string{"swap", "v2", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CswapV1PrivateGetTradeLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetTradeLeverage", args...)
+// SwapV2PrivateDeleteTradeAllOpenOrders returns a channel that yields a JSON object.
+func (this *Bingx) SwapV2PrivateDeleteTradeAllOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/allOpenOrders", []string{"swap", "v2", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CswapV1PrivateGetTradeForceOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetTradeForceOrders", args...)
+// SwapV3PublicGetQuoteKlines returns a channel that yields a JSON object.
+func (this *Bingx) SwapV3PublicGetQuoteKlines(args ...any) <-chan any {
+	return this.Fetch2Async("quote/klines", []string{"swap", "v3", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) CswapV1PrivateGetTradeAllFillOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetTradeAllFillOrders", args...)
+// SwapV3PrivateGetUserBalance returns a channel that yields a JSON object.
+func (this *Bingx) SwapV3PrivateGetUserBalance(args ...any) <-chan any {
+	return this.Fetch2Async("user/balance", []string{"swap", "v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CswapV1PrivateGetTradeOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetTradeOpenOrders", args...)
+// CswapV1PublicGetMarketContracts returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PublicGetMarketContracts(args ...any) <-chan any {
+	return this.Fetch2Async("market/contracts", []string{"cswap", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) CswapV1PrivateGetTradeOrderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetTradeOrderDetail", args...)
+// CswapV1PublicGetMarketPremiumIndex returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PublicGetMarketPremiumIndex(args ...any) <-chan any {
+	return this.Fetch2Async("market/premiumIndex", []string{"cswap", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) CswapV1PrivateGetTradeOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetTradeOrderHistory", args...)
+// CswapV1PublicGetMarketOpenInterest returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PublicGetMarketOpenInterest(args ...any) <-chan any {
+	return this.Fetch2Async("market/openInterest", []string{"cswap", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) CswapV1PrivateGetTradeMarginType(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetTradeMarginType", args...)
+// CswapV1PublicGetMarketKlines returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PublicGetMarketKlines(args ...any) <-chan any {
+	return this.Fetch2Async("market/klines", []string{"cswap", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) CswapV1PrivateGetUserCommissionRate(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetUserCommissionRate", args...)
+// CswapV1PublicGetMarketDepth returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PublicGetMarketDepth(args ...any) <-chan any {
+	return this.Fetch2Async("market/depth", []string{"cswap", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) CswapV1PrivateGetUserPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetUserPositions", args...)
+// CswapV1PublicGetMarketTicker returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PublicGetMarketTicker(args ...any) <-chan any {
+	return this.Fetch2Async("market/ticker", []string{"cswap", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) CswapV1PrivateGetUserBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetUserBalance", args...)
+// CswapV1PrivateGetTradeLeverage returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivateGetTradeLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("trade/leverage", []string{"cswap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CswapV1PrivatePostTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivatePostTradeOrder", args...)
+// CswapV1PrivateGetTradeForceOrders returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivateGetTradeForceOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/forceOrders", []string{"cswap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CswapV1PrivatePostTradeLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivatePostTradeLeverage", args...)
+// CswapV1PrivateGetTradeAllFillOrders returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivateGetTradeAllFillOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/allFillOrders", []string{"cswap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CswapV1PrivatePostTradeAllOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivatePostTradeAllOpenOrders", args...)
+// CswapV1PrivateGetTradeOpenOrders returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivateGetTradeOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/openOrders", []string{"cswap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CswapV1PrivatePostTradeCloseAllPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivatePostTradeCloseAllPositions", args...)
+// CswapV1PrivateGetTradeOrderDetail returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivateGetTradeOrderDetail(args ...any) <-chan any {
+	return this.Fetch2Async("trade/orderDetail", []string{"cswap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CswapV1PrivatePostTradeMarginType(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivatePostTradeMarginType", args...)
+// CswapV1PrivateGetTradeOrderHistory returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivateGetTradeOrderHistory(args ...any) <-chan any {
+	return this.Fetch2Async("trade/orderHistory", []string{"cswap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CswapV1PrivatePostTradePositionMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivatePostTradePositionMargin", args...)
+// CswapV1PrivateGetTradeMarginType returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivateGetTradeMarginType(args ...any) <-chan any {
+	return this.Fetch2Async("trade/marginType", []string{"cswap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CswapV1PrivateDeleteTradeAllOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateDeleteTradeAllOpenOrders", args...)
+// CswapV1PrivateGetUserCommissionRate returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivateGetUserCommissionRate(args ...any) <-chan any {
+	return this.Fetch2Async("user/commissionRate", []string{"cswap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CswapV1PrivateDeleteTradeCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateDeleteTradeCancelOrder", args...)
+// CswapV1PrivateGetUserPositions returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivateGetUserPositions(args ...any) <-chan any {
+	return this.Fetch2Async("user/positions", []string{"cswap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) ContractV1PrivateGetAllPosition(args ...any) <-chan any {
-	return this.callEndpointAsync("contractV1PrivateGetAllPosition", args...)
+// CswapV1PrivateGetUserBalance returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivateGetUserBalance(args ...any) <-chan any {
+	return this.Fetch2Async("user/balance", []string{"cswap", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) ContractV1PrivateGetAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractV1PrivateGetAllOrders", args...)
+// CswapV1PrivatePostTradeOrder returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivatePostTradeOrder(args ...any) <-chan any {
+	return this.Fetch2Async("trade/order", []string{"cswap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) ContractV1PrivateGetBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("contractV1PrivateGetBalance", args...)
+// CswapV1PrivatePostTradeLeverage returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivatePostTradeLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("trade/leverage", []string{"cswap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) WalletsV1PrivateGetCapitalConfigGetall(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivateGetCapitalConfigGetall", args...)
+// CswapV1PrivatePostTradeAllOpenOrders returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivatePostTradeAllOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/allOpenOrders", []string{"cswap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) WalletsV1PrivateGetCapitalDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivateGetCapitalDepositAddress", args...)
+// CswapV1PrivatePostTradeCloseAllPositions returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivatePostTradeCloseAllPositions(args ...any) <-chan any {
+	return this.Fetch2Async("trade/closeAllPositions", []string{"cswap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) WalletsV1PrivateGetCapitalInnerTransferRecords(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivateGetCapitalInnerTransferRecords", args...)
+// CswapV1PrivatePostTradeMarginType returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivatePostTradeMarginType(args ...any) <-chan any {
+	return this.Fetch2Async("trade/marginType", []string{"cswap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) WalletsV1PrivateGetCapitalSubAccountDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivateGetCapitalSubAccountDepositAddress", args...)
+// CswapV1PrivatePostTradePositionMargin returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivatePostTradePositionMargin(args ...any) <-chan any {
+	return this.Fetch2Async("trade/positionMargin", []string{"cswap", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) WalletsV1PrivateGetCapitalDepositSubHisrec(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivateGetCapitalDepositSubHisrec", args...)
+// CswapV1PrivateDeleteTradeAllOpenOrders returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivateDeleteTradeAllOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("trade/allOpenOrders", []string{"cswap", "v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) WalletsV1PrivateGetCapitalSubAccountInnerTransferRecords(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivateGetCapitalSubAccountInnerTransferRecords", args...)
+// CswapV1PrivateDeleteTradeCancelOrder returns a channel that yields a JSON object.
+func (this *Bingx) CswapV1PrivateDeleteTradeCancelOrder(args ...any) <-chan any {
+	return this.Fetch2Async("trade/cancelOrder", []string{"cswap", "v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) WalletsV1PrivateGetCapitalDepositRiskRecords(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivateGetCapitalDepositRiskRecords", args...)
+// CswapV2PrivatePostTradeOrder returns a channel that yields a JSON object.
+func (this *Bingx) CswapV2PrivatePostTradeOrder(args ...any) <-chan any {
+	return this.Fetch2Async("trade/order", []string{"cswap", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) WalletsV1PrivatePostCapitalWithdrawApply(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivatePostCapitalWithdrawApply", args...)
+// ContractV1PrivateGetAllPosition returns a channel that yields a JSON object.
+func (this *Bingx) ContractV1PrivateGetAllPosition(args ...any) <-chan any {
+	return this.Fetch2Async("allPosition", []string{"contract", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) WalletsV1PrivatePostCapitalInnerTransferApply(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivatePostCapitalInnerTransferApply", args...)
+// ContractV1PrivateGetAllOrders returns a channel that yields a JSON object.
+func (this *Bingx) ContractV1PrivateGetAllOrders(args ...any) <-chan any {
+	return this.Fetch2Async("allOrders", []string{"contract", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) WalletsV1PrivatePostCapitalSubAccountInnerTransferApply(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivatePostCapitalSubAccountInnerTransferApply", args...)
+// ContractV1PrivateGetBalance returns a channel that yields a JSON object.
+func (this *Bingx) ContractV1PrivateGetBalance(args ...any) <-chan any {
+	return this.Fetch2Async("balance", []string{"contract", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) WalletsV1PrivatePostCapitalDepositCreateSubAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivatePostCapitalDepositCreateSubAddress", args...)
+// WalletsV1PrivateGetCapitalConfigGetall returns a channel that yields a JSON object.
+func (this *Bingx) WalletsV1PrivateGetCapitalConfigGetall(args ...any) <-chan any {
+	return this.Fetch2Async("capital/config/getall", []string{"wallets", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SubAccountV1PrivateGetList(args ...any) <-chan any {
-	return this.callEndpointAsync("subAccountV1PrivateGetList", args...)
+// WalletsV1PrivateGetCapitalDepositAddress returns a channel that yields a JSON object.
+func (this *Bingx) WalletsV1PrivateGetCapitalDepositAddress(args ...any) <-chan any {
+	return this.Fetch2Async("capital/deposit/address", []string{"wallets", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SubAccountV1PrivateGetAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("subAccountV1PrivateGetAssets", args...)
+// WalletsV1PrivateGetCapitalInnerTransferRecords returns a channel that yields a JSON object.
+func (this *Bingx) WalletsV1PrivateGetCapitalInnerTransferRecords(args ...any) <-chan any {
+	return this.Fetch2Async("capital/innerTransfer/records", []string{"wallets", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SubAccountV1PrivateGetAllAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("subAccountV1PrivateGetAllAccountBalance", args...)
+// WalletsV1PrivateGetCapitalSubAccountDepositAddress returns a channel that yields a JSON object.
+func (this *Bingx) WalletsV1PrivateGetCapitalSubAccountDepositAddress(args ...any) <-chan any {
+	return this.Fetch2Async("capital/subAccount/deposit/address", []string{"wallets", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SubAccountV1PrivatePostCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("subAccountV1PrivatePostCreate", args...)
+// WalletsV1PrivateGetCapitalDepositSubHisrec returns a channel that yields a JSON object.
+func (this *Bingx) WalletsV1PrivateGetCapitalDepositSubHisrec(args ...any) <-chan any {
+	return this.Fetch2Async("capital/deposit/subHisrec", []string{"wallets", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) SubAccountV1PrivatePostApiKeyCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("subAccountV1PrivatePostApiKeyCreate", args...)
+// WalletsV1PrivateGetCapitalSubAccountInnerTransferRecords returns a channel that yields a JSON object.
+func (this *Bingx) WalletsV1PrivateGetCapitalSubAccountInnerTransferRecords(args ...any) <-chan any {
+	return this.Fetch2Async("capital/subAccount/innerTransfer/records", []string{"wallets", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) SubAccountV1PrivatePostApiKeyEdit(args ...any) <-chan any {
-	return this.callEndpointAsync("subAccountV1PrivatePostApiKeyEdit", args...)
+// WalletsV1PrivateGetCapitalDepositRiskRecords returns a channel that yields a JSON object.
+func (this *Bingx) WalletsV1PrivateGetCapitalDepositRiskRecords(args ...any) <-chan any {
+	return this.Fetch2Async("capital/deposit/riskRecords", []string{"wallets", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SubAccountV1PrivatePostApiKeyDel(args ...any) <-chan any {
-	return this.callEndpointAsync("subAccountV1PrivatePostApiKeyDel", args...)
+// WalletsV1PrivatePostCapitalWithdrawApply returns a channel that yields a JSON object.
+func (this *Bingx) WalletsV1PrivatePostCapitalWithdrawApply(args ...any) <-chan any {
+	return this.Fetch2Async("capital/withdraw/apply", []string{"wallets", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) SubAccountV1PrivatePostUpdateStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("subAccountV1PrivatePostUpdateStatus", args...)
+// WalletsV1PrivatePostCapitalInnerTransferApply returns a channel that yields a JSON object.
+func (this *Bingx) WalletsV1PrivatePostCapitalInnerTransferApply(args ...any) <-chan any {
+	return this.Fetch2Async("capital/innerTransfer/apply", []string{"wallets", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) AccountV1PrivateGetUid(args ...any) <-chan any {
-	return this.callEndpointAsync("accountV1PrivateGetUid", args...)
+// WalletsV1PrivatePostCapitalSubAccountInnerTransferApply returns a channel that yields a JSON object.
+func (this *Bingx) WalletsV1PrivatePostCapitalSubAccountInnerTransferApply(args ...any) <-chan any {
+	return this.Fetch2Async("capital/subAccountInnerTransfer/apply", []string{"wallets", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) AccountV1PrivateGetApiKeyQuery(args ...any) <-chan any {
-	return this.callEndpointAsync("accountV1PrivateGetApiKeyQuery", args...)
+// WalletsV1PrivatePostCapitalDepositCreateSubAddress returns a channel that yields a JSON object.
+func (this *Bingx) WalletsV1PrivatePostCapitalDepositCreateSubAddress(args ...any) <-chan any {
+	return this.Fetch2Async("capital/deposit/createSubAddress", []string{"wallets", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) AccountV1PrivateGetAccountApiPermissions(args ...any) <-chan any {
-	return this.callEndpointAsync("accountV1PrivateGetAccountApiPermissions", args...)
+// SubAccountV1PrivateGetList returns a channel that yields a JSON object.
+func (this *Bingx) SubAccountV1PrivateGetList(args ...any) <-chan any {
+	return this.Fetch2Async("list", []string{"subAccount", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *BingxCore) AccountV1PrivateGetAllAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("accountV1PrivateGetAllAccountBalance", args...)
+// SubAccountV1PrivateGetAssets returns a channel that yields a JSON object.
+func (this *Bingx) SubAccountV1PrivateGetAssets(args ...any) <-chan any {
+	return this.Fetch2Async("assets", []string{"subAccount", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) AccountV1PrivatePostInnerTransferAuthorizeSubAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("accountV1PrivatePostInnerTransferAuthorizeSubAccount", args...)
+// SubAccountV1PrivateGetAllAccountBalance returns a channel that yields a JSON object.
+func (this *Bingx) SubAccountV1PrivateGetAllAccountBalance(args ...any) <-chan any {
+	return this.Fetch2Async("allAccountBalance", []string{"subAccount", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) AccountTransferV1PrivateGetSubAccountAssetTransferHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("accountTransferV1PrivateGetSubAccountAssetTransferHistory", args...)
+// SubAccountV1PrivatePostCreate returns a channel that yields a JSON object.
+func (this *Bingx) SubAccountV1PrivatePostCreate(args ...any) <-chan any {
+	return this.Fetch2Async("create", []string{"subAccount", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *BingxCore) AccountTransferV1PrivatePostSubAccountTransferAssetSupportCoins(args ...any) <-chan any {
-	return this.callEndpointAsync("accountTransferV1PrivatePostSubAccountTransferAssetSupportCoins", args...)
+// SubAccountV1PrivatePostApiKeyCreate returns a channel that yields a JSON object.
+func (this *Bingx) SubAccountV1PrivatePostApiKeyCreate(args ...any) <-chan any {
+	return this.Fetch2Async("apiKey/create", []string{"subAccount", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) AccountTransferV1PrivatePostSubAccountTransferAsset(args ...any) <-chan any {
-	return this.callEndpointAsync("accountTransferV1PrivatePostSubAccountTransferAsset", args...)
+// SubAccountV1PrivatePostApiKeyEdit returns a channel that yields a JSON object.
+func (this *Bingx) SubAccountV1PrivatePostApiKeyEdit(args ...any) <-chan any {
+	return this.Fetch2Async("apiKey/edit", []string{"subAccount", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) UserAuthPrivatePostUserDataStream(args ...any) <-chan any {
-	return this.callEndpointAsync("userAuthPrivatePostUserDataStream", args...)
+// SubAccountV1PrivatePostApiKeyDel returns a channel that yields a JSON object.
+func (this *Bingx) SubAccountV1PrivatePostApiKeyDel(args ...any) <-chan any {
+	return this.Fetch2Async("apiKey/del", []string{"subAccount", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) UserAuthPrivatePutUserDataStream(args ...any) <-chan any {
-	return this.callEndpointAsync("userAuthPrivatePutUserDataStream", args...)
+// SubAccountV1PrivatePostUpdateStatus returns a channel that yields a JSON object.
+func (this *Bingx) SubAccountV1PrivatePostUpdateStatus(args ...any) <-chan any {
+	return this.Fetch2Async("updateStatus", []string{"subAccount", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *BingxCore) UserAuthPrivateDeleteUserDataStream(args ...any) <-chan any {
-	return this.callEndpointAsync("userAuthPrivateDeleteUserDataStream", args...)
+// AccountV1PrivateGetUid returns a channel that yields a JSON object.
+func (this *Bingx) AccountV1PrivateGetUid(args ...any) <-chan any {
+	return this.Fetch2Async("uid", []string{"account", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetSwapTraceCurrentTrack(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetSwapTraceCurrentTrack", args...)
+// AccountV1PrivateGetApiKeyQuery returns a channel that yields a JSON object.
+func (this *Bingx) AccountV1PrivateGetApiKeyQuery(args ...any) <-chan any {
+	return this.Fetch2Async("apiKey/query", []string{"account", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetPFuturesTraderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesTraderDetail", args...)
+// AccountV1PrivateGetAccountApiPermissions returns a channel that yields a JSON object.
+func (this *Bingx) AccountV1PrivateGetAccountApiPermissions(args ...any) <-chan any {
+	return this.Fetch2Async("account/apiPermissions", []string{"account", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetPFuturesProfitHistorySummarys(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesProfitHistorySummarys", args...)
+// AccountV1PrivateGetAccountApiRestrictions returns a channel that yields a JSON object.
+func (this *Bingx) AccountV1PrivateGetAccountApiRestrictions(args ...any) <-chan any {
+	return this.Fetch2Async("account/apiRestrictions", []string{"account", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetPFuturesProfitDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesProfitDetail", args...)
+// AccountV1PrivateGetAllAccountBalance returns a channel that yields a JSON object.
+func (this *Bingx) AccountV1PrivateGetAllAccountBalance(args ...any) <-chan any {
+	return this.Fetch2Async("allAccountBalance", []string{"account", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetPFuturesTradingPairs(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesTradingPairs", args...)
+// AccountV1PrivatePostInnerTransferAuthorizeSubAccount returns a channel that yields a JSON object.
+func (this *Bingx) AccountV1PrivatePostInnerTransferAuthorizeSubAccount(args ...any) <-chan any {
+	return this.Fetch2Async("innerTransfer/authorizeSubAccount", []string{"account", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetSpotTraderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetSpotTraderDetail", args...)
+// AccountTransferV1PrivateGetSubAccountAssetTransferHistory returns a channel that yields a JSON object.
+func (this *Bingx) AccountTransferV1PrivateGetSubAccountAssetTransferHistory(args ...any) <-chan any {
+	return this.Fetch2Async("subAccount/asset/transferHistory", []string{"account", "transfer", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetSpotProfitHistorySummarys(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetSpotProfitHistorySummarys", args...)
+// AccountTransferV1PrivatePostSubAccountTransferAssetSupportCoins returns a channel that yields a JSON object.
+func (this *Bingx) AccountTransferV1PrivatePostSubAccountTransferAssetSupportCoins(args ...any) <-chan any {
+	return this.Fetch2Async("subAccount/transferAsset/supportCoins", []string{"account", "transfer", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetSpotProfitDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetSpotProfitDetail", args...)
+// AccountTransferV1PrivatePostSubAccountTransferAsset returns a channel that yields a JSON object.
+func (this *Bingx) AccountTransferV1PrivatePostSubAccountTransferAsset(args ...any) <-chan any {
+	return this.Fetch2Async("subAccount/transferAsset", []string{"account", "transfer", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetSpotHistoryOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetSpotHistoryOrder", args...)
+// UserAuthPrivatePostUserDataStream returns a channel that yields a JSON object.
+func (this *Bingx) UserAuthPrivatePostUserDataStream(args ...any) <-chan any {
+	return this.Fetch2Async("userDataStream", []string{"user", "auth", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CopyTradingV1PrivatePostSwapTraceCloseTrackOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivatePostSwapTraceCloseTrackOrder", args...)
+// UserAuthPrivatePutUserDataStream returns a channel that yields a JSON object.
+func (this *Bingx) UserAuthPrivatePutUserDataStream(args ...any) <-chan any {
+	return this.Fetch2Async("userDataStream", []string{"user", "auth", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CopyTradingV1PrivatePostSwapTraceSetTPSL(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivatePostSwapTraceSetTPSL", args...)
+// UserAuthPrivateDeleteUserDataStream returns a channel that yields a JSON object.
+func (this *Bingx) UserAuthPrivateDeleteUserDataStream(args ...any) <-chan any {
+	return this.Fetch2Async("userDataStream", []string{"user", "auth", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CopyTradingV1PrivatePostPFuturesSetCommission(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivatePostPFuturesSetCommission", args...)
+// CopyTradingV1PrivateGetSwapTraceCurrentTrack returns a channel that yields a JSON object.
+func (this *Bingx) CopyTradingV1PrivateGetSwapTraceCurrentTrack(args ...any) <-chan any {
+	return this.Fetch2Async("swap/trace/currentTrack", []string{"copyTrading", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) CopyTradingV1PrivatePostSpotTraderSellOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivatePostSpotTraderSellOrder", args...)
+// CopyTradingV1PrivateGetPFuturesTraderDetail returns a channel that yields a JSON object.
+func (this *Bingx) CopyTradingV1PrivateGetPFuturesTraderDetail(args ...any) <-chan any {
+	return this.Fetch2Async("PFutures/traderDetail", []string{"copyTrading", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) ApiV3PrivateGetAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("apiV3PrivateGetAssetTransfer", args...)
+// CopyTradingV1PrivateGetPFuturesProfitHistorySummarys returns a channel that yields a JSON object.
+func (this *Bingx) CopyTradingV1PrivateGetPFuturesProfitHistorySummarys(args ...any) <-chan any {
+	return this.Fetch2Async("PFutures/profitHistorySummarys", []string{"copyTrading", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) ApiV3PrivateGetAssetTransferRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("apiV3PrivateGetAssetTransferRecord", args...)
+// CopyTradingV1PrivateGetPFuturesProfitDetail returns a channel that yields a JSON object.
+func (this *Bingx) CopyTradingV1PrivateGetPFuturesProfitDetail(args ...any) <-chan any {
+	return this.Fetch2Async("PFutures/profitDetail", []string{"copyTrading", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) ApiV3PrivateGetCapitalDepositHisrec(args ...any) <-chan any {
-	return this.callEndpointAsync("apiV3PrivateGetCapitalDepositHisrec", args...)
+// CopyTradingV1PrivateGetPFuturesTradingPairs returns a channel that yields a JSON object.
+func (this *Bingx) CopyTradingV1PrivateGetPFuturesTradingPairs(args ...any) <-chan any {
+	return this.Fetch2Async("PFutures/tradingPairs", []string{"copyTrading", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) ApiV3PrivateGetCapitalWithdrawHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("apiV3PrivateGetCapitalWithdrawHistory", args...)
+// CopyTradingV1PrivateGetSpotTraderDetail returns a channel that yields a JSON object.
+func (this *Bingx) CopyTradingV1PrivateGetSpotTraderDetail(args ...any) <-chan any {
+	return this.Fetch2Async("spot/traderDetail", []string{"copyTrading", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) ApiV3PrivatePostPostAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("apiV3PrivatePostPostAssetTransfer", args...)
+// CopyTradingV1PrivateGetSpotProfitHistorySummarys returns a channel that yields a JSON object.
+func (this *Bingx) CopyTradingV1PrivateGetSpotProfitHistorySummarys(args ...any) <-chan any {
+	return this.Fetch2Async("spot/profitHistorySummarys", []string{"copyTrading", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) ApiAssetV1PrivatePostTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("apiAssetV1PrivatePostTransfer", args...)
+// CopyTradingV1PrivateGetSpotProfitDetail returns a channel that yields a JSON object.
+func (this *Bingx) CopyTradingV1PrivateGetSpotProfitDetail(args ...any) <-chan any {
+	return this.Fetch2Async("spot/profitDetail", []string{"copyTrading", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) ApiAssetV1PublicGetTransferSupportCoins(args ...any) <-chan any {
-	return this.callEndpointAsync("apiAssetV1PublicGetTransferSupportCoins", args...)
+// CopyTradingV1PrivateGetSpotHistoryOrder returns a channel that yields a JSON object.
+func (this *Bingx) CopyTradingV1PrivateGetSpotHistoryOrder(args ...any) <-chan any {
+	return this.Fetch2Async("spot/historyOrder", []string{"copyTrading", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) AgentV1PrivateGetAccountInviteAccountList(args ...any) <-chan any {
-	return this.callEndpointAsync("agentV1PrivateGetAccountInviteAccountList", args...)
+// CopyTradingV1PrivatePostSwapTraceCloseTrackOrder returns a channel that yields a JSON object.
+func (this *Bingx) CopyTradingV1PrivatePostSwapTraceCloseTrackOrder(args ...any) <-chan any {
+	return this.Fetch2Async("swap/trace/closeTrackOrder", []string{"copyTrading", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) AgentV1PrivateGetRewardCommissionDataList(args ...any) <-chan any {
-	return this.callEndpointAsync("agentV1PrivateGetRewardCommissionDataList", args...)
+// CopyTradingV1PrivatePostSwapTraceSetTPSL returns a channel that yields a JSON object.
+func (this *Bingx) CopyTradingV1PrivatePostSwapTraceSetTPSL(args ...any) <-chan any {
+	return this.Fetch2Async("swap/trace/setTPSL", []string{"copyTrading", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) AgentV1PrivateGetAccountInviteRelationCheck(args ...any) <-chan any {
-	return this.callEndpointAsync("agentV1PrivateGetAccountInviteRelationCheck", args...)
+// CopyTradingV1PrivatePostPFuturesSetCommission returns a channel that yields a JSON object.
+func (this *Bingx) CopyTradingV1PrivatePostPFuturesSetCommission(args ...any) <-chan any {
+	return this.Fetch2Async("PFutures/setCommission", []string{"copyTrading", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *BingxCore) AgentV1PrivateGetAssetDepositDetailList(args ...any) <-chan any {
-	return this.callEndpointAsync("agentV1PrivateGetAssetDepositDetailList", args...)
+// CopyTradingV1PrivatePostSpotTraderSellOrder returns a channel that yields a JSON object.
+func (this *Bingx) CopyTradingV1PrivatePostSpotTraderSellOrder(args ...any) <-chan any {
+	return this.Fetch2Async("spot/trader/sellOrder", []string{"copyTrading", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *BingxCore) AgentV1PrivateGetRewardThirdCommissionDataList(args ...any) <-chan any {
-	return this.callEndpointAsync("agentV1PrivateGetRewardThirdCommissionDataList", args...)
+// ApiV3PrivateGetAssetTransfer returns a channel that yields a JSON object.
+func (this *Bingx) ApiV3PrivateGetAssetTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("asset/transfer", []string{"api", "v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) AgentV1PrivateGetAssetPartnerData(args ...any) <-chan any {
-	return this.callEndpointAsync("agentV1PrivateGetAssetPartnerData", args...)
+// ApiV3PrivateGetAssetTransferRecord returns a channel that yields a JSON object.
+func (this *Bingx) ApiV3PrivateGetAssetTransferRecord(args ...any) <-chan any {
+	return this.Fetch2Async("asset/transferRecord", []string{"api", "v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *BingxCore) AgentV1PrivateGetCommissionDataListReferralCode(args ...any) <-chan any {
-	return this.callEndpointAsync("agentV1PrivateGetCommissionDataListReferralCode", args...)
+// ApiV3PrivateGetCapitalDepositHisrec returns a channel that yields a JSON object.
+func (this *Bingx) ApiV3PrivateGetCapitalDepositHisrec(args ...any) <-chan any {
+	return this.Fetch2Async("capital/deposit/hisrec", []string{"api", "v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BingxCore) AgentV1PrivateGetAccountSuperiorCheck(args ...any) <-chan any {
-	return this.callEndpointAsync("agentV1PrivateGetAccountSuperiorCheck", args...)
+// ApiV3PrivateGetCapitalWithdrawHistory returns a channel that yields a JSON object.
+func (this *Bingx) ApiV3PrivateGetCapitalWithdrawHistory(args ...any) <-chan any {
+	return this.Fetch2Async("capital/withdraw/history", []string{"api", "v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// ApiV3PrivatePostPostAssetTransfer returns a channel that yields a JSON object.
+func (this *Bingx) ApiV3PrivatePostPostAssetTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("post/asset/transfer", []string{"api", "v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// ApiAssetV1PrivatePostTransfer returns a channel that yields a JSON object.
+func (this *Bingx) ApiAssetV1PrivatePostTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("transfer", []string{"api", "asset", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// ApiAssetV1PublicGetTransferSupportCoins returns a channel that yields a JSON object.
+func (this *Bingx) ApiAssetV1PublicGetTransferSupportCoins(args ...any) <-chan any {
+	return this.Fetch2Async("transfer/supportCoins", []string{"api", "asset", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// AgentV1PrivateGetAccountInviteAccountList returns a channel that yields a JSON object.
+func (this *Bingx) AgentV1PrivateGetAccountInviteAccountList(args ...any) <-chan any {
+	return this.Fetch2Async("account/inviteAccountList", []string{"agent", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// AgentV1PrivateGetRewardCommissionDataList returns a channel that yields a JSON object.
+func (this *Bingx) AgentV1PrivateGetRewardCommissionDataList(args ...any) <-chan any {
+	return this.Fetch2Async("reward/commissionDataList", []string{"agent", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// AgentV1PrivateGetAccountInviteRelationCheck returns a channel that yields a JSON object.
+func (this *Bingx) AgentV1PrivateGetAccountInviteRelationCheck(args ...any) <-chan any {
+	return this.Fetch2Async("account/inviteRelationCheck", []string{"agent", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// AgentV1PrivateGetAssetDepositDetailList returns a channel that yields a JSON object.
+func (this *Bingx) AgentV1PrivateGetAssetDepositDetailList(args ...any) <-chan any {
+	return this.Fetch2Async("asset/depositDetailList", []string{"agent", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// AgentV1PrivateGetRewardThirdCommissionDataList returns a channel that yields a JSON object.
+func (this *Bingx) AgentV1PrivateGetRewardThirdCommissionDataList(args ...any) <-chan any {
+	return this.Fetch2Async("reward/third/commissionDataList", []string{"agent", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// AgentV1PrivateGetAssetPartnerData returns a channel that yields a JSON object.
+func (this *Bingx) AgentV1PrivateGetAssetPartnerData(args ...any) <-chan any {
+	return this.Fetch2Async("asset/partnerData", []string{"agent", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// AgentV1PrivateGetCommissionDataListReferralCode returns a channel that yields a JSON object.
+func (this *Bingx) AgentV1PrivateGetCommissionDataListReferralCode(args ...any) <-chan any {
+	return this.Fetch2Async("commissionDataList/referralCode", []string{"agent", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// AgentV1PrivateGetAccountSuperiorCheck returns a channel that yields a JSON object.
+func (this *Bingx) AgentV1PrivateGetAccountSuperiorCheck(args ...any) <-chan any {
+	return this.Fetch2Async("account/superiorCheck", []string{"agent", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// WealthV1PrivateGetProductDualCurrencyPreOrder returns a channel that yields a JSON object.
+func (this *Bingx) WealthV1PrivateGetProductDualCurrencyPreOrder(args ...any) <-chan any {
+	return this.Fetch2Async("product/dual-currency/pre-order", []string{"wealth", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// WealthV1PrivateGetProductDualCurrencyPosition returns a channel that yields a JSON object.
+func (this *Bingx) WealthV1PrivateGetProductDualCurrencyPosition(args ...any) <-chan any {
+	return this.Fetch2Async("product/dual-currency/position", []string{"wealth", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// WealthV1PrivateGetProductDualCurrencyOrderRecords returns a channel that yields a JSON object.
+func (this *Bingx) WealthV1PrivateGetProductDualCurrencyOrderRecords(args ...any) <-chan any {
+	return this.Fetch2Async("product/dual-currency/order-records", []string{"wealth", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// WealthV1PrivatePostProductDualCurrencyInvestAssetList returns a channel that yields a JSON object.
+func (this *Bingx) WealthV1PrivatePostProductDualCurrencyInvestAssetList(args ...any) <-chan any {
+	return this.Fetch2Async("product/dual-currency/invest-asset-list", []string{"wealth", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// WealthV1PrivatePostProductDualCurrencyOrder returns a channel that yields a JSON object.
+func (this *Bingx) WealthV1PrivatePostProductDualCurrencyOrder(args ...any) <-chan any {
+	return this.Fetch2Async("product/dual-currency/order", []string{"wealth", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }

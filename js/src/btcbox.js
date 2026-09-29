@@ -75,6 +75,7 @@ export default class btcbox extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
@@ -128,27 +129,28 @@ export default class btcbox extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'depth',
-                        'orders',
-                        'ticker',
-                        'tickers',
-                    ],
+                    'get': {
+                        'depth': { 'cost': 1 },
+                        'orders': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
+                        'tickers': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'balance',
-                        'trade_add',
-                        'trade_cancel',
-                        'trade_list',
-                        'trade_view',
-                        'wallet',
-                    ],
+                    'post': {
+                        'balance': { 'cost': 1 },
+                        'order_history': { 'cost': 1 },
+                        'trade_add': { 'cost': 1 },
+                        'trade_cancel': { 'cost': 1 },
+                        'trade_list': { 'cost': 1 },
+                        'trade_view': { 'cost': 1 },
+                        'wallet': { 'cost': 1 },
+                    },
                 },
                 'webApi': {
-                    'get': [
-                        'ajax/coin/coinInfo',
-                    ],
+                    'get': {
+                        'ajax/coin/coinInfo': { 'cost': 1 },
+                    },
                 },
             },
             'options': {
@@ -255,7 +257,7 @@ export default class btcbox extends Exchange {
             const quote = this.safeString(symbolParts, 1, '');
             const quoteId = quote.toLowerCase();
             const id = baseCurr.toLowerCase();
-            const res = response1[marketId];
+            const res = this.safeDict(response1, marketId, {});
             const symbol = baseCurr + '/' + quote;
             const fee = (id === 'BTC') ? this.parseNumber('0.0005') : this.parseNumber('0.0010');
             const details = this.safeDict(result2Data, id, {});
@@ -320,6 +322,9 @@ export default class btcbox extends Exchange {
         const base = this.safeCurrencyCode(baseId);
         const quoteId = this.safeString(market, 'quote');
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         return this.safeMarketStructure({
             'id': this.safeString(market, 'symbol'),
@@ -504,7 +509,7 @@ export default class btcbox extends Exchange {
         //      }
         //
         const timestamp = this.safeTimestamp(trade, 'date');
-        market = this.safeMarket(undefined, market);
+        const marketResolved = this.safeMarket(undefined, market);
         const id = this.safeString(trade, 'tid');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'amount');
@@ -516,7 +521,7 @@ export default class btcbox extends Exchange {
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
@@ -524,7 +529,7 @@ export default class btcbox extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -609,10 +614,8 @@ export default class btcbox extends Exchange {
             await this.loadMarkets();
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol === undefined) {
-            symbol = 'BTC/JPY';
-        }
-        const market = this.market(symbol);
+        const symbolResolved = (symbol === undefined) ? 'BTC/JPY' : symbol;
+        const market = this.market(symbolResolved);
         const request = {
             'id': id,
             'coin': market['baseId'],
@@ -654,7 +657,7 @@ export default class btcbox extends Exchange {
         const datetimeString = this.safeString(order, 'datetime');
         let timestamp = undefined;
         if (datetimeString !== undefined) {
-            timestamp = this.parse8601(order['datetime'] + '+09:00'); // Tokyo time
+            timestamp = this.parse8601(datetimeString + '+09:00'); // Tokyo time
         }
         const amount = this.safeString(order, 'amount_original');
         const remaining = this.safeString(order, 'amount_outstanding');
@@ -668,7 +671,7 @@ export default class btcbox extends Exchange {
             }
         }
         const trades = undefined; // todo: this.parseTrades (order['trades']);
-        market = this.safeMarket(undefined, market);
+        const marketResolved = this.safeMarket(undefined, market);
         const side = this.safeString(order, 'type');
         return this.safeOrder({
             'id': id,
@@ -684,7 +687,7 @@ export default class btcbox extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'price': price,
             'triggerPrice': undefined,
             'cost': undefined,
@@ -692,7 +695,7 @@ export default class btcbox extends Exchange {
             'fee': undefined,
             'info': order,
             'average': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -709,10 +712,8 @@ export default class btcbox extends Exchange {
             await this.loadMarkets();
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol === undefined) {
-            symbol = 'BTC/JPY';
-        }
-        const market = this.market(symbol);
+        const symbolResolved = (symbol === undefined) ? 'BTC/JPY' : symbol;
+        const market = this.market(symbolResolved);
         const request = this.extend({
             'id': id,
             'coin': market['baseId'],
@@ -737,10 +738,8 @@ export default class btcbox extends Exchange {
             await this.loadMarkets();
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol === undefined) {
-            symbol = 'BTC/JPY';
-        }
-        const market = this.market(symbol);
+        const symbolResolved = (symbol === undefined) ? 'BTC/JPY' : symbol;
+        const market = this.market(symbolResolved);
         const request = {
             'type': type, // 'open' or 'all'
             'coin': market['baseId'],
@@ -800,9 +799,13 @@ export default class btcbox extends Exchange {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['rest'] + '/' + this.version + '/' + path;
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.version + '/' + path;
         if (api === 'public') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
@@ -819,10 +822,11 @@ export default class btcbox extends Exchange {
             const request = this.urlencode(query);
             const secret = this.hash(this.encode(this.secret), md5);
             query['signature'] = this.hmac(this.encode(request), this.encode(secret), sha256);
-            body = this.urlencode(query);
-            headers = {
+            const signedBody = this.urlencode(query);
+            const signedHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
+            return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -834,11 +838,11 @@ export default class btcbox extends Exchange {
         if (httpCode >= 400) {
             return undefined; // resort to defaultErrorHandler
         }
-        const result = this.safeValue(response, 'result');
+        const result = this.safeBool(response, 'result');
         if (result === undefined || result === true) {
             return undefined; // either public API (no error codes expected) or success
         }
-        const code = this.safeValue(response, 'code');
+        const code = this.safeString(response, 'code');
         const feedback = this.id + ' ' + body;
         this.throwExactlyMatchedException(this.exceptions, code, feedback);
         throw new ExchangeError(feedback); // unknown message

@@ -25,7 +25,7 @@ def test_currency(exchange, skipped_properties, method, entry):
     # todo: remove fee from empty
     empty_allowed_for = ['name', 'fee']
     # todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-    is_native = exchange.has['fetchCurrencies'] and exchange.has['fetchCurrencies'] != 'emulated'
+    is_native = (exchange.has['fetchCurrencies'] is not None) and (exchange.has['fetchCurrencies'] is not False) and (exchange.has['fetchCurrencies'] != 'emulated')
     currency_type = exchange.safe_string(entry, 'type')
     if is_native:
         format['info'] = {}

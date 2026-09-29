@@ -212,15 +212,17 @@ func Ecdsa(request2 any, secret2 any, algorithm2 func() string, digest func() st
 	return ccxt.Ecdsa(request2, secret2, algorithm2, digest)
 }
 
-func Rsa(request2 any, secret2 any, algorithm2 func() string) any {
+// These shims keep the concrete return type of the underlying primitive so that
+// transpiled `call == literal` comparisons are typed, not interface-boxed.
+func Rsa(request2 any, secret2 any, algorithm2 func() string) string {
 	return ccxt.Rsa(request2, secret2, algorithm2)
 }
 
-func Jwt(request2 any, secret2 any, algorithm2 func() string, encode bool) any {
+func Jwt(request2 any, secret2 any, algorithm2 func() string, encode bool) string {
 	return ccxt.Jwt(request2, secret2, algorithm2, encode)
 }
 
-func Crc32(request2 any, signed2 bool) any {
+func Crc32(request2 any, signed2 bool) int64 {
 	return ccxt.Crc32(request2.(string), signed2)
 }
 

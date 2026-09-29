@@ -33,7 +33,7 @@ async def test_fetch_tickers(exchange, skipped_properties, symbol):
 async def fetch_tickers_helper_test(exchange, skipped_properties, arg_symbols, arg_params={}):
     method = 'fetchTickers'
     response = await exchange.fetch_tickers(arg_symbols, arg_params)
-    assert exchange.is_dictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(arg_symbols) + ' must return a dict. ' + exchange.json(response)
+    test_shared_methods.assert_dictionary_response(exchange, method, response, exchange.json(arg_symbols))
     values = list(response.values())
     checked_symbol = None
     if arg_symbols is not None and len(arg_symbols) == 1:
@@ -45,7 +45,11 @@ async def fetch_tickers_helper_test(exchange, skipped_properties, arg_symbols, a
         try:
             test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
         except Exception as ex:
-            await test_shared_methods.validate_ticker_exception_for_percentage(ex, exchange, ticker)
+            ohlcv = None
+            ticker_symbol = ticker['symbol']
+            if (ticker_symbol is not None) and test_shared_methods.ticker_exception_needs_ohlcv(ex, exchange, ticker):
+                ohlcv = await exchange.fetch_ohlcv(ticker_symbol, '1d', None, 5)
+            test_shared_methods.validate_ticker_exception_for_percentage(ex, exchange, ticker, ohlcv)
     return response
 
 

@@ -7,448 +7,892 @@ namespace ccxt\abstract\prediction;
 
 
 abstract class kalshi extends \ccxt\prediction\PredictionExchange {
-    public function kalshi_public_get_events($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_events($params = array()): \React\Promise\PromiseInterface {
         return $this->request('events', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_events_multivariate($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_events_multivariate($params = array()): \React\Promise\PromiseInterface {
         return $this->request('events/multivariate', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_events_fee_changes($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_events_fee_changes($params = array()): \React\Promise\PromiseInterface {
         return $this->request('events/fee_changes', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_events_event_ticker($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_events_event_ticker($params = array()): \React\Promise\PromiseInterface {
         return $this->request('events/{event_ticker}', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_events_event_ticker_metadata($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_events_event_ticker_metadata($params = array()): \React\Promise\PromiseInterface {
         return $this->request('events/{event_ticker}/metadata', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_series($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_series($params = array()): \React\Promise\PromiseInterface {
         return $this->request('series', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_series_fee_changes($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_series_fee_changes($params = array()): \React\Promise\PromiseInterface {
         return $this->request('series/fee_changes', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_series_series_ticker($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_series_series_ticker($params = array()): \React\Promise\PromiseInterface {
         return $this->request('series/{series_ticker}', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_series_series_ticker_markets_ticker_candlesticks($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_series_series_ticker_markets_ticker_candlesticks($params = array()): \React\Promise\PromiseInterface {
         return $this->request('series/{series_ticker}/markets/{ticker}/candlesticks', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_series_series_ticker_events_ticker_candlesticks($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_series_series_ticker_events_ticker_candlesticks($params = array()): \React\Promise\PromiseInterface {
         return $this->request('series/{series_ticker}/events/{ticker}/candlesticks', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_series_series_ticker_events_ticker_forecast_percentile_history($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_series_series_ticker_events_ticker_forecast_percentile_history($params = array()): \React\Promise\PromiseInterface {
         return $this->request('series/{series_ticker}/events/{ticker}/forecast_percentile_history', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_markets($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_markets($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_markets_trades($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_markets_trades($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/trades', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_markets_orderbooks($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_markets_orderbooks($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/orderbooks', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_markets_candlesticks($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_markets_candlesticks($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/candlesticks', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_markets_ticker($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_markets_ticker($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{ticker}', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_markets_ticker_orderbook($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_markets_ticker_orderbook($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{ticker}/orderbook', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_exchange_status($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_exchange_status($params = array()): \React\Promise\PromiseInterface {
         return $this->request('exchange/status', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_exchange_schedule($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_exchange_schedule($params = array()): \React\Promise\PromiseInterface {
         return $this->request('exchange/schedule', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_exchange_announcements($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_exchange_announcements($params = array()): \React\Promise\PromiseInterface {
         return $this->request('exchange/announcements', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_exchange_user_data_timestamp($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_exchange_user_data_timestamp($params = array()): \React\Promise\PromiseInterface {
         return $this->request('exchange/user_data_timestamp', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_milestones($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_milestones($params = array()): \React\Promise\PromiseInterface {
         return $this->request('milestones', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_milestones_milestone_id($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_milestones_milestone_id($params = array()): \React\Promise\PromiseInterface {
         return $this->request('milestones/{milestone_id}', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_structured_targets($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_structured_targets($params = array()): \React\Promise\PromiseInterface {
         return $this->request('structured_targets', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_structured_targets_structured_target_id($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_structured_targets_structured_target_id($params = array()): \React\Promise\PromiseInterface {
         return $this->request('structured_targets/{structured_target_id}', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_search_filters_by_sport($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_search_filters_by_sport($params = array()): \React\Promise\PromiseInterface {
         return $this->request('search/filters_by_sport', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_search_tags_by_categories($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_search_tags_by_categories($params = array()): \React\Promise\PromiseInterface {
         return $this->request('search/tags_by_categories', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_live_data_batch($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_live_data_batch($params = array()): \React\Promise\PromiseInterface {
         return $this->request('live_data/batch', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_live_data_milestone_milestone_id($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_live_data_milestone_milestone_id($params = array()): \React\Promise\PromiseInterface {
         return $this->request('live_data/milestone/{milestone_id}', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_historical_markets($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_historical_markets($params = array()): \React\Promise\PromiseInterface {
         return $this->request('historical/markets', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_historical_markets_ticker_candlesticks($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_historical_markets_ticker_candlesticks($params = array()): \React\Promise\PromiseInterface {
         return $this->request('historical/markets/{ticker}/candlesticks', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_historical_trades($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_historical_trades($params = array()): \React\Promise\PromiseInterface {
         return $this->request('historical/trades', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_historical_cutoff_timestamps($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_historical_cutoff_timestamps($params = array()): \React\Promise\PromiseInterface {
         return $this->request('historical/cutoff_timestamps', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_multivariate_event_collections($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_multivariate_event_collections($params = array()): \React\Promise\PromiseInterface {
         return $this->request('multivariate_event_collections', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_multivariate_event_collections_collection_ticker($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_multivariate_event_collections_collection_ticker($params = array()): \React\Promise\PromiseInterface {
         return $this->request('multivariate_event_collections/{collection_ticker}', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_multivariate_event_collections_collection_ticker_lookup($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_multivariate_event_collections_collection_ticker_lookup($params = array()): \React\Promise\PromiseInterface {
         return $this->request('multivariate_event_collections/{collection_ticker}/lookup', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_public_get_incentive_programs($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_public_get_incentive_programs($params = array()): \React\Promise\PromiseInterface {
         return $this->request('incentive_programs', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_portfolio_balance($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_portfolio_balance($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/balance', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_portfolio_orders($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_portfolio_orders($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_portfolio_orders_order_id($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_portfolio_orders_order_id($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders/{order_id}', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_portfolio_orders_order_id_queue_position($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_portfolio_orders_order_id_queue_position($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders/{order_id}/queue_position', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_portfolio_orders_queue_positions($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_portfolio_orders_queue_positions($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders/queue_positions', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_portfolio_positions($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_portfolio_positions($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/positions', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_portfolio_fills($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_portfolio_fills($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/fills', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_portfolio_settlements($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_portfolio_settlements($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/settlements', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_portfolio_deposits($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_portfolio_deposits($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/deposits', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_portfolio_withdrawals($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_portfolio_withdrawals($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/withdrawals', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_portfolio_order_groups($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_portfolio_order_groups($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/order_groups', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_portfolio_order_groups_order_group_id($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_portfolio_order_groups_order_group_id($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/order_groups/{order_group_id}', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_portfolio_summary_total_resting_order_value($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_portfolio_summary_total_resting_order_value($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/summary/total_resting_order_value', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_portfolio_subaccounts_balances($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_portfolio_subaccounts_balances($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/subaccounts/balances', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_portfolio_subaccounts_netting($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_portfolio_subaccounts_netting($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/subaccounts/netting', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_portfolio_subaccounts_transfers($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_portfolio_subaccounts_transfers($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/subaccounts/transfers', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_historical_fills($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_historical_fills($params = array()): \React\Promise\PromiseInterface {
         return $this->request('historical/fills', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_get_historical_orders($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_get_historical_orders($params = array()): \React\Promise\PromiseInterface {
         return $this->request('historical/orders', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_post_portfolio_orders($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_post_portfolio_orders($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_post_portfolio_events_orders($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_post_portfolio_events_orders($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/events/orders', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_post_portfolio_orders_batched($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_post_portfolio_orders_batched($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders/batched', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_post_portfolio_orders_order_id_amend($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_post_portfolio_orders_order_id_amend($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders/{order_id}/amend', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_post_portfolio_orders_order_id_decrease($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_post_portfolio_orders_order_id_decrease($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders/{order_id}/decrease', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_post_portfolio_order_groups_create($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_post_portfolio_order_groups_create($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/order_groups/create', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_post_portfolio_subaccounts($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_post_portfolio_subaccounts($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/subaccounts', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_post_portfolio_subaccounts_transfer($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_post_portfolio_subaccounts_transfer($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/subaccounts/transfer', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_post_multivariate_event_collections_collection_ticker($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_post_multivariate_event_collections_collection_ticker($params = array()): \React\Promise\PromiseInterface {
         return $this->request('multivariate_event_collections/{collection_ticker}', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_put_portfolio_order_groups_order_group_id_reset($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_put_portfolio_order_groups_order_group_id_reset($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/order_groups/{order_group_id}/reset', array('kalshi', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_put_portfolio_order_groups_order_group_id_trigger($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_put_portfolio_order_groups_order_group_id_trigger($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/order_groups/{order_group_id}/trigger', array('kalshi', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_put_portfolio_order_groups_order_group_id_limit($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_put_portfolio_order_groups_order_group_id_limit($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/order_groups/{order_group_id}/limit', array('kalshi', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_put_portfolio_subaccounts_netting($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_put_portfolio_subaccounts_netting($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/subaccounts/netting', array('kalshi', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_put_multivariate_event_collections_collection_ticker_lookup($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_put_multivariate_event_collections_collection_ticker_lookup($params = array()): \React\Promise\PromiseInterface {
         return $this->request('multivariate_event_collections/{collection_ticker}/lookup', array('kalshi', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_delete_portfolio_orders_order_id($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_delete_portfolio_orders_order_id($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders/{order_id}', array('kalshi', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_delete_portfolio_orders_batched($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_delete_portfolio_orders_batched($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders/batched', array('kalshi', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_delete_portfolio_events_orders_order_id($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_delete_portfolio_events_orders_order_id($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/events/orders/{order_id}', array('kalshi', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
-    public function kalshi_private_delete_portfolio_order_groups_order_group_id($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshi_private_delete_portfolio_order_groups_order_group_id($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/order_groups/{order_group_id}', array('kalshi', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
-    public function elections_public_get_search_series($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function elections_public_get_search_series($params = array()): \React\Promise\PromiseInterface {
         return $this->request('search/series', array('elections', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetEvents($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetEvents($params = array()): \React\Promise\PromiseInterface {
         return $this->request('events', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetEventsMultivariate($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetEventsMultivariate($params = array()): \React\Promise\PromiseInterface {
         return $this->request('events/multivariate', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetEventsFeeChanges($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetEventsFeeChanges($params = array()): \React\Promise\PromiseInterface {
         return $this->request('events/fee_changes', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetEventsEventTicker($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetEventsEventTicker($params = array()): \React\Promise\PromiseInterface {
         return $this->request('events/{event_ticker}', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetEventsEventTickerMetadata($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetEventsEventTickerMetadata($params = array()): \React\Promise\PromiseInterface {
         return $this->request('events/{event_ticker}/metadata', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetSeries($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetSeries($params = array()): \React\Promise\PromiseInterface {
         return $this->request('series', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetSeriesFeeChanges($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetSeriesFeeChanges($params = array()): \React\Promise\PromiseInterface {
         return $this->request('series/fee_changes', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetSeriesSeriesTicker($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetSeriesSeriesTicker($params = array()): \React\Promise\PromiseInterface {
         return $this->request('series/{series_ticker}', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks($params = array()): \React\Promise\PromiseInterface {
         return $this->request('series/{series_ticker}/markets/{ticker}/candlesticks', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks($params = array()): \React\Promise\PromiseInterface {
         return $this->request('series/{series_ticker}/events/{ticker}/candlesticks', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory($params = array()): \React\Promise\PromiseInterface {
         return $this->request('series/{series_ticker}/events/{ticker}/forecast_percentile_history', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetMarkets($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetMarkets($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetMarketsTrades($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetMarketsTrades($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/trades', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetMarketsOrderbooks($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetMarketsOrderbooks($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/orderbooks', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetMarketsCandlesticks($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetMarketsCandlesticks($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/candlesticks', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetMarketsTicker($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetMarketsTicker($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{ticker}', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetMarketsTickerOrderbook($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetMarketsTickerOrderbook($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{ticker}/orderbook', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetExchangeStatus($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetExchangeStatus($params = array()): \React\Promise\PromiseInterface {
         return $this->request('exchange/status', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetExchangeSchedule($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetExchangeSchedule($params = array()): \React\Promise\PromiseInterface {
         return $this->request('exchange/schedule', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetExchangeAnnouncements($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetExchangeAnnouncements($params = array()): \React\Promise\PromiseInterface {
         return $this->request('exchange/announcements', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetExchangeUserDataTimestamp($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetExchangeUserDataTimestamp($params = array()): \React\Promise\PromiseInterface {
         return $this->request('exchange/user_data_timestamp', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetMilestones($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetMilestones($params = array()): \React\Promise\PromiseInterface {
         return $this->request('milestones', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetMilestonesMilestoneId($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetMilestonesMilestoneId($params = array()): \React\Promise\PromiseInterface {
         return $this->request('milestones/{milestone_id}', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetStructuredTargets($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetStructuredTargets($params = array()): \React\Promise\PromiseInterface {
         return $this->request('structured_targets', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetStructuredTargetsStructuredTargetId($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetStructuredTargetsStructuredTargetId($params = array()): \React\Promise\PromiseInterface {
         return $this->request('structured_targets/{structured_target_id}', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetSearchFiltersBySport($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetSearchFiltersBySport($params = array()): \React\Promise\PromiseInterface {
         return $this->request('search/filters_by_sport', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetSearchTagsByCategories($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetSearchTagsByCategories($params = array()): \React\Promise\PromiseInterface {
         return $this->request('search/tags_by_categories', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetLiveDataBatch($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetLiveDataBatch($params = array()): \React\Promise\PromiseInterface {
         return $this->request('live_data/batch', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetLiveDataMilestoneMilestoneId($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetLiveDataMilestoneMilestoneId($params = array()): \React\Promise\PromiseInterface {
         return $this->request('live_data/milestone/{milestone_id}', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetHistoricalMarkets($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetHistoricalMarkets($params = array()): \React\Promise\PromiseInterface {
         return $this->request('historical/markets', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetHistoricalMarketsTickerCandlesticks($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetHistoricalMarketsTickerCandlesticks($params = array()): \React\Promise\PromiseInterface {
         return $this->request('historical/markets/{ticker}/candlesticks', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetHistoricalTrades($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetHistoricalTrades($params = array()): \React\Promise\PromiseInterface {
         return $this->request('historical/trades', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetHistoricalCutoffTimestamps($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetHistoricalCutoffTimestamps($params = array()): \React\Promise\PromiseInterface {
         return $this->request('historical/cutoff_timestamps', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetMultivariateEventCollections($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetMultivariateEventCollections($params = array()): \React\Promise\PromiseInterface {
         return $this->request('multivariate_event_collections', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetMultivariateEventCollectionsCollectionTicker($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetMultivariateEventCollectionsCollectionTicker($params = array()): \React\Promise\PromiseInterface {
         return $this->request('multivariate_event_collections/{collection_ticker}', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup($params = array()): \React\Promise\PromiseInterface {
         return $this->request('multivariate_event_collections/{collection_ticker}/lookup', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPublicGetIncentivePrograms($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPublicGetIncentivePrograms($params = array()): \React\Promise\PromiseInterface {
         return $this->request('incentive_programs', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetPortfolioBalance($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetPortfolioBalance($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/balance', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetPortfolioOrders($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetPortfolioOrders($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetPortfolioOrdersOrderId($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetPortfolioOrdersOrderId($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders/{order_id}', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders/{order_id}/queue_position', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetPortfolioOrdersQueuePositions($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetPortfolioOrdersQueuePositions($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders/queue_positions', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetPortfolioPositions($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetPortfolioPositions($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/positions', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetPortfolioFills($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetPortfolioFills($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/fills', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetPortfolioSettlements($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetPortfolioSettlements($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/settlements', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetPortfolioDeposits($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetPortfolioDeposits($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/deposits', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetPortfolioWithdrawals($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetPortfolioWithdrawals($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/withdrawals', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetPortfolioOrderGroups($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetPortfolioOrderGroups($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/order_groups', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetPortfolioOrderGroupsOrderGroupId($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetPortfolioOrderGroupsOrderGroupId($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/order_groups/{order_group_id}', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/summary/total_resting_order_value', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetPortfolioSubaccountsBalances($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetPortfolioSubaccountsBalances($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/subaccounts/balances', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetPortfolioSubaccountsNetting($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetPortfolioSubaccountsNetting($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/subaccounts/netting', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetPortfolioSubaccountsTransfers($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetPortfolioSubaccountsTransfers($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/subaccounts/transfers', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetHistoricalFills($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetHistoricalFills($params = array()): \React\Promise\PromiseInterface {
         return $this->request('historical/fills', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateGetHistoricalOrders($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateGetHistoricalOrders($params = array()): \React\Promise\PromiseInterface {
         return $this->request('historical/orders', array('kalshi', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivatePostPortfolioOrders($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivatePostPortfolioOrders($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivatePostPortfolioEventsOrders($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivatePostPortfolioEventsOrders($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/events/orders', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivatePostPortfolioOrdersBatched($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivatePostPortfolioOrdersBatched($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders/batched', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivatePostPortfolioOrdersOrderIdAmend($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivatePostPortfolioOrdersOrderIdAmend($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders/{order_id}/amend', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivatePostPortfolioOrdersOrderIdDecrease($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivatePostPortfolioOrdersOrderIdDecrease($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders/{order_id}/decrease', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivatePostPortfolioOrderGroupsCreate($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivatePostPortfolioOrderGroupsCreate($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/order_groups/create', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivatePostPortfolioSubaccounts($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivatePostPortfolioSubaccounts($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/subaccounts', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivatePostPortfolioSubaccountsTransfer($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivatePostPortfolioSubaccountsTransfer($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/subaccounts/transfer', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivatePostMultivariateEventCollectionsCollectionTicker($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivatePostMultivariateEventCollectionsCollectionTicker($params = array()): \React\Promise\PromiseInterface {
         return $this->request('multivariate_event_collections/{collection_ticker}', array('kalshi', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/order_groups/{order_group_id}/reset', array('kalshi', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/order_groups/{order_group_id}/trigger', array('kalshi', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/order_groups/{order_group_id}/limit', array('kalshi', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivatePutPortfolioSubaccountsNetting($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivatePutPortfolioSubaccountsNetting($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/subaccounts/netting', array('kalshi', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup($params = array()): \React\Promise\PromiseInterface {
         return $this->request('multivariate_event_collections/{collection_ticker}/lookup', array('kalshi', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateDeletePortfolioOrdersOrderId($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateDeletePortfolioOrdersOrderId($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders/{order_id}', array('kalshi', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateDeletePortfolioOrdersBatched($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateDeletePortfolioOrdersBatched($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/orders/batched', array('kalshi', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateDeletePortfolioEventsOrdersOrderId($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateDeletePortfolioEventsOrdersOrderId($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/events/orders/{order_id}', array('kalshi', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
-    public function kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId($params = array()): \React\Promise\PromiseInterface {
         return $this->request('portfolio/order_groups/{order_group_id}', array('kalshi', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
-    public function electionsPublicGetSearchSeries($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function electionsPublicGetSearchSeries($params = array()): \React\Promise\PromiseInterface {
         return $this->request('search/series', array('elections', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
 }

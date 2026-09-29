@@ -24,7 +24,7 @@
                     "buy",
                     10
                 ],
-                "output": "{\"pairId\":\"24\",\"type\":\"market\",\"side\":\"buy\",\"amount\":\"10\"}"
+                "output": { "pairId": "24", "type": "market", "side": "buy", "amount": "10" }
             },
             {
                 "description": "create limit order",
@@ -37,7 +37,7 @@
                     10,
                     0.01
                 ],
-                "output": "{\"pairId\":\"24\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"0.01\"}"
+                "output": { "pairId": "24", "type": "limit", "side": "buy", "amount": "10", "price": "0.01" }
             }
         ],
         "fetchBalance": [
@@ -70,7 +70,7 @@
                 "method": "fetchOrder",
                 "url": "https://bit.team/trade/api/ccxt/order/111374644",
                 "input": [
-                    111374644
+                    "111374644"
                 ]
             }
         ],
@@ -82,7 +82,7 @@
                 "input": [
                     "111374852"
                 ],
-                "output": "{\"id\":\"111374852\"}"
+                "output": { "id": "111374852" }
             }
         ],
         "fetchCanceledOrders": [

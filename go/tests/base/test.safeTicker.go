@@ -139,4 +139,17 @@ func TestSafeTicker() {
 	Assert(PreciseEqualStr(exchange, result9, "percentage", "0"))
 	Assert(PreciseEqualStr(exchange, result9, "open", "6.0"))
 	Assert(PreciseEqualStr(exchange, result9, "last", "6.0"))
+	// CASE 10 - by open and average, the pair that derives close from average
+	var ticker10 map[string]any = map[string]any{
+		"open":    5,
+		"average": 5.5,
+	}
+	var result10 any = exchange.SafeTicker(ticker10)
+	Assert(PreciseEqualStr(exchange, result10, "close", "6.0"))
+	Assert(PreciseEqualStr(exchange, result10, "last", "6.0"))
+	// the supplied average must survive untouched, and this path deliberately
+	// leaves change and percentage underived - pin that boundary
+	Assert(PreciseEqualStr(exchange, result10, "average", "5.5"))
+	Assert(ccxt.IsEqual(ccxt.GetValue(result10, "change"), nil))
+	Assert(ccxt.IsEqual(ccxt.GetValue(result10, "percentage"), nil))
 }

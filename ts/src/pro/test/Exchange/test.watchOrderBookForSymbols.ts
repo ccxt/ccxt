@@ -6,13 +6,17 @@ import { Exchange, OrderBook } from '../../../../ccxt.js';
 
 async function testWatchOrderBookForSymbols (exchange: Exchange, skippedProperties: object, symbols: string[]) {
     const method = 'watchOrderBookForSymbols';
+    // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
+    // loop has to be bounded by the deadline alone. waiting for every requested
+    // symbol to be seen would hang forever whenever one of them stays idle.
+    const maxIdleTime = 5000;
     let currentTime = exchange.milliseconds ();
     const deadline = currentTime + 15000;
-    const seenSymbols: string[] = [];
-    // keep polling until the time window elapses and every requested symbol has been observed
-    while (currentTime < deadline || seenSymbols.length < symbols.length) {
+    let idle = false;
+    while ((currentTime < deadline) && !idle) {
         let response: OrderBook | undefined = undefined;
         let succeeded = true;
+        const startTime = exchange.milliseconds ();
         try {
             response = await exchange.watchOrderBookForSymbols (symbols);
         } catch (e) {
@@ -20,15 +24,15 @@ async function testWatchOrderBookForSymbols (exchange: Exchange, skippedProperti
             if (!testSharedMethods.isTemporaryFailure (e) && !(e instanceof InvalidNonce)) {
                 throw e;
             }
-            currentTime = exchange.milliseconds ();
             succeeded = false;
         }
+        currentTime = exchange.milliseconds ();
         if ((succeeded === true) && (response !== undefined)) {
             testOrderBook (exchange, skippedProperties, method, response, undefined);
             testSharedMethods.assertInArray (exchange, skippedProperties, method, response, 'symbol', symbols);
-            const symbol = response['symbol'];
-            if ((symbol !== undefined) && !exchange.inArray (symbol, seenSymbols)) {
-                seenSymbols.push (symbol);
+            const elapsed = currentTime - startTime;
+            if (elapsed > maxIdleTime) {
+                idle = true;
             }
         }
     }

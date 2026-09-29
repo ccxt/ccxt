@@ -98,6 +98,7 @@ export default class coinmate extends Exchange {
                 'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
@@ -134,73 +135,78 @@ export default class coinmate extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'orderBook',
-                        'ticker',
-                        'tickerAll',
-                        'products',
-                        'transactions',
-                        'tradingPairs',
-                        'system/time',
-                    ],
+                    'get': {
+                        'orderBook': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
+                        'tickerAll': { 'cost': 1 },
+                        'products': { 'cost': 1 },
+                        'transactions': { 'cost': 1 },
+                        'tradingPairs': { 'cost': 1 },
+                        'system/time': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'currencies',
-                        'balances',
-                        'bitcoinCashWithdrawal',
-                        'bitcoinCashDepositAddresses',
-                        'bitcoinDepositAddresses',
-                        'bitcoinWithdrawal',
-                        'bitcoinWithdrawalFees',
-                        'buyInstant',
-                        'buyLimit',
-                        'cancelOrder',
-                        'cancelOrderWithInfo',
-                        'createVoucher',
-                        'dashDepositAddresses',
-                        'dashWithdrawal',
-                        'ethereumWithdrawal',
-                        'ethereumDepositAddresses',
-                        'litecoinWithdrawal',
-                        'litecoinDepositAddresses',
-                        'openOrders',
-                        'order',
-                        'orderHistory',
-                        'orderById',
-                        'pusherAuth',
-                        'redeemVoucher',
-                        'replaceByBuyLimit',
-                        'replaceByBuyInstant',
-                        'replaceBySellLimit',
-                        'replaceBySellInstant',
-                        'rippleDepositAddresses',
-                        'rippleWithdrawal',
-                        'sellInstant',
-                        'sellLimit',
-                        'transactionHistory',
-                        'traderFees',
-                        'tradeHistory',
-                        'transfer',
-                        'transferHistory',
-                        'unconfirmedBitcoinDeposits',
-                        'unconfirmedBitcoinCashDeposits',
-                        'unconfirmedDashDeposits',
-                        'unconfirmedEthereumDeposits',
-                        'unconfirmedLitecoinDeposits',
-                        'unconfirmedRippleDeposits',
-                        'cancelAllOpenOrders',
-                        'withdrawVirtualCurrency',
-                        'virtualCurrencyDepositAddresses',
-                        'unconfirmedVirtualCurrencyDeposits',
-                        'adaWithdrawal',
-                        'adaDepositAddresses',
-                        'unconfirmedAdaDeposits',
-                        'solWithdrawal',
-                        'solDepositAddresses',
-                        'unconfirmedSolDeposits',
-                        'bankWireWithdrawal',
-                    ],
+                    'post': {
+                        'currencies': { 'cost': 1 },
+                        'balances': { 'cost': 1 },
+                        'bitcoinCashWithdrawal': { 'cost': 1 },
+                        'bitcoinCashDepositAddresses': { 'cost': 1 },
+                        'bitcoinDepositAddresses': { 'cost': 1 },
+                        'bitcoinWithdrawal': { 'cost': 1 },
+                        'bitcoinWithdrawalFees': { 'cost': 1 },
+                        'buyInstant': { 'cost': 1 },
+                        'buyLimit': { 'cost': 1 },
+                        'cancelOrder': { 'cost': 1 },
+                        'cancelOrderWithInfo': { 'cost': 1 },
+                        'createVoucher': { 'cost': 1 },
+                        'dashDepositAddresses': { 'cost': 1 },
+                        'dashWithdrawal': { 'cost': 1 },
+                        'ethereumWithdrawal': { 'cost': 1 },
+                        'ethereumDepositAddresses': { 'cost': 1 },
+                        'litecoinWithdrawal': { 'cost': 1 },
+                        'litecoinDepositAddresses': { 'cost': 1 },
+                        'openOrders': { 'cost': 1 },
+                        'order': { 'cost': 1 },
+                        'orderHistory': { 'cost': 1 },
+                        'orderById': { 'cost': 1 },
+                        'pusherAuth': { 'cost': 1 },
+                        'redeemVoucher': { 'cost': 1 },
+                        'replaceByBuyLimit': { 'cost': 1 },
+                        'replaceByBuyInstant': { 'cost': 1 },
+                        'replaceBySellLimit': { 'cost': 1 },
+                        'replaceBySellInstant': { 'cost': 1 },
+                        'rippleDepositAddresses': { 'cost': 1 },
+                        'rippleWithdrawal': { 'cost': 1 },
+                        'sellInstant': { 'cost': 1 },
+                        'sellLimit': { 'cost': 1 },
+                        'transactionHistory': { 'cost': 1 },
+                        'traderFees': { 'cost': 1 },
+                        'tradeHistory': { 'cost': 1 },
+                        'transfer': { 'cost': 1 },
+                        'transferHistory': { 'cost': 1 },
+                        'unconfirmedBitcoinDeposits': { 'cost': 1 },
+                        'unconfirmedBitcoinCashDeposits': { 'cost': 1 },
+                        'unconfirmedDashDeposits': { 'cost': 1 },
+                        'unconfirmedEthereumDeposits': { 'cost': 1 },
+                        'unconfirmedLitecoinDeposits': { 'cost': 1 },
+                        'unconfirmedRippleDeposits': { 'cost': 1 },
+                        'cancelAllOpenOrders': { 'cost': 1 },
+                        'withdrawVirtualCurrency': { 'cost': 1 },
+                        'virtualCurrencyDepositAddresses': { 'cost': 1 },
+                        'unconfirmedVirtualCurrencyDeposits': { 'cost': 1 },
+                        'adaWithdrawal': { 'cost': 1 },
+                        'adaDepositAddresses': { 'cost': 1 },
+                        'unconfirmedAdaDeposits': { 'cost': 1 },
+                        'daiWithdrawal': { 'cost': 1 },
+                        'daiDepositAddresses': { 'cost': 1 },
+                        'unconfirmedDaiDeposits': { 'cost': 1 },
+                        'solWithdrawal': { 'cost': 1 },
+                        'solDepositAddresses': { 'cost': 1 },
+                        'unconfirmedSolDeposits': { 'cost': 1 },
+                        'bankWireWithdrawal': { 'cost': 1 },
+                        'lightningDeposit': { 'cost': 1 },
+                        'lightningWithdraw': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -378,7 +384,7 @@ export default class coinmate extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -387,6 +393,9 @@ export default class coinmate extends Exchange {
             const quoteId = this.safeString(market, 'secondCurrency');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const symbol = base + '/' + quote;
             result.push({
                 'id': id,
@@ -441,13 +450,13 @@ export default class coinmate extends Exchange {
         return result;
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'data', {});
+        const balances = this.safeDict(response, 'data', {});
         const result = { 'info': response };
         const currencyIds = Object.keys(balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode(currencyId);
-            const balance = this.safeValue(balances, currencyId);
+            const balance = this.safeDict(balances, currencyId);
             const account = this.account();
             account['free'] = this.safeString(balance, 'available');
             account['used'] = this.safeString(balance, 'reserved');
@@ -491,7 +500,7 @@ export default class coinmate extends Exchange {
             'groupByPriceLimit': 'False',
         };
         const response = await this.publicGetOrderBook(this.extend(request, params));
-        const orderbook = response['data'];
+        const orderbook = this.safeDict(response, 'data', {});
         const timestamp = this.safeTimestamp(orderbook, 'timestamp');
         return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
@@ -546,7 +555,7 @@ export default class coinmate extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.publicGetTickerAll(params);
         //
         //     {
@@ -567,7 +576,7 @@ export default class coinmate extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const keys = Object.keys(data);
         const result = {};
         for (let i = 0; i < keys.length; i++) {
@@ -575,7 +584,7 @@ export default class coinmate extends Exchange {
             const ticker = this.parseTicker(this.safeValue(data, keys[i]), market);
             result[market['symbol']] = ticker;
         }
-        return this.filterByArrayTickers(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -645,7 +654,7 @@ export default class coinmate extends Exchange {
             request['currency'] = currency['id'];
         }
         const response = await this.privatePostTransferHistory(this.extend(request, params));
-        const items = response['data'];
+        const items = this.safeList(response, 'data', []);
         return this.parseTransactions(items, undefined, since, limit);
     }
     parseTransactionStatus(status) {
@@ -749,14 +758,14 @@ export default class coinmate extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
-        const methods = this.safeValue(withdrawOptions, 'methods', {});
+        const withdrawOptions = this.safeDict(this.options, 'withdraw', {});
+        const methods = this.safeDict(withdrawOptions, 'methods', {});
         const method = this.safeString(methods, code);
         if (method === undefined) {
             const allowedCurrencies = Object.keys(methods);
@@ -766,10 +775,41 @@ export default class coinmate extends Exchange {
             'amount': this.currencyToPrecision(code, amount),
             'address': address,
         };
-        if (tag !== undefined) {
-            request['destinationTag'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['destinationTag'] = tagWithdrawTag;
         }
-        const response = await this[method](this.extend(request, params));
+        const requestParams = this.extend(request, paramsWithdrawTag);
+        let response = undefined;
+        if (method === 'privatePostBitcoinWithdrawal') {
+            response = await this.privatePostBitcoinWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostLitecoinWithdrawal') {
+            response = await this.privatePostLitecoinWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostBitcoinCashWithdrawal') {
+            response = await this.privatePostBitcoinCashWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostEthereumWithdrawal') {
+            response = await this.privatePostEthereumWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostRippleWithdrawal') {
+            response = await this.privatePostRippleWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostDashWithdrawal') {
+            response = await this.privatePostDashWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostDaiWithdrawal') {
+            response = await this.privatePostDaiWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostAdaWithdrawal') {
+            response = await this.privatePostAdaWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostSolWithdrawal') {
+            response = await this.privatePostSolWithdrawal(requestParams);
+        }
+        else {
+            throw new ExchangeError(this.id + ' withdraw() does not support the ' + method + ' method');
+        }
         //
         //     {
         //         "error": false,
@@ -779,14 +819,14 @@ export default class coinmate extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         const transaction = this.parseTransaction(data, currency);
         const fillResponseFromRequest = this.safeBool(withdrawOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transaction['amount'] = amount;
             transaction['currency'] = code;
             transaction['address'] = address;
-            transaction['tag'] = tag;
+            transaction['tag'] = tagWithdrawTag;
             transaction['type'] = 'withdrawal';
             transaction['status'] = 'pending';
         }
@@ -807,11 +847,9 @@ export default class coinmate extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        if (limit === undefined) {
-            limit = 1000;
-        }
+        const limitResolved = (limit === undefined) ? 1000 : limit;
         const request = {
-            'limit': limit,
+            'limit': limitResolved,
         };
         if (symbol !== undefined) {
             const market = this.market(symbol);
@@ -822,7 +860,7 @@ export default class coinmate extends Exchange {
         }
         const response = await this.privatePostTradeHistory(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
-        return this.parseTrades(data, undefined, since, limit);
+        return this.parseTrades(data, undefined, since, limitResolved);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -853,7 +891,7 @@ export default class coinmate extends Exchange {
         //     }
         //
         const marketId = this.safeString(trade, 'currencyPair');
-        market = this.safeMarket(marketId, market, '_');
+        const marketResolved = this.safeMarket(marketId, market, '_');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'amount');
         const side = this.safeStringLower2(trade, 'type', 'tradeType');
@@ -866,7 +904,7 @@ export default class coinmate extends Exchange {
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         }
         let takerOrMaker = this.safeString(trade, 'feeType');
@@ -876,7 +914,7 @@ export default class coinmate extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'side': side,
             'order': orderId,
@@ -885,7 +923,7 @@ export default class coinmate extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -952,7 +990,7 @@ export default class coinmate extends Exchange {
         //         "data": { maker: '0.3', taker: "0.35", timestamp: "1646253217815" }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const makerString = this.safeString(data, 'maker');
         const takerString = this.safeString(data, 'taker');
         const maker = this.parseNumber(Precise.stringDiv(makerString, '100'));
@@ -980,7 +1018,8 @@ export default class coinmate extends Exchange {
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const response = await this.privatePostOpenOrders(this.extend({}, params));
         const extension = { 'status': 'open' };
-        return this.parseOrders(response['data'], undefined, since, limit, extension);
+        const data = this.safeList(response, 'data', []);
+        return this.parseOrders(data, undefined, since, limit, extension);
     }
     /**
      * @method
@@ -1009,7 +1048,8 @@ export default class coinmate extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privatePostOrderHistory(this.extend(request, params));
-        return this.parseOrders(response['data'], market, since, limit);
+        const data = this.safeList(response, 'data', []);
+        return this.parseOrders(data, market, since, limit);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -1152,7 +1192,23 @@ export default class coinmate extends Exchange {
             request['price'] = this.priceToPrecision(symbol, price);
             method += this.capitalize(type);
         }
-        const response = await this[method](this.extend(request, params));
+        const requestParams = this.extend(request, params);
+        let response = undefined;
+        if (method === 'privatePostBuyInstant') {
+            response = await this.privatePostBuyInstant(requestParams);
+        }
+        else if (method === 'privatePostSellInstant') {
+            response = await this.privatePostSellInstant(requestParams);
+        }
+        else if (method === 'privatePostBuyLimit') {
+            response = await this.privatePostBuyLimit(requestParams);
+        }
+        else if (method === 'privatePostSellLimit') {
+            response = await this.privatePostSellLimit(requestParams);
+        }
+        else {
+            throw new InvalidOrder(this.id + ' createOrder() does not support order type ' + type);
+        }
         const id = this.safeString(response, 'data');
         return this.safeOrder({
             'info': response,
@@ -1178,7 +1234,7 @@ export default class coinmate extends Exchange {
             'orderId': id,
         };
         let market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market(symbol);
         }
         const response = await this.privatePostOrderById(this.extend(request, params));
@@ -1216,28 +1272,37 @@ export default class coinmate extends Exchange {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['rest'] + '/' + path;
+        let bodySigned = undefined;
+        let headersSigned = undefined;
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + path;
         if (api === 'public') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
         else {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            // coinmate requires each nonce to be greater than the previous one for the key
+            const nonce = this.incrementingNonce().toString();
             const auth = nonce + this.uid + this.apiKey;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-            body = this.urlencode(this.extend({
+            bodySigned = this.urlencode(this.extend({
                 'clientId': this.uid,
                 'nonce': nonce,
                 'publicKey': this.apiKey,
                 'signature': signature.toUpperCase(),
             }, params));
-            headers = {
+            headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
+        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

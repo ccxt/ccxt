@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bitbank API documentation:** [docs.bitbank.cc](https://docs.bitbank.cc/)
 
-> 28 implicit endpoints across 3 access groups.
+> 29 implicit endpoints across 3 access groups.
 
 ## public
 
@@ -81,6 +81,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetUserAssets` | GET | `user/assets` | 1 |
 | `privateGetUserSpotOrder` | GET | `user/spot/order` | 1 |
 | `privateGetUserSpotActiveOrders` | GET | `user/spot/active_orders` | 1 |
+| `privateGetUserMarginStatus` | GET | `user/margin/status` | 1 |
 | `privateGetUserMarginPositions` | GET | `user/margin/positions` | 1 |
 | `privateGetUserSpotTradeHistory` | GET | `user/spot/trade_history` | 1 |
 | `privateGetUserDepositHistory` | GET | `user/deposit_history` | 1 |

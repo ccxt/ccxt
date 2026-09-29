@@ -166,56 +166,60 @@ class bitso extends bitso$1["default"] {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'available_books',
-                        'catalogues',
-                        'ticker',
-                        'order_book',
-                        'trades',
-                        'ohlc',
-                    ],
+                    'get': {
+                        'available_books': { 'cost': 1 },
+                        'catalogues': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
+                        'order_book': { 'cost': 1 },
+                        'trades': { 'cost': 1 },
+                        'ohlc': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'account_status',
-                        'balance',
-                        'fees',
-                        'fundings',
-                        'fundings/{fid}',
-                        'funding_destination',
-                        'kyc_documents',
-                        'ledger',
-                        'ledger/trades',
-                        'ledger/fees',
-                        'ledger/fundings',
-                        'ledger/withdrawals',
-                        'mx_bank_codes',
-                        'open_orders',
-                        'order_trades/{oid}',
-                        'orders/{oid}',
-                        'user_trades',
-                        'user_trades/{tid}',
-                        'withdrawals/',
-                        'withdrawals/{wid}',
-                    ],
-                    'post': [
-                        'bitcoin_withdrawal',
-                        'debit_card_withdrawal',
-                        'ether_withdrawal',
-                        'orders',
-                        'phone_number',
-                        'phone_verification',
-                        'phone_withdrawal',
-                        'spei_withdrawal',
-                        'ripple_withdrawal',
-                        'bcash_withdrawal',
-                        'litecoin_withdrawal',
-                    ],
-                    'delete': [
-                        'orders',
-                        'orders/{oid}',
-                        'orders/all',
-                    ],
+                    'get': {
+                        'account_status': { 'cost': 1 },
+                        'balance': { 'cost': 1 },
+                        'fees': { 'cost': 1 },
+                        'fundings': { 'cost': 1 },
+                        'fundings/{fid}': { 'cost': 1 },
+                        'funding_destination': { 'cost': 1 },
+                        'kyc_documents': { 'cost': 1 },
+                        'ledger': { 'cost': 1 },
+                        'ledger/trades': { 'cost': 1 },
+                        'ledger/fees': { 'cost': 1 },
+                        'ledger/fundings': { 'cost': 1 },
+                        'ledger/withdrawals': { 'cost': 1 },
+                        'mx_bank_codes': { 'cost': 1 },
+                        'open_orders': { 'cost': 1 },
+                        'order_trades/{oid}': { 'cost': 1 },
+                        'orders/{oid}': { 'cost': 1 },
+                        'user_trades': { 'cost': 1 },
+                        'user_trades/{tid}': { 'cost': 1 },
+                        'withdrawals/': { 'cost': 1 },
+                        'withdrawals/{wid}': { 'cost': 1 },
+                    },
+                    'post': {
+                        'bitcoin_withdrawal': { 'cost': 1 },
+                        'debit_card_withdrawal': { 'cost': 1 },
+                        'ether_withdrawal': { 'cost': 1 },
+                        'orders': { 'cost': 1 },
+                        'phone_number': { 'cost': 1 },
+                        'phone_verification': { 'cost': 1 },
+                        'phone_withdrawal': { 'cost': 1 },
+                        'spei_withdrawal': { 'cost': 1 },
+                        'ripple_withdrawal': { 'cost': 1 },
+                        'bcash_withdrawal': { 'cost': 1 },
+                        'litecoin_withdrawal': { 'cost': 1 },
+                    },
+                    'delete': {
+                        'orders': { 'cost': 1 },
+                        'orders/{oid}': { 'cost': 1 },
+                        'orders/all': { 'cost': 1 },
+                    },
+                    'patch': {
+                        'orders': { 'cost': 1 },
+                        'orders/{oid}': { 'cost': 1 },
+                    },
                 },
             },
             'features': {
@@ -326,7 +330,7 @@ class bitso extends bitso$1["default"] {
         //         }]
         //     }
         //
-        const payload = this.safeValue(response, 'payload', []);
+        const payload = this.safeList(response, 'payload', []);
         const currency = this.safeCurrency(code);
         return this.parseLedger(payload, currency, since, limit);
     }
@@ -396,15 +400,15 @@ class bitso extends bitso$1["default"] {
         //     }
         const operation = this.safeString(item, 'operation');
         const type = this.parseLedgerEntryType(operation);
-        const balanceUpdates = this.safeValue(item, 'balance_updates', []);
-        const firstBalance = this.safeValue(balanceUpdates, 0, {});
+        const balanceUpdates = this.safeList(item, 'balance_updates', []);
+        const firstBalance = this.safeDict(balanceUpdates, 0, {});
         let direction = undefined;
         let fee = undefined;
         const amount = this.safeString(firstBalance, 'amount');
         const currencyId = this.safeString(firstBalance, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
-        currency = this.safeCurrency(currencyId, currency);
-        const details = this.safeValue(item, 'details', {});
+        const currencyResolved = this.safeCurrency(currencyId, currency);
+        const details = this.safeDict(item, 'details', {});
         let referenceId = this.safeString2(details, 'fid', 'wid');
         if (referenceId === undefined) {
             referenceId = this.safeString(details, 'tid');
@@ -423,7 +427,7 @@ class bitso extends bitso$1["default"] {
             const cost = Precise["default"].stringAbs(amount);
             fee = {
                 'cost': cost,
-                'currency': currency,
+                'currency': currencyResolved,
             };
         }
         const timestamp = this.parse8601(this.safeString(item, 'created_at'));
@@ -443,7 +447,7 @@ class bitso extends bitso$1["default"] {
             'after': undefined,
             'status': 'ok',
             'fee': fee,
-        }, currency);
+        }, currencyResolved);
     }
     /**
      * @method
@@ -487,7 +491,7 @@ class bitso extends bitso$1["default"] {
         //             },
         //         ]
         //     }
-        const markets = this.safeValue(response, 'payload', []);
+        const markets = this.safeList(response, 'payload', []);
         const currencies = this.safeDict(this.options, 'cachedCurrencies');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -498,13 +502,16 @@ class bitso extends bitso$1["default"] {
             let quote = quoteId.toUpperCase();
             base = this.safeCurrencyCode(base);
             quote = this.safeCurrencyCode(quote);
-            const fees = this.safeValue(market, 'fees', {});
-            const flatRate = this.safeValue(fees, 'flat_rate', {});
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
+            const fees = this.safeDict(market, 'fees', {});
+            const flatRate = this.safeDict(fees, 'flat_rate', {});
             const takerString = this.safeString(flatRate, 'taker');
             const makerString = this.safeString(flatRate, 'maker');
             const taker = this.parseNumber(Precise["default"].stringDiv(takerString, '100'));
             const maker = this.parseNumber(Precise["default"].stringDiv(makerString, '100'));
-            const feeTiers = this.safeValue(fees, 'structure', []);
+            const feeTiers = this.safeList(fees, 'structure', []);
             const fee = {
                 'taker': taker,
                 'maker': maker,
@@ -514,7 +521,7 @@ class bitso extends bitso$1["default"] {
             const takerFees = [];
             const makerFees = [];
             for (let j = 0; j < feeTiers.length; j++) {
-                const tier = feeTiers[j];
+                const tier = this.safeDict(feeTiers, j);
                 const volume = this.safeNumber(tier, 'volume');
                 const takerFee = this.safeNumber(tier, 'taker');
                 const makerFee = this.safeNumber(tier, 'maker');
@@ -655,15 +662,15 @@ class bitso extends bitso$1["default"] {
         });
     }
     parseBalance(response) {
-        const payload = this.safeValue(response, 'payload', {});
-        const balances = this.safeValue(payload, 'balances', []);
+        const payload = this.safeDict(response, 'payload', {});
+        const balances = this.safeList(payload, 'balances', []);
         const result = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict(balances, i);
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -735,7 +742,7 @@ class bitso extends bitso$1["default"] {
             'book': market['id'],
         };
         const response = await this.publicGetOrderBook(this.extend(request, params));
-        const orderbook = this.safeValue(response, 'payload');
+        const orderbook = this.safeDict(response, 'payload');
         const timestamp = this.parse8601(this.safeString(orderbook, 'updated_at'));
         return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
@@ -801,7 +808,7 @@ class bitso extends bitso$1["default"] {
             'book': market['id'],
         };
         const response = await this.publicGetTicker(this.extend(request, params));
-        const ticker = this.safeValue(response, 'payload');
+        const ticker = this.safeDict(response, 'payload');
         //
         //     {
         //         "success":true,
@@ -1028,7 +1035,8 @@ class bitso extends bitso$1["default"] {
             'book': market['id'],
         };
         const response = await this.publicGetTrades(this.extend(request, params));
-        return this.parseTrades(response['payload'], market, since, limit);
+        const payload = this.safeList(response, 'payload', []);
+        return this.parseTrades(payload, market, since, limit);
     }
     /**
      * @method
@@ -1086,8 +1094,8 @@ class bitso extends bitso$1["default"] {
         //        }
         //    }
         //
-        const payload = this.safeValue(response, 'payload', {});
-        const fees = this.safeValue(payload, 'fees', []);
+        const payload = this.safeDict(response, 'payload', {});
+        const fees = this.safeList(payload, 'fees', []);
         const result = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
@@ -1130,11 +1138,9 @@ class bitso extends bitso$1["default"] {
             throw new errors.ExchangeError(this.id + ' fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
+        let paramsMarker = params;
         if (markerInParams) {
-            const marker = parseInt(params['marker']);
-            params = this.extend(params, {
-                'marker': marker,
-            });
+            paramsMarker = this.extend(params, { 'marker': parseInt(params['marker']) });
         }
         const request = {
             'book': market['id'],
@@ -1142,8 +1148,9 @@ class bitso extends bitso$1["default"] {
             // 'sort': 'desc', // default = desc
             // 'marker': id, // integer id to start from
         };
-        const response = await this.privateGetUserTrades(this.extend(request, params));
-        return this.parseTrades(response['payload'], market, since, limit);
+        const response = await this.privateGetUserTrades(this.extend(request, paramsMarker));
+        const payload = this.safeList(response, 'payload', []);
+        return this.parseTrades(payload, market, since, limit);
     }
     /**
      * @method
@@ -1173,7 +1180,8 @@ class bitso extends bitso$1["default"] {
             request['price'] = this.priceToPrecision(market['symbol'], price);
         }
         const response = await this.privatePostOrders(this.extend(request, params));
-        const id = this.safeString(response['payload'], 'oid');
+        const payload = this.safeDict(response, 'payload', {});
+        const id = this.safeString(payload, 'oid');
         return this.safeOrder({
             'info': response,
             'id': id,
@@ -1239,7 +1247,7 @@ class bitso extends bitso$1["default"] {
         //         "payload": ["yWTQGxDMZ0VimZgZ"]
         //     }
         //
-        const payload = this.safeValue(response, 'payload', []);
+        const payload = this.safeList(response, 'payload', []);
         const orders = [];
         for (let i = 0; i < payload.length; i++) {
             const id = payload[i];
@@ -1267,7 +1275,7 @@ class bitso extends bitso$1["default"] {
         //         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
         //     }
         //
-        const payload = this.safeValue(response, 'payload', []);
+        const payload = this.safeList(response, 'payload', []);
         const canceledOrders = [];
         for (let i = 0; i < payload.length; i++) {
             const order = this.parseOrder(payload[i]);
@@ -1357,11 +1365,9 @@ class bitso extends bitso$1["default"] {
             throw new errors.ExchangeError(this.id + ' fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
+        let paramsMarker = params;
         if (markerInParams) {
-            const marker = parseInt(params['marker']);
-            params = this.extend(params, {
-                'marker': marker,
-            });
+            paramsMarker = this.extend(params, { 'marker': parseInt(params['marker']) });
         }
         const request = {
             'book': market['id'],
@@ -1369,8 +1375,9 @@ class bitso extends bitso$1["default"] {
             // 'sort': 'desc', // default = desc
             // 'marker': id, // integer id to start from
         };
-        const response = await this.privateGetOpenOrders(this.extend(request, params));
-        const orders = this.parseOrders(response['payload'], market, since, limit);
+        const response = await this.privateGetOpenOrders(this.extend(request, paramsMarker));
+        const payload = this.safeList(response, 'payload', []);
+        const orders = this.parseOrders(payload, market, since, limit);
         return orders;
     }
     /**
@@ -1390,9 +1397,9 @@ class bitso extends bitso$1["default"] {
         const response = await this.privateGetOrdersOid({
             'oid': id,
         });
-        const payload = this.safeValue(response, 'payload');
+        const payload = this.safeList(response, 'payload');
         if (Array.isArray(payload)) {
-            const numOrders = response['payload'].length;
+            const numOrders = payload.length;
             if (numOrders === 1) {
                 return this.parseOrder(payload[0]);
             }
@@ -1420,7 +1427,8 @@ class bitso extends bitso$1["default"] {
             'oid': id,
         };
         const response = await this.privateGetOrderTradesOid(this.extend(request, params));
-        return this.parseTrades(response['payload'], market);
+        const payload = this.safeList(response, 'payload', []);
+        return this.parseTrades(payload, market);
     }
     /**
      * @method
@@ -1463,7 +1471,7 @@ class bitso extends bitso$1["default"] {
         //         }]
         //     }
         //
-        const transactions = this.safeValue(response, 'payload', []);
+        const transactions = this.safeList(response, 'payload', []);
         const first = this.safeDict(transactions, 0, {});
         return this.parseTransaction(first);
     }
@@ -1530,7 +1538,8 @@ class bitso extends bitso$1["default"] {
             'fund_currency': currency['id'],
         };
         const response = await this.privateGetFundingDestination(this.extend(request, params));
-        let address = this.safeString(response['payload'], 'account_identifier');
+        const payload = this.safeDict(response, 'payload', {});
+        let address = this.safeString(payload, 'account_identifier');
         let tag = undefined;
         if (address.indexOf('?dt=') >= 0) {
             const parts = address.split('?dt=');
@@ -1605,8 +1614,8 @@ class bitso extends bitso$1["default"] {
         //    }
         //
         const result = {};
-        const payload = this.safeValue(response, 'payload', {});
-        const depositFees = this.safeValue(payload, 'deposit_fees', []);
+        const payload = this.safeDict(response, 'payload', {});
+        const depositFees = this.safeList(payload, 'deposit_fees', []);
         for (let i = 0; i < depositFees.length; i++) {
             const depositFee = depositFees[i];
             const currencyId = this.safeString(depositFee, 'currency');
@@ -1625,7 +1634,7 @@ class bitso extends bitso$1["default"] {
                 };
             }
         }
-        const withdrawalFees = this.safeValue(payload, 'withdrawal_fees', []);
+        const withdrawalFees = this.safeDict(payload, 'withdrawal_fees', {});
         const currencyIds = Object.keys(withdrawalFees);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -1635,10 +1644,10 @@ class bitso extends bitso$1["default"] {
             }
             if (code !== undefined) {
                 result[code] = {
-                    'deposit': this.safeValue(this.safeValue(result, code), 'deposit'),
+                    'deposit': this.safeValue(this.safeDict(result, code), 'deposit'),
                     'withdraw': this.safeNumber(withdrawalFees, currencyId),
                     'info': {
-                        'deposit': this.safeValue(this.safeValue(this.safeValue(result, code), 'info'), 'deposit'),
+                        'deposit': this.safeValue(this.safeDict(this.safeDict(result, code), 'info'), 'deposit'),
                         'withdraw': this.safeNumber(withdrawalFees, currencyId),
                     },
                 };
@@ -1748,8 +1757,8 @@ class bitso extends bitso$1["default"] {
         //    }
         //
         const result = {};
-        const depositResponse = this.safeValue(response, 'deposit_fees', []);
-        const withdrawalResponse = this.safeValue(response, 'withdrawal_fees', []);
+        const depositResponse = this.safeList(response, 'deposit_fees', []);
+        const withdrawalResponse = this.safeDict(response, 'withdrawal_fees', {});
         for (let i = 0; i < depositResponse.length; i++) {
             const entry = depositResponse[i];
             const currencyId = this.safeString(entry, 'currency');
@@ -1759,7 +1768,7 @@ class bitso extends bitso$1["default"] {
                     result[code] = {
                         'deposit': {
                             'fee': this.safeNumber(entry, 'fee'),
-                            'percentage': !this.safeValue(entry, 'is_fixed'),
+                            'percentage': (!this.safeBool(entry, 'is_fixed', false)),
                         },
                         'withdraw': {
                             'fee': undefined,
@@ -1777,7 +1786,7 @@ class bitso extends bitso$1["default"] {
             const code = this.safeCurrencyCode(currencyId);
             if ((code !== undefined) && ((codes === undefined) || (code in codes))) {
                 const withdrawFee = this.parseNumber(withdrawalResponse[currencyId]);
-                const resultValue = this.safeValue(result, code);
+                const resultValue = this.safeDict(result, code);
                 if (resultValue === undefined) {
                     result[code] = this.depositWithdrawFee({});
                 }
@@ -1799,7 +1808,7 @@ class bitso extends bitso$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -1819,10 +1828,10 @@ class bitso extends bitso$1["default"] {
         const request = {
             'amount': amount,
             'address': address,
-            'destination_tag': tag,
+            'destination_tag': tagWithdrawTag,
         };
         const classMethod = 'privatePost' + method + 'Withdrawal';
-        const response = await this[classMethod](this.extend(request, params));
+        const response = await this[classMethod](this.extend(request, paramsWithdrawTag));
         //
         //     {
         //         "success": true,
@@ -1842,7 +1851,7 @@ class bitso extends bitso$1["default"] {
         //         ]
         //     }
         //
-        const payload = this.safeValue(response, 'payload', []);
+        const payload = this.safeList(response, 'payload', []);
         const first = this.safeDict(payload, 0);
         return this.parseTransaction(first, currency);
     }
@@ -1884,15 +1893,15 @@ class bitso extends bitso$1["default"] {
         //     }
         //
         const currencyId = this.safeString2(transaction, 'currency', 'asset');
-        currency = this.safeCurrency(currencyId, currency);
-        const details = this.safeValue(transaction, 'details', {});
+        const currencyResolved = this.safeCurrency(currencyId, currency);
+        const details = this.safeDict(transaction, 'details', {});
         const datetime = this.safeString(transaction, 'created_at');
         const withdrawalAddress = this.safeString(details, 'withdrawal_address');
         const receivingAddress = this.safeString(details, 'receiving_address');
         const networkId = this.safeString2(transaction, 'network', 'method');
         const status = this.safeString(transaction, 'status');
         const withdrawId = this.safeString(transaction, 'wid');
-        const networkCode = this.networkIdToCode(networkId, currency['code']);
+        const networkCode = this.networkIdToCode(networkId, this.safeString(currencyResolved, 'code'));
         const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
         return {
             'id': this.safeString2(transaction, 'wid', 'fid'),
@@ -1905,7 +1914,7 @@ class bitso extends bitso$1["default"] {
             'addressTo': withdrawalAddress,
             'amount': this.safeNumber(transaction, 'amount'),
             'type': (withdrawId === undefined) ? 'deposit' : 'withdrawal',
-            'currency': this.safeCurrencyCode(currencyId, currency),
+            'currency': this.safeCurrencyCode(currencyId, currencyResolved),
             'status': this.parseTransactionStatus(status),
             'updated': undefined,
             'tagFrom': undefined,
@@ -1930,34 +1939,41 @@ class bitso extends bitso$1["default"] {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let requestHeaders = headers;
+        let requestBody = body;
         let endpoint = '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 endpoint += '?' + this.urlencode(query);
             }
         }
-        const url = this.urls['api']['rest'] + endpoint;
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            // bitso rejects a nonce that is not higher than the previous one (error 104)
+            const nonce = this.incrementingNonce().toString();
             endpoint = '/api' + endpoint;
             const content = [nonce, method, endpoint];
             let request = content.join('');
             if (method !== 'GET' && method !== 'DELETE') {
-                if (Object.keys(query).length) {
-                    body = this.json(query);
-                    request += body;
+                if (Object.keys(query).length > 0) {
+                    requestBody = this.json(query);
+                    request += requestBody;
                 }
             }
             const signature = this.hmac(this.encode(request), this.encode(this.secret), sha2_js.sha256);
             const auth = this.apiKey + ':' + nonce + ':' + signature;
-            headers = {
+            requestHeaders = {
                 'Authorization': 'Bitso ' + auth,
                 // 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
@@ -1976,9 +1992,9 @@ class bitso extends bitso$1["default"] {
                     success = false;
                 }
             }
-            if (!success) {
+            if (success !== true) {
                 const feedback = this.id + ' ' + this.json(response);
-                const error = this.safeValue(response, 'error');
+                const error = this.safeDict(response, 'error');
                 if (error === undefined) {
                     throw new errors.ExchangeError(feedback);
                 }

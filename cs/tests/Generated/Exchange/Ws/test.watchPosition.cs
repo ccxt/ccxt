@@ -10,16 +10,16 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchPosition(Exchange exchange, object skippedProperties, object symbol)
     {
-        object method = "watchPosition";
-        object now = exchange.milliseconds();
-        object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        string method = "watchPosition";
+        Int64 now = exchange.milliseconds();
+        Int64 ends = (now + 15000);
+        while (now < ends)
         {
             object response = null;
-            object success = true;
+            bool success = true;
             try
             {
-                response = await exchange.watchPosition(symbol);
+                response = detypeForComparison(await exchange.WatchPosition(((string)symbol)));
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
@@ -30,7 +30,7 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
+            if (((success == true)) && ((response != null)))
             {
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return a dictionary. "), exchange.json(response)));
                 now = exchange.milliseconds();

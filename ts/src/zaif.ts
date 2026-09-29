@@ -6,7 +6,7 @@ import Exchange from './abstract/zaif.js';
 import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, NullableDict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Fee } from './base/types.js';
+import type { Balances, Currency, Dict, NullableDict, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Fee, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -107,56 +107,59 @@ export default class zaif extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'depth/{pair}': 1,
-                        'currencies/{pair}': 1,
-                        'currencies/all': 1,
-                        'currency_pairs/{pair}': 1,
-                        'currency_pairs/all': 1,
-                        'last_price/{pair}': 1,
-                        'ticker/{pair}': 1,
-                        'trades/{pair}': 1,
+                        'depth/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'currencies/{pair}': { 'cost': 1 } as Endpoint<List>,
+                        'currencies/all': { 'cost': 1 } as Endpoint<List>,
+                        'currency_pairs/{pair}': { 'cost': 1 } as Endpoint<List>,
+                        'currency_pairs/all': { 'cost': 1 } as Endpoint<List>,
+                        'last_price/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades/{pair}': { 'cost': 1 } as Endpoint<List>,
+                        'vasp_info/{vasp_master_id}': { 'cost': 1 } as Endpoint<List>,
+                        'country_info/{code}': { 'cost': 1 } as Endpoint<List>,
+                        'corp_type_id_info/{id}': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
                 'private': {
                     'post': {
-                        'active_orders': 5, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
-                        'cancel_order': 5,
-                        'deposit_history': 5,
-                        'get_id_info': 5,
-                        'get_info': 10, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
-                        'get_info2': 5, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
-                        'get_personal_info': 5,
-                        'trade': 5,
-                        'trade_history': 50, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
-                        'withdraw': 5,
-                        'withdraw_history': 5,
+                        'active_orders': { 'cost': 5 } as Endpoint<Dict>, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
+                        'cancel_order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deposit_history': { 'cost': 5 } as Endpoint<Dict>,
+                        'get_id_info': { 'cost': 5 } as Endpoint<Dict>,
+                        'get_info': { 'cost': 10 } as Endpoint<Dict>, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
+                        'get_info2': { 'cost': 5 } as Endpoint<Dict>, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
+                        'get_personal_info': { 'cost': 5 } as Endpoint<Dict>,
+                        'trade': { 'cost': 5 } as Endpoint<Dict>,
+                        'trade_history': { 'cost': 50 } as Endpoint<Dict>, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
+                        'withdraw': { 'cost': 5 } as Endpoint<Dict>,
+                        'withdraw_history': { 'cost': 5 } as Endpoint<Dict>,
                     },
                 },
                 'ecapi': {
                     'post': {
-                        'createInvoice': 1, // unverified
-                        'getInvoice': 1,
-                        'getInvoiceIdsByOrderNumber': 1,
-                        'cancelInvoice': 1,
+                        'createInvoice': { 'cost': 1 } as Endpoint<Dict>, // unverified
+                        'getInvoice': { 'cost': 1 } as Endpoint<Dict>,
+                        'getInvoiceIdsByOrderNumber': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelInvoice': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'tlapi': {
                     'post': {
-                        'get_positions': 66, // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
-                        'position_history': 66, // 10 in 60 seconds
-                        'active_positions': 5, // 20 in 10 seconds
-                        'create_position': 33, // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
-                        'change_position': 33, // 3 in 10 seconds
-                        'cancel_position': 33, // 3 in 10 seconds
+                        'get_positions': { 'cost': 66 } as Endpoint<Dict>, // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
+                        'position_history': { 'cost': 66 } as Endpoint<Dict>, // 10 in 60 seconds
+                        'active_positions': { 'cost': 5 } as Endpoint<Dict>, // 20 in 10 seconds
+                        'create_position': { 'cost': 33 } as Endpoint<Dict>, // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
+                        'change_position': { 'cost': 33 } as Endpoint<Dict>, // 3 in 10 seconds
+                        'cancel_position': { 'cost': 33 } as Endpoint<Dict>, // 3 in 10 seconds
                     },
                 },
                 'fapi': {
                     'get': {
-                        'groups/{group_id}': 1, // testing
-                        'last_price/{group_id}/{pair}': 1,
-                        'ticker/{group_id}/{pair}': 1,
-                        'trades/{group_id}/{pair}': 1,
-                        'depth/{group_id}/{pair}': 1,
+                        'groups/{group_id}': { 'cost': 1 } as Endpoint<List>, // testing
+                        'last_price/{group_id}/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker/{group_id}/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades/{group_id}/{pair}': { 'cost': 1 } as Endpoint<List>,
+                        'depth/{group_id}/{pair}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -238,7 +241,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const markets = await this.publicGetCurrencyPairsAll (params);
         //
         //     [
@@ -273,6 +276,9 @@ export default class zaif extends Exchange {
         const [ baseId, quoteId ] = name.split ('/');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         return this.safeMarketStructure ({
             'id': id,
@@ -326,14 +332,14 @@ export default class zaif extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeValue (response, 'return', {});
-        const deposit = this.safeValue (balances, 'deposit');
+        const balances = this.safeDict (response, 'return', {});
+        const deposit = this.safeDict (balances, 'deposit');
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const funds = this.safeValue (balances, 'funds', {});
+        const funds = this.safeDict (balances, 'funds', {});
         const currencyIds = Object.keys (funds);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -362,7 +368,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -380,7 +386,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -442,7 +448,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -514,7 +520,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -522,7 +528,7 @@ export default class zaif extends Exchange {
         const request: Dict = {
             'pair': market['id'],
         };
-        let response = await this.publicGetTradesPair (this.extend (request, params));
+        const response = await this.publicGetTradesPair (this.extend (request, params));
         //
         //      [
         //          {
@@ -535,14 +541,15 @@ export default class zaif extends Exchange {
         //          }, ...
         //      ]
         //
-        const numTrades = response.length;
+        let trades: List = this.toArray (response);
+        const numTrades = trades.length;
         if (numTrades === 1) {
-            const firstTrade = response[0];
-            if (!Object.keys (firstTrade).length) {
-                response = [];
+            const firstTrade = this.safeDict (trades, 0, {});
+            if (Object.keys (firstTrade).length === 0) {
+                trades = [];
             }
         }
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     /**
@@ -558,7 +565,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -573,9 +580,10 @@ export default class zaif extends Exchange {
             'price': price,
         };
         const response = await this.privatePostTrade (this.extend (request, params));
+        const data = this.safeDict (response, 'return', {});
         return this.safeOrder ({
             'info': response,
-            'id': response['return']['order_id'].toString (),
+            'id': data['order_id'].toString (),
         }, market);
     }
 
@@ -589,7 +597,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const request: Dict = {
             'order_id': id,
         };
@@ -679,7 +687,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -693,7 +701,8 @@ export default class zaif extends Exchange {
             request['currency_pair'] = market['id'];
         }
         const response = await this.privatePostActiveOrders (this.extend (request, params));
-        return this.parseOrders (response['return'], market, since, limit);
+        const data = this.safeDict (response, 'return', {});
+        return this.parseOrders (data, market, since, limit);
     }
 
     /**
@@ -707,7 +716,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -726,8 +735,15 @@ export default class zaif extends Exchange {
             market = this.market (symbol);
             request['currency_pair'] = market['id'];
         }
+        if (since !== undefined) {
+            request['since'] = this.parseToInt (since / 1000);
+        }
+        if (limit !== undefined) {
+            request['count'] = Math.min (limit, 1000);
+        }
         const response = await this.privatePostTradeHistory (this.extend (request, params));
-        return this.parseOrders (response['return'], market, since, limit);
+        const data = this.safeDict (response, 'return', {});
+        return this.parseOrders (data, market, since, limit);
     }
 
     /**
@@ -742,8 +758,8 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -759,10 +775,10 @@ export default class zaif extends Exchange {
             // 'message': 'Hi!', // XEM and others
             // 'opt_fee': 0.003, // BTC and MONA only
         };
-        if (tag !== undefined) {
-            request['message'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['message'] = tagWithdrawTag;
         }
-        const result = await this.privatePostWithdraw (this.extend (request, params));
+        const result = await this.privatePostWithdraw (this.extend (request, paramsWithdrawTag));
         //
         //     {
         //         "success": 1,
@@ -797,13 +813,13 @@ export default class zaif extends Exchange {
         //         }
         //     }
         //
-        currency = this.safeCurrency (undefined, currency);
+        const currencyResolved: Currency = this.safeCurrency (undefined, currency);
         let fee: Fee = undefined;
-        const feeCost = this.safeValue (transaction, 'fee');
+        const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': currency['code'],
+                'currency': currencyResolved['code'],
             };
         }
         return {
@@ -817,7 +833,7 @@ export default class zaif extends Exchange {
             'addressTo': undefined,
             'amount': undefined,
             'type': undefined,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'status': undefined,
             'updated': undefined,
             'tagFrom': undefined,
@@ -836,8 +852,13 @@ export default class zaif extends Exchange {
         return nonce.toFixed (8);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
-        let url = this.urls['api']['rest'] + '/';
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const baseApiUrl = this.safeString (this.urls['api'], 'rest');
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl: string = baseApiUrl;
+        let url = baseUrl + '/';
         if (api === 'public') {
             url += 'api/' + this.version + '/' + this.implodeParams (path, params);
         } else if (api === 'fapi') {
@@ -852,15 +873,16 @@ export default class zaif extends Exchange {
                 url += 'tapi';
             }
             const nonce = this.customNonce ();
-            body = this.urlencode (this.extend ({
+            const bodyEncoded = this.urlencode (this.extend ({
                 'method': path,
                 'nonce': nonce,
             }, params));
-            headers = {
+            const headersSigned: NullableDict = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), sha512),
+                'Sign': this.hmac (this.encode (bodyEncoded), this.encode (this.secret), sha512),
             };
+            return { 'url': url, 'method': method, 'body': bodyEncoded, 'headers': headersSigned };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -880,7 +902,7 @@ export default class zaif extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
         const success = this.safeBool (response, 'success', true);
-        if (!success) {
+        if (success !== true) {
             throw new ExchangeError (feedback);
         }
         return undefined;

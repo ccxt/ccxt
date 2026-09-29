@@ -533,7 +533,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         'kucoinfutures',
         'bitget',
         'hyperliquid',
-        'bitmex',
         'bingx',
         'htx',
         'mexc',
@@ -582,7 +581,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         const exchangesByCountriesMarkdownTable = createMarkdownTable (byCountryExchanges, createMarkdownListOfExchangesByCountries, [ 4 ])
         const result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + exchangesByCountriesMarkdownTable + "\n\n"
         for (const exchangePath of exchangesByCountriesPaths) {
-            fs.truncateSync (exchangePath)
             fs.writeFileSync (exchangePath, result)
         }
     }
@@ -792,7 +790,7 @@ async function exportEverything () {
     flat.push ('error_hierarchy')
 
     const typeExports = getTypesExports();
-    const staticExports = ['version', 'Exchange', 'BaseExchange', 'PredictionExchange', 'exchanges', 'pro', 'prediction', 'Precise', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
+    const staticExports = ['version', 'Exchange', 'BaseExchange', 'PredictionExchange', 'exchanges', 'pro', 'prediction', 'Precise', 'OrderRouter', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
 
     const fullExports  = staticExports.concat(ids)
 

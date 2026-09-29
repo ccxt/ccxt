@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinspot import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
-from typing import List
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
@@ -17,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class coinspot(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(coinspot, self).describe(), {
             'id': 'coinspot',
             'name': 'CoinSpot',
@@ -125,102 +124,94 @@ class coinspot(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'latest',
-                    ],
+                    'get': {
+                        'latest': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'post': [
-                        'orders',
-                        'orders/history',
-                        'my/coin/deposit',
-                        'my/coin/send',
-                        'quote/buy',
-                        'quote/sell',
-                        'my/balances',
-                        'my/orders',
-                        'my/buy',
-                        'my/sell',
-                        'my/buy/cancel',
-                        'my/sell/cancel',
-                        'ro/my/balances',
-                        'ro/my/balances/{cointype}',
-                        'ro/my/deposits',
-                        'ro/my/withdrawals',
-                        'ro/my/transactions',
-                        'ro/my/transactions/{cointype}',
-                        'ro/my/transactions/open',
-                        'ro/my/transactions/{cointype}/open',
-                        'ro/my/sendreceive',
-                        'ro/my/affiliatepayments',
-                        'ro/my/referralpayments',
-                    ],
+                    'post': {
+                        'orders': {'cost': 1},
+                        'orders/history': {'cost': 1},
+                        'my/coin/deposit': {'cost': 1},
+                        'my/coin/send': {'cost': 1},
+                        'quote/buy': {'cost': 1},
+                        'quote/sell': {'cost': 1},
+                        'my/balances': {'cost': 1},
+                        'my/orders': {'cost': 1},
+                        'my/buy': {'cost': 1},
+                        'my/sell': {'cost': 1},
+                        'my/buy/cancel': {'cost': 1},
+                        'my/sell/cancel': {'cost': 1},
+                        'ro/my/balances': {'cost': 1},
+                        'ro/my/balances/{cointype}': {'cost': 1},
+                        'ro/my/deposits': {'cost': 1},
+                        'ro/my/withdrawals': {'cost': 1},
+                        'ro/my/transactions': {'cost': 1},
+                        'ro/my/transactions/{cointype}': {'cost': 1},
+                        'ro/my/transactions/open': {'cost': 1},
+                        'ro/my/transactions/{cointype}/open': {'cost': 1},
+                        'ro/my/sendreceive': {'cost': 1},
+                        'ro/my/affiliatepayments': {'cost': 1},
+                        'ro/my/referralpayments': {'cost': 1},
+                    },
                 },
                 'v2': {
                     'public': {
-                        'get': [
-                            'latest',
-                            'latest/{cointype}',
-                            'latest/{cointype}/{markettype}',
-                            'buyprice/{cointype}',
-                            'buyprice/{cointype}/{markettype}',
-                            'sellprice/{cointype}',
-                            'sellprice/{cointype}/{markettype}',
-                            'orders/open/{cointype}',
-                            'orders/open/{cointype}/{markettype}',
-                            'orders/completed/{cointype}',
-                            'orders/completed/{cointype}/{markettype}',
-                            'orders/summary/completed/{cointype}',
-                            'orders/summary/completed/{cointype}/{markettype}',
-                        ],
+                        'get': {
+                            'latest': {'cost': 1},
+                            'latest/{cointype}': {'cost': 1},
+                            'latest/{cointype}/{markettype}': {'cost': 1},
+                            'buyprice/{cointype}': {'cost': 1},
+                            'buyprice/{cointype}/{markettype}': {'cost': 1},
+                            'sellprice/{cointype}': {'cost': 1},
+                            'sellprice/{cointype}/{markettype}': {'cost': 1},
+                            'orders/open/{cointype}': {'cost': 1},
+                            'orders/open/{cointype}/{markettype}': {'cost': 1},
+                            'orders/completed/{cointype}': {'cost': 1},
+                            'orders/completed/{cointype}/{markettype}': {'cost': 1},
+                            'orders/summary/completed/{cointype}': {'cost': 1},
+                            'orders/summary/completed/{cointype}/{markettype}': {'cost': 1},
+                        },
                     },
                     'private': {
-                        'post': [
-                            # Status & Account
-                            'status',
-                            'my/coin/deposit',
-                            # Quotes
-                            'quote/buy/now',
-                            'quote/sell/now',
-                            'quote/swap/now',
-                            # Market Orders
-                            'my/buy',
-                            'my/buy/edit',
-                            'my/sell',
-                            'my/sell/edit',
-                            # Instant Orders
-                            'my/buy/now',
-                            'my/sell/now',
-                            'my/swap/now',
-                            # Cancel Orders
-                            'my/buy/cancel',
-                            'my/buy/cancel/all',
-                            'my/sell/cancel',
-                            'my/sell/cancel/all',
-                            # Withdrawals
-                            'my/coin/withdraw/senddetails',
-                            'my/coin/withdraw/send',
-                            # Read Only Status
-                            'ro/status',
-                            # Read Only Market Orders
-                            'ro/orders/market/open',
-                            'ro/orders/market/completed',
-                            # Read Only Balances
-                            'ro/my/balances',
-                            'ro/my/balance/{cointype}',
-                            # Read Only Orders
-                            'ro/my/orders/market/open',
-                            'ro/my/orders/limit/open',
-                            'ro/my/orders/completed',
-                            'ro/my/orders/market/completed',
-                            # Read Only Transactions
-                            'ro/my/sendreceive',
-                            'ro/my/deposits',
-                            'ro/my/withdrawals',
-                            # Read Only Payments
-                            'ro/my/affiliatepayments',
-                            'ro/my/referralpayments',
-                        ],
+                        'post': {
+                            'status': {'cost': 1},
+                            'my/coin/deposit': {'cost': 1},
+                            'quote/buy/now': {'cost': 1},
+                            'quote/sell/now': {'cost': 1},
+                            'quote/swap/now': {'cost': 1},
+                            'my/buy': {'cost': 1},
+                            'my/buy/edit': {'cost': 1},
+                            'my/sell': {'cost': 1},
+                            'my/sell/edit': {'cost': 1},
+                            'my/buy/now': {'cost': 1},
+                            'my/buy/now/coinlist': {'cost': 1},
+                            'my/sell/now': {'cost': 1},
+                            'my/sell/now/coinlist': {'cost': 1},
+                            'my/swap/now': {'cost': 1},
+                            'my/buy/cancel': {'cost': 1},
+                            'my/buy/cancel/all': {'cost': 1},
+                            'my/sell/cancel': {'cost': 1},
+                            'my/sell/cancel/all': {'cost': 1},
+                            'my/coin/withdraw/senddetails': {'cost': 1},
+                            'my/coin/withdraw/send': {'cost': 1},
+                            'my/coin/withdraw/send/async': {'cost': 1},
+                            'my/coin/withdraw/send/status': {'cost': 1},
+                            'ro/status': {'cost': 1},
+                            'ro/orders/market/open': {'cost': 1},
+                            'ro/orders/market/completed': {'cost': 1},
+                            'ro/my/balances': {'cost': 1},
+                            'ro/my/balance/{cointype}': {'cost': 1},
+                            'ro/my/orders/market/open': {'cost': 1},
+                            'ro/my/orders/limit/open': {'cost': 1},
+                            'ro/my/orders/completed': {'cost': 1},
+                            'ro/my/orders/market/completed': {'cost': 1},
+                            'ro/my/sendreceive': {'cost': 1},
+                            'ro/my/deposits': {'cost': 1},
+                            'ro/my/withdrawals': {'cost': 1},
+                            'ro/my/affiliatepayments': {'cost': 1},
+                            'ro/my/referralpayments': {'cost': 1},
+                        },
                     },
                 },
             },
@@ -300,7 +291,7 @@ class coinspot(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         balances = self.safe_value_2(response, 'balance', 'balances')
         if isinstance(balances, list):
@@ -309,7 +300,7 @@ class coinspot(Exchange, ImplicitAPI):
                 currencyIds = list(currencies.keys())
                 for j in range(0, len(currencyIds)):
                     currencyId = currencyIds[j]
-                    balance = currencies[currencyId]
+                    balance = self.safe_dict(currencies, currencyId)
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
                     account['total'] = self.safe_string(balance, 'balance')
@@ -326,7 +317,7 @@ class coinspot(Exchange, ImplicitAPI):
                     result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -338,7 +329,11 @@ class coinspot(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         method = self.safe_string(self.options, 'fetchBalance', 'private_post_my_balances')
-        response = getattr(self, method)(params)
+        response = None
+        if (method == 'private_post_ro_my_balances') or (method == 'privatePostRoMyBalances'):
+            response = self.privatePostRoMyBalances(params)
+        else:
+            response = self.privatePostMyBalances(params)
         #
         # read-write api keys
         #
@@ -357,7 +352,7 @@ class coinspot(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -412,7 +407,7 @@ class coinspot(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -444,7 +439,7 @@ class coinspot(Exchange, ImplicitAPI):
         ticker = self.safe_dict(prices, id, {})
         return self.parse_ticker(ticker, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -480,13 +475,13 @@ class coinspot(Exchange, ImplicitAPI):
         for i in range(0, len(ids)):
             id = ids[i]
             market = self.safe_market(id)
-            if market['spot']:
+            if market['spot'] is True:
                 symbol = market['symbol']
                 ticker = prices[id]
                 result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -516,7 +511,7 @@ class coinspot(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'orders', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -541,7 +536,7 @@ class coinspot(Exchange, ImplicitAPI):
         #      "status": "ok",
         #      "buyorders": [
         #          {
-        #              "otc": False,
+        #              "otc": false,
         #              "market": "ALGO/AUD",
         #              "amount": 386.95197925,
         #              "created": "2022-10-20T09:56:44.502Z",
@@ -552,7 +547,7 @@ class coinspot(Exchange, ImplicitAPI):
         #      ],
         #      "sellorders": [
         #          {
-        #              "otc": False,
+        #              "otc": false,
         #              "market": "SOLO/ALGO",
         #              "amount": 154.52345614,
         #              "total": 115.78858204658796,
@@ -587,7 +582,7 @@ class coinspot(Exchange, ImplicitAPI):
         #
         # private fetchMyTrades
         #     {
-        #       "otc": False,
+        #       "otc": false,
         #       "market": "ALGO/AUD",
         #       "amount": 386.95197925,
         #       "created": "2022-10-20T09:56:44.502Z",
@@ -640,7 +635,7 @@ class coinspot(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -656,8 +651,7 @@ class coinspot(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        self.check_required_argument('createOrder', side, 'side')
         sideUpper = side.upper()
         if type == 'market':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
@@ -681,7 +675,7 @@ class coinspot(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -696,15 +690,15 @@ class coinspot(Exchange, ImplicitAPI):
         side = self.safe_string(params, 'side')
         if side != 'buy' and side != 'sell':
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a side parameter, "buy" or "sell"')
-        params = self.omit(params, 'side')
+        paramsOmitted = self.omit(params, 'side')
         request = {
             'id': id,
         }
         response: dict
         if side == 'buy':
-            response = self.privatePostMyBuyCancel(self.extend(request, params))
+            response = self.privatePostMyBuyCancel(self.extend(request, paramsOmitted))
         else:
-            response = self.privatePostMySellCancel(self.extend(request, params))
+            response = self.privatePostMySellCancel(self.extend(request, paramsOmitted))
         #
         # status - ok, error
         #
@@ -712,8 +706,8 @@ class coinspot(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
-        if not response:
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+        if response is None:
             return None  # fallback to default error handler
         status = self.safe_string(response, 'status')
         if status == 'error':
@@ -721,20 +715,32 @@ class coinspot(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def nonce(self) -> float:
+        # the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return self.milliseconds()
+
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        requestHeaders = headers
+        requestBody = body
         isVersionedApi = isinstance(api, list)
         version = api[0] if isVersionedApi else None
         accessType = api[1] if isVersionedApi else api
         endpoint = '/' + self.implode_params(path, params)
-        fullPath = '/' + version + endpoint if (version is not None) else endpoint
-        url = self.urls['api'][accessType] + fullPath
+        fullPath = endpoint
+        if version is not None:
+            fullPath = '/' + version + endpoint
+        apiUrl = self.safe_string(self.urls['api'], accessType)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + fullPath
         if accessType == 'private':
             self.check_required_credentials()
-            nonce = self.nonce()
-            body = self.json(self.extend({'nonce': nonce}, params))
-            headers = {
+            # coinspot requires an increasing nonce
+            nonce = self.incrementing_nonce()
+            requestBody = self.json(self.extend({'nonce': nonce}, params))
+            requestHeaders = {
                 'Content-Type': 'application/json',
                 'key': self.apiKey,
-                'sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
+                'sign': self.hmac(self.encode(requestBody), self.encode(self.secret), hashlib.sha512),
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}

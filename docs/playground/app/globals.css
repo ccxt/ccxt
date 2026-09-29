@@ -400,12 +400,17 @@ button {
   line-height: 1.6;
 }
 .msg .who {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: hsl(var(--muted-foreground));
   margin-bottom: 6px;
+  min-height: 24px;
 }
 .msg.user .bubble {
   background: hsl(var(--muted));
@@ -446,12 +451,24 @@ button {
   font-size: 13px;
   line-height: 1.65;
 }
+.chips-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground));
+}
 .chips {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 7px;
   margin-top: 12px;
+  overflow: hidden;
 }
 .chip {
   text-align: left;
@@ -467,6 +484,70 @@ button {
 .chip:hover {
   background: hsl(var(--accent));
   border-color: hsl(var(--ring) / 0.4);
+}
+/* Inset so the fly-in clipping on .chips cannot swallow the ring. */
+.chip:focus-visible {
+  outline: 2px solid hsl(var(--ring) / 0.55);
+  outline-offset: -2px;
+}
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.icon-btn:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+.icon-btn:focus-visible {
+  outline: 2px solid hsl(var(--ring) / 0.5);
+  outline-offset: 2px;
+}
+.icon-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.icon-btn.spinning svg {
+  animation: spin-once 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes spin-once {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.chip-in {
+  animation: chip-fly-in 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes chip-fly-in {
+  from {
+    opacity: 0;
+    transform: translateX(115%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .icon-btn.spinning svg {
+    animation: none;
+  }
 }
 .ai-form {
   display: flex;
@@ -633,8 +714,10 @@ button {
   display: none;
 }
 
-@media (max-width: 900px) {
-  /* Topbar becomes two rows: brand + actions, then language tabs + examples. */
+@media (max-width: 1110px) {
+  /* Topbar becomes two rows: brand + actions, then language tabs + examples.
+     1110px = the single-row topbar's intrinsic width; below it the trailing
+     Run button clips under .topbar's overflow:hidden. */
   .topbar {
     flex-wrap: wrap;
     height: auto;
@@ -702,8 +785,10 @@ button {
   .btn-label-short {
     display: inline;
   }
+}
 
-  /* The 400px AI column alone exceeds a phone viewport — overlay it instead. */
+/* Below 900px the 400px AI column alone exceeds the viewport — overlay it. */
+@media (max-width: 900px) {
   .body.with-ai {
     grid-template-columns: minmax(0, 1fr);
   }

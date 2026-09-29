@@ -5,13 +5,13 @@
 
 from ccxt.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import Any, Strings, TransferEntry
+from ccxt.base.types import Str, Strings, Tickers, TransferEntry
 from ccxt.base.errors import BadRequest
 
 
 class kucoinfutures(kucoin, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(kucoinfutures, self).describe(), {
             'id': 'kucoinfutures',
             'name': 'KuCoin Futures',
@@ -28,6 +28,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'future': True,
                 'option': None,
                 'fetchBidsAsks': True,
+                'transfer': True,
             },
             'options': {
                 'fetchMarkets': {
@@ -39,7 +40,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             },
         })
 
-    def fetch_bids_asks(self, symbols: Strings = None, params={}):
+    def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches the bid and ask price and volume for multiple markets
         :param str[] [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
@@ -49,9 +50,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
         request = {
             'method': 'futuresPublicGetAllTickers',
         }
-        return self.fetch_tickers(symbols, self.extend(request, params))
+        extendedRequest = self.extend(request, params)
+        return self.fetch_tickers(symbols, extendedRequest)
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -70,7 +72,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'amount': amountToPrecision,
         }
         toAccountString = self.parse_transfer_type(toAccount)
-        response = None
+        response: dict
         if toAccountString == 'TRADE' or toAccountString == 'MAIN':
             request['recAccountType'] = toAccountString
             response = self.futuresPrivatePostTransferOut(self.extend(request, params))
@@ -105,7 +107,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             #    {
             #        "code": "200000",
             #        "data": {
-            #            "applyId": "5bffb63303aa675e8bbe18f9"  # Transfer-out request ID
+            #            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
             #        }
             #    }
             #
@@ -118,7 +120,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'toAccount': toAccount,
         })
 
-    def parse_transfer_type(self, transferType: Any):
+    def parse_transfer_type(self, transferType: Str) -> Str:
         transferTypes = {
             'spot': 'TRADE',
             'funding': 'MAIN',

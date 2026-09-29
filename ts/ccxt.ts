@@ -32,16 +32,17 @@ SOFTWARE.
 import { Exchange, BaseExchange }  from './src/base/Exchange.js'
 import PredictionExchange from './src/base/PredictionExchange.js'
 import { Precise }   from './src/base/Precise.js'
+import { OrderRouter } from './src/base/OrderRouter.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Int, int, Str, Strings, Num, Bool, IndexType, NullableIndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, FeeString, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, NestedDictionary, MinMax, FeeInterface, FeeStringInterface, TradingFeeInterface, MarketInterface, Precision, PredictionEvent, PredictionOutcome, PredictionMarket, PredictionSettlement, PredictionFees, PredictionOrder, PredictionTrade, PredictionPosition, PredictionTicker, PredictionOrderBook, PredictionTickers, PredictionTradingFee, PredictionOpenInterest, PredictionOrderRequest, fetchEventsParams, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, DepositWithdrawFees, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL } from './src/base/types.js'
+import type { Int, int, Str, Strings, Num, Bool, IndexType, NullableIndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, FeeString, OHLCV, OHLCVC, safeInputType, Market, Currency, Dictionary, Endpoint, NestedDictionary, MinMax, FeeInterface, FeeStringInterface, TradingFeeInterface, MarketInterface, Precision, PredictionEvent, PredictionOutcome, PredictionOutcomeMarket, PredictionMarket, PredictionSettlement, PredictionFees, PredictionOrder, PredictionTrade, PredictionPosition, PredictionTicker, PredictionOrderBook, PredictionTickers, PredictionTradingFee, PredictionOpenInterest, PredictionOrderRequest, fetchEventsParams, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, DepositAddresses, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, DepositWithdrawFees, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, AllGreeks, Conversion, Option, LastPrice, Leverage, MarginModification, MarginLoan, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, Status, PositionModeInfo } from './src/base/types.js'
 import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError}  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.70';
+const version = '4.5.84';
 
 //-----------------------------------------------------------------------------
 
@@ -63,7 +64,6 @@ import bitfinex from  './src/bitfinex.js'
 import bitflyer from  './src/bitflyer.js'
 import bitget from  './src/bitget.js'
 import bithumb from  './src/bithumb.js'
-import bitmex from  './src/bitmex.js'
 import bitopro from  './src/bitopro.js'
 import bitrue from  './src/bitrue.js'
 import bitso from  './src/bitso.js'
@@ -76,9 +76,11 @@ import blofin from  './src/blofin.js'
 import btcbox from  './src/btcbox.js'
 import btcmarkets from  './src/btcmarkets.js'
 import btcturk from  './src/btcturk.js'
+import btse from  './src/btse.js'
 import bullish from  './src/bullish.js'
 import bybit from  './src/bybit.js'
 import bybiteu from  './src/bybiteu.js'
+import bybitid from  './src/bybitid.js'
 import bydfi from  './src/bydfi.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
@@ -98,7 +100,6 @@ import deribit from  './src/deribit.js'
 import derive from  './src/derive.js'
 import digifinex from  './src/digifinex.js'
 import dydx from  './src/dydx.js'
-import exmo from  './src/exmo.js'
 import extended from  './src/extended.js'
 import fmfwio from  './src/fmfwio.js'
 import foxbit from  './src/foxbit.js'
@@ -138,6 +139,7 @@ import paradex from  './src/paradex.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
+import revolutx from  './src/revolutx.js'
 import tokocrypto from  './src/tokocrypto.js'
 import toobit from  './src/toobit.js'
 import upbit from  './src/upbit.js'
@@ -164,7 +166,6 @@ import bingxPro from  './src/pro/bingx.js'
 import bitfinexPro from  './src/pro/bitfinex.js'
 import bitgetPro from  './src/pro/bitget.js'
 import bithumbPro from  './src/pro/bithumb.js'
-import bitmexPro from  './src/pro/bitmex.js'
 import bitoproPro from  './src/pro/bitopro.js'
 import bitruePro from  './src/pro/bitrue.js'
 import bitstampPro from  './src/pro/bitstamp.js'
@@ -175,6 +176,7 @@ import blofinPro from  './src/pro/blofin.js'
 import bullishPro from  './src/pro/bullish.js'
 import bybitPro from  './src/pro/bybit.js'
 import bybiteuPro from  './src/pro/bybiteu.js'
+import bybitidPro from  './src/pro/bybitid.js'
 import bydfiPro from  './src/pro/bydfi.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
@@ -188,7 +190,6 @@ import deepcoinPro from  './src/pro/deepcoin.js'
 import deribitPro from  './src/pro/deribit.js'
 import derivePro from  './src/pro/derive.js'
 import dydxPro from  './src/pro/dydx.js'
-import exmoPro from  './src/pro/exmo.js'
 import extendedPro from  './src/pro/extended.js'
 import gatePro from  './src/pro/gate.js'
 import gateeuPro from  './src/pro/gateeu.js'
@@ -229,11 +230,15 @@ import wooPro from  './src/pro/woo.js'
 import woofiproPro from  './src/pro/woofipro.js'
 import xtPro from  './src/pro/xt.js'
 
+import binancePrediction from  './src/prediction/binance.js'
 import hyperliquidPrediction from  './src/prediction/hyperliquid.js'
 import kalshiPrediction from  './src/prediction/kalshi.js'
 import limitlessPrediction from  './src/prediction/limitless.js'
 import myriadPrediction from  './src/prediction/myriad.js'
+import opinionPrediction from  './src/prediction/opinion.js'
 import polymarketPrediction from  './src/prediction/polymarket.js'
+import predictfunPrediction from  './src/prediction/predictfun.js'
+import sxbetPrediction from  './src/prediction/sxbet.js'
 
 const exchanges = {
     'alpaca':                 alpaca,
@@ -254,7 +259,6 @@ const exchanges = {
     'bitflyer':               bitflyer,
     'bitget':                 bitget,
     'bithumb':                bithumb,
-    'bitmex':                 bitmex,
     'bitopro':                bitopro,
     'bitrue':                 bitrue,
     'bitso':                  bitso,
@@ -267,9 +271,11 @@ const exchanges = {
     'btcbox':                 btcbox,
     'btcmarkets':             btcmarkets,
     'btcturk':                btcturk,
+    'btse':                   btse,
     'bullish':                bullish,
     'bybit':                  bybit,
     'bybiteu':                bybiteu,
+    'bybitid':                bybitid,
     'bydfi':                  bydfi,
     'cex':                    cex,
     'coinbase':               coinbase,
@@ -289,7 +295,6 @@ const exchanges = {
     'derive':                 derive,
     'digifinex':              digifinex,
     'dydx':                   dydx,
-    'exmo':                   exmo,
     'extended':               extended,
     'fmfwio':                 fmfwio,
     'foxbit':                 foxbit,
@@ -329,6 +334,7 @@ const exchanges = {
     'paymium':                paymium,
     'phemex':                 phemex,
     'poloniex':               poloniex,
+    'revolutx':               revolutx,
     'tokocrypto':             tokocrypto,
     'toobit':                 toobit,
     'upbit':                  upbit,
@@ -355,7 +361,6 @@ const pro = {
     'bitfinex':               bitfinexPro,
     'bitget':                 bitgetPro,
     'bithumb':                bithumbPro,
-    'bitmex':                 bitmexPro,
     'bitopro':                bitoproPro,
     'bitrue':                 bitruePro,
     'bitstamp':               bitstampPro,
@@ -366,6 +371,7 @@ const pro = {
     'bullish':                bullishPro,
     'bybit':                  bybitPro,
     'bybiteu':                bybiteuPro,
+    'bybitid':                bybitidPro,
     'bydfi':                  bydfiPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
@@ -379,7 +385,6 @@ const pro = {
     'deribit':                deribitPro,
     'derive':                 derivePro,
     'dydx':                   dydxPro,
-    'exmo':                   exmoPro,
     'extended':               extendedPro,
     'gate':                   gatePro,
     'gateeu':                 gateeuPro,
@@ -426,11 +431,15 @@ const pro = {
 //-----------------------------------------------------------------------------
 
 const prediction = {
+    'binance':                binancePrediction,
     'hyperliquid':            hyperliquidPrediction,
     'kalshi':                 kalshiPrediction,
     'limitless':              limitlessPrediction,
     'myriad':                 myriadPrediction,
+    'opinion':                opinionPrediction,
     'polymarket':             polymarketPrediction,
+    'predictfun':             predictfunPrediction,
+    'sxbet':                  sxbetPrediction,
 };
 
 (prediction as any).exchanges = Object.keys (prediction);
@@ -439,7 +448,7 @@ const prediction = {
 (prediction as Dict)['Exchange'] = PredictionExchange
 //-----------------------------------------------------------------------------
 
-const ccxt = Object.assign ({ version, Exchange, BaseExchange, PredictionExchange, Precise, 'exchanges': Object.keys (exchanges), 'pro': pro, 'prediction': prediction}, exchanges, functions, errors)
+const ccxt = Object.assign ({ version, Exchange, BaseExchange, PredictionExchange, Precise, OrderRouter, 'exchanges': Object.keys (exchanges), 'pro': pro, 'prediction': prediction}, exchanges, functions, errors)
 
 export {
     version,
@@ -450,6 +459,7 @@ export {
     pro,
     prediction,
     Precise,
+    OrderRouter,
     functions,
     errors,
     BaseError,
@@ -513,12 +523,13 @@ export {
     FeeString,
     OHLCV,
     OHLCVC,
-    implicitReturnType,
+    safeInputType,
     Market,
     Currency,
     ConstructorArgs,
     Dictionary,
     NestedDictionary,
+    Endpoint,
     MinMax,
     FeeInterface,
     FeeStringInterface,
@@ -530,6 +541,7 @@ export {
     PredictionEvent,
     PredictionMarket,
     PredictionOutcome,
+    PredictionOutcomeMarket,
     PredictionOrder,
     PredictionTrade,
     PredictionPosition,
@@ -554,6 +566,7 @@ export {
     PartialBalances,
     Balances,
     DepositAddress,
+    DepositAddresses,
     WithdrawalResponse,
     FundingRate,
     FundingRates,
@@ -577,6 +590,7 @@ export {
     FundingHistory,
     MarginMode,
     Greeks,
+    AllGreeks,
     Conversion,
     Option,
     LastPrice,
@@ -584,6 +598,9 @@ export {
     LongShortRatio,
     ADL,
     MarginModification,
+    MarginLoan,
+    Status,
+    PositionModeInfo,
     Leverages,
     LastPrices,
     Currencies,
@@ -611,7 +628,6 @@ export {
     bitflyer,
     bitget,
     bithumb,
-    bitmex,
     bitopro,
     bitrue,
     bitso,
@@ -624,9 +640,11 @@ export {
     btcbox,
     btcmarkets,
     btcturk,
+    btse,
     bullish,
     bybit,
     bybiteu,
+    bybitid,
     bydfi,
     cex,
     coinbase,
@@ -646,7 +664,6 @@ export {
     derive,
     digifinex,
     dydx,
-    exmo,
     extended,
     fmfwio,
     foxbit,
@@ -686,6 +703,7 @@ export {
     paymium,
     phemex,
     poloniex,
+    revolutx,
     tokocrypto,
     toobit,
     upbit,

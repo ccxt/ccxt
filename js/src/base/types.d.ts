@@ -6,7 +6,7 @@ export type Num = number | undefined;
 export type Bool = boolean | undefined;
 export type IndexType = number | string;
 export type NullableIndexType = IndexType | undefined;
-export type OrderSide = 'buy' | 'sell' | string | undefined;
+export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index' | 'prediction';
 export type SubType = 'linear' | 'inverse' | undefined;
@@ -20,6 +20,10 @@ export type Dict = Dictionary<any>;
 export type NullableDict = Dict | undefined;
 export type List = Array<any>;
 export type NullableList = List | undefined;
+export interface Endpoint<Returns extends Dict | List | string> {
+    cost?: number;
+    returns?: Returns;
+}
 /** Request parameters */
 export interface MinMax {
     min: Num;
@@ -42,6 +46,7 @@ export interface TradingFeeInterface {
     taker: Num;
     percentage: Bool;
     tierBased: Bool;
+    tiers?: Dict;
 }
 export type Fee = FeeInterface | undefined;
 export type FeeString = FeeStringInterface | undefined;
@@ -53,6 +58,8 @@ export interface Precision {
     amount: Num;
     price: Num;
     cost?: Num;
+    base?: Num;
+    quote?: Num;
 }
 export interface MarketInterface {
     id: Str;
@@ -72,6 +79,8 @@ export interface MarketInterface {
     swap: Bool;
     future: Bool;
     option: Bool;
+    index?: Bool;
+    stock?: Bool;
     prediction?: Bool;
     contract: Bool;
     settle: Str;
@@ -179,6 +188,14 @@ export interface PredictionOutcome {
     winner?: Bool;
     settleFraction?: Num;
     precision?: Precision;
+}
+export interface PredictionOutcomeMarket extends MarketInterface {
+    outcome: string;
+    outcomeId: string;
+    label?: Str;
+    market?: Str;
+    marketId?: Str;
+    event?: Str;
 }
 export interface PredictionOrder {
     id: Str;
@@ -429,10 +446,10 @@ export interface Transaction {
     tag: Str;
     tagFrom: Str;
     tagTo: Str;
-    type: 'deposit' | 'withdrawal' | Str;
+    type: 'deposit' | 'withdrawal' | 'transfer' | Str;
     amount: Num;
     currency: Str;
-    status: 'pending' | 'ok' | Str;
+    status: 'pending' | 'ok' | 'failed' | 'canceled' | Str;
     updated: Int;
     fee: Fee;
     network: Str;
@@ -499,6 +516,9 @@ export interface DepositAddress {
     network?: Str;
     address: Str;
     tag?: Str;
+}
+/** fetchDepositAddressesByNetwork: address structures indexed by unified network code */
+export interface DepositAddresses extends Dictionary<DepositAddress> {
 }
 export interface WithdrawalResponse {
     info: any;
@@ -726,6 +746,9 @@ export interface Greeks {
     underlyingPrice: Num;
     info: any;
 }
+/** fetchAllGreeks: greeks structures indexed by unified market symbol */
+export interface AllGreeks extends Dictionary<Greeks> {
+}
 export interface Conversion {
     info: any;
     timestamp?: Int;
@@ -801,6 +824,26 @@ export interface MarginModification {
     'timestamp': Int;
     'datetime': Str;
 }
+export interface MarginLoan {
+    id: Str;
+    currency: Str;
+    amount: Num;
+    symbol: Str;
+    timestamp: Int;
+    datetime: Str;
+    info: any;
+}
+export interface Status {
+    status: Str;
+    updated: Int;
+    eta: Int;
+    url: Str;
+    info: any;
+}
+export interface PositionModeInfo {
+    info: any;
+    hedged: Bool;
+}
 export interface Leverages extends Dictionary<Leverage> {
 }
 export interface LastPrices extends Dictionary<LastPrice> {
@@ -823,7 +866,17 @@ export interface LeverageTiers extends Dictionary<LeverageTier[]> {
 export type OHLCV = [Num, Num, Num, Num, Num, Num];
 /** [ timestamp, open, high, low, close, volume, count ] */
 export type OHLCVC = [Num, Num, Num, Num, Num, Num, Num];
-export type implicitReturnType = any;
+/**
+ * Input type of the safe* accessors in base/functions/type.ts.
+ *
+ * They read a key out of *any* bag: raw endpoint payloads, already parsed
+ * structures, markets, currencies, options, nested fragments, tuples. That is a
+ * genuine external boundary, so the parameter stays `any`. It is a named alias
+ * rather than a bare `any` so it can never be confused with the concrete
+ * return types of the generated implicit API methods, which describe the
+ * opposite direction of data flow.
+ */
+export type safeInputType = any;
 export type Market = MarketInterface | undefined;
 export type Currency = CurrencyInterface | undefined;
 interface BaseConstructorArgs {

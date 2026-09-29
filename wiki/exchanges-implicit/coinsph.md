@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official coinsph API documentation:** [coins-docs.github.io](https://coins-docs.github.io/rest-api)
 
-> 78 implicit endpoints across 2 access groups.
+> 80 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -134,6 +134,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostOpenapiFiatV1SupportChannel` | POST | `openapi/fiat/v1/support-channel` | 1 |
 | `privatePostOpenapiFiatV1CashOut` | POST | `openapi/fiat/v1/cash-out` | 1 |
 | `privatePostOpenapiFiatV1History` | POST | `openapi/fiat/v1/history` | 1 |
+| `privatePostOpenapiFiatV2History` | POST | `openapi/fiat/v2/history` | 1 |
+| `privatePostOpenapiFiatV1CancelQrCode` | POST | `openapi/fiat/v1/cancel_qr_code` | 1 |
 | `privatePostOpenapiMigrationV4Sellorder` | POST | `openapi/migration/v4/sellorder` | 1 |
 | `privatePostOpenapiMigrationV4ValidateField` | POST | `openapi/migration/v4/validate-field` | 1 |
 | `privatePostOpenapiTransferV3Transfers` | POST | `openapi/transfer/v3/transfers` | 1 |

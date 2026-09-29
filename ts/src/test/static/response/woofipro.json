@@ -4,6 +4,664 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchTicker": [
+            {
+                "description": "swap ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786022130191,
+                    "data": {
+                        "symbol": "PERP_BTC_USDC",
+                        "index_price": 64185.4,
+                        "mark_price": 64171.0,
+                        "sum_unitary_funding": 26522.3,
+                        "est_funding_rate": 0.0001,
+                        "last_funding_rate": 0.00010041,
+                        "next_funding_time": 1786032000000,
+                        "open_interest": 110.64612,
+                        "is_pretge": false,
+                        "24h_open": 64105.6,
+                        "24h_close": 64180.0,
+                        "24h_high": 64941.0,
+                        "24h_low": 63837.6,
+                        "24h_volume": 102.2817,
+                        "24h_amount": 6595662.199482
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "timestamp": 1786022130191,
+                    "datetime": "2026-08-06T13:15:30.191Z",
+                    "high": 64941,
+                    "low": 63837.6,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 64485.26177685744,
+                    "open": 64105.6,
+                    "close": 64180,
+                    "last": 64180,
+                    "previousClose": null,
+                    "change": 74.4,
+                    "percentage": 0.1160585034692756,
+                    "average": 64142.8,
+                    "baseVolume": 102.2817,
+                    "quoteVolume": 6595662.199482,
+                    "indexPrice": 64185.4,
+                    "markPrice": 64171,
+                    "info": {
+                        "symbol": "PERP_BTC_USDC",
+                        "index_price": 64185.4,
+                        "mark_price": 64171,
+                        "sum_unitary_funding": 26522.3,
+                        "est_funding_rate": 0.0001,
+                        "last_funding_rate": 0.00010041,
+                        "next_funding_time": 1786032000000,
+                        "open_interest": 110.64612,
+                        "is_pretge": false,
+                        "24h_open": 64105.6,
+                        "24h_close": 64180,
+                        "24h_high": 64941,
+                        "24h_low": 63837.6,
+                        "24h_volume": 102.2817,
+                        "24h_amount": 6595662.199482,
+                        "timestamp": 1786022130191
+                    }
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "filter swap tickers by symbol",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786022130191,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDC",
+                                "index_price": 64185.4,
+                                "mark_price": 64171.0,
+                                "sum_unitary_funding": 26522.3,
+                                "est_funding_rate": 0.0001,
+                                "last_funding_rate": 0.00010041,
+                                "next_funding_time": 1786032000000,
+                                "open_interest": 110.64612,
+                                "is_pretge": false,
+                                "24h_open": 64105.6,
+                                "24h_close": 64180.0,
+                                "24h_high": 64941.0,
+                                "24h_low": 63837.6,
+                                "24h_volume": 102.2817,
+                                "24h_amount": 6595662.199482
+                            },
+                            {
+                                "symbol": "PERP_LTC_USDC",
+                                "index_price": 45.39,
+                                "mark_price": 45.38,
+                                "sum_unitary_funding": 4.5679,
+                                "est_funding_rate": 3.765e-05,
+                                "last_funding_rate": 8.89e-06,
+                                "next_funding_time": 1786032000000,
+                                "open_interest": 909.21,
+                                "is_pretge": false,
+                                "24h_open": 45.13,
+                                "24h_close": 45.17,
+                                "24h_high": 45.34,
+                                "24h_low": 44.93,
+                                "24h_volume": 551.11,
+                                "24h_amount": 24880.5
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDC:USDC": {
+                        "symbol": "BTC/USDC:USDC",
+                        "timestamp": 1786022130191,
+                        "datetime": "2026-08-06T13:15:30.191Z",
+                        "high": 64941,
+                        "low": 63837.6,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 64485.26177685744,
+                        "open": 64105.6,
+                        "close": 64180,
+                        "last": 64180,
+                        "previousClose": null,
+                        "change": 74.4,
+                        "percentage": 0.1160585034692756,
+                        "average": 64142.8,
+                        "baseVolume": 102.2817,
+                        "quoteVolume": 6595662.199482,
+                        "indexPrice": 64185.4,
+                        "markPrice": 64171,
+                        "info": {
+                            "timestamp": 1786022130191,
+                            "symbol": "PERP_BTC_USDC",
+                            "index_price": 64185.4,
+                            "mark_price": 64171,
+                            "sum_unitary_funding": 26522.3,
+                            "est_funding_rate": 0.0001,
+                            "last_funding_rate": 0.00010041,
+                            "next_funding_time": 1786032000000,
+                            "open_interest": 110.64612,
+                            "is_pretge": false,
+                            "24h_open": 64105.6,
+                            "24h_close": 64180,
+                            "24h_high": 64941,
+                            "24h_low": 63837.6,
+                            "24h_volume": 102.2817,
+                            "24h_amount": 6595662.199482
+                        }
+                    }
+                }
+            },
+            {
+                "description": "all swap tickers",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786022130191,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDC",
+                                "index_price": 64185.4,
+                                "mark_price": 64171.0,
+                                "sum_unitary_funding": 26522.3,
+                                "est_funding_rate": 0.0001,
+                                "last_funding_rate": 0.00010041,
+                                "next_funding_time": 1786032000000,
+                                "open_interest": 110.64612,
+                                "is_pretge": false,
+                                "24h_open": 64105.6,
+                                "24h_close": 64180.0,
+                                "24h_high": 64941.0,
+                                "24h_low": 63837.6,
+                                "24h_volume": 102.2817,
+                                "24h_amount": 6595662.199482
+                            },
+                            {
+                                "symbol": "PERP_LTC_USDC",
+                                "index_price": 45.39,
+                                "mark_price": 45.38,
+                                "sum_unitary_funding": 4.5679,
+                                "est_funding_rate": 3.765e-05,
+                                "last_funding_rate": 8.89e-06,
+                                "next_funding_time": 1786032000000,
+                                "open_interest": 909.21,
+                                "is_pretge": false,
+                                "24h_open": 45.13,
+                                "24h_close": 45.17,
+                                "24h_high": 45.34,
+                                "24h_low": 44.93,
+                                "24h_volume": 551.11,
+                                "24h_amount": 24880.5
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDC:USDC": {
+                        "symbol": "BTC/USDC:USDC",
+                        "timestamp": 1786022130191,
+                        "datetime": "2026-08-06T13:15:30.191Z",
+                        "high": 64941,
+                        "low": 63837.6,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 64485.26177685744,
+                        "open": 64105.6,
+                        "close": 64180,
+                        "last": 64180,
+                        "previousClose": null,
+                        "change": 74.4,
+                        "percentage": 0.1160585034692756,
+                        "average": 64142.8,
+                        "baseVolume": 102.2817,
+                        "quoteVolume": 6595662.199482,
+                        "indexPrice": 64185.4,
+                        "markPrice": 64171,
+                        "info": {
+                            "timestamp": 1786022130191,
+                            "symbol": "PERP_BTC_USDC",
+                            "index_price": 64185.4,
+                            "mark_price": 64171,
+                            "sum_unitary_funding": 26522.3,
+                            "est_funding_rate": 0.0001,
+                            "last_funding_rate": 0.00010041,
+                            "next_funding_time": 1786032000000,
+                            "open_interest": 110.64612,
+                            "is_pretge": false,
+                            "24h_open": 64105.6,
+                            "24h_close": 64180,
+                            "24h_high": 64941,
+                            "24h_low": 63837.6,
+                            "24h_volume": 102.2817,
+                            "24h_amount": 6595662.199482
+                        }
+                    },
+                    "LTC/USDC:USDC": {
+                        "symbol": "LTC/USDC:USDC",
+                        "timestamp": 1786022130191,
+                        "datetime": "2026-08-06T13:15:30.191Z",
+                        "high": 45.34,
+                        "low": 44.93,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 45.1461595688701,
+                        "open": 45.13,
+                        "close": 45.17,
+                        "last": 45.17,
+                        "previousClose": null,
+                        "change": 0.04,
+                        "percentage": 0.0886328384666518,
+                        "average": 45.15,
+                        "baseVolume": 551.11,
+                        "quoteVolume": 24880.5,
+                        "indexPrice": 45.39,
+                        "markPrice": 45.38,
+                        "info": {
+                            "timestamp": 1786022130191,
+                            "symbol": "PERP_LTC_USDC",
+                            "index_price": 45.39,
+                            "mark_price": 45.38,
+                            "sum_unitary_funding": 4.5679,
+                            "est_funding_rate": 3.765e-05,
+                            "last_funding_rate": 8.89e-06,
+                            "next_funding_time": 1786032000000,
+                            "open_interest": 909.21,
+                            "is_pretge": false,
+                            "24h_open": 45.13,
+                            "24h_close": 45.17,
+                            "24h_high": 45.34,
+                            "24h_low": 44.93,
+                            "24h_volume": 551.11,
+                            "24h_amount": 24880.5
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "swap open interest",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786022130191,
+                    "data": {
+                        "symbol": "PERP_BTC_USDC",
+                        "index_price": 64185.4,
+                        "mark_price": 64171.0,
+                        "sum_unitary_funding": 26522.3,
+                        "est_funding_rate": 0.0001,
+                        "last_funding_rate": 0.00010041,
+                        "next_funding_time": 1786032000000,
+                        "open_interest": 110.64612,
+                        "is_pretge": false,
+                        "24h_open": 64105.6,
+                        "24h_close": 64180.0,
+                        "24h_high": 64941.0,
+                        "24h_low": 63837.6,
+                        "24h_volume": 102.2817,
+                        "24h_amount": 6595662.199482
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "openInterestAmount": 110.64612,
+                    "openInterestValue": null,
+                    "timestamp": 1786022130191,
+                    "datetime": "2026-08-06T13:15:30.191Z",
+                    "info": {
+                        "symbol": "PERP_BTC_USDC",
+                        "index_price": 64185.4,
+                        "mark_price": 64171.0,
+                        "sum_unitary_funding": 26522.3,
+                        "est_funding_rate": 0.0001,
+                        "last_funding_rate": 0.00010041,
+                        "next_funding_time": 1786032000000,
+                        "open_interest": 110.64612,
+                        "is_pretge": false,
+                        "24h_open": 64105.6,
+                        "24h_close": 64180.0,
+                        "24h_high": 64941.0,
+                        "24h_low": 63837.6,
+                        "24h_volume": 102.2817,
+                        "24h_amount": 6595662.199482,
+                        "timestamp": 1786022130191
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "all swap open interests, unknown market row skipped",
+                "method": "fetchOpenInterests",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786022130191,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDC",
+                                "index_price": 64185.4,
+                                "mark_price": 64171.0,
+                                "sum_unitary_funding": 26522.3,
+                                "est_funding_rate": 0.0001,
+                                "last_funding_rate": 0.00010041,
+                                "next_funding_time": 1786032000000,
+                                "open_interest": 110.64612,
+                                "is_pretge": false,
+                                "24h_open": 64105.6,
+                                "24h_close": 64180.0,
+                                "24h_high": 64941.0,
+                                "24h_low": 63837.6,
+                                "24h_volume": 102.2817,
+                                "24h_amount": 6595662.199482
+                            },
+                            {
+                                "symbol": "PERP_LTC_USDC",
+                                "index_price": 45.39,
+                                "mark_price": 45.38,
+                                "sum_unitary_funding": 4.5679,
+                                "est_funding_rate": 3.765e-05,
+                                "last_funding_rate": 8.89e-06,
+                                "next_funding_time": 1786032000000,
+                                "open_interest": 909.21,
+                                "is_pretge": false,
+                                "24h_open": 45.13,
+                                "24h_close": 45.17,
+                                "24h_high": 45.34,
+                                "24h_low": 44.93,
+                                "24h_volume": 551.11,
+                                "24h_amount": 24880.5
+                            },
+                            {
+                                "symbol": "PERP_SEI_USDC",
+                                "index_price": 0.04117,
+                                "mark_price": 0.04116,
+                                "sum_unitary_funding": 0.060659,
+                                "est_funding_rate": -0.00010573,
+                                "last_funding_rate": -9.683e-05,
+                                "next_funding_time": 1786032000000,
+                                "open_interest": 219976.0,
+                                "is_pretge": true,
+                                "24h_open": 0.04156,
+                                "24h_close": 0.04091,
+                                "24h_high": 0.04156,
+                                "24h_low": 0.04091,
+                                "24h_volume": 1500,
+                                "24h_amount": 61.375
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDC:USDC": {
+                        "symbol": "BTC/USDC:USDC",
+                        "openInterestAmount": 110.64612,
+                        "openInterestValue": null,
+                        "timestamp": 1786022130191,
+                        "datetime": "2026-08-06T13:15:30.191Z",
+                        "info": {
+                            "timestamp": 1786022130191,
+                            "symbol": "PERP_BTC_USDC",
+                            "index_price": 64185.4,
+                            "mark_price": 64171.0,
+                            "sum_unitary_funding": 26522.3,
+                            "est_funding_rate": 0.0001,
+                            "last_funding_rate": 0.00010041,
+                            "next_funding_time": 1786032000000,
+                            "open_interest": 110.64612,
+                            "is_pretge": false,
+                            "24h_open": 64105.6,
+                            "24h_close": 64180.0,
+                            "24h_high": 64941.0,
+                            "24h_low": 63837.6,
+                            "24h_volume": 102.2817,
+                            "24h_amount": 6595662.199482
+                        },
+                        "baseVolume": null,
+                        "quoteVolume": null
+                    },
+                    "LTC/USDC:USDC": {
+                        "symbol": "LTC/USDC:USDC",
+                        "openInterestAmount": 909.21,
+                        "openInterestValue": null,
+                        "timestamp": 1786022130191,
+                        "datetime": "2026-08-06T13:15:30.191Z",
+                        "info": {
+                            "timestamp": 1786022130191,
+                            "symbol": "PERP_LTC_USDC",
+                            "index_price": 45.39,
+                            "mark_price": 45.38,
+                            "sum_unitary_funding": 4.5679,
+                            "est_funding_rate": 3.765e-05,
+                            "last_funding_rate": 8.89e-06,
+                            "next_funding_time": 1786032000000,
+                            "open_interest": 909.21,
+                            "is_pretge": false,
+                            "24h_open": 45.13,
+                            "24h_close": 45.17,
+                            "24h_high": 45.34,
+                            "24h_low": 44.93,
+                            "24h_volume": 551.11,
+                            "24h_amount": 24880.5
+                        },
+                        "baseVolume": null,
+                        "quoteVolume": null
+                    }
+                }
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch swap balance with frozen amount",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1702989203989,
+                    "data": {
+                        "holding": [
+                            {
+                                "updated_time": 1580794149000,
+                                "token": "USDC",
+                                "holding": 146.86,
+                                "frozen": 23,
+                                "pending_short": 0
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "holding": [
+                            {
+                                "updated_time": 1580794149000,
+                                "token": "USDC",
+                                "holding": 146.86,
+                                "frozen": 23,
+                                "pending_short": 0
+                            }
+                        ]
+                    },
+                    "USDC": {
+                        "free": 123.86,
+                        "used": 23,
+                        "total": 146.86
+                    },
+                    "free": {
+                        "USDC": 123.86
+                    },
+                    "used": {
+                        "USDC": 23
+                    },
+                    "total": {
+                        "USDC": 146.86
+                    }
+                }
+            }
+        ],
+        "fetchMarginModes": [
+            {
+                "description": "fetch margin modes of all markets",
+                "method": "fetchMarginModes",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786648219651,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDC",
+                                "default_margin_mode": "CROSS"
+                            },
+                            {
+                                "symbol": "PERP_LTC_USDC",
+                                "default_margin_mode": "ISOLATED"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDC:USDC": {
+                        "info": {
+                            "symbol": "PERP_BTC_USDC",
+                            "default_margin_mode": "CROSS"
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "marginMode": "cross"
+                    },
+                    "LTC/USDC:USDC": {
+                        "info": {
+                            "symbol": "PERP_LTC_USDC",
+                            "default_margin_mode": "ISOLATED"
+                        },
+                        "symbol": "LTC/USDC:USDC",
+                        "marginMode": "isolated"
+                    }
+                }
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetch margin mode of one market",
+                "method": "fetchMarginMode",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786648219651,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDC",
+                                "default_margin_mode": "CROSS"
+                            },
+                            {
+                                "symbol": "PERP_LTC_USDC",
+                                "default_margin_mode": "ISOLATED"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "PERP_BTC_USDC",
+                        "default_margin_mode": "CROSS"
+                    },
+                    "symbol": "BTC/USDC:USDC",
+                    "marginMode": "cross"
+                }
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "add margin to isolated position",
+                "method": "addMargin",
+                "input": [
+                    "LTC/USDC:USDC",
+                    1
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786648219651
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "timestamp": 1786648219651
+                    },
+                    "symbol": "LTC/USDC:USDC",
+                    "type": "add",
+                    "marginMode": "isolated",
+                    "amount": 1,
+                    "total": null,
+                    "code": "USDC",
+                    "status": "ok",
+                    "timestamp": 1786648219651,
+                    "datetime": "2026-08-13T19:10:19.651Z"
+                }
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "reduce margin of isolated position",
+                "method": "reduceMargin",
+                "input": [
+                    "LTC/USDC:USDC",
+                    0.5
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786648219651
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "timestamp": 1786648219651
+                    },
+                    "symbol": "LTC/USDC:USDC",
+                    "type": "reduce",
+                    "marginMode": "isolated",
+                    "amount": 0.5,
+                    "total": null,
+                    "code": "USDC",
+                    "status": "ok",
+                    "timestamp": 1786648219651,
+                    "datetime": "2026-08-13T19:10:19.651Z"
+                }
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Swap trades",
@@ -98,27 +756,29 @@
                             "records_per_page": 25,
                             "current_page": 1
                         },
-                        "rows": [{
-                            "order_id": 78151,
-                            "user_id": 12345,
-                            "price": 0.67772,
-                            "type": "LIMIT",
-                            "quantity": 20,
-                            "amount": 10,
-                            "executed_quantity": 20,
-                            "total_executed_quantity": 20,
-                            "visible_quantity": 1,
-                            "symbol": "PERP_LTC_USDC",
-                            "side": "BUY",
-                            "status": "FILLED",
-                            "total_fee": 0.5,
-                            "fee_asset": "USDC",
-                            "client_order_id": 1,
-                            "average_executed_price": 0.67772,
-                            "created_time": 1705665118630,
-                            "updated_time": 1705665118634,
-                            "realized_pnl": 123
-                        }]
+                        "rows": [
+                            {
+                                "order_id": 78151,
+                                "user_id": 12345,
+                                "price": 0.67772,
+                                "type": "LIMIT",
+                                "quantity": 20,
+                                "amount": 10,
+                                "executed_quantity": 20,
+                                "total_executed_quantity": 20,
+                                "visible_quantity": 1,
+                                "symbol": "PERP_LTC_USDC",
+                                "side": "BUY",
+                                "status": "FILLED",
+                                "total_fee": 0.5,
+                                "fee_asset": "USDC",
+                                "client_order_id": 1,
+                                "average_executed_price": 0.67772,
+                                "created_time": 1705665118630,
+                                "updated_time": 1705665118634,
+                                "realized_pnl": 123
+                            }
+                        ]
                     }
                 },
                 "parsedResponse": [
@@ -385,7 +1045,10 @@
                         "order": null,
                         "takerOrMaker": null,
                         "type": null,
-                        "fee": {"cost": null, "currency": null },
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
                         "info": {
                             "symbol": "PERP_BTC_USDC",
                             "side": "SELL",
@@ -453,16 +1116,74 @@
                             "records_per_page": 25,
                             "current_page": 1
                         },
-                        "rows": [{
+                        "rows": [
+                            {
+                                "order_id": 78151,
+                                "user_id": 12345,
+                                "price": 0.67772,
+                                "type": "LIMIT",
+                                "quantity": 20,
+                                "amount": null,
+                                "executed": 0,
+                                "total_executed_quantity": 0,
+                                "visible": 0.01,
+                                "visible_quantity": 1,
+                                "symbol": "PERP_LTC_USDC",
+                                "side": "BUY",
+                                "status": "NEW",
+                                "total_fee": 0,
+                                "fee_asset": "USDC",
+                                "client_order_id": 1,
+                                "average_executed_price": 0,
+                                "created_time": 1710931373834,
+                                "updated_time": 1710931373834,
+                                "realized_pnl": 0,
+                                "reduce_only": null,
+                                "order_tag": null
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "78151",
+                        "clientOrderId": "1",
+                        "timestamp": 1710931373834,
+                        "datetime": "2024-03-20T10:42:53.834Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1710931373834,
+                        "status": "open",
+                        "symbol": "LTC/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 0.67772,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "average": null,
+                        "amount": 20,
+                        "filled": 0,
+                        "remaining": 20,
+                        "cost": null,
+                        "trades": [],
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDC"
+                        },
+                        "info": {
                             "order_id": 78151,
                             "user_id": 12345,
                             "price": 0.67772,
                             "type": "LIMIT",
                             "quantity": 20,
                             "amount": null,
-                            "executed":0,
+                            "executed": 0,
                             "total_executed_quantity": 0,
-                            "visible":0.01,
+                            "visible": 0.01,
                             "visible_quantity": 1,
                             "symbol": "PERP_LTC_USDC",
                             "side": "BUY",
@@ -474,72 +1195,16 @@
                             "created_time": 1710931373834,
                             "updated_time": 1710931373834,
                             "realized_pnl": 0,
-                            "reduce_only":null,
-                            "order_tag":null
-                        }]
+                            "reduce_only": null,
+                            "order_tag": null
+                        },
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": "USDC"
+                            }
+                        ]
                     }
-                },
-                "parsedResponse": [
-                  {
-                    "id": "78151",
-                    "clientOrderId": "1",
-                    "timestamp": 1710931373834,
-                    "datetime": "2024-03-20T10:42:53.834Z",
-                    "lastTradeTimestamp": null,
-                    "lastUpdateTimestamp": 1710931373834,
-                    "status": "open",
-                    "symbol": "LTC/USDC:USDC",
-                    "type": "limit",
-                    "timeInForce": null,
-                    "postOnly": null,
-                    "reduceOnly": false,
-                    "side": "buy",
-                    "price": 0.67772,
-                    "stopPrice": null,
-                    "triggerPrice": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null,
-                    "average": null,
-                    "amount": 20,
-                    "filled": null,
-                    "remaining": null,
-                    "cost": null,
-                    "trades": [],
-                    "fee": {
-                      "cost": 0,
-                      "currency": "USDC"
-                    },
-                    "info": {
-                        "order_id": 78151,
-                        "user_id": 12345,
-                        "price": 0.67772,
-                        "type": "LIMIT",
-                        "quantity": 20,
-                        "amount": null,
-                        "executed":0,
-                        "total_executed_quantity": 0,
-                        "visible":0.01,
-                        "visible_quantity": 1,
-                        "symbol": "PERP_LTC_USDC",
-                        "side": "BUY",
-                        "status": "NEW",
-                        "total_fee": 0,
-                        "fee_asset": "USDC",
-                        "client_order_id": 1,
-                        "average_executed_price": 0,
-                        "created_time": 1710931373834,
-                        "updated_time": 1710931373834,
-                        "realized_pnl": 0,
-                        "reduce_only":null,
-                        "order_tag":null
-                    },
-                    "fees": [
-                      {
-                        "cost": 0,
-                        "currency": "USDC"
-                      }
-                    ]
-                  }
                 ]
             }
         ],
@@ -548,8 +1213,8 @@
                 "description": "fetch swap order",
                 "method": "fetchOrder",
                 "input": [
-                  "5064210997",
-                  "LTC/USDC:USDC"
+                    "5064210997",
+                    "LTC/USDC:USDC"
                 ],
                 "httpResponse": {
                     "success": true,
@@ -577,61 +1242,61 @@
                     }
                 },
                 "parsedResponse": {
-                  "id": "78151",
-                  "clientOrderId": "1",
-                  "timestamp": 1705665118630,
-                  "datetime": "2024-01-19T11:51:58.630Z",
-                  "lastTradeTimestamp": null,
-                  "lastUpdateTimestamp": 1705665118521,
-                  "status": "closed",
-                  "symbol": "LTC/USDC:USDC",
-                  "type": "limit",
-                  "timeInForce": null,
-                  "postOnly": null,
-                  "reduceOnly": false,
-                  "side": "buy",
-                  "price": 0.67772,
-                  "stopPrice": null,
-                  "triggerPrice": null,
-                  "takeProfitPrice": null,
-                  "stopLossPrice": null,
-                  "average": 0.67772,
-                  "amount": 20,
-                  "filled": 20,
-                  "remaining": 0,
-                  "cost": 10,
-                  "trades": [],
-                  "fee": {
-                    "cost": 0.5,
-                    "currency": "USDC"
-                  },
-                  "info": {
-                    "order_id": 78151,
-                    "user_id": 12345,
+                    "id": "78151",
+                    "clientOrderId": "1",
+                    "timestamp": 1705665118630,
+                    "datetime": "2024-01-19T11:51:58.630Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1705665118521,
+                    "status": "closed",
+                    "symbol": "LTC/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "buy",
                     "price": 0.67772,
-                    "type": "LIMIT",
-                    "quantity": 20,
-                    "amount": 10,
-                    "executed_quantity": 20,
-                    "total_executed_quantity": 20,
-                    "visible_quantity": 1,
-                    "symbol": "PERP_LTC_USDC",
-                    "side": "BUY",
-                    "status": "FILLED",
-                    "total_fee": 0.5,
-                    "fee_asset": "USDC",
-                    "client_order_id": 1,
-                    "average_executed_price": 0.67772,
-                    "created_time": 1705665118630,
-                    "updated_time": 1705665118521,
-                    "realized_pnl": 123
-                  },
-                  "fees": [
-                    {
-                      "currency": "USDC",
-                      "cost": 0.5
-                    }
-                  ]
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "average": 0.67772,
+                    "amount": 20,
+                    "filled": 20,
+                    "remaining": 0,
+                    "cost": 10,
+                    "trades": [],
+                    "fee": {
+                        "cost": 0.5,
+                        "currency": "USDC"
+                    },
+                    "info": {
+                        "order_id": 78151,
+                        "user_id": 12345,
+                        "price": 0.67772,
+                        "type": "LIMIT",
+                        "quantity": 20,
+                        "amount": 10,
+                        "executed_quantity": 20,
+                        "total_executed_quantity": 20,
+                        "visible_quantity": 1,
+                        "symbol": "PERP_LTC_USDC",
+                        "side": "BUY",
+                        "status": "FILLED",
+                        "total_fee": 0.5,
+                        "fee_asset": "USDC",
+                        "client_order_id": 1,
+                        "average_executed_price": 0.67772,
+                        "created_time": 1705665118630,
+                        "updated_time": 1705665118521,
+                        "realized_pnl": 123
+                    },
+                    "fees": [
+                        {
+                            "currency": "USDC",
+                            "cost": 0.5
+                        }
+                    ]
                 }
             }
         ],
@@ -640,61 +1305,61 @@
                 "description": "btc orderbook",
                 "method": "fetchOrderBook",
                 "input": [
-                  "BTC/USDC:USDC",
-                  2
+                    "BTC/USDC:USDC",
+                    2
                 ],
                 "httpResponse": {
-                  "success": true,
-                  "data": {
-                    "timestamp": "1714747608260",
-                    "asks": [
-                      {
-                        "price": "61780.9",
-                        "quantity": "0.68926"
-                      },
-                      {
-                        "price": "61781.0",
-                        "quantity": "0.00024"
-                      }
-                    ],
-                    "bids": [
-                      {
-                        "price": "61780.8",
-                        "quantity": "5.06451"
-                      },
-                      {
-                        "price": "61780.7",
-                        "quantity": "0.56028"
-                      }
-                    ]
-                  },
-                  "timestamp": "1714747608581"
+                    "success": true,
+                    "data": {
+                        "timestamp": "1714747608260",
+                        "asks": [
+                            {
+                                "price": "61780.9",
+                                "quantity": "0.68926"
+                            },
+                            {
+                                "price": "61781.0",
+                                "quantity": "0.00024"
+                            }
+                        ],
+                        "bids": [
+                            {
+                                "price": "61780.8",
+                                "quantity": "5.06451"
+                            },
+                            {
+                                "price": "61780.7",
+                                "quantity": "0.56028"
+                            }
+                        ]
+                    },
+                    "timestamp": "1714747608581"
                 },
                 "parsedResponse": {
-                  "symbol": "BTC/USDC:USDC",
-                  "bids": [
-                    [
-                      61780.8,
-                      5.06451
+                    "symbol": "BTC/USDC:USDC",
+                    "bids": [
+                        [
+                            61780.8,
+                            5.06451
+                        ],
+                        [
+                            61780.7,
+                            0.56028
+                        ]
                     ],
-                    [
-                      61780.7,
-                      0.56028
-                    ]
-                  ],
-                  "asks": [
-                    [
-                      61780.9,
-                      0.68926
+                    "asks": [
+                        [
+                            61780.9,
+                            0.68926
+                        ],
+                        [
+                            61781,
+                            0.00024
+                        ]
                     ],
-                    [
-                      61781,
-                      0.00024
-                    ]
-                  ],
-                  "timestamp": 1714747608260,
-                  "datetime": "2024-05-03T14:46:48.260Z",
-                  "nonce": null
+                    "timestamp": 1714747608260,
+                    "datetime": "2024-05-03T14:46:48.260Z",
+                    "nonce": null
                 }
             }
         ]

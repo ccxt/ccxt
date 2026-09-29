@@ -55,13 +55,14 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official blofin API documentation:** [blofin.com](https://blofin.com/docs)
 
-> 79 implicit endpoints across 2 access groups.
+> 104 implicit endpoints across 2 access groups.
 
 ## public
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `publicGetMarketInstruments` | GET | `market/instruments` | 1 |
+| `publicGetMarketInstrumentsHistory` | GET | `market/instruments-history` | 1 |
 | `publicGetMarketTickers` | GET | `market/tickers` | 1 |
 | `publicGetMarketBooks` | GET | `market/books` | 1 |
 | `publicGetMarketTrades` | GET | `market/trades` | 1 |
@@ -72,6 +73,11 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetMarketIndexCandles` | GET | `market/index-candles` | 1 |
 | `publicGetMarketMarkPriceCandles` | GET | `market/mark-price-candles` | 1 |
 | `publicGetMarketPositionTiers` | GET | `market/position-tiers` | 1 |
+| `publicGetSpotMarketInstruments` | GET | `spot/market/instruments` | 1 |
+| `publicGetSpotMarketTickers` | GET | `spot/market/tickers` | 1 |
+| `publicGetSpotMarketBooks` | GET | `spot/market/books` | 1 |
+| `publicGetSpotMarketTrades` | GET | `spot/market/trades` | 1 |
+| `publicGetSpotMarketCandles` | GET | `spot/market/candles` | 1 |
 
 ## private
 
@@ -81,25 +87,27 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetAssetBills` | GET | `asset/bills` | 1 |
 | `privateGetAssetWithdrawalHistory` | GET | `asset/withdrawal-history` | 1 |
 | `privateGetAssetDepositHistory` | GET | `asset/deposit-history` | 1 |
+| `privateGetAssetDepositAddress` | GET | `asset/deposit-address` | 1 |
 | `privateGetAccountConfig` | GET | `account/config` | 1 |
 | `privateGetAssetCurrencies` | GET | `asset/currencies` | 1 |
 | `privateGetAccountBalance` | GET | `account/balance` | 1 |
 | `privateGetAccountPositions` | GET | `account/positions` | 1 |
 | `privateGetAccountPositionsHistory` | GET | `account/positions-history` | 1 |
+| `privateGetAccountFundingFees` | GET | `account/funding-fees` | 1 |
 | `privateGetAccountMarginMode` | GET | `account/margin-mode` | 1 |
 | `privateGetAccountPositionMode` | GET | `account/position-mode` | 1 |
 | `privateGetAccountLeverageInfo` | GET | `account/leverage-info` | 1 |
 | `privateGetAccountBatchLeverageInfo` | GET | `account/batch-leverage-info` | 1 |
-| `privateGetTradeOrdersPending` | GET | `trade/orders-pending` | 1 |
-| `privateGetTradeOrderDetail` | GET | `trade/order-detail` | 1 |
-| `privateGetTradeOrdersTpslPending` | GET | `trade/orders-tpsl-pending` | 1 |
-| `privateGetTradeOrderTpslDetail` | GET | `trade/order-tpsl-detail` | 1 |
-| `privateGetTradeOrdersAlgoPending` | GET | `trade/orders-algo-pending` | 1 |
-| `privateGetTradeOrdersHistory` | GET | `trade/orders-history` | 1 |
-| `privateGetTradeOrdersTpslHistory` | GET | `trade/orders-tpsl-history` | 1 |
-| `privateGetTradeOrdersAlgoHistory` | GET | `trade/orders-algo-history` | 1 |
-| `privateGetTradeFillsHistory` | GET | `trade/fills-history` | 1 |
-| `privateGetTradeOrderPriceRange` | GET | `trade/order/price-range` | 1 |
+| `privateGetTradeOrdersPending` | GET | `trade/orders-pending` | 1.67 |
+| `privateGetTradeOrderDetail` | GET | `trade/order-detail` | 1.67 |
+| `privateGetTradeOrdersTpslPending` | GET | `trade/orders-tpsl-pending` | 1.67 |
+| `privateGetTradeOrderTpslDetail` | GET | `trade/order-tpsl-detail` | 1.67 |
+| `privateGetTradeOrdersAlgoPending` | GET | `trade/orders-algo-pending` | 1.67 |
+| `privateGetTradeOrdersHistory` | GET | `trade/orders-history` | 1.67 |
+| `privateGetTradeOrdersTpslHistory` | GET | `trade/orders-tpsl-history` | 1.67 |
+| `privateGetTradeOrdersAlgoHistory` | GET | `trade/orders-algo-history` | 1.67 |
+| `privateGetTradeFillsHistory` | GET | `trade/fills-history` | 1.67 |
+| `privateGetTradeOrderPriceRange` | GET | `trade/order/price-range` | 1.67 |
 | `privateGetAffiliateBasic` | GET | `affiliate/basic` | 1 |
 | `privateGetAffiliateReferralCode` | GET | `affiliate/referral-code` | 1 |
 | `privateGetAffiliateInvitees` | GET | `affiliate/invitees` | 1 |
@@ -114,35 +122,52 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetCopytradingAccountPositionsByContract` | GET | `copytrading/account/positions-by-contract` | 1 |
 | `privateGetCopytradingAccountPositionMode` | GET | `copytrading/account/position-mode` | 1 |
 | `privateGetCopytradingAccountLeverageInfo` | GET | `copytrading/account/leverage-info` | 1 |
-| `privateGetCopytradingTradeOrdersPending` | GET | `copytrading/trade/orders-pending` | 1 |
-| `privateGetCopytradingTradePendingTpslByContract` | GET | `copytrading/trade/pending-tpsl-by-contract` | 1 |
-| `privateGetCopytradingTradePositionHistoryByOrder` | GET | `copytrading/trade/position-history-by-order` | 1 |
-| `privateGetCopytradingTradeOrdersHistory` | GET | `copytrading/trade/orders-history` | 1 |
-| `privateGetCopytradingTradePendingTpslByOrder` | GET | `copytrading/trade/pending-tpsl-by-order` | 1 |
+| `privateGetCopytradingTradeOrdersPending` | GET | `copytrading/trade/orders-pending` | 1.67 |
+| `privateGetCopytradingTradePendingTpslByContract` | GET | `copytrading/trade/pending-tpsl-by-contract` | 1.67 |
+| `privateGetCopytradingTradePositionHistoryByOrder` | GET | `copytrading/trade/position-history-by-order` | 1.67 |
+| `privateGetCopytradingTradeOrdersHistory` | GET | `copytrading/trade/orders-history` | 1.67 |
+| `privateGetCopytradingTradePendingTpslByOrder` | GET | `copytrading/trade/pending-tpsl-by-order` | 1.67 |
 | `privateGetUserQueryApikey` | GET | `user/query-apikey` | 1 |
 | `privateGetSpotTradeFillsHistory` | GET | `spot/trade/fills-history` | 1 |
+| `privateGetSpotTradeOrdersPending` | GET | `spot/trade/orders-pending` | 1.67 |
+| `privateGetSpotTradeOrderDetail` | GET | `spot/trade/order-detail` | 1.67 |
+| `privateGetSpotTradeOrdersAlgoPending` | GET | `spot/trade/orders-algo-pending` | 1.67 |
+| `privateGetSpotTradeOrdersHistory` | GET | `spot/trade/orders-history` | 1.67 |
+| `privateGetSpotTradeOrdersAlgoHistory` | GET | `spot/trade/orders-algo-history` | 1.67 |
+| `privateGetSpotTradeOrderPriceRange` | GET | `spot/trade/order/price-range` | 1.67 |
 | `privatePostAssetTransfer` | POST | `asset/transfer` | 1 |
 | `privatePostAssetDemoApplyMoney` | POST | `asset/demo-apply-money` | 1 |
-| `privatePostAccountSetMarginMode` | POST | `account/set-margin-mode` | 1 |
-| `privatePostAccountSetPositionMode` | POST | `account/set-position-mode` | 1 |
-| `privatePostAccountSetLeverage` | POST | `account/set-leverage` | 1 |
-| `privatePostTradeOrder` | POST | `trade/order` | 1 |
-| `privatePostTradeBatchOrders` | POST | `trade/batch-orders` | 1 |
-| `privatePostTradeOrderTpsl` | POST | `trade/order-tpsl` | 1 |
-| `privatePostTradeOrderAlgo` | POST | `trade/order-algo` | 1 |
-| `privatePostTradeCancelOrder` | POST | `trade/cancel-order` | 1 |
-| `privatePostTradeCancelBatchOrders` | POST | `trade/cancel-batch-orders` | 1 |
-| `privatePostTradeCancelTpsl` | POST | `trade/cancel-tpsl` | 1 |
-| `privatePostTradeCancelAlgo` | POST | `trade/cancel-algo` | 1 |
-| `privatePostTradeClosePosition` | POST | `trade/close-position` | 1 |
-| `privatePostCopytradingAccountSetPositionMode` | POST | `copytrading/account/set-position-mode` | 1 |
-| `privatePostCopytradingAccountSetLeverage` | POST | `copytrading/account/set-leverage` | 1 |
-| `privatePostCopytradingTradePlaceOrder` | POST | `copytrading/trade/place-order` | 1 |
-| `privatePostCopytradingTradeCancelOrder` | POST | `copytrading/trade/cancel-order` | 1 |
-| `privatePostCopytradingTradePlaceTpslByContract` | POST | `copytrading/trade/place-tpsl-by-contract` | 1 |
-| `privatePostCopytradingTradeCancelTpslByContract` | POST | `copytrading/trade/cancel-tpsl-by-contract` | 1 |
-| `privatePostCopytradingTradePlaceTpslByOrder` | POST | `copytrading/trade/place-tpsl-by-order` | 1 |
-| `privatePostCopytradingTradeCancelTpslByOrder` | POST | `copytrading/trade/cancel-tpsl-by-order` | 1 |
-| `privatePostCopytradingTradeClosePositionByOrder` | POST | `copytrading/trade/close-position-by-order` | 1 |
-| `privatePostCopytradingTradeClosePositionByContract` | POST | `copytrading/trade/close-position-by-contract` | 1 |
+| `privatePostAssetWithdrawalApply` | POST | `asset/withdrawal-apply` | 1 |
+| `privatePostAccountSetMarginMode` | POST | `account/set-margin-mode` | 1.67 |
+| `privatePostAccountSetPositionMode` | POST | `account/set-position-mode` | 1.67 |
+| `privatePostAccountSetLeverage` | POST | `account/set-leverage` | 1.67 |
+| `privatePostTradeOrder` | POST | `trade/order` | 1.67 |
+| `privatePostTradeBatchOrders` | POST | `trade/batch-orders` | 1.67 |
+| `privatePostTradeOrderTpsl` | POST | `trade/order-tpsl` | 1.67 |
+| `privatePostTradeOrderAlgo` | POST | `trade/order-algo` | 1.67 |
+| `privatePostTradeCancelOrder` | POST | `trade/cancel-order` | 1.67 |
+| `privatePostTradeCancelBatchOrders` | POST | `trade/cancel-batch-orders` | 1.67 |
+| `privatePostTradeCancelTpsl` | POST | `trade/cancel-tpsl` | 1.67 |
+| `privatePostTradeCancelAlgo` | POST | `trade/cancel-algo` | 1.67 |
+| `privatePostTradeAmendOrder` | POST | `trade/amend-order` | 1.67 |
+| `privatePostTradeAmendBatchOrders` | POST | `trade/amend-batch-orders` | 1.67 |
+| `privatePostTradeAmendTpsl` | POST | `trade/amend-tpsl` | 1.67 |
+| `privatePostTradeAmendAlgo` | POST | `trade/amend-algo` | 1.67 |
+| `privatePostTradeClosePosition` | POST | `trade/close-position` | 1.67 |
+| `privatePostSpotTradeOrder` | POST | `spot/trade/order` | 1.67 |
+| `privatePostSpotTradeBatchOrders` | POST | `spot/trade/batch-orders` | 1.67 |
+| `privatePostSpotTradeOrderAlgo` | POST | `spot/trade/order-algo` | 1.67 |
+| `privatePostSpotTradeCancelOrder` | POST | `spot/trade/cancel-order` | 1.67 |
+| `privatePostSpotTradeCancelBatchOrders` | POST | `spot/trade/cancel-batch-orders` | 1.67 |
+| `privatePostSpotTradeCancelAlgo` | POST | `spot/trade/cancel-algo` | 1.67 |
+| `privatePostCopytradingAccountSetPositionMode` | POST | `copytrading/account/set-position-mode` | 1.67 |
+| `privatePostCopytradingAccountSetLeverage` | POST | `copytrading/account/set-leverage` | 1.67 |
+| `privatePostCopytradingTradePlaceOrder` | POST | `copytrading/trade/place-order` | 1.67 |
+| `privatePostCopytradingTradeCancelOrder` | POST | `copytrading/trade/cancel-order` | 1.67 |
+| `privatePostCopytradingTradePlaceTpslByContract` | POST | `copytrading/trade/place-tpsl-by-contract` | 1.67 |
+| `privatePostCopytradingTradeCancelTpslByContract` | POST | `copytrading/trade/cancel-tpsl-by-contract` | 1.67 |
+| `privatePostCopytradingTradePlaceTpslByOrder` | POST | `copytrading/trade/place-tpsl-by-order` | 1.67 |
+| `privatePostCopytradingTradeCancelTpslByOrder` | POST | `copytrading/trade/cancel-tpsl-by-order` | 1.67 |
+| `privatePostCopytradingTradeClosePositionByOrder` | POST | `copytrading/trade/close-position-by-order` | 1.67 |
+| `privatePostCopytradingTradeClosePositionByContract` | POST | `copytrading/trade/close-position-by-contract` | 1.67 |
 

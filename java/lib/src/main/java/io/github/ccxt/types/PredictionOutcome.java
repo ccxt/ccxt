@@ -9,7 +9,7 @@ import java.util.Map;
 // there is no `symbol` field — the handle is `outcome` ("MARKET:LABEL") and the
 // raw exchange id is `outcomeId`. Prices are probabilities 0..1. Mirrors the
 // `PredictionOutcome` interface in ts/src/base/types.ts and the Go/C# structs.
-public final class PredictionOutcome {
+public final class PredictionOutcome extends TypedMap {
     public String outcome;        // unified handle "TRUMP_WIN_2024:YES"
     public String outcomeId;      // raw exchange/on-chain id (token id / ticker / coin)
     public String label;          // short human name "Yes"
@@ -26,6 +26,7 @@ public final class PredictionOutcome {
     public Map<String, Object> info;
 
     public PredictionOutcome(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.outcome = TypeHelper.safeString(data, "outcome");
         this.outcomeId = TypeHelper.safeString(data, "outcomeId");

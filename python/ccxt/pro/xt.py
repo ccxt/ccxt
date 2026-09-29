@@ -5,16 +5,16 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
-from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported
 
 
 class xt(ccxt.async_support.xt):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(xt, self).describe(), {
             'has': {
                 'ws': True,
@@ -49,10 +49,10 @@ class xt(ccxt.async_support.xt):
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
                 'watchTicker': {
-                    'method': 'ticker',  # agg_ticker(contract only)
+                    'method': 'ticker',  # agg_ticker (contract only)
                 },
                 'watchTickers': {
-                    'method': 'tickers',  # agg_tickers(contract only)
+                    'method': 'tickers',  # agg_tickers (contract only)
                 },
                 'watchPositions': {
                     'type': 'swap',
@@ -67,93 +67,122 @@ class xt(ccxt.async_support.xt):
             'token': None,
         })
 
-    async def get_listen_key(self, isContract: bool):
+    async def get_listen_key(self, isContract: bool) -> Str:
         """
  @ignore
         required for private endpoints
         :param str isContract: True for contract trades
 
-        https://doc.xt.com/#websocket_privategetToken
-        https://doc.xt.com/#futures_user_websocket_v2base
+        https://doc.xt.com/docs/spot/WebSocket%20Private/GetWsToken
+        https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
 
         :returns str: listen key / access token
         """
         self.check_required_credentials()
-        tradeType = 'contract' if isContract else 'spot'
-        url = self.urls['api']['ws'][tradeType]
+        tradeType = 'spot'
+        if isContract:
+            tradeType = 'contract'
+        url = self.safe_string(self.urls['api']['ws'], tradeType)
         if not isContract:
             url = url + '/private'
         client = self.client(url)
         token = self.safe_string(client.subscriptions, 'token')
         if token is None:
-            if isContract:
-                response = await self.privateLinearGetFutureUserV1UserListenKey()
-                #
-                #    {
-                #        returnCode: '0',
-                #        msgInfo: 'success',
-                #        error: null,
-                #        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
-                #    }
-                #
-                client.subscriptions['token'] = self.safe_string(response, 'result')
-            else:
-                response = await self.privateSpotPostWsToken()
-                #
-                #    {
-                #        "rc": 0,
-                #        "mc": "SUCCESS",
-                #        "ma": [],
-                #        "result": {
-                #            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
-                #            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
-                #        }
-                #    }
-                #
-                result = self.safe_dict(response, 'result')
-                client.subscriptions['token'] = self.safe_string(result, 'accessToken')
+            # single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+            # concurrent callers each minted their own token, last write won, and the losers
+            # carried an orphaned token into name + '@' + listenKey so their streams went dead
+            messageHash = 'authenticate:' + tradeType
+            if messageHash in client.futures:
+                # a flight is already in progress - wake when the leader
+                # settles it: the token is then in the bucket
+                await client.future(messageHash)
+                return client.subscriptions['token']
+            # client.futures is the same registry Exchange.watch () dedupes on, so registering
+            # the flight here, before any suspension point, makes concurrent callers wait
+            future = client.reusableFuture(messageHash)
+            try:
+                listenKey = None
+                if isContract:
+                    response = await self.privateLinearGetFutureUserV1UserListenKey()
+                    #
+                    #    {
+                    #        returnCode: '0',
+                    #        msgInfo: 'success',
+                    #        error: null,
+                    #        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
+                    #    }
+                    #
+                    listenKey = self.safe_string(response, 'result')
+                else:
+                    response = await self.privateSpotPostWsToken()
+                    #
+                    #    {
+                    #        "rc": 0,
+                    #        "mc": "SUCCESS",
+                    #        "ma": [],
+                    #        "result": {
+                    #            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
+                    #            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
+                    #        }
+                    #    }
+                    #
+                    result = self.safe_dict(response, 'result')
+                    listenKey = self.safe_string(result, 'accessToken')
+                if listenKey is None:
+                    # reject instead of caching an empty token, so waiters
+                    # retry rather than subscribing with the literal
+                    # string 'undefined' for the rest of the session
+                    raise AuthenticationError(self.id + ' getListenKey() received an empty listen key')
+                client.subscriptions['token'] = listenKey
+                client.resolve(listenKey, messageHash)
+            except Exception as e:
+                # hand the failure to every waiter so the next caller re-leads instead of
+                # deadlocking on a dead flight. no throw here: the trailing future rethrows
+                # to this caller and keeps a waiterless rejection from crashing the process
+                client.reject(e, messageHash)
+            await future
         return client.subscriptions['token']
 
-    def get_cache_index(self, orderbook: Any, cache: Any):
+    def get_cache_index(self, orderbook: object, cache: object) -> float:
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible
         nonce = self.safe_integer(orderbook, 'nonce')
-        firstDelta = self.safe_value(cache, 0)
+        firstDelta = self.safe_dict(cache, 0)
         firstDeltaNonce = self.safe_integer_2(firstDelta, 'i', 'u')
         if (nonce is not None) and (firstDeltaNonce is not None) and (nonce < firstDeltaNonce - 1):
             return -1
         for i in range(0, len(cache)):
-            delta = cache[i]
+            delta = self.safe_dict(cache, i)
             deltaNonce = self.safe_integer_2(delta, 'i', 'u')
             if (deltaNonce is not None) and (nonce is not None) and (deltaNonce >= nonce):
                 return i
         return len(cache)
 
-    def handle_delta(self, orderbook: Any, delta: Any):
+    def handle_book_delta(self, orderbook: object, delta: object):
         orderbook['nonce'] = self.safe_integer_2(delta, 'i', 'u')
         obAsks = self.safe_list(delta, 'a', [])
         obBids = self.safe_list(delta, 'b', [])
         bids = orderbook['bids']
         asks = orderbook['asks']
         for i in range(0, len(obBids)):
-            bid = obBids[i]
+            bid = self.safe_list(obBids, i)
             price = self.safe_number(bid, 0)
             quantity = self.safe_number(bid, 1)
             bids.store(price, quantity)
         for i in range(0, len(obAsks)):
-            ask = obAsks[i]
+            ask = self.safe_list(obAsks, i)
             price = self.safe_number(ask, 0)
             quantity = self.safe_number(ask, 1)
             asks.store(price, quantity)
-        # self.handleBidAsks(storedBids, bids)
-        # self.handleBidAsks(storedAsks, asks)
+        # this.handleBidAsks (storedBids, bids);
+        # this.handleBidAsks (storedAsks, asks);
 
-    async def subscribe(self, name: str, access: str, methodName: str, market: Market = None, symbols: Strings = None, params={}):
+    async def subscribe(self, name: str, access: str, methodName: str, market: Market = None, symbols: Strings = None, params: dict = {}):
         """
  @ignore
         Connects to a websocket channel
 
-        https://doc.xt.com/#websocket_privaterequestFormat
-        https://doc.xt.com/#futures_market_websocket_v2base
+        https://doc.xt.com/docs/spot/WebSocket%20Private/RequestMessageFormat
+        https://doc.xt.com/docs/futures/WebsocKetV2/General_WSS_information
 
         :param str name: name of the channel
         :param str access: public or private
@@ -164,8 +193,7 @@ class xt(ccxt.async_support.xt):
         :returns dict: data from the websocket stream
         """
         privateAccess = access == 'private'
-        type = None
-        type, params = self.handle_market_type_and_params(methodName, market, params)
+        type, paramsMarketType = self.handle_market_type_and_params(methodName, market, params)
         isContract = (type != 'spot')
         id = self.number_to_string(self.milliseconds()) + name  # call back ID
         subscribe = {
@@ -182,27 +210,29 @@ class xt(ccxt.async_support.xt):
                 subscribe['params'] = [param]
         else:
             subscribe['params'] = [name]
-        tradeType = 'contract' if isContract else 'spot'
+        tradeType = 'spot'
+        if isContract:
+            tradeType = 'contract'
         messageHash = name + '::' + tradeType
         if symbols is not None:
             messageHash = messageHash + '::' + ','.join(symbols)
-        request = self.extend(subscribe, params)
+        request = self.extend(subscribe, paramsMarketType)
         tail = access
         if isContract:
             tail = 'user' if privateAccess else 'market'
         subscription = {
             'id': id,
         }
-        url = self.urls['api']['ws'][tradeType] + '/' + tail
+        url = self.safe_string(self.urls['api']['ws'], tradeType) + '/' + tail
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    async def un_subscribe(self, messageHash: str, name: str, access: str, methodName: str, topic: str, market: Market = None, symbols: Strings = None, params={}, subscriptionParams={}) -> Any:
+    async def un_subscribe(self, messageHash: str, name: str, access: str, methodName: str, topic: str, market: Market = None, symbols: Strings = None, params={}, subscriptionParams={}) -> object:
         """
  @ignore
         Connects to a websocket channel
 
-        https://doc.xt.com/#websocket_privaterequestFormat
-        https://doc.xt.com/#futures_market_websocket_v2base
+        https://doc.xt.com/docs/spot/WebSocket%20Private/RequestMessageFormat
+        https://doc.xt.com/docs/futures/WebsocKetV2/General_WSS_information
 
         :param str messageHash: the message hash of the subscription
         :param str name: name of the channel
@@ -216,8 +246,7 @@ class xt(ccxt.async_support.xt):
         :returns dict: data from the websocket stream
         """
         privateAccess = access == 'private'
-        type = None
-        type, params = self.handle_market_type_and_params(methodName, market, params)
+        type, paramsMarketType = self.handle_market_type_and_params(methodName, market, params)
         isContract = (type != 'spot')
         id = self.number_to_string(self.milliseconds()) + name  # call back ID
         unsubscribe = {
@@ -234,13 +263,15 @@ class xt(ccxt.async_support.xt):
                 unsubscribe['params'] = [param]
         else:
             unsubscribe['params'] = [name]
-        tradeType = 'contract' if isContract else 'spot'
+        tradeType = 'spot'
+        if isContract:
+            tradeType = 'contract'
         subMessageHash = name + '::' + tradeType
-        request = self.extend(unsubscribe, params)
+        request = self.extend(unsubscribe, paramsMarketType)
         tail = access
         if isContract:
             tail = 'user' if privateAccess else 'market'
-        url = self.urls['api']['ws'][tradeType] + '/' + tail
+        url = self.safe_string(self.urls['api']['ws'], tradeType) + '/' + tail
         subscription = {
             'unsubscribe': True,
             'id': id,
@@ -252,16 +283,15 @@ class xt(ccxt.async_support.xt):
         symbolsAndTimeframes = self.safe_list(subscriptionParams, 'symbolsAndTimeframes')
         if symbolsAndTimeframes is not None:
             subscription['symbolsAndTimeframes'] = symbolsAndTimeframes
-            subscriptionParams = self.omit(subscriptionParams, 'symbolsAndTimeframes')
-        return await self.watch(url, messageHash, self.extend(request, params), messageHash, self.extend(subscription, subscriptionParams))
+        subscriptionParamsOmitted = self.omit(subscriptionParams, 'symbolsAndTimeframes')
+        return await self.watch(url, messageHash, self.extend(request, paramsMarketType), messageHash, self.extend(subscription, subscriptionParamsOmitted))
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://doc.xt.com/#websocket_publictickerRealTime
-        https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
-        https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+        https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+        https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the exchange API endpoint
@@ -277,13 +307,12 @@ class xt(ccxt.async_support.xt):
         name = method + '@' + market['id']
         return await self.subscribe(name, 'public', 'watchTicker', market, None, params)
 
-    async def un_watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def un_watch_ticker(self, symbol: str, params: dict = {}):
         """
         stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://doc.xt.com/#websocket_publictickerRealTime
-        https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
-        https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+        https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+        https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the exchange API endpoint
@@ -300,13 +329,12 @@ class xt(ccxt.async_support.xt):
         messageHash = 'unsubscribe::' + name
         return await self.un_subscribe(messageHash, name, 'public', 'unWatchTicker', defaultMethod, market, None, params)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://doc.xt.com/#websocket_publicallTicker
-        https://doc.xt.com/#futures_market_websocket_v2allTicker
-        https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+        https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+        https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
 
         :param str [symbols]: unified market symbols
         :param dict params: extra parameters specific to the exchange API endpoint
@@ -326,13 +354,12 @@ class xt(ccxt.async_support.xt):
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def un_watch_tickers(self, symbols: Strings = None, params: dict = {}):
         """
         stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://doc.xt.com/#websocket_publicallTicker
-        https://doc.xt.com/#futures_market_websocket_v2allTicker
-        https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+        https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+        https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
 
         :param str [symbols]: unified market symbols
         :param dict params: extra parameters specific to the exchange API endpoint
@@ -352,40 +379,41 @@ class xt(ccxt.async_support.xt):
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://doc.xt.com/#websocket_publicsymbolKline
-        https://doc.xt.com/#futures_market_websocket_v2symbolKline
+        https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+        https://doc.xt.com/docs/futures/WebsocKetV2/Kline
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
         :param int [since]: not used by xt watchOHLCV
         :param int [limit]: not used by xt watchOHLCV
         :param dict params: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
         name = 'kline@' + market['id'] + ',' + timeframe
         ohlcv = await self.subscribe(name, 'public', 'watchOHLCV', market, None, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> List[list]:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}):
         """
         stops watching historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://doc.xt.com/#websocket_publicsymbolKline
-        https://doc.xt.com/#futures_market_websocket_v2symbolKline
+        https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+        https://doc.xt.com/docs/futures/WebsocKetV2/Kline
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
         :param dict params: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -395,12 +423,12 @@ class xt(ccxt.async_support.xt):
         symbolsAndTimeframes = [[market['symbol'], timeframe]]
         return await self.un_subscribe(messageHash, name, 'public', 'unWatchOHLCV', 'ohlcv', market, [symbol], params, {'symbolsAndTimeframes': symbolsAndTimeframes})
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
-        https://doc.xt.com/#websocket_publicdealRecord
-        https://doc.xt.com/#futures_market_websocket_v2dealRecord
+        https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+        https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -413,16 +441,17 @@ class xt(ccxt.async_support.xt):
         market = self.market(symbol)
         name = 'trade@' + market['id']
         trades = await self.subscribe(name, 'public', 'watchTrades', market, None, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+            limitResolved = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp')
 
-    async def un_watch_trades(self, symbol: str, params={}) -> List[Trade]:
+    async def un_watch_trades(self, symbol: str, params: dict = {}):
         """
         stops watching the list of most recent trades for a particular symbol
 
-        https://doc.xt.com/#websocket_publicdealRecord
-        https://doc.xt.com/#futures_market_websocket_v2dealRecord
+        https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+        https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param dict params: extra parameters specific to the exchange API endpoint
@@ -435,14 +464,14 @@ class xt(ccxt.async_support.xt):
         messageHash = 'unsubscribe::' + name
         return await self.un_subscribe(messageHash, name, 'public', 'unWatchTrades', 'trades', market, [symbol], params)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://doc.xt.com/#websocket_publiclimitDepth
-        https://doc.xt.com/#websocket_publicincreDepth
-        https://doc.xt.com/#futures_market_websocket_v2limitDepth
-        https://doc.xt.com/#futures_market_websocket_v2increDepth
+        https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+        https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+        https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+        https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: not used by xt watchOrderBook
@@ -454,21 +483,21 @@ class xt(ccxt.async_support.xt):
             await self.load_markets()
         market = self.market(symbol)
         levels = self.safe_string(params, 'levels')
-        params = self.omit(params, 'levels')
+        paramsOmitted = self.omit(params, 'levels')
         name = 'depth_update@' + market['id']
         if levels is not None:
             name = 'depth@' + market['id'] + ',' + levels
-        orderbook = await self.subscribe(name, 'public', 'watchOrderBook', market, None, params)
+        orderbook = await self.subscribe(name, 'public', 'watchOrderBook', market, None, paramsOmitted)
         return orderbook.limit()
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> OrderBook:
+    async def un_watch_order_book(self, symbol: str, params: dict = {}):
         """
         stops watching information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://doc.xt.com/#websocket_publiclimitDepth
-        https://doc.xt.com/#websocket_publicincreDepth
-        https://doc.xt.com/#futures_market_websocket_v2limitDepth
-        https://doc.xt.com/#futures_market_websocket_v2increDepth
+        https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+        https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+        https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+        https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param dict params: extra parameters specific to the exchange API endpoint
@@ -479,19 +508,19 @@ class xt(ccxt.async_support.xt):
             await self.load_markets()
         market = self.market(symbol)
         levels = self.safe_string(params, 'levels')
-        params = self.omit(params, 'levels')
+        paramsOmitted = self.omit(params, 'levels')
         name = 'depth_update@' + market['id']
         if levels is not None:
             name = 'depth@' + market['id'] + ',' + levels
         messageHash = 'unsubscribe::' + name
-        return await self.un_subscribe(messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, [symbol], params)
+        return await self.un_subscribe(messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, [symbol], paramsOmitted)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
-        https://doc.xt.com/#websocket_privateorderChange
-        https://doc.xt.com/#futures_user_websocket_v2order
+        https://doc.xt.com/docs/spot/WebSocket%20Private/OrderChange
+        https://doc.xt.com/docs/futures/UserWebsocket/UserOrder
 
         :param str [symbol]: unified market symbol
         :param int [since]: not used by xt watchOrders
@@ -506,16 +535,17 @@ class xt(ccxt.async_support.xt):
         if symbol is not None:
             market = self.market(symbol)
         orders = await self.subscribe(name, 'private', 'watchOrders', market, None, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_since_limit(orders, since, limit, 'timestamp')
+            limitResolved = orders.getLimit(symbol, limit)
+        return self.filter_by_since_limit(orders, since, limitResolved, 'timestamp')
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
-        https://doc.xt.com/#websocket_privateorderDeal
-        https://doc.xt.com/#futures_user_websocket_v2trade
+        https://doc.xt.com/docs/spot/WebSocket%20Private/OrderFilled
+        https://doc.xt.com/docs/futures/UserWebsocket/Transactions
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -530,16 +560,17 @@ class xt(ccxt.async_support.xt):
         if symbol is not None:
             market = self.market(symbol)
         trades = await self.subscribe(name, 'private', 'watchMyTrades', market, None, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+            limitResolved = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp')
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watches information on multiple orders made by the user
 
-        https://doc.xt.com/#websocket_privatebalanceChange
-        https://doc.xt.com/#futures_user_websocket_v2balance
+        https://doc.xt.com/docs/spot/WebSocket%20Private/BalanceChange
+        https://doc.xt.com/docs/futures/UserWebsocket/BalanceChange
 
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `balance structures <https://docs.ccxt.com/?id=balance-structure>`
@@ -549,10 +580,10 @@ class xt(ccxt.async_support.xt):
         name = 'balance'
         return await self.subscribe(name, 'private', 'watchBalance', None, None, params)
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
 
-        https://doc.xt.com/#futures_user_websocket_v2position
+        https://doc.xt.com/docs/futures/UserWebsocket/ChangePosition
 
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
@@ -563,13 +594,13 @@ class xt(ccxt.async_support.xt):
         """
         if self.markets is None:
             await self.load_markets()
-        url = self.urls['api']['ws']['contract'] + '/' + 'user'
+        url = self.safe_string(self.urls['api']['ws'], 'contract') + '/' + 'user'
         client = self.client(url)
         self.set_positions_cache(client)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.positions
-        if fetchPositionsSnapshot and awaitPositionsSnapshot and self.is_empty(cache):
+        if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and self.is_empty(cache):
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
         name = 'position'
@@ -578,11 +609,11 @@ class xt(ccxt.async_support.xt):
             return newPositions
         return self.filter_by_symbols_since_limit(cache, symbols, since, limit, True)
 
-    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         watch the current funding rate
 
-        https://doc.xt.com/#futures_market_websocket_v2fundRate
+        https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -591,16 +622,16 @@ class xt(ccxt.async_support.xt):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
-            raise BadSymbol(self.id + ' watchFundingRate() supports swap contracts only')
+        if market['swap'] is not True:
+            raise NotSupported(self.id + ' watchFundingRate() supports swap contracts only')
         name = 'fund_rate@' + market['id']
         return await self.subscribe(name, 'public', 'watchFundingRate', market, None, params)
 
-    async def un_watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def un_watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         stops watching the funding rate
 
-        https://doc.xt.com/#futures_market_websocket_v2fundRate
+        https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -609,21 +640,21 @@ class xt(ccxt.async_support.xt):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
-            raise BadSymbol(self.id + ' unWatchFundingRate() supports swap contracts only')
+        if market['swap'] is not True:
+            raise NotSupported(self.id + ' unWatchFundingRate() supports swap contracts only')
         name = 'fund_rate@' + market['id']
         messageHash = 'unsubscribe::' + name
         return await self.un_subscribe(messageHash, name, 'public', 'unWatchFundingRate', 'fund_rate', market, None, params)
 
-    def handle_funding_rate(self, client: Client, message: dict):
+    def handle_funding_rate(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "topic": "fund_rate",
         #         "event": "fund_rate@btc_usdt",
         #         "data": {
-        #             "s": "btc_usdt",  # symbol
-        #             "r": "0.01",      # funding rate
-        #             "t": 123124124    # timestamp
+        #             "s": "btc_usdt",  // symbol
+        #             "r": "0.01",      // funding rate
+        #             "t": 123124124    // timestamp
         #         }
         #     }
         #
@@ -641,21 +672,22 @@ class xt(ccxt.async_support.xt):
             symbol = fundingRate['symbol']
             self.fundingRates[symbol] = fundingRate
             event = self.safe_string(message, 'event')
-            messageHash = event + '::contract'
-            client.resolve(fundingRate, messageHash)
+            if event is not None:
+                messageHash = event + '::contract'
+                client.resolve(fundingRate, messageHash)
         return message
 
     def set_positions_cache(self, client: Client):
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot')
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = 'fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
                 self.spawn(self.load_positions_snapshot, client, messageHash)
 
-    async def load_positions_snapshot(self, client: Client, messageHash: Any):
+    async def load_positions_snapshot(self, client: Client, messageHash: object):
         positions = await self.fetch_positions()
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
@@ -670,7 +702,7 @@ class xt(ccxt.async_support.xt):
             future.resolve(cache)
             client.resolve(cache, 'position::contract')
 
-    def handle_position(self, client: Any, message: Any):
+    def handle_position(self, client: Client, message: dict):
         #
         #    {
         #      topic: 'position',
@@ -692,7 +724,7 @@ class xt(ccxt.async_support.xt):
         #        openOrderMarginFrozen: '2.78832014',
         #        underlyingType: 'U_BASED',
         #        leverage: 10,
-        #        welfareAccount: False,
+        #        welfareAccount: false,
         #        profitFixedLatest: {},
         #        closeProfit: '0.0000',
         #        totalFee: '-0.0158',
@@ -718,7 +750,7 @@ class xt(ccxt.async_support.xt):
                 client.resolve(positions, messageHash)
         client.resolve([position], 'position::contract')
 
-    def handle_ticker(self, client: Client, message: dict):
+    def handle_ticker(self, client: Client, message: dict) -> dict:
         #
         # spot
         #
@@ -726,16 +758,16 @@ class xt(ccxt.async_support.xt):
         #        topic: 'ticker',
         #        event: 'ticker@btc_usdt',
         #        data: {
-        #           s: 'btc_usdt',            # symbol
-        #           t: 1683501935877,         # time(Last transaction time)
-        #           cv: '-82.67',             # priceChangeValue(24 hour price change)
-        #           cr: '-0.0028',            # priceChangeRate 24-hour price change(percentage)
-        #           o: '28823.87',            # open price
-        #           c: '28741.20',            # close price
-        #           h: '29137.64',            # highest price
-        #           l: '28660.93',            # lowest price
-        #           q: '6372.601573',         # quantity
-        #           v: '184086075.2772391'    # volume
+        #           s: 'btc_usdt',            // symbol
+        #           t: 1683501935877,         // time(Last transaction time)
+        #           cv: '-82.67',             // priceChangeValue(24 hour price change)
+        #           cr: '-0.0028',            // priceChangeRate 24-hour price change (percentage)
+        #           o: '28823.87',            // open price
+        #           c: '28741.20',            // close price
+        #           h: '29137.64',            // highest price
+        #           l: '28660.93',            // lowest price
+        #           q: '6372.601573',         // quantity
+        #           v: '184086075.2772391'    // volume
         #        }
         #    }
         #
@@ -745,41 +777,41 @@ class xt(ccxt.async_support.xt):
         #        "topic": "ticker",
         #        "event": "ticker@btc_usdt",
         #        "data": {
-        #            "s": "btc_index",  # trading pair
-        #            "o": "49000",      # opening price
-        #            "c": "50000",      # closing price
-        #            "h": "0.1",        # highest price
-        #            "l": "0.1",        # lowest price
-        #            "a": "0.1",        # volume
-        #            "v": "0.1",        # turnover
-        #            "ch": "0.21",      # quote change
-        #            "t": 123124124     # timestamp
+        #            "s": "btc_index",  // trading pair
+        #            "o": "49000",      // opening price
+        #            "c": "50000",      // closing price
+        #            "h": "0.1",        // highest price
+        #            "l": "0.1",        // lowest price
+        #            "a": "0.1",        // volume
+        #            "v": "0.1",        // turnover
+        #            "ch": "0.21",      // quote change
+        #            "t": 123124124     // timestamp
         #       }
         #    }
         #
-        # agg_ticker(contract)
+        # agg_ticker (contract)
         #
         #    {
         #        "topic": "agg_ticker",
         #        "event": "agg_ticker@btc_usdt",
         #        "data": {
-        #            "s": "btc_index",          # trading pair
-        #            "o": "49000",              # opening price
-        #            "c": "50000",              # closing price
-        #            "h": "0.1",                # highest price
-        #            "l": "0.1",                # lowest price
-        #            "a": "0.1",                # volume
-        #            "v": "0.1",                # turnover
-        #            "ch": "0.21",              # quote change
-        #            "i": "0.21" ,              # index price
-        #            "m": "0.21",               # mark price
-        #            "bp": "0.21",              # bid price
-        #            "ap": "0.21" ,             # ask price
-        #            "t": 123124124             # timestamp
+        #            "s": "btc_index",          // trading pair
+        #            "o": "49000",              // opening price
+        #            "c": "50000",              // closing price
+        #            "h": "0.1",                // highest price
+        #            "l": "0.1",                // lowest price
+        #            "a": "0.1",                // volume
+        #            "v": "0.1",                // turnover
+        #            "ch": "0.21",              // quote change
+        #            "i": "0.21" ,              // index price
+        #            "m": "0.21",               // mark price
+        #            "bp": "0.21",              // bid price
+        #            "ap": "0.21" ,             // ask price
+        #            "t": 123124124             // timestamp
         #       }
         #    }
         #
-        data = self.safe_dict(message, 'data')
+        data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 's')
         if marketId is not None:
             cv = self.safe_string(data, 'cv')
@@ -789,12 +821,15 @@ class xt(ccxt.async_support.xt):
             if symbol is not None:
                 self.tickers[symbol] = ticker
             event = self.safe_string(message, 'event')
-            messageHashTail = 'spot' if isSpot else 'contract'
-            messageHash = event + '::' + messageHashTail
-            client.resolve(ticker, messageHash)
+            messageHashTail = 'contract'
+            if isSpot:
+                messageHashTail = 'spot'
+            if event is not None:
+                messageHash = event + '::' + messageHashTail
+                client.resolve(ticker, messageHash)
         return message
 
-    def handle_tickers(self, client: Client, message: dict):
+    def handle_tickers(self, client: Client, message: dict) -> dict:
         #
         # spot
         #
@@ -825,39 +860,39 @@ class xt(ccxt.async_support.xt):
         #        "event": "tickers",
         #        "data": [
         #            {
-        #                "s": "btc_index",  # trading pair
-        #                "o": "49000",      # opening price
-        #                "c": "50000",      # closing price
-        #                "h": "0.1",        # highest price
-        #                "l": "0.1",        # lowest price
-        #                "a": "0.1",        # volume
-        #                "v": "0.1",        # turnover
-        #                "ch": "0.21",      # quote change
-        #                "t": 123124124     # timestamp
+        #                "s": "btc_index",  // trading pair
+        #                "o": "49000",      // opening price
+        #                "c": "50000",      // closing price
+        #                "h": "0.1",        // highest price
+        #                "l": "0.1",        // lowest price
+        #                "a": "0.1",        // volume
+        #                "v": "0.1",        // turnover
+        #                "ch": "0.21",      // quote change
+        #                "t": 123124124     // timestamp
         #            }
         #        ]
         #    }
         #
-        # agg_ticker(contract)
+        # agg_ticker (contract)
         #
         #    {
         #        "topic": "agg_tickers",
         #        "event": "agg_tickers",
         #        "data": [
         #            {
-        #                "s": "btc_index",          # trading pair
-        #                "o": "49000",              # opening price
-        #                "c": "50000",              # closing price
-        #                "h": "0.1",                # highest price
-        #                "l": "0.1",                # lowest price
-        #                "a": "0.1",                # volume
-        #                "v": "0.1",                # turnover
-        #                "ch": "0.21",              # quote change
-        #                "i": "0.21" ,              # index price
-        #                "m": "0.21",               # mark price
-        #                "bp": "0.21",              # bid price
-        #                "ap": "0.21" ,             # ask price
-        #                "t": 123124124             # timestamp
+        #                "s": "btc_index",          // trading pair
+        #                "o": "49000",              // opening price
+        #                "c": "50000",              // closing price
+        #                "h": "0.1",                // highest price
+        #                "l": "0.1",                // lowest price
+        #                "a": "0.1",                // volume
+        #                "v": "0.1",                // turnover
+        #                "ch": "0.21",              // quote change
+        #                "i": "0.21" ,              // index price
+        #                "m": "0.21",               // mark price
+        #                "bp": "0.21",              // bid price
+        #                "ap": "0.21" ,             // ask price
+        #                "t": 123124124             // timestamp
         #            }
         #        ]
         #    }
@@ -865,7 +900,9 @@ class xt(ccxt.async_support.xt):
         data = self.safe_list(message, 'data', [])
         firstTicker = self.safe_dict(data, 0)
         spotTest = self.safe_string_2(firstTicker, 'cv', 'aq')
-        tradeType = 'spot' if (spotTest is not None) else 'contract'
+        tradeType = 'contract'
+        if spotTest is not None:
+            tradeType = 'spot'
         newTickers = []
         for i in range(0, len(data)):
             tickerData = data[i]
@@ -889,7 +926,7 @@ class xt(ccxt.async_support.xt):
         client.resolve(self.tickers, messageHashStart)
         return message
 
-    def handle_ohlcv(self, client: Client, message: dict):
+    def handle_ohlcv(self, client: Client, message: dict) -> dict:
         #
         # spot
         #
@@ -897,15 +934,15 @@ class xt(ccxt.async_support.xt):
         #        "topic": "kline",
         #        "event": "kline@btc_usdt,5m",
         #        "data": {
-        #            "s": "btc_usdt",        # symbol
-        #            "t": 1656043200000,     # time
-        #            "i": "5m",              # interval
-        #            "o": "44000",           # open price
-        #            "c": "50000",           # close price
-        #            "h": "52000",           # highest price
-        #            "l": "36000",           # lowest price
-        #            "q": "34.2",            # qty(quantity)
-        #            "v": "230000"           # volume
+        #            "s": "btc_usdt",        // symbol
+        #            "t": 1656043200000,     // time
+        #            "i": "5m",              // interval
+        #            "o": "44000",           // open price
+        #            "c": "50000",           // close price
+        #            "h": "52000",           // highest price
+        #            "l": "36000",           // lowest price
+        #            "q": "34.2",            // qty(quantity)
+        #            "v": "230000"           // volume
         #        }
         #    }
         #
@@ -915,15 +952,15 @@ class xt(ccxt.async_support.xt):
         #        "topic": "kline",
         #        "event": "kline@btc_usdt,5m",
         #        "data": {
-        #            "s": "btc_index",      # trading pair
-        #            "o": "49000",          # opening price
-        #            "c": "50000",          # closing price
-        #            "h": "0.1",            # highest price
-        #            "l": "0.1",            # lowest price
-        #            "a": "0.1",            # volume
-        #            "v": "0.1",            # turnover
-        #            "ch": "0.21",          # quote change
-        #            "t": 123124124         # timestamp
+        #            "s": "btc_index",      // trading pair
+        #            "o": "49000",          // opening price
+        #            "c": "50000",          // closing price
+        #            "h": "0.1",            // highest price
+        #            "l": "0.1",            // lowest price
+        #            "a": "0.1",            // volume
+        #            "v": "0.1",            // turnover
+        #            "ch": "0.21",          // quote change
+        #            "t": 123124124         // timestamp
         #        }
         #    }
         #
@@ -931,7 +968,9 @@ class xt(ccxt.async_support.xt):
         marketId = self.safe_string(data, 's')
         if marketId is not None:
             timeframe = self.safe_string(data, 'i', '')
-            tradeType = 'spot' if ('q' in data) else 'contract'
+            tradeType = 'contract'
+            if 'q' in data:
+                tradeType = 'spot'
             market = self.safe_market(marketId, None, None, tradeType)
             symbol = market['symbol']
             parsed = self.parse_ohlcv(data, market)
@@ -943,11 +982,12 @@ class xt(ccxt.async_support.xt):
                 self.ohlcvs[symbol][timeframe] = stored
             stored.append(parsed)
             event = self.safe_string(message, 'event')
-            messageHash = event + '::' + tradeType
-            client.resolve(stored, messageHash)
+            if event is not None:
+                messageHash = event + '::' + tradeType
+                client.resolve(stored, messageHash)
         return message
 
-    def handle_trade(self, client: Client, message: dict):
+    def handle_trade(self, client: Client, message: dict) -> dict:
         #
         # spot
         #
@@ -960,7 +1000,7 @@ class xt(ccxt.async_support.xt):
         #            t: 1684258222702,
         #            p: '27003.65',
         #            q: '0.000796',
-        #            b: True
+        #            b: true
         #        }
         #    }
         #
@@ -970,20 +1010,22 @@ class xt(ccxt.async_support.xt):
         #        "topic": "trade",
         #        "event": "trade@btc_usdt",
         #        "data": {
-        #            "s": "btc_index",  # trading pair
-        #            "p": "50000",      # price
-        #            "a": "0.1"         # Quantity
-        #            "m": "BID"         # Deal side  BID:Buy ASK:Sell
-        #            "t": 123124124     # timestamp
+        #            "s": "btc_index",  // trading pair
+        #            "p": "50000",      // price
+        #            "a": "0.1"         // Quantity
+        #            "m": "BID"         // Deal side  BID:Buy ASK:Sell
+        #            "t": 123124124     // timestamp
         #        }
         #    }
         #
-        data = self.safe_dict(message, 'data')
+        data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string_lower(data, 's')
         if marketId is not None:
             trade = self.parse_trade(data)
             i = self.safe_string(data, 'i')
-            tradeType = 'spot' if (i is not None) else 'contract'
+            tradeType = 'contract'
+            if i is not None:
+                tradeType = 'spot'
             market = self.safe_market(marketId, None, None, tradeType)
             symbol = market['symbol']
             event = self.safe_string(message, 'event')
@@ -993,8 +1035,9 @@ class xt(ccxt.async_support.xt):
                 tradesArray = ArrayCache(tradesLimit)
                 self.trades[symbol] = tradesArray
             tradesArray.append(trade)
-            messageHash = event + '::' + tradeType
-            client.resolve(tradesArray, messageHash)
+            if event is not None:
+                messageHash = event + '::' + tradeType
+                client.resolve(tradesArray, messageHash)
         return message
 
     def handle_order_book(self, client: Client, message: dict):
@@ -1005,20 +1048,20 @@ class xt(ccxt.async_support.xt):
         #        "topic": "depth",
         #        "event": "depth@btc_usdt,20",
         #        "data": {
-        #            "s": "btc_usdt",        # symbol
-        #            "fi": 1681433733351,    # firstUpdateId = previous lastUpdateId + 1
-        #            "i": 1681433733371,     # updateId
-        #            "a": [                 # asks(sell order)
-        #                [                  # [0]price, [1]quantity
-        #                    "34000",        # price
-        #                    "1.2"           # quantity
+        #            "s": "btc_usdt",        // symbol
+        #            "fi": 1681433733351,    // firstUpdateId = previous lastUpdateId + 1
+        #            "i": 1681433733371,     // updateId
+        #            "a": [                  // asks(sell order)
+        #                [                   // [0]price, [1]quantity
+        #                    "34000",        // price
+        #                    "1.2"           // quantity
         #                ],
         #                [
         #                    "34001",
         #                    "2.3"
         #                ]
         #            ],
-        #            "b": [                  # bids(buy order)
+        #            "b": [                   // bids(buy order)
         #                [
         #                    "32000",
         #                    "0.2"
@@ -1087,14 +1130,14 @@ class xt(ccxt.async_support.xt):
             if obAsks is not None:
                 asks = orderbook['asks']
                 for i in range(0, len(obAsks)):
-                    ask = obAsks[i]
+                    ask = self.safe_list(obAsks, i)
                     price = self.safe_number(ask, 0)
                     quantity = self.safe_number(ask, 1)
                     asks.store(price, quantity)
             if obBids is not None:
                 bids = orderbook['bids']
                 for i in range(0, len(obBids)):
-                    bid = obBids[i]
+                    bid = self.safe_list(obBids, i)
                     price = self.safe_number(bid, 0)
                     quantity = self.safe_number(bid, 1)
                     bids.store(price, quantity)
@@ -1105,49 +1148,51 @@ class xt(ccxt.async_support.xt):
             orderbook['symbol'] = symbol
             client.resolve(orderbook, messageHash)
 
-    def parse_ws_order_trade(self, trade: dict, market: Market = None):
+    def parse_ws_order_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #    {
-        #        "s": "btc_usdt",                         # symbol
-        #        "t": 1656043204763,                      # time happened time
-        #        "i": "6216559590087220004",              # orderId,
-        #        "ci": "test123",                         # clientOrderId
-        #        "st": "PARTIALLY_FILLED",                # state
-        #        "sd": "BUY",                             # side BUY/SELL
-        #        "eq": "2",                               # executedQty executed quantity
-        #        "ap": "30000",                           # avg price
-        #        "f": "0.002"                             # fee
+        #        "s": "btc_usdt",                         // symbol
+        #        "t": 1656043204763,                      // time happened time
+        #        "i": "6216559590087220004",              // orderId,
+        #        "ci": "test123",                         // clientOrderId
+        #        "st": "PARTIALLY_FILLED",                // state
+        #        "sd": "BUY",                             // side BUY/SELL
+        #        "eq": "2",                               // executedQty executed quantity
+        #        "ap": "30000",                           // avg price
+        #        "f": "0.002"                             // fee
         #    }
         #
         # contract
         #
         #    {
-        #        "symbol": "btc_usdt",                    # Trading pair
-        #        "orderId": "1234",                       # Order Id
-        #        "origQty": "34244",                      # Original Quantity
-        #        "avgPrice": "123",                       # Quantity
-        #        "price": "1111",                         # Average price
-        #        "executedQty": "34244",                  # Volume(Cont)
-        #        "orderSide": "BUY",                      # BUY, SELL
-        #        "positionSide": "LONG",                  # LONG, SHORT
-        #        "marginFrozen": "123",                   # Occupied margin
-        #        "sourceType": "default",                 # DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
-        #        "sourceId" : "1231231",                  # Triggering conditions ID
-        #        "state": "",                             # state:NEW：New order(unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
-        #        "createTime": 1731231231,                # CreateTime
+        #        "symbol": "btc_usdt",                    // Trading pair
+        #        "orderId": "1234",                       // Order Id
+        #        "origQty": "34244",                      // Original Quantity
+        #        "avgPrice": "123",                       // Quantity
+        #        "price": "1111",                         // Average price
+        #        "executedQty": "34244",                  // Volume (Cont)
+        #        "orderSide": "BUY",                      // BUY, SELL
+        #        "positionSide": "LONG",                  // LONG, SHORT
+        #        "marginFrozen": "123",                   // Occupied margin
+        #        "sourceType": "default",                 // DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
+        #        "sourceId" : "1231231",                  // Triggering conditions ID
+        #        "state": "",                             // state:NEW：New order (unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
+        #        "createTime": 1731231231,                // CreateTime
         #        "clientOrderId": "204788317630342726"
         #    }
         #
         marketId = self.safe_string(trade, 's')
-        tradeType = 'contract' if ('symbol' in trade) else 'spot'
-        market = self.safe_market(marketId, market, None, tradeType)
+        tradeType = 'spot'
+        if 'symbol' in trade:
+            tradeType = 'contract'
+        marketResolved = self.safe_market(marketId, market, None, tradeType)
         timestamp = self.safe_string(trade, 't')
         return self.safe_trade({
             'info': trade,
             'id': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': self.safe_string(trade, 'i', 'orderId'),
             'type': self.parse_order_status(self.safe_string(trade, 'st', 'state')),
             'side': self.safe_string_lower(trade, 'sd', 'orderSide'),
@@ -1160,54 +1205,56 @@ class xt(ccxt.async_support.xt):
                 'cost': self.safe_number(trade, 'f'),
                 'rate': None,
             },
-        }, market)
+        }, marketResolved)
 
-    def parse_ws_order(self, order: dict, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         #
         # spot
         #
         #    {
-        #        "s": "btc_usdt",                # symbol
-        #        "bc": "btc",                    # base currency
-        #        "qc": "usdt",                   # quotation currency
-        #        "t": 1656043204763,             # happened time
-        #        "ct": 1656043204663,            # create time
-        #        "i": "6216559590087220004",     # order id,
-        #        "ci": "test123",                # client order id
-        #        "st": "PARTIALLY_FILLED",       # state NEW/PARTIALLY_FILLED/FILLED/CANCELED/REJECTED/EXPIRED
-        #        "sd": "BUY",                    # side BUY/SELL
-        #        "tp": "LIMIT",                  # type LIMIT/MARKET
-        #        "oq":  "4"                      # original quantity
-        #        "oqq":  48000,                  # original quotation quantity
-        #        "eq": "2",                      # executed quantity
-        #        "lq": "2",                      # remaining quantity
-        #        "p": "4000",                    # price
-        #        "ap": "30000",                  # avg price
-        #        "f":"0.002"                     # fee
+        #        "s": "btc_usdt",                // symbol
+        #        "bc": "btc",                    // base currency
+        #        "qc": "usdt",                   // quotation currency
+        #        "t": 1656043204763,             // happened time
+        #        "ct": 1656043204663,            // create time
+        #        "i": "6216559590087220004",     // order id,
+        #        "ci": "test123",                // client order id
+        #        "st": "PARTIALLY_FILLED",       // state NEW/PARTIALLY_FILLED/FILLED/CANCELED/REJECTED/EXPIRED
+        #        "sd": "BUY",                    // side BUY/SELL
+        #        "tp": "LIMIT",                  // type LIMIT/MARKET
+        #        "oq":  "4"                      // original quantity
+        #        "oqq":  48000,                  // original quotation quantity
+        #        "eq": "2",                      // executed quantity
+        #        "lq": "2",                      // remaining quantity
+        #        "p": "4000",                    // price
+        #        "ap": "30000",                  // avg price
+        #        "f":"0.002"                     // fee
         #    }
         #
         # contract
         #
         #    {
-        #        "symbol": "btc_usdt",                    # Trading pair
-        #        "orderId": "1234",                       # Order Id
-        #        "origQty": "34244",                      # Original Quantity
-        #        "avgPrice": "123",                       # Quantity
-        #        "price": "1111",                         # Average price
-        #        "executedQty": "34244",                  # Volume(Cont)
-        #        "orderSide": "BUY",                      # BUY, SELL
-        #        "positionSide": "LONG",                  # LONG, SHORT
-        #        "marginFrozen": "123",                   # Occupied margin
-        #        "sourceType": "default",                 # DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
-        #        "sourceId" : "1231231",                  # Triggering conditions ID
-        #        "state": "",                             # state:NEW：New order(unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
-        #        "createTime": 1731231231,                # CreateTime
+        #        "symbol": "btc_usdt",                    // Trading pair
+        #        "orderId": "1234",                       // Order Id
+        #        "origQty": "34244",                      // Original Quantity
+        #        "avgPrice": "123",                       // Quantity
+        #        "price": "1111",                         // Average price
+        #        "executedQty": "34244",                  // Volume (Cont)
+        #        "orderSide": "BUY",                      // BUY, SELL
+        #        "positionSide": "LONG",                  // LONG, SHORT
+        #        "marginFrozen": "123",                   // Occupied margin
+        #        "sourceType": "default",                 // DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
+        #        "sourceId" : "1231231",                  // Triggering conditions ID
+        #        "state": "",                             // state:NEW：New order (unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
+        #        "createTime": 1731231231,                // CreateTime
         #        "clientOrderId": "204788317630342726"
         #    }
         #
         marketId = self.safe_string_2(order, 's', 'symbol')
-        tradeType = 'contract' if ('symbol' in order) else 'spot'
-        market = self.safe_market(marketId, market, None, tradeType)
+        tradeType = 'spot'
+        if 'symbol' in order:
+            tradeType = 'contract'
+        marketResolved = self.safe_market(marketId, market, None, tradeType)
         timestamp = self.safe_integer_2(order, 'ct', 'createTime')
         return self.safe_order({
             'info': order,
@@ -1216,8 +1263,8 @@ class xt(ccxt.async_support.xt):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': market['symbol'],
-            'type': market['type'],
+            'symbol': marketResolved['symbol'],
+            'type': marketResolved['type'],
             'timeInForce': None,
             'postOnly': None,
             'side': self.safe_string_lower_2(order, 'sd', 'orderSide'),
@@ -1236,9 +1283,9 @@ class xt(ccxt.async_support.xt):
                 'cost': self.safe_number(order, 'f'),
             },
             'trades': None,
-        }, market)
+        }, marketResolved)
 
-    def handle_order(self, client: Client, message: dict):
+    def handle_order(self, client: Client, message: dict) -> dict:
         #
         # spot
         #
@@ -1246,15 +1293,15 @@ class xt(ccxt.async_support.xt):
         #        "topic": "order",
         #        "event": "order",
         #        "data": {
-        #            "s": "btc_usdt",                # symbol
-        #            "t": 1656043204763,             # time happened time
-        #            "i": "6216559590087220004",     # orderId,
-        #            "ci": "test123",                # clientOrderId
-        #            "st": "PARTIALLY_FILLED",       # state
-        #            "sd": "BUY",                    # side BUY/SELL
-        #            "eq": "2",                      # executedQty executed quantity
-        #            "ap": "30000",                  # avg price
-        #            "f": "0.002"                    # fee
+        #            "s": "btc_usdt",                // symbol
+        #            "t": 1656043204763,             // time happened time
+        #            "i": "6216559590087220004",     // orderId,
+        #            "ci": "test123",                // clientOrderId
+        #            "st": "PARTIALLY_FILLED",       // state
+        #            "sd": "BUY",                    // side BUY/SELL
+        #            "eq": "2",                      // executedQty executed quantity
+        #            "ap": "30000",                  // avg price
+        #            "f": "0.002"                    // fee
         #        }
         #    }
         #
@@ -1264,19 +1311,19 @@ class xt(ccxt.async_support.xt):
         #        "topic": "order",
         #        "event": "order@123456",
         #        "data": {
-        #             "symbol": "btc_usdt",                    # Trading pair
-        #             "orderId": "1234",                       # Order Id
-        #             "origQty": "34244",                      # Original Quantity
-        #             "avgPrice": "123",                       # Quantity
-        #             "price": "1111",                         # Average price
-        #             "executedQty": "34244",                  # Volume(Cont)
-        #             "orderSide": "BUY",                      # BUY, SELL
-        #             "positionSide": "LONG",                  # LONG, SHORT
-        #             "marginFrozen": "123",                   # Occupied margin
-        #             "sourceType": "default",                 # DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
-        #             "sourceId" : "1231231",                  # Triggering conditions ID
-        #             "state": "",                             # state:NEW：New order(unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
-        #             "createTime": 1731231231,                # CreateTime
+        #             "symbol": "btc_usdt",                    // Trading pair
+        #             "orderId": "1234",                       // Order Id
+        #             "origQty": "34244",                      // Original Quantity
+        #             "avgPrice": "123",                       // Quantity
+        #             "price": "1111",                         // Average price
+        #             "executedQty": "34244",                  // Volume (Cont)
+        #             "orderSide": "BUY",                      // BUY, SELL
+        #             "positionSide": "LONG",                  // LONG, SHORT
+        #             "marginFrozen": "123",                   // Occupied margin
+        #             "sourceType": "default",                 // DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
+        #             "sourceId" : "1231231",                  // Triggering conditions ID
+        #             "state": "",                             // state:NEW：New order (unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
+        #             "createTime": 1731231231,                // CreateTime
         #             "clientOrderId": "204788317630342726"
         #           }
         #    }
@@ -1289,7 +1336,9 @@ class xt(ccxt.async_support.xt):
         order = self.safe_dict(message, 'data', {})
         marketId = self.safe_string_2(order, 's', 'symbol')
         if marketId is not None:
-            tradeType = 'contract' if ('symbol' in order) else 'spot'
+            tradeType = 'spot'
+            if 'symbol' in order:
+                tradeType = 'contract'
             market = self.safe_market(marketId, None, None, tradeType)
             parsed = self.parse_ws_order(order, market)
             orders.append(parsed)
@@ -1320,11 +1369,11 @@ class xt(ccxt.async_support.xt):
         #        "event": "balance@123456",
         #        "data": {
         #            "coin": "usdt",
-        #            "underlyingType": 1,                          # 1:Coin-M,2:USDT-M
-        #            "walletBalance": "123",                       # Balance
-        #            "openOrderMarginFrozen": "123",               # Frozen order
-        #            "isolatedMargin": "213",                      # Isolated Margin
-        #            "crossedMargin": "0"                          # Crossed Margin
+        #            "underlyingType": 1,                          // 1:Coin-M,2:USDT-M
+        #            "walletBalance": "123",                       // Balance
+        #            "openOrderMarginFrozen": "123",               // Frozen order
+        #            "isolatedMargin": "213",                      // Isolated Margin
+        #            "crossedMargin": "0"                          // Crossed Margin
         #            "availableBalance": '2.256114450000000000',
         #            "coupon": '0',
         #            "bonus": '0'
@@ -1341,7 +1390,9 @@ class xt(ccxt.async_support.xt):
         if code is not None:
             self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
-        tradeType = 'contract' if ('coin' in data) else 'spot'
+        tradeType = 'spot'
+        if 'coin' in data:
+            tradeType = 'contract'
         client.resolve(self.balance, 'balance::' + tradeType)
 
     def handle_my_trades(self, client: Client, message: dict):
@@ -1352,13 +1403,13 @@ class xt(ccxt.async_support.xt):
         #        "topic": "trade",
         #        "event": "trade",
         #        "data": {
-        #            "s": "btc_usdt",                # symbol
-        #            "t": 1656043204763,             # time
-        #            "i": "6316559590087251233",     # tradeId
-        #            "oi": "6216559590087220004",    # orderId
-        #            "p": "30000",                   # trade price
-        #            "q": "3",                       # qty quantity
-        #            "v": "90000"                    # volume trade amount
+        #            "s": "btc_usdt",                // symbol
+        #            "t": 1656043204763,             // time
+        #            "i": "6316559590087251233",     // tradeId
+        #            "oi": "6216559590087220004",    // orderId
+        #            "p": "30000",                   // trade price
+        #            "q": "3",                       // qty quantity
+        #            "v": "90000"                    // volume trade amount
         #        }
         #    }
         #
@@ -1391,10 +1442,12 @@ class xt(ccxt.async_support.xt):
             return
         market = self.market(tradeSymbol)
         stored.append(parsedTrade)
-        tradeType = 'contract' if market['contract'] else 'spot'
+        tradeType = 'spot'
+        if market['contract'] is True:
+            tradeType = 'contract'
         client.resolve(stored, 'trade::' + tradeType)
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: dict):
         event = self.safe_string(message, 'event')
         if event == 'pong':
             client.onPong()
@@ -1425,11 +1478,11 @@ class xt(ccxt.async_support.xt):
         else:
             self.handle_subscription_status(client, message)
 
-    def ping(self, client: Client):
+    def ping(self, client: Client) -> str:
         client.lastPong = self.milliseconds()
         return 'ping'
 
-    def handle_subscription_status(self, client: Client, message: Any):
+    def handle_subscription_status(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         id: '1763045665228ticker@eth_usdt',
@@ -1451,7 +1504,7 @@ class xt(ccxt.async_support.xt):
         if id is not None:
             subscription = self.safe_dict(subscriptionsById, id, {})
             unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-            if unsubscribe:
+            if unsubscribe is True:
                 self.handle_un_subscription(client, subscription)
         return message
 
@@ -1474,7 +1527,9 @@ class xt(ccxt.async_support.xt):
         #
         msg = self.safe_string(message, 'msg')
         if (msg == 'invalid_listen_key') or (msg == 'token expire'):
-            client.subscriptions['token'] = None
+            if 'token' in client.subscriptions:
+                del client.subscriptions['token']
             self.get_listen_key(True)
             return
-        client.reject(message)
+        error = ExchangeError(self.id + ' ' + self.json(message))
+        client.reject(error)

@@ -42,7 +42,7 @@
 * [fetchConvertQuote](#fetchconvertquote)
 * [createConvertTrade](#createconverttrade)
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
-* [fetchPositionADLRank](#fetchpositionadlrank)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [watchBalance](#watchbalance)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
@@ -562,7 +562,7 @@ fetch all open positions
 | symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.code | <code>string</code> | No | the currency code to fetch positions for, USD, BTC or USDT, USDT is the default |
-| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions' |
+| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions' |
 
 
 ```javascript
@@ -944,9 +944,9 @@ phemex.fetchConvertTradeHistory (code?, since?, limit?, params?)
 ```
 
 
-<a name="fetchPositionADLRank" id="fetchpositionadlrank"></a>
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
 
-### fetchPositionADLRank{docsify-ignore}
+### fetchPositionsADLRank{docsify-ignore}
 fetches the auto deleveraging rank and risk percentage for a list of symbols
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
@@ -964,11 +964,11 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols
 | symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.code | <code>string</code> | No | the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default |
-| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions' |
+| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions' |
 
 
 ```javascript
-phemex.fetchPositionADLRank (symbols?, params?)
+phemex.fetchPositionsADLRank (symbols?, params?)
 ```
 
 

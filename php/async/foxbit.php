@@ -14,7 +14,7 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
-use const ccxt\DECIMAL_PLACES;
+use const ccxt\TICK_SIZE;
 
 class foxbit extends Exchange {
     public function describe(): mixed {
@@ -43,7 +43,8 @@ class foxbit extends Exchange {
                 'createMarketBuyOrder' => true,
                 'createMarketSellOrder' => true,
                 'createOrder' => true,
-                'fecthOrderBook' => true,
+                'createOrders' => true,
+                'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
@@ -57,7 +58,10 @@ class foxbit extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchOrdersByStatus' => true,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -97,7 +101,7 @@ class foxbit extends Exchange {
                     'https://docs.foxbit.com.br',
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     // https://docs.foxbit.com.br/rest/v3/#tag/API-Codes/Errors
@@ -131,7 +135,7 @@ class foxbit extends Exchange {
                     '5006' => '\\ccxt\\InvalidOrder', // Significant price deviation detected, exceeding acceptable limits. The order price is exceeding acceptable limits from market to complete your request.
                 ),
                 'broad' => array(
-                    // todo => add details messages that can be usefull here, like when market is not found
+                    // todo: add details messages that can be usefull here, like when market is not found
                 ),
             ),
             'requiredCredentials' => array(
@@ -142,42 +146,46 @@ class foxbit extends Exchange {
                 'v3' => array(
                     'public' => array(
                         'get' => array(
-                            'currencies' => 5, // 6 requests per second
-                            'markets' => 5, // 6 requests per second
-                            'markets/ticker/24hr' => 60, // 1 request per 2 seconds
-                            'markets/{market}/orderbook' => 6, // 10 requests per 2 seconds
-                            'markets/{market}/candlesticks' => 12, // 5 requests per 2 seconds
-                            'markets/{market}/trades/history' => 12, // 5 requests per 2 seconds
-                            'markets/{market}/ticker/24hr' => 15, // 4 requests per 2 seconds
+                            'currencies' => array( 'cost' => 5 ), // 6 requests per second
+                            'markets' => array( 'cost' => 5 ), // 6 requests per second
+                            'markets/ticker/24hr' => array( 'cost' => 60 ), // 1 request per 2 seconds
+                            'markets/{market}/orderbook' => array( 'cost' => 6 ), // 10 requests per 2 seconds
+                            'markets/{market}/candlesticks' => array( 'cost' => 12 ), // 5 requests per 2 seconds
+                            'markets/{market}/trades/history' => array( 'cost' => 12 ), // 5 requests per 2 seconds
+                            'markets/{market}/ticker/24hr' => array( 'cost' => 15 ), // 4 requests per 2 seconds
+                            'markets/sparkline/{window}' => array( 'cost' => 20 ), // 3 requests per 2 seconds
+                            'travel_rule/operation_reasons' => array( 'cost' => 30 ), // 2 requests per 2 seconds
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'accounts' => 2, // 15 requests per second
-                            'accounts/{symbol}/transactions' => 60, // 1 requests per 2 seconds
-                            'orders' => 2, // 30 requests per 2 seconds
-                            'orders/by-order-id/{id}' => 2, // 30 requests per 2 seconds
-                            'trades' => 6, // 5 orders per second
-                            'deposits/address' => 10, // 3 requests per second
-                            'deposits' => 10, // 3 requests per second
-                            'withdrawals' => 10, // 3 requests per second
-                            'me/fees/trading' => 60, // 1 requests per 2 seconds
+                            'accounts' => array( 'cost' => 2 ), // 15 requests per second
+                            'accounts/{symbol}/transactions' => array( 'cost' => 60 ), // 1 requests per 2 seconds
+                            'orders' => array( 'cost' => 2 ), // 30 requests per 2 seconds
+                            'orders/by-order-id/{id}' => array( 'cost' => 2 ), // 30 requests per 2 seconds
+                            'trades' => array( 'cost' => 6 ), // 5 orders per second
+                            'deposits/address' => array( 'cost' => 10 ), // 3 requests per second
+                            'deposits' => array( 'cost' => 10 ), // 3 requests per second
+                            'withdrawals' => array( 'cost' => 10 ), // 3 requests per second
+                            'me/fees/trading' => array( 'cost' => 60 ), // 1 requests per 2 seconds
+                            'prime_desk/executions/{quote_id}' => array( 'cost' => 10 ), // 6 requests per 2 seconds
                         ),
                         'post' => array(
-                            'orders' => 2, // 30 requests per 2 seconds
-                            'orders/batch' => 7.5, // 8 requests per 2 seconds
-                            'orders/cancel-replace' => 3, // 20 requests per 2 seconds
-                            'withdrawals' => 10, // 3 requests per second
+                            'orders' => array( 'cost' => 2 ), // 30 requests per 2 seconds
+                            'orders/batch' => array( 'cost' => 7.5 ), // 8 requests per 2 seconds
+                            'orders/cancel-replace' => array( 'cost' => 3 ), // 20 requests per 2 seconds
+                            'withdrawals' => array( 'cost' => 10 ), // 3 requests per second
+                            'deposits/{deposit_sn}/travel_rule' => array( 'cost' => 30 ), // 2 requests per 2 seconds
                         ),
                         'put' => array(
-                            'orders/cancel' => 2, // 30 requests per 2 seconds
+                            'orders/cancel' => array( 'cost' => 2 ), // 30 requests per 2 seconds
                         ),
                     ),
                 ),
                 'status' => array(
                     'public' => array(
                         'get' => array(
-                            'status' => 30, // 1 request per second
+                            'status' => array( 'cost' => 30 ), // 1 request per second
                         ),
                     ),
                 ),
@@ -331,52 +339,53 @@ class foxbit extends Exchange {
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            $response = Async\await($this->v3PublicGetCurrencies($params));
-            // {
-            //   "data" => array(
-            //     {
-            //       "symbol" => "btc",
-            //       "name" => "Bitcoin",
-            //       "type" => "CRYPTO",
-            //       "precision" => 8,
-            //       "deposit_info" => array(
-            //         "min_to_confirm" => "1",
-            //         "min_amount" => "0.0001"
-            //       ),
-            //       "withdraw_info" => array(
-            //         "enabled" => true,
-            //         "min_amount" => "0.0001",
-            //         "fee" => "0.0001"
-            //       ),
-            //       "category" => array(
-            //           "code" => "cripto",
-            //         "name" => "Cripto"
-            //       ),
-            //       "networks" => array(
-            //           {
-            //               "name" => "Bitcoin",
-            //               "code" => "btc",
-            //               "deposit_info" => array(
-            //                  status => "ENABLED",
-            //               ),
-            //               "withdraw_info" => array(
-            //                  "status" => "ENABLED",
-            //                  "fee" => "0.0001",
-            //               ),
-            //               "has_destination_tag" => false
-            //           }
-            //       )
-            //     }
-            //   )
-            // }
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_currencies($data);
-        })();
+        return Async\async(self::do_fetch_currencies(...))($params);
+    }
+
+    private function do_fetch_currencies($params = array()) {
+        $response = Async\await($this->v3PublicGetCurrencies($params));
+        // {
+        //   "data": [
+        //     {
+        //       "symbol": "btc",
+        //       "name": "Bitcoin",
+        //       "type": "CRYPTO",
+        //       "precision": 8,
+        //       "deposit_info": {
+        //         "min_to_confirm": "1",
+        //         "min_amount": "0.0001"
+        //       },
+        //       "withdraw_info": {
+        //         "enabled": true,
+        //         "min_amount": "0.0001",
+        //         "fee": "0.0001"
+        //       },
+        //       "category": {
+        //           "code": "cripto",
+        //         "name": "Cripto"
+        //       },
+        //       "networks": [
+        //           {
+        //               "name": "Bitcoin",
+        //               "code": "btc",
+        //               "deposit_info": {
+        //                  status: "ENABLED",
+        //               },
+        //               "withdraw_info": {
+        //                  "status": "ENABLED",
+        //                  "fee": "0.0001",
+        //               },
+        //               "has_destination_tag": false
+        //           }
+        //       ]
+        //     }
+        //   ]
+        // }
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_currencies($data);
     }
 
     public function parse_currency(array $rawCurrency): array {
-        $precision = $this->safe_integer($rawCurrency, 'precision');
         $currencyId = $this->safe_string($rawCurrency, 'symbol');
         $name = $this->safe_string($rawCurrency, 'name');
         $code = $this->safe_currency_code($currencyId);
@@ -386,7 +395,7 @@ class foxbit extends Exchange {
         $type = $this->safe_string_lower($rawCurrency, 'type');
         $parsedNetworks = array();
         for ($j = 0; $j < count($networks); $j++) {
-            $network = $networks[$j];
+            $network = $this->safe_dict($networks, $j);
             $networkId = $this->safe_string($network, 'code');
             $networkCode = $this->network_id_to_code($networkId, $code);
             $networkWithdrawInfo = $this->safe_dict($network, 'withdraw_info');
@@ -402,7 +411,7 @@ class foxbit extends Exchange {
                     'deposit' => $isDepositEnabled,
                     'withdraw' => $isWithdrawEnabled,
                     'active' => true,
-                    'precision' => $precision,
+                    'precision' => null,
                     'fee' => $this->safe_number($networkWithdrawInfo, 'fee'),
                     'limits' => array(
                         'amount' => array(
@@ -431,7 +440,7 @@ class foxbit extends Exchange {
             'deposit' => $this->safe_bool($depositInfo, 'enabled', false),
             'withdraw' => $this->safe_bool($withdrawInfo, 'enabled', false),
             'fee' => $this->safe_number($withdrawInfo, 'fee'),
-            'precision' => $precision,
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision'))),
             'limits' => array(
                 'amount' => array(
                     'min' => null,
@@ -451,548 +460,648 @@ class foxbit extends Exchange {
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * Retrieves data on all $markets for foxbit.
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_index
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing market data
-             */
-            $response = Async\await($this->v3PublicGetMarkets($params));
-            // {
-            //     "data" => array(
-            //       {
-            //         "symbol" => "btcbrl",
-            //         "quantity_min" => "0.00000236",
-            //         "quantity_increment" => "0.00000001",
-            //         "quantity_precision" => 8,
-            //         "price_min" => "0.0001",
-            //         "price_increment" => "0.0001",
-            //         "price_precision" => 4,
-            //         "default_fees" => array(
-            //           "maker" => "0.001",
-            //           "taker" => "0.001"
-            //         ),
-            //         "base" => {
-            //           "symbol" => "btc",
-            //           "name" => "Bitcoin",
-            //           "type" => "CRYPTO",
-            //           "precision" => 8,
-            //           "category" => array(
-            //             "code" => "cripto",
-            //             "name" => "Cripto"
-            //           ),
-            //           "deposit_info" => array(
-            //             "min_to_confirm" => "1",
-            //             "min_amount" => "0.0001",
-            //             "enabled" => true
-            //           ),
-            //           "withdraw_info" => array(
-            //             "enabled" => true,
-            //             "min_amount" => "0.0001",
-            //             "fee" => "0.0001"
-            //           ),
-            //           "networks" => array(
-            //             array(
-            //               "name" => "Bitcoin",
-            //               "code" => "bitcoin",
-            //               "deposit_info" => array(
-            //                 "status" => "ENABLED"
-            //               ),
-            //               "withdraw_info" => array(
-            //                 "status" => "ENABLED",
-            //                 "fee" => "0.0001"
-            //               ),
-            //               "has_destination_tag" => false
-            //             }
-            //           ),
-            //           "default_network_code" => "bitcoin"
-            //         ),
-            //         "quote" => {
-            //           "symbol" => "btc",
-            //           "name" => "Bitcoin",
-            //           "type" => "CRYPTO",
-            //           "precision" => 8,
-            //           "category" => array(
-            //             "code" => "cripto",
-            //             "name" => "Cripto"
-            //           ),
-            //           "deposit_info" => array(
-            //             "min_to_confirm" => "1",
-            //             "min_amount" => "0.0001",
-            //             "enabled" => true
-            //           ),
-            //           "withdraw_info" => array(
-            //             "enabled" => true,
-            //             "min_amount" => "0.0001",
-            //             "fee" => "0.0001"
-            //           ),
-            //           "networks" => array(
-            //             array(
-            //               "name" => "Bitcoin",
-            //               "code" => "bitcoin",
-            //               "deposit_info" => array(
-            //                 "status" => "ENABLED"
-            //               ),
-            //               "withdraw_info" => array(
-            //                 "status" => "ENABLED",
-            //                 "fee" => "0.0001"
-            //               ),
-            //               "has_destination_tag" => false
-            //             }
-            //           ),
-            //           "default_network_code" => "bitcoin"
-            //         ),
-            //         "order_type" => array(
-            //           "LIMIT",
-            //           "MARKET",
-            //           "INSTANT",
-            //           "STOP_LIMIT",
-            //           "STOP_MARKET"
-            //         )
-            //       }
-            //     )
-            //   }
-            $markets = $this->safe_list($response, 'data', array());
-            return $this->parse_markets($markets);
-        })();
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         * Retrieves data on all $markets for foxbit.
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_index
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing market data
+         */
+        $response = Async\await($this->v3PublicGetMarkets($params));
+        // {
+        //     "data": [
+        //       {
+        //         "symbol": "btcbrl",
+        //         "quantity_min": "0.00000236",
+        //         "quantity_increment": "0.00000001",
+        //         "quantity_precision": 8,
+        //         "price_min": "0.0001",
+        //         "price_increment": "0.0001",
+        //         "price_precision": 4,
+        //         "default_fees": {
+        //           "maker": "0.001",
+        //           "taker": "0.001"
+        //         },
+        //         "base": {
+        //           "symbol": "btc",
+        //           "name": "Bitcoin",
+        //           "type": "CRYPTO",
+        //           "precision": 8,
+        //           "category": {
+        //             "code": "cripto",
+        //             "name": "Cripto"
+        //           },
+        //           "deposit_info": {
+        //             "min_to_confirm": "1",
+        //             "min_amount": "0.0001",
+        //             "enabled": true
+        //           },
+        //           "withdraw_info": {
+        //             "enabled": true,
+        //             "min_amount": "0.0001",
+        //             "fee": "0.0001"
+        //           },
+        //           "networks": [
+        //             {
+        //               "name": "Bitcoin",
+        //               "code": "bitcoin",
+        //               "deposit_info": {
+        //                 "status": "ENABLED"
+        //               },
+        //               "withdraw_info": {
+        //                 "status": "ENABLED",
+        //                 "fee": "0.0001"
+        //               },
+        //               "has_destination_tag": false
+        //             }
+        //           ],
+        //           "default_network_code": "bitcoin"
+        //         },
+        //         "quote": {
+        //           "symbol": "btc",
+        //           "name": "Bitcoin",
+        //           "type": "CRYPTO",
+        //           "precision": 8,
+        //           "category": {
+        //             "code": "cripto",
+        //             "name": "Cripto"
+        //           },
+        //           "deposit_info": {
+        //             "min_to_confirm": "1",
+        //             "min_amount": "0.0001",
+        //             "enabled": true
+        //           },
+        //           "withdraw_info": {
+        //             "enabled": true,
+        //             "min_amount": "0.0001",
+        //             "fee": "0.0001"
+        //           },
+        //           "networks": [
+        //             {
+        //               "name": "Bitcoin",
+        //               "code": "bitcoin",
+        //               "deposit_info": {
+        //                 "status": "ENABLED"
+        //               },
+        //               "withdraw_info": {
+        //                 "status": "ENABLED",
+        //                 "fee": "0.0001"
+        //               },
+        //               "has_destination_tag": false
+        //             }
+        //           ],
+        //           "default_network_code": "bitcoin"
+        //         },
+        //         "order_type": [
+        //           "LIMIT",
+        //           "MARKET",
+        //           "INSTANT",
+        //           "STOP_LIMIT",
+        //           "STOP_MARKET"
+        //         ]
+        //       }
+        //     ]
+        //   }
+        $markets = $this->safe_list($response, 'data', array());
+        return $this->parse_markets($markets);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * Get last 24 hours ticker information, in real-time, for given $market->
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_ticker
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-            );
-            $response = Async\await($this->v3PublicGetMarketsMarketTicker24hr($this->extend($request, $params)));
-            //  {
-            //    "data" => array(
-            //      {
-            //        "market_symbol" => "btcbrl",
-            //        "last_trade" => array(
-            //          "price" => "358504.69340000",
-            //          "volume" => "0.00027893",
-            //          "date" => "2024-01-01T00:00:00.000Z"
-            //        ),
-            //        "rolling_24h" => array(
-            //          "price_change" => "3211.87290000",
-            //          "price_change_percent" => "0.90400726",
-            //          "volume" => "20.03206866",
-            //          "trades_count" => "4376",
-            //          "open" => "355292.82050000",
-            //          "high" => "362999.99990000",
-            //          "low" => "355002.88880000"
-            //        ),
-            //        "best" => {
-            //          "ask" => array(
-            //            "price" => "358504.69340000",
-            //            "volume" => "0.00027893"
-            //          ),
-            //          "bid" => {
-            //            "price" => "358504.69340000",
-            //            "volume" => "0.00027893"
-            //          }
-            //        }
-            //      }
-            //    )
-            //  }
-            $data = $this->safe_list($response, 'data', array());
-            $result = $this->safe_dict($data, 0, array());
-            return $this->parse_ticker($result, $market);
-        })();
+        return Async\async(self::do_fetch_ticker(...))($symbol, $params);
+    }
+
+    private function do_fetch_ticker(string $symbol, $params = array()) {
+        /**
+         * Get last 24 hours ticker information, in real-time, for given $market->
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_ticker
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = Async\await($this->v3PublicGetMarketsMarketTicker24hr($this->extend($request, $params)));
+        //  {
+        //    "data": [
+        //      {
+        //        "market_symbol": "btcbrl",
+        //        "last_trade": {
+        //          "price": "358504.69340000",
+        //          "volume": "0.00027893",
+        //          "date": "2024-01-01T00:00:00.000Z"
+        //        },
+        //        "rolling_24h": {
+        //          "price_change": "3211.87290000",
+        //          "price_change_percent": "0.90400726",
+        //          "volume": "20.03206866",
+        //          "trades_count": "4376",
+        //          "open": "355292.82050000",
+        //          "high": "362999.99990000",
+        //          "low": "355002.88880000"
+        //        },
+        //        "best": {
+        //          "ask": {
+        //            "price": "358504.69340000",
+        //            "volume": "0.00027893"
+        //          },
+        //          "bid": {
+        //            "price": "358504.69340000",
+        //            "volume": "0.00027893"
+        //          }
+        //        }
+        //      }
+        //    ]
+        //  }
+        $data = $this->safe_list($response, 'data', array());
+        $result = $this->safe_dict($data, 0, array());
+        return $this->parse_ticker($result, $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * Retrieve the ticker $data of all markets.
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_tickers
-             *
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->v3PublicGetMarketsTicker24hr($params));
-            //  {
-            //    "data" => array(
-            //      {
-            //        "market_symbol" => "btcbrl",
-            //        "last_trade" => array(
-            //          "price" => "358504.69340000",
-            //          "volume" => "0.00027893",
-            //          "date" => "2024-01-01T00:00:00.000Z"
-            //        ),
-            //        "rolling_24h" => array(
-            //          "price_change" => "3211.87290000",
-            //          "price_change_percent" => "0.90400726",
-            //          "volume" => "20.03206866",
-            //          "trades_count" => "4376",
-            //          "open" => "355292.82050000",
-            //          "high" => "362999.99990000",
-            //          "low" => "355002.88880000"
-            //        ),
-            //      }
-            //    )
-            //  }
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_tickers($data, $symbols);
-        })();
+        return Async\async(self::do_fetch_tickers(...))($symbols, $params);
+    }
+
+    private function do_fetch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * Retrieve the ticker $data of all markets.
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_tickers
+         *
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $response = Async\await($this->v3PublicGetMarketsTicker24hr($params));
+        //  {
+        //    "data": [
+        //      {
+        //        "market_symbol": "btcbrl",
+        //        "last_trade": {
+        //          "price": "358504.69340000",
+        //          "volume": "0.00027893",
+        //          "date": "2024-01-01T00:00:00.000Z"
+        //        },
+        //        "rolling_24h": {
+        //          "price_change": "3211.87290000",
+        //          "price_change_percent": "0.90400726",
+        //          "volume": "20.03206866",
+        //          "trades_count": "4376",
+        //          "open": "355292.82050000",
+        //          "high": "362999.99990000",
+        //          "low": "355002.88880000"
+        //        },
+        //      }
+        //    ]
+        //  }
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_tickers($data, $symbolsNormalized);
     }
 
     public function fetch_trading_fees($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetch the trading fees for multiple markets
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Member-Info/operation/MembersController_listTradingFees
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by $market symbols
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->v3PrivateGetMeFeesTrading($params));
-            // array(
-            //     {
-            //         "market_symbol" => "btcbrl",
-            //         "maker" => "0.0025",
-            //         "taker" => "0.005"
-            //     }
-            // )
-            $data = $this->safe_list($response, 'data', array());
-            $result = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $entry = $data[$i];
-                $marketId = $this->safe_string($entry, 'market_symbol');
-                $market = $this->safe_market($marketId);
-                $symbol = $market['symbol'];
-                $result[$symbol] = $this->parse_trading_fee($entry, $market);
-            }
-            return $result;
-        })();
+        return Async\async(self::do_fetch_trading_fees(...))($params);
+    }
+
+    private function do_fetch_trading_fees($params = array()) {
+        /**
+         * fetch the trading fees for multiple markets
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Member-Info/operation/MembersController_listTradingFees
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by $market symbols
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->v3PrivateGetMeFeesTrading($params));
+        // [
+        //     {
+        //         "market_symbol": "btcbrl",
+        //         "maker": "0.0025",
+        //         "taker": "0.005"
+        //     }
+        // ]
+        $data = $this->safe_list($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $marketId = $this->safe_string($entry, 'market_symbol');
+            $market = $this->safe_market($marketId);
+            $symbol = $market['symbol'];
+            $result[$symbol] = $this->parse_trading_fee($entry, $market);
+        }
+        return $result;
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * Exports a copy of the order book of a specific $market->
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_findOrderbook
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return, the maximum is 100
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $defaultLimit = 20;
-            $request = array(
-                'market' => $market['id'],
-                'depth' => ($limit === null) ? $defaultLimit : $limit,
-            );
-            $response = Async\await($this->v3PublicGetMarketsMarketOrderbook($this->extend($request, $params)));
-            //  {
-            //    "sequence_id" => 1234567890,
-            //    "timestamp" => 1713187921336,
-            //    "bids" => array(
-            //      array(
-            //        "3.00000000",
-            //        "300.00000000"
-            //      ),
-            //      array(
-            //        "1.70000000",
-            //        "310.00000000"
-            //      )
-            //    ),
-            //    "asks" => array(
-            //      array(
-            //        "3.00000000",
-            //        "300.00000000"
-            //      ),
-            //      array(
-            //        "2.00000000",
-            //        "321.00000000"
-            //      )
-            //    )
-            //  }
-            $timestamp = $this->safe_integer($response, 'timestamp');
-            return $this->parse_order_book($response, $symbol, $timestamp);
-        })();
+        return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * Exports a copy of the order book of a specific $market->
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_findOrderbook
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return, the maximum is 100
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $defaultLimit = 20;
+        $request = array(
+            'market' => $market['id'],
+            'depth' => ($limit === null) ? $defaultLimit : $limit,
+        );
+        $response = Async\await($this->v3PublicGetMarketsMarketOrderbook($this->extend($request, $params)));
+        //  {
+        //    "sequence_id": 1234567890,
+        //    "timestamp": 1713187921336,
+        //    "bids": [
+        //      [
+        //        "3.00000000",
+        //        "300.00000000"
+        //      ],
+        //      [
+        //        "1.70000000",
+        //        "310.00000000"
+        //      ]
+        //    ],
+        //    "asks": [
+        //      [
+        //        "3.00000000",
+        //        "300.00000000"
+        //      ],
+        //      [
+        //        "2.00000000",
+        //        "321.00000000"
+        //      ]
+        //    ]
+        //  }
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * Retrieve the trades of a specific $market->
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_publicTrades
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * Retrieve the trades of a specific $market->
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_publicTrades
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+            if ($limit > 200) {
+                $request['page_size'] = 200;
             }
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['page_size'] = $limit;
-                if ($limit > 200) {
-                    $request['page_size'] = 200;
-                }
-            }
-            // array(
-            //     {
-            //         "id" => 1,
-            //         "price" => "329248.74700000",
-            //         "volume" => "0.00100000",
-            //         "taker_side" => "BUY",
-            //         "created_at" => "2024-01-01T00:00:00Z"
-            //     }
-            // )
-            $response = Async\await($this->v3PublicGetMarketsMarketTradesHistory($this->extend($request, $params)));
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_trades($data, $market, $since, $limit);
-        })();
+        }
+        // [
+        //     {
+        //         "id": 1,
+        //         "price": "329248.74700000",
+        //         "volume": "0.00100000",
+        //         "taker_side": "BUY",
+        //         "created_at": "2024-01-01T00:00:00Z"
+        //     }
+        // ]
+        $response = Async\await($this->v3PublicGetMarketsMarketTradesHistory($this->extend($request, $params)));
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * Fetch historical candlestick data containing the open, high, low, and close price, and the volume of a $market->
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_findCandlesticks
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * Fetch historical candlestick data containing the open, high, low, and close price, and the volume of a $market->
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_findCandlesticks
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $request = array(
+            'market' => $market['id'],
+            'interval' => $interval,
+        );
+        if ($since !== null) {
+            $request['start_time'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+            if ($limit > 500) {
+                $request['limit'] = 500;
             }
-            $market = $this->market($symbol);
-            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $request = array(
-                'market' => $market['id'],
-                'interval' => $interval,
-            );
-            if ($since !== null) {
-                $request['start_time'] = $this->iso8601($since);
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-                if ($limit > 500) {
-                    $request['limit'] = 500;
-                }
-            }
-            $response = Async\await($this->v3PublicGetMarketsMarketCandlesticks($this->extend($request, $params)));
-            // array(
-            //     array(
-            //         "1692918000000", // timestamp
-            //         "127772.05150000", // open
-            //         "128467.99980000", // high
-            //         "127750.01000000", // low
-            //         "128353.99990000", // close
-            //         "1692918060000", // close timestamp
-            //         "0.17080431", // base volume
-            //         "21866.35948786", // quote volume
-            //         66, // number of trades
-            //         "0.12073605", // taker buy base volume
-            //         "15466.34096391" // taker buy quote volume
-            //     )
-            // )
-            return $this->parse_ohlcvs($response, $market, $interval, $since, $limit);
-        })();
+        }
+        $response = Async\await($this->v3PublicGetMarketsMarketCandlesticks($this->extend($request, $params)));
+        // [
+        //     [
+        //         "1692918000000", // timestamp
+        //         "127772.05150000", // open
+        //         "128467.99980000", // high
+        //         "127750.01000000", // low
+        //         "128353.99990000", // close
+        //         "1692918060000", // close timestamp
+        //         "0.17080431", // base volume
+        //         "21866.35948786", // quote volume
+        //         66, // number of trades
+        //         "0.12073605", // taker buy base volume
+        //         "15466.34096391" // taker buy quote volume
+        //     ]
+        // ]
+        return $this->parse_ohlcvs($this->to_array($response), $market, $interval, $since, $limit);
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * Query for balance and get the amount of funds available for trading or funds locked in orders.
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Account/operation/AccountsController_all
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->v3PrivateGetAccounts($params));
-            // {
-            //     "data" => array(
-            //         {
-            //         "currency_symbol" => "btc",
-            //         "balance" => "10000.0",
-            //         "balance_available" => "9000.0",
-            //         "balance_locked" => "1000.0"
-            //         }
-            //     )
-            // }
-            $accounts = $this->safe_list($response, 'data', array());
-            $result = array(
-                'info' => $response,
+        return Async\async(self::do_fetch_balance(...))($params);
+    }
+
+    private function do_fetch_balance($params = array()) {
+        /**
+         * Query for balance and get the amount of funds available for trading or funds locked in orders.
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Account/operation/AccountsController_all
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->v3PrivateGetAccounts($params));
+        // {
+        //     "data": [
+        //         {
+        //         "currency_symbol": "btc",
+        //         "balance": "10000.0",
+        //         "balance_available": "9000.0",
+        //         "balance_locked": "1000.0"
+        //         }
+        //     ]
+        // }
+        $accounts = $this->safe_list($response, 'data', array());
+        $result = array(
+            'info' => $response,
+        );
+        for ($i = 0; $i < count($accounts); $i++) {
+            $account = $this->safe_dict($accounts, $i);
+            $currencyId = $this->safe_string($account, 'currency_symbol');
+            $currencyCode = $this->safe_currency_code($currencyId);
+            $total = $this->safe_string($account, 'balance');
+            $used = $this->safe_string($account, 'balance_locked');
+            $free = $this->safe_string($account, 'balance_available');
+            $balanceObj = array(
+                'free' => $free,
+                'used' => $used,
+                'total' => $total,
             );
-            for ($i = 0; $i < count($accounts); $i++) {
-                $account = $accounts[$i];
-                $currencyId = $this->safe_string($account, 'currency_symbol');
-                $currencyCode = $this->safe_currency_code($currencyId);
-                $total = $this->safe_string($account, 'balance');
-                $used = $this->safe_string($account, 'balance_locked');
-                $free = $this->safe_string($account, 'balance_available');
-                $balanceObj = array(
-                    'free' => $free,
-                    'used' => $used,
-                    'total' => $total,
-                );
-                if ($currencyCode !== null) {
-                    $result[$currencyCode] = $balanceObj;
-                }
+            if ($currencyCode !== null) {
+                $result[$currencyCode] = $balanceObj;
             }
-            return $this->safe_balance($result);
-        })();
+        }
+        return $this->safe_balance($result);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * Fetch all unfilled currently open orders.
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders
-             *
-             * @param {string} $symbol unified market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch open orders for
-             * @param {int} [$limit] the maximum number of open order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            return Async\await($this->fetch_orders_by_status('ACTIVE', $symbol, $since, $limit, $params));
-        })();
+        return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * Fetch all unfilled currently open orders.
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of open order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        return Async\await($this->fetch_orders_by_status('ACTIVE', $symbol, $since, $limit, $params));
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * Fetch all currently closed orders.
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders
-             *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            return Async\await($this->fetch_orders_by_status('FILLED', $symbol, $since, $limit, $params));
-        })();
+        return Async\async(self::do_fetch_closed_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * Fetch all currently closed orders.
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders
+         *
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        return Async\await($this->fetch_orders_by_status('FILLED', $symbol, $since, $limit, $params));
     }
 
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            return Async\await($this->fetch_orders_by_status('CANCELED', $symbol, $since, $limit, $params));
-        })();
+        return Async\async(self::do_fetch_canceled_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        return Async\await($this->fetch_orders_by_status('CANCELED', $symbol, $since, $limit, $params));
     }
 
     public function fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_fetch_orders_by_status(...))($status, $symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        $request = array(
+            'state' => $status,
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['market_symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['start_time'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+            if ($limit > 100) {
+                $request['page_size'] = 100;
             }
-            $market = null;
-            $request = array(
-                'state' => $status,
-            );
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['market_symbol'] = $market['id'];
-            }
-            if ($since !== null) {
-                $request['start_time'] = $this->iso8601($since);
-            }
-            if ($limit !== null) {
-                $request['page_size'] = $limit;
-                if ($limit > 100) {
-                    $request['page_size'] = 100;
-                }
-            }
-            $response = Async\await($this->v3PrivateGetOrders($this->extend($request, $params)));
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_orders($data);
-        })();
+        }
+        $response = Async\await($this->v3PrivateGetOrders($this->extend($request, $params)));
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_orders($data);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * Create an order with the specified characteristics
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_create
-             *
-             * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market', 'limit', 'stop_market', 'stop_limit', 'instant'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->timeInForce] "GTC", "FOK", "IOC", "PO"
-             * @param {float} [$params->triggerPrice] The time in force for the order. One of GTC, FOK, IOC, PO. See .features or foxbit's doc to see more details.
-             * @param {bool} [$params->postOnly] true or false whether the order is post-only
-             * @param {string} [$params->clientOrderId] a unique identifier for the order
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * Create an order with the specified characteristics
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_create
+         *
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market', 'limit', 'stop_market', 'stop_limit', 'instant'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade in units of the base currency
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->timeInForce] "GTC", "FOK", "IOC", "PO"
+         * @param {float} [$params->triggerPrice] The time in force for the order. One of GTC, FOK, IOC, PO. See .features or foxbit's doc to see more details.
+         * @param {bool} [$params->postOnly] true or false whether the order is post-only
+         * @param {string} [$params->clientOrderId] a unique identifier for the order
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $typeValue = strtoupper($type);
+        if ($typeValue !== 'LIMIT' && $typeValue !== 'MARKET' && $typeValue !== 'STOP_MARKET' && $typeValue !== 'STOP_LIMIT' && $typeValue !== 'INSTANT') {
+            throw new InvalidOrder('Invalid order type => ' . $typeValue . '. Must be one of => limit, market, stop_market, stop_limit, instant.');
+        }
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $postOnly = $this->safe_bool($params, 'postOnly', false);
+        $triggerPrice = $this->safe_number($params, 'triggerPrice');
+        $this->check_required_argument('createOrder', $side, 'side');
+        $request = array(
+            'market_symbol' => $market['id'],
+            'side' => strtoupper($side),
+            'type' => $typeValue,
+        );
+        if ($typeValue === 'STOP_MARKET' || $typeValue === 'STOP_LIMIT') {
+            if ($triggerPrice === null) {
+                throw new InvalidOrder('Invalid order type => ' . $typeValue . '. Must have triggerPrice.');
             }
+        }
+        if ($timeInForce !== null) {
+            if ($timeInForce === 'PO') {
+                $request['post_only'] = true;
+            } else {
+                $request['time_in_force'] = $timeInForce;
+            }
+        }
+        if ($postOnly === true) {
+            $request['post_only'] = true;
+        }
+        if ($triggerPrice !== null) {
+            $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
+        }
+        if ($typeValue === 'INSTANT') {
+            $request['amount'] = $this->price_to_precision($symbol, $amount);
+        } else {
+            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+        }
+        if ($typeValue === 'LIMIT' || $typeValue === 'STOP_LIMIT') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['client_order_id'] = $clientOrderId;
+        }
+        $paramsOmitted = $this->omit($params, array( 'timeInForce', 'postOnly', 'triggerPrice', 'clientOrderId' ));
+        $response = Async\await($this->v3PrivatePostOrders($this->extend($request, $paramsOmitted)));
+        // {
+        //     "id": 1234567890,
+        //     "sn": "OKMAKSDHRVVREK",
+        //     "client_order_id": "451637946501"
+        // }
+        return $this->parse_order($response, $market);
+    }
+
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
+        return Async\async(self::do_create_orders(...))($orders, $params);
+    }
+
+    private function do_create_orders(array $orders, $params = array()) {
+        /**
+         * create a list of trade $orders
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/createBatch
+         *
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, side, amount, price and $params
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $ordersRequests = array();
+        for ($i = 0; $i < count($orders); $i++) {
+            $order = $this->safe_dict($orders, $i);
+            $symbol = $this->safe_string($order, 'symbol');
             $market = $this->market($symbol);
-            $type = strtoupper($type);
+            $type = $this->safe_string_upper($order, 'type');
+            $orderParams = $this->safe_dict($order, 'params', array());
             if ($type !== 'LIMIT' && $type !== 'MARKET' && $type !== 'STOP_MARKET' && $type !== 'STOP_LIMIT' && $type !== 'INSTANT') {
-                throw new InvalidOrder('Invalid order $type => ' . $type . '. Must be one of => limit, $market, stop_market, stop_limit, instant.');
+                throw new InvalidOrder('Invalid order type => ' . $type . '. Must be one of => limit, market, stop_market, stop_limit, instant.');
             }
-            $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-            $postOnly = $this->safe_bool($params, 'postOnly', false);
-            $triggerPrice = $this->safe_number($params, 'triggerPrice');
-            if ($side === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-            }
+            $timeInForce = $this->safe_string_upper($orderParams, 'timeInForce');
+            $postOnly = $this->safe_bool($orderParams, 'postOnly', false);
+            $triggerPrice = $this->safe_number($orderParams, 'triggerPrice');
             $request = array(
                 'market_symbol' => $market['id'],
-                'side' => strtoupper($side),
+                'side' => $this->safe_string_upper($order, 'side'),
                 'type' => $type,
             );
             if ($type === 'STOP_MARKET' || $type === 'STOP_LIMIT') {
                 if ($triggerPrice === null) {
-                    throw new InvalidOrder('Invalid order $type => ' . $type . '. Must have $triggerPrice->');
+                    throw new InvalidOrder('Invalid order type => ' . $type . '. Must have triggerPrice.');
                 }
             }
             if ($timeInForce !== null) {
@@ -1001,717 +1110,665 @@ class foxbit extends Exchange {
                 } else {
                     $request['time_in_force'] = $timeInForce;
                 }
+                unset($orderParams['timeInForce']);
             }
-            if ($postOnly) {
+            if ($postOnly === true) {
                 $request['post_only'] = true;
+                unset($orderParams['postOnly']);
             }
             if ($triggerPrice !== null) {
                 $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
+                unset($orderParams['triggerPrice']);
             }
             if ($type === 'INSTANT') {
-                $request['amount'] = $this->price_to_precision($symbol, $amount);
+                $request['amount'] = $this->price_to_precision($symbol, $this->safe_string($order, 'amount'));
             } else {
-                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+                $request['quantity'] = $this->amount_to_precision($symbol, $this->safe_string($order, 'amount'));
             }
             if ($type === 'LIMIT' || $type === 'STOP_LIMIT') {
-                $request['price'] = $this->price_to_precision($symbol, $price);
+                $request['price'] = $this->price_to_precision($symbol, $this->safe_string($order, 'price'));
             }
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $request['client_order_id'] = $clientOrderId;
-            }
-            $params = $this->omit($params, array( 'timeInForce', 'postOnly', 'triggerPrice', 'clientOrderId' ));
-            $response = Async\await($this->v3PrivatePostOrders($this->extend($request, $params)));
-            // {
-            //     "id" => 1234567890,
-            //     "sn" => "OKMAKSDHRVVREK",
-            //     "client_order_id" => "451637946501"
-            // }
-            return $this->parse_order($response, $market);
-        })();
+            $ordersRequests[] = $this->extend($request, $orderParams);
+        }
+        $createOrdersRequest = array( 'data' => $ordersRequests );
+        $response = Async\await($this->v3PrivatePostOrdersBatch($this->extend($createOrdersRequest, $params)));
+        // {
+        //     "data": [
+        //         {
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "market_symbol": "btcbrl",
+        //         "client_order_id": "451637946501",
+        //         "remark": "A remarkable note for the order.",
+        //         "quantity": "0.42",
+        //         "price": "250000.0",
+        //         "post_only": true,
+        //         "time_in_force": "GTC"
+        //         }
+        //     ]
+        // }
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_orders($data);
     }
 
-    public function create_orders(array $orders, $params = array()) {
-        return Async\async(function () use ($orders, $params) {
-            /**
-             * create a list of trade $orders
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/createBatch
-             *
-             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, side, amount, price and $params
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $ordersRequests = array();
-            for ($i = 0; $i < count($orders); $i++) {
-                $order = $this->safe_dict($orders, $i);
-                $symbol = $this->safe_string($order, 'symbol');
-                $market = $this->market($symbol);
-                $type = $this->safe_string_upper($order, 'type');
-                $orderParams = $this->safe_dict($order, 'params', array());
-                if ($type !== 'LIMIT' && $type !== 'MARKET' && $type !== 'STOP_MARKET' && $type !== 'STOP_LIMIT' && $type !== 'INSTANT') {
-                    throw new InvalidOrder('Invalid $order $type => ' . $type . '. Must be one of => limit, $market, stop_market, stop_limit, instant.');
-                }
-                $timeInForce = $this->safe_string_upper($orderParams, 'timeInForce');
-                $postOnly = $this->safe_bool($orderParams, 'postOnly', false);
-                $triggerPrice = $this->safe_number($orderParams, 'triggerPrice');
-                $request = array(
-                    'market_symbol' => $market['id'],
-                    'side' => $this->safe_string_upper($order, 'side'),
-                    'type' => $type,
-                );
-                if ($type === 'STOP_MARKET' || $type === 'STOP_LIMIT') {
-                    if ($triggerPrice === null) {
-                        throw new InvalidOrder('Invalid $order $type => ' . $type . '. Must have $triggerPrice->');
-                    }
-                }
-                if ($timeInForce !== null) {
-                    if ($timeInForce === 'PO') {
-                        $request['post_only'] = true;
-                    } else {
-                        $request['time_in_force'] = $timeInForce;
-                    }
-                    unset($orderParams['timeInForce']);
-                }
-                if ($postOnly) {
-                    $request['post_only'] = true;
-                    unset($orderParams['postOnly']);
-                }
-                if ($triggerPrice !== null) {
-                    $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
-                    unset($orderParams['triggerPrice']);
-                }
-                if ($type === 'INSTANT') {
-                    $request['amount'] = $this->price_to_precision($symbol, $this->safe_string($order, 'amount'));
-                } else {
-                    $request['quantity'] = $this->amount_to_precision($symbol, $this->safe_string($order, 'amount'));
-                }
-                if ($type === 'LIMIT' || $type === 'STOP_LIMIT') {
-                    $request['price'] = $this->price_to_precision($symbol, $this->safe_string($order, 'price'));
-                }
-                $ordersRequests[] = $this->extend($request, $orderParams);
-            }
-            $createOrdersRequest = array( 'data' => $ordersRequests );
-            $response = Async\await($this->v3PrivatePostOrdersBatch($this->extend($createOrdersRequest, $params)));
-            // {
-            //     "data" => array(
-            //         {
-            //         "side" => "BUY",
-            //         "type" => "LIMIT",
-            //         "market_symbol" => "btcbrl",
-            //         "client_order_id" => "451637946501",
-            //         "remark" => "A remarkable note for the $order->",
-            //         "quantity" => "0.42",
-            //         "price" => "250000.0",
-            //         "post_only" => true,
-            //         "time_in_force" => "GTC"
-            //         }
-            //     )
-            // }
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_orders($data);
-        })();
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * Cancel open orders.
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array(
-                'id' => $this->parse_number($id),
-                'type' => 'ID',
-            );
-            $response = Async\await($this->v3PrivatePutOrdersCancel($this->extend($request, $params)));
-            // {
-            //     "data" => array(
-            //         {
-            //         "sn" => "OKMAKSDHRVVREK",
-            //         "id" => 123456789
-            //         }
-            //     )
-            // }
-            $data = $this->safe_list($response, 'data', array());
-            $result = $this->safe_dict($data, 0, array());
-            return $this->parse_order($result);
-        })();
+    private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * Cancel open orders.
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            'id' => $this->parse_number($id),
+            'type' => 'ID',
+        );
+        $response = Async\await($this->v3PrivatePutOrdersCancel($this->extend($request, $params)));
+        // {
+        //     "data": [
+        //         {
+        //         "sn": "OKMAKSDHRVVREK",
+        //         "id": 123456789
+        //         }
+        //     ]
+        // }
+        $data = $this->safe_list($response, 'data', array());
+        $result = $this->safe_dict($data, 0, array());
+        return $this->parse_order($result);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * Cancel all open orders or all open orders for a specific $market->
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
-             *
-             * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array(
-                'type' => 'ALL',
-            );
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['type'] = 'MARKET';
-                $request['market_symbol'] = $market['id'];
-            }
-            $response = Async\await($this->v3PrivatePutOrdersCancel($this->extend($request, $params)));
-            // {
-            //     "data" => array(
-            //         {
-            //           "sn" => "OKMAKSDHRVVREK",
-            //           "id" => 123456789
-            //         }
-            //     )
-            // }
-            return array( $this->safe_order(array(
-                'info' => $response,
-            )) );
-        })();
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders(?string $symbol = null, $params = array()) {
+        /**
+         * Cancel all open orders or all open orders for a specific $market->
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
+         *
+         * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            'type' => 'ALL',
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['type'] = 'MARKET';
+            $request['market_symbol'] = $market['id'];
+        }
+        $response = Async\await($this->v3PrivatePutOrdersCancel($this->extend($request, $params)));
+        // {
+        //     "data": [
+        //         {
+        //           "sn": "OKMAKSDHRVVREK",
+        //           "id": 123456789
+        //         }
+        //     ]
+        // }
+        return array( $this->safe_order(array(
+            'info' => $response,
+        )) );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * Get an order by ID.
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_findByOrderId
-             *
-             * @param $id
-             * @param {string} $symbol it is not used in the foxbit API
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array(
-                'id' => $id,
-            );
-            $response = Async\await($this->v3PrivateGetOrdersByOrderIdId($this->extend($request, $params)));
-            // {
-            //     "id" => "1234567890",
-            //     "sn" => "OKMAKSDHRVVREK",
-            //     "client_order_id" => "451637946501",
-            //     "market_symbol" => "btcbrl",
-            //     "side" => "BUY",
-            //     "type" => "LIMIT",
-            //     "state" => "ACTIVE",
-            //     "price" => "290000.0",
-            //     "price_avg" => "295333.3333",
-            //     "quantity" => "0.42",
-            //     "quantity_executed" => "0.41",
-            //     "instant_amount" => "290.0",
-            //     "instant_amount_executed" => "290.0",
-            //     "created_at" => "2021-02-15T22:06:32.999Z",
-            //     "trades_count" => "2",
-            //     "remark" => "A remarkable note for the order.",
-            //     "funds_received" => "290.0"
-            // }
-            return $this->parse_order($response);
-        })();
+        return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
+    }
+
+    private function do_fetch_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * Get an order by ID.
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_findByOrderId
+         *
+         * @param $id
+         * @param {string} $symbol it is not used in the foxbit API
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            'id' => $id,
+        );
+        $response = Async\await($this->v3PrivateGetOrdersByOrderIdId($this->extend($request, $params)));
+        // {
+        //     "id": "1234567890",
+        //     "sn": "OKMAKSDHRVVREK",
+        //     "client_order_id": "451637946501",
+        //     "market_symbol": "btcbrl",
+        //     "side": "BUY",
+        //     "type": "LIMIT",
+        //     "state": "ACTIVE",
+        //     "price": "290000.0",
+        //     "price_avg": "295333.3333",
+        //     "quantity": "0.42",
+        //     "quantity_executed": "0.41",
+        //     "instant_amount": "290.0",
+        //     "instant_amount_executed": "290.0",
+        //     "created_at": "2021-02-15T22:06:32.999Z",
+        //     "trades_count": "2",
+        //     "remark": "A remarkable note for the order.",
+        //     "funds_received": "290.0"
+        // }
+        return $this->parse_order($response);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple orders made by the user
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders
-             *
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->state] Enum => ACTIVE, CANCELED, FILLED, PARTIALLY_CANCELED, PARTIALLY_FILLED
-             * @param {string} [$params->side] Enum => BUY, SELL
-             * @return {Order[]} a $list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_fetch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple orders made by the user
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders
+         *
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->state] Enum => ACTIVE, CANCELED, FILLED, PARTIALLY_CANCELED, PARTIALLY_FILLED
+         * @param {string} [$params->side] Enum => BUY, SELL
+         * @return {Order[]} a $list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        $request = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['market_symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['start_time'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+            if ($limit > 100) {
+                $request['page_size'] = 100;
             }
-            $market = null;
-            $request = array();
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['market_symbol'] = $market['id'];
-            }
-            if ($since !== null) {
-                $request['start_time'] = $this->iso8601($since);
-            }
-            if ($limit !== null) {
-                $request['page_size'] = $limit;
-                if ($limit > 100) {
-                    $request['page_size'] = 100;
-                }
-            }
-            $response = Async\await($this->v3PrivateGetOrders($this->extend($request, $params)));
-            // {
-            //     "data" => array(
-            //         {
-            //         "id" => "1234567890",
-            //         "sn" => "OKMAKSDHRVVREK",
-            //         "client_order_id" => "451637946501",
-            //         "market_symbol" => "btcbrl",
-            //         "side" => "BUY",
-            //         "type" => "LIMIT",
-            //         "state" => "ACTIVE",
-            //         "price" => "290000.0",
-            //         "price_avg" => "295333.3333",
-            //         "quantity" => "0.42",
-            //         "quantity_executed" => "0.41",
-            //         "instant_amount" => "290.0",
-            //         "instant_amount_executed" => "290.0",
-            //         "created_at" => "2021-02-15T22:06:32.999Z",
-            //         "trades_count" => "2",
-            //         "remark" => "A remarkable note for the order.",
-            //         "funds_received" => "290.0"
-            //         }
-            //     )
-            // }
-            $list = $this->safe_list($response, 'data', array());
-            return $this->parse_orders($list, $market, $since, $limit);
-        })();
+        }
+        $response = Async\await($this->v3PrivateGetOrders($this->extend($request, $params)));
+        // {
+        //     "data": [
+        //         {
+        //         "id": "1234567890",
+        //         "sn": "OKMAKSDHRVVREK",
+        //         "client_order_id": "451637946501",
+        //         "market_symbol": "btcbrl",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "state": "ACTIVE",
+        //         "price": "290000.0",
+        //         "price_avg": "295333.3333",
+        //         "quantity": "0.42",
+        //         "quantity_executed": "0.41",
+        //         "instant_amount": "290.0",
+        //         "instant_amount_executed": "290.0",
+        //         "created_at": "2021-02-15T22:06:32.999Z",
+        //         "trades_count": "2",
+        //         "remark": "A remarkable note for the order.",
+        //         "funds_received": "290.0"
+        //         }
+        //     ]
+        // }
+        $list = $this->safe_list($response, 'data', array());
+        return $this->parse_orders($list, $market, $since, $limit);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * Trade history queries will only have $data available for the last 3 months, in descending order (most recents trades first).
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/TradesController_all
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+        return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * Trade history queries will only have $data available for the last 3 months, in descending order (most recents trades first).
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/TradesController_all
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market_symbol' => $market['id'],
+        );
+        if ($since !== null) {
+            $request['start_time'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+            if ($limit > 100) {
+                $request['page_size'] = 100;
             }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'market_symbol' => $market['id'],
-            );
-            if ($since !== null) {
-                $request['start_time'] = $this->iso8601($since);
-            }
-            if ($limit !== null) {
-                $request['page_size'] = $limit;
-                if ($limit > 100) {
-                    $request['page_size'] = 100;
-                }
-            }
-            $response = Async\await($this->v3PrivateGetTrades($this->extend($request, $params)));
-            // {
-            //     "data" => array(
-            //         "id" => 1234567890,
-            //         "sn" => "TC5JZVW2LLJ3IW",
-            //         "order_id" => 1234567890,
-            //         "market_symbol" => "btcbrl",
-            //         "side" => "BUY",
-            //         "price" => "290000.0",
-            //         "quantity" => "1.0",
-            //         "fee" => "0.01",
-            //         "fee_currency_symbol" => "btc",
-            //         "created_at" => "2021-02-15T22:06:32.999Z"
-            //     )
-            // }
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_trades($data, $market, $since, $limit);
-        })();
+        }
+        $response = Async\await($this->v3PrivateGetTrades($this->extend($request, $params)));
+        // {
+        //     "data": [
+        //         "id": 1234567890,
+        //         "sn": "TC5JZVW2LLJ3IW",
+        //         "order_id": 1234567890,
+        //         "market_symbol": "btcbrl",
+        //         "side": "BUY",
+        //         "price": "290000.0",
+        //         "quantity": "1.0",
+        //         "fee": "0.01",
+        //         "fee_currency_symbol": "btc",
+        //         "created_at": "2021-02-15T22:06:32.999Z"
+        //     ]
+        // }
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $params) {
-            /**
-             * Fetch the deposit address for a $currency associated with this account.
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Deposit/operation/DepositsController_depositAddress
-             *
-             * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->networkCode] the blockchain network to create a deposit address on
-             * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = $this->currency($code);
-            $request = array(
-                'currency_symbol' => $currency['id'],
-            );
-            list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
-            if ($networkCode !== null) {
-                $request['network_code'] = $this->network_code_to_id($networkCode, $code);
-            }
-            $response = Async\await($this->v3PrivateGetDepositsAddress($this->extend($request, $paramsOmited)));
-            // {
-            //     "currency_symbol" => "btc",
-            //     "address" => "2N9sS8LgrY19rvcCWDmE1ou1tTVmqk4KQAB",
-            //     "message" => "Address was retrieved successfully",
-            //     "destination_tag" => "string",
-            //     "network" => {
-            //         "name" => "Bitcoin Network",
-            //         "code" => "btc"
-            //     }
-            // }
-            return $this->parse_deposit_address($response, $currency);
-        })();
+        return Async\async(self::do_fetch_deposit_address(...))($code, $params);
+    }
+
+    private function do_fetch_deposit_address(string $code, $params = array()) {
+        /**
+         * Fetch the deposit address for a $currency associated with this account.
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Deposit/operation/DepositsController_depositAddress
+         *
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->networkCode] the blockchain network to create a deposit address on
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'currency_symbol' => $currency['id'],
+        );
+        list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
+        if ($networkCode !== null) {
+            $request['network_code'] = $this->network_code_to_id($networkCode, $code);
+        }
+        $response = Async\await($this->v3PrivateGetDepositsAddress($this->extend($request, $paramsOmited)));
+        // {
+        //     "currency_symbol": "btc",
+        //     "address": "2N9sS8LgrY19rvcCWDmE1ou1tTVmqk4KQAB",
+        //     "message": "Address was retrieved successfully",
+        //     "destination_tag": "string",
+        //     "network": {
+        //         "name": "Bitcoin Network",
+        //         "code": "btc"
+        //     }
+        // }
+        return $this->parse_deposit_address($response, $currency);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * Fetch all deposits made to an account.
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Deposit/operation/DepositsController_listOrders
-             *
-             * @param {string} [$code] unified $currency $code
-             * @param {int} [$since] the earliest time in ms to fetch deposits for
-             * @param {int} [$limit] the maximum number of deposit structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_fetch_deposits(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * Fetch all deposits made to an account.
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Deposit/operation/DepositsController_listOrders
+         *
+         * @param {string} [$code] unified $currency $code
+         * @param {int} [$since] the earliest time in ms to fetch deposits for
+         * @param {int} [$limit] the maximum number of deposit structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+            if ($limit > 100) {
+                $request['page_size'] = 100;
             }
-            $request = array();
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-            }
-            if ($limit !== null) {
-                $request['page_size'] = $limit;
-                if ($limit > 100) {
-                    $request['page_size'] = 100;
-                }
-            }
-            if ($since !== null) {
-                $request['start_time'] = $this->iso8601($since);
-            }
-            $response = Async\await($this->v3PrivateGetDeposits($this->extend($request, $params)));
-            // {
-            //     "data" => array(
-            //         {
-            //             "sn" => "OKMAKSDHRVVREK",
-            //             "state" => "ACCEPTED",
-            //             "currency_symbol" => "btc",
-            //             "amount" => "1.0",
-            //             "fee" => "0.1",
-            //             "created_at" => "2022-02-18T22:06:32.999Z",
-            //             "details_crypto" => {
-            //                 "transaction_id" => "e20f035387020c5d5ea18ad53244f09f3",
-            //                 "receiving_address" => "2N2rTrnKEFcyJjEJqvVjgWZ3bKvKT7Aij61"
-            //             }
-            //         }
-            //     )
-            // }
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_transactions($data, $currency, $since, $limit);
-        })();
+        }
+        if ($since !== null) {
+            $request['start_time'] = $this->iso8601($since);
+        }
+        $response = Async\await($this->v3PrivateGetDeposits($this->extend($request, $params)));
+        // {
+        //     "data": [
+        //         {
+        //             "sn": "OKMAKSDHRVVREK",
+        //             "state": "ACCEPTED",
+        //             "currency_symbol": "btc",
+        //             "amount": "1.0",
+        //             "fee": "0.1",
+        //             "created_at": "2022-02-18T22:06:32.999Z",
+        //             "details_crypto": {
+        //                 "transaction_id": "e20f035387020c5d5ea18ad53244f09f3",
+        //                 "receiving_address": "2N2rTrnKEFcyJjEJqvVjgWZ3bKvKT7Aij61"
+        //             }
+        //         }
+        //     ]
+        // }
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * Fetch all withdrawals made from an account.
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Withdrawal/operation/WithdrawalsController_listWithdrawals
-             *
-             * @param {string} [$code] unified $currency $code
-             * @param {int} [$since] the earliest time in ms to fetch withdrawals for
-             * @param {int} [$limit] the maximum number of withdrawal structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_fetch_withdrawals(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * Fetch all withdrawals made from an account.
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Withdrawal/operation/WithdrawalsController_listWithdrawals
+         *
+         * @param {string} [$code] unified $currency $code
+         * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [$limit] the maximum number of withdrawal structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+            if ($limit > 100) {
+                $request['page_size'] = 100;
             }
-            $request = array();
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-            }
-            if ($limit !== null) {
-                $request['page_size'] = $limit;
-                if ($limit > 100) {
-                    $request['page_size'] = 100;
-                }
-            }
-            if ($since !== null) {
-                $request['start_time'] = $this->iso8601($since);
-            }
-            $response = Async\await($this->v3PrivateGetWithdrawals($this->extend($request, $params)));
-            // {
-            //     "data" => array(
-            //         {
-            //             "sn" => "OKMAKSDHRVVREK",
-            //             "state" => "ACCEPTED",
-            //             "rejection_reason" => "monthly_limit_exceeded",
-            //             "currency_symbol" => "btc",
-            //             "amount" => "1.0",
-            //             "fee" => "0.1",
-            //             "created_at" => "2022-02-18T22:06:32.999Z",
-            //             "details_crypto" => array(
-            //                 "transaction_id" => "e20f035387020c5d5ea18ad53244f09f3",
-            //                 "destination_address" => "2N2rTrnKEFcyJjEJqvVjgWZ3bKvKT7Aij61"
-            //             ),
-            //             "details_fiat" => {
-            //                 "bank" => {
-            //                     "code" => "1",
-            //                     "branch" => array(
-            //                         "number" => "1234567890",
-            //                         "digit" => "1"
-            //                     ),
-            //                     "account" => {
-            //                         "number" => "1234567890",
-            //                         "digit" => "1",
-            //                         "type" => "CHECK"
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //     )
-            // }
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_transactions($data, $currency, $since, $limit);
-        })();
+        }
+        if ($since !== null) {
+            $request['start_time'] = $this->iso8601($since);
+        }
+        $response = Async\await($this->v3PrivateGetWithdrawals($this->extend($request, $params)));
+        // {
+        //     "data": [
+        //         {
+        //             "sn": "OKMAKSDHRVVREK",
+        //             "state": "ACCEPTED",
+        //             "rejection_reason": "monthly_limit_exceeded",
+        //             "currency_symbol": "btc",
+        //             "amount": "1.0",
+        //             "fee": "0.1",
+        //             "created_at": "2022-02-18T22:06:32.999Z",
+        //             "details_crypto": {
+        //                 "transaction_id": "e20f035387020c5d5ea18ad53244f09f3",
+        //                 "destination_address": "2N2rTrnKEFcyJjEJqvVjgWZ3bKvKT7Aij61"
+        //             },
+        //             "details_fiat": {
+        //                 "bank": {
+        //                     "code": "1",
+        //                     "branch": {
+        //                         "number": "1234567890",
+        //                         "digit": "1"
+        //                     },
+        //                     "account": {
+        //                         "number": "1234567890",
+        //                         "digit": "1",
+        //                         "type": "CHECK"
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     ]
+        // }
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * Fetch all transactions ($deposits and $withdrawals) made from an account.
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Withdrawal/operation/WithdrawalsController_listWithdrawals
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Deposit/operation/DepositsController_listOrders
-             *
-             * @param {string} [$code] unified currency $code
-             * @param {int} [$since] the earliest time in ms to fetch $withdrawals for
-             * @param {int} [$limit] the maximum number of withdrawal structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            $withdrawals = Async\await($this->fetch_withdrawals($code, $since, $limit, $params));
-            $deposits = Async\await($this->fetch_deposits($code, $since, $limit, $params));
-            $allTransactions = $this->array_concat($withdrawals, $deposits);
-            $result = $this->sort_by($allTransactions, 'timestamp');
-            return $result;
-        })();
+        return Async\async(self::do_fetch_transactions(...))($code, $since, $limit, $params);
     }
 
-    public function fetch_status($params = array()) {
-        return Async\async(function () use ($params) {
-            /**
-             * The latest known information on the availability of the exchange API.
-             *
-             * @see https://status.foxbit.com/
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
-             */
-            $response = Async\await($this->statusPublicGetStatus($params));
-            // {
-            //     "data" => {
-            //       "id" => 1,
-            //       "attributes" => array(
-            //         "status" => "NORMAL",
-            //         "createdAt" => "2023-05-17T18:37:05.934Z",
-            //         "updatedAt" => "2024-04-17T02:33:50.945Z",
-            //         "publishedAt" => "2023-05-17T18:37:07.653Z",
-            //         "locale" => "pt-BR"
-            //       }
-            //     ),
-            //     "meta" => {
-            //     }
-            // }
-            $data = $this->safe_dict($response, 'data', array());
-            $attributes = $this->safe_dict($data, 'attributes', array());
-            $statusRaw = $this->safe_string($attributes, 'status');
-            $statusMap = array(
-                'NORMAL' => 'ok',
-                'UNDER_MAINTENANCE' => 'maintenance',
-            );
-            return array(
-                'status' => $this->safe_string($statusMap, $statusRaw, $statusRaw),
-                'updated' => $this->safe_string($attributes, 'updatedAt'),
-                'eta' => null,
-                'url' => null,
-                'info' => $response,
-            );
-        })();
+    private function do_fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * Fetch all transactions ($deposits and $withdrawals) made from an account.
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Withdrawal/operation/WithdrawalsController_listWithdrawals
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Deposit/operation/DepositsController_listOrders
+         *
+         * @param {string} [$code] unified currency $code
+         * @param {int} [$since] the earliest time in ms to fetch $withdrawals for
+         * @param {int} [$limit] the maximum number of withdrawal structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        $withdrawals = Async\await($this->fetch_withdrawals($code, $since, $limit, $params));
+        $deposits = Async\await($this->fetch_deposits($code, $since, $limit, $params));
+        $allTransactions = $this->array_concat($withdrawals, $deposits);
+        $result = $this->sort_by($allTransactions, 'timestamp');
+        return $result;
+    }
+
+    public function fetch_status($params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_status(...))($params);
+    }
+
+    private function do_fetch_status($params = array()) {
+        /**
+         * The latest known information on the availability of the exchange API.
+         *
+         * @see https://status.foxbit.com/
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
+         */
+        $response = Async\await($this->statusPublicGetStatus($params));
+        // {
+        //     "data": {
+        //       "id": 1,
+        //       "attributes": {
+        //         "status": "NORMAL",
+        //         "createdAt": "2023-05-17T18:37:05.934Z",
+        //         "updatedAt": "2024-04-17T02:33:50.945Z",
+        //         "publishedAt": "2023-05-17T18:37:07.653Z",
+        //         "locale": "pt-BR"
+        //       }
+        //     },
+        //     "meta": {
+        //     }
+        // }
+        $data = $this->safe_dict($response, 'data', array());
+        $attributes = $this->safe_dict($data, 'attributes', array());
+        $statusRaw = $this->safe_string($attributes, 'status');
+        $statusMap = array(
+            'NORMAL' => 'ok',
+            'UNDER_MAINTENANCE' => 'maintenance',
+        );
+        return array(
+            'status' => $this->safe_string($statusMap, $statusRaw, $statusRaw),
+            'updated' => $this->parse8601($this->safe_string($attributes, 'updatedAt')),
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
+        );
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * Simultaneously cancel an existing order and create a new one.
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancelReplace
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders, used on stop $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
+        return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+        /**
+         * Simultaneously cancel an existing order and create a new one.
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancelReplace
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of the currency you want to trade in units of the base currency
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders, used as stop_price on stop $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        $this->check_required_argument('editOrder', $symbol, 'symbol');
+        $typeValue = strtoupper($type);
+        if ($typeValue !== 'LIMIT' && $typeValue !== 'MARKET' && $typeValue !== 'STOP_MARKET' && $typeValue !== 'INSTANT') {
+            throw new InvalidOrder('Invalid order type => ' . $typeValue . '. Must be one of => LIMIT, MARKET, STOP_MARKET, INSTANT.');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $this->check_required_argument('editOrder', $side, 'side');
+        $request = array(
+            'mode' => 'ALLOW_FAILURE',
+            'cancel' => array(
+                'type' => 'ID',
+                'id' => $this->parse_number($id),
+            ),
+            'create' => array(
+                'type' => $typeValue,
+                'side' => strtoupper($side),
+                'market_symbol' => $market['id'],
+            ),
+        );
+        if ($typeValue === 'LIMIT' || $typeValue === 'MARKET') {
+            $request['create']['quantity'] = $this->amount_to_precision($symbol, $amount);
+            if ($typeValue === 'LIMIT') {
+                $request['create']['price'] = $this->price_to_precision($symbol, $price);
             }
-            $type = strtoupper($type);
-            if ($type !== 'LIMIT' && $type !== 'MARKET' && $type !== 'STOP_MARKET' && $type !== 'INSTANT') {
-                throw new InvalidOrder('Invalid order $type => ' . $type . '. Must be one of => LIMIT, MARKET, STOP_MARKET, INSTANT.');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            if ($side === null) {
-                throw new ArgumentsRequired($this->id . ' editOrder() requires a $side argument');
-            }
-            $request = array(
-                'mode' => 'ALLOW_FAILURE',
-                'cancel' => array(
-                    'type' => 'ID',
-                    'id' => $this->parse_number($id),
-                ),
-                'create' => array(
-                    'type' => $type,
-                    'side' => strtoupper($side),
-                    'market_symbol' => $market['id'],
-                ),
-            );
-            if ($type === 'LIMIT' || $type === 'MARKET') {
-                $request['create']['quantity'] = $this->amount_to_precision($symbol, $amount);
-                if ($type === 'LIMIT') {
-                    $request['create']['price'] = $this->price_to_precision($symbol, $price);
-                }
-            }
-            if ($type === 'STOP_MARKET') {
-                $request['create']['stop_price'] = $this->price_to_precision($symbol, $price);
-                $request['create']['quantity'] = $this->amount_to_precision($symbol, $amount);
-            }
-            if ($type === 'INSTANT') {
-                $request['create']['amount'] = $this->price_to_precision($symbol, $amount);
-            }
-            $response = Async\await($this->v3PrivatePostOrdersCancelReplace($this->extend($request, $params)));
-            // {
-            //     "cancel" => array(
-            //         "id" => 123456789
-            //     ),
-            //     "create" => {
-            //         "id" => 1234567890,
-            //         "client_order_id" => "451637946501"
-            //     }
-            // }
-            return $this->parse_order($response['create'], $market);
-        })();
+        }
+        if ($typeValue === 'STOP_MARKET') {
+            $request['create']['stop_price'] = $this->price_to_precision($symbol, $price);
+            $request['create']['quantity'] = $this->amount_to_precision($symbol, $amount);
+        }
+        if ($typeValue === 'INSTANT') {
+            $request['create']['amount'] = $this->price_to_precision($symbol, $amount);
+        }
+        $response = Async\await($this->v3PrivatePostOrdersCancelReplace($this->extend($request, $params)));
+        // {
+        //     "cancel": {
+        //         "id": 123456789
+        //     },
+        //     "create": {
+        //         "id": 1234567890,
+        //         "client_order_id": "451637946501"
+        //     }
+        // }
+        $created = $this->safe_dict($response, 'create', array());
+        return $this->parse_order($created, $market);
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
-            /**
-             * Make a withdrawal.
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Withdrawal/operation/WithdrawalsController_createWithdrawal
-             *
-             * @param {string} $code unified $currency $code
-             * @param {float} $amount the $amount to withdraw
-             * @param {string} $address the $address to withdraw to
-             * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
-             */
-            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = $this->currency($code);
-            $request = array(
-                'currency_symbol' => $currency['id'],
-                'amount' => $this->number_to_string($amount),
-                'destination_address' => $address,
-            );
-            if ($tag !== null) {
-                $request['destination_tag'] = $tag;
-            }
-            $networkCode = null;
-            list($networkCode, $params) = $this->handle_network_code_and_params($params);
-            if ($networkCode !== null) {
-                $request['network_code'] = $this->network_code_to_id($networkCode, $code);
-            }
-            $response = Async\await($this->v3PrivatePostWithdrawals($this->extend($request, $params)));
-            // {
-            //     "amount" => "2",
-            //     "currency_symbol" => "xrp",
-            //     "network_code" => "ripple",
-            //     "destination_address" => "0x1234567890123456789012345678",
-            //     "destination_tag" => "123456"
-            // }
-            return $this->parse_transaction($response);
-        })();
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
-             *
-             * @see https://docs.foxbit.com.br/rest/v3/#tag/Account/operation/AccountsController_getTransactions
-             *
-             * @param {string} $code unified $currency $code, default is null
-             * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entrys to return, default is null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-structure ledger structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+        /**
+         * Make a withdrawal.
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Withdrawal/operation/WithdrawalsController_createWithdrawal
+         *
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string} $tag
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
+         */
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'currency_symbol' => $currency['id'],
+            'amount' => $this->number_to_string($amount),
+            'destination_address' => $address,
+        );
+        if ($tagWithdrawTag !== null) {
+            $request['destination_tag'] = $tagWithdrawTag;
+        }
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
+        if ($networkCode !== null) {
+            $request['network_code'] = $this->network_code_to_id($networkCode, $code);
+        }
+        $response = Async\await($this->v3PrivatePostWithdrawals($this->extend($request, $paramsNetworkCode)));
+        // {
+        //     "amount": "2",
+        //     "currency_symbol": "xrp",
+        //     "network_code": "ripple",
+        //     "destination_address": "0x1234567890123456789012345678",
+        //     "destination_tag": "123456"
+        // }
+        return $this->parse_transaction($response);
+    }
+
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_ledger(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         *
+         * @see https://docs.foxbit.com.br/rest/v3/#tag/Account/operation/AccountsController_getTransactions
+         *
+         * @param {string} $code unified $currency $code, default is null
+         * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
+         * @param {int} [$limit] max number of ledger entrys to return, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-structure ledger structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a code argument');
+        }
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+            if ($limit > 100) {
+                $request['page_size'] = 100;
             }
-            $request = array();
-            if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code argument');
-            }
-            if ($limit !== null) {
-                $request['page_size'] = $limit;
-                if ($limit > 100) {
-                    $request['page_size'] = 100;
-                }
-            }
-            if ($since !== null) {
-                $request['start_time'] = $this->iso8601($since);
-            }
-            $currency = $this->currency($code);
-            $request['symbol'] = $currency['id'];
-            $response = Async\await($this->v3PrivateGetAccountsSymbolTransactions($this->extend($request, $params)));
-            $data = $this->safe_list($response, 'data', array());
-            return $this->parse_ledger($data, $currency, $since, $limit);
-        })();
+        }
+        if ($since !== null) {
+            $request['start_time'] = $this->iso8601($since);
+        }
+        $currency = $this->currency($code);
+        $request['symbol'] = $currency['id'];
+        $response = Async\await($this->v3PrivateGetAccountsSymbolTransactions($this->extend($request, $params)));
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_ledger($data, $currency, $since, $limit);
     }
 
     public function parse_market(array $market): array {
@@ -1722,6 +1779,9 @@ class foxbit extends Exchange {
         $quoteId = $this->safe_string($quoteAssets, 'symbol');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         $fees = $this->safe_dict($market, 'default_fees');
         return $this->safe_market_structure(array(
@@ -1754,9 +1814,8 @@ class foxbit extends Exchange {
             'tierBased' => false,
             'feeSide' => 'get',
             'precision' => array(
-                'price' => $this->safe_integer($quoteAssets, 'precision'),
-                'amount' => $this->safe_integer($baseAssets, 'precision'),
-                'cost' => $this->safe_integer($quoteAssets, 'precision'),
+                'price' => $this->safe_number($market, 'price_increment'),
+                'amount' => $this->safe_number($market, 'quantity_increment'),
             ),
             'limits' => array(
                 'amount' => array(
@@ -1794,11 +1853,11 @@ class foxbit extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'market_symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, 'spot');
-        $rolling_24h = $ticker['rolling_24h'];
+        $rolling_24h = $this->safe_dict($ticker, 'rolling_24h');
         $best = $this->safe_dict($ticker, 'best');
         $bestAsk = $this->safe_dict($best, 'ask');
         $bestBid = $this->safe_dict($best, 'bid');
-        $lastTrade = $ticker['last_trade'];
+        $lastTrade = $this->safe_dict($ticker, 'last_trade');
         $lastPrice = $this->safe_string($lastTrade, 'price');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -1835,7 +1894,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function parse_trade(mixed $trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         $timestamp = $this->parse_date($this->safe_string($trade, 'created_at'));
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'volume', $this->safe_string($trade, 'quantity'));
@@ -1878,31 +1937,32 @@ class foxbit extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         $symbol = $this->safe_string($order, 'market_symbol');
-        if ($market === null && $symbol !== null) {
-            $market = $this->market($symbol);
+        $marketResolved = $market;
+        if (($market === null) && ($symbol !== null)) {
+            $marketResolved = $this->market($symbol);
         }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
+        if ($marketResolved !== null) {
+            $symbol = $this->safe_string($marketResolved, 'symbol');
         }
         $timestamp = $this->parse_date($this->safe_string($order, 'created_at'));
         $price = $this->safe_string($order, 'price');
         $filled = $this->safe_string($order, 'quantity_executed');
         $remaining = $this->safe_string($order, 'quantity');
-        // TODO => validate logic of $amount here, should this be calculated?
+        // TODO: validate logic of amount here, should this be calculated?
         $amount = null;
         if ($remaining !== null && $filled !== null) {
             $amount = Precise::string_add($remaining, $filled);
         }
         $cost = $this->safe_string($order, 'funds_received');
-        if (!$cost) {
+        if (($cost === null) || ($cost === '')) {
             $priceAverage = $this->safe_string($order, 'price_avg');
             $priceToCalculate = $this->safe_string($order, 'price', $priceAverage);
             $cost = Precise::string_mul($priceToCalculate, $amount);
         }
         $side = $this->safe_string_lower($order, 'side');
-        $feeCurrency = $this->safe_string_upper($market, 'quoteId');
+        $feeCurrency = $this->safe_string_upper($marketResolved, 'quoteId');
         if ($side === 'buy') {
-            $feeCurrency = $this->safe_string_upper($market, 'baseId');
+            $feeCurrency = $this->safe_string_upper($marketResolved, 'baseId');
         }
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
@@ -1912,7 +1972,7 @@ class foxbit extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $this->parse_order_status($this->safe_string($order, 'state')),
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $this->safe_string($marketResolved, 'symbol'),
             'type' => $this->safe_string($order, 'type'),
             'timeInForce' => $this->safe_string($order, 'time_in_force'),
             'postOnly' => $this->safe_bool($order, 'post_only'),
@@ -1935,7 +1995,7 @@ class foxbit extends Exchange {
         ));
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null) {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         $network = $this->safe_dict($depositAddress, 'network');
         $networkId = $this->safe_string($network, 'code');
         $currencyCode = $this->safe_currency_code(null, $currency);
@@ -1988,7 +2048,7 @@ class foxbit extends Exchange {
         $timestamp = $this->parse_date($created_at);
         $datetime = $this->iso8601($timestamp);
         if ($fee !== null && $amount !== null) {
-            // $actualAmount = $amount - $fee;
+            // actualAmount = amount - fee;
             $actualAmount = Precise::string_sub($amount, $fee);
         }
         $feeRate = Precise::string_div($fee, $actualAmount);
@@ -2021,7 +2081,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'DEPOSITING' => 'transaction',
             'WITHDRAWING' => 'transaction',
@@ -2032,17 +2092,17 @@ class foxbit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         // {
-        //     "uuid" => "f8e9f2d6-3c1e-4f2d-8f8e-9f2d6c1e4f2d",
-        //     "amount" => "0.0001",
-        //     "balance" => "0.0002",
-        //     "created_at" => "2021-07-01T12:00:00Z",
-        //     "currency_symbol" => "btc",
-        //     "fee" => "0.0001",
-        //     "locked" => "0.0001",
-        //     "locked_amount" => "0.0001",
-        //     "reason_type" => "DEPOSITING"
+        //     "uuid": "f8e9f2d6-3c1e-4f2d-8f8e-9f2d6c1e4f2d",
+        //     "amount": "0.0001",
+        //     "balance": "0.0002",
+        //     "created_at": "2021-07-01T12:00:00Z",
+        //     "currency_symbol": "btc",
+        //     "fee": "0.0001",
+        //     "locked": "0.0001",
+        //     "locked_amount": "0.0001",
+        //     "reason_type": "DEPOSITING"
         // }
         $id = $this->safe_string($item, 'uuid');
         $createdAt = $this->safe_string($item, 'created_at');
@@ -2060,12 +2120,12 @@ class foxbit extends Exchange {
             'currency' => $currencySymbol,
         );
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a $amount argument');
+            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a amount argument');
         }
         if ($amount < 0) {
             $direction = 'out';
             if ($amount === null) {
-                throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a $amount argument');
+                throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a amount argument');
             }
             $realAmount = $amount * -1;
         }
@@ -2073,7 +2133,7 @@ class foxbit extends Exchange {
             throw new ExchangeError($this->id . ' parseLedgerEntry() missing balance');
         }
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a $amount argument');
+            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a amount argument');
         }
         return array(
             'id' => $id,
@@ -2094,7 +2154,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $version = $api[0];
         $urlPath = $api[1];
         $fullPath = '/rest/' . $version . '/' . $this->implode_params($path, $params);
@@ -2102,21 +2162,25 @@ class foxbit extends Exchange {
             $fullPath = '/status';
             $urlPath = 'status';
         }
-        $url = $this->urls['api'][$urlPath] . $fullPath;
-        $params = $this->omit($params, $this->extract_params($path));
+        $apiUrl = $this->safe_string($this->urls['api'], $urlPath);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $fullPath;
+        $paramsOmitted = $this->omit($params, $this->extract_params($path));
         $timestamp = $this->milliseconds();
         $query = '';
         $signatureQuery = '';
         if ($method === 'GET') {
-            $paramKeys = is_array($params) ? array_keys($params) : array();
+            $paramKeys = is_array($paramsOmitted) ? array_keys($paramsOmitted) : array();
             $paramKeysLength = count($paramKeys);
             if ($paramKeysLength > 0) {
-                $query = $this->urlencode($params);
+                $query = $this->urlencode($paramsOmitted);
                 $url .= '?' . $query;
             }
             for ($i = 0; $i < count($paramKeys); $i++) {
                 $key = $paramKeys[$i];
-                $value = $this->safe_string($params, $key);
+                $value = $this->safe_string($paramsOmitted, $key);
                 if ($value !== null) {
                     $signatureQuery .= $key . '=' . $value;
                 }
@@ -2125,25 +2189,28 @@ class foxbit extends Exchange {
                 }
             }
         }
+        $requestBody = $body;
         if ($method === 'POST' || $method === 'PUT') {
-            $body = $this->json($params);
+            $requestBody = $this->json($paramsOmitted);
         }
         $bodyToSignature = '';
-        if ($body !== null) {
-            $bodyToSignature = $body;
+        if ($requestBody !== null) {
+            $bodyToSignature = $requestBody;
         }
-        $headers = array(
+        $headersValue = array(
             'Content-Type' => 'application/json',
+            'X-FB-CLIENT' => 'ccxt',
+            'X-FB-CLIENT-VERSION' => $this->get_ccxt_version(),
         );
         if ($urlPath === 'private') {
             $this->check_required_credentials();
             $preHash = $this->number_to_string($timestamp) . $method . $fullPath . $signatureQuery . $bodyToSignature;
             $signature = $this->hmac($this->encode($preHash), $this->encode($this->secret), 'sha256', 'hex');
-            $headers['X-FB-ACCESS-KEY'] = $this->apiKey;
-            $headers['X-FB-ACCESS-TIMESTAMP'] = $this->number_to_string($timestamp);
-            $headers['X-FB-ACCESS-SIGNATURE'] = $signature;
+            $headersValue['X-FB-ACCESS-KEY'] = $this->apiKey;
+            $headersValue['X-FB-ACCESS-TIMESTAMP'] = $this->number_to_string($timestamp);
+            $headersValue['X-FB-ACCESS-SIGNATURE'] = $signature;
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $headersValue );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -2155,13 +2222,13 @@ class foxbit extends Exchange {
         $details = $this->safe_list($error, 'details');
         $message = $this->safe_string($error, 'message');
         $detailsString = '';
-        if ($details) {
+        if ($details !== null) {
             for ($i = 0; $i < count($details); $i++) {
                 $detailsString = $detailsString . $details[$i] . ' ';
             }
         }
         if ($error !== null) {
-            $feedback = $this->id . ' ' . $message . ' $details => ' . $detailsString;
+            $feedback = $this->id . ' ' . $message . ' details => ' . $detailsString;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $detailsString, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);

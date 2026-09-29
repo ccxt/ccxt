@@ -9,7 +9,7 @@ import java.util.Map;
 // fields (flat typed access) and adds the prediction identity
 // fields. Identity is the `outcome` handle ("MARKET:LABEL"), no symbol. Mirrors the standalone
 // `PredictionOpenInterest` interface in ts/src/base/types.ts.
-public final class PredictionOpenInterest {
+public final class PredictionOpenInterest extends TypedMap {
     public Double openInterestAmount;
     public Double openInterestValue;
     public Long timestamp;
@@ -22,6 +22,7 @@ public final class PredictionOpenInterest {
 
     @SuppressWarnings("unchecked")
     public PredictionOpenInterest(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.openInterestAmount = TypeHelper.safeFloat(data, "openInterestAmount");
         this.openInterestValue = TypeHelper.safeFloat(data, "openInterestValue");

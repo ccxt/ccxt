@@ -7,298 +7,374 @@
 
 package ccxtprediction
 
-func (this *KalshiCore) KalshiPublicGetEvents(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetEvents", args...)
+import ccxt "github.com/ccxt/ccxt/go/v4"
+
+// KalshiPublicGetEvents returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetEvents(args ...any) <-chan any {
+	return this.Fetch2Async("events", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetEventsMultivariate(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetEventsMultivariate", args...)
+// KalshiPublicGetEventsMultivariate returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetEventsMultivariate(args ...any) <-chan any {
+	return this.Fetch2Async("events/multivariate", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetEventsFeeChanges(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetEventsFeeChanges", args...)
+// KalshiPublicGetEventsFeeChanges returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetEventsFeeChanges(args ...any) <-chan any {
+	return this.Fetch2Async("events/fee_changes", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetEventsEventTicker(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetEventsEventTicker", args...)
+// KalshiPublicGetEventsEventTicker returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetEventsEventTicker(args ...any) <-chan any {
+	return this.Fetch2Async("events/{event_ticker}", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetEventsEventTickerMetadata(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetEventsEventTickerMetadata", args...)
+// KalshiPublicGetEventsEventTickerMetadata returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetEventsEventTickerMetadata(args ...any) <-chan any {
+	return this.Fetch2Async("events/{event_ticker}/metadata", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetSeries(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetSeries", args...)
+// KalshiPublicGetSeries returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetSeries(args ...any) <-chan any {
+	return this.Fetch2Async("series", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetSeriesFeeChanges(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetSeriesFeeChanges", args...)
+// KalshiPublicGetSeriesFeeChanges returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetSeriesFeeChanges(args ...any) <-chan any {
+	return this.Fetch2Async("series/fee_changes", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetSeriesSeriesTicker(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetSeriesSeriesTicker", args...)
+// KalshiPublicGetSeriesSeriesTicker returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetSeriesSeriesTicker(args ...any) <-chan any {
+	return this.Fetch2Async("series/{series_ticker}", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks", args...)
+// KalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(args ...any) <-chan any {
+	return this.Fetch2Async("series/{series_ticker}/markets/{ticker}/candlesticks", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks", args...)
+// KalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks(args ...any) <-chan any {
+	return this.Fetch2Async("series/{series_ticker}/events/{ticker}/candlesticks", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory", args...)
+// KalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory(args ...any) <-chan any {
+	return this.Fetch2Async("series/{series_ticker}/events/{ticker}/forecast_percentile_history", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetMarkets(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetMarkets", args...)
+// KalshiPublicGetMarkets returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetMarkets(args ...any) <-chan any {
+	return this.Fetch2Async("markets", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetMarketsTrades(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetMarketsTrades", args...)
+// KalshiPublicGetMarketsTrades returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetMarketsTrades(args ...any) <-chan any {
+	return this.Fetch2Async("markets/trades", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetMarketsOrderbooks(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetMarketsOrderbooks", args...)
+// KalshiPublicGetMarketsOrderbooks returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetMarketsOrderbooks(args ...any) <-chan any {
+	return this.Fetch2Async("markets/orderbooks", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetMarketsCandlesticks(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetMarketsCandlesticks", args...)
+// KalshiPublicGetMarketsCandlesticks returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetMarketsCandlesticks(args ...any) <-chan any {
+	return this.Fetch2Async("markets/candlesticks", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetMarketsTicker(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetMarketsTicker", args...)
+// KalshiPublicGetMarketsTicker returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetMarketsTicker(args ...any) <-chan any {
+	return this.Fetch2Async("markets/{ticker}", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetMarketsTickerOrderbook(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetMarketsTickerOrderbook", args...)
+// KalshiPublicGetMarketsTickerOrderbook returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetMarketsTickerOrderbook(args ...any) <-chan any {
+	return this.Fetch2Async("markets/{ticker}/orderbook", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetExchangeStatus(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetExchangeStatus", args...)
+// KalshiPublicGetExchangeStatus returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetExchangeStatus(args ...any) <-chan any {
+	return this.Fetch2Async("exchange/status", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetExchangeSchedule(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetExchangeSchedule", args...)
+// KalshiPublicGetExchangeSchedule returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetExchangeSchedule(args ...any) <-chan any {
+	return this.Fetch2Async("exchange/schedule", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetExchangeAnnouncements(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetExchangeAnnouncements", args...)
+// KalshiPublicGetExchangeAnnouncements returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetExchangeAnnouncements(args ...any) <-chan any {
+	return this.Fetch2Async("exchange/announcements", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetExchangeUserDataTimestamp(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetExchangeUserDataTimestamp", args...)
+// KalshiPublicGetExchangeUserDataTimestamp returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetExchangeUserDataTimestamp(args ...any) <-chan any {
+	return this.Fetch2Async("exchange/user_data_timestamp", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetMilestones(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetMilestones", args...)
+// KalshiPublicGetMilestones returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetMilestones(args ...any) <-chan any {
+	return this.Fetch2Async("milestones", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetMilestonesMilestoneId(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetMilestonesMilestoneId", args...)
+// KalshiPublicGetMilestonesMilestoneId returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetMilestonesMilestoneId(args ...any) <-chan any {
+	return this.Fetch2Async("milestones/{milestone_id}", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetStructuredTargets(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetStructuredTargets", args...)
+// KalshiPublicGetStructuredTargets returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetStructuredTargets(args ...any) <-chan any {
+	return this.Fetch2Async("structured_targets", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetStructuredTargetsStructuredTargetId(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetStructuredTargetsStructuredTargetId", args...)
+// KalshiPublicGetStructuredTargetsStructuredTargetId returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetStructuredTargetsStructuredTargetId(args ...any) <-chan any {
+	return this.Fetch2Async("structured_targets/{structured_target_id}", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetSearchFiltersBySport(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetSearchFiltersBySport", args...)
+// KalshiPublicGetSearchFiltersBySport returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetSearchFiltersBySport(args ...any) <-chan any {
+	return this.Fetch2Async("search/filters_by_sport", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetSearchTagsByCategories(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetSearchTagsByCategories", args...)
+// KalshiPublicGetSearchTagsByCategories returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetSearchTagsByCategories(args ...any) <-chan any {
+	return this.Fetch2Async("search/tags_by_categories", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetLiveDataBatch(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetLiveDataBatch", args...)
+// KalshiPublicGetLiveDataBatch returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetLiveDataBatch(args ...any) <-chan any {
+	return this.Fetch2Async("live_data/batch", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetLiveDataMilestoneMilestoneId(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetLiveDataMilestoneMilestoneId", args...)
+// KalshiPublicGetLiveDataMilestoneMilestoneId returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetLiveDataMilestoneMilestoneId(args ...any) <-chan any {
+	return this.Fetch2Async("live_data/milestone/{milestone_id}", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetHistoricalMarkets(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetHistoricalMarkets", args...)
+// KalshiPublicGetHistoricalMarkets returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetHistoricalMarkets(args ...any) <-chan any {
+	return this.Fetch2Async("historical/markets", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetHistoricalMarketsTickerCandlesticks(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetHistoricalMarketsTickerCandlesticks", args...)
+// KalshiPublicGetHistoricalMarketsTickerCandlesticks returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetHistoricalMarketsTickerCandlesticks(args ...any) <-chan any {
+	return this.Fetch2Async("historical/markets/{ticker}/candlesticks", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetHistoricalTrades(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetHistoricalTrades", args...)
+// KalshiPublicGetHistoricalTrades returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetHistoricalTrades(args ...any) <-chan any {
+	return this.Fetch2Async("historical/trades", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetHistoricalCutoffTimestamps(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetHistoricalCutoffTimestamps", args...)
+// KalshiPublicGetHistoricalCutoffTimestamps returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetHistoricalCutoffTimestamps(args ...any) <-chan any {
+	return this.Fetch2Async("historical/cutoff_timestamps", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetMultivariateEventCollections(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetMultivariateEventCollections", args...)
+// KalshiPublicGetMultivariateEventCollections returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetMultivariateEventCollections(args ...any) <-chan any {
+	return this.Fetch2Async("multivariate_event_collections", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetMultivariateEventCollectionsCollectionTicker(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetMultivariateEventCollectionsCollectionTicker", args...)
+// KalshiPublicGetMultivariateEventCollectionsCollectionTicker returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetMultivariateEventCollectionsCollectionTicker(args ...any) <-chan any {
+	return this.Fetch2Async("multivariate_event_collections/{collection_ticker}", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup", args...)
+// KalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup(args ...any) <-chan any {
+	return this.Fetch2Async("multivariate_event_collections/{collection_ticker}/lookup", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPublicGetIncentivePrograms(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPublicGetIncentivePrograms", args...)
+// KalshiPublicGetIncentivePrograms returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPublicGetIncentivePrograms(args ...any) <-chan any {
+	return this.Fetch2Async("incentive_programs", []string{"kalshi", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetPortfolioBalance(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetPortfolioBalance", args...)
+// KalshiPrivateGetPortfolioBalance returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetPortfolioBalance(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/balance", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetPortfolioOrders(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetPortfolioOrders", args...)
+// KalshiPrivateGetPortfolioOrders returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetPortfolioOrders(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/orders", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetPortfolioOrdersOrderId(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetPortfolioOrdersOrderId", args...)
+// KalshiPrivateGetPortfolioOrdersOrderId returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetPortfolioOrdersOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/orders/{order_id}", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetPortfolioOrdersOrderIdQueuePosition(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition", args...)
+// KalshiPrivateGetPortfolioOrdersOrderIdQueuePosition returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetPortfolioOrdersOrderIdQueuePosition(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/orders/{order_id}/queue_position", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetPortfolioOrdersQueuePositions(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetPortfolioOrdersQueuePositions", args...)
+// KalshiPrivateGetPortfolioOrdersQueuePositions returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetPortfolioOrdersQueuePositions(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/orders/queue_positions", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetPortfolioPositions(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetPortfolioPositions", args...)
+// KalshiPrivateGetPortfolioPositions returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetPortfolioPositions(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/positions", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetPortfolioFills(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetPortfolioFills", args...)
+// KalshiPrivateGetPortfolioFills returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetPortfolioFills(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/fills", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetPortfolioSettlements(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetPortfolioSettlements", args...)
+// KalshiPrivateGetPortfolioSettlements returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetPortfolioSettlements(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/settlements", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetPortfolioDeposits(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetPortfolioDeposits", args...)
+// KalshiPrivateGetPortfolioDeposits returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetPortfolioDeposits(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/deposits", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetPortfolioWithdrawals(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetPortfolioWithdrawals", args...)
+// KalshiPrivateGetPortfolioWithdrawals returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetPortfolioWithdrawals(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/withdrawals", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetPortfolioOrderGroups(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetPortfolioOrderGroups", args...)
+// KalshiPrivateGetPortfolioOrderGroups returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetPortfolioOrderGroups(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/order_groups", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetPortfolioOrderGroupsOrderGroupId(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetPortfolioOrderGroupsOrderGroupId", args...)
+// KalshiPrivateGetPortfolioOrderGroupsOrderGroupId returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetPortfolioOrderGroupsOrderGroupId(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/order_groups/{order_group_id}", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetPortfolioSummaryTotalRestingOrderValue(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue", args...)
+// KalshiPrivateGetPortfolioSummaryTotalRestingOrderValue returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetPortfolioSummaryTotalRestingOrderValue(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/summary/total_resting_order_value", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetPortfolioSubaccountsBalances(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetPortfolioSubaccountsBalances", args...)
+// KalshiPrivateGetPortfolioSubaccountsBalances returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetPortfolioSubaccountsBalances(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/subaccounts/balances", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetPortfolioSubaccountsNetting(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetPortfolioSubaccountsNetting", args...)
+// KalshiPrivateGetPortfolioSubaccountsNetting returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetPortfolioSubaccountsNetting(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/subaccounts/netting", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetPortfolioSubaccountsTransfers(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetPortfolioSubaccountsTransfers", args...)
+// KalshiPrivateGetPortfolioSubaccountsTransfers returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetPortfolioSubaccountsTransfers(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/subaccounts/transfers", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetHistoricalFills(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetHistoricalFills", args...)
+// KalshiPrivateGetHistoricalFills returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetHistoricalFills(args ...any) <-chan any {
+	return this.Fetch2Async("historical/fills", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateGetHistoricalOrders(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateGetHistoricalOrders", args...)
+// KalshiPrivateGetHistoricalOrders returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateGetHistoricalOrders(args ...any) <-chan any {
+	return this.Fetch2Async("historical/orders", []string{"kalshi", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivatePostPortfolioOrders(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivatePostPortfolioOrders", args...)
+// KalshiPrivatePostPortfolioOrders returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivatePostPortfolioOrders(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/orders", []string{"kalshi", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivatePostPortfolioEventsOrders(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivatePostPortfolioEventsOrders", args...)
+// KalshiPrivatePostPortfolioEventsOrders returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivatePostPortfolioEventsOrders(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/events/orders", []string{"kalshi", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivatePostPortfolioOrdersBatched(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivatePostPortfolioOrdersBatched", args...)
+// KalshiPrivatePostPortfolioOrdersBatched returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivatePostPortfolioOrdersBatched(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/orders/batched", []string{"kalshi", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivatePostPortfolioOrdersOrderIdAmend(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivatePostPortfolioOrdersOrderIdAmend", args...)
+// KalshiPrivatePostPortfolioOrdersOrderIdAmend returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivatePostPortfolioOrdersOrderIdAmend(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/orders/{order_id}/amend", []string{"kalshi", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivatePostPortfolioOrdersOrderIdDecrease(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivatePostPortfolioOrdersOrderIdDecrease", args...)
+// KalshiPrivatePostPortfolioOrdersOrderIdDecrease returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivatePostPortfolioOrdersOrderIdDecrease(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/orders/{order_id}/decrease", []string{"kalshi", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivatePostPortfolioOrderGroupsCreate(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivatePostPortfolioOrderGroupsCreate", args...)
+// KalshiPrivatePostPortfolioOrderGroupsCreate returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivatePostPortfolioOrderGroupsCreate(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/order_groups/create", []string{"kalshi", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivatePostPortfolioSubaccounts(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivatePostPortfolioSubaccounts", args...)
+// KalshiPrivatePostPortfolioSubaccounts returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivatePostPortfolioSubaccounts(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/subaccounts", []string{"kalshi", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivatePostPortfolioSubaccountsTransfer(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivatePostPortfolioSubaccountsTransfer", args...)
+// KalshiPrivatePostPortfolioSubaccountsTransfer returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivatePostPortfolioSubaccountsTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/subaccounts/transfer", []string{"kalshi", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivatePostMultivariateEventCollectionsCollectionTicker(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivatePostMultivariateEventCollectionsCollectionTicker", args...)
+// KalshiPrivatePostMultivariateEventCollectionsCollectionTicker returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivatePostMultivariateEventCollectionsCollectionTicker(args ...any) <-chan any {
+	return this.Fetch2Async("multivariate_event_collections/{collection_ticker}", []string{"kalshi", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset", args...)
+// KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/order_groups/{order_group_id}/reset", []string{"kalshi", "private"}, "PUT", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger", args...)
+// KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/order_groups/{order_group_id}/trigger", []string{"kalshi", "private"}, "PUT", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit", args...)
+// KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/order_groups/{order_group_id}/limit", []string{"kalshi", "private"}, "PUT", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivatePutPortfolioSubaccountsNetting(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivatePutPortfolioSubaccountsNetting", args...)
+// KalshiPrivatePutPortfolioSubaccountsNetting returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivatePutPortfolioSubaccountsNetting(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/subaccounts/netting", []string{"kalshi", "private"}, "PUT", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup", args...)
+// KalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup(args ...any) <-chan any {
+	return this.Fetch2Async("multivariate_event_collections/{collection_ticker}/lookup", []string{"kalshi", "private"}, "PUT", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateDeletePortfolioOrdersOrderId(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateDeletePortfolioOrdersOrderId", args...)
+// KalshiPrivateDeletePortfolioOrdersOrderId returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateDeletePortfolioOrdersOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/orders/{order_id}", []string{"kalshi", "private"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateDeletePortfolioOrdersBatched(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateDeletePortfolioOrdersBatched", args...)
+// KalshiPrivateDeletePortfolioOrdersBatched returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateDeletePortfolioOrdersBatched(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/orders/batched", []string{"kalshi", "private"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateDeletePortfolioEventsOrdersOrderId(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateDeletePortfolioEventsOrdersOrderId", args...)
+// KalshiPrivateDeletePortfolioEventsOrdersOrderId returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateDeletePortfolioEventsOrdersOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/events/orders/{order_id}", []string{"kalshi", "private"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) KalshiPrivateDeletePortfolioOrderGroupsOrderGroupId(args ...any) <-chan any {
-	return this.CallEndpointAsync("kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId", args...)
+// KalshiPrivateDeletePortfolioOrderGroupsOrderGroupId returns a channel that yields a JSON object.
+func (this *Kalshi) KalshiPrivateDeletePortfolioOrderGroupsOrderGroupId(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/order_groups/{order_group_id}", []string{"kalshi", "private"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KalshiCore) ElectionsPublicGetSearchSeries(args ...any) <-chan any {
-	return this.CallEndpointAsync("electionsPublicGetSearchSeries", args...)
+// ElectionsPublicGetSearchSeries returns a channel that yields a JSON object.
+func (this *Kalshi) ElectionsPublicGetSearchSeries(args ...any) <-chan any {
+	return this.Fetch2Async("search/series", []string{"elections", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

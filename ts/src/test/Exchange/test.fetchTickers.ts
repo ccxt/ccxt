@@ -4,7 +4,6 @@ import testTicker from './base/test.ticker.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 import type { Str, Strings } from '../../base/types.js';
 
-
 async function testFetchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
     // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
     // is impractical and the "every active market has a ticker" check doesn't apply — test
@@ -23,7 +22,7 @@ async function testFetchTickers (exchange: Exchange, skippedProperties: object, 
 async function fetchTickersHelperTest (exchange: Exchange, skippedProperties: object, argSymbols: Strings, argParams = {}) {
     const method = 'fetchTickers';
     const response =  await exchange.fetchTickers (argSymbols, argParams);
-    assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return a dict. ' + exchange.json (response));
+    testSharedMethods.assertDictionaryResponse (exchange, method, response, exchange.json (argSymbols));
     const values = Object.values (response);
     let checkedSymbol: Str = undefined;
     if (argSymbols !== undefined && argSymbols.length === 1) {
@@ -36,7 +35,12 @@ async function fetchTickersHelperTest (exchange: Exchange, skippedProperties: ob
         try {
             testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
         } catch (ex) {
-            await testSharedMethods.validateTickerExceptionForPercentage (ex, exchange, ticker);
+            let ohlcv = undefined;
+            const tickerSymbol = ticker['symbol'];
+            if ((tickerSymbol !== undefined) && testSharedMethods.tickerExceptionNeedsOhlcv (ex, exchange, ticker)) {
+                ohlcv = await exchange.fetchOHLCV (tickerSymbol, '1d', undefined, 5);
+            }
+            testSharedMethods.validateTickerExceptionForPercentage (ex, exchange, ticker, ohlcv);
         }
     }
     return response;

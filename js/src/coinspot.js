@@ -124,102 +124,94 @@ export default class coinspot extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'latest',
-                    ],
+                    'get': {
+                        'latest': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'orders',
-                        'orders/history',
-                        'my/coin/deposit',
-                        'my/coin/send',
-                        'quote/buy',
-                        'quote/sell',
-                        'my/balances',
-                        'my/orders',
-                        'my/buy',
-                        'my/sell',
-                        'my/buy/cancel',
-                        'my/sell/cancel',
-                        'ro/my/balances',
-                        'ro/my/balances/{cointype}',
-                        'ro/my/deposits',
-                        'ro/my/withdrawals',
-                        'ro/my/transactions',
-                        'ro/my/transactions/{cointype}',
-                        'ro/my/transactions/open',
-                        'ro/my/transactions/{cointype}/open',
-                        'ro/my/sendreceive',
-                        'ro/my/affiliatepayments',
-                        'ro/my/referralpayments',
-                    ],
+                    'post': {
+                        'orders': { 'cost': 1 },
+                        'orders/history': { 'cost': 1 },
+                        'my/coin/deposit': { 'cost': 1 },
+                        'my/coin/send': { 'cost': 1 },
+                        'quote/buy': { 'cost': 1 },
+                        'quote/sell': { 'cost': 1 },
+                        'my/balances': { 'cost': 1 },
+                        'my/orders': { 'cost': 1 },
+                        'my/buy': { 'cost': 1 },
+                        'my/sell': { 'cost': 1 },
+                        'my/buy/cancel': { 'cost': 1 },
+                        'my/sell/cancel': { 'cost': 1 },
+                        'ro/my/balances': { 'cost': 1 },
+                        'ro/my/balances/{cointype}': { 'cost': 1 },
+                        'ro/my/deposits': { 'cost': 1 },
+                        'ro/my/withdrawals': { 'cost': 1 },
+                        'ro/my/transactions': { 'cost': 1 },
+                        'ro/my/transactions/{cointype}': { 'cost': 1 },
+                        'ro/my/transactions/open': { 'cost': 1 },
+                        'ro/my/transactions/{cointype}/open': { 'cost': 1 },
+                        'ro/my/sendreceive': { 'cost': 1 },
+                        'ro/my/affiliatepayments': { 'cost': 1 },
+                        'ro/my/referralpayments': { 'cost': 1 },
+                    },
                 },
                 'v2': {
                     'public': {
-                        'get': [
-                            'latest',
-                            'latest/{cointype}',
-                            'latest/{cointype}/{markettype}',
-                            'buyprice/{cointype}',
-                            'buyprice/{cointype}/{markettype}',
-                            'sellprice/{cointype}',
-                            'sellprice/{cointype}/{markettype}',
-                            'orders/open/{cointype}',
-                            'orders/open/{cointype}/{markettype}',
-                            'orders/completed/{cointype}',
-                            'orders/completed/{cointype}/{markettype}',
-                            'orders/summary/completed/{cointype}',
-                            'orders/summary/completed/{cointype}/{markettype}',
-                        ],
+                        'get': {
+                            'latest': { 'cost': 1 },
+                            'latest/{cointype}': { 'cost': 1 },
+                            'latest/{cointype}/{markettype}': { 'cost': 1 },
+                            'buyprice/{cointype}': { 'cost': 1 },
+                            'buyprice/{cointype}/{markettype}': { 'cost': 1 },
+                            'sellprice/{cointype}': { 'cost': 1 },
+                            'sellprice/{cointype}/{markettype}': { 'cost': 1 },
+                            'orders/open/{cointype}': { 'cost': 1 },
+                            'orders/open/{cointype}/{markettype}': { 'cost': 1 },
+                            'orders/completed/{cointype}': { 'cost': 1 },
+                            'orders/completed/{cointype}/{markettype}': { 'cost': 1 },
+                            'orders/summary/completed/{cointype}': { 'cost': 1 },
+                            'orders/summary/completed/{cointype}/{markettype}': { 'cost': 1 },
+                        },
                     },
                     'private': {
-                        'post': [
-                            // Status & Account
-                            'status',
-                            'my/coin/deposit',
-                            // Quotes
-                            'quote/buy/now',
-                            'quote/sell/now',
-                            'quote/swap/now',
-                            // Market Orders
-                            'my/buy',
-                            'my/buy/edit',
-                            'my/sell',
-                            'my/sell/edit',
-                            // Instant Orders
-                            'my/buy/now',
-                            'my/sell/now',
-                            'my/swap/now',
-                            // Cancel Orders
-                            'my/buy/cancel',
-                            'my/buy/cancel/all',
-                            'my/sell/cancel',
-                            'my/sell/cancel/all',
-                            // Withdrawals
-                            'my/coin/withdraw/senddetails',
-                            'my/coin/withdraw/send',
-                            // Read Only Status
-                            'ro/status',
-                            // Read Only Market Orders
-                            'ro/orders/market/open',
-                            'ro/orders/market/completed',
-                            // Read Only Balances
-                            'ro/my/balances',
-                            'ro/my/balance/{cointype}',
-                            // Read Only Orders
-                            'ro/my/orders/market/open',
-                            'ro/my/orders/limit/open',
-                            'ro/my/orders/completed',
-                            'ro/my/orders/market/completed',
-                            // Read Only Transactions
-                            'ro/my/sendreceive',
-                            'ro/my/deposits',
-                            'ro/my/withdrawals',
-                            // Read Only Payments
-                            'ro/my/affiliatepayments',
-                            'ro/my/referralpayments',
-                        ],
+                        'post': {
+                            'status': { 'cost': 1 },
+                            'my/coin/deposit': { 'cost': 1 },
+                            'quote/buy/now': { 'cost': 1 },
+                            'quote/sell/now': { 'cost': 1 },
+                            'quote/swap/now': { 'cost': 1 },
+                            'my/buy': { 'cost': 1 },
+                            'my/buy/edit': { 'cost': 1 },
+                            'my/sell': { 'cost': 1 },
+                            'my/sell/edit': { 'cost': 1 },
+                            'my/buy/now': { 'cost': 1 },
+                            'my/buy/now/coinlist': { 'cost': 1 },
+                            'my/sell/now': { 'cost': 1 },
+                            'my/sell/now/coinlist': { 'cost': 1 },
+                            'my/swap/now': { 'cost': 1 },
+                            'my/buy/cancel': { 'cost': 1 },
+                            'my/buy/cancel/all': { 'cost': 1 },
+                            'my/sell/cancel': { 'cost': 1 },
+                            'my/sell/cancel/all': { 'cost': 1 },
+                            'my/coin/withdraw/senddetails': { 'cost': 1 },
+                            'my/coin/withdraw/send': { 'cost': 1 },
+                            'my/coin/withdraw/send/async': { 'cost': 1 },
+                            'my/coin/withdraw/send/status': { 'cost': 1 },
+                            'ro/status': { 'cost': 1 },
+                            'ro/orders/market/open': { 'cost': 1 },
+                            'ro/orders/market/completed': { 'cost': 1 },
+                            'ro/my/balances': { 'cost': 1 },
+                            'ro/my/balance/{cointype}': { 'cost': 1 },
+                            'ro/my/orders/market/open': { 'cost': 1 },
+                            'ro/my/orders/limit/open': { 'cost': 1 },
+                            'ro/my/orders/completed': { 'cost': 1 },
+                            'ro/my/orders/market/completed': { 'cost': 1 },
+                            'ro/my/sendreceive': { 'cost': 1 },
+                            'ro/my/deposits': { 'cost': 1 },
+                            'ro/my/withdrawals': { 'cost': 1 },
+                            'ro/my/affiliatepayments': { 'cost': 1 },
+                            'ro/my/referralpayments': { 'cost': 1 },
+                        },
                     },
                 },
             },
@@ -308,7 +300,7 @@ export default class coinspot extends Exchange {
                 const currencyIds = Object.keys(currencies);
                 for (let j = 0; j < currencyIds.length; j++) {
                     const currencyId = currencyIds[j];
-                    const balance = currencies[currencyId];
+                    const balance = this.safeDict(currencies, currencyId);
                     const code = this.safeCurrencyCode(currencyId);
                     const account = this.account();
                     account['total'] = this.safeString(balance, 'balance');
@@ -345,7 +337,13 @@ export default class coinspot extends Exchange {
             await this.loadMarkets();
         }
         const method = this.safeString(this.options, 'fetchBalance', 'private_post_my_balances');
-        const response = await this[method](params);
+        let response = undefined;
+        if ((method === 'private_post_ro_my_balances') || (method === 'privatePostRoMyBalances')) {
+            response = await this.privatePostRoMyBalances(params);
+        }
+        else {
+            response = await this.privatePostMyBalances(params);
+        }
         //
         // read-write api keys
         //
@@ -490,7 +488,7 @@ export default class coinspot extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket(id);
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 const symbol = market['symbol'];
                 const ticker = prices[id];
                 result[symbol] = this.parseTicker(ticker, market);
@@ -677,9 +675,7 @@ export default class coinspot extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        if (side === undefined) {
-            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument('createOrder', side, 'side');
         const sideUpper = side.toUpperCase();
         if (type === 'market') {
             throw new ExchangeError(this.id + ' createOrder() allows limit orders only');
@@ -723,16 +719,16 @@ export default class coinspot extends Exchange {
         if (side !== 'buy' && side !== 'sell') {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a side parameter, "buy" or "sell"');
         }
-        params = this.omit(params, 'side');
+        const paramsOmitted = this.omit(params, 'side');
         const request = {
             'id': id,
         };
         let response;
         if (side === 'buy') {
-            response = await this.privatePostMyBuyCancel(this.extend(request, params));
+            response = await this.privatePostMyBuyCancel(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privatePostMySellCancel(this.extend(request, params));
+            response = await this.privatePostMySellCancel(this.extend(request, paramsOmitted));
         }
         //
         // status - ok, error
@@ -742,7 +738,7 @@ export default class coinspot extends Exchange {
         });
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         const status = this.safeString(response, 'status');
@@ -752,23 +748,37 @@ export default class coinspot extends Exchange {
         }
         return undefined;
     }
+    nonce() {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds();
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let requestHeaders = headers;
+        let requestBody = body;
         const isVersionedApi = Array.isArray(api);
         const version = isVersionedApi ? api[0] : undefined;
         const accessType = isVersionedApi ? api[1] : api;
         const endpoint = '/' + this.implodeParams(path, params);
-        const fullPath = (version !== undefined) ? '/' + version + endpoint : endpoint;
-        const url = this.urls['api'][accessType] + fullPath;
+        let fullPath = endpoint;
+        if (version !== undefined) {
+            fullPath = '/' + version + endpoint;
+        }
+        const apiUrl = this.safeString(this.urls['api'], accessType);
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + fullPath;
         if (accessType === 'private') {
             this.checkRequiredCredentials();
-            const nonce = this.nonce();
-            body = this.json(this.extend({ 'nonce': nonce }, params));
-            headers = {
+            // coinspot requires an increasing nonce
+            const nonce = this.incrementingNonce();
+            requestBody = this.json(this.extend({ 'nonce': nonce }, params));
+            requestHeaders = {
                 'Content-Type': 'application/json',
                 'key': this.apiKey,
-                'sign': this.hmac(this.encode(body), this.encode(this.secret), sha512),
+                'sign': this.hmac(this.encode(requestBody), this.encode(this.secret), sha512),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 }

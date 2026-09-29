@@ -55,31 +55,32 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official btcbox API documentation:** [blog.btcbox.jp](https://blog.btcbox.jp/en/archives/8762)
 
-> 11 implicit endpoints across 3 access groups.
+> 12 implicit endpoints across 3 access groups.
 
 ## public
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `publicGetDepth` | GET | `depth` |  |
-| `publicGetOrders` | GET | `orders` |  |
-| `publicGetTicker` | GET | `ticker` |  |
-| `publicGetTickers` | GET | `tickers` |  |
+| `publicGetDepth` | GET | `depth` | 1 |
+| `publicGetOrders` | GET | `orders` | 1 |
+| `publicGetTicker` | GET | `ticker` | 1 |
+| `publicGetTickers` | GET | `tickers` | 1 |
 
 ## private
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `privatePostBalance` | POST | `balance` |  |
-| `privatePostTradeAdd` | POST | `trade_add` |  |
-| `privatePostTradeCancel` | POST | `trade_cancel` |  |
-| `privatePostTradeList` | POST | `trade_list` |  |
-| `privatePostTradeView` | POST | `trade_view` |  |
-| `privatePostWallet` | POST | `wallet` |  |
+| `privatePostBalance` | POST | `balance` | 1 |
+| `privatePostOrderHistory` | POST | `order_history` | 1 |
+| `privatePostTradeAdd` | POST | `trade_add` | 1 |
+| `privatePostTradeCancel` | POST | `trade_cancel` | 1 |
+| `privatePostTradeList` | POST | `trade_list` | 1 |
+| `privatePostTradeView` | POST | `trade_view` | 1 |
+| `privatePostWallet` | POST | `wallet` | 1 |
 
 ## webApi
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `webApiGetAjaxCoinCoinInfo` | GET | `ajax/coin/coinInfo` |  |
+| `webApiGetAjaxCoinCoinInfo` | GET | `ajax/coin/coinInfo` | 1 |
 

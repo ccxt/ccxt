@@ -74,6 +74,19 @@ async function vssEverything () {
     vss ('./java/lib/src/main/java/io/github/ccxt/Version.java', "public static final String VERSION = \"{version}\";",                 version)
     vss ('./java/gradle.properties',                          "version={version}",                                                      version)
 
+    // Rust crates. The package version is the FIRST `version = "x.y.z"` in each
+    // manifest (it sits in [package]), and the inter-crate path dependencies
+    // carry a version too — cargo publish rejects a path dependency without
+    // one, so these must move together or a release goes out pinned to the
+    // previous version.
+    vss ('./rust/ccxt-base/Cargo.toml',       'version = "{version}"',                                        version)
+    vss ('./rust/ccxt/Cargo.toml',            'version = "{version}"',                                        version)
+    vss ('./rust/ccxt-pro/Cargo.toml',        'version = "{version}"',                                        version)
+    vss ('./rust/ccxt-prediction/Cargo.toml', 'version = "{version}"',                                        version)
+    vss ('./rust/ccxt/Cargo.toml',            'path = "../ccxt-base", version = "{version}"',                 version)
+    vss ('./rust/ccxt-pro/Cargo.toml',        'path = "../ccxt-base", version = "{version}"',                 version)
+    vss ('./rust/ccxt-prediction/Cargo.toml', 'path = "../ccxt-base", version = "{version}"',                 version)
+
     // vss ('./python/ccxt/pro/base/exchange.py',           "__version__ = '{version}'",   version)
 
     vss ('./README.md',       "ccxt@{version}", version, true)

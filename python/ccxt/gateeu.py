@@ -5,12 +5,11 @@
 
 from ccxt.gate import gate
 from ccxt.abstract.gateeu import ImplicitAPI
-from ccxt.base.types import Any
 
 
 class gateeu(gate, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(gateeu, self).describe(), {
             'id': 'gateeu',
             'name': 'Gate EU',
@@ -54,6 +53,9 @@ class gateeu(gate, ImplicitAPI):
             'options': {
                 'fetchMarkets': {
                     'types': ['spot'],
+                },
+                'fetchOrderBook': {
+                    'maxSpotLimit': 100,  # this venue returns an empty book above 100
                 },
                 'mica': True,
             },

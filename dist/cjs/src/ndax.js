@@ -167,116 +167,116 @@ class ndax extends ndax$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'Activate2FA': 1,
-                        'Authenticate2FA': 1,
-                        'AuthenticateUser': 1,
-                        'EnableXP2FA': 1,
-                        'GetL2Snapshot': 1,
-                        'GetLevel1': 1,
-                        'GetValidate2FARequiredEndpoints': 1,
-                        'LogOut': 1,
-                        'GetTickerHistory': 1,
-                        'GetProduct': 1,
-                        'GetProducts': 1,
-                        'GetInstrument': 1,
-                        'GetInstruments': 1,
-                        'GetEarliestTickTime': 1,
-                        'Ping': 1,
-                        'assets': 1,
-                        'orderbook': 1,
-                        'ticker': 1,
-                        'summary': 1,
-                        'trades': 1, // undocumented
-                        'GetLastTrades': 1, // undocumented
-                        'ConfirmWithdraw': 1,
-                        'SubscribeLevel1': 1,
-                        'SubscribeLevel2': 1,
-                        'SubscribeTicker': 1,
-                        'SubscribeTrades': 1,
-                        'SubscribeBlockTrades': 1,
-                        'UnsubscribeBlockTrades': 1,
-                        'UnsubscribeLevel1': 1,
-                        'UnsubscribeLevel2': 1,
-                        'UnsubscribeTicker': 1,
-                        'UnsubscribeTrades': 1,
-                        'Authenticate': 1, // undocumented
+                        'Activate2FA': { 'cost': 1 },
+                        'Authenticate2FA': { 'cost': 1 },
+                        'AuthenticateUser': { 'cost': 1 },
+                        'EnableXP2FA': { 'cost': 1 },
+                        'GetL2Snapshot': { 'cost': 1 },
+                        'GetLevel1': { 'cost': 1 },
+                        'GetValidate2FARequiredEndpoints': { 'cost': 1 },
+                        'LogOut': { 'cost': 1 },
+                        'GetTickerHistory': { 'cost': 1 },
+                        'GetProduct': { 'cost': 1 },
+                        'GetProducts': { 'cost': 1 },
+                        'GetInstrument': { 'cost': 1 },
+                        'GetInstruments': { 'cost': 1 },
+                        'GetEarliestTickTime': { 'cost': 1 },
+                        'Ping': { 'cost': 1 },
+                        'assets': { 'cost': 1 },
+                        'orderbook': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
+                        'summary': { 'cost': 1 },
+                        'trades': { 'cost': 1 }, // undocumented
+                        'GetLastTrades': { 'cost': 1 }, // undocumented
+                        'ConfirmWithdraw': { 'cost': 1 },
+                        'SubscribeLevel1': { 'cost': 1 },
+                        'SubscribeLevel2': { 'cost': 1 },
+                        'SubscribeTicker': { 'cost': 1 },
+                        'SubscribeTrades': { 'cost': 1 },
+                        'SubscribeBlockTrades': { 'cost': 1 },
+                        'UnsubscribeBlockTrades': { 'cost': 1 },
+                        'UnsubscribeLevel1': { 'cost': 1 },
+                        'UnsubscribeLevel2': { 'cost': 1 },
+                        'UnsubscribeTicker': { 'cost': 1 },
+                        'UnsubscribeTrades': { 'cost': 1 },
+                        'Authenticate': { 'cost': 1 }, // undocumented
                     },
                 },
                 'private': {
                     'get': {
-                        'GetUserAccountInfos': 1,
-                        'GetUserAccounts': 1,
-                        'GetUserAffiliateCount': 1,
-                        'GetUserAffiliateTag': 1,
-                        'GetUserConfig': 1,
-                        'GetAllUnredactedUserConfigsForUser': 1,
-                        'GetUnredactedUserConfigByKey': 1,
-                        'GetUserDevices': 1,
-                        'GetUserReportTickets': 1,
-                        'GetUserReportWriterResultRecords': 1,
-                        'GetAccountInfo': 1,
-                        'GetAccountPositions': 1,
-                        'GetAllAccountConfigs': 1,
-                        'GetTreasuryProductsForAccount': 1,
-                        'GetAccountTrades': 1,
-                        'GetAccountTransactions': 1,
-                        'GetOpenTradeReports': 1,
-                        'GetAllOpenTradeReports': 1,
-                        'GetTradesHistory': 1,
-                        'GetOpenOrders': 1,
-                        'GetOpenQuotes': 1,
-                        'GetOrderFee': 1,
-                        'GetOrderHistory': 1,
-                        'GetOrdersHistory': 1,
-                        'GetOrderStatus': 1,
-                        'GetOmsFeeTiers': 1,
-                        'GetAccountDepositTransactions': 1,
-                        'GetAccountWithdrawTransactions': 1,
-                        'GetAllDepositRequestInfoTemplates': 1,
-                        'GetDepositInfo': 1,
-                        'GetDepositRequestInfoTemplate': 1,
-                        'GetDeposits': 1,
-                        'GetDepositTicket': 1,
-                        'GetDepositTickets': 1,
-                        'GetOMSWithdrawFees': 1,
-                        'GetWithdrawFee': 1,
-                        'GetWithdraws': 1,
-                        'GetWithdrawTemplate': 1,
-                        'GetWithdrawTemplateTypes': 1,
-                        'GetWithdrawTicket': 1,
-                        'GetWithdrawTicketAttachment': 1,
-                        'GetWithdrawTickets': 1,
-                        'GetDepositTicketAttachment': 1,
+                        'GetUserAccountInfos': { 'cost': 1 },
+                        'GetUserAccounts': { 'cost': 1 },
+                        'GetUserAffiliateCount': { 'cost': 1 },
+                        'GetUserAffiliateTag': { 'cost': 1 },
+                        'GetUserConfig': { 'cost': 1 },
+                        'GetAllUnredactedUserConfigsForUser': { 'cost': 1 },
+                        'GetUnredactedUserConfigByKey': { 'cost': 1 },
+                        'GetUserDevices': { 'cost': 1 },
+                        'GetUserReportTickets': { 'cost': 1 },
+                        'GetUserReportWriterResultRecords': { 'cost': 1 },
+                        'GetAccountInfo': { 'cost': 1 },
+                        'GetAccountPositions': { 'cost': 1 },
+                        'GetAllAccountConfigs': { 'cost': 1 },
+                        'GetTreasuryProductsForAccount': { 'cost': 1 },
+                        'GetAccountTrades': { 'cost': 1 },
+                        'GetAccountTransactions': { 'cost': 1 },
+                        'GetOpenTradeReports': { 'cost': 1 },
+                        'GetAllOpenTradeReports': { 'cost': 1 },
+                        'GetTradesHistory': { 'cost': 1 },
+                        'GetOpenOrders': { 'cost': 1 },
+                        'GetOpenQuotes': { 'cost': 1 },
+                        'GetOrderFee': { 'cost': 1 },
+                        'GetOrderHistory': { 'cost': 1 },
+                        'GetOrdersHistory': { 'cost': 1 },
+                        'GetOrderStatus': { 'cost': 1 },
+                        'GetOmsFeeTiers': { 'cost': 1 },
+                        'GetAccountDepositTransactions': { 'cost': 1 },
+                        'GetAccountWithdrawTransactions': { 'cost': 1 },
+                        'GetAllDepositRequestInfoTemplates': { 'cost': 1 },
+                        'GetDepositInfo': { 'cost': 1 },
+                        'GetDepositRequestInfoTemplate': { 'cost': 1 },
+                        'GetDeposits': { 'cost': 1 },
+                        'GetDepositTicket': { 'cost': 1 },
+                        'GetDepositTickets': { 'cost': 1 },
+                        'GetOMSWithdrawFees': { 'cost': 1 },
+                        'GetWithdrawFee': { 'cost': 1 },
+                        'GetWithdraws': { 'cost': 1 },
+                        'GetWithdrawTemplate': { 'cost': 1 },
+                        'GetWithdrawTemplateTypes': { 'cost': 1 },
+                        'GetWithdrawTicket': { 'cost': 1 },
+                        'GetWithdrawTicketAttachment': { 'cost': 1 },
+                        'GetWithdrawTickets': { 'cost': 1 },
+                        'GetDepositTicketAttachment': { 'cost': 1 },
                     },
                     'post': {
-                        'AddUserAffiliateTag': 1,
-                        'AddDepositTicketAttachment': 1,
-                        'AddWithdrawTicketAttachment': 1,
-                        'CancelUserReport': 1,
-                        'RegisterNewDevice': 1,
-                        'SubscribeAccountEvents': 1,
-                        'UpdateUserAffiliateTag': 1,
-                        'GenerateTradeActivityReport': 1,
-                        'GenerateTransactionActivityReport': 1,
-                        'GenerateTreasuryActivityReport': 1,
-                        'ScheduleTradeActivityReport': 1,
-                        'ScheduleTransactionActivityReport': 1,
-                        'ScheduleTreasuryActivityReport': 1,
-                        'CancelAllOrders': 1,
-                        'CancelOrder': 1,
-                        'CancelQuote': 1,
-                        'CancelReplaceOrder': 1,
-                        'CreateQuote': 1,
-                        'ModifyOrder': 1,
-                        'SendOrder': 1,
-                        'SubmitBlockTrade': 1,
-                        'UpdateQuote': 1,
-                        'CancelWithdraw': 1,
-                        'CreateDepositTicket': 1,
-                        'CreateWithdrawTicket': 1,
-                        'SubmitDepositTicketComment': 1,
-                        'SubmitWithdrawTicketComment': 1,
-                        'GetOrderHistoryByOrderId': 1,
+                        'AddUserAffiliateTag': { 'cost': 1 },
+                        'AddDepositTicketAttachment': { 'cost': 1 },
+                        'AddWithdrawTicketAttachment': { 'cost': 1 },
+                        'CancelUserReport': { 'cost': 1 },
+                        'RegisterNewDevice': { 'cost': 1 },
+                        'SubscribeAccountEvents': { 'cost': 1 },
+                        'UpdateUserAffiliateTag': { 'cost': 1 },
+                        'GenerateTradeActivityReport': { 'cost': 1 },
+                        'GenerateTransactionActivityReport': { 'cost': 1 },
+                        'GenerateTreasuryActivityReport': { 'cost': 1 },
+                        'ScheduleTradeActivityReport': { 'cost': 1 },
+                        'ScheduleTransactionActivityReport': { 'cost': 1 },
+                        'ScheduleTreasuryActivityReport': { 'cost': 1 },
+                        'CancelAllOrders': { 'cost': 1 },
+                        'CancelOrder': { 'cost': 1 },
+                        'CancelQuote': { 'cost': 1 },
+                        'CancelReplaceOrder': { 'cost': 1 },
+                        'CreateQuote': { 'cost': 1 },
+                        'ModifyOrder': { 'cost': 1 },
+                        'SendOrder': { 'cost': 1 },
+                        'SubmitBlockTrade': { 'cost': 1 },
+                        'UpdateQuote': { 'cost': 1 },
+                        'CancelWithdraw': { 'cost': 1 },
+                        'CreateDepositTicket': { 'cost': 1 },
+                        'CreateWithdrawTicket': { 'cost': 1 },
+                        'SubmitDepositTicketComment': { 'cost': 1 },
+                        'SubmitWithdrawTicketComment': { 'cost': 1 },
+                        'GetOrderHistoryByOrderId': { 'cost': 1 },
                     },
                 },
             },
@@ -522,7 +522,10 @@ class ndax extends ndax$1["default"] {
         const id = this.safeString(rawCurrency, 'ProductId');
         const code = this.safeCurrencyCode(this.safeString(rawCurrency, 'Product'));
         const ProductType = this.safeString(rawCurrency, 'ProductType');
-        let type = (ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
+        let type = 'crypto';
+        if (ProductType === 'NationalCurrency') {
+            type = 'fiat';
+        }
         if (ProductType === 'Unknown') {
             // such currency is just a blanket entry
             type = 'other';
@@ -534,7 +537,7 @@ class ndax extends ndax$1["default"] {
             'type': type,
             'precision': this.safeNumber(rawCurrency, 'TickSize'),
             'info': rawCurrency,
-            'active': !this.safeBool(rawCurrency, 'IsDisabled'),
+            'active': (!this.safeBool(rawCurrency, 'IsDisabled', false)),
             'deposit': this.safeBool(rawCurrency, 'DepositEnabled'),
             'withdraw': this.safeBool(rawCurrency, 'WithdrawEnabled'),
             'fee': undefined,
@@ -621,8 +624,11 @@ class ndax extends ndax$1["default"] {
         const quoteId = this.safeString(market, 'Product2');
         const base = this.safeCurrencyCode(this.safeString(market, 'Product1Symbol'));
         const quote = this.safeCurrencyCode(this.safeString(market, 'Product2Symbol'));
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const sessionStatus = this.safeString(market, 'SessionStatus');
-        const isDisable = this.safeValue(market, 'IsDisable');
+        const isDisable = this.safeBool(market, 'IsDisable');
         const sessionRunning = (sessionStatus === 'Running');
         return this.safeMarketStructure({
             'id': id,
@@ -639,7 +645,7 @@ class ndax extends ndax$1["default"] {
             'swap': false,
             'future': false,
             'option': false,
-            'active': (sessionRunning && !isDisable),
+            'active': (sessionRunning && (isDisable !== true)),
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -676,6 +682,7 @@ class ndax extends ndax$1["default"] {
     }
     parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8, countOrIdKey = 2) {
         let nonce = undefined;
+        let latestTimestamp = timestamp;
         const result = {
             'symbol': symbol,
             'bids': [],
@@ -686,13 +693,13 @@ class ndax extends ndax$1["default"] {
         };
         for (let i = 0; i < orderbook.length; i++) {
             const level = orderbook[i];
-            if (timestamp === undefined) {
-                timestamp = this.safeInteger(level, 2);
+            if (latestTimestamp === undefined) {
+                latestTimestamp = this.safeInteger(level, 2);
             }
             else {
                 const newTimestamp = this.safeInteger(level, 2);
                 if (newTimestamp !== undefined) {
-                    timestamp = Math.max(timestamp, newTimestamp);
+                    latestTimestamp = Math.max(latestTimestamp, newTimestamp);
                 }
             }
             if (nonce === undefined) {
@@ -706,13 +713,13 @@ class ndax extends ndax$1["default"] {
             }
             const bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             const levelSide = this.safeInteger(level, 9);
-            const side = levelSide ? asksKey : bidsKey;
+            const side = (levelSide !== undefined && levelSide !== 0) ? asksKey : bidsKey;
             result[side].push(bidask);
         }
         result['bids'] = this.sortBy(result['bids'], 0, true);
         result['asks'] = this.sortBy(result['asks'], 0);
-        result['timestamp'] = timestamp;
-        result['datetime'] = this.iso8601(timestamp);
+        result['timestamp'] = latestTimestamp;
+        result['datetime'] = this.iso8601(latestTimestamp);
         result['nonce'] = nonce;
         return result;
     }
@@ -732,11 +739,11 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        limit = (limit === undefined) ? 100 : limit; // default 100
+        const limitValue = (limit === undefined) ? 100 : limit; // default 100
         const request = {
             'omsId': omsId,
             'InstrumentId': market['id'],
-            'Depth': limit, // default 100
+            'Depth': limitValue, // default 100
         };
         const response = await this.publicGetGetL2Snapshot(this.extend(request, params));
         //
@@ -815,8 +822,8 @@ class ndax extends ndax$1["default"] {
         if (marketId === undefined) {
             marketId = this.safeString(ticker, 'trading_pairs');
         }
-        market = this.safeMarket(marketId, market, '_');
-        const symbol = this.safeSymbol(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market, '_');
+        const symbol = this.safeSymbol(marketId, marketResolved);
         const last = this.safeString2(ticker, 'LastTradedPx', 'last_price');
         const percentage = this.safeString2(ticker, 'Rolling24HrPxChangePercent', 'price_change_percent_24h');
         const change = this.safeString(ticker, 'Rolling24HrPxChange');
@@ -844,7 +851,7 @@ class ndax extends ndax$1["default"] {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -859,7 +866,7 @@ class ndax extends ndax$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.publicGetSummary(params);
         //
         //     [
@@ -877,7 +884,7 @@ class ndax extends ndax$1["default"] {
         //     ]
         //
         const tickers = this.parseTickers(response);
-        return this.filterByArrayTickers(tickers, 'symbol', symbols);
+        return this.filterByArrayTickers(tickers, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -1002,7 +1009,11 @@ class ndax extends ndax$1["default"] {
         //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        let candles = [];
+        if (Array.isArray(response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1130,8 +1141,13 @@ class ndax extends ndax$1["default"] {
             timestamp = this.safeInteger(trade, 6);
             id = this.safeString(trade, 0);
             marketId = this.safeString(trade, 1);
-            const takerSide = this.safeValue(trade, 8);
-            side = takerSide ? 'sell' : 'buy';
+            const takerSide = this.safeInteger(trade, 8);
+            if (takerSide === 0) {
+                side = 'buy';
+            }
+            else if (takerSide === 1) {
+                side = 'sell';
+            }
             orderId = this.safeString(trade, 4);
         }
         else {
@@ -1214,7 +1230,7 @@ class ndax extends ndax$1["default"] {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
-        if (!this.login) {
+        if ((this.login === undefined) || (this.login === '')) {
             throw new errors.AuthenticationError(this.id + ' fetchAccounts() requires exchange.login email credential');
         }
         const omsId = this.safeInteger(this.options, 'omsId', 1);
@@ -1247,7 +1263,7 @@ class ndax extends ndax$1["default"] {
             'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict(response, i);
             const currencyId = this.safeString(balance, 'ProductId');
             if ((currencyId !== undefined) && (this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id)) {
                 const code = this.safeCurrencyCode(currencyId);
@@ -1280,12 +1296,12 @@ class ndax extends ndax$1["default"] {
         if (accountId === undefined) {
             accountId = this.parseToInt(this.accounts[0]['id']);
         }
-        params = this.omit(params, ['accountId', 'AccountId']);
+        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         const request = {
             'omsId': omsId,
             'AccountId': accountId,
         };
-        const response = await this.privateGetGetAccountPositions(this.extend(request, params));
+        const response = await this.privateGetGetAccountPositions(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -1355,7 +1371,7 @@ class ndax extends ndax$1["default"] {
         //     }
         //
         const currencyId = this.safeString(item, 'ProductId');
-        currency = this.safeCurrency(currencyId, currency);
+        const currencyResolved = this.safeCurrency(currencyId, currency);
         const credit = this.safeString(item, 'CR');
         const debit = this.safeString(item, 'DR');
         let amount = undefined;
@@ -1385,7 +1401,7 @@ class ndax extends ndax$1["default"] {
             'referenceId': this.safeString(item, 'ReferenceId'),
             'referenceAccount': this.safeString(item, 'Counterparty'),
             'type': this.parseLedgerEntryType(this.safeString(item, 'ReferenceType')),
-            'currency': this.safeCurrencyCode(currencyId, currency),
+            'currency': this.safeCurrencyCode(currencyId, currencyResolved),
             'amount': this.parseNumber(amount),
             'before': this.parseNumber(before),
             'after': this.parseNumber(after),
@@ -1393,7 +1409,7 @@ class ndax extends ndax$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'fee': undefined,
-        }, currency);
+        }, currencyResolved);
     }
     /**
      * @method
@@ -1414,7 +1430,7 @@ class ndax extends ndax$1["default"] {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        params = this.omit(params, ['accountId', 'AccountId']);
+        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         const request = {
             'omsId': omsId,
             'AccountId': accountId,
@@ -1422,7 +1438,7 @@ class ndax extends ndax$1["default"] {
         if (limit !== undefined) {
             request['Depth'] = limit;
         }
-        const response = await this.privateGetGetAccountTransactions(this.extend(request, params));
+        const response = await this.privateGetGetAccountTransactions(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -1589,7 +1605,7 @@ class ndax extends ndax$1["default"] {
                 orderType = 4;
             }
         }
-        params = this.omit(params, ['accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice']);
+        const paramsOmitted = this.omit(params, ['accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice']);
         const market = this.market(symbol);
         const orderSide = (side === 'buy') ? 0 : 1;
         const amountString = this.amountToPrecision(symbol, amount);
@@ -1625,7 +1641,7 @@ class ndax extends ndax$1["default"] {
         if (triggerPrice !== undefined) {
             request['StopPrice'] = triggerPrice;
         }
-        const response = await this.privatePostSendOrder(this.extend(request, params));
+        const response = await this.privatePostSendOrder(this.extend(request, paramsOmitted));
         //
         //     {
         //         "status":"Accepted",
@@ -1658,7 +1674,7 @@ class ndax extends ndax$1["default"] {
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
         const clientOrderId = this.safeInteger2(params, 'ClientOrderId', 'clientOrderId');
-        params = this.omit(params, ['accountId', 'AccountId', 'clientOrderId', 'ClientOrderId']);
+        const paramsOmitted = this.omit(params, ['accountId', 'AccountId', 'clientOrderId', 'ClientOrderId']);
         const market = this.market(symbol);
         const orderSide = (side === 'buy') ? 0 : 1;
         const amountString = this.amountToPrecision(symbol, amount);
@@ -1692,7 +1708,7 @@ class ndax extends ndax$1["default"] {
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
         }
-        const response = await this.privatePostCancelReplaceOrder(this.extend(request, params));
+        const response = await this.privatePostCancelReplaceOrder(this.extend(request, paramsOmitted));
         //
         //     {
         //         "replacementOrderId": 1234,
@@ -1722,7 +1738,7 @@ class ndax extends ndax$1["default"] {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        params = this.omit(params, ['accountId', 'AccountId']);
+        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         const request = {
             'omsId': omsId,
             'AccountId': accountId,
@@ -1747,7 +1763,7 @@ class ndax extends ndax$1["default"] {
         if (limit !== undefined) {
             request['Depth'] = limit;
         }
-        const response = await this.privateGetGetTradesHistory(this.extend(request, params));
+        const response = await this.privateGetGetTradesHistory(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -1810,7 +1826,7 @@ class ndax extends ndax$1["default"] {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        params = this.omit(params, ['accountId', 'AccountId']);
+        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         const request = {
             'omsId': omsId,
             'AccountId': accountId,
@@ -1819,7 +1835,7 @@ class ndax extends ndax$1["default"] {
             const market = this.market(symbol);
             request['IntrumentId'] = market['id'];
         }
-        const response = await this.privatePostCancelAllOrders(this.extend(request, params));
+        const response = await this.privatePostCancelAllOrders(this.extend(request, paramsOmitted));
         //
         //     {
         //         "result":true,
@@ -1869,8 +1885,8 @@ class ndax extends ndax$1["default"] {
         else {
             request['OrderId'] = parseInt(id);
         }
-        params = this.omit(params, ['clientOrderId', 'ClOrderId']);
-        const response = await this.privatePostCancelOrder(this.extend(request, params));
+        const paramsOmitted = this.omit(params, ['clientOrderId', 'ClOrderId']);
+        const response = await this.privatePostCancelOrder(this.extend(request, paramsOmitted));
         const order = this.parseOrder(response, market);
         return this.extend(order, {
             'id': id,
@@ -1896,7 +1912,7 @@ class ndax extends ndax$1["default"] {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        params = this.omit(params, ['accountId', 'AccountId']);
+        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1905,7 +1921,7 @@ class ndax extends ndax$1["default"] {
             'omsId': omsId,
             'AccountId': accountId,
         };
-        const response = await this.privateGetGetOpenOrders(this.extend(request, params));
+        const response = await this.privateGetGetOpenOrders(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -1977,7 +1993,7 @@ class ndax extends ndax$1["default"] {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        params = this.omit(params, ['accountId', 'AccountId']);
+        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         const request = {
             'omsId': omsId,
             'AccountId': accountId,
@@ -2002,7 +2018,7 @@ class ndax extends ndax$1["default"] {
         if (limit !== undefined) {
             request['Depth'] = limit;
         }
-        const response = await this.privateGetGetOrdersHistory(this.extend(request, params));
+        const response = await this.privateGetGetOrdersHistory(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -2073,7 +2089,7 @@ class ndax extends ndax$1["default"] {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        params = this.omit(params, ['accountId', 'AccountId']);
+        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2083,7 +2099,7 @@ class ndax extends ndax$1["default"] {
             'AccountId': accountId,
             'OrderId': parseInt(id),
         };
-        const response = await this.privateGetGetOrderStatus(this.extend(request, params));
+        const response = await this.privateGetGetOrderStatus(this.extend(request, paramsOmitted));
         //
         //     {
         //         "Side":"Sell",
@@ -2235,7 +2251,7 @@ class ndax extends ndax$1["default"] {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        params = this.omit(params, ['accountId', 'AccountId']);
+        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         const currency = this.currency(code);
         const request = {
             'omsId': omsId,
@@ -2243,7 +2259,7 @@ class ndax extends ndax$1["default"] {
             'ProductId': currency['id'],
             'GenerateNewKey': false,
         };
-        const response = await this.privateGetGetDepositInfo(this.extend(request, params));
+        const response = await this.privateGetGetDepositInfo(this.extend(request, paramsOmitted));
         //
         //     {
         //         "result":true,
@@ -2282,7 +2298,7 @@ class ndax extends ndax$1["default"] {
         const tag = this.safeString(parts, 1);
         let code = undefined;
         if (currency !== undefined) {
-            code = currency['code'];
+            code = this.safeString(currency, 'code');
         }
         this.checkAddress(address);
         return {
@@ -2326,7 +2342,7 @@ class ndax extends ndax$1["default"] {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        params = this.omit(params, ['accountId', 'AccountId']);
+        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2335,7 +2351,7 @@ class ndax extends ndax$1["default"] {
             'omsId': omsId,
             'AccountId': accountId,
         };
-        const response = await this.privateGetGetDeposits(this.extend(request, params));
+        const response = await this.privateGetGetDeposits(this.extend(request, paramsOmitted));
         //
         //    "[
         //        {
@@ -2388,7 +2404,7 @@ class ndax extends ndax$1["default"] {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        params = this.omit(params, ['accountId', 'AccountId']);
+        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2397,7 +2413,7 @@ class ndax extends ndax$1["default"] {
             'omsId': omsId,
             'AccountId': accountId,
         };
-        const response = await this.privateGetGetWithdraws(this.extend(request, params));
+        const response = await this.privateGetGetWithdraws(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -2469,7 +2485,7 @@ class ndax extends ndax$1["default"] {
                 'Confirmed2Fa': 'pending', // user has confirmed withdraw via 2-factor authentication.
             },
         };
-        const statuses = (type === undefined) ? {} : this.safeValue(statusesByType, type, {});
+        const statuses = (type === undefined) ? {} : this.safeDict(statusesByType, type, {});
         if (status === undefined) {
             return undefined;
         }
@@ -2586,7 +2602,7 @@ class ndax extends ndax$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         // this method required login, password and twofa key
         const sessionToken = this.safeString(this.options, 'sessionToken');
         if (sessionToken === undefined) {
@@ -2602,8 +2618,8 @@ class ndax extends ndax$1["default"] {
         }
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
-        const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        params = this.omit(params, ['accountId', 'AccountId']);
+        const accountId = this.safeInteger2(paramsWithdrawTag, 'accountId', 'AccountId', defaultAccountId);
+        const paramsOmitted = this.omit(paramsWithdrawTag, ['accountId', 'AccountId']);
         const currency = this.currency(code);
         const withdrawTemplateTypesRequest = {
             'omsId': omsId,
@@ -2623,8 +2639,8 @@ class ndax extends ndax$1["default"] {
         //         ]
         //     }
         //
-        const templateTypes = this.safeValue(withdrawTemplateTypesResponse, 'TemplateTypes', []);
-        const firstTemplateType = this.safeValue(templateTypes, 0);
+        const templateTypes = this.safeList(withdrawTemplateTypesResponse, 'TemplateTypes', []);
+        const firstTemplateType = this.safeDict(templateTypes, 0);
         if (firstTemplateType === undefined) {
             throw new errors.ExchangeError(this.id + ' withdraw() could not find a withdraw template type for ' + currency['code']);
         }
@@ -2651,9 +2667,9 @@ class ndax extends ndax$1["default"] {
         }
         const withdrawTemplate = JSON.parse(template);
         withdrawTemplate['ExternalAddress'] = address;
-        if (tag !== undefined) {
+        if (tagWithdrawTag !== undefined) {
             if ('Memo' in withdrawTemplate) {
-                withdrawTemplate['Memo'] = tag;
+                withdrawTemplate['Memo'] = tagWithdrawTag;
             }
         }
         const withdrawPayload = {
@@ -2668,20 +2684,26 @@ class ndax extends ndax$1["default"] {
             'TFaCode': totp.totp(this.twofa),
             'Payload': this.json(withdrawPayload),
         };
-        const response = await this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, params));
+        const response = await this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, paramsOmitted));
         return this.parseTransaction(response, currency);
     }
     nonce() {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.implodeParams(path, params);
+        let bodySigned = undefined;
+        let headersSigned = undefined;
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.implodeParams(path, params);
         let query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
             if (path === 'Authenticate') {
                 const auth = this.login + ':' + this.password;
                 const auth64 = this.stringToBase64(auth);
-                headers = {
+                headersSigned = {
                     'Authorization': 'Basic ' + auth64,
                     // 'Content-Type': 'application/json',
                 };
@@ -2689,14 +2711,14 @@ class ndax extends ndax$1["default"] {
             else if (path === 'Authenticate2FA') {
                 const pending2faToken = this.safeString(this.options, 'pending2faToken');
                 if (pending2faToken !== undefined) {
-                    headers = {
+                    headersSigned = {
                         'Pending2FaToken': pending2faToken,
                         // 'Content-Type': 'application/json',
                     };
                     query = this.omit(query, 'pending2faToken');
                 }
             }
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -2707,7 +2729,7 @@ class ndax extends ndax$1["default"] {
                 const nonce = this.nonce().toString();
                 const auth = nonce + this.uid + this.apiKey;
                 const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
-                headers = {
+                headersSigned = {
                     'Nonce': nonce,
                     'APIKey': this.apiKey,
                     'Signature': signature,
@@ -2715,21 +2737,23 @@ class ndax extends ndax$1["default"] {
                 };
             }
             else {
-                headers = {
+                headersSigned = {
                     'APToken': sessionToken,
                 };
             }
             if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-                body = this.json(query);
+                headersSigned['Content-Type'] = 'application/json';
+                bodySigned = this.json(query);
             }
             else {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
+        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (code === 404) {

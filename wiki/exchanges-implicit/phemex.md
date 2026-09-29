@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official phemex API documentation:** [phemex-docs.github.io](https://phemex-docs.github.io/#overview)
 
-> 115 implicit endpoints across 4 access groups.
+> 126 implicit endpoints across 4 access groups.
 
 ## public
 
@@ -100,6 +100,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | --- | --- | --- | --- |
 | `v2GetPublicProducts` | GET | `public/products` | 5 |
 | `v2GetPublicProductsPlus` | GET | `public/products-plus` | 5 |
+| `v2GetPublicIndexSources` | GET | `public/index-sources` | 5 |
 | `v2GetMdV2Orderbook` | GET | `md/v2/orderbook` | 5 |
 | `v2GetMdV2Trade` | GET | `md/v2/trade` | 5 |
 | `v2GetMdV2Ticker24hr` | GET | `md/v2/ticker/24hr` | 5 |
@@ -165,6 +166,14 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetAssetsSpotsSubAccountsTransfer` | GET | `assets/spots/sub-accounts/transfer` | 5 |
 | `privateGetAssetsFuturesSubAccountsTransfer` | GET | `assets/futures/sub-accounts/transfer` | 5 |
 | `privateGetAssetsQuote` | GET | `assets/quote` | 5 |
+| `privateGetPhemexLbPublicApiTraderPerformanceInfo` | GET | `phemex-lb/public/api/trader/performance-info` | 5 |
+| `privateGetUtaApiRiskRiskMode` | GET | `uta-api/risk/risk-mode` | 5 |
+| `privateGetUtaApiRiskRiskUnits` | GET | `uta-api/risk/risk-units` | 5 |
+| `privateGetUtaBizAssets` | GET | `uta-biz/assets` | 5 |
+| `privateGetUtaFundsContractBorrow` | GET | `uta-funds/contract/borrow` | 5 |
+| `privateGetUtaFundsContractPayback` | GET | `uta-funds/contract/payback` | 5 |
+| `privateGetUtaFundsContractBorrowInterests` | GET | `uta-funds/contract/borrow/interests` | 5 |
+| `privateGetUtaExchangerAssetsConvert` | GET | `uta-exchanger/assets/convert` | 5 |
 | `privatePostSpotOrders` | POST | `spot/orders` | 1 |
 | `privatePostOrders` | POST | `orders` | 1 |
 | `privatePostGOrders` | POST | `g-orders` | 1 |
@@ -182,6 +191,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostAssetsConvert` | POST | `assets/convert` | 5 |
 | `privatePostPhemexWithdrawWalletsApiCreateWithdraw` | POST | `phemex-withdraw/wallets/api/createWithdraw` | 5 |
 | `privatePostPhemexWithdrawWalletsApiCancelWithdraw` | POST | `phemex-withdraw/wallets/api/cancelWithdraw` | 5 |
+| `privatePostUtaAccountSwitchMode` | POST | `uta-account/switch-mode` | 5 |
+| `privatePostUtaFundsContractPayback` | POST | `uta-funds/contract/payback` | 5 |
 | `privatePutSpotOrdersCreate` | PUT | `spot/orders/create` | 1 |
 | `privatePutSpotOrders` | PUT | `spot/orders` | 1 |
 | `privatePutOrdersReplace` | PUT | `orders/replace` | 1 |

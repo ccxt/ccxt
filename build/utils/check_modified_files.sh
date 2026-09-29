@@ -1,13 +1,92 @@
 #!/bin/bash
 
 diff=$(git diff --name-only HEAD^1 HEAD)
+# deleted files must stay visible to the critical check below (removing a base file is critical),
+# but must NOT feed the scoped exchange collection: a delisted exchange's deleted ts/src/<id>.ts
+# and ts/src/pro/<id>.ts (and its deleted statics) would otherwise schedule scoped transpile and
+# live tests for sources that no longer exist -- build dies with ENOENT ts/src/<id>.ts and the
+# live lanes fail instantly against the ghost exchange, see https://github.com/ccxt/ccxt/pull/29796
+diff_existing=$(git diff --diff-filter=d --name-only HEAD^1 HEAD)
 diff=$(echo "$diff" | sed -e "s/^build\.sh//")
 diff=$(echo "$diff" | sed -e "s/^skip\-tests\.json//")
 diff=$(echo "$diff" | sed -e "s/^run\-tests\-simul\.sh//")
 diff=$(echo "$diff" | sed -e "s/^\w+.yml//") # tmp remove actions files
+# order-router/ is a standalone service with its own package.json, lockfile, tsconfig and
+# workflow, depending on the PUBLISHED ccxt package rather than the workspace. Its paths are
+# stripped before the critical check because the shared arm is an unanchored "test", which
+# matches order-router/src/api/server.test.ts and scheduled a full six-language transpile and
+# live-test matrix for one service unit test. The language workflows also paths-ignore the
+# directory; this covers the mixed commit those filters deliberately do not skip.
+diff=$(echo "$diff" | sed -e "s|^order-router/.*||")
 diff_without_statics=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//")
 
-critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|composer\.json|ccxt\.ts|__init__.py|test' # add \/test| # remove package json temporatily todo revert this!!
+# ts/ccxt.ts sits in the critical set because structural changes to the entry file affect every
+# runtime. But when a PR integrates a new exchange for the first time, ts/ccxt.ts changes in
+# exactly one way: it gains the two integration lines for the newcomer — an import and a map
+# entry. An integration-only diff cannot affect any already-integrated exchange (the build job
+# compiles the file regardless), yet the ccxt.ts critical arm was forcing a FULL live-test run
+# over all ~111 exchanges for every first-time integration. An integration-only content diff is
+# therefore stripped from the critical check so live tests stay scoped to the exchange(s)
+# actually touched; any other changed line in ccxt.ts keeps the file critical and the full run
+# intact.
+if echo "$diff" | grep -qx 'ts/ccxt.ts'; then
+    ccxt_ts_content_diff=$(git diff -U0 HEAD^1 HEAD -- ts/ccxt.ts | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)')
+    # a complete wire-up touches up to four line shapes per exchange id:
+    #   import <id> from './src/<id>.js'           (rest import)
+    #   import <id>Pro from './src/pro/<id>.js'    (pro import)
+    #   '<id>': <id>,  /  '<id>': <id>Pro,         (rest / pro map entries)
+    #   <id>,                                      (bare export-list line)
+    # the bare export-list shape is shared with structural exports (version, errors, functions, ...),
+    # so a bare line only counts as integration glue when its identifier is wired by an import or
+    # map line WITHIN THE SAME DIFF — a lone export-list change stays critical (fail-closed)
+    integration_import="^[+-]import ([A-Za-z0-9_]+) from +'\./src/[A-Za-z0-9_]+\.js'\$"
+    integration_pro_import="^[+-]import ([A-Za-z0-9_]+)Pro from +'\./src/pro/[A-Za-z0-9_]+\.js'\$"
+    integration_map="^[+-][[:space:]]+'([A-Za-z0-9_-]+)':[[:space:]]+[A-Za-z0-9_]+,\$"
+    integration_export="^[+-][[:space:]]+([A-Za-z0-9_]+),\$"
+    if [[ -n "$ccxt_ts_content_diff" ]]; then
+        # the gate set is harvested from IMPORT lines only: map entries and export-list lines both
+        # count solely for ids that gain or lose an import in the same diff. Gating maps on the
+        # map lines themselves would let a map-only rewire of an EXISTING exchange (e.g. flipping
+        # 'binance': ... with no import change) sail through as integration-only — and a blanket
+        # "at least one import anywhere" gate would let such a rewire smuggle in alongside an
+        # unrelated genuine integration, so the check is per-id
+        import_ids=" $(echo "$ccxt_ts_content_diff" | sed -nE "s/^[+-]import ([A-Za-z0-9_]+)Pro from +'\.\/src\/pro\/[A-Za-z0-9_]+\.js'\$/\1/p; s/^[+-]import ([A-Za-z0-9_]+) from +'\.\/src\/[A-Za-z0-9_]+\.js'\$/\1/p" | sort -u | tr '\n' ' ') "
+        integration_only="true"
+        while IFS= read -r line; do
+            if [[ "$line" =~ $integration_pro_import || "$line" =~ $integration_import ]]; then
+                continue
+            elif [[ "$line" =~ $integration_map ]]; then
+                map_id="${BASH_REMATCH[1]}"
+                if [[ "$import_ids" != *" ${map_id} "* ]]; then
+                    integration_only="false"
+                    break
+                fi
+            elif [[ "$line" =~ $integration_export ]]; then
+                bare_id="${BASH_REMATCH[1]}"
+                if [[ "$import_ids" != *" ${bare_id} "* ]]; then
+                    integration_only="false"
+                    break
+                fi
+            else
+                integration_only="false"
+                break
+            fi
+        done <<< "$ccxt_ts_content_diff"
+        if [[ "$integration_only" == "true" ]]; then
+            diff_without_statics=$(echo "$diff_without_statics" | sed -e "s/^ts\/ccxt\.ts$//")
+        fi
+    fi
+fi
+
+# critical_pattern assembled one language per line, joined below
+critical_php='Client(Trait)?\.php|Exchange\.php|composer\.json'
+critical_python='__init__.py'
+critical_go='go\/v4\/exchange_' # hand-written go base files, see https://github.com/ccxt/ccxt/pull/29740
+critical_cs_java_ws='ccxt\/ws\/' # covers hand-written cs/ccxt/ws/ and java .../io/github/ccxt/ws/ base files, see https://github.com/ccxt/ccxt/pull/29747
+critical_java='io\/github\/ccxt\/(BaseExchange|Client|Exchange|Helpers|IOrderBookSide|PredictionExchange|Throttler)\.java|io\/github\/ccxt\/types\/|build\.gradle' # file list because a blanket io/github/ccxt/*.java would fire on auto-bumped Version.java (build/vss.js) and generated MetaData.java (build/export-exchanges.ts); types/ is listed because java base types escape the \/base and go\/v4\/exchange_ arms their cs/go siblings match; build\.gradle (also matches .gradle.kts) because ^build is anchored and the gradle wiring otherwise escapes
+critical_shared='\/base|^build|static_dependencies|^run-tests|ccxt\.ts|test' # add \/test| # remove package json temporarily todo revert this!!
+critical_order_router='[Oo]rder[_]?[Rr]outer' # OrderRouter is hand-written five times over and its only defence against the five drifting apart is the offline suite the base-test steps run. The ts/python/cs copies live under \/base and the go one under go\/v4\/exchange_, but php\/OrderRouter.php matches no other arm — without this a PHP-only divergence would ship with the suite that catches it never having run
+critical_pattern="$critical_php|$critical_python|$critical_go|$critical_cs_java_ws|$critical_java|$critical_shared|$critical_order_router"
 # critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
 
 COMMIT_MESSAGE=$(git log -1 --pretty=%B)
@@ -36,11 +115,11 @@ fi
 # echo "$diff_without_statics"
 
 if [ "$IMPORTANT_MODIFIED" == "true" ]; then
-  echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"prediction_modified\": \"$PREDICTION_MODIFIED\", \"rest_exchanges\": [], \"ws_exchanges\": []}"
+  echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"prediction_modified\": \"$PREDICTION_MODIFIED\", \"rest_exchanges\": [], \"ws_exchanges\": [], \"prediction_exchanges\": []}"
   exit
 fi
 
-readarray -t y <<<"$diff"
+readarray -t y <<<"$diff_existing"
 rest_pattern='ts\/src\/([A-Za-z0-9_-]+).ts' # \w not working for some reason
 ws_pattern='ts\/src\/pro\/([A-Za-z0-9_-]+)\.ts'
 # prediction-market exchanges live under ts/src/prediction/ (rest) and ts/src/pro/prediction/
@@ -52,6 +131,7 @@ pattern_static_response='ts\/src\/test\/static\/response\/([A-Za-z0-9_-]+)\.json
 
 REST_EXCHANGES=()
 WS_EXCHANGES=()
+PREDICTION_EXCHANGES=()
 
 
 # for file in "${y[@]}"; do
@@ -76,10 +156,16 @@ for file in "${y[@]}"; do
     if [[ ! " ${WS_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
       WS_EXCHANGES+=("$modified_exchange")
     fi
+    if [[ ! " ${PREDICTION_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
+      PREDICTION_EXCHANGES+=("$modified_exchange")
+    fi
   elif [[ "$file" =~ $prediction_pattern ]]; then
     modified_exchange="${BASH_REMATCH[1]}"
     if [[ ! " ${REST_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
       REST_EXCHANGES+=("$modified_exchange")
+    fi
+    if [[ ! " ${PREDICTION_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
+      PREDICTION_EXCHANGES+=("$modified_exchange")
     fi
   elif [[ "$file" =~ $rest_pattern ]]; then
     modified_exchange="${BASH_REMATCH[1]}"
@@ -125,4 +211,10 @@ else
   ws_exchanges_json=$(printf '%s\n' "${WS_EXCHANGES[@]}" | jq -R . | jq -s .)
 fi
 
-echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"prediction_modified\": \"$PREDICTION_MODIFIED\", \"rest_exchanges\": $rest_exchanges_json, \"ws_exchanges\": $ws_exchanges_json}"
+if [ ${#PREDICTION_EXCHANGES[@]} -eq 0 ]; then
+  prediction_exchanges_json="[]"
+else
+  prediction_exchanges_json=$(printf '%s\n' "${PREDICTION_EXCHANGES[@]}" | jq -R . | jq -s .)
+fi
+
+echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"prediction_modified\": \"$PREDICTION_MODIFIED\", \"rest_exchanges\": $rest_exchanges_json, \"ws_exchanges\": $ws_exchanges_json, \"prediction_exchanges\": $prediction_exchanges_json}"

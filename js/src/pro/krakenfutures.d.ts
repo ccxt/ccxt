@@ -10,7 +10,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge
      * @returns {object} response from exchange
      */
-    authenticate(params?: {}): Promise<any>;
+    authenticate(params?: Dict): Promise<any>;
     /**
      * @method
      * @name krakenfutures#watchOrderBookForSymbols
@@ -21,7 +21,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @ignore
      * @method
@@ -31,7 +31,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the krakenfutures api
      * @returns {object} data from the websocket stream
      */
-    subscribePublic(name: string, symbols: string[], params?: {}): Promise<any>;
+    subscribePublic(name: string, symbols: string[], params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -41,7 +41,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the krakenfutures api
      * @returns {object} data from the websocket stream
      */
-    subscribePrivate(name: string, messageHash: string, params?: {}): Promise<any>;
+    subscribePrivate(name: string, messageHash: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name krakenfutures#watchTicker
@@ -51,7 +51,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name krakenfutures#watchTickers
@@ -61,7 +61,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name krakenfutures#watchBidsAsks
@@ -71,7 +71,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name krakenfutures#watchTrades
@@ -83,7 +83,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name krakenfutures#watchTradesForSymbols
@@ -95,7 +95,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: Str[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name krakenfutures#watchOrderBook
@@ -106,7 +106,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name krakenfutures#watchPositions
@@ -118,9 +118,9 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    handlePositions(client: any, message: any): void;
-    parseWsPosition(position: any, market?: Market): Position;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
+    handlePositions(client: Client, message: Dict): void;
+    parseWsPosition(position: Dict, market?: Market): Position;
     /**
      * @method
      * @name krakenfutures#watchOrders
@@ -131,9 +131,10 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {int} [since] not used by krakenfutures watchOrders
      * @param {int} [limit] not used by krakenfutures watchOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.verbose] whether to subscribe to the open_orders_verbose feed
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name krakenfutures#watchMyTrades
@@ -145,7 +146,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name krakenfutures#watchBalance
@@ -155,25 +156,25 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {string} [params.account] can be either 'futures' or 'flex_futures'
      * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    handleTrade(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: Market): Trade;
+    watchBalance(params?: Dict): Promise<Balances>;
+    handleTrade(client: Client, message: Dict): void;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
     parseWsOrderTrade(trade: Dict, market?: Market): Trade;
-    handleOrder(client: Client, message: any): any;
-    handleOrderSnapshot(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: Market): Order;
-    handleTicker(client: Client, message: any): void;
-    handleBidAsk(client: Client, message: any): void;
+    handleOrder(client: Client, message: Dict): Dict;
+    handleOrderSnapshot(client: Client, message: Dict): void;
+    parseWsOrder(order: Dict, market?: Market): Order;
+    handleTicker(client: Client, message: Dict): void;
+    handleBidAsk(client: Client, message: Dict): void;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
-    handleOrderBookSnapshot(client: Client, message: any): void;
-    handleOrderBook(client: Client, message: any): void;
-    handleBalance(client: Client, message: any): void;
-    handleMyTrades(client: Client, message: any): void;
-    parseWsMyTrade(trade: any, market?: Market): Trade;
-    watchMultiHelper(unifiedName: string, channelName: string, symbols?: any, subscriptionArgs?: any, params?: {}): Promise<any>;
+    handleOrderBookSnapshot(client: Client, message: Dict): void;
+    handleOrderBook(client: Client, message: Dict): void;
+    handleBalance(client: Client, message: Dict): void;
+    handleMyTrades(client: Client, message: Dict): void;
+    parseWsMyTrade(trade: Dict, market?: Market): Trade;
+    watchMultiHelper(unifiedName: string, channelName: string, symbols?: any, subscriptionArgs?: any, params?: Dict): Promise<any>;
     subscriptionExistsForHash(url: string, hash: string): boolean;
     getMessageHash(unifiedElementName: string, subChannelName?: Str, symbol?: Str): string;
-    handleErrorMessage(client: Client, message: any): Bool;
-    handleMessage(client: any, message: any): void;
-    handleAuthenticate(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleMessage(client: Client, message: Dict): void;
+    handleAuthenticate(client: Client, message: Dict): Dict;
 }

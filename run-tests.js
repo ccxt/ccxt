@@ -31,11 +31,13 @@ const langKeys = {
     '--php-async': false,    // run php async tests only,
     '--go': false,      // run GO tests only
     '--java': false,    // run Java tests only
+    '--rust': false,
 }
 
 const debugKeys = {
     '--warnings': false,
     '--info': false,
+    '--show-timer': false,
 }
 
 const exchangeSpecificFlags = {
@@ -43,8 +45,10 @@ const exchangeSpecificFlags = {
     '--sandbox': false,
     '--useProxy': false,
     '--verbose': false,
+    '--debug': false,
     '--private': false,
     '--privateOnly': false,
+    '--loadKeys': false,
     '--request': false,
     '--response': false,
     // force the prediction-markets namespace for ids present in both ccxt and ccxt.prediction
@@ -79,14 +83,25 @@ if (maxConcurrency === undefined) {
     const lightLangKeys = [ '--js', '--ts', '--python', '--python-async', '--php', '--php-async' ]
     const selectedLangs = Object.keys (langKeys).filter (key => langKeys[key])
     const onlyLightLangs = (selectedLangs.length > 0) && selectedLangs.every (key => lightLangKeys.includes (key))
-    maxConcurrency = langKeys['--java'] ? 3 : (onlyLightLangs ? 20 : 5)
+    // Live tests are network-bound: the processes sit in epoll/futex waiting on exchange
+    // endpoints, so concurrency is limited by memory, not CPU. A rust tests.bin holds
+    // ~100-270 MB, so 20 is affordable and keeps the lane from serialising on latency.
+    const onlyRust = (selectedLangs.length === 1) && langKeys['--rust']
+    maxConcurrency = langKeys['--java'] ? 3 : ((onlyLightLangs || onlyRust) ? 20 : 5)
 }
 
 const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 
 const timeoutSeconds = wsFlag ? (langKeys['--java'] ? 180 : 120) : 250;
 
-
+const SHOW_TIMER = debugKeys['--show-timer'];
+if (SHOW_TIMER) {
+    const secondsElapsedFrom = (startTime) => Math.floor((Date.now() - startTime) / 1000);
+    const startTime = Date.now ();
+    setInterval (() => {
+        log.bright.yellow(`\t\t\t\t\t\t\t[RUNTESTS ELAPSED ${wsFlag}: ${secondsElapsedFrom(startTime)} s]`);
+    }, 20 * 1000); // every X seconds
+}
 //  --------------------------------------------------------------------------- //
 
 const exchangeOptions = []
@@ -139,7 +154,10 @@ const unfinishedMethods = (output) => {
     }
     bump (/\[INFO\] TESTING(?!\s+(?:DONE|FAILED)\b)\s+(\S+)\s+([A-Za-z]\w*)/g, 1)
     bump (/\[INFO\] TESTING (?:DONE|FAILED)\s+(\S+)\s+([A-Za-z]\w*)/g, -1)
-    return Object.keys (counts).filter (key => counts[key] > 0)
+    // a key containing '{' is a session-header artifact, never a real
+    // exchange.method pair — the java header used to leak through as
+    // ".java{symbol=null,.method", see the dump join fix in BaseTest.java
+    return Object.keys (counts).filter (key => counts[key] > 0 && !key.includes ('{'))
 }
 
 //  --------------------------------------------------------------------------- //
@@ -191,14 +209,25 @@ const exec = (bin, ...args) => {
             // check output for pattern like `[TEST_WARNING] whatever`
             if (output.length) {
                 const warningRegex = /\[TEST_WARNING\].+$(?!\n)*/gmi
-                let matchWarnings; 
-                while (matchWarnings = warningRegex.exec (stderr)) {
-                    warnings.push (matchWarnings[0])
+                let matchWarnings;
+                // scan output, not stderr: output accumulates both streams, so warnings
+                // printed to stdout by the language harnesses are collected too, and the
+                // exact-duplicate guard collapses lines printed to both streams at once,
+                // see https://github.com/ccxt/ccxt/pull/29731
+                while (matchWarnings = warningRegex.exec (output)) {
+                    if (!warnings.includes (matchWarnings[0])) {
+                        warnings.push (matchWarnings[0])
+                    }
                 }
             }
             // check stderr
             if (stderr.length > 0) {
-                warnings.push (stderr)
+                // push only the stderr residue that the warning regex did not already
+                // extract, otherwise every [TEST_WARNING] line displays twice
+                const residue = stderr.split ('\n').filter (line => line.length && !line.match (/\[TEST_WARNING\]/i)).join ('\n')
+                if (residue.length) {
+                    warnings.push (residue)
+                }
             }
 
             return {
@@ -214,7 +243,10 @@ const exec = (bin, ...args) => {
         const psSpawn = ps.spawn (bin, args)
 
         psSpawn.stdout.on ('data', data => { output += data.toString () })
-        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString ().trim (); })
+        // do not trim per chunk, trimming eats the newline at every pipe chunk boundary
+        // and glues consecutive warning lines together in the WS WARN block, see
+        // https://github.com/ccxt/ccxt/pull/29726
+        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); })
 
         psSpawn.on ('exit', code => {
             const result = generateResultFromOutput (output, stderr, code)
@@ -245,11 +277,9 @@ const exec = (bin, ...args) => {
             // real [TEST_FAILURE] from before the hang.
             const hung = unfinishedMethods (ansi.strip (output));
             const hungMessage = hung.length ? ' (methods that never finished: ' + hung.join (', ') + ')' : '';
-            // the [TEST_WARNING] tag goes into `output` only: generateResultFromOutput
-            // both regex-matches the tag in stderr AND pushes the whole stderr, so
-            // tagging the stderr copy too would print the message twice in the summary
+            // the tagged line goes into output where generateResultFromOutput collects
+            // it, no untagged stderr smuggle needed anymore, see the collector comment
             output += '\n[TEST_WARNING] RUNTEST_TIMED_OUT' + hungMessage;
-            stderr += '\nRUNTEST_TIMED_OUT' + hungMessage;
             const result = generateResultFromOutput (output, stderr, 0);
             return result;
         }
@@ -351,6 +381,12 @@ const testExchange = async (exchange) => {
     if (debugKeys['--info']) {
         args.push ('--info')
     }
+    // CI can pass a prebuilt tests binary (see go-app.yml) so live tests don't pay the
+    // full single-package recompile of go/v4 that `go run` triggers on a fresh runner
+    const goExec = process.env.GO_TESTS_BINARY ? [ process.env.GO_TESTS_BINARY ] : [ 'go', 'run', '-C', 'go', './tests/main.go' ];
+    // same for rust (see rust.yml): `cargo run` re-checks freshness and rebuilds the whole
+    // workspace on a fresh runner, which the build job has already paid for
+    const rustExec = process.env.RUST_TESTS_BINARY ? [ process.env.RUST_TESTS_BINARY ] : [ 'cargo', 'run', '--quiet', '--manifest-path', 'rust/tests/Cargo.toml', '--bin', 'ti-rust', '--' ];
     let allTests = [
         { key: '--js',           language: 'JavaScript',   exec: ['node',      'js/src/test/tests.init.js',                     ...args] },
         { key: '--python-async', language: 'Python Async', exec: ['python3',   'python/ccxt/test/tests_init.py',          ...args] },
@@ -359,8 +395,9 @@ const testExchange = async (exchange) => {
         { key: '--ts',           language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/tests.init.ts',      ...args] },
         { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/tests_init.py',  '--sync',  ...args] },
         { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/tests_init.php', '--', '--sync',  ...args] },
-        { key: '--go',           language: 'GO',           exec: [ 'go', 'run', '-C', 'go', './tests/main.go',          ...args] },
+        { key: '--go',           language: 'GO',           exec: [ ...goExec,          ...args] },
         { key: '--java',         language: 'Java',         exec: [ './java/gradlew', '-p', 'java', 'tests:run', getJavaArgs(args)] },
+        { key: '--rust',         language: 'Rust',         exec: [ ...rustExec,        ...args] },
     ];
 
     // select tests based on cli arguments
@@ -389,12 +426,15 @@ const testExchange = async (exchange) => {
     const hasWarnings    = completeTests.find (test => test.warnings.length);
     const warnings       = completeTests.reduce (
         (total, { warnings }) => {
-            return warnings.length ? total.concat(['\n\n']).concat (warnings) : []
+            // no spacer elements, they render as blank-line walls; and never
+            // reset the accumulator, a warning-free language must not discard
+            // the warnings collected from the languages before it
+            return warnings.length ? total.concat (warnings) : total
         }, []
     );
     const infos          = completeTests.reduce (
         (total, { infos }) => {
-            return infos.length ? total.concat(['\n\n']).concat (infos) : []
+            return infos.length ? total.concat (infos) : total
         }, []
     );
 
@@ -403,13 +443,19 @@ const testExchange = async (exchange) => {
     if (failed) {
         logMessage = 'FAIL'.red;
     } else if (hasWarnings) {
-        logMessage = ('WARN: ' + (warnings.length ? warnings.join (' ') : '')).yellow;
+        logMessage = 'WARN:'.yellow;
     } else {
         logMessage = 'OK'.green;
     }
 
     numExchangesTested++;
     log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, logMessage)
+    // print warnings through a separate indented call instead of riding the
+    // progress-line argument, whose column alignment padded every line ~30
+    // columns right, same mechanism the explain path uses
+    if (!failed && hasWarnings && warnings.length) {
+        log.indent (1) (warnings.join ('\n').yellow)
+    }
 
     // independenly of the success result, show infos
     // ( these infos will be shown as soon as each exchange test is finished, and will not wait 100% of all tests to be finished )

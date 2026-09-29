@@ -15,10 +15,9 @@ except ImportError:
         return json.dumps(message, separators=(',', ':'))
 
 from asyncio import sleep, ensure_future, wait_for, TimeoutError, BaseEventLoop, Future as asyncioFuture
-from .functions import milliseconds, iso8601, deep_extend, is_json_encoded_object
-from ccxt import NetworkError, RequestTimeout
+from ccxt import Exchange, NetworkError, RequestTimeout
 from ccxt.async_support.base.ws.future import Future
-from ccxt.async_support.base.ws.functions import gunzip, inflate
+from ccxt.async_support.base.ws.functions import gunzip, inflate, is_json_encoded_object
 from typing import Dict
 
 from aiohttp import WSMsgType
@@ -74,7 +73,7 @@ class Client(object):
         settings.update(config)
         for key in settings:
             if hasattr(self, key) and isinstance(getattr(self, key), dict):
-                setattr(self, key, deep_extend(getattr(self, key), settings[key]))
+                setattr(self, key, Exchange.deep_extend(getattr(self, key), settings[key]))
             else:
                 setattr(self, key, settings[key])
         # connection-related Future
@@ -83,6 +82,23 @@ class Client(object):
         else:
             self.options = config
         self.connected = Future()
+        # a rejected connection future may end up with no awaiter, e.g. on
+        # already-subscribed watch paths or abandoned dials, retrieving the
+        # exception in a done callback keeps asyncio from dumping
+        # "Future exception was never retrieved" walls at gc
+
+        def _consume_connected_exception(fut):
+            if not fut.cancelled():
+                fut.exception()
+        self.connected.add_done_callback(_consume_connected_exception)
+        # Retry-After from the last failed handshake response, seconds,
+        # consumed by the exchange-level dial backoff
+        self.last_retry_after = None
+        # set by open() when a handshake fails, consumed by the exchange
+        # error callback so that only genuine dial failures grow the dial
+        # backoff, mid-session errors and the ws warn noise floor must not
+        self.dial_failed = False
+        self.last_message_at = None
 
     def future(self, message_hash):
         if message_hash not in self.futures or self.futures[message_hash].cancelled():
@@ -93,15 +109,14 @@ class Client(object):
             del self.rejections[message_hash]
         return future
 
-    def reusable_future(self, message_hash):
-        return self.future(message_hash)  # only used in go
-
     def reusableFuture(self, message_hash):
-        return self.future(message_hash)  # only used in go
+        # camelCase on purpose: the transpiler emits `client.reusableFuture(...)`
+        # verbatim into python/ccxt/pro/*.py, so this is the only reachable spelling
+        return self.future(message_hash)
 
     def resolve(self, result, message_hash):
         if self.verbose and message_hash is None:
-            self.log(iso8601(milliseconds()), 'resolve received None messageHash')
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'resolve received None messageHash')
         if message_hash in self.futures:
             future = self.futures[message_hash]
             future.resolve(result)
@@ -122,9 +137,54 @@ class Client(object):
                 self.reject(result, message_hash)
         return result
 
+    def reset(self, error):
+        # mirrors the js/php/c#/go clients: stop the keepalive timer and
+        # reject every pending future, so exchange-level teardown paths
+        # (e.g. an unrecoverable orderbook desync) behave the same in every
+        # language - transpiled code calls client.reset(error)
+        #
+        # cancelling the keepalive here is deliberate parity with
+        # ts/src/base/ws/Client.ts reset() (clearPingInterval) and
+        # php/pro/Client.php reset() (clear_ping_interval), NOT a copy of
+        # aiohttp_close(): unlike that one, reset() runs on a socket that stays
+        # open and nothing restarts the looper - it is only ever assigned in
+        # open(). Callers that reset without reconnecting therefore lose the
+        # pong-miss watchdog for the rest of the connection's life (e.g.
+        # python/ccxt/pro/cryptocom.py pong()). That is how every other port
+        # behaves, so the behaviour is kept; the dead pipe is still caught by
+        # the receive loop / server close, just not by the keepalive timer.
+        if self.ping_looper:
+            self.ping_looper.cancel()
+        # js rejects a promise with any value, python can only reject a Future
+        # with a BaseException. callers do pass raw wire payloads - binance
+        # resets with the 5xx error dict itself (ts/src/pro/binance.ts
+        # handleWsError -> python/ccxt/pro/binance.py:5175) - and
+        # Future.set_exception then raises TypeError('invalid exception object')
+        # out of the message handler, aborting the broadcast on the first
+        # pending future and leaving every watcher hanging: the exact failure
+        # mode reset() exists to prevent
+        if not isinstance(error, BaseException):
+            error = NetworkError(self.stringify_reset_payload(error))
+        self.reject(error)
+
+    @staticmethod
+    def stringify_reset_payload(payload):
+        # keep the wire payload readable in the rejection message, but never let
+        # the formatting itself raise - reset() is a teardown path, a throw here
+        # would strand every pending future
+        if isinstance(payload, (dict, list)):
+            try:
+                return Exchange.json(payload)
+            except Exception:
+                pass
+        try:
+            return str(payload)
+        except Exception:
+            return 'connection reset'
+
     def receive_loop(self):
         if self.verbose:
-            self.log(iso8601(milliseconds()), 'receive loop')
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'receive loop')
         if not self.closed():
             # let's drain the aiohttp buffer to avoid latency
             if self.buffer and len(self.buffer) > 1:
@@ -155,7 +215,7 @@ class Client(object):
                 else:
                     error = NetworkError(str(exception))
                     if self.verbose:
-                        self.log(iso8601(milliseconds()), 'receive_loop', 'Exception', error)
+                        self.log(Exchange.iso8601(Exchange.milliseconds()), 'receive_loop', 'Exception', error)
                     self.reject(error)
 
             task.add_done_callback(after_interrupt)
@@ -168,16 +228,16 @@ class Client(object):
         if backoff_delay:
             await sleep(backoff_delay)
         if self.verbose:
-            self.log(iso8601(milliseconds()), 'connecting to', self.url, 'with timeout', self.connectionTimeout, 'ms')
-        self.connectionStarted = milliseconds()
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'connecting to', self.url, 'with timeout', self.connectionTimeout, 'ms')
+        self.connectionStarted = Exchange.milliseconds()
         try:
             coroutine = self.create_connection(session)
             self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000))
             self.connecting = False
-            self.connectionEstablished = milliseconds()
+            self.connectionEstablished = Exchange.milliseconds()
             self.isConnected = True
             if self.verbose:
-                self.log(iso8601(milliseconds()), 'connected')
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'connected')
             self.connected.resolve(self.url)
             self.on_connected_callback(self)
             # run both loops forever
@@ -185,15 +245,25 @@ class Client(object):
             self.asyncio_loop.call_soon(self.receive_loop)
         except TimeoutError:
             # connection timeout
+            self.dial_failed = True
             error = RequestTimeout('Connection timeout')
             if self.verbose:
-                self.log(iso8601(milliseconds()), 'RequestTimeout', error)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'RequestTimeout', error)
             self.on_error(error)
         except Exception as e:
             # connection failed or rejected (ConnectionRefusedError, ClientConnectorError)
+            self.dial_failed = True
+            headers = getattr(e, 'headers', None)
+            if headers is not None:
+                retry_after = headers.get('Retry-After')
+                if retry_after is not None:
+                    try:
+                        self.last_retry_after = float(retry_after)
+                    except ValueError:
+                        pass
             error = NetworkError(e)
             if self.verbose:
-                self.log(iso8601(milliseconds()), 'NetworkError', error)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'NetworkError', error)
             self.on_error(error)
 
     @property
@@ -221,7 +291,7 @@ class Client(object):
 
     def on_error(self, error):
         if self.verbose:
-            self.log(iso8601(milliseconds()), 'on_error', error)
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'on_error', error)
         self.error = error
         self.reject(error)
         self.on_error_callback(self, error)
@@ -230,7 +300,7 @@ class Client(object):
 
     def on_close(self, code):
         if self.verbose:
-            self.log(iso8601(milliseconds()), 'on_close', code)
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'on_close', code)
         if not self.error:
             self.reject(NetworkError('Connection closed by remote server, closing code ' + str(code)))
         self.on_close_callback(self, code)
@@ -248,7 +318,7 @@ class Client(object):
     # helper method for binary and text messages
     def handle_text_or_binary_message(self, data):
         if self.verbose:
-            self.log(iso8601(milliseconds()), 'message', data)
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'message', data)
         if self.decompressBinary and isinstance(data, bytes):
             data = data.decode()
         # decoded = json.loads(data) if is_json_encoded_object(data) else data
@@ -260,7 +330,10 @@ class Client(object):
         self.on_message_callback(self, decode)
 
     def handle_message(self, message):
-        # self.log(iso8601(milliseconds()), message)
+        # self.log(Exchange.iso8601(Exchange.milliseconds()), message)
+        # timestamp of the last inbound frame, lets timeout forensics tell a
+        # dead pipe apart from frames arriving that never resolve a future
+        self.last_message_at = Exchange.milliseconds()
         if message.type == WSMsgType.TEXT:
             self.handle_text_or_binary_message(message.data)
         elif message.type == WSMsgType.BINARY:
@@ -276,20 +349,20 @@ class Client(object):
         # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
         elif message.type == WSMsgType.PING:
             if self.verbose:
-                self.log(iso8601(milliseconds()), 'ping', message)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'ping', message)
             ensure_future(self.connection.pong(message.data), loop=self.asyncio_loop)
         elif message.type == WSMsgType.PONG:
-            self.lastPong = milliseconds()
+            self.lastPong = Exchange.milliseconds()
             if self.verbose:
-                self.log(iso8601(milliseconds()), 'pong', message)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'pong', message)
             pass
         elif message.type == WSMsgType.CLOSE:
             if self.verbose:
-                self.log(iso8601(milliseconds()), 'close', self.closed(), message)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'close', self.closed(), message)
             self.on_close(message.data)
         elif message.type == WSMsgType.ERROR:
             if self.verbose:
-                self.log(iso8601(milliseconds()), 'error', message)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'error', message)
             error = NetworkError(str(message))
             self.on_error(error)
 
@@ -315,7 +388,7 @@ class Client(object):
 
     async def send(self, message):
         if self.verbose:
-            self.log(iso8601(milliseconds()), 'sending', message)
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'sending', message)
         send_msg = None
         if isinstance(message, str):
             send_msg = message
@@ -327,29 +400,32 @@ class Client(object):
 
     async def close(self, code=1000):
         if self.verbose:
-            self.log(iso8601(milliseconds()), 'closing', code)
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'closing', code)
         for future in self.futures.values():
             future.cancel()
         await self.aiohttp_close()
 
     async def aiohttp_close(self):
-        if not self.closed():
-            await self.connection.close()
-        # these will end automatically once self.closed() = True
-        # so we don't need to cancel them
+        # cancel the keepalive before closing the transport, matching the php
+        # client's teardown ordering, otherwise a ping tick during the close
+        # await writes into the closing transport and raises out of the ping
+        # task as unretrieved noise, see
+        # https://github.com/ccxt/ccxt/issues/22075
         if self.ping_looper:
             self.ping_looper.cancel()
+        if not self.closed():
+            await self.connection.close()
 
     async def ping_loop(self):
         if self.verbose:
-            self.log(iso8601(milliseconds()), 'ping loop')
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
         while self.keepAlive and not self.closed():
             # sleep BEFORE the first (and every) ping so the initial subscribe goes out first —
             # this matches the JS client (setInterval fires after one keepAlive, not immediately).
             # some servers (e.g. Polymarket) close the connection if a ping arrives before the
             # subscribe frame, which is why the first ping must not be sent on connect.
             await sleep(self.keepAlive / 1000)
-            now = milliseconds()
+            now = Exchange.milliseconds()
             self.lastPong = now if self.lastPong is None else self.lastPong
             if (self.lastPong + self.keepAlive * self.maxPingPongMisses) < now:
                 self.on_error(RequestTimeout('Connection to ' + self.url + ' timed out due to a ping-pong keepalive missing on time'))
@@ -364,4 +440,14 @@ class Client(object):
                     except Exception as e:
                         self.on_error(e)
                 else:
-                    await self.connection.ping()
+                    try:
+                        await self.connection.ping()
+                    except Exception as e:
+                        # the transport can enter closing between the loop
+                        # condition and the write, a server initiated close or
+                        # a network drop, which raised out of the ping task as
+                        # unretrieved noise, see
+                        # https://github.com/ccxt/ccxt/issues/22075
+                        if not self.closed():
+                            self.on_error(e)
+                        return

@@ -223,6 +223,27 @@ const mainSourceIgnores = [
     'ts/src/base/ws/**',
 ];
 
+// type-aware linting (required by rules like strict-boolean-expressions)
+const typedLanguageOptions = {
+    ...sharedLanguageOptions,
+    parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: import.meta.dirname,
+    },
+};
+
+const typedRules = {
+    '@typescript-eslint/strict-boolean-expressions': ['error', {
+        allowString: false,
+        allowNumber: false,
+        allowNullableObject: false,
+        allowNullableBoolean: false,
+        allowNullableString: false,
+        allowNullableNumber: false,
+        allowAny: false,
+    }],
+};
+
 export default [
     {
         ignores: [
@@ -246,6 +267,20 @@ export default [
         plugins: sharedPlugins,
         settings: sharedSettings,
         rules: mainRules,
+    },
+    {
+        // Hand-written utilities use native JS idioms, overloads and browser fallbacks.
+        // Keep the recommended correctness checks, without exchange style/typed rules.
+        files: ['ts/src/base/functions/**/*.ts'],
+        languageOptions: sharedLanguageOptions,
+        plugins: sharedPlugins,
+        rules: {
+            ...js.configs.recommended.rules,
+            'no-undef': 'off', // TypeScript checks names, including type-only references.
+            'no-redeclare': 'off', // TypeScript overload declarations are intentional.
+            'no-unused-vars': 'off', // Do not impose a new unused-argument policy here.
+            'no-empty': ['error', { 'allowEmptyCatch': true }],
+        },
     },
     {
         files: ['ts/src/test/**/*.ts'],
@@ -276,6 +311,14 @@ export default [
         plugins: sharedPlugins,
         settings: sharedSettings,
         rules: wsRules,
+    },
+    {
+        files: ['ts/src/**/*.ts'],
+        ignores: mainSourceIgnores,
+        languageOptions: typedLanguageOptions,
+        plugins: sharedPlugins,
+        settings: sharedSettings,
+        rules: typedRules,
     },
     {
         files: ['cli/ts/**/*.ts'],
@@ -322,6 +365,13 @@ export default [
                 { 'blankLine': 'always', 'prev': '*', 'next': 'export' },
                 { 'blankLine': 'always', 'prev': '*', 'next': 'function' },
             ],
+        },
+    },
+    {
+        // exchange sources must not reassign parameters (write new values to fresh typed locals)
+        files: ['ts/src/*.ts', 'ts/src/pro/*.ts', 'ts/src/base/Exchange.ts', 'ts/src/base/PredictionExchange.ts'],
+        rules: {
+            'no-param-reassign': ['error', { 'props': false }],
         },
     },
 ];

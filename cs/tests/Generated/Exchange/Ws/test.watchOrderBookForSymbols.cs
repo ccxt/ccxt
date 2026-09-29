@@ -8,38 +8,42 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testWatchOrderBookForSymbols(Exchange exchange, object skippedProperties, object symbols)
+    async static public Task<object> testWatchOrderBookForSymbols(Exchange exchange, object skippedProperties, IList<object> symbols)
     {
-        object method = "watchOrderBookForSymbols";
-        object currentTime = exchange.milliseconds();
-        object deadline = add(currentTime, 15000);
-        object seenSymbols = new List<object>() {};
-        // keep polling until the time window elapses and every requested symbol has been observed
-        while (isTrue(isLessThan(currentTime, deadline)) || isTrue(isLessThan(getArrayLength(seenSymbols), getArrayLength(symbols))))
+        string method = "watchOrderBookForSymbols";
+        // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
+        // loop has to be bounded by the deadline alone. waiting for every requested
+        // symbol to be seen would hang forever whenever one of them stays idle.
+        int maxIdleTime = 5000;
+        Int64 currentTime = exchange.milliseconds();
+        Int64 deadline = (currentTime + 15000);
+        bool idle = false;
+        while ((currentTime < deadline) && !idle)
         {
             object response = null;
-            object succeeded = true;
+            bool succeeded = true;
+            Int64 startTime = exchange.milliseconds();
             try
             {
-                response = ((IOrderBook)(await exchange.watchOrderBookForSymbols(symbols))).Copy();
+                response = ((IOrderBook)(await exchange.WatchOrderBookForSymbols(symbols))).Copy();
             } catch(Exception e)
             {
                 // interim workaround for InvalidNonce raised by the c# runtime
-                if (isTrue(!isTrue(testSharedMethods.isTemporaryFailure(e)) && !isTrue((e is InvalidNonce))))
+                if (!isTrue(testSharedMethods.isTemporaryFailure(e)) && !(e is InvalidNonce))
                 {
                     throw e;
                 }
-                currentTime = exchange.milliseconds();
                 succeeded = false;
             }
-            if (isTrue(isTrue((isEqual(succeeded, true))) && isTrue((!isEqual(response, null)))))
+            currentTime = exchange.milliseconds();
+            if (((succeeded == true)) && ((response != null)))
             {
                 testOrderBook(exchange, skippedProperties, method, response, null);
                 testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
-                object symbol = getValue(response, "symbol");
-                if (isTrue(isTrue((!isEqual(symbol, null))) && !isTrue(exchange.inArray(symbol, seenSymbols))))
+                Int64 elapsed = (currentTime - startTime);
+                if (elapsed > maxIdleTime)
                 {
-                    ((IList<object>)seenSymbols).Add(symbol);
+                    idle = true;
                 }
             }
         }

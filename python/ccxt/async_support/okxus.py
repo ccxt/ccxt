@@ -5,15 +5,14 @@
 
 from ccxt.async_support.okx import okx
 from ccxt.abstract.okxus import ImplicitAPI
-from ccxt.base.types import Any
 
 
 class okxus(okx, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(okxus, self).describe(), {
             'id': 'okxus',
-            'name': 'OKX(US)',
+            'name': 'OKX (US)',
             'certified': False,
             'pro': True,
             'hostname': 'us.okx.com',
@@ -37,7 +36,7 @@ class okxus(okx, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': None,
-                'swap': True,
+                'swap': False,
                 'future': False,
                 'option': False,
             },
@@ -45,6 +44,11 @@ class okxus(okx, ImplicitAPI):
                 'future': {
                     'linear': None,
                     'inverse': None,
+                },
+            },
+            'options': {
+                'fetchMarkets': {
+                    'types': ['spot'],  # only spot supported for now
                 },
             },
         })

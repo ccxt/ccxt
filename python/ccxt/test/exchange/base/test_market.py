@@ -87,17 +87,17 @@ def test_market(exchange, skipped_properties, method, market):
     is_inactive_market = market['active'] is False
     #
     empty_allowed_for = ['margin']
-    if not contract:
+    if contract is not True:
         empty_allowed_for.append('contractSize')
         empty_allowed_for.append('linear')
         empty_allowed_for.append('inverse')
         empty_allowed_for.append('quanto')
         empty_allowed_for.append('settle')
         empty_allowed_for.append('settleId')
-    if not future and not option:
+    if (future is not True) and (option is not True):
         empty_allowed_for.append('expiry')
         empty_allowed_for.append('expiryDatetime')
-    if not option:
+    if option is not True:
         empty_allowed_for.append('optionType')
         empty_allowed_for.append('strike')
     if is_inactive_market:
@@ -136,7 +136,7 @@ def test_market(exchange, skipped_properties, method, market):
         if market[type]:
             assert type == market['type'], 'market.type (' + market['type'] + ') not equal to "' + type + '"' + log_text
     # check if 'subType' is consistent
-    if swap or future:
+    if (swap) or (future):
         checked_sub_types = ['linear', 'inverse']
         for i in range(0, len(checked_sub_types)):
             sub_type = checked_sub_types[i]
@@ -153,15 +153,15 @@ def test_market(exchange, skipped_properties, method, market):
     is_prediction = (market['type'] == 'prediction')
     if is_prediction:
         # prediction markets trade outcome shares — neither spot nor a derivative contract
-        assert not spot and not contract and not future and not swap and not option, 'for prediction market, none of spot/contract/future/swap/option should be set' + log_text
+        assert (spot is not True) and (contract is not True) and (future is not True) and (swap is not True) and (option is not True), 'for prediction market, none of spot/contract/future/swap/option should be set' + log_text
     elif spot:
-        assert not contract and linear is None and inverse is None and not option and not swap and not future, 'for spot market, none of contract/linear/inverse/option/swap/future should be set' + log_text
+        assert (contract is not True) and (linear is None) and (inverse is None) and (option is not True) and (swap is not True) and (future is not True), 'for spot market, none of contract/linear/inverse/option/swap/future should be set' + log_text
     else:
         # if not spot, any of the below should be true
-        assert contract and (future or swap or option or is_index), 'for non-spot markets, any of (future/swap/option/index) should be set' + log_text
+        assert (contract) and ((future) or (swap) or (option) or (is_index)), 'for non-spot markets, any of (future/swap/option/index) should be set' + log_text
     contract_size = exchange.safe_string(market, 'contractSize')
     # contract fields
-    if contract and not is_inactive_market:
+    if (contract) and not is_inactive_market:
         if is_quanto:
             assert linear is False, 'linear must be false when "quanto" is true' + log_text
             assert inverse is False, 'inverse must be false when "quanto" is true' + log_text
@@ -176,7 +176,7 @@ def test_market(exchange, skipped_properties, method, market):
         assert ('contractSize' in skipped_properties) or Precise.string_gt(contract_size, '0'), '"contractSize" must be > 0 when "contract" is true' + log_text
         # settle should be defined
         assert ('settle' in skipped_properties) or (market['settle'] is not None and market['settleId'] is not None), '"settle" & "settleId" must be defined when "contract" is true' + log_text
-    elif not contract:
+    elif contract is not True:
         # linear & inverse needs to be undefined
         assert linear is None and inverse is None and quanto is None, 'market linear and inverse (and quanto) must be undefined when "contract" is false' + log_text
         # contract size should be undefined
@@ -185,13 +185,13 @@ def test_market(exchange, skipped_properties, method, market):
         assert (market['settle'] is None) and (market['settleId'] is None), '"settle" must be undefined when "contract" is false' + log_text
     # future, swap and option should be mutually exclusive
     if market['future']:
-        assert not market['swap'] and not market['option'] and not is_index, 'market swap and option must be false when "future" is true' + log_text
+        assert (market['swap'] is not True) and (market['option'] is not True) and (is_index is not True), 'market swap and option must be false when "future" is true' + log_text
     elif market['swap']:
-        assert not market['future'] and not market['option'], 'market future and option must be false when "swap" is true' + log_text
+        assert (future is not True) and (option is not True), 'market future and option must be false when "swap" is true' + log_text
     elif market['option']:
-        assert not market['future'] and not market['swap'], 'market future and swap must be false when "option" is true' + log_text
+        assert (future is not True) and (swap is not True), 'market future and swap must be false when "option" is true' + log_text
     # check specific fields for options & futures
-    if option or future:
+    if (option) or (future):
         # future or option markets need 'expiry' and 'expiryDatetime'
         assert market['expiry'] is not None, '"expiry" must be defined when "future" is true' + log_text
         assert market['expiryDatetime'] is not None, '"expiryDatetime" must be defined when "future" is true' + log_text
@@ -221,7 +221,7 @@ def test_market(exchange, skipped_properties, method, market):
         price_or_amount_key = precision_keys[i]
         # only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
         is_exclusive_pair = market['baseId'] == 'BTC'
-        is_non_spot = not spot  # such high precision is only allowed in contract markets
+        is_non_spot = spot is not True  # such high precision is only allowed in contract markets
         is_price = price_or_amount_key == 'price'
         is_tick_size_5 = Precise.string_eq('5', exchange.safe_string(market['precision'], price_or_amount_key))
         if is_non_spot and is_price and is_exclusive_pair and is_tick_size_5:

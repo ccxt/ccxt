@@ -7,7 +7,7 @@ import type { Dict } from '../../base/types.js';
 async function testFetchMarkets (exchange: Exchange, skippedProperties: object) {
     const method = 'fetchMarkets';
     const markets = await exchange.fetchMarkets ();
-    assert (exchange.isDictionary (markets), exchange.id + ' ' + method + ' must return a dict. ' + exchange.json (markets));
+    testSharedMethods.assertDictionaryResponse (exchange, method, markets);
     const marketValues = Object.values (markets);
     testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, marketValues);
     for (let i = 0; i < marketValues.length; i++) {

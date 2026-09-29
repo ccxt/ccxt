@@ -69,15 +69,18 @@
 
   ## Hey! The fix you've uploaded is in TypeScript, would you fix JavaScript / Python / PHP as well, please?
 
-  Our build system generates exchange-specific JavaScript, Python, PHP, C#, Go and Java code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
+  Our build system generates exchange-specific JavaScript, Python, PHP, C#, Go, Java and Rust code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
 
-  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go and Java as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
+  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go, Java and Rust (crates.io) as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
 
   More about it here:
 
   - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support
   - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files
 
+  ## What are Exchange Rate FX markets on Binance and how do I use them?
+
+  Binance offers the Exchange Rate Foreign Exchange (FX) perpetual `USDBRL/USDT:USDT`. It uses the USD/BRL exchange rate as its underlying asset and is traded through the same perpetual-swap methods as other Binance USDT-settled linear swaps. It is a derivative contract where the amount is the number of contracts, the position is USDT-settled, and funding applies. This should NOT be confused with the similarly named FX Currency Swap found in traditional finance.
 
 
   ## How to create an order with takeProfit+stopLoss?
@@ -273,7 +276,7 @@ Lighter is available as part of CCXT and it works similarly to any other CCXT ex
 
 After the latest upgrade CCXT has simplified the authentication process and now using the L1 private key is enough.
 
-## Credentials requirements
+### Credentials requirements
 
 Lighter requires the following :
 - `privateKey`: the L1 private key **mandatory**
@@ -294,7 +297,8 @@ Since the signing algorithms and structs are not supported natively in all langu
 
 ### Python/C#/PHP users:
 
-- The binaries can be downloaded here: https://github.com/elliottech/lighter-python/tree/main/lighter/signers
+- The binaries can be downloaded here: https://github.com/elliottech/lighter-python/tree/8bac9f56b9d0dd0eedaeb53a00ccb4fc9d77082e/lighter/signers
+- If they don't support the os you used, you can clone and build library from their lighter-go: https://github.com/elliottech/lighter-go/tree/25847e7e39603dbb90a0bf60b689b571116b7187
 - The path to the binary needs to be provided as `libraryPath`
 - You need to choose the binary according to your OS/architecture
 
@@ -568,3 +572,57 @@ exchange = ccxt.prediction.hyperliquid({
 ```
 
 The id `hyperliquid` exists both as a regular crypto DEX (`ccxt.hyperliquid`) and as a prediction exchange (`ccxt.prediction.hyperliquid`) — the prediction class only exposes the prediction markets, addressed by outcome handles. Public market data works without any credentials.
+
+## How to fetch an RPI orderbook?
+
+OKX publishes a second order book that merges its regular liquidity with RPI (Retail Price Improvement) liquidity. Pass `rpi` to `fetchOrderBook` — either per call or once in `options` — and CCXT routes to that endpoint instead of the regular one. Everything else is unchanged, the returned [order book structure](Manual.md#order-book-structure) is the same.
+
+```Python
+exchange = ccxt.okx()
+
+# per call
+orderbook = exchange.fetch_order_book('BTC/USDT', 5, {'rpi': True})
+
+# or for every call
+exchange.options['fetchOrderBook'] = {'rpi': True}
+orderbook = exchange.fetch_order_book('BTC/USDT', 5)
+
+print(orderbook['bids'][0], orderbook['asks'][0])
+```
+
+The RPI book is capped at 400 entries per side, a larger `limit` is reduced to it.
+
+Binance has one too, but only for linear (USDⓈ-M) futures, and only as a per-call parameter:
+
+```Python
+exchange = ccxt.binance()
+orderbook = exchange.fetch_order_book('BTC/USDT:USDT', 5, {'rpi': True})
+```
+
+
+## Rust build is too slow and heavy, how to improve it?
+
+The `ccxt` crate compiles every exchange by default. A fresh debug build of a crate that depends on it needs about 19 GB of RAM and a few minutes; a release build needs about 50 GB, which does not complete on a 16 or 32 GB machine.
+
+Every exchange sits behind a cargo feature named after its id. Turn the defaults off and list only the exchanges you use:
+
+```toml
+[dependencies]
+ccxt = { version = "4", default-features = false, features = ["binance", "kraken", "okx"] }
+```
+
+Measured on the same machine, that brings a fresh build with three exchanges from 3m23s / 18.6 GB down to 29s / 2.5 GB (release: 7m49s / 50 GB down to 3m05s / 4.9 GB).
+
+Things to know:
+
+- `ccxt-pro` (WebSocket) and `ccxt-prediction` use the same feature names. Features are per crate, so put the list on every ccxt crate you depend on, and leave `default-features = false` on each of them, otherwise that crate's `all` brings every exchange back:
+
+  ```toml
+  ccxt     = { version = "4", default-features = false, features = ["binance"] }
+  ccxt-pro = { version = "4", default-features = false, features = ["binance"] }
+  ```
+
+- A derived exchange enables its parent on its own (`binanceus` pulls in `binance`).
+- Prediction markets that share an id with a regular exchange are separate features: `ccxt-prediction`'s `binance` is the prediction venue, `ccxt`'s `binance` the spot/derivatives one.
+- `ccxt::from_id("kraken", …)` returns `None` for an exchange that was not compiled in, so a program that picks exchanges at runtime needs them in the list.
+- If you still need everything, `debug = 0` (or `"line-tables-only"`) in `[profile.dev]` and `lto = "off"` in `[profile.release]` of your own `Cargo.toml` cut memory noticeably; `RUSTFLAGS="-C codegen-units=4"` trades build time for a lower peak.

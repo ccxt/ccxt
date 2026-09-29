@@ -7,66 +7,112 @@
 
 package ccxt
 
-func (this *BtcturkCore) PublicGetOrderbook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrderbook", args...)
+// PublicGetOrderbook returns a channel that yields a JSON object.
+func (this *Btcturk) PublicGetOrderbook(args ...any) <-chan any {
+	return this.Fetch2Async("orderbook", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcturkCore) PublicGetTicker(args ...any) <-chan any {
+// PublicGetTicker returns a channel that yields a JSON object.
+func (this *Btcturk) PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *BtcturkCore) PublicGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTrades", args...)
+// PublicGetTickerCurrency returns a channel that yields a JSON object.
+func (this *Btcturk) PublicGetTickerCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickerCurrency", args...)
 }
 
-func (this *BtcturkCore) PublicGetOhlc(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOhlc", args...)
+// PublicGetTrades returns a channel that yields a JSON object.
+func (this *Btcturk) PublicGetTrades(args ...any) <-chan any {
+	return this.Fetch2Async("trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcturkCore) PublicGetServerExchangeinfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetServerExchangeinfo", args...)
+// PublicGetOhlc returns a channel that yields a JSON object.
+func (this *Btcturk) PublicGetOhlc(args ...any) <-chan any {
+	return this.Fetch2Async("ohlc", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcturkCore) PrivateGetUsersBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUsersBalances", args...)
+// PublicGetServerExchangeinfo returns a channel that yields a JSON object.
+func (this *Btcturk) PublicGetServerExchangeinfo(args ...any) <-chan any {
+	return this.Fetch2Async("server/exchangeinfo", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcturkCore) PrivateGetOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenOrders", args...)
+// PrivateGetUsersBalances returns a channel that yields a JSON object.
+func (this *Btcturk) PrivateGetUsersBalances(args ...any) <-chan any {
+	return this.Fetch2Async("users/balances", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcturkCore) PrivateGetAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAllOrders", args...)
+// PrivateGetOpenOrders returns a channel that yields a JSON object.
+func (this *Btcturk) PrivateGetOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("openOrders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcturkCore) PrivateGetUsersTransactionsTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUsersTransactionsTrade", args...)
+// PrivateGetAllOrders returns a channel that yields a JSON object.
+func (this *Btcturk) PrivateGetAllOrders(args ...any) <-chan any {
+	return this.Fetch2Async("allOrders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcturkCore) PrivatePostUsersTransactionsCrypto(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUsersTransactionsCrypto", args...)
+// PrivateGetOrderOrderId returns a channel that yields a JSON object.
+func (this *Btcturk) PrivateGetOrderOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("order/{orderId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcturkCore) PrivatePostUsersTransactionsFiat(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUsersTransactionsFiat", args...)
+// PrivateGetUsersTransactionsTrade returns a channel that yields a JSON object.
+func (this *Btcturk) PrivateGetUsersTransactionsTrade(args ...any) <-chan any {
+	return this.Fetch2Async("users/transactions/trade", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcturkCore) PrivatePostOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrder", args...)
+// PrivateGetUsersTransactionsCrypto returns a channel that yields a JSON object.
+func (this *Btcturk) PrivateGetUsersTransactionsCrypto(args ...any) <-chan any {
+	return this.Fetch2Async("users/transactions/crypto", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcturkCore) PrivatePostCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelOrder", args...)
+// PrivateGetUsersTransactionsFiat returns a channel that yields a JSON object.
+func (this *Btcturk) PrivateGetUsersTransactionsFiat(args ...any) <-chan any {
+	return this.Fetch2Async("users/transactions/fiat", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcturkCore) PrivateDeleteOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOrder", args...)
+// PrivateGetCryptoDepositDeclarations returns a channel that yields a JSON array.
+func (this *Btcturk) PrivateGetCryptoDepositDeclarations(args ...any) <-chan any {
+	return this.Fetch2Async("crypto-deposit-declarations", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcturkCore) GraphGetOhlcs(args ...any) <-chan any {
-	return this.callEndpointAsync("graphGetOhlcs", args...)
+// PrivatePostUsersTransactionsCrypto returns a channel that yields a JSON object.
+func (this *Btcturk) PrivatePostUsersTransactionsCrypto(args ...any) <-chan any {
+	return this.Fetch2Async("users/transactions/crypto", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcturkCore) GraphGetKlinesHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("graphGetKlinesHistory", args...)
+// PrivatePostUsersTransactionsFiat returns a channel that yields a JSON object.
+func (this *Btcturk) PrivatePostUsersTransactionsFiat(args ...any) <-chan any {
+	return this.Fetch2Async("users/transactions/fiat", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostOrder returns a channel that yields a JSON object.
+func (this *Btcturk) PrivatePostOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostCancelOrder returns a channel that yields a JSON object.
+func (this *Btcturk) PrivatePostCancelOrder(args ...any) <-chan any {
+	return this.Fetch2Async("cancelOrder", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostCryptoDepositDeclarationsConfirm returns a channel that yields a JSON object.
+func (this *Btcturk) PrivatePostCryptoDepositDeclarationsConfirm(args ...any) <-chan any {
+	return this.Fetch2Async("crypto-deposit-declarations/confirm", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateDeleteOrder returns a channel that yields a JSON object.
+func (this *Btcturk) PrivateDeleteOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// GraphGetOhlcs returns a channel that yields a JSON array.
+func (this *Btcturk) GraphGetOhlcs(args ...any) <-chan any {
+	return this.Fetch2Async("ohlcs", "graph", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// GraphGetKlinesHistory returns a channel that yields a JSON object.
+func (this *Btcturk) GraphGetKlinesHistory(args ...any) <-chan any {
+	return this.Fetch2Async("klines/history", "graph", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

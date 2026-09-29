@@ -11,14 +11,18 @@ public partial class hyperliquid : PredictionExchange
 {
     public hyperliquid (object args = null): base(args) {}
 
+    /// <summary>Calls the publicPostInfo endpoint.</summary>
+    /// <returns>a JSON object, a JSON array or a JSON scalar, so this endpoint keeps object</returns>
     public async Task<object> publicPostInfo (object parameters = null)
     {
-        return await this.callAsync ("publicPostInfo",parameters);
+        return await this.callAsync<object> ("publicPostInfo",parameters);
     }
 
-    public async Task<object> privatePostExchange (object parameters = null)
+    /// <summary>Calls the privatePostExchange endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostExchange (object parameters = null)
     {
-        return await this.callAsync ("privatePostExchange",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostExchange",parameters);
     }
 
 }

@@ -31,4 +31,9 @@ tasks.test {
 
 application {
     mainClass.set("tests.Main")
+    // the transpiled test harness nests blocking join()s inside common-pool
+    // tasks (Promise.all over all fixture exchanges) — with the default
+    // core-count parallelism the pool starves and the run deadlocks, so give
+    // it enough workers to always make progress
+    applicationDefaultJvmArgs = listOf("-Djava.util.concurrent.ForkJoinPool.common.parallelism=64")
 }

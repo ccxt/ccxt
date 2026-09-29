@@ -18,20 +18,33 @@ from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 async def test_watch_order_book(exchange, skipped_properties, symbol):
     method = 'watchOrderBook'
+    # `watchOrderBook` only resolves when the exchange pushes an update, and a
+    # pending subscription can not be cancelled from here, so every extra
+    # iteration risks blocking until the test-runner kills the whole exchange.
+    # a validated book is already a pass, so keep sampling only while updates
+    # keep arriving quickly and stop once the book goes quiet.
+    max_idle_time = 5000
     now = exchange.milliseconds()
     ends = now + 15000
-    while now < ends:
+    idle = False
+    while (now < ends) and not idle:
         response = None
         success = True
+        start_time = exchange.milliseconds()
         try:
             response = await exchange.watch_order_book(symbol)
         except Exception as e:
             if not test_shared_methods.is_temporary_failure(e) and not (isinstance(e, InvalidNonce)):
                 raise e
-            now = exchange.milliseconds()
-            # continue;
             success = False
+        # refresh the deadline on every path, otherwise a stream of temporary
+        # failures would loop forever
+        now = exchange.milliseconds()
         if (success) and (response is not None):
-            now = exchange.milliseconds()
             test_order_book(exchange, skipped_properties, method, response, symbol)
+            elapsed = now - start_time
+            if elapsed > max_idle_time:
+                # this market updates slower than the remaining test window, so
+                # awaiting another delta would only end in a harness timeout
+                idle = True
     return True

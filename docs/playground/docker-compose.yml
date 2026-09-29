@@ -69,7 +69,7 @@ services:
     build:
       context: ./proxy
       args:
-        CCXT_VERSION: ${CCXT_VERSION:-4.5.56}
+        CCXT_VERSION: ${CCXT_VERSION:-4.5.66}
     image: ccxt-playground-egress
     container_name: ccxt-playground-egress
     networks:

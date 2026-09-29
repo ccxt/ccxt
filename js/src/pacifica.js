@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/pacifica.js';
-import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, NotSupported, AuthenticationError } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadRequest, BadSymbol, InsufficientFunds, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, NotSupported, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -158,77 +158,94 @@ export default class pacifica extends Exchange {
                 'public': {
                     'get': {
                         // ~12 weight depends on the limit 3 max for api-key, but min without api-key
-                        'info': 1,
-                        'info/fees': 1,
-                        'info/prices': 1,
-                        'kline': 12,
-                        'kline/mark': 12,
-                        'book': 1,
-                        'trades': 1, // Recent
-                        'funding_rate/history': 1,
-                        'loan_pool': 1,
-                        'account': 1,
-                        'account/loan': 1,
-                        'account/settings': 1,
-                        'positions': 1,
-                        'trades/history': 12,
-                        'funding/history': 1,
-                        'portfolio': 1,
-                        'account/balance/history': 12,
-                        'account/spot_balance/history': 1,
-                        'account/spot_asset/deposit/history': 1,
-                        'account/spot_asset/withdraw/history': 1,
-                        'account/spot_asset/withdraw/pending': 1,
-                        'orders': 1,
-                        'orders/history': 12,
-                        'orders/history_by_id': 1,
-                        'spot_assets': 1,
-                        'spot_assets/bridge/info': 1,
-                        'spot_assets/bridge/parameters/{symbol}': 1,
-                        'lake/list': 1,
-                        'account/builder_codes/approvals': 1,
+                        'info': { 'cost': 1 },
+                        'info/fees': { 'cost': 1 },
+                        'info/prices': { 'cost': 1 },
+                        'kline': { 'cost': 12 },
+                        'kline/mark': { 'cost': 12 },
+                        'book': { 'cost': 1 },
+                        'trades': { 'cost': 1 }, // Recent
+                        'funding_rate/history': { 'cost': 1 },
+                        'loan_pool': { 'cost': 1 },
+                        'account': { 'cost': 1 },
+                        'account/loan': { 'cost': 1 },
+                        'account/settings': { 'cost': 1 },
+                        'positions': { 'cost': 1 },
+                        'trades/history': { 'cost': 12 },
+                        'funding/history': { 'cost': 1 },
+                        'portfolio': { 'cost': 1 },
+                        'account/balance/history': { 'cost': 12 },
+                        'account/spot_balance/history': { 'cost': 1 },
+                        'account/spot_asset/deposit/history': { 'cost': 1 },
+                        'account/spot_asset/withdraw/history': { 'cost': 1 },
+                        'account/spot_asset/withdraw/pending': { 'cost': 1 },
+                        'orders': { 'cost': 1 },
+                        'orders/history': { 'cost': 12 },
+                        'orders/history_by_id': { 'cost': 1 },
+                        'orders/twap': { 'cost': 1 },
+                        'orders/twap/history': { 'cost': 12 },
+                        'orders/twap/history_by_id': { 'cost': 1 },
+                        'spot_assets': { 'cost': 1 },
+                        'spot_assets/bridge/info': { 'cost': 1 },
+                        'spot_assets/bridge/parameters/{symbol}': { 'cost': 1 },
+                        'lake/list': { 'cost': 1 },
+                        'account/builder_codes/approvals': { 'cost': 1 },
+                        'builder/overview': { 'cost': 1 },
+                        'builder/trades': { 'cost': 1 },
+                        'leaderboard/builder_code': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'post': {
-                        'account/leverage': 1,
-                        'account/margin': 1,
-                        'account/withdraw': 1,
-                        'account/settings/auto_lend_disabled': 1,
-                        'account/settings/spot': 1,
-                        'account/spot_asset/withdraw': 1,
-                        'account/subaccount/create': 1,
-                        'account/subaccount/list': 1,
-                        'account/subaccount/transfer': 1,
-                        'account/subaccount/spot_asset/transfer': 1,
-                        'positions/add_isolated_margin': 1,
-                        'orders/create': 1,
-                        'orders/create_market': 1,
-                        'orders/stop/create': 1,
-                        'positions/tpsl': 1,
-                        'orders/cancel': 0.5,
-                        'orders/cancel_all': 0.5,
-                        'orders/stop/cancel': 0.5,
-                        'orders/edit': 1,
-                        'orders/batch': 1,
-                        'account/builder_codes/approve': 1,
-                        'account/builder_codes/revoke': 1,
-                        'agent/bind': 1,
-                        'account/api_keys/create': 1,
-                        'account/api_keys/revoke': 1,
-                        'account/api_keys': 1,
-                        'lake/add_blacklist': 1,
-                        'lake/add_max_leverage': 1,
-                        'lake/add_whitelist': 1,
-                        'lake/claim_manager': 1,
-                        'lake/claim_referral_code': 1,
-                        'lake/create': 1,
-                        'lake/deposit': 1,
-                        'lake/remove_blacklist': 1,
-                        'lake/remove_max_leverage': 1,
-                        'lake/remove_whitelist': 1,
-                        'lake/update_deposit_cap': 1,
-                        'lake/withdraw': 1,
+                        'account/leverage': { 'cost': 1 },
+                        'account/margin': { 'cost': 1 },
+                        'account/withdraw': { 'cost': 1 },
+                        'account/settings/auto_lend_disabled': { 'cost': 1 },
+                        'account/settings/spot': { 'cost': 1 },
+                        'account/spot_asset/withdraw': { 'cost': 1 },
+                        'account/subaccount/create': { 'cost': 1 },
+                        'account/subaccount/list': { 'cost': 1 },
+                        'account/subaccount/transfer': { 'cost': 1 },
+                        'account/subaccount/spot_asset/transfer': { 'cost': 1 },
+                        'positions/add_isolated_margin': { 'cost': 1 },
+                        'orders/create': { 'cost': 1 },
+                        'orders/create_market': { 'cost': 1 },
+                        'orders/stop/create': { 'cost': 1 },
+                        'positions/tpsl': { 'cost': 1 },
+                        'orders/cancel': { 'cost': 0.5 },
+                        'orders/cancel_all': { 'cost': 0.5 },
+                        'orders/stop/cancel': { 'cost': 0.5 },
+                        'orders/edit': { 'cost': 1 },
+                        'orders/batch': { 'cost': 1 },
+                        'orders/twap/create': { 'cost': 1 },
+                        'orders/twap/cancel': { 'cost': 0.5 },
+                        'account/builder_codes/approve': { 'cost': 1 },
+                        'account/builder_codes/revoke': { 'cost': 1 },
+                        'builder/update_fee_rate': { 'cost': 1 },
+                        'referral/user/code/claim': { 'cost': 1 },
+                        'agent/bind': { 'cost': 1 },
+                        'agent/list': { 'cost': 1 },
+                        'agent/revoke': { 'cost': 1 },
+                        'agent/revoke_all': { 'cost': 1 },
+                        'agent/ip_whitelist/list': { 'cost': 1 },
+                        'agent/ip_whitelist/add': { 'cost': 1 },
+                        'agent/ip_whitelist/remove': { 'cost': 1 },
+                        'agent/ip_whitelist/toggle': { 'cost': 1 },
+                        'account/api_keys/create': { 'cost': 1 },
+                        'account/api_keys/revoke': { 'cost': 1 },
+                        'account/api_keys': { 'cost': 1 },
+                        'lake/add_blacklist': { 'cost': 1 },
+                        'lake/add_max_leverage': { 'cost': 1 },
+                        'lake/add_whitelist': { 'cost': 1 },
+                        'lake/claim_manager': { 'cost': 1 },
+                        'lake/claim_referral_code': { 'cost': 1 },
+                        'lake/create': { 'cost': 1 },
+                        'lake/deposit': { 'cost': 1 },
+                        'lake/remove_blacklist': { 'cost': 1 },
+                        'lake/remove_max_leverage': { 'cost': 1 },
+                        'lake/remove_whitelist': { 'cost': 1 },
+                        'lake/update_deposit_cap': { 'cost': 1 },
+                        'lake/withdraw': { 'cost': 1 },
                     },
                 },
             },
@@ -384,11 +401,18 @@ export default class pacifica extends Exchange {
                     '420': ExchangeError, // ENGINE_ERROR_CODE
                     '422': ExchangeError, // Business Logic Error - See below
                     '429': RateLimitExceeded, // Too Many Requests - Rate limit exceeded; RATE_LIMIT_EXCEEDED_CODE
-                    '500': ExchangeError, // Internal Server Error; UNKNOWN_ERROR_CODE
+                    '500': ExchangeNotAvailable, // Internal Server Error; UNKNOWN_ERROR_CODE
                     '503': ExchangeNotAvailable, // Service Unavailable
                     '504': RequestTimeout, // Gateway Timeout
+                    // error_id values, undocumented but present on live error responses
+                    'signature_verification_failed': AuthenticationError,
+                    'invalid_amount': InvalidOrder,
                 },
                 'broad': {
+                    'Invalid signature': AuthenticationError,
+                    'Invalid public key': AuthenticationError,
+                    'Verification failed': AuthenticationError,
+                    'Invalid message': BadRequest, // expired or malformed signed message
                     'UNKNOWN': ExchangeError,
                     'ACCOUNT_NOT_FOUND': ExchangeError,
                     'BOOK_NOT_FOUND': ExchangeError,
@@ -553,11 +577,11 @@ export default class pacifica extends Exchange {
             return false;
         }
         const buildFee = this.safeBool(this.options, 'builderFee', true);
-        if (!buildFee) {
+        if (buildFee !== true) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee) {
+        if (approvedBuilderFee === true) {
             return true; // skip if builder fee is already approved
         }
         try {
@@ -699,11 +723,14 @@ export default class pacifica extends Exchange {
             contractSize = this.parseNumber('1');
             minLeverage = 1;
             maxLeverage = this.safeInteger(market, 'max_leverage');
-            crossMargin = !isolatedOnly;
+            crossMargin = isolatedOnly !== true;
             isolatedMargin = true;
         }
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode(settleId);
         let symbol = base + '/' + quote;
         if (isSwap) {
@@ -781,30 +808,43 @@ export default class pacifica extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        let userAccount = undefined;
-        [userAccount, params] = this.handleOriginAndSingleAddress('fetchBalance', params);
+        const [userAccount, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchBalance', params);
         const request = {
             'account': userAccount,
         };
-        const response = await this.publicGetAccount(this.extend(request, params));
+        const response = await this.publicGetAccount(this.extend(request, paramsOriginAndSingleAddress));
         // {
         //   "success": true,
         //   "data": {
-        //     "balance": "2000.000000",
+        //     "balance": "4970.000323",           // USDC cash (perp collateral)
         //     "fee_level": 0,
         //     "maker_fee": "0.00015",
         //     "taker_fee": "0.0004",
-        //     "account_equity": "2150.250000",
-        //     "available_to_spend": "1800.750000",
-        //     "available_to_withdraw": "1500.850000",
-        //     "pending_balance": "0.000000",
-        //     "total_margin_used": "349.500000",
-        //     "cross_mmr": "420.690000",
-        //     "positions_count": 2,
-        //     "orders_count": 3,
-        //     "stop_orders_count": 1,
-        //     "updated_at": 1716200000000,
-        //     "use_ltp_for_stop_orders": false
+        //     "account_equity": "5478.140323",     // balance + spot_market_value
+        //     "cross_account_equity": "5376.512323",
+        //     "spot_market_value": "508.14",
+        //     "spot_collateral": "406.512",
+        //     "available_to_spend": "5376.512323",
+        //     "available_to_withdraw": "5376.512323",
+        //     "pending_balance": "0",
+        //     "pending_interest": "0",
+        //     "total_margin_used": "0",
+        //     "cross_mmr": "0",
+        //     "positions_count": 0,
+        //     "orders_count": 0,
+        //     "stop_orders_count": 0,
+        //     "spot_balances": [
+        //       {
+        //         "symbol": "SOL",
+        //         "amount": "5",
+        //         "available_to_withdraw": "5",
+        //         "pending_balance": "0",
+        //         "daily_withdraw_amount_usd": "0",
+        //         "effective_daily_deposit_limit_usd": "50000",
+        //         "effective_daily_withdraw_limit_usd": "250000"
+        //       }
+        //     ],
+        //     "updated_at": 1789394568220
         //   },
         //   "error": null,
         //   "code": null
@@ -813,15 +853,23 @@ export default class pacifica extends Exchange {
         const result = {
             'info': data,
         };
-        result['free'] = {};
-        result['used'] = {};
-        result['total'] = {};
-        const totalBalance = this.safeNumber(data, 'account_equity');
-        const usedMargin = this.safeNumber(data, 'total_margin_used');
-        const freeBalance = this.safeNumber(data, 'available_to_spend');
-        result['total']['USDC'] = totalBalance;
-        result['used']['USDC'] = usedMargin;
-        result['free']['USDC'] = freeBalance;
+        const usdcAccount = this.account();
+        usdcAccount['total'] = this.safeString(data, 'balance');
+        usdcAccount['used'] = this.safeString(data, 'total_margin_used');
+        result['USDC'] = usdcAccount;
+        const spotBalances = this.safeList(data, 'spot_balances', []);
+        for (let i = 0; i < spotBalances.length; i++) {
+            const balance = this.safeDict(spotBalances, i);
+            const currencyId = this.safeString(balance, 'symbol');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.account();
+            account['total'] = this.safeString(balance, 'amount');
+            account['free'] = this.safeString(balance, 'available_to_withdraw');
+            // skip a spot USDC entry so it can't clobber the perp-collateral account above
+            if ((code !== undefined) && !(code in result)) {
+                result[code] = account;
+            }
+        }
         const timestamp = this.safeInteger(data, 'updated_at');
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601(timestamp);
@@ -843,8 +891,7 @@ export default class pacifica extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        let userAccount = undefined;
-        [userAccount, params] = this.handleOriginAndSingleAddress('fetchLeverage', params);
+        const [userAccount, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchLeverage', params);
         const cacheAddress = this.walletAddress;
         let settings = undefined;
         if (userAccount === cacheAddress) {
@@ -854,7 +901,7 @@ export default class pacifica extends Exchange {
             const request = {
                 'account': userAccount,
             };
-            settings = await this.fetchAccountSettings(this.extend(request, params));
+            settings = await this.fetchAccountSettings(this.extend(request, paramsOriginAndSingleAddress));
         }
         const setting = this.safeDict(settings, symbol);
         if (setting === undefined) {
@@ -878,7 +925,10 @@ export default class pacifica extends Exchange {
         // }
         const isIsolated = this.safeBool(setting, 'isolated', false);
         const leverage = this.safeInteger(setting, 'leverage');
-        const marginMode = isIsolated ? 'isolated' : 'cross';
+        let marginMode = 'cross';
+        if (isIsolated === true) {
+            marginMode = 'isolated';
+        }
         return {
             'info': setting,
             'symbol': symbol,
@@ -908,12 +958,11 @@ export default class pacifica extends Exchange {
      * @returns {object} Dict repacked from list by symbol key
      */
     async fetchAccountSettings(params = {}) {
-        let userAccount = undefined;
-        [userAccount, params] = this.handleOriginAndSingleAddress('fetchAccountSettings', params);
+        const [userAccount, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchAccountSettings', params);
         const request = {
             'account': userAccount,
         };
-        const response = await this.publicGetAccountSettings(this.extend(request, params));
+        const response = await this.publicGetAccountSettings(this.extend(request, paramsOriginAndSingleAddress));
         // {
         //   "success": true,
         //   "data": [
@@ -964,8 +1013,7 @@ export default class pacifica extends Exchange {
      */
     async fetchMarginMode(symbol, params = {}) {
         await this.loadAccountSettings();
-        let userAccount = undefined;
-        [userAccount, params] = this.handleOriginAndSingleAddress('fetchMarginMode', params);
+        const [userAccount, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchMarginMode', params);
         const cacheAddress = this.walletAddress;
         let settings = undefined;
         if (userAccount === cacheAddress) {
@@ -975,7 +1023,7 @@ export default class pacifica extends Exchange {
             const request = {
                 'account': userAccount,
             };
-            settings = await this.fetchAccountSettings(this.extend(request, params));
+            settings = await this.fetchAccountSettings(this.extend(request, paramsOriginAndSingleAddress));
         }
         // {
         //   "WLFI/USDC:USDC": {
@@ -1009,7 +1057,10 @@ export default class pacifica extends Exchange {
         //
         // }
         const isIsolated = this.safeBool(setting, 'isolated', false);
-        const marginMode = isIsolated ? 'isolated' : 'cross';
+        let marginMode = 'cross';
+        if (isIsolated === true) {
+            marginMode = 'isolated';
+        }
         return {
             'symbol': symbol,
             'marginMode': marginMode,
@@ -1032,13 +1083,12 @@ export default class pacifica extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        let aggLevel = undefined;
-        [aggLevel, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'aggLevel', 1);
+        const [aggLevel, paramsAggLevel] = this.handleOptionIntegerAndParams(params, 'fetchOrderBook', 'aggLevel', 1);
         const request = {
             'symbol': market['id'],
             'agg_level': aggLevel,
         };
-        const response = await this.publicGetBook(this.extend(request, params));
+        const response = await this.publicGetBook(this.extend(request, paramsAggLevel));
         // {
         //   "success": true,
         //   "data": {
@@ -1134,8 +1184,8 @@ export default class pacifica extends Exchange {
         //       }
         //
         const marketId = this.safeString(info, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const funding = this.safeNumber(info, 'funding');
         const markPx = this.safeNumber(info, 'mark');
         const oraclePx = this.safeNumber(info, 'oracle');
@@ -1189,20 +1239,19 @@ export default class pacifica extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, defaultMaxLimit);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, defaultMaxLimit);
         }
         const tf = this.safeString(this.timeframes, timeframe, timeframe);
-        let request = {
+        const request = {
             'symbol': market['id'],
             'interval': tf,
             'start_time': since,
         };
-        [request, params] = this.handleUntilOption('end_time', request, params);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_time', request, paramsPaginate);
         const nowMillis = this.milliseconds();
-        let until = this.safeInteger(request, 'end_time');
+        let until = this.safeInteger(requestUntil, 'end_time');
         if (until === undefined) {
             if (limit !== undefined) {
                 until = since + (limit * (this.parseTimeframe(tf) * 1000)) - 1;
@@ -1213,9 +1262,9 @@ export default class pacifica extends Exchange {
             if (until > nowMillis) {
                 until = nowMillis;
             }
-            request['end_time'] = until;
+            requestUntil['end_time'] = until;
         }
-        const response = await this.publicGetKline(this.extend(request, params));
+        const response = await this.publicGetKline(this.extend(requestUntil, paramsUntil));
         //
         // {
         //   "success": true,
@@ -1328,27 +1377,25 @@ export default class pacifica extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate', false);
-        let userAddress = undefined;
-        [userAddress, params] = this.handleOriginAndSingleAddress('fetchMyTrades', params);
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchMyTrades', 'paginate', false);
+        const [userAddress, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchMyTrades', paramsPaginate);
         const defaultLimit = 100; // Default max limit
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchMyTrades', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, defaultLimit);
+            return await this.fetchPaginatedCallCursor('fetchMyTrades', symbol, since, limit, paramsOriginAndSingleAddress, 'next_cursor', 'cursor', undefined, defaultLimit);
         }
-        let request = {};
-        [request, params] = this.handleUntilOption('end_time', request, params);
-        request['account'] = userAddress;
+        const request = {};
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_time', request, paramsOriginAndSingleAddress);
+        requestUntil['account'] = userAddress;
         if (symbol !== undefined) {
-            request['symbol'] = this.safeString(market, 'id');
+            requestUntil['symbol'] = this.safeString(market, 'id');
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            requestUntil['limit'] = limit;
         }
         if (since !== undefined) {
-            request['start_time'] = since;
+            requestUntil['start_time'] = since;
         }
-        const response = await this.publicGetTradesHistory(this.extend(request, params));
+        const response = await this.publicGetTradesHistory(this.extend(requestUntil, paramsUntil));
         //
         // {
         //   "success": true,
@@ -1409,7 +1456,9 @@ export default class pacifica extends Exchange {
         const timestamp = this.safeInteger(trade, 'created_at');
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'amount');
-        const symbol = this.safeSymbol(undefined, market);
+        const marketId = this.safeString(trade, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const id = this.safeString(trade, 'history_id');
         let side = this.safeString(trade, 'side');
         if (side === 'open_long') {
@@ -1452,7 +1501,7 @@ export default class pacifica extends Exchange {
                 'currency': 'USDC',
                 'rate': undefined,
             },
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1473,6 +1522,7 @@ export default class pacifica extends Exchange {
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
      * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
      * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1483,22 +1533,23 @@ export default class pacifica extends Exchange {
         }
         await this.initializeClient();
         const [request, operationType] = this.createOrderRequest(symbol, type, side, amount, price, params);
-        params = this.omit(params, [
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
+        const paramsOmitted = this.omit(params, [
+            'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
+            'slippage', 'slippage_percent',
         ]);
         let response = undefined;
         if (operationType === 'create_market_order') {
-            response = await this.privatePostOrdersCreateMarket(this.extend(request, params));
+            response = await this.privatePostOrdersCreateMarket(this.extend(request, paramsOmitted));
         }
         else if (operationType === 'create_stop_order') {
-            response = await this.privatePostOrdersStopCreate(this.extend(request, params));
+            response = await this.privatePostOrdersStopCreate(this.extend(request, paramsOmitted));
         }
         else if (operationType === 'set_position_tpsl') {
-            response = await this.privatePostPositionsTpsl(this.extend(request, params));
+            response = await this.privatePostPositionsTpsl(this.extend(request, paramsOmitted));
         }
         else { // create_order
-            response = await this.privatePostOrdersCreate(this.extend(request, params));
+            response = await this.privatePostOrdersCreate(this.extend(request, paramsOmitted));
         }
         //
         // {
@@ -1510,7 +1561,7 @@ export default class pacifica extends Exchange {
         //
         const success = this.safeBool(response, 'success', false);
         let status = undefined;
-        if (!success) {
+        if (success !== true) {
             status = 'rejected';
         }
         else {
@@ -1547,6 +1598,7 @@ export default class pacifica extends Exchange {
          * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [params.expiryWindow] time to live in milliseconds
          * @returns {object} an [order structure]
@@ -1582,7 +1634,6 @@ export default class pacifica extends Exchange {
             operationType = 'create_stop_order';
             sigPayload['reduce_only'] = reduceOnly;
             const stopClientOrderId = this.safeString(params, 'clientOrderId');
-            params = this.omit(params, ['clientOrderId']);
             const stopPayload = {
                 'amount': this.amountToPrecision(symbol, amount),
                 'stop_price': this.priceToPrecision(symbol, triggerPrice),
@@ -1598,12 +1649,7 @@ export default class pacifica extends Exchange {
         else {
             operationType = 'create_order';
             sigPayload['reduce_only'] = reduceOnly;
-            if (timeInForce === undefined) {
-                sigPayload['tif'] = 'GTC';
-            }
-            else {
-                sigPayload['tif'] = timeInForce;
-            }
+            sigPayload['tif'] = timeInForce;
         }
         if (isTakeProfitOrder) {
             const tpPayload = {
@@ -1629,11 +1675,12 @@ export default class pacifica extends Exchange {
         if (amount !== undefined && (operationType !== 'create_stop_order' && operationType !== 'set_position_tpsl')) {
             sigPayload['amount'] = this.amountToPrecision(symbol, amount);
         }
-        const clientOrderId = this.safeString(params, 'clientOrderId');
+        const paramsClientOrderId = (operationType === 'create_stop_order') ? this.omit(params, ['clientOrderId']) : params;
+        const clientOrderId = this.safeString(paramsClientOrderId, 'clientOrderId');
         if (clientOrderId !== undefined) {
             sigPayload['client_order_id'] = clientOrderId;
         }
-        const request = this.postActionRequest(operationType, sigPayload, params);
+        const request = this.postActionRequest(operationType, sigPayload, paramsClientOrderId);
         return [request, operationType];
     }
     batchOrdersRequest(actions) {
@@ -1675,7 +1722,7 @@ export default class pacifica extends Exchange {
         const maxLen = this.handleOption('batchOrdersRequest', 'batchOrdersMax');
         if (maxLen !== undefined) {
             if (lenActions > maxLen) {
-                throw new ExchangeError(this.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + maxLen);
+                throw new ExchangeError(this.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + this.numberToString(maxLen));
             }
         }
         return {
@@ -1686,7 +1733,7 @@ export default class pacifica extends Exchange {
         const actions = [];
         const timestamp = this.milliseconds(); // unified sequence
         for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
+            const order = this.safeDict(orders, i);
             const symbol = this.safeString(order, 'symbol');
             const side = this.safeString(order, 'side');
             const price = this.safeString(order, 'price');
@@ -1750,7 +1797,7 @@ export default class pacifica extends Exchange {
             const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             let status = undefined;
-            if ((error !== undefined) || (!success)) {
+            if ((error !== undefined) || (success !== true)) {
                 status = 'rejected';
             }
             else {
@@ -1782,8 +1829,8 @@ export default class pacifica extends Exchange {
             throw new ArgumentsRequired(this.id + ' cancelOrders() requires a "symbol" argument!');
         }
         const request = this.cancelOrdersRequest(ids, symbol, params);
-        params = this.omit(params, ['expiryWindow', 'clientOrderIds']);
-        const response = await this.privatePostOrdersBatch(this.extend(request, params));
+        const paramsOmitted = this.omit(params, ['expiryWindow', 'clientOrderIds']);
+        const response = await this.privatePostOrdersBatch(this.extend(request, paramsOmitted));
         //
         // {
         //   "success": true,
@@ -1811,7 +1858,7 @@ export default class pacifica extends Exchange {
             const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             let status = undefined;
-            if ((error !== undefined) || (!success)) {
+            if ((error !== undefined) || (success !== true)) {
                 status = 'closed';
             }
             else {
@@ -1833,13 +1880,13 @@ export default class pacifica extends Exchange {
             actions.push(action);
         }
         const clientOrderIds = this.safeList(params, 'clientOrderIds', []);
-        params = this.omit(params, 'clientOrderIds');
+        const paramsOmitted = this.omit(params, 'clientOrderIds');
         for (let i = 0; i < clientOrderIds.length; i++) {
             const cloid = clientOrderIds[i];
             const cloidParams = {
                 'clientOrderId': cloid,
             };
-            const request = this.cancelOrderRequest(cloid, symbol, this.extend(cloidParams, params));
+            const request = this.cancelOrderRequest(cloid, symbol, this.extend(cloidParams, paramsOmitted));
             const action = {
                 'type': 'Cancel',
                 'data': request,
@@ -1865,8 +1912,8 @@ export default class pacifica extends Exchange {
         }
         await this.initializeClient();
         const request = this.cancelAllOrdersRequest(symbol, params);
-        params = this.omit(params, ['excludeReduceOnly', 'expiryWindow']);
-        const response = await this.privatePostOrdersCancelAll(this.extend(request, params));
+        const paramsOmitted = this.omit(params, ['excludeReduceOnly', 'expiryWindow']);
+        const response = await this.privatePostOrdersCancelAll(this.extend(request, paramsOmitted));
         //
         // {
         //   success: true,
@@ -1923,13 +1970,13 @@ export default class pacifica extends Exchange {
         }
         const request = this.cancelOrderRequest(id, symbol, params);
         const isStopOrder = this.safeBool2(params, 'trigger', 'stop', false);
-        params = this.omit(params, ['expiryWindow', 'trigger', 'stop', 'clientOrderId']);
+        const paramsOmitted = this.omit(params, ['expiryWindow', 'trigger', 'stop', 'clientOrderId']);
         let response = undefined;
-        if (isStopOrder) {
-            response = await this.privatePostOrdersStopCancel(this.extend(request, params));
+        if (isStopOrder === true) {
+            response = await this.privatePostOrdersStopCancel(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privatePostOrdersCancel(this.extend(request, params));
+            response = await this.privatePostOrdersCancel(this.extend(request, paramsOmitted));
         }
         //
         // response:
@@ -1939,14 +1986,17 @@ export default class pacifica extends Exchange {
         // }
         //
         const success = this.safeBool(response, 'success', false);
-        const status = success ? 'canceled' : 'closed';
+        let status = 'closed';
+        if (success === true) {
+            status = 'canceled';
+        }
         return this.safeOrder({ 'id': id, 'status': status, 'info': response, 'symbol': symbol });
     }
     cancelOrderRequest(id, symbol = undefined, params = {}) {
         const market = this.market(symbol);
         const isStopOrder = this.safeBool2(params, 'trigger', 'stop', false);
         let operationType = undefined;
-        if (isStopOrder) {
+        if (isStopOrder === true) {
             operationType = 'cancel_stop_order';
         }
         else {
@@ -1988,8 +2038,8 @@ export default class pacifica extends Exchange {
         await this.initializeClient();
         const market = this.market(symbol);
         const request = this.editOrderRequest(id, symbol, type, side, amount, price, market, params);
-        params = this.omit(params, ['expiryWindow', 'clientOrderId']);
-        const response = await this.privatePostOrdersEdit(this.extend(request, params));
+        const paramsOmitted = this.omit(params, ['expiryWindow', 'clientOrderId']);
+        const response = await this.privatePostOrdersEdit(this.extend(request, paramsOmitted));
         //
         // {
         //     'data': {
@@ -2053,11 +2103,10 @@ export default class pacifica extends Exchange {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         const market = this.market(symbol);
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         const defaultLimit = 100; // Default max limit
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, defaultLimit);
+            return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'next_cursor', 'cursor', undefined, defaultLimit);
         }
         const request = {
             'symbol': market['id'],
@@ -2065,7 +2114,7 @@ export default class pacifica extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetFundingRateHistory(this.extend(request, params));
+        const response = await this.publicGetFundingRateHistory(this.extend(request, paramsPaginate));
         //
         // {
         //   "success": true,
@@ -2113,7 +2162,7 @@ export default class pacifica extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.publicGetInfoPrices(params);
         //
         //  {
@@ -2146,7 +2195,7 @@ export default class pacifica extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArrayTickers(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -2164,8 +2213,8 @@ export default class pacifica extends Exchange {
         //     }
         //
         const marketId = this.safeString(ticker, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger(ticker, 'timestamp');
         return this.safeTicker({
             'symbol': symbol,
@@ -2177,7 +2226,7 @@ export default class pacifica extends Exchange {
             'ask': undefined,
             'quoteVolume': this.safeNumber(ticker, 'volume_24h'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -2255,8 +2304,7 @@ export default class pacifica extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let userAddress = undefined;
-        [userAddress, params] = this.handleOriginAndSingleAddress('fetchOpenOrders', params);
+        const [userAddress, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchOpenOrders', params);
         const request = {
             'account': userAddress,
         };
@@ -2264,7 +2312,7 @@ export default class pacifica extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const response = await this.publicGetOrders(this.extend(request, params));
+        const response = await this.publicGetOrders(this.extend(request, paramsOriginAndSingleAddress));
         //
         // {
         //   "success": true,
@@ -2312,14 +2360,12 @@ export default class pacifica extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate', false);
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOrders', 'paginate', false);
         const defaultLimit = 100; // max default 100
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchOrders', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, defaultLimit);
+            return await this.fetchPaginatedCallCursor('fetchOrders', symbol, since, limit, paramsPaginate, 'next_cursor', 'cursor', undefined, defaultLimit);
         }
-        let userAddress = undefined;
-        [userAddress, params] = this.handleOriginAndSingleAddress('fetchOrders', params);
+        const [userAddress, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchOrders', paramsPaginate);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2330,7 +2376,7 @@ export default class pacifica extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetOrdersHistory(this.extend(request, params));
+        const response = await this.publicGetOrdersHistory(this.extend(request, paramsOriginAndSingleAddress));
         //
         // {
         //   "success": true,
@@ -2368,7 +2414,7 @@ export default class pacifica extends Exchange {
         const paginationCursor = this.safeString(response, 'next_cursor');
         const hasMore = this.safeBool(response, 'has_more', false);
         const dataLength = data.length;
-        if (hasMore) {
+        if (hasMore === true) {
             if ((paginationCursor !== undefined) && (dataLength > 0)) {
                 const first = data[0];
                 first['next_cursor'] = paginationCursor;
@@ -2446,8 +2492,8 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.safeList(response, 'data', []);
-        // return last state
-        const sorted = this.sortBy(data, 'created_at');
+        // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
+        const sorted = this.sortBy(data, 'history_id', true);
         const lastIdx = sorted.length;
         let lastInfo = {};
         if (lastIdx > 0) {
@@ -2479,7 +2525,7 @@ export default class pacifica extends Exchange {
         if (tifRaw !== undefined) {
             tif = tifRaw.toUpperCase();
         }
-        return this.safeString(tifMap, tif);
+        return this.safeString(tifMap, tif, 'GTC');
     }
     mapSide(sideRaw) {
         const sideMap = {
@@ -2587,11 +2633,8 @@ export default class pacifica extends Exchange {
         //     }
         //
         const marketId = this.safeString2(order, 'symbol', 's');
-        let symbol = undefined;
-        if (symbol !== undefined) {
-            market = this.safeMarket(marketId, market);
-            symbol = market['symbol'];
-        }
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger2(order, 'created_at', 'ct');
         const status = this.safeString2(order, 'order_status', 'os', 'open'); // open if method is fetchOpenOrders
         let side = this.safeString(order, 'side', 'd');
@@ -2601,6 +2644,12 @@ export default class pacifica extends Exchange {
         const totalAmount = this.safeString2(order, 'initial_amount', 'a');
         const filledAmount = this.safeString2(order, 'filled_amount', 'f');
         const remaining = Precise.stringSub(totalAmount, filledAmount);
+        let average = this.safeString2(order, 'average_filled_price', 'p');
+        const eventType = this.safeString(order, 'event_type');
+        const isFillEvent = this.inArray(eventType, ['fulfill_market', 'fulfill_limit']);
+        if ((average === undefined) && isFillEvent) {
+            average = this.safeString(order, 'price'); // on a matching event price is the fill price
+        }
         return this.safeOrder({
             'info': order,
             'id': this.safeString2(order, 'order_id', 'i'),
@@ -2619,13 +2668,13 @@ export default class pacifica extends Exchange {
             'triggerPrice': this.safeNumber2(order, 'stop_price', 'sp'),
             'amount': totalAmount,
             'cost': undefined,
-            'average': this.safeString2(order, 'average_filled_price', 'p'),
+            'average': average,
             'filled': filledAmount,
             'remaining': remaining,
             'status': this.parseOrderStatus(status),
             'fee': undefined,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -2655,13 +2704,12 @@ export default class pacifica extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let userAddress = undefined;
-        [userAddress, params] = this.handleOriginAndSingleAddress('fetchPositions', params);
-        symbols = this.marketSymbols(symbols);
+        const [userAddress, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchPositions', params);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const request = {
             'account': userAddress,
         };
-        const response = await this.publicGetPositions(this.extend(request, params));
+        const response = await this.publicGetPositions(this.extend(request, paramsOriginAndSingleAddress));
         // {
         //   "success": true,
         //   "data": [
@@ -2686,7 +2734,7 @@ export default class pacifica extends Exchange {
         for (let i = 0; i < data.length; i++) {
             result.push(this.parsePosition(data[i], undefined));
         }
-        return this.filterByArrayPositions(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbolsNormalized);
     }
     parsePosition(position, market = undefined) {
         //
@@ -2703,8 +2751,8 @@ export default class pacifica extends Exchange {
         //     }
         //
         const marketId = this.safeString(position, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const margin = this.safeString(position, 'margin');
         const marginMode = (margin !== undefined && margin !== '0') ? 'isolated' : 'cross';
         const isIsolated = (marginMode === 'isolated');
@@ -2765,7 +2813,6 @@ export default class pacifica extends Exchange {
             'is_isolated': isIsolated,
         };
         const request = this.postActionRequest(operationType, sigPayload, params);
-        params = this.omit(params, ['expiryWindow']);
         const response = await this.privatePostAccountMargin(request);
         // {
         //     "success": true
@@ -2797,7 +2844,6 @@ export default class pacifica extends Exchange {
             'leverage': leverage,
         };
         const request = this.postActionRequest(operationType, sigPayload, params);
-        params = this.omit(params, ['expiryWindow']);
         const response = await this.privatePostAccountLeverage(request);
         // {
         //     "success": true
@@ -2811,8 +2857,8 @@ export default class pacifica extends Exchange {
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/request-withdrawal
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
-     * @param {string} tag
+     * @param {string} address validated but not sent, funds go to the account wallet
+     * @param {string} tag not used by withdraw ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
@@ -2824,11 +2870,11 @@ export default class pacifica extends Exchange {
         }
         this.checkAddress(address);
         const sigPayload = {
-            'amount': amount.toString(),
+            'amount': this.numberToString(amount),
         };
         const request = this.postActionRequest(operationType, sigPayload, params);
-        params = this.omit(params, ['expiryWindow']);
-        const response = await this.privatePostAccountWithdraw(this.extend(request, params));
+        const paramsOmitted = this.omit(params, ['expiryWindow']);
+        const response = await this.privatePostAccountWithdraw(this.extend(request, paramsOmitted));
         return { 'info': response };
     }
     /**
@@ -2845,13 +2891,12 @@ export default class pacifica extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let userAddress = undefined;
-        [userAddress, params] = this.handleOriginAndSingleAddress('fetchTradingFee', params);
+        const [userAddress, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchTradingFee', params);
         const market = this.market(symbol);
         const request = {
             'account': userAddress,
         };
-        const response = await this.publicGetAccount(this.extend(request, params));
+        const response = await this.publicGetAccount(this.extend(request, paramsOriginAndSingleAddress));
         // {
         //   "success": true,
         //   "data": {
@@ -2921,9 +2966,10 @@ export default class pacifica extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
-        const swapMarkets = await this.fetchSwapMarkets();
-        return this.parseOpenInterests(swapMarkets, symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
+        const response = await this.publicGetInfoPrices(params);
+        const data = this.safeList(response, 'data', []);
+        return this.parseOpenInterests(data, symbolsNormalized);
     }
     /**
      * @method
@@ -2935,12 +2981,16 @@ export default class pacifica extends Exchange {
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        symbol = this.symbol(symbol);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const ois = await this.fetchOpenInterests([symbol], params);
-        return ois[symbol];
+        const symbolValue = this.symbol(symbol);
+        const ois = await this.fetchOpenInterests([symbolValue], params);
+        const oi = this.safeDict(ois, symbolValue);
+        if (oi === undefined) {
+            throw new BadSymbol(this.id + ' fetchOpenInterest() could not find open interest for ' + symbolValue);
+        }
+        return oi;
     }
     parseOpenInterest(interest, market = undefined) {
         //
@@ -2958,10 +3008,10 @@ export default class pacifica extends Exchange {
         //     }
         //
         const marketId = this.safeString(interest, 'symbol');
+        const marketResolved = (marketId !== undefined) ? this.safeMarket(marketId, market) : market;
         let symbol = undefined;
         if (marketId !== undefined) {
-            market = this.safeMarket(marketId, market);
-            symbol = market['symbol'];
+            symbol = this.safeString(marketResolved, 'symbol');
         }
         let interestValue = undefined;
         const markPrice = this.safeString(interest, 'mark');
@@ -2977,7 +3027,7 @@ export default class pacifica extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -2997,13 +3047,11 @@ export default class pacifica extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate', false);
-        let userAddress = undefined;
-        [userAddress, params] = this.handleOriginAndSingleAddress('fetchLedger', params);
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchLedger', 'paginate', false);
+        const [userAddress, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchLedger', paramsPaginate);
         const defaultLimit = 100; // Default max limit
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchLedger', code, since, limit, params, 'next_cursor', 'cursor', undefined, defaultLimit);
+            return await this.fetchPaginatedCallCursor('fetchLedger', code, since, limit, paramsOriginAndSingleAddress, 'next_cursor', 'cursor', undefined, defaultLimit);
         }
         const request = {
             'account': userAddress,
@@ -3011,7 +3059,7 @@ export default class pacifica extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetAccountBalanceHistory(this.extend(request, params));
+        const response = await this.publicGetAccountBalanceHistory(this.extend(request, paramsOriginAndSingleAddress));
         // {
         //   "success": true,
         //   "data": [
@@ -3104,10 +3152,8 @@ export default class pacifica extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate', false);
-        let userAddress = undefined;
-        [userAddress, params] = this.handleOriginAndSingleAddress('fetchFundingHistory', params);
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingHistory', 'paginate', false);
+        const [userAddress, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchFundingHistory', paramsPaginate);
         const request = {
             'account': userAddress,
         };
@@ -3116,9 +3162,9 @@ export default class pacifica extends Exchange {
         }
         const defaultLimit = 100;
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchFundingHistory', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, defaultLimit);
+            return await this.fetchPaginatedCallCursor('fetchFundingHistory', symbol, since, limit, paramsOriginAndSingleAddress, 'next_cursor', 'cursor', undefined, defaultLimit);
         }
-        const response = await this.publicGetFundingHistory(this.extend(request, params));
+        const response = await this.publicGetFundingHistory(this.extend(request, paramsOriginAndSingleAddress));
         // {
         //   "success": true,
         //   "data": [
@@ -3154,8 +3200,8 @@ export default class pacifica extends Exchange {
         const id = this.safeString(income, 'history_id');
         const timestamp = this.safeInteger(income, 'created_at');
         const marketId = this.safeString(income, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const amount = this.safeString(income, 'amount');
         const code = this.safeCurrencyCode('USDC');
         const rate = this.safeNumber(income, 'rate');
@@ -3184,14 +3230,18 @@ export default class pacifica extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const currency = this.currency(code);
         const operationType = 'transfer_funds';
         const sigPayload = {
             'to_account': toAccount,
-            'amount': amount,
+            'amount': this.numberToString(amount),
         };
         const request = this.postActionRequest(operationType, sigPayload, params);
-        params = this.omit(params, ['expiryWindow']);
-        const response = this.privatePostAccountSubaccountTransfer(this.extend(request, params));
+        const paramsOmitted = this.omit(params, ['expiryWindow']);
+        const response = await this.privatePostAccountSubaccountTransfer(this.extend(request, paramsOmitted));
         //
         // {
         //   "success": true,
@@ -3204,7 +3254,11 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseTransfer(data);
+        return this.extend(this.parseTransfer(data, currency), {
+            'amount': amount,
+            'fromAccount': this.safeString(request, 'account'),
+            'toAccount': toAccount,
+        });
     }
     parseTransfer(transfer, currency = undefined) {
         //
@@ -3218,16 +3272,21 @@ export default class pacifica extends Exchange {
         //   "code": null
         // }
         //
+        const success = this.safeBool(transfer, 'success');
+        let status = undefined;
+        if (success !== undefined) {
+            status = (success === true) ? 'ok' : 'failed';
+        }
         return {
             'info': transfer,
             'id': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': undefined,
+            'currency': this.safeCurrencyCode(undefined, currency),
             'amount': undefined,
             'fromAccount': undefined,
             'toAccount': undefined,
-            'status': 'ok',
+            'status': status,
         };
     }
     /**
@@ -3244,29 +3303,24 @@ export default class pacifica extends Exchange {
      */
     async createSubAccount(name, params = {}) {
         const finalHeaders = {};
-        let agentAddress = undefined;
-        [agentAddress, params] = this.handleOption('createSubAccount', 'agentAddress');
-        let originAddress = undefined;
-        [originAddress, params] = this.handleOriginAndSingleAddress('createSubAccount', params);
+        const [agentAddress, paramsAgentAddress] = this.handleOptionStringAndParams(params, 'createSubAccount', 'agentAddress');
+        const [originAddress, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('createSubAccount', paramsAgentAddress);
         if (originAddress === undefined) {
             throw new ArgumentsRequired(this.id + ' createSubAccount() requires "originAddress" in params or "walletAddress" in requiredCredentials');
         }
         if (agentAddress !== undefined) {
             finalHeaders['agent_wallet'] = agentAddress;
         }
-        let subAccountAddress = undefined;
-        [subAccountAddress, params] = this.handleOptionAndParams(params, 'createSubAccount', 'subAccountAddress');
-        let subAccountPrivateKey = undefined;
-        [subAccountPrivateKey, params] = this.handleOptionAndParams(params, 'createSubAccount', 'subAccountPrivateKey');
+        const [subAccountAddress, paramsSubAccountAddress] = this.handleOptionStringAndParams(paramsOriginAndSingleAddress, 'createSubAccount', 'subAccountAddress');
+        const [subAccountPrivateKey, paramsSubAccountPrivateKey] = this.handleOptionStringAndParams(paramsSubAccountAddress, 'createSubAccount', 'subAccountPrivateKey');
         if (subAccountAddress === undefined) {
             throw new ArgumentsRequired(this.id + ' createSubAccount() requires a "subAccountAddress"!');
         }
         if (subAccountPrivateKey === undefined) {
             throw new ArgumentsRequired(this.id + ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
-        const timestamp = this.milliseconds();
-        let expiryWindow = undefined;
-        [expiryWindow, params] = this.handleOptionAndParams2(params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
+        const [timestamp, paramsTimestamp] = this.handleParamInteger(paramsSubAccountPrivateKey, 'timestamp', this.milliseconds());
+        const [expiryWindow, paramsExpiryWindow] = this.handleOptionIntegerAndParams2(paramsTimestamp, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         const subaccountSignatureHeader = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
@@ -3292,7 +3346,7 @@ export default class pacifica extends Exchange {
         finalHeaders['timestamp'] = timestamp;
         finalHeaders['expiry_window'] = expiryWindow;
         const request = finalHeaders;
-        const response = await this.privatePostAccountSubaccountCreate(request);
+        const response = await this.privatePostAccountSubaccountCreate(this.extend(request, paramsExpiryWindow));
         //
         // {
         //   "success": true,
@@ -3355,14 +3409,13 @@ export default class pacifica extends Exchange {
         return await this.privatePostAccountBuilderCodesRevoke(this.extend(request, params));
     }
     handleOriginAndSingleAddress(methodName, params) {
-        let address = undefined;
-        [address, params] = this.handleParamString2(params, 'account', 'address', undefined); // this is for get endpoints that accept account or address
+        const [address, paramsAccount] = this.handleParamString2(params, 'account', 'address', undefined); // this is for get endpoints that accept account or address
         if (address !== undefined) {
-            return [address, params];
+            return [address, paramsAccount];
         }
         const address1 = this.walletAddress;
         if (address1 !== undefined) {
-            return [address1, params];
+            return [address1, paramsAccount];
         }
         throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires address either as "exchange.walletAddress = ..." or as parameter or "address" in params');
     }
@@ -3374,11 +3427,17 @@ export default class pacifica extends Exchange {
         //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
         //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
         //     {"success":false,"data":null,"error":"Internal server error","code":500}
+        //     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+        //     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+        //     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
         //
-        const inCode = this.safeInteger(response, 'code'); // actually if all ok -> code = undefined or code = 200
+        // code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+        // the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+        const errorCode = this.safeString(response, 'code');
+        const errorId = this.safeString(response, 'error_id'); // undocumented, present on live errors and more specific than code
         const message = this.safeString(response, 'error');
         let error = undefined;
-        if (inCode === undefined || inCode === 200) {
+        if (errorCode === undefined || errorCode === '200') {
             error = false;
         }
         else {
@@ -3387,34 +3446,45 @@ export default class pacifica extends Exchange {
         const nonEmptyMessage = ((message !== undefined) && (message !== ''));
         if (error || nonEmptyMessage) {
             const feedback = this.id + ' ' + body;
-            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback); // Try deeper catch first
-            this.throwExactlyMatchedException(this.exceptions['exact'], inCode, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
-            throw new ExchangeError(feedback); // unknown message
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorId, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback); // documented message prefixes are more specific than the http-status echo
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            const codeAsString = code.toString();
+            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+                throw new ExchangeError(feedback); // unknown message
+            }
         }
         return undefined;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let requestBody = body;
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const host = this.implodeHostname(this.urls[urlKey][api]);
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const baseApiUrl = this.safeString(this.urls[urlKey], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const host = this.implodeHostname(baseApiUrl);
         let url = host + '/api/' + this.version + '/' + this.implodeParams(path, params);
-        params = this.omit(params, this.extractParams(path));
-        const paramsLen = Object.keys(params).length;
-        headers = {
+        const paramsOmitted = this.omit(params, this.extractParams(path));
+        const paramsLen = Object.keys(paramsOmitted).length;
+        const headersValue = {
             'Content-Type': 'application/json',
         };
-        if (method === 'GET' && paramsLen) {
-            url += '?' + this.urlencode(params);
-            headers['Accept'] = '*/*';
+        if ((method === 'GET') && (paramsLen > 0)) {
+            url += '?' + this.urlencode(paramsOmitted);
+            headersValue['Accept'] = '*/*';
         }
         if (method === 'POST') {
-            body = this.json(params);
+            requestBody = this.json(paramsOmitted);
         }
         if (this.handleOption('sign', 'apiKey') !== undefined) {
-            headers['PF-API-KEY'] = this.options['apiKey'];
+            headersValue['PF-API-KEY'] = this.options['apiKey'];
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
         const cost = this.safeString(config, 'cost', '1');
@@ -3476,19 +3546,18 @@ export default class pacifica extends Exchange {
         if (!this.isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
             const useBuilder = this.handleOption('postActionRequest', 'builderFee', true);
             let builderCode = undefined;
-            if (useBuilder) {
+            if (useBuilder === true) {
                 builderCode = this.handleOption('postActionRequest', 'builderCode');
             }
             if (builderCode !== undefined) {
                 const isOperationSupportBuilder = this.safeBool(this.options['builderSupportOperations'], operationType, false);
-                if (isOperationSupportBuilder) {
+                if (isOperationSupportBuilder === true) {
                     sigPayload['builder_code'] = builderCode;
                 }
             }
         }
-        let expiryWindow = undefined;
-        [expiryWindow, params] = this.handleOptionAndParams2(params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
-        const timestamp = this.safeInteger(params, 'timestamp', this.milliseconds());
+        const [expiryWindow, paramsExpiryWindow] = this.handleOptionIntegerAndParams2(params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
+        const timestamp = this.safeInteger(paramsExpiryWindow, 'timestamp', this.milliseconds());
         const signatureHeader = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
@@ -3496,10 +3565,8 @@ export default class pacifica extends Exchange {
         };
         const signature = this.signMessage(signatureHeader, sigPayload, this.privateKey);
         const finalHeaders = {};
-        let agentAddress = undefined;
-        [agentAddress, params] = this.handleOptionAndParams(params, 'postActionRequest', 'agentAddress');
-        let originAddress = undefined;
-        [originAddress, params] = this.handleOriginAndSingleAddress('postActionRequest', params);
+        const [agentAddress, paramsAgentAddress] = this.handleOptionStringAndParams(paramsExpiryWindow, 'postActionRequest', 'agentAddress');
+        const originAddress = this.handleOriginAndSingleAddress('postActionRequest', paramsAgentAddress)[0];
         if (originAddress === undefined) {
             throw new ArgumentsRequired(this.id + ' action: ' + operationType + ' postActionRequest() requires "originAddress" in params or "walletAddress" in requiredCredentials');
         }

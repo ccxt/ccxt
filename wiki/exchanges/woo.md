@@ -26,6 +26,8 @@
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchClosedOrders](#fetchclosedorders)
 * [fetchOrderBook](#fetchorderbook)
+* [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchOrderTrades](#fetchordertrades)
 * [fetchMyTrades](#fetchmytrades)
@@ -371,10 +373,8 @@ edit a trade order
 
 **See**
 
-- https://docs.woox.io/#edit-order
-- https://docs.woox.io/#edit-order-by-client_order_id
-- https://docs.woox.io/#edit-algo-order
-- https://docs.woox.io/#edit-algo-order-by-client_order_id
+- https://developer.woox.io/api-reference/endpoint/trading/edit_order
+- https://developer.woox.io/api-reference/endpoint/trading/edit_algo_order
 
 
 | Param | Type | Required | Description |
@@ -386,6 +386,8 @@ edit a trade order
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | client order id of the order to edit, used instead of the id argument |
+| params.trigger | <code>boolean</code> | No | whether the order is a trigger/algo order, set to true to edit an algo order without passing trigger parameters |
 | params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
 | params.stopLossPrice | <code>float</code> | No | price to trigger stop-loss orders |
 | params.takeProfitPrice | <code>float</code> | No | price to trigger take-profit orders |
@@ -436,15 +438,15 @@ cancel all open orders in a market
 
 **See**
 
-- https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+- https://developer.woox.io/api-reference/endpoint/trading/cancel_orders_by_symbol
 - https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol |
+| symbol | <code>string</code> | No | unified market symbol, cancels orders in all markets when omitted |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>boolean</code> | No | whether the order is a trigger/algo order |
+| params.trigger | <code>boolean</code> | No | set to true to cancel only trigger/algo orders |
 
 
 ```javascript
@@ -614,6 +616,49 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 ```javascript
 woo.fetchOrderBook (symbol, limit?, params?)
+```
+
+
+<a name="fetchTicker" id="fetchticker"></a>
+
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market, swap markets only
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://developer.woox.io/api-reference/endpoint/public_data/futures  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.fetchTicker (symbol, params?)
+```
+
+
+<a name="fetchTickers" id="fetchtickers"></a>
+
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market, only swap markets are supported
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://developer.woox.io/api-reference/endpoint/public_data/futures  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, swap markets only, all swap tickers are returned when not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | market type, must be 'swap' when no symbols are provided |
+
+
+```javascript
+woo.fetchTickers (symbols?, params?)
 ```
 
 
@@ -1210,7 +1255,7 @@ fetch all open positions
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols, the exchange filters server-side when exactly one symbol is provided |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1344,7 +1389,7 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols, the exchange filters server-side when exactly one symbol is provided |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

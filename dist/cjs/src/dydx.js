@@ -153,71 +153,79 @@ class dydx extends dydx$1["default"] {
             'api': {
                 'indexer': {
                     'get': {
-                        'addresses/{address}': 1,
-                        'addresses/{address}/parentSubaccountNumber/{number}': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}': 1,
-                        'assetPositions': 1,
-                        'assetPositions/parentSubaccountNumber': 1,
-                        'candles/perpetualMarkets/{market}': 1,
-                        'compliance/screen/{address}': 1,
-                        'fills': 1,
-                        'fills/parentSubaccountNumber': 1,
-                        'fundingPayments': 1,
-                        'fundingPayments/parentSubaccount': 1,
-                        'height': 0.1,
-                        'historical-pnl': 1,
-                        'historical-pnl/parentSubaccountNumber': 1,
-                        'historicalBlockTradingRewards/{address}': 1,
-                        'historicalFunding/{market}': 1,
-                        'historicalTradingRewardAggregations/{address}': 1,
-                        'orderbooks/perpetualMarket/{market}': 1,
-                        'orders': 1,
-                        'orders/parentSubaccountNumber': 1,
-                        'orders/{orderId}': 1,
-                        'perpetualMarkets': 1,
-                        'perpetualPositions': 1,
-                        'perpetualPositions/parentSubaccountNumber': 1,
-                        'screen': 1,
-                        'sparklines': 1,
-                        'time': 1,
-                        'trades/perpetualMarket/{market}': 1,
-                        'transfers': 1,
-                        'transfers/between': 1,
-                        'transfers/parentSubaccountNumber': 1,
-                        'vault/v1/megavault/historicalPnl': 1,
-                        'vault/v1/megavault/positions': 1,
-                        'vault/v1/vaults/historicalPnl': 1,
+                        'addresses/{address}': { 'cost': 1 },
+                        'addresses/{address}/parentSubaccountNumber/{number}': { 'cost': 1 },
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}': { 'cost': 1 },
+                        'assetPositions': { 'cost': 1 },
+                        'assetPositions/parentSubaccountNumber': { 'cost': 1 },
+                        'candles/perpetualMarkets/{market}': { 'cost': 1 },
+                        'compliance/screen/{address}': { 'cost': 1 },
+                        'fills': { 'cost': 1 },
+                        'fills/parentSubaccountNumber': { 'cost': 1 },
+                        'fundingPayments': { 'cost': 1 },
+                        'fundingPayments/parentSubaccount': { 'cost': 1 },
+                        'height': { 'cost': 0.1 },
+                        'historical-pnl': { 'cost': 1 },
+                        'historical-pnl/parentSubaccountNumber': { 'cost': 1 },
+                        'historicalBlockTradingRewards/{address}': { 'cost': 1 },
+                        'historicalFunding/{market}': { 'cost': 1 },
+                        'historicalTradingRewardAggregations/{address}': { 'cost': 1 },
+                        'orderbooks/perpetualMarket/{market}': { 'cost': 1 },
+                        'orders': { 'cost': 1 },
+                        'orders/parentSubaccountNumber': { 'cost': 1 },
+                        'orders/{orderId}': { 'cost': 1 },
+                        'perpetualMarkets': { 'cost': 1 },
+                        'perpetualPositions': { 'cost': 1 },
+                        'perpetualPositions/parentSubaccountNumber': { 'cost': 1 },
+                        'screen': { 'cost': 1 },
+                        'sparklines': { 'cost': 1 },
+                        'time': { 'cost': 1 },
+                        'trades/perpetualMarket/{market}': { 'cost': 1 },
+                        'transfers': { 'cost': 1 },
+                        'transfers/between': { 'cost': 1 },
+                        'transfers/parentSubaccountNumber': { 'cost': 1 },
+                        'vault/v1/megavault/historicalPnl': { 'cost': 1 },
+                        'vault/v1/megavault/positions': { 'cost': 1 },
+                        'vault/v1/vaults/historicalPnl': { 'cost': 1 },
                         //
-                        'perpetualMarketSparklines': 1,
-                        'perpetualMarkets/{ticker}': 1,
-                        'perpetualMarkets/{ticker}/orderbook': 1,
-                        'trades/perpetualMarket/{ticker}': 1,
-                        'historicalFunding/{ticker}': 1,
-                        'candles/{ticker}/{resolution}': 1,
-                        'addresses/{address}/subaccounts': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': 1,
-                        'fills/parentSubaccount': 1,
-                        'historical-pnl/parentSubaccount': 1,
+                        'perpetualMarketSparklines': { 'cost': 1 },
+                        'perpetualMarkets/{ticker}': { 'cost': 1 },
+                        'perpetualMarkets/{ticker}/orderbook': { 'cost': 1 },
+                        'trades/perpetualMarket/{ticker}': { 'cost': 1 },
+                        'historicalFunding/{ticker}': { 'cost': 1 },
+                        'candles/{ticker}/{resolution}': { 'cost': 1 },
+                        'addresses/{address}/subaccounts': { 'cost': 1 },
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions': { 'cost': 1 },
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions': { 'cost': 1 },
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': { 'cost': 1 },
+                        'fills/parentSubaccount': { 'cost': 1 },
+                        'historical-pnl/parentSubaccount': { 'cost': 1 },
+                        'pnl': { 'cost': 1 },
+                        'pnl/parentSubaccountNumber': { 'cost': 1 },
+                        'tradeHistory': { 'cost': 1 },
+                        'tradeHistory/parentSubaccountNumber': { 'cost': 1 },
+                    },
+                    'post': {
+                        'turnkey/signin': { 'cost': 1 },
+                        'turnkey/uploadAddress': { 'cost': 1 },
                     },
                 },
                 'nodeRpc': {
                     'get': {
-                        'abci_info': 1,
-                        'block': 1,
-                        'broadcast_tx_async': 1,
-                        'broadcast_tx_sync': 1,
-                        'tx': 1,
+                        'abci_info': { 'cost': 1 },
+                        'block': { 'cost': 1 },
+                        'broadcast_tx_async': { 'cost': 1 },
+                        'broadcast_tx_sync': { 'cost': 1 },
+                        'tx': { 'cost': 1 },
                     },
                 },
                 'nodeRest': {
                     'get': {
-                        'cosmos/auth/v1beta1/account_info/{dydxAddress}': 1,
+                        'cosmos/auth/v1beta1/account_info/{dydxAddress}': { 'cost': 1 },
                     },
                     'post': {
-                        'cosmos/tx/v1beta1/encode': 1,
-                        'cosmos/tx/v1beta1/simulate': 1,
+                        'cosmos/tx/v1beta1/encode': { 'cost': 1 },
+                        'cosmos/tx/v1beta1/simulate': { 'cost': 1 },
                     },
                 },
             },
@@ -511,6 +519,9 @@ class dydx extends dydx$1["default"] {
         const baseId = this.safeString(market, 'baseId', baseName); // idk where 'baseId' comes from, but leaving as is
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settleId = 'USDC';
         const settle = this.safeCurrencyCode(settleId);
         const symbol = base + '/' + quote + ':' + settle;
@@ -754,11 +765,11 @@ class dydx extends dydx$1["default"] {
             request['fromIso'] = this.iso8601(since);
         }
         const until = this.safeInteger(params, 'until');
-        params = this.omit(params, 'until');
+        const paramsOmitted = this.omit(params, 'until');
         if (until !== undefined) {
             request['toIso'] = this.iso8601(until);
         }
-        const response = await this.indexerGetCandlesPerpetualMarketsMarket(this.extend(request, params));
+        const response = await this.indexerGetCandlesPerpetualMarketsMarket(this.extend(request, paramsOmitted));
         //
         // {
         //     "candles": [
@@ -845,15 +856,13 @@ class dydx extends dydx$1["default"] {
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
     handlePublicAddress(methodName, params) {
-        let userAux = undefined;
-        [userAux, params] = this.handleOptionAndParams(params, methodName, 'user');
-        let user = userAux;
-        [user, params] = this.handleOptionAndParams(params, methodName, 'address', userAux);
+        const [userAux, paramsUser] = this.handleOptionStringAndParams(params, methodName, 'user');
+        const [user, paramsAddress] = this.handleOptionStringAndParams(paramsUser, methodName, 'address', userAux);
         if ((user !== undefined) && (user !== '')) {
-            return [user, params];
+            return [user, paramsAddress];
         }
         if ((this.walletAddress !== undefined) && (this.walletAddress !== '')) {
-            return [this.walletAddress, params];
+            return [this.walletAddress, paramsAddress];
         }
         throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the walletAddress set');
     }
@@ -975,10 +984,8 @@ class dydx extends dydx$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let userAddress = undefined;
-        let subAccountNumber = undefined;
-        [userAddress, params] = this.handlePublicAddress('fetchOrders', params);
-        [subAccountNumber, params] = this.handleOptionAndParams(params, 'fetchOrders', 'subAccountNumber', '0');
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchOrders', params);
+        const [subAccountNumber, paramsSubAccountNumber] = this.handleOptionStringAndParams(paramsPublicAddress, 'fetchOrders', 'subAccountNumber', '0');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -994,7 +1001,7 @@ class dydx extends dydx$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.indexerGetOrders(this.extend(request, params));
+        const response = await this.indexerGetOrders(this.extend(request, paramsSubAccountNumber));
         //
         // [
         //     {
@@ -1084,8 +1091,8 @@ class dydx extends dydx$1["default"] {
         // }
         //
         const marketId = this.safeString(position, 'market');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower(position, 'side');
         let quantity = this.safeString(position, 'size');
         if (side !== 'long') {
@@ -1145,10 +1152,8 @@ class dydx extends dydx$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        let userAddress = undefined;
-        let subAccountNumber = undefined;
-        [userAddress, params] = this.handlePublicAddress('fetchPositions', params);
-        [subAccountNumber, params] = this.handleOptionAndParams(params, 'fetchOrders', 'subAccountNumber', '0');
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchPositions', params);
+        const [subAccountNumber, paramsSubAccountNumber] = this.handleOptionStringAndParams(paramsPublicAddress, 'fetchPositions', 'subAccountNumber', '0');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1157,7 +1162,7 @@ class dydx extends dydx$1["default"] {
             'subaccountNumber': subAccountNumber,
             'status': 'OPEN', // ['OPEN', 'CLOSED', 'LIQUIDATED']
         };
-        const response = await this.indexerGetPerpetualPositions(this.extend(request, params));
+        const response = await this.indexerGetPerpetualPositions(this.extend(request, paramsSubAccountNumber));
         //
         // {
         //     "positions": [
@@ -1203,7 +1208,7 @@ class dydx extends dydx$1["default"] {
     }
     signOnboardingAction() {
         const message = { 'action': 'dYdX Chain Onboarding' };
-        const chainId = this.options['chainId'];
+        const chainId = this.safeInteger(this.options, 'chainId');
         const domain = {
             'chainId': chainId,
             'name': 'dYdX Chain',
@@ -1302,15 +1307,15 @@ class dydx extends dydx$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' createOrderRequest() requires a side argument');
         }
         const orderSide = side.toUpperCase();
-        let subaccountId = 0;
-        [subaccountId, params] = this.handleOptionAndParams(params, 'createOrder', 'subAccountId', subaccountId);
-        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue(params, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
+        const subaccountId = 0;
+        const [subaccountIdOption, paramsSubAccountId] = this.handleOptionIntegerAndParams(params, 'createOrder', 'subAccountId', subaccountId);
+        const triggerPrice = this.safeString2(paramsSubAccountId, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue(paramsSubAccountId, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeValue(paramsSubAccountId, 'takeProfitPrice');
         const isConditional = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
         const isMarket = orderType === 'MARKET';
-        const timeInForce = this.safeStringUpper(params, 'timeInForce', 'GTT');
-        const postOnly = this.isPostOnly(isMarket, undefined, params);
+        const timeInForce = this.safeStringUpper(paramsSubAccountId, 'timeInForce', 'GTT');
+        const postOnly = this.isPostOnly(isMarket, undefined, paramsSubAccountId);
         const amountStr = this.amountToPrecision(symbol, amount);
         const priceStr = this.priceToPrecision(symbol, price);
         const marketInfo = this.safeDict(market, 'info', {});
@@ -1371,11 +1376,11 @@ class dydx extends dydx$1["default"] {
             }
             conditionalOrderTriggerSubticks = Precise["default"].stringMul(conditionalOrderTriggerSubticks, priceScale);
         }
-        const latestBlockHeight = this.safeInteger(params, 'latestBlockHeight');
-        let goodTillBlock = this.safeInteger(params, 'goodTillBlock');
+        const latestBlockHeight = this.safeInteger(paramsSubAccountId, 'latestBlockHeight');
+        let goodTillBlock = this.safeInteger(paramsSubAccountId, 'goodTillBlock');
         let goodTillBlockTime = undefined;
-        let goodTillBlockTimeInSeconds = 2592000;
-        [goodTillBlockTimeInSeconds, params] = this.handleOptionAndParams(params, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
+        const goodTillBlockTimeInSeconds = 2592000;
+        const [goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds] = this.handleOptionIntegerAndParams(paramsSubAccountId, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
                 // short term order
@@ -1386,20 +1391,20 @@ class dydx extends dydx$1["default"] {
             }
         }
         else {
-            if (goodTillBlockTimeInSeconds === undefined) {
+            if (goodTillBlockTimeInSecondsOption === undefined) {
                 throw new errors.ArgumentsRequired('goodTillBlockTimeInSeconds is required.');
             }
-            goodTillBlockTime = this.seconds() + goodTillBlockTimeInSeconds;
+            goodTillBlockTime = this.seconds() + goodTillBlockTimeInSecondsOption;
         }
         const sideNumber = (orderSide === 'BUY') ? 1 : 2;
         const defaultClientOrderId = this.randNumber(9); // 2**32 - 1 is 10 digits, but it may overflow with 10
-        const clientOrderId = this.safeInteger(params, 'clientOrderId', defaultClientOrderId);
+        const clientOrderId = this.safeInteger(paramsGoodTillBlockTimeInSeconds, 'clientOrderId', defaultClientOrderId);
         const orderPayload = {
             'order': {
                 'orderId': {
                     'subaccountId': {
                         'owner': this.getWalletAddress(),
-                        'number': subaccountId,
+                        'number': subaccountIdOption,
                     },
                     'clientId': clientOrderId,
                     'orderFlags': orderFlag,
@@ -1422,15 +1427,15 @@ class dydx extends dydx$1["default"] {
             'typeUrl': '/dydxprotocol.clob.MsgPlaceOrder',
             'value': orderPayload,
         };
-        params = this.omit(params, ['reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId']);
+        const paramsOmitted = this.omit(paramsGoodTillBlockTimeInSeconds, ['reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId']);
         const walletAddress = this.getWalletAddress();
         const clobPairId = this.safeInteger(marketInfo, 'clobPairId', 0);
-        const subaccountIdValue = (subaccountId === undefined) ? 0 : subaccountId;
+        const subaccountIdValue = (subaccountIdOption === undefined) ? 0 : subaccountIdOption;
         const clientOrderIdValue = (clientOrderId === undefined) ? 0 : clientOrderId;
         const orderFlagValue = (orderFlag === undefined) ? 0 : orderFlag;
         const clobPairIdValue = (clobPairId === undefined) ? 0 : clobPairId;
         const orderId = this.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
-        return [orderId, this.extend(signingPayload, params)];
+        return [orderId, this.extend(signingPayload, paramsOmitted)];
     }
     createOrderIdFromParts(address, subAccountNumber, clientOrderId, orderFlags, clobPairId) {
         const nameSp = this.safeString(this.options, 'namespace', '0f9da948-a6fb-4c45-9edc-4685c3f3317d');
@@ -1482,7 +1487,7 @@ class dydx extends dydx$1["default"] {
      * @param {bool} [params.postOnly] true or false whether the order is post-only
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
-     * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
+     * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1497,7 +1502,7 @@ class dydx extends dydx$1["default"] {
         const orderRequestRes = this.createOrderRequest(symbol, type, side, amount, price, newParams);
         const orderId = orderRequestRes[0];
         const orderRequest = orderRequestRes[1];
-        const chainName = this.options['chainName'];
+        const chainName = this.safeString(this.options, 'chainName');
         const signedTx = this.signDydxTx(credentials['privateKey'], orderRequest, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
@@ -1536,48 +1541,47 @@ class dydx extends dydx$1["default"] {
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {float} [params.orderFlags] default is 64, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
      * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20
-     * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
+     * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
      * @param {int} [params.subAccountId] sub account id, default is 0
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
-        params = this.omit(params, ['trigger', 'stop']);
-        if (!isTrigger && (symbol === undefined)) {
+        const paramsOmitted = this.omit(params, ['trigger', 'stop']);
+        if ((isTrigger !== true) && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientId', id);
+        const clientOrderId = this.safeString2(paramsOmitted, 'clientOrderId', 'clientId', id);
         if (clientOrderId === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.');
         }
         const idString = id.toString();
-        if (id !== undefined && idString.indexOf('-') > -1) {
+        if (idString.indexOf('-') > -1) {
             throw new errors.NotSupported(this.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
-        let goodTillBlock = this.safeInteger(params, 'goodTillBlock');
-        let goodTillBlockTimeInSeconds = 2592000;
-        [goodTillBlockTimeInSeconds, params] = this.handleOptionAndParams(params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
+        let goodTillBlock = this.safeInteger(paramsOmitted, 'goodTillBlock');
+        const goodTillBlockTimeInSeconds = 2592000;
+        const [goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds] = this.handleOptionIntegerAndParams(paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         let goodTillBlockTime = undefined;
-        const defaultOrderFlags = (isTrigger) ? 32 : 64;
-        const orderFlags = this.safeInteger(params, 'orderFlags', defaultOrderFlags);
-        let subAccountId = 0;
-        [subAccountId, params] = this.handleOptionAndParams(params, 'cancelOrder', 'subAccountId', subAccountId);
-        params = this.omit(params, ['clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId', 'clientId']);
+        const defaultOrderFlags = (isTrigger === true) ? 32 : 64;
+        const orderFlags = this.safeInteger(paramsGoodTillBlockTimeInSeconds, 'orderFlags', defaultOrderFlags);
+        const subAccountId = 0;
+        const subAccountIdOption = this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId)[0];
         if (orderFlags !== 0 && orderFlags !== 64 && orderFlags !== 32) {
             throw new errors.InvalidOrder(this.id + ' invalid orderFlags, allowed values are (0, 64, 32).');
         }
         if (orderFlags > 0) {
-            if (goodTillBlockTimeInSeconds === undefined) {
+            if (goodTillBlockTimeInSecondsOption === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' goodTillBlockTimeInSeconds is required in params for long term or conditional order.');
             }
             if (goodTillBlock !== undefined && goodTillBlock > 0) {
                 throw new errors.InvalidOrder(this.id + ' goodTillBlock should be 0 for long term or conditional order.');
             }
-            goodTillBlockTime = this.seconds() + goodTillBlockTimeInSeconds;
+            goodTillBlockTime = this.seconds() + goodTillBlockTimeInSecondsOption;
         }
         else {
             if (goodTillBlock === undefined) {
@@ -1591,7 +1595,7 @@ class dydx extends dydx$1["default"] {
             'orderId': {
                 'subaccountId': {
                     'owner': this.getWalletAddress(),
-                    'number': subAccountId,
+                    'number': subAccountIdOption,
                 },
                 'clientId': clientOrderId,
                 'orderFlags': orderFlags,
@@ -1604,7 +1608,7 @@ class dydx extends dydx$1["default"] {
             'typeUrl': '/dydxprotocol.clob.MsgCancelOrder',
             'value': cancelPayload,
         };
-        const chainName = this.options['chainName'];
+        const chainName = this.safeString(this.options, 'chainName');
         const signedTx = this.signDydxTx(credentials['privateKey'], signingPayload, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
@@ -1646,17 +1650,16 @@ class dydx extends dydx$1["default"] {
         }
         const market = this.market(symbol);
         const clientOrderIds = this.safeList(params, 'clientOrderIds');
-        if (!clientOrderIds) {
+        if (clientOrderIds === undefined) {
             throw new errors.NotSupported(this.id + ' cancelOrders only support clientOrderIds.');
         }
-        let subAccountId = 0;
-        [subAccountId, params] = this.handleOptionAndParams(params, 'cancelOrders', 'subAccountId', subAccountId);
-        let goodTillBlock = this.safeInteger(params, 'goodTillBlock');
+        const subAccountId = 0;
+        const [subAccountIdOption, paramsSubAccountId] = this.handleOptionIntegerAndParams(params, 'cancelOrders', 'subAccountId', subAccountId);
+        let goodTillBlock = this.safeInteger(paramsSubAccountId, 'goodTillBlock');
         if (goodTillBlock === undefined) {
             const latestBlockHeight = await this.fetchLatestBlockHeight();
             goodTillBlock = latestBlockHeight + 20;
         }
-        params = this.omit(params, ['clientOrderIds', 'goodTillBlock', 'subaccountId']);
         const credentials = this.retrieveCredentials();
         const account = await this.fetchDydxAccount();
         const cancelOrders = {
@@ -1666,7 +1669,7 @@ class dydx extends dydx$1["default"] {
         const cancelPayload = {
             'subaccountId': {
                 'owner': this.getWalletAddress(),
-                'number': subAccountId,
+                'number': subAccountIdOption,
             },
             'shortTermCancels': [cancelOrders],
             'goodTilBlock': goodTillBlock,
@@ -1675,7 +1678,7 @@ class dydx extends dydx$1["default"] {
             'typeUrl': '/dydxprotocol.clob.MsgBatchCancel',
             'value': cancelPayload,
         };
-        const chainName = this.options['chainName'];
+        const chainName = this.safeString(this.options, 'chainName');
         const signedTx = this.signDydxTx(credentials['privateKey'], signingPayload, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
@@ -1759,7 +1762,7 @@ class dydx extends dydx$1["default"] {
         //
         const currencyId = this.safeString(item, 'symbol');
         const code = this.safeCurrencyCode(currencyId, currency);
-        currency = this.safeCurrency(currencyId, currency);
+        const currencyResolved = this.safeCurrency(currencyId, currency);
         const type = this.safeStringUpper(item, 'type');
         let direction = undefined;
         if (type !== undefined) {
@@ -1790,7 +1793,7 @@ class dydx extends dydx$1["default"] {
             'after': undefined,
             'status': undefined,
             'fee': undefined,
-        }, currency);
+        }, currencyResolved);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {
@@ -1853,12 +1856,12 @@ class dydx extends dydx$1["default"] {
         let gasPrice = undefined;
         let denom = undefined;
         if (defaultFeeDenom === 'uusdc') {
-            gasPrice = feeDenom['USDC_GAS_PRICE'];
-            denom = feeDenom['USDC_DENOM'];
+            gasPrice = this.safeString(feeDenom, 'USDC_GAS_PRICE');
+            denom = this.safeString(feeDenom, 'USDC_DENOM');
         }
         else {
-            gasPrice = feeDenom['CHAINTOKEN_GAS_PRICE'];
-            denom = feeDenom['CHAINTOKEN_DENOM'];
+            gasPrice = this.safeString(feeDenom, 'CHAINTOKEN_GAS_PRICE');
+            denom = this.safeString(feeDenom, 'CHAINTOKEN_DENOM');
         }
         const gasLimit = Math.ceil(this.parseToNumeric(Precise["default"].stringMul(gasUsed, defaultFeeMultiplier)));
         let feeAmount = Precise["default"].stringMul(this.numberToString(gasLimit), gasPrice);
@@ -1907,7 +1910,6 @@ class dydx extends dydx$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' transfer requires fromSubaccountId and toSubaccountId.');
             }
         }
-        params = this.omit(params, ['fromSubaccountId', 'toSubaccountId']);
         const credentials = this.retrieveCredentials();
         const account = await this.fetchDydxAccount();
         const usd = this.parseToInt(Precise["default"].stringMul(this.numberToString(amount), '1000000'));
@@ -1953,7 +1955,7 @@ class dydx extends dydx$1["default"] {
             };
         }
         const txFee = await this.estimateTxFee(signingPayload, '', account);
-        const chainName = this.options['chainName'];
+        const chainName = this.safeString(this.options, 'chainName');
         const signedTx = this.signDydxTx(credentials['privateKey'], signingPayload, '', chainName, account, undefined, txFee);
         const request = {
             'tx': signedTx,
@@ -2119,7 +2121,6 @@ class dydx extends dydx$1["default"] {
         if (subaccountId === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' withdraw requires subaccountId.');
         }
-        params = this.omit(params, ['subaccountId']);
         const currency = this.currency(code);
         const credentials = this.retrieveCredentials();
         const account = await this.fetchDydxAccount();
@@ -2138,7 +2139,7 @@ class dydx extends dydx$1["default"] {
             'value': payload,
         };
         const txFee = await this.estimateTxFee(signingPayload, tag, account);
-        const chainName = this.options['chainName'];
+        const chainName = this.safeString(this.options, 'chainName');
         const signedTx = this.signDydxTx(credentials['privateKey'], signingPayload, tag, chainName, account, undefined, txFee);
         const request = {
             'tx': signedTx,
@@ -2240,16 +2241,14 @@ class dydx extends dydx$1["default"] {
     }
     async fetchTransactionsHelper(code = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = this.safeString(params, 'methodName');
-        params = this.omit(params, 'methodName');
-        let userAddress = undefined;
-        let subAccountNumber = undefined;
-        [userAddress, params] = this.handlePublicAddress(methodName, params);
-        [subAccountNumber, params] = this.handleOptionAndParams(params, methodName, 'subAccountNumber', '0');
+        const paramsOmitted = this.omit(params, 'methodName');
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress(methodName, paramsOmitted);
+        const [subAccountNumber, paramsSubAccountNumber] = this.handleOptionStringAndParams(paramsPublicAddress, methodName, 'subAccountNumber', '0');
         const request = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
         };
-        const response = await this.indexerGetTransfers(this.extend(request, params));
+        const response = await this.indexerGetTransfers(this.extend(request, paramsSubAccountNumber));
         //
         // {
         //     "transfers": [
@@ -2285,12 +2284,11 @@ class dydx extends dydx$1["default"] {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
-        let userAddress = undefined;
-        [userAddress, params] = this.handlePublicAddress('fetchAccounts', params);
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchAccounts', params);
         const request = {
             'address': userAddress,
         };
-        const response = await this.indexerGetAddressesAddress(this.extend(request, params));
+        const response = await this.indexerGetAddressesAddress(this.extend(request, paramsPublicAddress));
         //
         // {
         //     "subaccounts": [
@@ -2362,15 +2360,13 @@ class dydx extends dydx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let userAddress = undefined;
-        [userAddress, params] = this.handlePublicAddress('fetchAccounts', params);
-        let subaccountNumber = undefined;
-        [subaccountNumber, params] = this.handleOptionAndParams(params, 'fetchAccounts', 'subaccountNumber', 0);
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchBalance', params);
+        const [subaccountNumber, paramsSubaccountNumber] = this.handleOptionIntegerAndParams(paramsPublicAddress, 'fetchBalance', 'subaccountNumber', 0);
         const request = {
             'address': userAddress,
             'subaccountNumber': subaccountNumber,
         };
-        const response = await this.indexerGetAddressesAddressSubaccountNumberSubaccountNumber(this.extend(request, params));
+        const response = await this.indexerGetAddressesAddressSubaccountNumberSubaccountNumber(this.extend(request, paramsSubaccountNumber));
         //
         // {
         //     "subaccount": {
@@ -2444,7 +2440,11 @@ class dydx extends dydx$1["default"] {
         return this.safeBalance(result);
     }
     nonce() {
-        return this.milliseconds() - this.options['timeDifference'];
+        const timeDifference = this.safeInteger(this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new errors.ExchangeError(this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds() - timeDifference;
     }
     getWalletAddress() {
         if (this.walletAddress !== undefined && this.walletAddress !== '') {
@@ -2461,26 +2461,34 @@ class dydx extends dydx$1["default"] {
         throw new errors.ArgumentsRequired(this.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
     }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const pathWithParams = this.implodeParams(path, params);
-        let url = this.urls['api'][section];
-        params = this.omit(params, this.extractParams(path));
-        params = this.keysort(params);
+        const apiUrl = this.safeString(this.urls['api'], section);
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl;
+        const paramsOmitted = this.omit(params, this.extractParams(path));
+        const paramsSorted = this.keysort(paramsOmitted);
         url += '/' + pathWithParams;
         if (method === 'GET') {
-            if (Object.keys(params).length) {
-                url += '?' + this.urlencode(params);
+            if (Object.keys(paramsSorted).length > 0) {
+                url += '?' + this.urlencode(paramsSorted);
             }
         }
         else {
-            body = this.json(params);
-            headers = {
+            requestBody = this.json(paramsSorted);
+            requestHeaders = {
                 'Content-type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
+        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //
@@ -2492,10 +2500,10 @@ class dydx extends dydx$1["default"] {
         //
         const result = this.safeDict(response, 'result');
         let errorCode = this.safeString(result, 'code');
-        if (!errorCode) {
+        if ((errorCode === undefined) || (errorCode === '')) {
             errorCode = this.safeString(response, 'code');
         }
-        if (errorCode) {
+        if ((errorCode !== undefined) && (errorCode !== '')) {
             const errorCodeNum = this.parseToNumeric(errorCode);
             if (errorCodeNum > 0) {
                 const feedback = this.id + ' ' + this.json(response);

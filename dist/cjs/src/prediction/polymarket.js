@@ -100,168 +100,168 @@ class polymarket extends polymarket$1["default"] {
                 'gamma': {
                     'public': {
                         'get': {
-                            'status': 1,
-                            'comments': 1,
-                            'comments/{id}': 1,
-                            'comments/user_address/{user_address}': 1,
-                            'events': 1,
-                            'events/creators': 1,
-                            'events/creators/{id}': 1,
-                            'events/keyset': 1,
-                            'events/pagination': 1,
-                            'events/results': 1,
-                            'events/slug/{slug}': 1,
-                            'events/{id}': 1,
-                            'events/{id}/comments/count': 1,
-                            'events/{id}/tags': 1,
-                            'events/{id}/tweet-count': 1,
-                            'markets': 1,
-                            'markets/keyset': 1,
-                            'markets/slug/{slug}': 1,
-                            'markets/{id}': 1,
-                            'markets/{id}/description': 1,
-                            'markets/{id}/tags': 1,
-                            'profiles/user_address/{user_address}': 1,
-                            'public-profile': 1,
-                            'public-search': 1,
-                            'series': 1,
-                            'series-summary/slug/{slug}': 1,
-                            'series-summary/{id}': 1,
-                            'series/{id}': 1,
-                            'series/{id}/comments/count': 1,
-                            'sports': 1,
-                            'sports/market-types': 1,
-                            'tags': 1,
-                            'tags/slug/{slug}': 1,
-                            'tags/slug/{slug}/related-tags': 1,
-                            'tags/slug/{slug}/related-tags/tags': 1,
-                            'tags/{id}': 1,
-                            'tags/{id}/related-tags': 1,
-                            'tags/{id}/related-tags/tags': 1,
-                            'teams': 1,
-                            'teams/{id}': 1,
+                            'status': { 'cost': 1 },
+                            'comments': { 'cost': 1 },
+                            'comments/{id}': { 'cost': 1 },
+                            'comments/user_address/{user_address}': { 'cost': 1 },
+                            'events': { 'cost': 1 },
+                            'events/creators': { 'cost': 1 },
+                            'events/creators/{id}': { 'cost': 1 },
+                            'events/keyset': { 'cost': 1 },
+                            'events/pagination': { 'cost': 1 },
+                            'events/results': { 'cost': 1 },
+                            'events/slug/{slug}': { 'cost': 1 },
+                            'events/{id}': { 'cost': 1 },
+                            'events/{id}/comments/count': { 'cost': 1 },
+                            'events/{id}/tags': { 'cost': 1 },
+                            'events/{id}/tweet-count': { 'cost': 1 },
+                            'markets': { 'cost': 1 },
+                            'markets/keyset': { 'cost': 1 },
+                            'markets/slug/{slug}': { 'cost': 1 },
+                            'markets/{id}': { 'cost': 1 },
+                            'markets/{id}/description': { 'cost': 1 },
+                            'markets/{id}/tags': { 'cost': 1 },
+                            'profiles/user_address/{user_address}': { 'cost': 1 },
+                            'public-profile': { 'cost': 1 },
+                            'public-search': { 'cost': 1 },
+                            'series': { 'cost': 1 },
+                            'series-summary/slug/{slug}': { 'cost': 1 },
+                            'series-summary/{id}': { 'cost': 1 },
+                            'series/{id}': { 'cost': 1 },
+                            'series/{id}/comments/count': { 'cost': 1 },
+                            'sports': { 'cost': 1 },
+                            'sports/market-types': { 'cost': 1 },
+                            'tags': { 'cost': 1 },
+                            'tags/slug/{slug}': { 'cost': 1 },
+                            'tags/slug/{slug}/related-tags': { 'cost': 1 },
+                            'tags/slug/{slug}/related-tags/tags': { 'cost': 1 },
+                            'tags/{id}': { 'cost': 1 },
+                            'tags/{id}/related-tags': { 'cost': 1 },
+                            'tags/{id}/related-tags/tags': { 'cost': 1 },
+                            'teams': { 'cost': 1 },
+                            'teams/{id}': { 'cost': 1 },
                         },
                         'post': {
-                            'markets/abridged': 1,
-                            'markets/information': 1,
+                            'markets/abridged': { 'cost': 1 },
+                            'markets/information': { 'cost': 1 },
                         },
                     },
                 },
                 'clob': {
                     'public': {
                         'get': {
-                            'book': 1,
-                            'books': 1,
-                            'builder/trades': 1,
-                            'clob-markets/{condition_id}': 1,
-                            'fee-rate': 1,
-                            'fee-rate/{token_id}': 1,
-                            'last-trade-price': 1,
-                            'last-trades-prices': 1,
-                            'markets-by-token/{token_id}': 1,
-                            'markets/live-activity/{condition_id}': 1,
-                            'midpoint': 1,
-                            'midpoints': 1,
-                            'neg-risk': 1,
-                            'neg-risk/{token_id}': 1,
-                            'price': 1,
-                            'prices': 1,
-                            'prices-history': 1,
-                            'rebates/current': 1,
-                            'rewards/markets/current': 1,
-                            'rewards/markets/multi': 1,
-                            'rewards/markets/{condition_id}': 1,
-                            'sampling-markets': 1,
-                            'sampling-simplified-markets': 1,
-                            'simplified-markets': 1,
-                            'spread': 1,
-                            'tick-size': 1,
-                            'tick-size/{token_id}': 1,
-                            'time': 1,
+                            'book': { 'cost': 1 },
+                            'books': { 'cost': 1 },
+                            'builder/trades': { 'cost': 1 },
+                            'clob-markets/{condition_id}': { 'cost': 1 },
+                            'fee-rate': { 'cost': 1 },
+                            'fee-rate/{token_id}': { 'cost': 1 },
+                            'last-trade-price': { 'cost': 1 },
+                            'last-trades-prices': { 'cost': 1 },
+                            'markets-by-token/{token_id}': { 'cost': 1 },
+                            'markets/live-activity/{condition_id}': { 'cost': 1 },
+                            'midpoint': { 'cost': 1 },
+                            'midpoints': { 'cost': 1 },
+                            'neg-risk': { 'cost': 1 },
+                            'neg-risk/{token_id}': { 'cost': 1 },
+                            'price': { 'cost': 1 },
+                            'prices': { 'cost': 1 },
+                            'prices-history': { 'cost': 1 },
+                            'rebates/current': { 'cost': 1 },
+                            'rewards/markets/current': { 'cost': 1 },
+                            'rewards/markets/multi': { 'cost': 1 },
+                            'rewards/markets/{condition_id}': { 'cost': 1 },
+                            'sampling-markets': { 'cost': 1 },
+                            'sampling-simplified-markets': { 'cost': 1 },
+                            'simplified-markets': { 'cost': 1 },
+                            'spread': { 'cost': 1 },
+                            'tick-size': { 'cost': 1 },
+                            'tick-size/{token_id}': { 'cost': 1 },
+                            'time': { 'cost': 1 },
                         },
                         'post': {
-                            'batch-prices-history': 1,
-                            'books': 1,
-                            'last-trades-prices': 1,
-                            'markets/live-activity': 1,
-                            'midpoints': 1,
-                            'prices': 1,
-                            'spreads': 1,
+                            'batch-prices-history': { 'cost': 1 },
+                            'books': { 'cost': 1 },
+                            'last-trades-prices': { 'cost': 1 },
+                            'markets/live-activity': { 'cost': 1 },
+                            'midpoints': { 'cost': 1 },
+                            'prices': { 'cost': 1 },
+                            'spreads': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'get': {
-                            'auth/api-keys': 1,
-                            'auth/ban-status/closed-only': 1,
-                            'auth/builder-api-key': 1,
-                            'auth/derive-api-key': 1,
-                            'balance-allowance': 1,
-                            'balance-allowance/update': 1,
-                            'data/order/{id}': 1,
-                            'data/orders': 1,
-                            'data/trades': 1,
-                            'notifications': 1,
-                            'order-scoring': 1,
-                            'orders-scoring': 1,
-                            'rewards/user': 1,
-                            'rewards/user/markets': 1,
-                            'rewards/user/percentages': 1,
-                            'rewards/user/total': 1,
+                            'auth/api-keys': { 'cost': 1 },
+                            'auth/ban-status/closed-only': { 'cost': 1 },
+                            'auth/builder-api-key': { 'cost': 1 },
+                            'auth/derive-api-key': { 'cost': 1 },
+                            'balance-allowance': { 'cost': 1 },
+                            'balance-allowance/update': { 'cost': 1 },
+                            'data/order/{id}': { 'cost': 1 },
+                            'data/orders': { 'cost': 1 },
+                            'data/trades': { 'cost': 1 },
+                            'notifications': { 'cost': 1 },
+                            'order-scoring': { 'cost': 1 },
+                            'orders-scoring': { 'cost': 1 },
+                            'rewards/user': { 'cost': 1 },
+                            'rewards/user/markets': { 'cost': 1 },
+                            'rewards/user/percentages': { 'cost': 1 },
+                            'rewards/user/total': { 'cost': 1 },
                         },
                         'post': {
-                            'auth/api-key': 1,
-                            'auth/builder-api-key': 1,
-                            'heartbeats': 1,
-                            'order': 1,
-                            'orders': 1,
-                            'v1/heartbeats': 1,
+                            'auth/api-key': { 'cost': 1 },
+                            'auth/builder-api-key': { 'cost': 1 },
+                            'heartbeats': { 'cost': 1 },
+                            'order': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'v1/heartbeats': { 'cost': 1 },
                         },
                         'delete': {
-                            'auth/api-key': 1,
-                            'auth/builder-api-key': 1,
-                            'cancel-all': 1,
-                            'cancel-market-orders': 1,
-                            'notifications': 1,
-                            'order': 1,
-                            'orders': 1,
+                            'auth/api-key': { 'cost': 1 },
+                            'auth/builder-api-key': { 'cost': 1 },
+                            'cancel-all': { 'cost': 1 },
+                            'cancel-market-orders': { 'cost': 1 },
+                            'notifications': { 'cost': 1 },
+                            'order': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
                         },
                     },
                 },
                 'data': {
                     'public': {
                         'get': {
-                            'activity': 1,
-                            'closed-positions': 1,
-                            'holders': 1,
-                            'live-volume': 1,
-                            'oi': 1,
-                            'other': 1,
-                            'positions': 1,
-                            'revisions': 1,
-                            'traded': 1,
-                            'trades': 1,
-                            'v1/accounting/snapshot': 1,
-                            'v1/activity/combos': 1,
-                            'v1/builders/leaderboard': 1,
-                            'v1/builders/volume': 1,
-                            'v1/leaderboard': 1,
-                            'v1/market-positions': 1,
-                            'v1/positions/combos': 1,
-                            'value': 1,
+                            'activity': { 'cost': 1 },
+                            'closed-positions': { 'cost': 1 },
+                            'holders': { 'cost': 1 },
+                            'live-volume': { 'cost': 1 },
+                            'oi': { 'cost': 1 },
+                            'other': { 'cost': 1 },
+                            'positions': { 'cost': 1 },
+                            'revisions': { 'cost': 1 },
+                            'traded': { 'cost': 1 },
+                            'trades': { 'cost': 1 },
+                            'v1/accounting/snapshot': { 'cost': 1 },
+                            'v1/activity/combos': { 'cost': 1 },
+                            'v1/builders/leaderboard': { 'cost': 1 },
+                            'v1/builders/volume': { 'cost': 1 },
+                            'v1/leaderboard': { 'cost': 1 },
+                            'v1/market-positions': { 'cost': 1 },
+                            'v1/positions/combos': { 'cost': 1 },
+                            'value': { 'cost': 1 },
                         },
                     },
                 },
                 'combos': {
                     'public': {
                         'get': {
-                            'v1/rfq/combo-markets': 1,
+                            'v1/rfq/combo-markets': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'post': {
-                            'v1/maker/confirmations': 1,
-                            'v1/maker/quotes': 1,
-                            'v1/maker/quotes/cancel': 1,
+                            'v1/maker/confirmations': { 'cost': 1 },
+                            'v1/maker/quotes': { 'cost': 1 },
+                            'v1/maker/quotes/cancel': { 'cost': 1 },
                         },
                     },
                 },
@@ -369,7 +369,7 @@ class polymarket extends polymarket$1["default"] {
             }
             const parsedEvent = this.parseEvent(rawEvent);
             const eventSlug = this.safeString(rawEvent, 'slug');
-            if (eventSlug) {
+            if ((eventSlug !== undefined) && (eventSlug !== '')) {
                 const eventKey = this.shortenSlug(eventSlug);
                 eventsDict[eventKey] = parsedEvent;
             }
@@ -468,7 +468,7 @@ class polymarket extends polymarket$1["default"] {
             for (let ei = 0; ei < allEvents.length; ei++) {
                 const rawEvent = allEvents[ei];
                 const eventId = this.safeString(rawEvent, 'id');
-                if (eventId && !(eventId in seen)) {
+                if ((eventId !== undefined && eventId !== '') && !(eventId in seen)) {
                     seen[eventId] = true;
                     rawEvents.push(rawEvent);
                 }
@@ -582,7 +582,8 @@ class polymarket extends polymarket$1["default"] {
         let firstPageRequest = { 'offset': 0 };
         firstPageRequest = this.extend(firstPageRequest, baseRequest);
         const firstPageResponse = await this.gammaPublicGetEvents(firstPageRequest);
-        const firstPage = (firstPageResponse !== undefined) ? firstPageResponse : [];
+        const firstPageIsArray = Array.isArray(firstPageResponse);
+        const firstPage = (firstPageIsArray) ? firstPageResponse : [];
         const firstPageLength = firstPage.length;
         const allRawEvents = [];
         for (let fi = 0; fi < firstPageLength; fi++) {
@@ -712,7 +713,7 @@ class polymarket extends polymarket$1["default"] {
             const active = this.safeBool(market, 'active', false);
             const closed = this.safeBool(market, 'closed', false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-            const marketResolved = closed || (this.safeStringLower(market, 'umaResolutionStatus') === 'resolved');
+            const marketResolved = (closed === true) || (this.safeStringLower(market, 'umaResolutionStatus') === 'resolved');
             let resolvedOutcome = undefined;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             const tickSize = this.safeNumber2(market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01);
@@ -740,13 +741,13 @@ class polymarket extends polymarket$1["default"] {
             if (parsedPrices !== undefined) {
                 parsedPricesLength = parsedPrices.length;
             }
-            if (parsedOutcomes && (parsedOutcomesLength !== undefined)) {
+            if ((parsedOutcomes !== undefined) && (parsedOutcomesLength !== undefined)) {
                 outcomeLabels = parsedOutcomes;
             }
-            if (parsedTokenIds && (parsedTokenIdsLength !== undefined)) {
+            if ((parsedTokenIds !== undefined) && (parsedTokenIdsLength !== undefined)) {
                 clobTokenIds = parsedTokenIds;
             }
-            if (parsedPrices && (parsedPricesLength !== undefined)) {
+            if ((parsedPrices !== undefined) && (parsedPricesLength !== undefined)) {
                 outcomePrices = parsedPrices;
             }
             const outcomeLabelsLength = outcomeLabels.length;
@@ -762,7 +763,7 @@ class polymarket extends polymarket$1["default"] {
                 const outcomeLabel = outcomeLabels[oi];
                 const clobTokenId = clobTokenIds[oi];
                 const outcomePrice = this.safeNumber(outcomePrices, oi);
-                if (!clobTokenId) {
+                if ((clobTokenId === undefined) || (clobTokenId === '')) {
                     continue;
                 }
                 const outcomeHandle = this.slugToOutcomeSymbol(eventSlug, marketSlug, outcomeLabel);
@@ -793,7 +794,7 @@ class polymarket extends polymarket$1["default"] {
                     'market': marketSymbol,
                     'label': outcomeLabel,
                     'price': outcomePrice,
-                    'active': active && !closed,
+                    'active': (active === true) && (closed !== true),
                     'winner': winner,
                     'settleFraction': settleFraction,
                     // carry the order precision so createOrder needs no extra request
@@ -828,14 +829,14 @@ class polymarket extends polymarket$1["default"] {
                 'future': false,
                 'option': false,
                 'prediction': true,
-                'active': active && !closed,
+                'active': (active === true) && (closed !== true),
                 'resolved': marketResolved,
                 'resolvedOutcome': marketResolvedOutcome,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
-                'expiry': endDate ? this.parse8601(endDate) : undefined,
+                'expiry': (endDate !== undefined && endDate !== '') ? this.parse8601(endDate) : undefined,
                 'expiryDatetime': endDate,
                 'strike': undefined,
                 'optionType': undefined,
@@ -1072,9 +1073,13 @@ class polymarket extends polymarket$1["default"] {
                 this.clobPublicPostLastTradesPrices(bookParams),
             ];
             const responses = await Promise.all(promises);
-            const books = responses[0];
+            const booksResponse = responses[0];
             const midpoints = responses[1];
-            const lastTrades = responses[2];
+            const lastTradesResponse = responses[2];
+            const booksIsArray = Array.isArray(booksResponse);
+            const books = (booksIsArray) ? booksResponse : [];
+            const lastTradesIsArray = Array.isArray(lastTradesResponse);
+            const lastTrades = (lastTradesIsArray) ? lastTradesResponse : [];
             const lastTradesByTokenId = {};
             const lastTradesLength = lastTrades.length;
             for (let li = 0; li < lastTradesLength; li++) {
@@ -1165,7 +1170,7 @@ class polymarket extends polymarket$1["default"] {
             last = mid;
         }
         const outcome = this.safeOutcomeSymbol(undefined, market);
-        const timestamp = this.safeInteger(bookData, 'timestamp', this.milliseconds());
+        const timestamp = this.safeInteger(bookData, 'timestamp');
         let quoteVolume = undefined;
         if (market !== undefined) {
             quoteVolume = this.safeNumber2(market['info'], 'volume24hr', 'volume');
@@ -1308,7 +1313,7 @@ class polymarket extends polymarket$1["default"] {
         const resolutionMs = fidelityMin * 60 * 1000;
         const buckets = {};
         for (let i = 0; i < history.length; i++) {
-            const item = history[i];
+            const item = this.safeDict(history, i);
             const t = this.safeInteger(item, 't');
             const price = this.safeNumber(item, 'p');
             if ((t === undefined) || (price === undefined)) {
@@ -1374,7 +1379,8 @@ class polymarket extends polymarket$1["default"] {
         //
         //     1781273248
         //
-        return this.parseToInt(response) * 1000;
+        const result = { 'serverTime': response };
+        return this.safeTimestamp(result, 'serverTime');
     }
     /**
      * @method
@@ -1426,15 +1432,14 @@ class polymarket extends polymarket$1["default"] {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
-        const timestamp = this.milliseconds();
         const openInterest = this.safeOpenInterest({
             'symbol': this.safeOutcomeSymbol(undefined, market),
             'openInterestAmount': undefined,
             'openInterestValue': this.safeNumber(interest, 'value'),
             'baseVolume': undefined,
             'quoteVolume': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': interest,
         }, market);
         openInterest['outcome'] = this.safeOutcomeSymbol(undefined, market);
@@ -1589,12 +1594,24 @@ class polymarket extends polymarket$1["default"] {
         const price = this.safeNumber(trade, 'price');
         const amount = this.safeNumber(trade, 'size');
         const rawSide = this.safeStringLower(trade, 'side');
-        const side = (rawSide === 'buy' || rawSide === 'sell') ? rawSide : undefined;
+        let side = undefined;
+        if (rawSide === 'buy' || rawSide === 'sell') {
+            side = rawSide;
+        }
         const assetId = this.safeString2(trade, 'asset', 'asset_id');
-        const mkt = (market !== undefined) ? market : this.safeOutcome(assetId);
+        let mkt = undefined;
+        if (market !== undefined) {
+            mkt = market;
+        }
+        else {
+            mkt = this.safeOutcome(assetId);
+        }
         const outcome = this.safeOutcomeSymbol(undefined, mkt);
         const rawTakerOrMaker = this.safeStringLower(trade, 'trader_side');
-        const takerOrMaker = (rawTakerOrMaker === 'taker' || rawTakerOrMaker === 'maker') ? rawTakerOrMaker : undefined;
+        let takerOrMaker = undefined;
+        if (rawTakerOrMaker === 'taker' || rawTakerOrMaker === 'maker') {
+            takerOrMaker = rawTakerOrMaker;
+        }
         const feeRateBps = this.safeString(trade, 'fee_rate_bps');
         let fee = undefined;
         if (feeRateBps !== undefined) {
@@ -1921,7 +1938,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
      * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
      * @param {bool} [params.negRisk] whether the market is a neg-risk market; read from the outcome when omitted
-     * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
+     * @param {string} [params.salt] order salt; defaults to a strictly-increasing millisecond value (pin it for idempotent retries)
      * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
      * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
@@ -1953,7 +1970,7 @@ class polymarket extends polymarket$1["default"] {
         // requested outcomes first (one gamma request for all uncached token ids)
         const orderOutcomes = [];
         for (let i = 0; i < orders.length; i++) {
-            const o = orders[i];
+            const o = this.safeDict(orders, i);
             const __oc = this.safeString(o, 'outcome');
             if (__oc !== undefined) {
                 orderOutcomes.push(__oc);
@@ -1963,13 +1980,13 @@ class polymarket extends polymarket$1["default"] {
         const bodies = [];
         const outcomes = [];
         const requests = [];
-        const batchSalt = this.milliseconds();
         for (let i = 0; i < orders.length; i++) {
-            const o = orders[i];
+            const o = this.safeDict(orders, i);
             let orderParams = this.safeDict(o, 'params', {});
             if (this.safeString(orderParams, 'salt') === undefined) {
-                // a distinct salt per order so two identical orders in one batch don't collide
-                orderParams = this.extend(orderParams, { 'salt': this.numberToString(this.sum(batchSalt, i)) });
+                // a distinct salt per order so two identical orders don't collide, within a batch or across calls
+                const orderSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+                orderParams = this.extend(orderParams, { 'salt': this.numberToString(orderSalt) });
             }
             const built = this.buildClobOrderBody(this.safeString(o, 'outcome'), this.safeString(o, 'type'), this.safeString(o, 'side'), this.safeNumber(o, 'amount'), this.safeNumber(o, 'price'), orderParams);
             bodies.push(this.safeDict(built, 'body', {}));
@@ -2030,13 +2047,14 @@ class polymarket extends polymarket$1["default"] {
         if (orderTypeStr === undefined) {
             orderTypeStr = isMarket ? 'FOK' : 'GTC';
         }
-        if (price === undefined) {
+        let priceResolved = price;
+        if (priceResolved === undefined) {
             if (!isMarket) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a price for limit orders');
             }
             // market order without an explicit price: use the outcome's current price as the marketable reference
-            price = this.safeNumber(outcomeObj, 'price');
-            if (price === undefined) {
+            priceResolved = this.safeNumber(outcomeObj, 'price');
+            if (priceResolved === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrder() could not determine a price from the outcome, pass an explicit price');
             }
         }
@@ -2052,15 +2070,16 @@ class polymarket extends polymarket$1["default"] {
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         const eoa = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
         const funder = this.ethChecksumAddress(this.safeString2(params, 'funder', 'maker', this.safeString(this.options, 'funder', this.walletAddress)));
-        // salt and timestamp default to the current time but can be pinned via params for idempotency
-        const salt = this.safeString(params, 'salt', this.numberToString(this.milliseconds()));
+        // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
+        const defaultSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+        const salt = this.safeString(params, 'salt', this.numberToString(defaultSalt));
         const timestamp = this.safeString(params, 'timestamp', this.numberToString(this.milliseconds()));
         // GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
         const expiration = this.safeString(params, 'expiration', '0');
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         const cost = this.safeNumber(params, 'cost');
         const rest = this.omit(params, ['signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost', 'builder', 'builderCode']);
-        const amounts = this.polymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost);
+        const amounts = this.polymarketOrderRawAmounts(sideStr, amount, priceResolved, tickSize, cost);
         const makerAmount = this.safeString(amounts, 'makerAmount');
         const takerAmount = this.safeString(amounts, 'takerAmount');
         const sideInt = (sideStr === 'BUY') ? 0 : 1;
@@ -2076,7 +2095,7 @@ class polymarket extends polymarket$1["default"] {
             if (builderHex.length <= 40) {
                 const builderFeeEnabled = this.safeBool(this.options, 'builderFee', true);
                 let feeRate = 0;
-                if (builderFeeEnabled) {
+                if (builderFeeEnabled === true) {
                     feeRate = this.safeInteger(this.options, 'feeRate', 0);
                 }
                 let feeHex = this.intToBase16(feeRate);
@@ -2094,7 +2113,10 @@ class polymarket extends polymarket$1["default"] {
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
         const maker = funder;
-        const signer = (signatureType === 3) ? funder : eoa;
+        let signer = eoa;
+        if (signatureType === 3) {
+            signer = funder;
+        }
         const message = {
             'salt': salt,
             'maker': maker,
@@ -2110,7 +2132,10 @@ class polymarket extends polymarket$1["default"] {
         };
         const exchangeV2 = this.safeString(this.options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
         const negRiskExchangeV2 = this.safeString(this.options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
-        const exchangeAddress = negRisk ? negRiskExchangeV2 : exchangeV2;
+        let exchangeAddress = exchangeV2;
+        if (negRisk === true) {
+            exchangeAddress = negRiskExchangeV2;
+        }
         const domainVersion = this.safeString(this.options, 'ctfExchangeVersion', '2');
         const signature = this.signClobOrder(message, exchangeAddress, domainVersion, signatureType);
         const owner = this.safeString(this.options, 'l2ApiKey', this.apiKey);
@@ -2141,7 +2166,7 @@ class polymarket extends polymarket$1["default"] {
         // them and return a fully-populated order instead of undefined side/price/amount
         const requestEcho = {
             'side': sideStr,
-            'price': price,
+            'price': priceResolved,
             'asset_id': tokenId,
             'time_in_force': orderTypeStr,
             'postOnly': postOnly,
@@ -2312,7 +2337,10 @@ class polymarket extends polymarket$1["default"] {
         // fields, so report the cancellation outcome explicitly rather than parsing an empty order
         const notCanceled = this.safeDict(response, 'not_canceled', {});
         const failureReason = this.safeString(notCanceled, id);
-        const status = (failureReason === undefined) ? 'canceled' : 'open';
+        let status = 'open';
+        if (failureReason === undefined) {
+            status = 'canceled';
+        }
         return this.safePredictionOrder({ 'id': id, 'status': status, 'info': response });
     }
     /**
@@ -2407,7 +2435,8 @@ class polymarket extends polymarket$1["default"] {
                 lookup['slug'] = requestedSlug;
             }
             const response = await this.gammaPublicGetEvents(lookup);
-            rawEvents = (response !== undefined) ? response : [];
+            const responseIsArray = Array.isArray(response);
+            rawEvents = (responseIsArray) ? response : [];
         }
         else if (queriesLength > 0) {
             rawEvents = await this.fetchRawEventsBySearch(queries, rest);
@@ -2416,10 +2445,10 @@ class polymarket extends polymarket$1["default"] {
             rawEvents = await this.fetchRawEventsList(rest);
         }
         // Parse and merge into class-level caches
-        if (!this.events) {
+        if (this.events === undefined) {
             this.events = {};
         }
-        if (!this.markets) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary();
         }
         const result = [];
@@ -2567,7 +2596,7 @@ class polymarket extends polymarket$1["default"] {
         const closed = this.safeBool(rawEvent, 'closed', false);
         let active = undefined;
         if (rawActive !== undefined) {
-            active = rawActive && !closed;
+            active = (rawActive === true) && (closed !== true);
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
@@ -2585,7 +2614,7 @@ class polymarket extends polymarket$1["default"] {
         return this.extend({
             'id': this.safeString(rawEvent, 'id'),
             'slug': slug,
-            'event': slug ? this.shortenSlug(slug) : undefined,
+            'event': (slug !== undefined && slug !== '') ? this.shortenSlug(slug) : undefined,
             'title': this.safeString(rawEvent, 'title'),
             'tags': parsedTags,
             'markets': marketsList,
@@ -2624,7 +2653,7 @@ class polymarket extends polymarket$1["default"] {
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
         // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
-        if (!response) {
+        if (response === undefined) {
             return undefined;
         }
         const errorMessage = this.safeString2(response, 'error', 'errorMsg');
@@ -2634,6 +2663,11 @@ class polymarket extends polymarket$1["default"] {
             this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
         }
         return undefined;
+    }
+    nonce() {
+        // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+        // unique when two identical orders are signed within the same millisecond
+        return this.milliseconds();
     }
     /**
      * @ignore
@@ -2667,6 +2701,7 @@ class polymarket extends polymarket$1["default"] {
         if (!isArrayBody) {
             query = this.omit(params, this.extractParams(path));
         }
+        let bodyValue = body;
         if (method === 'GET') {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
@@ -2678,23 +2713,29 @@ class polymarket extends polymarket$1["default"] {
                     hasArrayParam = true;
                 }
             }
-            const querystring = hasArrayParam ? this.urlencodeWithArrayRepeat(query) : this.urlencode(query);
-            if (querystring) {
+            let querystring = undefined;
+            if (hasArrayParam) {
+                querystring = this.urlencodeWithArrayRepeat(query);
+            }
+            else {
+                querystring = this.urlencode(query);
+            }
+            if (querystring !== '') {
                 url += '?' + querystring;
             }
         }
         else if (isArrayBody) {
-            body = this.json(params);
+            bodyValue = this.json(params);
         }
         else {
             const queryKeys = Object.keys(query);
             const queryKeysLength = queryKeys.length;
             if (queryKeysLength > 0) {
-                body = this.json(query);
+                bodyValue = this.json(query);
             }
         }
         const headerDefaults = (headers !== undefined) ? headers : {};
-        headers = this.extend({
+        let headersValue = this.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, headerDefaults);
@@ -2715,7 +2756,7 @@ class polymarket extends polymarket$1["default"] {
                 const timestamp = this.seconds().toString();
                 const nonce = this.safeInteger(params, 'nonce', 0);
                 const l1signature = this.signClobAuth(address, timestamp, nonce);
-                headers = this.extend(headers, {
+                headersValue = this.extend(headersValue, {
                     'POLY_ADDRESS': address,
                     'POLY_SIGNATURE': l1signature,
                     'POLY_TIMESTAMP': timestamp,
@@ -2730,14 +2771,20 @@ class polymarket extends polymarket$1["default"] {
                 const secret = this.safeString(this.options, 'l2Secret', this.secret);
                 const passphrase = this.safeString(this.options, 'l2Passphrase', this.password);
                 // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
-                const address = (this.privateKey !== undefined) ? this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)) : this.walletAddress;
+                let address = undefined;
+                if (this.privateKey !== undefined) {
+                    address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
+                }
+                else {
+                    address = this.walletAddress;
+                }
                 const timestamp = this.seconds().toString();
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
                 const requestPath = '/' + this.implodeParams(path, params);
                 let auth = timestamp + method + requestPath;
-                if (body !== undefined) {
-                    auth = auth + body;
+                if (bodyValue !== undefined) {
+                    auth = auth + bodyValue;
                 }
                 // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
@@ -2750,7 +2797,7 @@ class polymarket extends polymarket$1["default"] {
                 // url-safe base64, preserving '=' padding (matches the reference client)
                 signature = signature.replaceAll('+', '-');
                 signature = signature.replaceAll('/', '_');
-                headers = this.extend(headers, {
+                headersValue = this.extend(headersValue, {
                     'POLY_ADDRESS': address,
                     'POLY_API_KEY': apiKey,
                     'POLY_PASSPHRASE': passphrase,
@@ -2759,7 +2806,7 @@ class polymarket extends polymarket$1["default"] {
                 });
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue };
     }
     hashMessage(message) {
         return '0x' + this.hash(message, sha3_js.keccak_256, 'hex');
@@ -2906,7 +2953,13 @@ class polymarket extends polymarket$1["default"] {
             return;
         }
         const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString(this.options, 'l2ApiKey');
-        const secret = (this.secret !== undefined) ? this.secret : this.safeString(this.options, 'l2Secret');
+        let secret = undefined;
+        if (this.secret !== undefined) {
+            secret = this.secret;
+        }
+        else {
+            secret = this.safeString(this.options, 'l2Secret');
+        }
         const passphrase = (this.password !== undefined) ? this.password : this.safeString(this.options, 'l2Passphrase');
         const hasL2 = (apiKey !== undefined) && (secret !== undefined) && (passphrase !== undefined);
         if (hasL2) {
@@ -2930,7 +2983,7 @@ class polymarket extends polymarket$1["default"] {
         const events = Array.isArray(message) ? message : [message];
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
-            if (!event || typeof event !== 'object') {
+            if ((event === undefined) || (event === null) || (typeof event !== 'object')) {
                 continue;
             }
             const eventType = this.safeString(event, 'event_type');
@@ -2968,12 +3021,12 @@ class polymarket extends polymarket$1["default"] {
         const rawAsks = this.safeList(event, 'asks', []);
         const bids = [];
         for (let i = 0; i < rawBids.length; i++) {
-            const b = rawBids[i];
+            const b = this.safeDict(rawBids, i);
             bids.push([this.safeNumber(b, 'price'), this.safeNumber(b, 'size')]);
         }
         const asks = [];
         for (let j = 0; j < rawAsks.length; j++) {
-            const a = rawAsks[j];
+            const a = this.safeDict(rawAsks, j);
             asks.push([this.safeNumber(a, 'price'), this.safeNumber(a, 'size')]);
         }
         const outcomeObj = this.safeOutcome(outcome);
@@ -2994,7 +3047,7 @@ class polymarket extends polymarket$1["default"] {
         const changes = this.safeList(event, 'price_changes', []);
         const updated = {};
         for (let i = 0; i < changes.length; i++) {
-            const change = changes[i];
+            const change = this.safeDict(changes, i);
             const tokenId = this.safeString(change, 'asset_id');
             const outcome = this.tokenIdToSymbol(tokenId);
             if ((outcome === undefined) || !(outcome in this.orderbooks)) {
@@ -3048,7 +3101,7 @@ class polymarket extends polymarket$1["default"] {
             'cost': undefined,
             'fee': undefined,
         }, market);
-        if (!this.trades) {
+        if (this.trades === undefined) {
             this.trades = {};
         }
         let stored = this.safeValue(this.trades, outcome);
@@ -3072,8 +3125,8 @@ class polymarket extends polymarket$1["default"] {
     async watchOrderBook(outcome, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
         const tokenId = this.safeString(outcomeObj, 'outcomeId');
-        outcome = this.safeString(outcomeObj, 'outcome');
-        const messageHash = 'orderbook::' + outcome;
+        const outcomeValue = this.safeString(outcomeObj, 'outcome');
+        const messageHash = 'orderbook::' + outcomeValue;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
         const url = this.urls['api']['ws'];
@@ -3093,8 +3146,8 @@ class polymarket extends polymarket$1["default"] {
     async watchTrades(outcome, since = undefined, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
         const tokenId = this.safeString(outcomeObj, 'outcomeId');
-        outcome = this.safeString(outcomeObj, 'outcome');
-        const messageHash = 'trades::' + outcome;
+        const outcomeValue = this.safeString(outcomeObj, 'outcome');
+        const messageHash = 'trades::' + outcomeValue;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
         const url = this.urls['api']['ws'];
@@ -3112,17 +3165,17 @@ class polymarket extends polymarket$1["default"] {
     async watchTicker(outcome, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
         const tokenId = this.safeString(outcomeObj, 'outcomeId');
-        outcome = this.safeString(outcomeObj, 'outcome');
-        const messageHash = 'ticker::' + outcome;
+        const outcomeValue = this.safeString(outcomeObj, 'outcome');
+        const messageHash = 'ticker::' + outcomeValue;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
-        if (outcome === undefined) {
+        if (outcomeValue === undefined) {
             throw new errors.ExchangeError(this.id + ' watchTicker() missing outcome');
         }
-        if (!(outcome in this.orderbooks)) {
+        if (!(outcomeValue in this.orderbooks)) {
             const seededBook = this.orderBook({});
-            if (outcome !== undefined) {
-                this.orderbooks[outcome] = seededBook;
+            if (outcomeValue !== undefined) {
+                this.orderbooks[outcomeValue] = seededBook;
             }
         }
         const url = this.urls['api']['ws'];
@@ -3160,9 +3213,9 @@ class polymarket extends polymarket$1["default"] {
         else {
             mid = bestAsk;
         }
-        const market = this.safeOutcome(outcome);
+        const market = this.safeOutcome(outcomeValue);
         return this.safePredictionTicker({
-            'outcome': outcome,
+            'outcome': outcomeValue,
             'outcomeId': this.safeString(market, 'outcomeId'),
             'label': this.safeString(market, 'label'),
             'market': this.safeString(market, 'market'),
@@ -3201,16 +3254,18 @@ class polymarket extends polymarket$1["default"] {
     async watchOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadApiCredentials();
         let messageHash = 'orders';
-        if (outcome !== undefined) {
-            const outcomeObj = await this.loadOutcome(outcome);
-            outcome = this.safeString(outcomeObj, 'outcome');
-            messageHash = 'orders::' + outcome;
+        let outcomeResolved = outcome;
+        if (outcomeResolved !== undefined) {
+            const outcomeObj = await this.loadOutcome(outcomeResolved);
+            outcomeResolved = this.safeString(outcomeObj, 'outcome');
+            messageHash = 'orders::' + outcomeResolved;
         }
         const orders = await this.subscribeUserChannel(messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(outcome, limit);
+            limitResolved = orders.getLimit(outcomeResolved, limitResolved);
         }
-        return this.filterByOutcomeSinceLimit(orders, outcome, since, limit, true);
+        return this.filterByOutcomeSinceLimit(orders, outcomeResolved, since, limitResolved, true);
     }
     /**
      * @method
@@ -3226,21 +3281,29 @@ class polymarket extends polymarket$1["default"] {
     async watchMyTrades(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadApiCredentials();
         let messageHash = 'myTrades';
-        if (outcome !== undefined) {
-            const outcomeObj = await this.loadOutcome(outcome);
-            outcome = this.safeString(outcomeObj, 'outcome');
-            messageHash = 'myTrades::' + outcome;
+        let outcomeResolved = outcome;
+        if (outcomeResolved !== undefined) {
+            const outcomeObj = await this.loadOutcome(outcomeResolved);
+            outcomeResolved = this.safeString(outcomeObj, 'outcome');
+            messageHash = 'myTrades::' + outcomeResolved;
         }
         const trades = await this.subscribeUserChannel(messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(outcome, limit);
+            limitResolved = trades.getLimit(outcomeResolved, limitResolved);
         }
-        return this.filterByOutcomeSinceLimit(trades, outcome, since, limit, true);
+        return this.filterByOutcomeSinceLimit(trades, outcomeResolved, since, limitResolved, true);
     }
     async subscribeUserChannel(messageHash, params = {}) {
         // the user channel authenticates inside the subscribe frame, not via HMAC headers
         const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString(this.options, 'l2ApiKey');
-        const secret = (this.secret !== undefined) ? this.secret : this.safeString(this.options, 'l2Secret');
+        let secret = undefined;
+        if (this.secret !== undefined) {
+            secret = this.secret;
+        }
+        else {
+            secret = this.safeString(this.options, 'l2Secret');
+        }
         const passphrase = (this.password !== undefined) ? this.password : this.safeString(this.options, 'l2Passphrase');
         const auth = { 'apiKey': apiKey, 'secret': secret, 'passphrase': passphrase };
         // an empty markets list subscribes to every market the user is active in
@@ -3278,7 +3341,7 @@ class polymarket extends polymarket$1["default"] {
         }
     }
     tokenIdToSymbol(tokenId) {
-        if (!tokenId) {
+        if ((tokenId === undefined) || (tokenId === '')) {
             return undefined;
         }
         // outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets);
@@ -3294,13 +3357,9 @@ class polymarket extends polymarket$1["default"] {
     }
     parsePolyTimestamp(raw) {
         if (raw === undefined) {
-            return this.milliseconds();
+            return undefined;
         }
-        const n = this.parseToInt(raw);
-        if (n === undefined) {
-            return this.milliseconds();
-        }
-        return n;
+        return this.parseToInt(raw);
     }
 }
 

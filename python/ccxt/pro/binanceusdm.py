@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.binance import binance
-from ccxt.base.types import Any
 from ccxt.base.errors import InvalidOrder
 
 import ccxt.async_support.binanceusdm as binanceusdmRest
@@ -12,7 +11,7 @@ import ccxt.async_support.binanceusdm as binanceusdmRest
 
 class binanceusdm(binance):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         # eslint-disable-next-line new-cap
         restInstance = binanceusdmRest()
         restDescribe = restInstance.describe()
@@ -36,8 +35,8 @@ class binanceusdm(binance):
             'exceptions': {
                 'exact': {
                     '-5021': InvalidOrder,  # {"code":-5021,"msg":"Due to the order could not be filled immediately, the FOK order has been rejected."}
-                    '-5022': InvalidOrder,  # {"code":-5022,"msg":"Due to the order could not be executed, the Post Only order will be rejected."}
-                    '-5028': InvalidOrder,  # {"code":-5028,"msg":"Timestamp for self request is outside of the ME recvWindow."}
+                    '-5022': InvalidOrder,  # {"code":-5022,"msg":"Due to the order could not be executed as maker, the Post Only order will be rejected."}
+                    '-5028': InvalidOrder,  # {"code":-5028,"msg":"Timestamp for this request is outside of the ME recvWindow."}
                 },
             },
         })

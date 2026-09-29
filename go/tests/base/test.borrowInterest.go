@@ -6,7 +6,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestBorrowInterest(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, requestedCode any, requestedSymbol any) {
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"info":           map[string]any{},
 		"account":        "BTC/USDT",
 		"currency":       "USDT",
@@ -16,7 +16,7 @@ func TestBorrowInterest(exchange ccxt.ICoreExchange, skippedProperties any, meth
 		"timestamp":      1638230400000,
 		"datetime":       "2021-11-30T00:00:00.000Z",
 	}
-	var emptyAllowedFor any = []any{"account"}
+	var emptyAllowedFor []any = []any{"account"}
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry)
 	AssertCurrencyCode(exchange, skippedProperties, method, entry, GetValue(entry, "currency"), requestedCode)

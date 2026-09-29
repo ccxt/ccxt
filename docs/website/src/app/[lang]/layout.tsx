@@ -1,6 +1,7 @@
 import { Inter } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { Provider } from '@/components/provider';
+import { SiteFooter } from '@/components/site-footer';
 import { i18n } from '@/lib/i18n';
 
 const inter = Inter({
@@ -18,7 +19,10 @@ export default async function LangLayout({ params, children }: LayoutProps<'/[la
   return (
     <html lang={lang} className={inter.className} suppressHydrationWarning>
       <body className="flex flex-col min-h-screen">
-        <Provider lang={lang}>{children}</Provider>
+        <Provider lang={lang}>
+          {children}
+          <SiteFooter lang={lang} />
+        </Provider>
       </body>
     </html>
   );

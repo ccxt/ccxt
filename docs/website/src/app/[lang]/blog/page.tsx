@@ -8,7 +8,7 @@ import { appName, basePath } from '@/lib/shared';
 export const revalidate = false;
 
 export const metadata: Metadata = {
-  title: `Blog | ${appName}`,
+  title: { absolute: `Blog | ${appName}` },
   description: blogDescription,
   alternates: {
     canonical: `${blogAbsoluteBase}/blog`,

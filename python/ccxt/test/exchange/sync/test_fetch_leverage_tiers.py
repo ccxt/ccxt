@@ -17,13 +17,13 @@ from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_fetch_leverage_tiers(exchange, skipped_properties, symbol):
     method = 'fetchLeverageTiers'
-    tiers = exchange.fetch_leverage_tiers(['symbol'])
+    tiers = exchange.fetch_leverage_tiers([symbol])
     # const format = {
     #     'RAY/USDT': [
     #       {},
     #     ],
     # };
-    assert exchange.is_dictionary(tiers), exchange.id + ' ' + method + ' ' + symbol + ' must return a dict. ' + exchange.json(tiers)
+    test_shared_methods.assert_dictionary_response(exchange, method, tiers, symbol)
     tier_keys = list(tiers.keys())
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, tier_keys, symbol)
     for i in range(0, len(tier_keys)):

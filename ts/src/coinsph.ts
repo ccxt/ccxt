@@ -3,7 +3,7 @@ import Exchange from './abstract/coinsph.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InvalidAddress, InvalidOrder, InsufficientFunds, NotSupported, OrderImmediatelyFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Fee, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, NullableDict } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Fee, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, NullableDict, Status, Endpoint } from './base/types.js';
 
 /**
  * @class coinsph
@@ -187,104 +187,106 @@ export default class coinsph extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'openapi/v1/ping': 1,
-                        'openapi/v1/time': 1,
-                        'openapi/v1/user/ip': 1,
+                        'openapi/v1/ping': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/time': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/user/ip': { 'cost': 1 } as Endpoint<Dict>,
                         // cost 1 if 'symbol' param defined (one market symbol) or if 'symbols' param is a list of 1-20 market symbols
                         // cost 20 if 'symbols' param is a list of 21-100 market symbols
                         // cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omitted
-                        'openapi/quote/v1/ticker/24hr': { 'cost': 1, 'noSymbolAndNoSymbols': 40, 'byNumberOfSymbols': [ [ 101, 40 ], [ 21, 20 ], [ 0, 1 ] ] },
+                        'openapi/quote/v1/ticker/24hr': { 'cost': 1, 'noSymbolAndNoSymbols': 40, 'byNumberOfSymbols': [ [ 101, 40 ], [ 21, 20 ], [ 0, 1 ] ] } as Endpoint<Dict | List>,
                         // cost 1 if 'symbol' param defined (one market symbol)
                         // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omitted
-                        'openapi/quote/v1/ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                        'openapi/quote/v1/ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict>,
                         // cost 1 if 'symbol' param defined (one market symbol)
                         // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omitted
-                        'openapi/quote/v1/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
-                        'openapi/v1/exchangeInfo': 10,
+                        'openapi/quote/v1/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
+                        'openapi/v1/exchangeInfo': { 'cost': 10 } as Endpoint<Dict>,
                         // cost 1 if limit <= 100; 5 if limit > 100.
-                        'openapi/quote/v1/depth': { 'cost': 1, 'byLimit': [ [ 101, 5 ], [ 0, 1 ] ] },
-                        'openapi/quote/v1/klines': 1, // default limit 500; max 1000.
-                        'openapi/quote/v1/trades': 1, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
-                        'openapi/v1/pairs': 1,
-                        'openapi/quote/v1/avgPrice': 1,
+                        'openapi/quote/v1/depth': { 'cost': 1, 'byLimit': [ [ 101, 5 ], [ 0, 1 ] ] } as Endpoint<Dict>,
+                        'openapi/quote/v1/klines': { 'cost': 1 } as Endpoint<List>, // default limit 500; max 1000.
+                        'openapi/quote/v1/trades': { 'cost': 1 } as Endpoint<List>, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
+                        'openapi/v1/pairs': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/quote/v1/avgPrice': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'openapi/v1/check-sys-status': 1,
-                        'openapi/wallet/v1/config/getall': 10,
-                        'openapi/wallet/v1/deposit/address': 10,
-                        'openapi/wallet/v1/deposit/history': 1,
-                        'openapi/wallet/v1/withdraw/history': 1,
-                        'openapi/wallet/v1/withdraw/address-whitelist': 1,
-                        'openapi/v1/account': 10,
-                        'openapi/v1/api-keys': 1,
+                        'openapi/v1/check-sys-status': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/wallet/v1/config/getall': { 'cost': 10 } as Endpoint<List>,
+                        'openapi/wallet/v1/deposit/address': { 'cost': 10 } as Endpoint<Dict>,
+                        'openapi/wallet/v1/deposit/history': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/wallet/v1/withdraw/history': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/wallet/v1/withdraw/address-whitelist': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/v1/account': { 'cost': 10 } as Endpoint<Dict>,
+                        'openapi/v1/api-keys': { 'cost': 1 } as Endpoint<List>,
                         // cost 3 for a single symbol; 40 when the symbol parameter is omitted
-                        'openapi/v1/openOrders': { 'cost': 3, 'noSymbol': 40 },
-                        'openapi/v1/asset/tradeFee': 1,
-                        'openapi/v1/order': 2,
+                        'openapi/v1/openOrders': { 'cost': 3, 'noSymbol': 40 } as Endpoint<List>,
+                        'openapi/v1/asset/tradeFee': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/v1/order': { 'cost': 2 } as Endpoint<Dict>,
                         // cost 10 with symbol, 40 when the symbol parameter is omitted;
-                        'openapi/v1/historyOrders': { 'cost': 10, 'noSymbol': 40 },
-                        'openapi/v1/myTrades': 10,
-                        'openapi/v1/capital/deposit/history': 1,
-                        'openapi/v1/capital/withdraw/history': 1,
-                        'openapi/v3/payment-request/get-payment-request': 1,
-                        'merchant-api/v1/get-invoices': 1,
-                        'openapi/account/v3/crypto-accounts': 1,
-                        'openapi/transfer/v3/transfers/{id}': 1,
-                        'openapi/v1/sub-account/list': 10,
-                        'openapi/v1/sub-account/asset': 10,
-                        'openapi/v1/sub-account/transfer/universal-transfer-history': 10,
-                        'openapi/v1/sub-account/transfer/sub-history': 10,
-                        'openapi/v1/sub-account/apikey/ip-restriction': 10,
-                        'openapi/v1/sub-account/wallet/deposit/address': 1,
-                        'openapi/v1/sub-account/wallet/deposit/history': 1,
-                        'openapi/v1/fund-collect/get-fund-record': 1,
-                        'openapi/v1/asset/transaction/history': 20,
+                        'openapi/v1/historyOrders': { 'cost': 10, 'noSymbol': 40 } as Endpoint<List>,
+                        'openapi/v1/myTrades': { 'cost': 10 } as Endpoint<List>,
+                        'openapi/v1/capital/deposit/history': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/v1/capital/withdraw/history': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/v3/payment-request/get-payment-request': { 'cost': 1 } as Endpoint<Dict>,
+                        'merchant-api/v1/get-invoices': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/account/v3/crypto-accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/transfer/v3/transfers/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/list': { 'cost': 10 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/asset': { 'cost': 10 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/transfer/universal-transfer-history': { 'cost': 10 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/transfer/sub-history': { 'cost': 10 } as Endpoint<List>,
+                        'openapi/v1/sub-account/apikey/ip-restriction': { 'cost': 10 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/wallet/deposit/address': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/wallet/deposit/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/fund-collect/get-fund-record': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/v1/asset/transaction/history': { 'cost': 20 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'openapi/wallet/v1/withdraw/apply': 600,
-                        'openapi/v1/order/test': 1,
-                        'openapi/v1/order': 1,
-                        'openapi/v1/order/cancelReplace': 1,
-                        'openapi/v1/capital/withdraw/apply': 1,
-                        'openapi/v1/capital/deposit/apply': 1,
-                        'openapi/v3/payment-request/payment-requests': 1,
-                        'openapi/v3/payment-request/delete-payment-request': 1,
-                        'openapi/v3/payment-request/payment-request-reminder': 1,
-                        'openapi/v1/userDataStream': 1,
-                        'merchant-api/v1/invoices': 1,
-                        'merchant-api/v1/invoices-cancel': 1,
-                        'openapi/convert/v1/get-supported-trading-pairs': 1,
-                        'openapi/convert/v1/get-quote': 1,
-                        'openapi/convert/v1/accept-quote': 1,
-                        'openapi/convert/v1/query-order-history': 1,
-                        'openapi/otc-trade/v1/get-supported-trading-pairs': 1,
-                        'openapi/otc-trade/v1/create-rfq': 1,
-                        'openapi/otc-trade/v1/accept-rfq': 1,
-                        'openapi/otc-trade/v1/manual-settle': 1,
-                        'openapi/otc-trade/v1/query-order-history': 1,
-                        'openapi/fiat/v1/support-channel': 1,
-                        'openapi/fiat/v1/cash-out': 1,
-                        'openapi/fiat/v1/history': 1,
-                        'openapi/migration/v4/sellorder': 1,
-                        'openapi/migration/v4/validate-field': 1,
-                        'openapi/transfer/v3/transfers': 1,
-                        'openapi/transfer/v4/transfers': 1,
-                        'openapi/v1/sub-account/create': 30,
-                        'openapi/v1/sub-account/transfer/universal-transfer': 100,
-                        'openapi/v1/sub-account/transfer/sub-to-master': 100,
-                        'openapi/v1/sub-account/apikey/add-ip-restriction': 30,
-                        'openapi/v1/sub-account/apikey/delete-ip-restriction': 30,
-                        'openapi/v1/fund-collect/collect-from-sub-account': 1,
+                        'openapi/wallet/v1/withdraw/apply': { 'cost': 600 } as Endpoint<Dict>,
+                        'openapi/v1/order/test': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/order/cancelReplace': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/capital/withdraw/apply': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/capital/deposit/apply': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v3/payment-request/payment-requests': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v3/payment-request/delete-payment-request': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v3/payment-request/payment-request-reminder': { 'cost': 1 } as Endpoint<string>,
+                        'openapi/v1/userDataStream': { 'cost': 1 } as Endpoint<Dict>,
+                        'merchant-api/v1/invoices': { 'cost': 1 } as Endpoint<Dict>,
+                        'merchant-api/v1/invoices-cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/convert/v1/get-supported-trading-pairs': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/convert/v1/get-quote': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/convert/v1/accept-quote': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/convert/v1/query-order-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/otc-trade/v1/get-supported-trading-pairs': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/otc-trade/v1/create-rfq': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/otc-trade/v1/accept-rfq': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/otc-trade/v1/manual-settle': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/otc-trade/v1/query-order-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/fiat/v1/support-channel': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/fiat/v1/cash-out': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/fiat/v1/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/fiat/v2/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/fiat/v1/cancel_qr_code': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/migration/v4/sellorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/migration/v4/validate-field': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/transfer/v3/transfers': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/transfer/v4/transfers': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/create': { 'cost': 30 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/transfer/universal-transfer': { 'cost': 100 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/transfer/sub-to-master': { 'cost': 100 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/apikey/add-ip-restriction': { 'cost': 30 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/apikey/delete-ip-restriction': { 'cost': 30 } as Endpoint<Dict>,
+                        'openapi/v1/fund-collect/collect-from-sub-account': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'put': {
-                        'openapi/v1/userDataStream': 1,
+                        'openapi/v1/userDataStream': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'openapi/v1/order': 1,
-                        'openapi/v1/openOrders': 1,
-                        'openapi/v1/userDataStream': 1,
+                        'openapi/v1/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/openOrders': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/v1/userDataStream': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -353,7 +355,7 @@ export default class coinsph extends Exchange {
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                 },
             },
             'features': {
@@ -556,7 +558,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         if (!this.checkRequiredCredentials (false)) {
             return {};
         }
@@ -629,7 +631,7 @@ export default class coinsph extends Exchange {
         const id = this.safeString (rawCurrency, 'coin');
         const code = this.safeCurrencyCode (id);
         const isFiat = this.safeBool (rawCurrency, 'isLegalMoney');
-        const networkList = this.safeList (rawCurrency, 'networkList', []);
+        const networkList: Dict[] = this.safeList (rawCurrency, 'networkList', []);
         const networks: Dict = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkItem = networkList[j];
@@ -662,7 +664,7 @@ export default class coinsph extends Exchange {
             'id': id,
             'name': this.safeString (rawCurrency, 'name'),
             'code': code,
-            'type': isFiat ? 'fiat' : 'crypto',
+            'type': (isFiat === true) ? 'fiat' : 'crypto',
             'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'transferPrecision'))),
             'info': rawCurrency,
             'active': undefined,
@@ -675,7 +677,7 @@ export default class coinsph extends Exchange {
         });
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('noSymbolAndNoSymbols' in config) && !('symbol' in params) && !('symbols' in params)) {
@@ -683,7 +685,7 @@ export default class coinsph extends Exchange {
         } else if (('byNumberOfSymbols' in config) && ('symbols' in params)) {
             const symbols = params['symbols'];
             const symbolsAmount = symbols.length;
-            const byNumberOfSymbols = config['byNumberOfSymbols'] as any;
+            const byNumberOfSymbols = this.safeList (config, 'byNumberOfSymbols', []);
             for (let i = 0; i < byNumberOfSymbols.length; i++) {
                 const entry = byNumberOfSymbols[i];
                 if (symbolsAmount >= entry[0]) {
@@ -692,7 +694,7 @@ export default class coinsph extends Exchange {
             }
         } else if (('byLimit' in config) && ('limit' in params)) {
             const limit = params['limit'];
-            const byLimit = config['byLimit'] as any;
+            const byLimit = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 if (limit >= entry[0]) {
@@ -711,7 +713,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params: Dict = {}): Promise<Status> {
         const response = await this.publicGetOpenapiV1Ping (params);
         return {
             'status': 'ok', // if there's no Errors, status = 'ok'
@@ -730,7 +732,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.publicGetOpenapiV1Time (params);
         //
         //     {"serverTime":1677705408268}
@@ -746,7 +748,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetOpenapiV1ExchangeInfo (params);
         //
         //     {
@@ -807,7 +809,7 @@ export default class coinsph extends Exchange {
         //         ]
         //     }
         //
-        const markets = this.safeList (response, 'symbols', []);
+        const markets: Dict[] = this.safeList (response, 'symbols', []);
         const result: Dict[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -816,10 +818,13 @@ export default class coinsph extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const limits = this.indexBy (this.safeList (market, 'filters', []), 'filterType');
-            const amountLimits = this.safeValue (limits, 'LOT_SIZE', {});
-            const priceLimits = this.safeValue (limits, 'PRICE_FILTER', {});
-            const costLimits = this.safeValue (limits, 'NOTIONAL', {});
+            const amountLimits = this.safeDict (limits, 'LOT_SIZE', {});
+            const priceLimits = this.safeDict (limits, 'PRICE_FILTER', {});
+            const costLimits = this.safeDict (limits, 'NOTIONAL', {});
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -887,7 +892,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -904,7 +909,7 @@ export default class coinsph extends Exchange {
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
         const options = this.safeDict (this.options, 'fetchTickers', {});
         const method = this.safeString (options, 'method', defaultMethod);
-        let tickers: Dict[] = [];
+        let tickers: Dict | List = [];
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
             tickers = await this.publicGetOpenapiQuoteV1TickerPrice (this.extend (request, params));
         } else if (method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
@@ -926,7 +931,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -988,7 +993,7 @@ export default class coinsph extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const bid = this.safeString (ticker, 'bidPrice');
         const ask = this.safeString (ticker, 'askPrice');
@@ -1005,7 +1010,7 @@ export default class coinsph extends Exchange {
         let changePcnt = this.safeString (ticker, 'priceChangePercent');
         changePcnt = Precise.stringMul (changePcnt, '100');
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'open': open,
@@ -1024,7 +1029,7 @@ export default class coinsph extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1037,7 +1042,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1080,7 +1085,7 @@ export default class coinsph extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1091,9 +1096,7 @@ export default class coinsph extends Exchange {
             'symbol': market['id'],
             'interval': interval,
         };
-        if (limit === undefined) {
-            limit = 1000;
-        }
+        const limitResolved: Int = (limit === undefined) ? 1000 : limit;
         if (since !== undefined) {
             request['startTime'] = since;
             // since work properly only when it is "younger" than last "limit" candle
@@ -1101,7 +1104,7 @@ export default class coinsph extends Exchange {
                 request['endTime'] = until;
             } else {
                 const duration = this.parseTimeframe (timeframe) * 1000;
-                const endTimeByLimit = this.sum (since, duration * (limit - 1));
+                const endTimeByLimit = this.sum (since, duration * (limitResolved - 1));
                 const now = this.milliseconds ();
                 request['endTime'] = Math.min (endTimeByLimit, now);
             }
@@ -1109,11 +1112,11 @@ export default class coinsph extends Exchange {
             request['endTime'] = until;
             // since work properly only when it is "younger" than last "limit" candle
             const duration = this.parseTimeframe (timeframe) * 1000;
-            request['startTime'] = until - (duration * (limit - 1));
+            request['startTime'] = until - (duration * (limitResolved - 1));
         }
-        request['limit'] = limit;
-        params = this.omit (params, 'until');
-        const response = await this.publicGetOpenapiQuoteV1Klines (this.extend (request, params));
+        request['limit'] = limitResolved;
+        const paramsOmitted: Dict = this.omit (params, 'until');
+        const response = await this.publicGetOpenapiQuoteV1Klines (this.extend (request, paramsOmitted));
         //
         //     [
         //         [
@@ -1131,7 +1134,8 @@ export default class coinsph extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray (response);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limitResolved);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -1156,7 +1160,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1200,7 +1204,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -1234,7 +1238,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
         }
@@ -1283,8 +1287,8 @@ export default class coinsph extends Exchange {
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const id = this.safeString2 (trade, 'id', 'tradeId');
         const orderId = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'time');
@@ -1328,7 +1332,7 @@ export default class coinsph extends Exchange {
             'cost': costString,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1339,7 +1343,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1369,14 +1373,14 @@ export default class coinsph extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeList (response, 'balances', []);
+        const balances: Dict[] = this.safeList (response, 'balances', []);
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const currencyId = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1404,24 +1408,25 @@ export default class coinsph extends Exchange {
      * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         // todo: add test order low priority
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const testOrder = this.safeBool (params, 'test', false);
-        params = this.omit (params, 'test');
-        let orderType: Str = this.safeString (params, 'type', type);
+        const paramsOmitted: Dict = this.omit (params, 'test');
+        let orderType: Str = this.safeString (paramsOmitted, 'type', type);
         orderType = this.encodeOrderType (orderType);
-        params = this.omit (params, 'type');
+        const paramsType: Dict = this.omit (paramsOmitted, 'type');
+        let paramsQuote = undefined;
         const orderSide = this.encodeOrderSide (side);
         const request: Dict = {
             'symbol': market['id'],
             'type': orderType,
             'side': orderSide,
         };
-        const options = this.safeValue (this.options, 'createOrder', {});
+        const options = this.safeDict (this.options, 'createOrder', {});
         let newOrderRespType = this.safeValue (options, 'newOrderRespType', {});
         // if limit order
         if (orderType === 'LIMIT' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT_LIMIT' || orderType === 'LIMIT_MAKER') {
@@ -1441,10 +1446,9 @@ export default class coinsph extends Exchange {
                 request['quantity'] = this.amountToPrecision (symbol, amount);
             } else if (orderSide === 'BUY') {
                 let quoteAmount: Str = undefined;
-                let createMarketBuyOrderRequiresPrice = true;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                const cost = this.safeNumber2 (params, 'cost', 'quoteOrderQty');
-                params = this.omit (params, 'cost');
+                const [ createMarketBuyOrderRequiresPrice, paramsRequiresPrice ] = this.handleOptionBoolAndParams (paramsType, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber2 (paramsRequiresPrice, 'cost', 'quoteOrderQty');
+                paramsQuote = this.omit (paramsRequiresPrice, 'cost');
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision (symbol, cost);
                 } else if (createMarketBuyOrderRequiresPrice) {
@@ -1463,19 +1467,20 @@ export default class coinsph extends Exchange {
             }
         }
         if (orderType === 'STOP_LOSS' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT' || orderType === 'TAKE_PROFIT_LIMIT') {
-            const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+            const triggerPrice = this.safeString2 (paramsType, 'triggerPrice', 'stopPrice');
             if (triggerPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
             }
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         request['newOrderRespType'] = newOrderRespType;
-        params = this.omit (params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
+        const paramsBase: Dict = (paramsQuote !== undefined) ? paramsQuote : paramsType;
+        const paramsRequest: Dict = this.omit (paramsBase, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         let response: Dict = {};
-        if (testOrder) {
-            response = await this.privatePostOpenapiV1OrderTest (this.extend (request, params));
+        if (testOrder === true) {
+            response = await this.privatePostOpenapiV1OrderTest (this.extend (request, paramsRequest));
         } else {
-            response = await this.privatePostOpenapiV1Order (this.extend (request, params));
+            response = await this.privatePostOpenapiV1Order (this.extend (request, paramsRequest));
         }
         //
         //     {
@@ -1517,19 +1522,19 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         } else {
             request['orderId'] = id;
         }
-        params = this.omit (params, [ 'clientOrderId', 'origClientOrderId' ]);
-        const response = await this.privateGetOpenapiV1Order (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'origClientOrderId' ]);
+        const response = await this.privateGetOpenapiV1Order (this.extend (request, paramsOmitted));
         return this.parseOrder (response);
     }
 
@@ -1544,7 +1549,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1569,7 +1574,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
@@ -1601,19 +1606,19 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         } else {
             request['orderId'] = id;
         }
-        params = this.omit (params, [ 'clientOrderId', 'origClientOrderId' ]);
-        const response = await this.privateDeleteOpenapiV1Order (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'origClientOrderId' ]);
+        const response = await this.privateDeleteOpenapiV1Order (this.extend (request, paramsOmitted));
         return this.parseOrder (response);
     }
 
@@ -1626,7 +1631,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
@@ -1714,9 +1719,9 @@ export default class coinsph extends Exchange {
         //
         const id = this.safeString (order, 'orderId');
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (order, 'time', 'transactTime');
-        const trades = this.safeValue (order, 'fills');
+        const trades = this.safeList (order, 'fills');
         let triggerPrice = this.safeString (order, 'stopPrice');
         if (Precise.stringEq (triggerPrice, '0')) {
             triggerPrice = undefined;
@@ -1728,7 +1733,7 @@ export default class coinsph extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.parseOrderType (this.safeString (order, 'type')),
             'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'timeInForce')),
             'side': this.parseOrderSide (this.safeString (order, 'side')),
@@ -1743,10 +1748,10 @@ export default class coinsph extends Exchange {
             'fees': undefined,
             'trades': trades,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
-    parseOrderSide (status: any) {
+    parseOrderSide (status: Str) {
         const statuses: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -1757,7 +1762,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    encodeOrderSide (status: any) {
+    encodeOrderSide (status: Str) {
         const statuses: Dict = {
             'buy': 'BUY',
             'sell': 'SELL',
@@ -1768,7 +1773,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status: any) {
+    parseOrderType (status: Str) {
         const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -1784,7 +1789,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    encodeOrderType (status: any) {
+    encodeOrderType (status: Str) {
         const statuses: Dict = {
             'market': 'MARKET',
             'limit': 'LIMIT',
@@ -1815,7 +1820,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderTimeInForce (status: any) {
+    parseOrderTimeInForce (status: Str) {
         const statuses: Dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',
@@ -1836,7 +1841,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params: Dict = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1866,7 +1871,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    override async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1886,8 +1891,9 @@ export default class coinsph extends Exchange {
         //     ]
         //
         const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const fee = this.parseTradingFee (response[i]);
+        const fees = this.toArray (response);
+        for (let i = 0; i < fees.length; i++) {
+            const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
             if (symbol !== undefined) {
                 result[symbol] = fee;
@@ -1905,8 +1911,8 @@ export default class coinsph extends Exchange {
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         return {
             'info': fee,
             'symbol': symbol,
@@ -1929,10 +1935,10 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        const options = this.safeValue (this.options, 'withdraw');
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+        const options = this.safeDict (this.options, 'withdraw');
         const warning = this.safeBool (options, 'warning', true);
-        if (warning) {
+        if (warning === true) {
             throw new InvalidAddress (this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
         const networkCode = this.safeString (params, 'network');
@@ -1953,8 +1959,8 @@ export default class coinsph extends Exchange {
         if (tag !== undefined) {
             request['withdrawOrderId'] = tag;
         }
-        params = this.omit (params, 'network');
-        const response = await this.privatePostOpenapiWalletV1WithdrawApply (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, 'network');
+        const response = await this.privatePostOpenapiWalletV1WithdrawApply (this.extend (request, paramsOmitted));
         return this.parseTransaction (response, currency);
     }
 
@@ -1969,7 +1975,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         // todo: returns an empty array - find out why
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -2029,7 +2035,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         // todo: returns an empty array - find out why
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -2199,7 +2205,7 @@ export default class coinsph extends Exchange {
      * @param {string} [params.network] network for fetch deposit address
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         const networkCode = this.safeString (params, 'network');
         const networkId = (networkCode === undefined) ? undefined : this.networkCodeToId (networkCode, code);
         if (networkId === undefined) {
@@ -2213,8 +2219,8 @@ export default class coinsph extends Exchange {
             'coin': currency['id'],
             'network': networkId,
         };
-        params = this.omit (params, 'network');
-        const response = await this.privateGetOpenapiWalletV1DepositAddress (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, 'network');
+        const response = await this.privateGetOpenapiWalletV1DepositAddress (this.extend (request, paramsOmitted));
         //
         //     {
         //         "coin": "ETH",
@@ -2225,7 +2231,7 @@ export default class coinsph extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "coin": "ETH",
@@ -2246,6 +2252,7 @@ export default class coinsph extends Exchange {
 
     urlEncodeQuery (query: Dict = {}) {
         let encodedArrayParams = '';
+        let remainingQuery: Dict = query;
         const keys = Object.keys (query);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -2254,12 +2261,12 @@ export default class coinsph extends Exchange {
                     encodedArrayParams += '&';
                 }
                 const innerArray = query[key];
-                query = this.omit (query, key);
+                remainingQuery = this.omit (remainingQuery, key);
                 const encodedArrayParam = this.parseArrayParam (innerArray, key);
                 encodedArrayParams += encodedArrayParam;
             }
         }
-        const encodedQuery = this.urlencode (query);
+        const encodedQuery = this.urlencode (remainingQuery);
         if (encodedQuery.length !== 0) {
             return encodedQuery + '&' + encodedArrayParams;
         } else {
@@ -2267,7 +2274,7 @@ export default class coinsph extends Exchange {
         }
     }
 
-    parseArrayParam (array: any, key: any) {
+    parseArrayParam (array: any, key: string): string {
         let stringifiedArray = this.json (array);
         stringifiedArray = stringifiedArray.replace ('[', '%5B');
         stringifiedArray = stringifiedArray.replace (']', '%5D');
@@ -2275,11 +2282,14 @@ export default class coinsph extends Exchange {
         return urlEncodedParam;
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
-        let url = this.urls['api'][api];
-        let query = this.omit (params, this.extractParams (path));
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const query = this.omit (params, this.extractParams (path));
         const endpoint = this.implodeParams (path, params);
-        url = url + '/' + endpoint;
+        let url = apiUrl + '/' + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             query['timestamp'] = this.milliseconds ();
@@ -2290,17 +2300,17 @@ export default class coinsph extends Exchange {
                     query['recvWindow'] = defaultRecvWindow;
                 }
             }
-            query = this.urlEncodeQuery (query);
-            const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
-            url = url + '?' + query + '&signature=' + signature;
-            headers = {
+            const signedQuery = this.urlEncodeQuery (query);
+            const signature = this.hmac (this.encode (signedQuery), this.encode (this.secret), sha256);
+            url = url + '?' + signedQuery + '&signature=' + signature;
+            const signedHeaders: Dict = {
                 'X-COINS-APIKEY': this.apiKey,
             };
-        } else {
-            query = this.urlEncodeQuery (query);
-            if (query.length !== 0) {
-                url += '?' + query;
-            }
+            return { 'url': url, 'method': method, 'body': body, 'headers': signedHeaders };
+        }
+        const encodedQuery = this.urlEncodeQuery (query);
+        if (encodedQuery.length !== 0) {
+            url += '?' + encodedQuery;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

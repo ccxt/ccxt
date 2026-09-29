@@ -6,7 +6,7 @@ import Exchange from './abstract/paymium.js';
 import { ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Strings, int, DepositAddress, NullableDict } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Strings, int, DepositAddress, NullableDict, Endpoint, List, Order } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -67,40 +67,41 @@ export default class paymium extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'countries',
-                        'currencies',
-                        'data/{currency}/ticker',
-                        'data/{currency}/trades',
-                        'data/{currency}/depth',
-                        'bitcoin_charts/{id}/trades',
-                        'bitcoin_charts/{id}/depth',
-                    ],
+                    'get': {
+                        'countries': { 'cost': 1 } as Endpoint<List>,
+                        'currencies': { 'cost': 1 } as Endpoint<List>,
+                        'data/{currency}/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'data/{currency}/trades': { 'cost': 1 } as Endpoint<List>,
+                        'data/{currency}/depth': { 'cost': 1 } as Endpoint<Dict>,
+                        'bitcoin_charts/{id}/trades': { 'cost': 1 } as Endpoint<List>,
+                        'bitcoin_charts/{id}/depth': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'user',
-                        'user/addresses',
-                        'user/addresses/{address}',
-                        'user/orders',
-                        'user/orders/{uuid}',
-                        'user/price_alerts',
-                        'merchant/get_payment/{uuid}',
-                    ],
-                    'post': [
-                        'user/addresses',
-                        'user/orders',
-                        'user/withdrawals',
-                        'user/email_transfers',
-                        'user/payment_requests',
-                        'user/price_alerts',
-                        'merchant/create_payment',
-                    ],
-                    'delete': [
-                        'user/orders/{uuid}',
-                        'user/orders/{uuid}/cancel',
-                        'user/price_alerts/{id}',
-                    ],
+                    'get': {
+                        'user': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/addresses': { 'cost': 1 } as Endpoint<List>,
+                        'user/addresses/{address}': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/orders': { 'cost': 1 } as Endpoint<List>,
+                        'user/orders/{uuid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/price_alerts': { 'cost': 1 } as Endpoint<List>,
+                        'user/withdrawals': { 'cost': 1 } as Endpoint<List>,
+                        'merchant/get_payment/{uuid}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'user/addresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/withdrawals': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/email_transfers': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/payment_requests': { 'cost': 1 } as Endpoint<List>,
+                        'user/price_alerts': { 'cost': 1 } as Endpoint<Dict>,
+                        'merchant/create_payment': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'delete': {
+                        'user/orders/{uuid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/orders/{uuid}/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/price_alerts/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'markets': {
@@ -185,7 +186,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -203,7 +204,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -273,7 +274,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -306,10 +307,10 @@ export default class paymium extends Exchange {
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
         const timestamp = this.safeTimestamp (trade, 'created_at_int');
         const id = this.safeString (trade, 'uuid');
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         const side = this.safeString (trade, 'side');
         const price = this.safeString (trade, 'price');
-        const amountField = 'traded_' + market['base'].toLowerCase ();
+        const amountField = 'traded_' + marketResolved['base'].toLowerCase ();
         const amount = this.safeString (trade, amountField);
         return this.safeTrade ({
             'info': trade,
@@ -317,7 +318,7 @@ export default class paymium extends Exchange {
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -325,7 +326,7 @@ export default class paymium extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -339,7 +340,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -360,7 +361,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async createDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -385,7 +386,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -413,7 +414,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddresses (codes: Strings = undefined, params: Dict = {}): Promise<DepositAddress[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -428,10 +429,10 @@ export default class paymium extends Exchange {
         //         }
         //     ]
         //
-        return this.parseDepositAddresses (response, codes);
+        return this.parseDepositAddresses (response, codes, false);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -464,7 +465,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -481,7 +482,7 @@ export default class paymium extends Exchange {
         const response = await this.privatePostUserOrders (this.extend (request, params));
         return this.safeOrder ({
             'info': response,
-            'id': response['uuid'],
+            'id': this.safeString (response, 'uuid'),
         }, market);
     }
 
@@ -495,7 +496,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const request: Dict = {
             'uuid': id,
         };
@@ -517,7 +518,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -606,8 +607,8 @@ export default class paymium extends Exchange {
         const currencyId = this.safeString (transfer, 'currency');
         const updatedAt = this.safeString (transfer, 'updated_at');
         const timetstamp = this.parseDate (updatedAt);
-        const accountOperations = this.safeValue (transfer, 'account_operations');
-        const firstOperation = this.safeValue (accountOperations, 0, {});
+        const accountOperations = this.safeList (transfer, 'account_operations');
+        const firstOperation = this.safeDict (accountOperations, 0, {});
         const status = this.safeString (transfer, 'state');
         return {
             'info': transfer,
@@ -630,35 +631,51 @@ export default class paymium extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
-        let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
+    override nonce (): number {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds ();
+    }
+
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const baseApiUrl = this.safeString (this.urls['api'], 'rest');
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl: string = baseApiUrl;
+        let url = baseUrl + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
+            // paymium requires an increasing nonce
+            const nonce = this.incrementingNonce ().toString ();
             let auth = nonce + url;
-            headers = {
+            const signedHeaders: Dict = {
                 'Api-Key': this.apiKey,
                 'Api-Nonce': nonce,
             };
+            const hasQuery = Object.keys (query).length > 0;
+            let signedBody: Str = body;
+            if (method === 'POST' && hasQuery) {
+                signedBody = this.json (query);
+            }
             if (method === 'POST') {
-                if (Object.keys (query).length) {
-                    body = this.json (query);
-                    auth += body;
-                    headers['Content-Type'] = 'application/json';
+                if (hasQuery) {
+                    auth += signedBody;
+                    signedHeaders['Content-Type'] = 'application/json';
                 }
             } else {
-                if (Object.keys (query).length) {
+                if (hasQuery) {
                     const queryString = this.urlencode (query);
                     auth += queryString;
                     url += '?' + queryString;
                 }
             }
-            headers['Api-Signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+            signedHeaders['Api-Signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+            return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

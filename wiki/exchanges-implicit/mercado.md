@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official mercado API documentation:** [mercadobitcoin.com.br](https://www.mercadobitcoin.com.br/api-doc) · [mercadobitcoin.com.br](https://www.mercadobitcoin.com.br/trade-api)
 
-> 21 implicit endpoints across 4 access groups.
+> 25 implicit endpoints across 5 access groups.
 
 ## public
 
@@ -63,13 +63,13 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `publicGetCoins` | GET | `coins` |  |
-| `publicGetCoinOrderbook` | GET | `{coin}/orderbook/` |  |
-| `publicGetCoinTicker` | GET | `{coin}/ticker/` |  |
-| `publicGetCoinTrades` | GET | `{coin}/trades/` |  |
-| `publicGetCoinTradesFrom` | GET | `{coin}/trades/{from}/` |  |
-| `publicGetCoinTradesFromTo` | GET | `{coin}/trades/{from}/{to}` |  |
-| `publicGetCoinDaySummaryYearMonthDay` | GET | `{coin}/day-summary/{year}/{month}/{day}/` |  |
+| `publicGetCoins` | GET | `coins` | 1 |
+| `publicGetCoinOrderbook` | GET | `{coin}/orderbook/` | 1 |
+| `publicGetCoinTicker` | GET | `{coin}/ticker/` | 1 |
+| `publicGetCoinTrades` | GET | `{coin}/trades/` | 1 |
+| `publicGetCoinTradesFrom` | GET | `{coin}/trades/{from}/` | 1 |
+| `publicGetCoinTradesFromTo` | GET | `{coin}/trades/{from}/{to}` | 1 |
+| `publicGetCoinDaySummaryYearMonthDay` | GET | `{coin}/day-summary/{year}/{month}/{day}/` | 1 |
 
 ## private
 
@@ -77,18 +77,18 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `privatePostCancelOrder` | POST | `cancel_order` |  |
-| `privatePostGetAccountInfo` | POST | `get_account_info` |  |
-| `privatePostGetOrder` | POST | `get_order` |  |
-| `privatePostGetWithdrawal` | POST | `get_withdrawal` |  |
-| `privatePostListSystemMessages` | POST | `list_system_messages` |  |
-| `privatePostListOrders` | POST | `list_orders` |  |
-| `privatePostListOrderbook` | POST | `list_orderbook` |  |
-| `privatePostPlaceBuyOrder` | POST | `place_buy_order` |  |
-| `privatePostPlaceSellOrder` | POST | `place_sell_order` |  |
-| `privatePostPlaceMarketBuyOrder` | POST | `place_market_buy_order` |  |
-| `privatePostPlaceMarketSellOrder` | POST | `place_market_sell_order` |  |
-| `privatePostWithdrawCoin` | POST | `withdraw_coin` |  |
+| `privatePostCancelOrder` | POST | `cancel_order` | 1 |
+| `privatePostGetAccountInfo` | POST | `get_account_info` | 1 |
+| `privatePostGetOrder` | POST | `get_order` | 1 |
+| `privatePostGetWithdrawal` | POST | `get_withdrawal` | 1 |
+| `privatePostListSystemMessages` | POST | `list_system_messages` | 1 |
+| `privatePostListOrders` | POST | `list_orders` | 1 |
+| `privatePostListOrderbook` | POST | `list_orderbook` | 1 |
+| `privatePostPlaceBuyOrder` | POST | `place_buy_order` | 1 |
+| `privatePostPlaceSellOrder` | POST | `place_sell_order` | 1 |
+| `privatePostPlaceMarketBuyOrder` | POST | `place_market_buy_order` | 1 |
+| `privatePostPlaceMarketSellOrder` | POST | `place_market_sell_order` | 1 |
+| `privatePostWithdrawCoin` | POST | `withdraw_coin` | 1 |
 
 ## v4Public
 
@@ -96,7 +96,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `v4PublicGetCoinCandle` | GET | `{coin}/candle/` |  |
+| `v4PublicGetCoinCandle` | GET | `{coin}/candle/` | 1 |
 
 ## v4PublicNet
 
@@ -104,5 +104,16 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `v4PublicNetGetCandles` | GET | `candles` |  |
+| `v4PublicNetGetCandles` | GET | `candles` | 1 |
+
+## v4Private
+
+**Base URL**: `https://api.mercadobitcoin.net/api/v4`
+
+| Method | HTTP | Endpoint | Cost |
+| --- | --- | --- | --- |
+| `v4PrivatePostAccounts` | POST | `accounts` | 1 |
+| `v4PrivatePostAccountsAccountIdSymbolTransfersInternal` | POST | `accounts/{accountId}/{symbol}/transfers/internal` | 1 |
+| `v4PrivatePostOauth2Token` | POST | `oauth2/token` | 1 |
+| `v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId` | PATCH | `accounts/{accountId}/wallet/{symbol}/deposits/{depositId}` | 1 |
 

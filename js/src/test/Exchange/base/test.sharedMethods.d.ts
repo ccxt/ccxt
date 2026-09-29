@@ -28,12 +28,14 @@ declare function getActiveMarkets(exchange: any, includeUnknown?: boolean): any;
 declare function removeProxyOptions(exchange: Exchange, skippedProperties: object): Str[];
 declare function setProxyOptions(exchange: Exchange, skippedProperties: object, proxyUrl: Str, httpProxy: Str, httpsProxy: Str, socksProxy: Str): void;
 declare function concat(a?: any[] | undefined, b?: any[] | undefined): any[] | undefined;
+declare function assertDictionaryResponse(exchange: Exchange, method: string, response: any, hint?: Str): void;
 declare function assertNonEmtpyArray(exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, hint?: Str): void;
 declare function assertRoundMinuteTimestamp(exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, key: string | number): void;
 declare function deepEqual(exchange: Exchange, a: any, b: any): boolean;
 declare function assertDeepEqual(exchange: Exchange, skippedProperties: any, method: string, a: any, b: any): void;
 declare function exchangeProp(exchange: Exchange, key: string, defaultValue?: any): any;
-declare function validateTickerExceptionForPercentage(ex: any, exchange: Exchange, ticker: any): Promise<void>;
+declare function tickerExceptionNeedsOhlcv(ex: any, exchange: Exchange, ticker: any): boolean;
+declare function validateTickerExceptionForPercentage(ex: any, exchange: Exchange, ticker: any, ohlcv?: any): void;
 declare const _default: {
     exchangeProp: typeof exchangeProp;
     deepEqual: typeof deepEqual;
@@ -65,9 +67,11 @@ declare const _default: {
     removeProxyOptions: typeof removeProxyOptions;
     setProxyOptions: typeof setProxyOptions;
     assertNonEmtpyArray: typeof assertNonEmtpyArray;
+    assertDictionaryResponse: typeof assertDictionaryResponse;
     assertRoundMinuteTimestamp: typeof assertRoundMinuteTimestamp;
     concat: typeof concat;
     getActiveMarkets: typeof getActiveMarkets;
+    tickerExceptionNeedsOhlcv: typeof tickerExceptionNeedsOhlcv;
     validateTickerExceptionForPercentage: typeof validateTickerExceptionForPercentage;
 };
 export default _default;

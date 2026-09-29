@@ -67,7 +67,7 @@ export async function generateMetadata(props: PageProps<'/[lang]/blog/[slug]'>):
   const canonical = postCanonicalUrl(page);
 
   return {
-    title: `${page.data.title} | ${appName} Blog`,
+    title: { absolute: `${page.data.title} | ${appName} Blog` },
     description: page.data.description,
     // every locale serves the same English post — one canonical, no hreflang variants
     alternates: {

@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official apex API documentation:** [api-docs.omni.apex.exchange](https://api-docs.omni.apex.exchange)
 
-> 27 implicit endpoints across 2 access groups.
+> 32 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -90,6 +90,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetV3OpenOrders` | GET | `v3/open-orders` | 1 |
 | `privateGetV3Transfers` | GET | `v3/transfers` | 1 |
 | `privateGetV3Transfer` | GET | `v3/transfer` | 1 |
+| `privateGetV3StockAccount` | GET | `v3/stock/account` | 1 |
 | `privatePostV3DeleteOpenOrders` | POST | `v3/delete-open-orders` | 1 |
 | `privatePostV3DeleteClientOrderId` | POST | `v3/delete-client-order-id` | 1 |
 | `privatePostV3DeleteOrder` | POST | `v3/delete-order` | 1 |
@@ -97,4 +98,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostV3SetInitialMarginRate` | POST | `v3/set-initial-margin-rate` | 1 |
 | `privatePostV3TransferOut` | POST | `v3/transfer-out` | 1 |
 | `privatePostV3ContractTransferOut` | POST | `v3/contract-transfer-out` | 1 |
+| `privatePostV3ContractTransferTo` | POST | `v3/contract-transfer-to` | 1 |
+| `privatePostV3SubmitWithdrawClaim` | POST | `v3/submit-withdraw-claim` | 1 |
+| `privatePostV3StockRegisterAccount` | POST | `v3/stock/register-account` | 1 |
+| `privatePostV3StockGenerateApi` | POST | `v3/stock/generate-api` | 1 |
 

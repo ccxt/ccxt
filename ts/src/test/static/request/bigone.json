@@ -27,7 +27,7 @@
                     0.0005,
                     25000
                 ],
-                "output": "{\"asset_pair_name\":\"BTC-USDT\",\"side\":\"BID\",\"amount\":\"0.0005\",\"price\":\"25000\",\"type\":\"LIMIT\"}"
+                "output": { "asset_pair_name": "BTC-USDT", "side": "BID", "amount": "0.0005", "price": "25000", "type": "LIMIT" }
             },
             {
                 "description": "Spot limit sell",
@@ -40,7 +40,7 @@
                     0.000262,
                     39000
                 ],
-                "output": "{\"asset_pair_name\":\"BTC-USDT\",\"side\":\"ASK\",\"amount\":\"0.000262\",\"price\":\"39000\",\"type\":\"LIMIT\"}"
+                "output": { "asset_pair_name": "BTC-USDT", "side": "ASK", "amount": "0.000262", "price": "39000", "type": "LIMIT" }
             },
             {
                 "description": "Spot market sell",
@@ -53,7 +53,7 @@
                     0.000262,
                     null
                 ],
-                "output": "{\"asset_pair_name\":\"BTC-USDT\",\"side\":\"ASK\",\"amount\":\"0.000262\",\"type\":\"MARKET\"}"
+                "output": { "asset_pair_name": "BTC-USDT", "side": "ASK", "amount": "0.000262", "type": "MARKET" }
             },
             {
                 "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false",
@@ -69,7 +69,7 @@
                         "createMarketBuyOrderRequiresPrice": false
                     }
                 ],
-                "output": "{\"asset_pair_name\":\"BTC-USDT\",\"side\":\"BID\",\"amount\":\"10\",\"type\":\"MARKET\"}"
+                "output": { "asset_pair_name": "BTC-USDT", "side": "BID", "amount": "10", "type": "MARKET" }
             },
             {
                 "description": "create order with clientOrderId",
@@ -85,7 +85,7 @@
                         "client_order_id": "1253"
                     }
                 ],
-                "output": "{\"asset_pair_name\":\"DOT-USDT\",\"side\":\"ASK\",\"amount\":\"0.9\",\"type\":\"MARKET\",\"client_order_id\":\"1253\"}"
+                "output": { "asset_pair_name": "DOT-USDT", "side": "ASK", "amount": "0.9", "type": "MARKET", "client_order_id": "1253" }
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -97,7 +97,7 @@
                     "LTC/USDT",
                     11
                 ],
-                "output": "{\"asset_pair_name\":\"LTC-USDT\",\"side\":\"BID\",\"amount\":\"11\",\"type\":\"MARKET\"}"
+                "output": { "asset_pair_name": "LTC-USDT", "side": "BID", "amount": "11", "type": "MARKET" }
             }
         ],
         "fetchOrders": [
@@ -150,7 +150,7 @@
                 "input": [
                     "LTC/USDT"
                 ],
-                "output": "{\"asset_pair_name\":\"LTC-USDT\"}"
+                "output": { "asset_pair_name": "LTC-USDT" }
             }
         ],
         "fetchBalance": [
@@ -202,7 +202,7 @@
                     "spot",
                     "swap"
                 ],
-                "output": "{\"symbol\":\"USDT\",\"amount\":\"1\",\"from\":\"SPOT\",\"to\":\"CONTRACT\",\"guid\":\"e4514628-c33b-4a91-bac7-75ace392c469\"}"
+                "output": { "symbol": "USDT", "amount": "1", "from": "SPOT", "to": "CONTRACT", "guid": "e4514628-c33b-4a91-bac7-75ace392c469" }
             }
         ],
         "fetchDepositAddress": [
@@ -443,7 +443,7 @@
                     0.03,
                     "3PumsXwUSakZomHXMcY93RrVRJ7PAi2ida"
                 ],
-                "output": "{\"symbol\":\"BTC\",\"target_address\":\"3PumsXwUSakZomHXMcY93RrVRJ7PAi2ida\",\"amount\":\"0.03\"}"
+                "output": { "symbol": "BTC", "target_address": "3PumsXwUSakZomHXMcY93RrVRJ7PAi2ida", "amount": "0.03" }
             }
         ]
     }

@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class Position {
+public final class Position extends TypedMap {
     public String symbol;
     public String id;
     public Long timestamp;
@@ -37,6 +37,7 @@ public final class Position {
 
     @SuppressWarnings("unchecked")
     public Position(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.id = TypeHelper.safeString(data, "id");

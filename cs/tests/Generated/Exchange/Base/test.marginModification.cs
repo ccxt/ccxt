@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     public static void testMarginModification(BaseExchange exchange, object skippedProperties, object method, object entry)
     {
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "type", "add" },
             { "amount", exchange.parseNumber("0.1") },
@@ -18,7 +18,7 @@ public partial class testMainClass : BaseTest
             { "symbol", "ADA/USDT:USDT" },
             { "status", "ok" },
         };
-        object emptyAllowedFor = new List<object>() {"status", "symbol", "code", "total", "amount"};
+        List<object> emptyAllowedFor = new List<object>() {"status", "symbol", "code", "total", "amount"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(entry, "code"));
         //

@@ -45,9 +45,14 @@ class Future(asyncio.Future):
                     f.remove_done_callback(cb)
                 except Exception:
                     pass
-                # the winner is already done and retrieved via settle_from - only the
-                # still-pending losers need a swallow for their eventual rejection
-                if not f.done():
+                # losers may already be done when a broadcast reject settles all
+                # raced futures at once, swallow those immediately, still-pending
+                # losers get the swallow for their eventual rejection, otherwise
+                # every broadcast reject leaves unretrieved exceptions that asyncio
+                # dumps at gc as "Future exception was never retrieved" walls
+                if f.done():
+                    _swallow(f)
+                else:
                     f.add_done_callback(_swallow)
             callbacks.clear()
 

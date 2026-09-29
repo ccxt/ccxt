@@ -30,10 +30,36 @@ func NewIOrderBook(v any) IOrderBook {
 	}
 }
 
+// truncateBidAskRows keeps only price and amount in every level so that
+// 3-wide counted and indexed rows survive parseOrderBookEntries, see
+// https://github.com/ccxt/ccxt/issues/29586
+func truncateBidAskRows(side any) any {
+	rows, ok := side.([][]any)
+	if !ok {
+		return side
+	}
+	out := make([][]any, len(rows))
+	for i, row := range rows {
+		if len(row) > 2 {
+			out[i] = row[:2]
+		} else {
+			out[i] = row
+		}
+	}
+	return out
+}
+
 func NewOrderBookFromWs(v any) OrderBook {
 	switch t := v.(type) {
-	case *WsOrderBook:
+	case OrderBookInterface:
+		// covers *WsOrderBook and all embedding types (*CountedOrderBook, *IndexedOrderBook);
+		// a concrete *WsOrderBook case never matches embedding types and silently produced
+		// empty books with timestamp 0, see https://github.com/ccxt/ccxt/issues/29586
 		ob := t.ToMap()
+		// counted and indexed sides carry 3-wide rows of price and size and count or id
+		// which parseOrderBookEntries drops, normalize every row to price and amount
+		ob["asks"] = truncateBidAskRows(ob["asks"])
+		ob["bids"] = truncateBidAskRows(ob["bids"])
 		return NewOrderBook(ob)
 	case map[string]any:
 		return NewOrderBook(t)

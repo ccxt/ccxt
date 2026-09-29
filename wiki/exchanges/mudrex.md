@@ -498,20 +498,21 @@ mudrex.reduceMargin (symbol, amount, params?)
 <a name="fetchMyTrades" id="fetchmytrades"></a>
 
 ### fetchMyTrades{docsify-ignore}
-fetch all trades made by the user
+fetch all trades made by the user, derived from the TRANSACTION rows of the fee history endpoint - FUNDING rows are excluded and each fill's REBATE row is netted into the trade fee
 
 **Kind**: instance method of [<code>mudrex</code>](#mudrex)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
-**See**: https://docs.trade.mudrex.com/docs  
+**See**: https://docs.trade.mudrex.com/docs/fees  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
+| symbol | <code>string</code> | No | unified market symbol, applied client-side because the endpoint has no symbol filter |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for, applied client-side |
+| limit | <code>int</code> | No | the maximum number of trade structures to retrieve, further pages are requested until the limit is satisfied, the history ends or the page cap is reached |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trade_currency | <code>string</code> | No | the settlement currency to filter trades by |
+| params.trade_currency | <code>string</code> | No | the settlement currency to filter trades by, 'USDT' (default) or 'INR' |
+| params.paginationCalls | <code>int</code> | No | the maximum number of pages to request (default 10) - a symbol with few or no recent fills can exhaust the cap and return fewer than limit trades |
 
 
 ```javascript

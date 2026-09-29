@@ -7,196 +7,388 @@ namespace ccxt\abstract\prediction;
 
 
 abstract class myriad extends \ccxt\prediction\PredictionExchange {
-    public function myriad_public_get_questions($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_questions($params = array()): \React\Promise\PromiseInterface {
         return $this->request('questions', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_questions_id($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_questions_id($params = array()): \React\Promise\PromiseInterface {
         return $this->request('questions/{id}', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_markets($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_markets($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_markets_id($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_markets_id($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{id}', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_markets_networkid_id($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_markets_networkid_id($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{networkId}/{id}', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_markets_id_events($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_markets_id_events($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{id}/events', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_markets_id_orderbook($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_markets_id_orderbook($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{id}/orderbook', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_markets_id_trades($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function myriad_public_get_markets_id_trades($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{id}/trades', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_markets_id_holders($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_markets_id_holders($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{id}/holders', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_markets_id_referrals($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_markets_id_referrals($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{id}/referrals', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_events($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_events($params = array()): \React\Promise\PromiseInterface {
         return $this->request('events', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_orders($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_orders($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_orders_hash($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_orders_hash($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders/{hash}', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_users_address_events($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_users_address_events($params = array()): \React\Promise\PromiseInterface {
         return $this->request('users/{address}/events', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_users_address_referrals($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_users_address_referrals($params = array()): \React\Promise\PromiseInterface {
         return $this->request('users/{address}/referrals', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_users_address_portfolio($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_users_address_portfolio($params = array()): \React\Promise\PromiseInterface {
         return $this->request('users/{address}/portfolio', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_users_address_markets($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_users_address_markets($params = array()): \React\Promise\PromiseInterface {
         return $this->request('users/{address}/markets', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_tags($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_tags($params = array()): \React\Promise\PromiseInterface {
         return $this->request('tags', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_get_topics($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_get_topics($params = array()): \React\Promise\PromiseInterface {
         return $this->request('topics', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_post_markets_quote($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_post_markets_quote($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/quote', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_post_markets_claim($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_post_markets_claim($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/claim', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_post_orders($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_post_orders($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_post_orders_cancel_batch($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_post_orders_cancel_batch($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders/cancel-batch', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_post_orders_cancel_all($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_post_orders_cancel_all($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders/cancel-all', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_post_positions_split($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_post_positions_split($params = array()): \React\Promise\PromiseInterface {
         return $this->request('positions/split', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_post_positions_merge($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_post_positions_merge($params = array()): \React\Promise\PromiseInterface {
         return $this->request('positions/merge', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_post_positions_redeem($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_post_positions_redeem($params = array()): \React\Promise\PromiseInterface {
         return $this->request('positions/redeem', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_post_positions_redeem_voided($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_post_positions_redeem_voided($params = array()): \React\Promise\PromiseInterface {
         return $this->request('positions/redeem-voided', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_post_positions_neg_risk_split($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_post_positions_neg_risk_split($params = array()): \React\Promise\PromiseInterface {
         return $this->request('positions/neg-risk/split', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_post_positions_neg_risk_merge($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_post_positions_neg_risk_merge($params = array()): \React\Promise\PromiseInterface {
         return $this->request('positions/neg-risk/merge', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriad_public_delete_orders_hash($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_public_delete_orders_hash($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders/{hash}', array('myriad', 'public'), 'DELETE', $params, null, null, array("cost" => 1));
     }
-    public function myriad_private_post_markets_quote_with_fee($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriad_private_post_markets_quote_with_fee($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/quote_with_fee', array('myriad', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetQuestions($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetQuestions($params = array()): \React\Promise\PromiseInterface {
         return $this->request('questions', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetQuestionsId($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetQuestionsId($params = array()): \React\Promise\PromiseInterface {
         return $this->request('questions/{id}', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetMarkets($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetMarkets($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetMarketsId($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetMarketsId($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{id}', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetMarketsNetworkIdId($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetMarketsNetworkIdId($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{networkId}/{id}', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetMarketsIdEvents($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetMarketsIdEvents($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{id}/events', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetMarketsIdOrderbook($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetMarketsIdOrderbook($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{id}/orderbook', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetMarketsIdTrades($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function myriadPublicGetMarketsIdTrades($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{id}/trades', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetMarketsIdHolders($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetMarketsIdHolders($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{id}/holders', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetMarketsIdReferrals($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetMarketsIdReferrals($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/{id}/referrals', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetEvents($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetEvents($params = array()): \React\Promise\PromiseInterface {
         return $this->request('events', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetOrders($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetOrders($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetOrdersHash($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetOrdersHash($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders/{hash}', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetUsersAddressEvents($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetUsersAddressEvents($params = array()): \React\Promise\PromiseInterface {
         return $this->request('users/{address}/events', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetUsersAddressReferrals($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetUsersAddressReferrals($params = array()): \React\Promise\PromiseInterface {
         return $this->request('users/{address}/referrals', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetUsersAddressPortfolio($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetUsersAddressPortfolio($params = array()): \React\Promise\PromiseInterface {
         return $this->request('users/{address}/portfolio', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetUsersAddressMarkets($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetUsersAddressMarkets($params = array()): \React\Promise\PromiseInterface {
         return $this->request('users/{address}/markets', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetTags($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetTags($params = array()): \React\Promise\PromiseInterface {
         return $this->request('tags', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicGetTopics($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicGetTopics($params = array()): \React\Promise\PromiseInterface {
         return $this->request('topics', array('myriad', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicPostMarketsQuote($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicPostMarketsQuote($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/quote', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicPostMarketsClaim($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicPostMarketsClaim($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/claim', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicPostOrders($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicPostOrders($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicPostOrdersCancelBatch($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicPostOrdersCancelBatch($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders/cancel-batch', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicPostOrdersCancelAll($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicPostOrdersCancelAll($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders/cancel-all', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicPostPositionsSplit($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicPostPositionsSplit($params = array()): \React\Promise\PromiseInterface {
         return $this->request('positions/split', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicPostPositionsMerge($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicPostPositionsMerge($params = array()): \React\Promise\PromiseInterface {
         return $this->request('positions/merge', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicPostPositionsRedeem($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicPostPositionsRedeem($params = array()): \React\Promise\PromiseInterface {
         return $this->request('positions/redeem', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicPostPositionsRedeemVoided($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicPostPositionsRedeemVoided($params = array()): \React\Promise\PromiseInterface {
         return $this->request('positions/redeem-voided', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicPostPositionsNegRiskSplit($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicPostPositionsNegRiskSplit($params = array()): \React\Promise\PromiseInterface {
         return $this->request('positions/neg-risk/split', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicPostPositionsNegRiskMerge($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicPostPositionsNegRiskMerge($params = array()): \React\Promise\PromiseInterface {
         return $this->request('positions/neg-risk/merge', array('myriad', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function myriadPublicDeleteOrdersHash($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPublicDeleteOrdersHash($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders/{hash}', array('myriad', 'public'), 'DELETE', $params, null, null, array("cost" => 1));
     }
-    public function myriadPrivatePostMarketsQuoteWithFee($params = array()) {
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function myriadPrivatePostMarketsQuoteWithFee($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/quote_with_fee', array('myriad', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
 }

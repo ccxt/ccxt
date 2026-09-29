@@ -27,10 +27,13 @@ async def test_watch_bids_asks_helper(exchange, skipped_properties, arg_symbols,
     method = 'watchBidsAsks'
     now = exchange.milliseconds()
     ends = now + 15000
-    while now < ends:
+    max_idle_time = 5000
+    idle = False
+    while (now < ends) and not idle:
         success = True
         should_return = False
         response = {}
+        start_time = exchange.milliseconds()
         try:
             response = await exchange.watch_bids_asks(arg_symbols, arg_params)
         except Exception as e:
@@ -43,9 +46,8 @@ async def test_watch_bids_asks_helper(exchange, skipped_properties, arg_symbols,
                 should_return = True
             elif not test_shared_methods.is_temporary_failure(e):
                 raise e
-            now = exchange.milliseconds()
-            # continue;
             success = False
+        now = exchange.milliseconds()
         if should_return:
             return False
         if success:
@@ -58,5 +60,6 @@ async def test_watch_bids_asks_helper(exchange, skipped_properties, arg_symbols,
             for i in range(0, len(values)):
                 ticker = values[i]
                 test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
-            now = exchange.milliseconds()
+            if (now - start_time) > max_idle_time:
+                idle = True
     return True

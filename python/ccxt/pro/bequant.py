@@ -4,14 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.hitbtc import hitbtc
-from ccxt.base.types import Any
 
 import ccxt.async_support.bequant as bequantRest
 
 
 class bequant(hitbtc):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         # eslint-disable-next-line new-cap
         restInstance = bequantRest()
         restDescribe = restInstance.describe()

@@ -281,9 +281,9 @@
                     "withdrawalFee": "0.1"
                 }
             },
-            "ARB": {
+            "ARBITRUM": {
                 "id": "Arbitrum",
-                "network": "ARB",
+                "network": "ARBITRUM",
                 "limits": {
                     "withdraw": {
                         "min": 1,

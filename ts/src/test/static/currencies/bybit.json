@@ -438,7 +438,7 @@
                     }
                 }
             },
-            "ARBONE": {
+            "ARBITRUM": {
                 "info": {
                     "chainType": "Arbitrum One(USDT0)",
                     "confirmation": "120",
@@ -455,7 +455,7 @@
                     "withdrawMax": "-1"
                 },
                 "id": "ARBI",
-                "network": "ARBONE",
+                "network": "ARBITRUM",
                 "active": null,
                 "deposit": true,
                 "withdraw": true,
@@ -1355,7 +1355,7 @@
         "fee": 0,
         "fees": {},
         "networks": {
-            "ARBONE": {
+            "ARBITRUM": {
                 "info": {
                     "chainType": "Arbitrum One",
                     "confirmation": "120",
@@ -1372,7 +1372,7 @@
                     "withdrawMax": "-1"
                 },
                 "id": "ARBI",
-                "network": "ARBONE",
+                "network": "ARBITRUM",
                 "active": null,
                 "deposit": true,
                 "withdraw": true,
@@ -1389,7 +1389,7 @@
                     }
                 }
             },
-            "ARBNOVA": {
+            "ARBITRUM_NOVA": {
                 "info": {
                     "chainType": "Arbitrum Nova",
                     "confirmation": "100",
@@ -1406,7 +1406,7 @@
                     "withdrawMax": "-1"
                 },
                 "id": "ARBINOVA",
-                "network": "ARBNOVA",
+                "network": "ARBITRUM_NOVA",
                 "active": null,
                 "deposit": false,
                 "withdraw": false,
@@ -2220,7 +2220,7 @@
                     }
                 }
             },
-            "ARBONE": {
+            "ARBITRUM": {
                 "info": {
                     "chainType": "Arbitrum One",
                     "confirmation": "120",
@@ -2237,7 +2237,7 @@
                     "withdrawMax": "-1"
                 },
                 "id": "ARBI",
-                "network": "ARBONE",
+                "network": "ARBITRUM",
                 "active": null,
                 "deposit": true,
                 "withdraw": true,

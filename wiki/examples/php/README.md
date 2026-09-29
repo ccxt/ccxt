@@ -138,6 +138,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Order Book Level Depth Extra Param](./examples/php/order-book-level-depth-extra-param.md)
 
+- [Order Router](./examples/php/order-router.md)
+
 - [Phemex Create Order Position With Takeprofit Stoploss](./examples/php/phemex-create-order-position-with-takeprofit-stoploss.md)
 
 - [📂 Prediction](https://github.com/ccxt/ccxt/tree/master/./examples/php/prediction)

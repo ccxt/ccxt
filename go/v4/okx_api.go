@@ -7,1734 +7,2352 @@
 
 package ccxt
 
-func (this *OkxCore) PublicGetMarketTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketTickers", args...)
+// PublicGetMarketTickers returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketTickers(args ...any) <-chan any {
+	return this.Fetch2Async("market/tickers", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetMarketTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketTicker", args...)
+// PublicGetMarketTicker returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketTicker(args ...any) <-chan any {
+	return this.Fetch2Async("market/ticker", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetMarketBooks(args ...any) <-chan any {
+// PublicGetMarketBooks returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketBooks(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketBooks", args...)
 }
 
-func (this *OkxCore) PublicGetMarketBooksFull(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketBooksFull", args...)
+// PublicGetMarketBooksFull returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketBooksFull(args ...any) <-chan any {
+	return this.Fetch2Async("market/books-full", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PublicGetMarketCandles(args ...any) <-chan any {
+// PublicGetMarketBooksRpi returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketBooksRpi(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketBooksRpi", args...)
+}
+
+// PublicGetMarketCandles returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketCandles", args...)
 }
 
-func (this *OkxCore) PublicGetMarketHistoryCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketHistoryCandles", args...)
+// PublicGetMarketHistoryCandles returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketHistoryCandles(args ...any) <-chan any {
+	return this.Fetch2Async("market/history-candles", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetMarketTrades(args ...any) <-chan any {
+// PublicGetMarketTrades returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketTrades", args...)
 }
 
-func (this *OkxCore) PublicGetMarketHistoryTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketHistoryTrades", args...)
+// PublicGetMarketHistoryTrades returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketHistoryTrades(args ...any) <-chan any {
+	return this.Fetch2Async("market/history-trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PublicGetMarketOptionInstrumentFamilyTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketOptionInstrumentFamilyTrades", args...)
+// PublicGetMarketOptionInstrumentFamilyTrades returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketOptionInstrumentFamilyTrades(args ...any) <-chan any {
+	return this.Fetch2Async("market/option/instrument-family-trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetMarketPlatform24Volume(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketPlatform24Volume", args...)
+// PublicGetMarketPlatform24Volume returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketPlatform24Volume(args ...any) <-chan any {
+	return this.Fetch2Async("market/platform-24-volume", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PublicGetMarketCallAuctionDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketCallAuctionDetail", args...)
+// PublicGetMarketCallAuctionDetail returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketCallAuctionDetail(args ...any) <-chan any {
+	return this.Fetch2Async("market/call-auction-detail", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetMarketCallAuctionDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketCallAuctionDetails", args...)
+// PublicGetMarketCallAuctionDetails returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketCallAuctionDetails(args ...any) <-chan any {
+	return this.Fetch2Async("market/call-auction-details", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetMarketBooksSbe(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketBooksSbe", args...)
+// PublicGetMarketBooksSbe returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketBooksSbe(args ...any) <-chan any {
+	return this.Fetch2Async("market/books-sbe", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PublicGetMarketBlockTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketBlockTickers", args...)
+// PublicGetMarketBlockTickers returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketBlockTickers(args ...any) <-chan any {
+	return this.Fetch2Async("market/block-tickers", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetMarketBlockTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketBlockTicker", args...)
+// PublicGetMarketBlockTicker returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketBlockTicker(args ...any) <-chan any {
+	return this.Fetch2Async("market/block-ticker", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetMarketSprdTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketSprdTicker", args...)
+// PublicGetMarketSprdTicker returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketSprdTicker(args ...any) <-chan any {
+	return this.Fetch2Async("market/sprd-ticker", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetMarketSprdCandles(args ...any) <-chan any {
+// PublicGetMarketSprdCandles returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketSprdCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketSprdCandles", args...)
 }
 
-func (this *OkxCore) PublicGetMarketSprdHistoryCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketSprdHistoryCandles", args...)
+// PublicGetMarketSprdHistoryCandles returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketSprdHistoryCandles(args ...any) <-chan any {
+	return this.Fetch2Async("market/sprd-history-candles", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetMarketIndexTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketIndexTickers", args...)
+// PublicGetMarketIndexTickers returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketIndexTickers(args ...any) <-chan any {
+	return this.Fetch2Async("market/index-tickers", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetMarketIndexCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketIndexCandles", args...)
+// PublicGetMarketIndexCandles returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketIndexCandles(args ...any) <-chan any {
+	return this.Fetch2Async("market/index-candles", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetMarketHistoryIndexCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketHistoryIndexCandles", args...)
+// PublicGetMarketHistoryIndexCandles returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketHistoryIndexCandles(args ...any) <-chan any {
+	return this.Fetch2Async("market/history-index-candles", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PublicGetMarketMarkPriceCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketMarkPriceCandles", args...)
+// PublicGetMarketMarkPriceCandles returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketMarkPriceCandles(args ...any) <-chan any {
+	return this.Fetch2Async("market/mark-price-candles", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetMarketHistoryMarkPriceCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketHistoryMarkPriceCandles", args...)
+// PublicGetMarketHistoryMarkPriceCandles returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketHistoryMarkPriceCandles(args ...any) <-chan any {
+	return this.Fetch2Async("market/history-mark-price-candles", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetMarketExchangeRate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketExchangeRate", args...)
+// PublicGetMarketExchangeRate returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketExchangeRate(args ...any) <-chan any {
+	return this.Fetch2Async("market/exchange-rate", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PublicGetMarketIndexComponents(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketIndexComponents", args...)
+// PublicGetMarketIndexComponents returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketIndexComponents(args ...any) <-chan any {
+	return this.Fetch2Async("market/index-components", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetMarketOpenOracle(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketOpenOracle", args...)
+// PublicGetMarketOpenOracle returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketOpenOracle(args ...any) <-chan any {
+	return this.Fetch2Async("market/open-oracle", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
-func (this *OkxCore) PublicGetMarketBooksLite(args ...any) <-chan any {
+// PublicGetMarketBooksLite returns a channel that yields a JSON object.
+func (this *Okx) PublicGetMarketBooksLite(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketBooksLite", args...)
 }
 
-func (this *OkxCore) PublicGetPublicOptionTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicOptionTrades", args...)
+// PublicGetPublicOptionTrades returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicOptionTrades(args ...any) <-chan any {
+	return this.Fetch2Async("public/option-trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetPublicBlockTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicBlockTrades", args...)
+// PublicGetPublicBlockTrades returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicBlockTrades(args ...any) <-chan any {
+	return this.Fetch2Async("public/block-trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetPublicInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicInstruments", args...)
+// PublicGetPublicInstruments returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicInstruments(args ...any) <-chan any {
+	return this.Fetch2Async("public/instruments", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetPublicEstimatedPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicEstimatedPrice", args...)
+// PublicGetPublicEstimatedPrice returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicEstimatedPrice(args ...any) <-chan any {
+	return this.Fetch2Async("public/estimated-price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PublicGetPublicDeliveryExerciseHistory(args ...any) <-chan any {
+// PublicGetPublicDeliveryExerciseHistory returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicDeliveryExerciseHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPublicDeliveryExerciseHistory", args...)
 }
 
-func (this *OkxCore) PublicGetPublicEstimatedSettlementInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicEstimatedSettlementInfo", args...)
+// PublicGetPublicEstimatedSettlementInfo returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicEstimatedSettlementInfo(args ...any) <-chan any {
+	return this.Fetch2Async("public/estimated-settlement-info", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PublicGetPublicSettlementHistory(args ...any) <-chan any {
+// PublicGetPublicSettlementHistory returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicSettlementHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPublicSettlementHistory", args...)
 }
 
-func (this *OkxCore) PublicGetPublicFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicFundingRate", args...)
+// PublicGetPublicFundingRate returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicFundingRate(args ...any) <-chan any {
+	return this.Fetch2Async("public/funding-rate", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PublicGetPublicFundingRateHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicFundingRateHistory", args...)
+// PublicGetPublicFundingRateHistory returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicFundingRateHistory(args ...any) <-chan any {
+	return this.Fetch2Async("public/funding-rate-history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PublicGetPublicOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicOpenInterest", args...)
+// PublicGetPublicOpenInterest returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicOpenInterest(args ...any) <-chan any {
+	return this.Fetch2Async("public/open-interest", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetPublicPriceLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicPriceLimit", args...)
+// PublicGetPublicPriceLimit returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicPriceLimit(args ...any) <-chan any {
+	return this.Fetch2Async("public/price-limit", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetPublicOptSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicOptSummary", args...)
+// PublicGetPublicOptSummary returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicOptSummary(args ...any) <-chan any {
+	return this.Fetch2Async("public/opt-summary", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetPublicDiscountRateInterestFreeQuota(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicDiscountRateInterestFreeQuota", args...)
+// PublicGetPublicDiscountRateInterestFreeQuota returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicDiscountRateInterestFreeQuota(args ...any) <-chan any {
+	return this.Fetch2Async("public/discount-rate-interest-free-quota", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PublicGetPublicTime(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicTime", args...)
+// PublicGetPublicTime returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicTime(args ...any) <-chan any {
+	return this.Fetch2Async("public/time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PublicGetPublicMarkPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicMarkPrice", args...)
+// PublicGetPublicMarkPrice returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicMarkPrice(args ...any) <-chan any {
+	return this.Fetch2Async("public/mark-price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PublicGetPublicPositionTiers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicPositionTiers", args...)
+// PublicGetPublicPositionTiers returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicPositionTiers(args ...any) <-chan any {
+	return this.Fetch2Async("public/position-tiers", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PublicGetPublicInterestRateLoanQuota(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicInterestRateLoanQuota", args...)
+// PublicGetPublicInterestRateLoanQuota returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicInterestRateLoanQuota(args ...any) <-chan any {
+	return this.Fetch2Async("public/interest-rate-loan-quota", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PublicGetPublicUnderlying(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicUnderlying", args...)
+// PublicGetPublicUnderlying returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicUnderlying(args ...any) <-chan any {
+	return this.Fetch2Async("public/underlying", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetPublicInsuranceFund(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicInsuranceFund", args...)
+// PublicGetPublicInsuranceFund returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicInsuranceFund(args ...any) <-chan any {
+	return this.Fetch2Async("public/insurance-fund", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PublicGetPublicConvertContractCoin(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicConvertContractCoin", args...)
+// PublicGetPublicConvertContractCoin returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicConvertContractCoin(args ...any) <-chan any {
+	return this.Fetch2Async("public/convert-contract-coin", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PublicGetPublicInstrumentTickBands(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicInstrumentTickBands", args...)
+// PublicGetPublicInstrumentTickBands returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicInstrumentTickBands(args ...any) <-chan any {
+	return this.Fetch2Async("public/instrument-tick-bands", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetPublicPremiumHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicPremiumHistory", args...)
+// PublicGetPublicPremiumHistory returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicPremiumHistory(args ...any) <-chan any {
+	return this.Fetch2Async("public/premium-history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetPublicEconomicCalendar(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicEconomicCalendar", args...)
+// PublicGetPublicEconomicCalendar returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicEconomicCalendar(args ...any) <-chan any {
+	return this.Fetch2Async("public/economic-calendar", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
-func (this *OkxCore) PublicGetPublicMarketDataHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicMarketDataHistory", args...)
+// PublicGetPublicMarketDataHistory returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicMarketDataHistory(args ...any) <-chan any {
+	return this.Fetch2Async("public/market-data-history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetPublicEventContractEvents(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicEventContractEvents", args...)
+// PublicGetPublicEventContractEvents returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicEventContractEvents(args ...any) <-chan any {
+	return this.Fetch2Async("public/event-contract/events", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetPublicEventContractMarkets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicEventContractMarkets", args...)
+// PublicGetPublicEventContractMarkets returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicEventContractMarkets(args ...any) <-chan any {
+	return this.Fetch2Async("public/event-contract/markets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetPublicEventContractSeries(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicEventContractSeries", args...)
+// PublicGetPublicEventContractSeries returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicEventContractSeries(args ...any) <-chan any {
+	return this.Fetch2Async("public/event-contract/series", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetPublicVipInterestRateLoanQuota(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicVipInterestRateLoanQuota", args...)
+// PublicGetPublicVipInterestRateLoanQuota returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicVipInterestRateLoanQuota(args ...any) <-chan any {
+	return this.Fetch2Async("public/vip-interest-rate-loan-quota", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PublicGetRubikStatTradingDataSupportCoin(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatTradingDataSupportCoin", args...)
+// PublicGetPublicMmInstrumentTypes returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicMmInstrumentTypes(args ...any) <-chan any {
+	return this.Fetch2Async("public/mm-instrument-types", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetRubikStatContractsOpenInterestHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatContractsOpenInterestHistory", args...)
+// PublicGetPublicDeltaHedgeCurrencies returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicDeltaHedgeCurrencies(args ...any) <-chan any {
+	return this.Fetch2Async("public/delta-hedge-currencies", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetRubikStatTakerVolume(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatTakerVolume", args...)
+// PublicGetRubikStatTradingDataSupportCoin returns a channel that yields a JSON object.
+func (this *Okx) PublicGetRubikStatTradingDataSupportCoin(args ...any) <-chan any {
+	return this.Fetch2Async("rubik/stat/trading-data/support-coin", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetRubikStatTakerVolumeContract(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatTakerVolumeContract", args...)
+// PublicGetRubikStatContractsOpenInterestHistory returns a channel that yields a JSON object.
+func (this *Okx) PublicGetRubikStatContractsOpenInterestHistory(args ...any) <-chan any {
+	return this.Fetch2Async("rubik/stat/contracts/open-interest-history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PublicGetRubikStatMarginLoanRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatMarginLoanRatio", args...)
+// PublicGetRubikStatTakerVolume returns a channel that yields a JSON object.
+func (this *Okx) PublicGetRubikStatTakerVolume(args ...any) <-chan any {
+	return this.Fetch2Async("rubik/stat/taker-volume", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetRubikStatContractsLongShortAccountRatioContractTopTrader(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatioContractTopTrader", args...)
+// PublicGetRubikStatTakerVolumeContract returns a channel that yields a JSON object.
+func (this *Okx) PublicGetRubikStatTakerVolumeContract(args ...any) <-chan any {
+	return this.Fetch2Async("rubik/stat/taker-volume-contract", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetRubikStatContractsLongShortPositionRatioContractTopTrader(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatContractsLongShortPositionRatioContractTopTrader", args...)
+// PublicGetRubikStatMarginLoanRatio returns a channel that yields a JSON object.
+func (this *Okx) PublicGetRubikStatMarginLoanRatio(args ...any) <-chan any {
+	return this.Fetch2Async("rubik/stat/margin/loan-ratio", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetRubikStatContractsLongShortAccountRatioContract(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatioContract", args...)
+// PublicGetRubikStatContractsLongShortAccountRatioContractTopTrader returns a channel that yields a JSON object.
+func (this *Okx) PublicGetRubikStatContractsLongShortAccountRatioContractTopTrader(args ...any) <-chan any {
+	return this.Fetch2Async("rubik/stat/contracts/long-short-account-ratio-contract-top-trader", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetRubikStatContractsLongShortAccountRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatio", args...)
+// PublicGetRubikStatContractsLongShortPositionRatioContractTopTrader returns a channel that yields a JSON object.
+func (this *Okx) PublicGetRubikStatContractsLongShortPositionRatioContractTopTrader(args ...any) <-chan any {
+	return this.Fetch2Async("rubik/stat/contracts/long-short-position-ratio-contract-top-trader", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetRubikStatContractsOpenInterestVolume(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatContractsOpenInterestVolume", args...)
+// PublicGetRubikStatContractsLongShortAccountRatioContract returns a channel that yields a JSON object.
+func (this *Okx) PublicGetRubikStatContractsLongShortAccountRatioContract(args ...any) <-chan any {
+	return this.Fetch2Async("rubik/stat/contracts/long-short-account-ratio-contract", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetRubikStatOptionOpenInterestVolume(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolume", args...)
+// PublicGetRubikStatContractsLongShortAccountRatio returns a channel that yields a JSON object.
+func (this *Okx) PublicGetRubikStatContractsLongShortAccountRatio(args ...any) <-chan any {
+	return this.Fetch2Async("rubik/stat/contracts/long-short-account-ratio", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetRubikStatOptionOpenInterestVolumeRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeRatio", args...)
+// PublicGetRubikStatContractsOpenInterestVolume returns a channel that yields a JSON object.
+func (this *Okx) PublicGetRubikStatContractsOpenInterestVolume(args ...any) <-chan any {
+	return this.Fetch2Async("rubik/stat/contracts/open-interest-volume", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetRubikStatOptionOpenInterestVolumeExpiry(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeExpiry", args...)
+// PublicGetRubikStatOptionOpenInterestVolume returns a channel that yields a JSON object.
+func (this *Okx) PublicGetRubikStatOptionOpenInterestVolume(args ...any) <-chan any {
+	return this.Fetch2Async("rubik/stat/option/open-interest-volume", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetRubikStatOptionOpenInterestVolumeStrike(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeStrike", args...)
+// PublicGetRubikStatOptionOpenInterestVolumeRatio returns a channel that yields a JSON object.
+func (this *Okx) PublicGetRubikStatOptionOpenInterestVolumeRatio(args ...any) <-chan any {
+	return this.Fetch2Async("rubik/stat/option/open-interest-volume-ratio", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetRubikStatOptionTakerBlockVolume(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatOptionTakerBlockVolume", args...)
+// PublicGetRubikStatOptionOpenInterestVolumeExpiry returns a channel that yields a JSON object.
+func (this *Okx) PublicGetRubikStatOptionOpenInterestVolumeExpiry(args ...any) <-chan any {
+	return this.Fetch2Async("rubik/stat/option/open-interest-volume-expiry", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetSystemStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSystemStatus", args...)
+// PublicGetRubikStatOptionOpenInterestVolumeStrike returns a channel that yields a JSON object.
+func (this *Okx) PublicGetRubikStatOptionOpenInterestVolumeStrike(args ...any) <-chan any {
+	return this.Fetch2Async("rubik/stat/option/open-interest-volume-strike", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetSprdSpreads(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSprdSpreads", args...)
+// PublicGetRubikStatOptionTakerBlockVolume returns a channel that yields a JSON object.
+func (this *Okx) PublicGetRubikStatOptionTakerBlockVolume(args ...any) <-chan any {
+	return this.Fetch2Async("rubik/stat/option/taker-block-volume", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetSprdBooks(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSprdBooks", args...)
+// PublicGetSystemStatus returns a channel that yields a JSON object.
+func (this *Okx) PublicGetSystemStatus(args ...any) <-chan any {
+	return this.Fetch2Async("system/status", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
-func (this *OkxCore) PublicGetSprdPublicTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSprdPublicTrades", args...)
+// PublicGetSprdSpreads returns a channel that yields a JSON object.
+func (this *Okx) PublicGetSprdSpreads(args ...any) <-chan any {
+	return this.Fetch2Async("sprd/spreads", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetSprdTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSprdTicker", args...)
+// PublicGetSprdBooks returns a channel that yields a JSON object.
+func (this *Okx) PublicGetSprdBooks(args ...any) <-chan any {
+	return this.Fetch2Async("sprd/books", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetTradingBotGridAiParam(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradingBotGridAiParam", args...)
+// PublicGetSprdPublicTrades returns a channel that yields a JSON object.
+func (this *Okx) PublicGetSprdPublicTrades(args ...any) <-chan any {
+	return this.Fetch2Async("sprd/public-trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetTradingBotGridMinInvestment(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradingBotGridMinInvestment", args...)
+// PublicGetSprdTicker returns a channel that yields a JSON object.
+func (this *Okx) PublicGetSprdTicker(args ...any) <-chan any {
+	return this.Fetch2Async("sprd/ticker", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetTradingBotPublicRsiBackTesting(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradingBotPublicRsiBackTesting", args...)
+// PublicGetTradingBotGridAiParam returns a channel that yields a JSON object.
+func (this *Okx) PublicGetTradingBotGridAiParam(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/ai-param", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetTradingBotGridGridQuantity(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradingBotGridGridQuantity", args...)
+// PublicGetTradingBotGridMinInvestment returns a channel that yields a JSON object.
+func (this *Okx) PublicGetTradingBotGridMinInvestment(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/min-investment", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PublicGetAssetExchangeList(args ...any) <-chan any {
+// PublicGetTradingBotPublicRsiBackTesting returns a channel that yields a JSON object.
+func (this *Okx) PublicGetTradingBotPublicRsiBackTesting(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/public/rsi-back-testing", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetTradingBotGridGridQuantity returns a channel that yields a JSON object.
+func (this *Okx) PublicGetTradingBotGridGridQuantity(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/grid-quantity", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PublicGetAssetExchangeList returns a channel that yields a JSON object.
+func (this *Okx) PublicGetAssetExchangeList(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAssetExchangeList", args...)
 }
 
-func (this *OkxCore) PublicGetFinanceStakingDefiEthApyHistory(args ...any) <-chan any {
+// PublicGetFinanceStakingDefiEthApyHistory returns a channel that yields a JSON object.
+func (this *Okx) PublicGetFinanceStakingDefiEthApyHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFinanceStakingDefiEthApyHistory", args...)
 }
 
-func (this *OkxCore) PublicGetFinanceStakingDefiSolApyHistory(args ...any) <-chan any {
+// PublicGetFinanceStakingDefiSolApyHistory returns a channel that yields a JSON object.
+func (this *Okx) PublicGetFinanceStakingDefiSolApyHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFinanceStakingDefiSolApyHistory", args...)
 }
 
-func (this *OkxCore) PublicGetFinanceSavingsLendingRateSummary(args ...any) <-chan any {
+// PublicGetFinanceSavingsLendingRateSummary returns a channel that yields a JSON object.
+func (this *Okx) PublicGetFinanceSavingsLendingRateSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFinanceSavingsLendingRateSummary", args...)
 }
 
-func (this *OkxCore) PublicGetFinanceSavingsLendingRateHistory(args ...any) <-chan any {
+// PublicGetFinanceSavingsLendingRateHistory returns a channel that yields a JSON object.
+func (this *Okx) PublicGetFinanceSavingsLendingRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFinanceSavingsLendingRateHistory", args...)
 }
 
-func (this *OkxCore) PublicGetFinanceFixedLoanLendingOffers(args ...any) <-chan any {
+// PublicGetFinanceFixedLoanLendingOffers returns a channel that yields a JSON object.
+func (this *Okx) PublicGetFinanceFixedLoanLendingOffers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFinanceFixedLoanLendingOffers", args...)
 }
 
-func (this *OkxCore) PublicGetFinanceFixedLoanLendingApyHistory(args ...any) <-chan any {
+// PublicGetFinanceFixedLoanLendingApyHistory returns a channel that yields a JSON object.
+func (this *Okx) PublicGetFinanceFixedLoanLendingApyHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFinanceFixedLoanLendingApyHistory", args...)
 }
 
-func (this *OkxCore) PublicGetFinanceFixedLoanPendingLendingVolume(args ...any) <-chan any {
+// PublicGetFinanceFixedLoanPendingLendingVolume returns a channel that yields a JSON object.
+func (this *Okx) PublicGetFinanceFixedLoanPendingLendingVolume(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFinanceFixedLoanPendingLendingVolume", args...)
 }
 
-func (this *OkxCore) PublicGetFinanceSfpDcdProducts(args ...any) <-chan any {
+// PublicGetFinanceSfpDcdProducts returns a channel that yields a JSON object.
+func (this *Okx) PublicGetFinanceSfpDcdProducts(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFinanceSfpDcdProducts", args...)
 }
 
-func (this *OkxCore) PublicGetCopytradingPublicConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicConfig", args...)
+// PublicGetCopytradingPublicConfig returns a channel that yields a JSON object.
+func (this *Okx) PublicGetCopytradingPublicConfig(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/public-config", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetCopytradingPublicLeadTraders(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicLeadTraders", args...)
+// PublicGetCopytradingPublicLeadTraders returns a channel that yields a JSON object.
+func (this *Okx) PublicGetCopytradingPublicLeadTraders(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/public-lead-traders", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetCopytradingPublicWeeklyPnl(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicWeeklyPnl", args...)
+// PublicGetCopytradingPublicWeeklyPnl returns a channel that yields a JSON object.
+func (this *Okx) PublicGetCopytradingPublicWeeklyPnl(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/public-weekly-pnl", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetCopytradingPublicPnl(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicPnl", args...)
+// PublicGetCopytradingPublicPnl returns a channel that yields a JSON object.
+func (this *Okx) PublicGetCopytradingPublicPnl(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/public-pnl", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetCopytradingPublicStats(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicStats", args...)
+// PublicGetCopytradingPublicStats returns a channel that yields a JSON object.
+func (this *Okx) PublicGetCopytradingPublicStats(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/public-stats", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetCopytradingPublicPreferenceCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicPreferenceCurrency", args...)
+// PublicGetCopytradingPublicPreferenceCurrency returns a channel that yields a JSON object.
+func (this *Okx) PublicGetCopytradingPublicPreferenceCurrency(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/public-preference-currency", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetCopytradingPublicCurrentSubpositions(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicCurrentSubpositions", args...)
+// PublicGetCopytradingPublicCurrentSubpositions returns a channel that yields a JSON object.
+func (this *Okx) PublicGetCopytradingPublicCurrentSubpositions(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/public-current-subpositions", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetCopytradingPublicSubpositionsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicSubpositionsHistory", args...)
+// PublicGetCopytradingPublicSubpositionsHistory returns a channel that yields a JSON object.
+func (this *Okx) PublicGetCopytradingPublicSubpositionsHistory(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/public-subpositions-history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetCopytradingPublicCopyTraders(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicCopyTraders", args...)
+// PublicGetCopytradingPublicCopyTraders returns a channel that yields a JSON object.
+func (this *Okx) PublicGetCopytradingPublicCopyTraders(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/public-copy-traders", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetSupportAnnouncements(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSupportAnnouncements", args...)
+// PublicGetSupportAnnouncements returns a channel that yields a JSON object.
+func (this *Okx) PublicGetSupportAnnouncements(args ...any) <-chan any {
+	return this.Fetch2Async("support/announcements", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PublicGetSupportAnnouncementsTypes(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSupportAnnouncementsTypes", args...)
+// PublicGetSupportAnnouncementsTypes returns a channel that yields a JSON object.
+func (this *Okx) PublicGetSupportAnnouncementsTypes(args ...any) <-chan any {
+	return this.Fetch2Async("support/announcements-types", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PublicGetSupportAnnouncementTypes(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSupportAnnouncementTypes", args...)
+// PublicGetSupportAnnouncementTypes returns a channel that yields a JSON object.
+func (this *Okx) PublicGetSupportAnnouncementTypes(args ...any) <-chan any {
+	return this.Fetch2Async("support/announcement-types", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PublicPostTradingBotGridMinInvestment(args ...any) <-chan any {
-	return this.callEndpointAsync("publicPostTradingBotGridMinInvestment", args...)
+// PublicPostTradingBotGridMinInvestment returns a channel that yields a JSON object.
+func (this *Okx) PublicPostTradingBotGridMinInvestment(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/min-investment", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetRfqCounterparties(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRfqCounterparties", args...)
+// PrivateGetRfqCounterparties returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetRfqCounterparties(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/counterparties", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetRfqMakerInstrumentSettings(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRfqMakerInstrumentSettings", args...)
+// PrivateGetRfqMakerInstrumentSettings returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetRfqMakerInstrumentSettings(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/maker-instrument-settings", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetRfqMmpConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRfqMmpConfig", args...)
+// PrivateGetRfqMmpConfig returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetRfqMmpConfig(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/mmp-config", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetRfqRfqs(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRfqRfqs", args...)
+// PrivateGetRfqRfqs returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetRfqRfqs(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/rfqs", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivateGetRfqQuotes(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRfqQuotes", args...)
+// PrivateGetRfqQuotes returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetRfqQuotes(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/quotes", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivateGetRfqTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRfqTrades", args...)
+// PrivateGetRfqTrades returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetRfqTrades(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetRfqPublicTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRfqPublicTrades", args...)
+// PrivateGetRfqPublicTrades returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetRfqPublicTrades(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/public-trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetSprdOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSprdOrder", args...)
+// PrivateGetSprdOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetSprdOrder(args ...any) <-chan any {
+	return this.Fetch2Async("sprd/order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetSprdOrdersPending(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSprdOrdersPending", args...)
+// PrivateGetSprdOrdersPending returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetSprdOrdersPending(args ...any) <-chan any {
+	return this.Fetch2Async("sprd/orders-pending", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetSprdOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSprdOrdersHistory", args...)
+// PrivateGetSprdOrdersHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetSprdOrdersHistory(args ...any) <-chan any {
+	return this.Fetch2Async("sprd/orders-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetSprdOrdersHistoryArchive(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSprdOrdersHistoryArchive", args...)
+// PrivateGetSprdOrdersHistoryArchive returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetSprdOrdersHistoryArchive(args ...any) <-chan any {
+	return this.Fetch2Async("sprd/orders-history-archive", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetSprdTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSprdTrades", args...)
+// PrivateGetSprdTrades returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetSprdTrades(args ...any) <-chan any {
+	return this.Fetch2Async("sprd/trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradeOrder(args ...any) <-chan any {
+// PrivateGetTradeOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradeOrder", args...)
 }
 
-func (this *OkxCore) PrivateGetTradeOrdersPending(args ...any) <-chan any {
+// PrivateGetTradeOrdersPending returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeOrdersPending(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradeOrdersPending", args...)
 }
 
-func (this *OkxCore) PrivateGetTradeOrdersHistory(args ...any) <-chan any {
+// PrivateGetTradeOrdersHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeOrdersHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradeOrdersHistory", args...)
 }
 
-func (this *OkxCore) PrivateGetTradeOrdersHistoryArchive(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOrdersHistoryArchive", args...)
+// PrivateGetTradeOrdersHistoryArchive returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeOrdersHistoryArchive(args ...any) <-chan any {
+	return this.Fetch2Async("trade/orders-history-archive", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradeFills(args ...any) <-chan any {
+// PrivateGetTradeFills returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradeFills", args...)
 }
 
-func (this *OkxCore) PrivateGetTradeFillsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeFillsHistory", args...)
+// PrivateGetTradeFillsHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeFillsHistory(args ...any) <-chan any {
+	return this.Fetch2Async("trade/fills-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetTradeFillsArchive(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeFillsArchive", args...)
+// PrivateGetTradeFillsArchive returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeFillsArchive(args ...any) <-chan any {
+	return this.Fetch2Async("trade/fills-archive", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetTradeOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOrderAlgo", args...)
+// PrivateGetTradeOrderAlgo returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeOrderAlgo(args ...any) <-chan any {
+	return this.Fetch2Async("trade/order-algo", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradeOrdersAlgoPending(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOrdersAlgoPending", args...)
+// PrivateGetTradeOrdersAlgoPending returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeOrdersAlgoPending(args ...any) <-chan any {
+	return this.Fetch2Async("trade/orders-algo-pending", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradeOrdersAlgoHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOrdersAlgoHistory", args...)
+// PrivateGetTradeOrdersAlgoHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeOrdersAlgoHistory(args ...any) <-chan any {
+	return this.Fetch2Async("trade/orders-algo-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradeEasyConvertCurrencyList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeEasyConvertCurrencyList", args...)
+// PrivateGetTradeEasyConvertCurrencyList returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeEasyConvertCurrencyList(args ...any) <-chan any {
+	return this.Fetch2Async("trade/easy-convert-currency-list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PrivateGetTradeEasyConvertHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeEasyConvertHistory", args...)
+// PrivateGetTradeEasyConvertHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeEasyConvertHistory(args ...any) <-chan any {
+	return this.Fetch2Async("trade/easy-convert-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PrivateGetTradeOneClickRepayCurrencyList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOneClickRepayCurrencyList", args...)
+// PrivateGetTradeOneClickRepayCurrencyList returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeOneClickRepayCurrencyList(args ...any) <-chan any {
+	return this.Fetch2Async("trade/one-click-repay-currency-list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PrivateGetTradeOneClickRepayCurrencyListV2(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOneClickRepayCurrencyListV2", args...)
+// PrivateGetTradeOneClickRepayCurrencyListV2 returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeOneClickRepayCurrencyListV2(args ...any) <-chan any {
+	return this.Fetch2Async("trade/one-click-repay-currency-list-v2", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PrivateGetTradeOneClickRepayHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOneClickRepayHistory", args...)
+// PrivateGetTradeOneClickRepayHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeOneClickRepayHistory(args ...any) <-chan any {
+	return this.Fetch2Async("trade/one-click-repay-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PrivateGetTradeOneClickRepayHistoryV2(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOneClickRepayHistoryV2", args...)
+// PrivateGetTradeOneClickRepayHistoryV2 returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeOneClickRepayHistoryV2(args ...any) <-chan any {
+	return this.Fetch2Async("trade/one-click-repay-history-v2", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PrivateGetTradeAccountRateLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeAccountRateLimit", args...)
+// PrivateGetTradeAccountRateLimit returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradeAccountRateLimit(args ...any) <-chan any {
+	return this.Fetch2Async("trade/account-rate-limit", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetAssetCurrencies(args ...any) <-chan any {
+// PrivateGetAssetCurrencies returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetCurrencies", args...)
 }
 
-func (this *OkxCore) PrivateGetAssetBalances(args ...any) <-chan any {
+// PrivateGetAssetBalances returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetBalances", args...)
 }
 
-func (this *OkxCore) PrivateGetAssetNonTradableAssets(args ...any) <-chan any {
+// PrivateGetAssetNonTradableAssets returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetNonTradableAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetNonTradableAssets", args...)
 }
 
-func (this *OkxCore) PrivateGetAssetAssetValuation(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetAssetValuation", args...)
+// PrivateGetAssetAssetValuation returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetAssetValuation(args ...any) <-chan any {
+	return this.Fetch2Async("asset/asset-valuation", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivateGetAssetTransferState(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetTransferState", args...)
+// PrivateGetAssetTransferState returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetTransferState(args ...any) <-chan any {
+	return this.Fetch2Async("asset/transfer-state", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetAssetBills(args ...any) <-chan any {
+// PrivateGetAssetBills returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetBills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetBills", args...)
 }
 
-func (this *OkxCore) PrivateGetAssetBillsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetBillsHistory", args...)
+// PrivateGetAssetBillsHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetBillsHistory(args ...any) <-chan any {
+	return this.Fetch2Async("asset/bills-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivateGetAssetDepositLightning(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetDepositLightning", args...)
+// PrivateGetAssetDepositLightning returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetDepositLightning(args ...any) <-chan any {
+	return this.Fetch2Async("asset/deposit-lightning", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *OkxCore) PrivateGetAssetDepositAddress(args ...any) <-chan any {
+// PrivateGetAssetDepositAddress returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetDepositAddress", args...)
 }
 
-func (this *OkxCore) PrivateGetAssetDepositHistory(args ...any) <-chan any {
+// PrivateGetAssetDepositHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetDepositHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetDepositHistory", args...)
 }
 
-func (this *OkxCore) PrivateGetAssetWithdrawalHistory(args ...any) <-chan any {
+// PrivateGetAssetWithdrawalHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetWithdrawalHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetWithdrawalHistory", args...)
 }
 
-func (this *OkxCore) PrivateGetAssetDepositWithdrawStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetDepositWithdrawStatus", args...)
+// PrivateGetAssetDepositWithdrawStatus returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetDepositWithdrawStatus(args ...any) <-chan any {
+	return this.Fetch2Async("asset/deposit-withdraw-status", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PrivateGetAssetMonthlyStatement(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetMonthlyStatement", args...)
+// PrivateGetAssetMonthlyStatement returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetMonthlyStatement(args ...any) <-chan any {
+	return this.Fetch2Async("asset/monthly-statement", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetAssetConvertCurrencies(args ...any) <-chan any {
+// PrivateGetAssetConvertCurrencies returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetConvertCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetConvertCurrencies", args...)
 }
 
-func (this *OkxCore) PrivateGetAssetConvertCurrencyPair(args ...any) <-chan any {
+// PrivateGetAssetConvertCurrencyPair returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetConvertCurrencyPair(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetConvertCurrencyPair", args...)
 }
 
-func (this *OkxCore) PrivateGetAssetConvertHistory(args ...any) <-chan any {
+// PrivateGetAssetConvertHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetConvertHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetConvertHistory", args...)
 }
 
-func (this *OkxCore) PrivateGetAccountInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountInstruments", args...)
+// PrivateGetFiatDepositPaymentMethods returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFiatDepositPaymentMethods(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatDepositPaymentMethods", args...)
 }
 
-func (this *OkxCore) PrivateGetAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountBalance", args...)
+// PrivateGetFiatWithdrawalPaymentMethods returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFiatWithdrawalPaymentMethods(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatWithdrawalPaymentMethods", args...)
 }
 
-func (this *OkxCore) PrivateGetAccountPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountPositions", args...)
+// PrivateGetFiatDepositOrderHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFiatDepositOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatDepositOrderHistory", args...)
 }
 
-func (this *OkxCore) PrivateGetAccountPositionsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountPositionsHistory", args...)
+// PrivateGetFiatDeposit returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFiatDeposit(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatDeposit", args...)
 }
 
-func (this *OkxCore) PrivateGetAccountAccountPositionRisk(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountAccountPositionRisk", args...)
+// PrivateGetFiatWithdrawalOrderHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFiatWithdrawalOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatWithdrawalOrderHistory", args...)
 }
 
-func (this *OkxCore) PrivateGetAccountBills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountBills", args...)
+// PrivateGetFiatWithdrawal returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFiatWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatWithdrawal", args...)
 }
 
-func (this *OkxCore) PrivateGetAccountBillsArchive(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountBillsArchive", args...)
+// PrivateGetFiatBuySellCurrencies returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFiatBuySellCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatBuySellCurrencies", args...)
 }
 
-func (this *OkxCore) PrivateGetAccountBillsHistoryArchive(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountBillsHistoryArchive", args...)
+// PrivateGetFiatBuySellCurrencyPair returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFiatBuySellCurrencyPair(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatBuySellCurrencyPair", args...)
 }
 
-func (this *OkxCore) PrivateGetAccountConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountConfig", args...)
+// PrivateGetFiatBuySellHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFiatBuySellHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatBuySellHistory", args...)
 }
 
-func (this *OkxCore) PrivateGetAccountSubtypes(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSubtypes", args...)
+// PrivateGetAccountInstruments returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountInstruments(args ...any) <-chan any {
+	return this.Fetch2Async("account/instruments", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetAccountMaxSize(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountMaxSize", args...)
+// PrivateGetAccountBalance returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountBalance(args ...any) <-chan any {
+	return this.Fetch2Async("account/balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetAccountMaxAvailSize(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountMaxAvailSize", args...)
+// PrivateGetAccountPositions returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountPositions(args ...any) <-chan any {
+	return this.Fetch2Async("account/positions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetAccountLeverageInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountLeverageInfo", args...)
+// PrivateGetAccountPositionsHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountPositionsHistory(args ...any) <-chan any {
+	return this.Fetch2Async("account/positions-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetAccountAdjustLeverageInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountAdjustLeverageInfo", args...)
+// PrivateGetAccountAccountPositionRisk returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountAccountPositionRisk(args ...any) <-chan any {
+	return this.Fetch2Async("account/account-position-risk", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetAccountMaxLoan(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountMaxLoan", args...)
+// PrivateGetAccountBills returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountBills(args ...any) <-chan any {
+	return this.Fetch2Async("account/bills", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetAccountTradeFee(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountTradeFee", args...)
+// PrivateGetAccountBillsArchive returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountBillsArchive(args ...any) <-chan any {
+	return this.Fetch2Async("account/bills-archive", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetAccountInterestAccrued(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountInterestAccrued", args...)
+// PrivateGetAccountBillsHistoryArchive returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountBillsHistoryArchive(args ...any) <-chan any {
+	return this.Fetch2Async("account/bills-history-archive", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetAccountInterestRate(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountInterestRate", args...)
+// PrivateGetAccountConfig returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountConfig(args ...any) <-chan any {
+	return this.Fetch2Async("account/config", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetAccountMaxWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountMaxWithdrawal", args...)
+// PrivateGetAccountSubtypes returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountSubtypes(args ...any) <-chan any {
+	return this.Fetch2Async("account/subtypes", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetAccountRiskState(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountRiskState", args...)
+// PrivateGetAccountMaxSize returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountMaxSize(args ...any) <-chan any {
+	return this.Fetch2Async("account/max-size", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetAccountInterestLimits(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountInterestLimits", args...)
+// PrivateGetAccountMaxAvailSize returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountMaxAvailSize(args ...any) <-chan any {
+	return this.Fetch2Async("account/max-avail-size", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetAccountSpotBorrowRepayHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSpotBorrowRepayHistory", args...)
+// PrivateGetAccountLeverageInfo returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountLeverageInfo(args ...any) <-chan any {
+	return this.Fetch2Async("account/leverage-info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetAccountGreeks(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountGreeks", args...)
+// PrivateGetAccountAdjustLeverageInfo returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountAdjustLeverageInfo(args ...any) <-chan any {
+	return this.Fetch2Async("account/adjust-leverage-info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetAccountPositionTiers(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountPositionTiers", args...)
+// PrivateGetAccountMaxLoan returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountMaxLoan(args ...any) <-chan any {
+	return this.Fetch2Async("account/max-loan", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetAccountSetAccountSwitchPrecheck(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSetAccountSwitchPrecheck", args...)
+// PrivateGetAccountTradeFee returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountTradeFee(args ...any) <-chan any {
+	return this.Fetch2Async("account/trade-fee", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetAccountCollateralAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountCollateralAssets", args...)
+// PrivateGetAccountInterestAccrued returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountInterestAccrued(args ...any) <-chan any {
+	return this.Fetch2Async("account/interest-accrued", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetAccountMmpConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountMmpConfig", args...)
+// PrivateGetAccountInterestRate returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountInterestRate(args ...any) <-chan any {
+	return this.Fetch2Async("account/interest-rate", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetAccountMovePositionsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountMovePositionsHistory", args...)
+// PrivateGetAccountMaxWithdrawal returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountMaxWithdrawal(args ...any) <-chan any {
+	return this.Fetch2Async("account/max-withdrawal", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetAccountPrecheckSetDeltaNeutral(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountPrecheckSetDeltaNeutral", args...)
+// PrivateGetAccountRiskState returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountRiskState(args ...any) <-chan any {
+	return this.Fetch2Async("account/risk-state", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetAccountQuickMarginBorrowRepayHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountQuickMarginBorrowRepayHistory", args...)
+// PrivateGetAccountInterestLimits returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountInterestLimits(args ...any) <-chan any {
+	return this.Fetch2Async("account/interest-limits", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetAccountBorrowRepayHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountBorrowRepayHistory", args...)
+// PrivateGetAccountSpotBorrowRepayHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountSpotBorrowRepayHistory(args ...any) <-chan any {
+	return this.Fetch2Async("account/spot-borrow-repay-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetAccountVipInterestAccrued(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountVipInterestAccrued", args...)
+// PrivateGetAccountGreeks returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountGreeks(args ...any) <-chan any {
+	return this.Fetch2Async("account/greeks", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetAccountVipInterestDeducted(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountVipInterestDeducted", args...)
+// PrivateGetAccountPositionTiers returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountPositionTiers(args ...any) <-chan any {
+	return this.Fetch2Async("account/position-tiers", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetAccountVipLoanOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountVipLoanOrderList", args...)
+// PrivateGetAccountSetAccountSwitchPrecheck returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountSetAccountSwitchPrecheck(args ...any) <-chan any {
+	return this.Fetch2Async("account/set-account-switch-precheck", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetAccountVipLoanOrderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountVipLoanOrderDetail", args...)
+// PrivateGetAccountCollateralAssets returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountCollateralAssets(args ...any) <-chan any {
+	return this.Fetch2Async("account/collateral-assets", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetAccountFixedLoanBorrowingLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingLimit", args...)
+// PrivateGetAccountMmpConfig returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountMmpConfig(args ...any) <-chan any {
+	return this.Fetch2Async("account/mmp-config", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetAccountFixedLoanBorrowingQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingQuote", args...)
+// PrivateGetAccountMovePositionsHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountMovePositionsHistory(args ...any) <-chan any {
+	return this.Fetch2Async("account/move-positions-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivateGetAccountFixedLoanBorrowingOrdersList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingOrdersList", args...)
+// PrivateGetAccountPrecheckSetDeltaNeutral returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountPrecheckSetDeltaNeutral(args ...any) <-chan any {
+	return this.Fetch2Async("account/precheck-set-delta-neutral", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PrivateGetAccountSpotManualBorrowRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSpotManualBorrowRepay", args...)
+// PrivateGetAccountQuickMarginBorrowRepayHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountQuickMarginBorrowRepayHistory(args ...any) <-chan any {
+	return this.Fetch2Async("account/quick-margin-borrow-repay-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetAccountSetAutoRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSetAutoRepay", args...)
+// PrivateGetAccountBorrowRepayHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountBorrowRepayHistory(args ...any) <-chan any {
+	return this.Fetch2Async("account/borrow-repay-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetUsersSubaccountList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUsersSubaccountList", args...)
+// PrivateGetAccountVipInterestAccrued returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountVipInterestAccrued(args ...any) <-chan any {
+	return this.Fetch2Async("account/vip-interest-accrued", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetAccountSubaccountBalances(args ...any) <-chan any {
+// PrivateGetAccountVipInterestDeducted returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountVipInterestDeducted(args ...any) <-chan any {
+	return this.Fetch2Async("account/vip-interest-deducted", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivateGetAccountVipLoanOrderList returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountVipLoanOrderList(args ...any) <-chan any {
+	return this.Fetch2Async("account/vip-loan-order-list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivateGetAccountVipLoanOrderDetail returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountVipLoanOrderDetail(args ...any) <-chan any {
+	return this.Fetch2Async("account/vip-loan-order-detail", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivateGetAccountFixedLoanBorrowingLimit returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountFixedLoanBorrowingLimit(args ...any) <-chan any {
+	return this.Fetch2Async("account/fixed-loan/borrowing-limit", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivateGetAccountFixedLoanBorrowingQuote returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountFixedLoanBorrowingQuote(args ...any) <-chan any {
+	return this.Fetch2Async("account/fixed-loan/borrowing-quote", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// PrivateGetAccountFixedLoanBorrowingOrdersList returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountFixedLoanBorrowingOrdersList(args ...any) <-chan any {
+	return this.Fetch2Async("account/fixed-loan/borrowing-orders-list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// PrivateGetAccountSpotManualBorrowRepay returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountSpotManualBorrowRepay(args ...any) <-chan any {
+	return this.Fetch2Async("account/spot-manual-borrow-repay", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
+}
+
+// PrivateGetAccountSetAutoRepay returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountSetAutoRepay(args ...any) <-chan any {
+	return this.Fetch2Async("account/set-auto-repay", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivateGetUsersSubaccountList returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetUsersSubaccountList(args ...any) <-chan any {
+	return this.Fetch2Async("users/subaccount/list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivateGetAccountSubaccountBalances returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountSubaccountBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountSubaccountBalances", args...)
 }
 
-func (this *OkxCore) PrivateGetAssetSubaccountBalances(args ...any) <-chan any {
+// PrivateGetAssetSubaccountBalances returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetSubaccountBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetSubaccountBalances", args...)
 }
 
-func (this *OkxCore) PrivateGetAccountSubaccountMaxWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSubaccountMaxWithdrawal", args...)
+// PrivateGetAccountSubaccountMaxWithdrawal returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountSubaccountMaxWithdrawal(args ...any) <-chan any {
+	return this.Fetch2Async("account/subaccount/max-withdrawal", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetAssetSubaccountBills(args ...any) <-chan any {
+// PrivateGetAssetSubaccountBills returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetSubaccountBills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetSubaccountBills", args...)
 }
 
-func (this *OkxCore) PrivateGetAssetSubaccountManagedSubaccountBills(args ...any) <-chan any {
+// PrivateGetAssetSubaccountManagedSubaccountBills returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetSubaccountManagedSubaccountBills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetSubaccountManagedSubaccountBills", args...)
 }
 
-func (this *OkxCore) PrivateGetUsersEntrustSubaccountList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUsersEntrustSubaccountList", args...)
+// PrivateGetUsersEntrustSubaccountList returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetUsersEntrustSubaccountList(args ...any) <-chan any {
+	return this.Fetch2Async("users/entrust-subaccount-list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivateGetAccountSubaccountInterestLimits(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSubaccountInterestLimits", args...)
+// PrivateGetAccountSubaccountInterestLimits returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAccountSubaccountInterestLimits(args ...any) <-chan any {
+	return this.Fetch2Async("account/subaccount/interest-limits", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetUsersSubaccountApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUsersSubaccountApikey", args...)
+// PrivateGetUsersSubaccountApikey returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetUsersSubaccountApikey(args ...any) <-chan any {
+	return this.Fetch2Async("users/subaccount/apikey", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotGridOrdersAlgoPending(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoPending", args...)
+// PrivateGetTradingBotGridOrdersAlgoPending returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotGridOrdersAlgoPending(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/orders-algo-pending", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotGridOrdersAlgoHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoHistory", args...)
+// PrivateGetTradingBotGridOrdersAlgoHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotGridOrdersAlgoHistory(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/orders-algo-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotGridOrdersAlgoDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoDetails", args...)
+// PrivateGetTradingBotGridOrdersAlgoDetails returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotGridOrdersAlgoDetails(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/orders-algo-details", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotGridSubOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotGridSubOrders", args...)
+// PrivateGetTradingBotGridSubOrders returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotGridSubOrders(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/sub-orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotGridPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotGridPositions", args...)
+// PrivateGetTradingBotGridPositions returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotGridPositions(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/positions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotGridAiParam(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotGridAiParam", args...)
+// PrivateGetTradingBotGridAiParam returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotGridAiParam(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/ai-param", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotSignalSignals(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotSignalSignals", args...)
+// PrivateGetTradingBotSignalSignals returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotSignalSignals(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/signals", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotSignalOrdersAlgoDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoDetails", args...)
+// PrivateGetTradingBotSignalOrdersAlgoDetails returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotSignalOrdersAlgoDetails(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/orders-algo-details", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotSignalOrdersAlgoPending(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoPending", args...)
+// PrivateGetTradingBotSignalOrdersAlgoPending returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotSignalOrdersAlgoPending(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/orders-algo-pending", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotSignalOrdersAlgoHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoHistory", args...)
+// PrivateGetTradingBotSignalOrdersAlgoHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotSignalOrdersAlgoHistory(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/orders-algo-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotSignalPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotSignalPositions", args...)
+// PrivateGetTradingBotSignalPositions returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotSignalPositions(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/positions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotSignalPositionsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotSignalPositionsHistory", args...)
+// PrivateGetTradingBotSignalPositionsHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotSignalPositionsHistory(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/positions-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotSignalSubOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotSignalSubOrders", args...)
+// PrivateGetTradingBotSignalSubOrders returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotSignalSubOrders(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/sub-orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotSignalEventHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotSignalEventHistory", args...)
+// PrivateGetTradingBotSignalEventHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotSignalEventHistory(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/event-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotRecurringOrdersAlgoPending(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoPending", args...)
+// PrivateGetTradingBotRecurringOrdersAlgoPending returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotRecurringOrdersAlgoPending(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/recurring/orders-algo-pending", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotRecurringOrdersAlgoHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoHistory", args...)
+// PrivateGetTradingBotRecurringOrdersAlgoHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotRecurringOrdersAlgoHistory(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/recurring/orders-algo-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotRecurringOrdersAlgoDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoDetails", args...)
+// PrivateGetTradingBotRecurringOrdersAlgoDetails returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotRecurringOrdersAlgoDetails(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/recurring/orders-algo-details", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotRecurringSubOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotRecurringSubOrders", args...)
+// PrivateGetTradingBotRecurringSubOrders returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotRecurringSubOrders(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/recurring/sub-orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotDcaOngoingList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotDcaOngoingList", args...)
+// PrivateGetTradingBotDcaOngoingList returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotDcaOngoingList(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/dca/ongoing-list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotDcaHistoryList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotDcaHistoryList", args...)
+// PrivateGetTradingBotDcaHistoryList returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotDcaHistoryList(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/dca/history-list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotDcaOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotDcaOrders", args...)
+// PrivateGetTradingBotDcaOrders returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotDcaOrders(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/dca/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotDcaPositionDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotDcaPositionDetails", args...)
+// PrivateGetTradingBotDcaPositionDetails returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotDcaPositionDetails(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/dca/position-details", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetTradingBotDcaCycleList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotDcaCycleList", args...)
+// PrivateGetTradingBotDcaCycleList returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetTradingBotDcaCycleList(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/dca/cycle-list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetFinanceSavingsBalance(args ...any) <-chan any {
+// PrivateGetFinanceSavingsBalance returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceSavingsBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFinanceSavingsBalance", args...)
 }
 
-func (this *OkxCore) PrivateGetFinanceSavingsLendingHistory(args ...any) <-chan any {
+// PrivateGetFinanceSavingsLendingHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceSavingsLendingHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFinanceSavingsLendingHistory", args...)
 }
 
-func (this *OkxCore) PrivateGetFinanceStakingDefiOffers(args ...any) <-chan any {
+// PrivateGetFinanceStakingDefiOffers returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceStakingDefiOffers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFinanceStakingDefiOffers", args...)
 }
 
-func (this *OkxCore) PrivateGetFinanceStakingDefiOrdersActive(args ...any) <-chan any {
+// PrivateGetFinanceStakingDefiOrdersActive returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceStakingDefiOrdersActive(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFinanceStakingDefiOrdersActive", args...)
 }
 
-func (this *OkxCore) PrivateGetFinanceStakingDefiOrdersHistory(args ...any) <-chan any {
+// PrivateGetFinanceStakingDefiOrdersHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceStakingDefiOrdersHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFinanceStakingDefiOrdersHistory", args...)
 }
 
-func (this *OkxCore) PrivateGetFinanceStakingDefiEthProductInfo(args ...any) <-chan any {
+// PrivateGetFinanceStakingDefiEthProductInfo returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceStakingDefiEthProductInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFinanceStakingDefiEthProductInfo", args...)
 }
 
-func (this *OkxCore) PrivateGetFinanceStakingDefiEthBalance(args ...any) <-chan any {
+// PrivateGetFinanceStakingDefiEthBalance returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceStakingDefiEthBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFinanceStakingDefiEthBalance", args...)
 }
 
-func (this *OkxCore) PrivateGetFinanceStakingDefiEthPurchaseRedeemHistory(args ...any) <-chan any {
+// PrivateGetFinanceStakingDefiEthPurchaseRedeemHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceStakingDefiEthPurchaseRedeemHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFinanceStakingDefiEthPurchaseRedeemHistory", args...)
 }
 
-func (this *OkxCore) PrivateGetFinanceStakingDefiSolProductInfo(args ...any) <-chan any {
+// PrivateGetFinanceStakingDefiSolProductInfo returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceStakingDefiSolProductInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFinanceStakingDefiSolProductInfo", args...)
 }
 
-func (this *OkxCore) PrivateGetFinanceStakingDefiSolBalance(args ...any) <-chan any {
+// PrivateGetFinanceStakingDefiSolBalance returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceStakingDefiSolBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFinanceStakingDefiSolBalance", args...)
 }
 
-func (this *OkxCore) PrivateGetFinanceStakingDefiSolPurchaseRedeemHistory(args ...any) <-chan any {
+// PrivateGetFinanceStakingDefiSolPurchaseRedeemHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceStakingDefiSolPurchaseRedeemHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFinanceStakingDefiSolPurchaseRedeemHistory", args...)
 }
 
-func (this *OkxCore) PrivateGetFinanceFlexibleLoanBorrowCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceFlexibleLoanBorrowCurrencies", args...)
+// PrivateGetFinanceFlexibleLoanBorrowCurrencies returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceFlexibleLoanBorrowCurrencies(args ...any) <-chan any {
+	return this.Fetch2Async("finance/flexible-loan/borrow-currencies", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetFinanceFlexibleLoanCollateralAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceFlexibleLoanCollateralAssets", args...)
+// PrivateGetFinanceFlexibleLoanCollateralAssets returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceFlexibleLoanCollateralAssets(args ...any) <-chan any {
+	return this.Fetch2Async("finance/flexible-loan/collateral-assets", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetFinanceFlexibleLoanMaxCollateralRedeemAmount(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceFlexibleLoanMaxCollateralRedeemAmount", args...)
+// PrivateGetFinanceFlexibleLoanMaxCollateralRedeemAmount returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceFlexibleLoanMaxCollateralRedeemAmount(args ...any) <-chan any {
+	return this.Fetch2Async("finance/flexible-loan/max-collateral-redeem-amount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetFinanceFlexibleLoanLoanInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceFlexibleLoanLoanInfo", args...)
+// PrivateGetFinanceFlexibleLoanLoanInfo returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceFlexibleLoanLoanInfo(args ...any) <-chan any {
+	return this.Fetch2Async("finance/flexible-loan/loan-info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetFinanceFlexibleLoanLoanHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceFlexibleLoanLoanHistory", args...)
+// PrivateGetFinanceFlexibleLoanLoanHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceFlexibleLoanLoanHistory(args ...any) <-chan any {
+	return this.Fetch2Async("finance/flexible-loan/loan-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetFinanceFlexibleLoanInterestAccrued(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceFlexibleLoanInterestAccrued", args...)
+// PrivateGetFinanceFlexibleLoanInterestAccrued returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceFlexibleLoanInterestAccrued(args ...any) <-chan any {
+	return this.Fetch2Async("finance/flexible-loan/interest-accrued", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetCopytradingCurrentSubpositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingCurrentSubpositions", args...)
+// PrivateGetFinanceFlexibleLoanEmodeInfo returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceFlexibleLoanEmodeInfo(args ...any) <-chan any {
+	return this.Fetch2Async("finance/flexible-loan/emode-info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetCopytradingSubpositionsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingSubpositionsHistory", args...)
+// PrivateGetFinanceOkusdLimits returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceOkusdLimits(args ...any) <-chan any {
+	return this.Fetch2Async("finance/okusd/limits", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivateGetCopytradingInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingInstruments", args...)
+// PrivateGetFinanceOkusdAccount returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceOkusdAccount(args ...any) <-chan any {
+	return this.Fetch2Async("finance/okusd/account", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivateGetCopytradingProfitSharingDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingProfitSharingDetails", args...)
+// PrivateGetFinanceOkusdSubscribeHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceOkusdSubscribeHistory(args ...any) <-chan any {
+	return this.Fetch2Async("finance/okusd/subscribe/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetCopytradingTotalProfitSharing(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingTotalProfitSharing", args...)
+// PrivateGetFinanceOkusdRedeemHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceOkusdRedeemHistory(args ...any) <-chan any {
+	return this.Fetch2Async("finance/okusd/redeem/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetCopytradingUnrealizedProfitSharingDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingUnrealizedProfitSharingDetails", args...)
+// PrivateGetFinanceOkusdRewardsHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceOkusdRewardsHistory(args ...any) <-chan any {
+	return this.Fetch2Async("finance/okusd/rewards/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetCopytradingTotalUnrealizedProfitSharing(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingTotalUnrealizedProfitSharing", args...)
+// PrivateGetFinanceOkusdRateHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceOkusdRateHistory(args ...any) <-chan any {
+	return this.Fetch2Async("finance/okusd/rate/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetCopytradingConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingConfig", args...)
+// PrivateGetFinanceStableRewardsProductInfo returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceStableRewardsProductInfo(args ...any) <-chan any {
+	return this.Fetch2Async("finance/stable-rewards/product-info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetCopytradingCopySettings(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingCopySettings", args...)
+// PrivateGetFinanceStableRewardsBalance returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceStableRewardsBalance(args ...any) <-chan any {
+	return this.Fetch2Async("finance/stable-rewards/balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetCopytradingCurrentLeadTraders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingCurrentLeadTraders", args...)
+// PrivateGetFinanceStableRewardsApyHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceStableRewardsApyHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFinanceStableRewardsApyHistory", args...)
 }
 
-func (this *OkxCore) PrivateGetCopytradingBatchLeverageInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingBatchLeverageInfo", args...)
+// PrivateGetUsersGlpTodayperformance returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetUsersGlpTodayperformance(args ...any) <-chan any {
+	return this.Fetch2Async("users/glp/todayperformance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetCopytradingLeadTradersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingLeadTradersHistory", args...)
+// PrivateGetUsersGlpHistoricalperformance returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetUsersGlpHistoricalperformance(args ...any) <-chan any {
+	return this.Fetch2Async("users/glp/historicalperformance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetBrokerDmaSubaccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerDmaSubaccountInfo", args...)
+// PrivateGetCopytradingCurrentSubpositions returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetCopytradingCurrentSubpositions(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/current-subpositions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetBrokerDmaSubaccountTradeFee(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerDmaSubaccountTradeFee", args...)
+// PrivateGetCopytradingSubpositionsHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetCopytradingSubpositionsHistory(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/subpositions-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetBrokerDmaSubaccountApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerDmaSubaccountApikey", args...)
+// PrivateGetCopytradingInstruments returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetCopytradingInstruments(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/instruments", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetBrokerDmaRebatePerOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerDmaRebatePerOrders", args...)
+// PrivateGetCopytradingProfitSharingDetails returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetCopytradingProfitSharingDetails(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/profit-sharing-details", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetBrokerFdRebatePerOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerFdRebatePerOrders", args...)
+// PrivateGetCopytradingTotalProfitSharing returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetCopytradingTotalProfitSharing(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/total-profit-sharing", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetBrokerFdIfRebate(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerFdIfRebate", args...)
+// PrivateGetCopytradingUnrealizedProfitSharingDetails returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetCopytradingUnrealizedProfitSharingDetails(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/unrealized-profit-sharing-details", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetBrokerNdInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerNdInfo", args...)
+// PrivateGetCopytradingTotalUnrealizedProfitSharing returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetCopytradingTotalUnrealizedProfitSharing(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/total-unrealized-profit-sharing", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetBrokerNdSubaccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerNdSubaccountInfo", args...)
+// PrivateGetCopytradingConfig returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetCopytradingConfig(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/config", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetBrokerNdSubaccountApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerNdSubaccountApikey", args...)
+// PrivateGetCopytradingCopySettings returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetCopytradingCopySettings(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/copy-settings", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetAssetBrokerNdSubaccountDepositAddress(args ...any) <-chan any {
+// PrivateGetCopytradingCurrentLeadTraders returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetCopytradingCurrentLeadTraders(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/current-lead-traders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivateGetCopytradingBatchLeverageInfo returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetCopytradingBatchLeverageInfo(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/batch-leverage-info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivateGetCopytradingLeadTradersHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetCopytradingLeadTradersHistory(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/lead-traders-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivateGetBrokerDmaSubaccountInfo returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetBrokerDmaSubaccountInfo(args ...any) <-chan any {
+	return this.Fetch2Async("broker/dma/subaccount-info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PrivateGetBrokerDmaSubaccountTradeFee returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetBrokerDmaSubaccountTradeFee(args ...any) <-chan any {
+	return this.Fetch2Async("broker/dma/subaccount-trade-fee", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivateGetBrokerDmaSubaccountApikey returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetBrokerDmaSubaccountApikey(args ...any) <-chan any {
+	return this.Fetch2Async("broker/dma/subaccount/apikey", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivateGetBrokerDmaRebatePerOrders returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetBrokerDmaRebatePerOrders(args ...any) <-chan any {
+	return this.Fetch2Async("broker/dma/rebate-per-orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(300)})
+}
+
+// PrivateGetBrokerFdRebatePerOrders returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetBrokerFdRebatePerOrders(args ...any) <-chan any {
+	return this.Fetch2Async("broker/fd/rebate-per-orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(300)})
+}
+
+// PrivateGetBrokerFdIfRebate returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetBrokerFdIfRebate(args ...any) <-chan any {
+	return this.Fetch2Async("broker/fd/if-rebate", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// PrivateGetBrokerNdInfo returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetBrokerNdInfo(args ...any) <-chan any {
+	return this.Fetch2Async("broker/nd/info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivateGetBrokerNdSubaccountInfo returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetBrokerNdSubaccountInfo(args ...any) <-chan any {
+	return this.Fetch2Async("broker/nd/subaccount-info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivateGetBrokerNdSubaccountApikey returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetBrokerNdSubaccountApikey(args ...any) <-chan any {
+	return this.Fetch2Async("broker/nd/subaccount/apikey", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivateGetAssetBrokerNdSubaccountDepositAddress returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetBrokerNdSubaccountDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountDepositAddress", args...)
 }
 
-func (this *OkxCore) PrivateGetAssetBrokerNdSubaccountDepositHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountDepositHistory", args...)
+// PrivateGetAssetBrokerNdSubaccountDepositHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetBrokerNdSubaccountDepositHistory(args ...any) <-chan any {
+	return this.Fetch2Async("asset/broker/nd/subaccount-deposit-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetAssetBrokerNdSubaccountWithdrawalHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountWithdrawalHistory", args...)
+// PrivateGetAssetBrokerNdSubaccountWithdrawalHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetBrokerNdSubaccountWithdrawalHistory(args ...any) <-chan any {
+	return this.Fetch2Async("asset/broker/nd/subaccount-withdrawal-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivateGetBrokerNdRebateDaily(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerNdRebateDaily", args...)
+// PrivateGetBrokerNdRebateDaily returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetBrokerNdRebateDaily(args ...any) <-chan any {
+	return this.Fetch2Async("broker/nd/rebate-daily", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
-func (this *OkxCore) PrivateGetBrokerNdRebatePerOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerNdRebatePerOrders", args...)
+// PrivateGetBrokerNdRebatePerOrders returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetBrokerNdRebatePerOrders(args ...any) <-chan any {
+	return this.Fetch2Async("broker/nd/rebate-per-orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(300)})
 }
 
-func (this *OkxCore) PrivateGetFinanceSfpDcdOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceSfpDcdOrder", args...)
+// PrivateGetFinanceSfpDcdOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceSfpDcdOrder(args ...any) <-chan any {
+	return this.Fetch2Async("finance/sfp/dcd/order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetFinanceSfpDcdOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceSfpDcdOrders", args...)
+// PrivateGetFinanceSfpDcdOrders returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceSfpDcdOrders(args ...any) <-chan any {
+	return this.Fetch2Async("finance/sfp/dcd/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetFinanceSfpDcdCurrencyPair(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceSfpDcdCurrencyPair", args...)
+// PrivateGetFinanceSfpDcdCurrencyPair returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceSfpDcdCurrencyPair(args ...any) <-chan any {
+	return this.Fetch2Async("finance/sfp/dcd/currency-pair", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetFinanceSfpDcdOrderStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceSfpDcdOrderStatus", args...)
+// PrivateGetFinanceSfpDcdOrderStatus returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceSfpDcdOrderStatus(args ...any) <-chan any {
+	return this.Fetch2Async("finance/sfp/dcd/order-status", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetFinanceSfpDcdOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceSfpDcdOrderHistory", args...)
+// PrivateGetFinanceSfpDcdOrderHistory returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetFinanceSfpDcdOrderHistory(args ...any) <-chan any {
+	return this.Fetch2Async("finance/sfp/dcd/order-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivateGetAffiliateInviteeDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAffiliateInviteeDetail", args...)
+// PrivateGetAffiliateInviteeDetail returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAffiliateInviteeDetail(args ...any) <-chan any {
+	return this.Fetch2Async("affiliate/invitee/detail", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivateGetUsersPartnerIfRebate(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUsersPartnerIfRebate", args...)
+// PrivateGetAffiliatePerformanceSummary returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAffiliatePerformanceSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliatePerformanceSummary", args...)
 }
 
-func (this *OkxCore) PrivateGetSupportAnnouncements(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSupportAnnouncements", args...)
+// PrivateGetAffiliateInviteeList returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAffiliateInviteeList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateInviteeList", args...)
 }
 
-func (this *OkxCore) PrivatePostRfqCreateRfq(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqCreateRfq", args...)
+// PrivateGetAffiliateLinkList returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAffiliateLinkList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateLinkList", args...)
 }
 
-func (this *OkxCore) PrivatePostRfqCancelRfq(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqCancelRfq", args...)
+// PrivateGetAffiliateCoInviterList returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAffiliateCoInviterList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateCoInviterList", args...)
 }
 
-func (this *OkxCore) PrivatePostRfqCancelBatchRfqs(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqCancelBatchRfqs", args...)
+// PrivateGetAffiliateSubAffiliateList returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAffiliateSubAffiliateList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateSubAffiliateList", args...)
 }
 
-func (this *OkxCore) PrivatePostRfqCancelAllRfqs(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqCancelAllRfqs", args...)
+// PrivateGetUsersPartnerIfRebate returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetUsersPartnerIfRebate(args ...any) <-chan any {
+	return this.Fetch2Async("users/partner/if-rebate", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostRfqExecuteQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqExecuteQuote", args...)
+// PrivateGetSupportAnnouncements returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetSupportAnnouncements(args ...any) <-chan any {
+	return this.Fetch2Async("support/announcements", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostRfqMakerInstrumentSettings(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqMakerInstrumentSettings", args...)
+// PrivatePostRfqCreateRfq returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostRfqCreateRfq(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/create-rfq", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostRfqMmpReset(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqMmpReset", args...)
+// PrivatePostRfqCancelRfq returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostRfqCancelRfq(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/cancel-rfq", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostRfqMmpConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqMmpConfig", args...)
+// PrivatePostRfqCancelBatchRfqs returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostRfqCancelBatchRfqs(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/cancel-batch-rfqs", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostRfqCreateQuote(args ...any) <-chan any {
+// PrivatePostRfqCancelAllRfqs returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostRfqCancelAllRfqs(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/cancel-all-rfqs", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivatePostRfqExecuteQuote returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostRfqExecuteQuote(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/execute-quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
+}
+
+// PrivatePostRfqMakerInstrumentSettings returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostRfqMakerInstrumentSettings(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/maker-instrument-settings", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivatePostRfqMmpReset returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostRfqMmpReset(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/mmp-reset", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivatePostRfqMmpConfig returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostRfqMmpConfig(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/mmp-config", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
+}
+
+// PrivatePostRfqCreateQuote returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostRfqCreateQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRfqCreateQuote", args...)
 }
 
-func (this *OkxCore) PrivatePostRfqCancelQuote(args ...any) <-chan any {
+// PrivatePostRfqCancelQuote returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostRfqCancelQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRfqCancelQuote", args...)
 }
 
-func (this *OkxCore) PrivatePostRfqCancelBatchQuotes(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqCancelBatchQuotes", args...)
+// PrivatePostRfqCancelBatchQuotes returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostRfqCancelBatchQuotes(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/cancel-batch-quotes", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostRfqCancelAllQuotes(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqCancelAllQuotes", args...)
+// PrivatePostRfqCancelAllQuotes returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostRfqCancelAllQuotes(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/cancel-all-quotes", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostRfqCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqCancelAllAfter", args...)
+// PrivatePostRfqCancelAllAfter returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostRfqCancelAllAfter(args ...any) <-chan any {
+	return this.Fetch2Async("rfq/cancel-all-after", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostSprdOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSprdOrder", args...)
+// PrivatePostSprdOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostSprdOrder(args ...any) <-chan any {
+	return this.Fetch2Async("sprd/order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostSprdCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSprdCancelOrder", args...)
+// PrivatePostSprdCancelOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostSprdCancelOrder(args ...any) <-chan any {
+	return this.Fetch2Async("sprd/cancel-order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostSprdMassCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSprdMassCancel", args...)
+// PrivatePostSprdMassCancel returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostSprdMassCancel(args ...any) <-chan any {
+	return this.Fetch2Async("sprd/mass-cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostSprdAmendOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSprdAmendOrder", args...)
+// PrivatePostSprdAmendOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostSprdAmendOrder(args ...any) <-chan any {
+	return this.Fetch2Async("sprd/amend-order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostSprdCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSprdCancelAllAfter", args...)
+// PrivatePostSprdCancelAllAfter returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostSprdCancelAllAfter(args ...any) <-chan any {
+	return this.Fetch2Async("sprd/cancel-all-after", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostTradeOrder(args ...any) <-chan any {
+// PrivatePostTradeOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeOrder", args...)
 }
 
-func (this *OkxCore) PrivatePostTradeBatchOrders(args ...any) <-chan any {
+// PrivatePostTradeBatchOrders returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeBatchOrders", args...)
 }
 
-func (this *OkxCore) PrivatePostTradeCancelOrder(args ...any) <-chan any {
+// PrivatePostTradeCancelOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeCancelOrder", args...)
 }
 
-func (this *OkxCore) PrivatePostTradeCancelBatchOrders(args ...any) <-chan any {
+// PrivatePostTradeCancelBatchOrders returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeCancelBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeCancelBatchOrders", args...)
 }
 
-func (this *OkxCore) PrivatePostTradeAmendOrder(args ...any) <-chan any {
+// PrivatePostTradeAmendOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeAmendOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeAmendOrder", args...)
 }
 
-func (this *OkxCore) PrivatePostTradeAmendBatchOrders(args ...any) <-chan any {
+// PrivatePostTradeAmendBatchOrders returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeAmendBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeAmendBatchOrders", args...)
 }
 
-func (this *OkxCore) PrivatePostTradeClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeClosePosition", args...)
+// PrivatePostTradeClosePosition returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeClosePosition(args ...any) <-chan any {
+	return this.Fetch2Async("trade/close-position", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradeFillsArchive(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeFillsArchive", args...)
+// PrivatePostTradeFillsArchive returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeFillsArchive(args ...any) <-chan any {
+	return this.Fetch2Async("trade/fills-archive", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(172800)})
 }
 
-func (this *OkxCore) PrivatePostTradeCancelAdvanceAlgos(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeCancelAdvanceAlgos", args...)
+// PrivatePostTradeCancelAdvanceAlgos returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeCancelAdvanceAlgos(args ...any) <-chan any {
+	return this.Fetch2Async("trade/cancel-advance-algos", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradeEasyConvert(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeEasyConvert", args...)
+// PrivatePostTradeEasyConvert returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeEasyConvert(args ...any) <-chan any {
+	return this.Fetch2Async("trade/easy-convert", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PrivatePostTradeOneClickRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeOneClickRepay", args...)
+// PrivatePostTradeOneClickRepay returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeOneClickRepay(args ...any) <-chan any {
+	return this.Fetch2Async("trade/one-click-repay", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PrivatePostTradeOneClickRepayV2(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeOneClickRepayV2", args...)
+// PrivatePostTradeOneClickRepayV2 returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeOneClickRepayV2(args ...any) <-chan any {
+	return this.Fetch2Async("trade/one-click-repay-v2", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PrivatePostTradeMassCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeMassCancel", args...)
+// PrivatePostTradeMassCancel returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeMassCancel(args ...any) <-chan any {
+	return this.Fetch2Async("trade/mass-cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostTradeCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeCancelAllAfter", args...)
+// PrivatePostTradeCancelAllAfter returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeCancelAllAfter(args ...any) <-chan any {
+	return this.Fetch2Async("trade/cancel-all-after", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostTradeOrderPrecheck(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeOrderPrecheck", args...)
+// PrivatePostTradeOrderPrecheck returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeOrderPrecheck(args ...any) <-chan any {
+	return this.Fetch2Async("trade/order-precheck", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostTradeOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeOrderAlgo", args...)
+// PrivatePostTradeOrderAlgo returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeOrderAlgo(args ...any) <-chan any {
+	return this.Fetch2Async("trade/order-algo", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradeCancelAlgos(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeCancelAlgos", args...)
+// PrivatePostTradeCancelAlgos returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeCancelAlgos(args ...any) <-chan any {
+	return this.Fetch2Async("trade/cancel-algos", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradeAmendAlgos(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeAmendAlgos", args...)
+// PrivatePostTradeAmendAlgos returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradeAmendAlgos(args ...any) <-chan any {
+	return this.Fetch2Async("trade/amend-algos", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetTransfer", args...)
+// PrivatePostAssetTransfer returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAssetTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("asset/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *OkxCore) PrivatePostAssetWithdrawal(args ...any) <-chan any {
+// PrivatePostAssetWithdrawal returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAssetWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAssetWithdrawal", args...)
 }
 
-func (this *OkxCore) PrivatePostAssetWithdrawalLightning(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetWithdrawalLightning", args...)
+// PrivatePostAssetWithdrawalLightning returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAssetWithdrawalLightning(args ...any) <-chan any {
+	return this.Fetch2Async("asset/withdrawal-lightning", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *OkxCore) PrivatePostAssetCancelWithdrawal(args ...any) <-chan any {
+// PrivatePostAssetCancelWithdrawal returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAssetCancelWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAssetCancelWithdrawal", args...)
 }
 
-func (this *OkxCore) PrivatePostAssetConvertDustAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetConvertDustAssets", args...)
+// PrivatePostAssetConvertDustAssets returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAssetConvertDustAssets(args ...any) <-chan any {
+	return this.Fetch2Async("asset/convert-dust-assets", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostAssetMonthlyStatement(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetMonthlyStatement", args...)
+// PrivatePostAssetMonthlyStatement returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAssetMonthlyStatement(args ...any) <-chan any {
+	return this.Fetch2Async("asset/monthly-statement", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1296000)})
 }
 
-func (this *OkxCore) PrivatePostAssetConvertEstimateQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetConvertEstimateQuote", args...)
+// PrivatePostAssetConvertEstimateQuote returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAssetConvertEstimateQuote(args ...any) <-chan any {
+	return this.Fetch2Async("asset/convert/estimate-quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
-func (this *OkxCore) PrivatePostAssetConvertTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetConvertTrade", args...)
+// PrivatePostAssetConvertTrade returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAssetConvertTrade(args ...any) <-chan any {
+	return this.Fetch2Async("asset/convert/trade", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostAccountBillsHistoryArchive(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountBillsHistoryArchive", args...)
+// PrivatePostFiatCreateWithdrawal returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFiatCreateWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFiatCreateWithdrawal", args...)
 }
 
-func (this *OkxCore) PrivatePostAccountSetPositionMode(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetPositionMode", args...)
+// PrivatePostFiatCancelWithdrawal returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFiatCancelWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFiatCancelWithdrawal", args...)
 }
 
-func (this *OkxCore) PrivatePostAccountSetLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetLeverage", args...)
+// PrivatePostFiatBuySellQuote returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFiatBuySellQuote(args ...any) <-chan any {
+	return this.Fetch2Async("fiat/buy-sell/quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
-func (this *OkxCore) PrivatePostAccountPositionMarginBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountPositionMarginBalance", args...)
+// PrivatePostFiatBuySellTrade returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFiatBuySellTrade(args ...any) <-chan any {
+	return this.Fetch2Async("fiat/buy-sell/trade", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
-func (this *OkxCore) PrivatePostAccountSetFeeType(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetFeeType", args...)
+// PrivatePostAccountBillsHistoryArchive returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountBillsHistoryArchive(args ...any) <-chan any {
+	return this.Fetch2Async("account/bills-history-archive", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(72000)})
 }
 
-func (this *OkxCore) PrivatePostAccountSetGreeks(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetGreeks", args...)
+// PrivatePostAccountSetPositionMode returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSetPositionMode(args ...any) <-chan any {
+	return this.Fetch2Async("account/set-position-mode", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostAccountSetIsolatedMode(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetIsolatedMode", args...)
+// PrivatePostAccountSetLeverage returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSetLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("account/set-leverage", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostAccountSpotManualBorrowRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSpotManualBorrowRepay", args...)
+// PrivatePostAccountPositionMarginBalance returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountPositionMarginBalance(args ...any) <-chan any {
+	return this.Fetch2Async("account/position/margin-balance", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostAccountSetAutoRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetAutoRepay", args...)
+// PrivatePostAccountSetFeeType returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSetFeeType(args ...any) <-chan any {
+	return this.Fetch2Async("account/set-fee-type", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostAccountQuickMarginBorrowRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountQuickMarginBorrowRepay", args...)
+// PrivatePostAccountSetGreeks returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSetGreeks(args ...any) <-chan any {
+	return this.Fetch2Async("account/set-greeks", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostAccountBorrowRepay(args ...any) <-chan any {
+// PrivatePostAccountSetIsolatedMode returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSetIsolatedMode(args ...any) <-chan any {
+	return this.Fetch2Async("account/set-isolated-mode", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivatePostAccountSpotManualBorrowRepay returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSpotManualBorrowRepay(args ...any) <-chan any {
+	return this.Fetch2Async("account/spot-manual-borrow-repay", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
+}
+
+// PrivatePostAccountSetAutoRepay returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSetAutoRepay(args ...any) <-chan any {
+	return this.Fetch2Async("account/set-auto-repay", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivatePostAccountQuickMarginBorrowRepay returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountQuickMarginBorrowRepay(args ...any) <-chan any {
+	return this.Fetch2Async("account/quick-margin-borrow-repay", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivatePostAccountBorrowRepay returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountBorrowRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountBorrowRepay", args...)
 }
 
-func (this *OkxCore) PrivatePostAccountSimulatedMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSimulatedMargin", args...)
+// PrivatePostAccountSimulatedMargin returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSimulatedMargin(args ...any) <-chan any {
+	return this.Fetch2Async("account/simulated_margin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostAccountPositionBuilder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountPositionBuilder", args...)
+// PrivatePostAccountPositionBuilder returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountPositionBuilder(args ...any) <-chan any {
+	return this.Fetch2Async("account/position-builder", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostAccountPositionBuilderGraph(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountPositionBuilderGraph", args...)
+// PrivatePostAccountPositionBuilderGraph returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountPositionBuilderGraph(args ...any) <-chan any {
+	return this.Fetch2Async("account/position-builder-graph", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
-func (this *OkxCore) PrivatePostAccountSetRiskOffsetType(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetRiskOffsetType", args...)
+// PrivatePostAccountSetRiskOffsetType returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSetRiskOffsetType(args ...any) <-chan any {
+	return this.Fetch2Async("account/set-riskOffset-type", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivatePostAccountSetRiskOffsetAmt(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetRiskOffsetAmt", args...)
+// PrivatePostAccountSetRiskOffsetAmt returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSetRiskOffsetAmt(args ...any) <-chan any {
+	return this.Fetch2Async("account/set-riskOffset-amt", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *OkxCore) PrivatePostAccountActivateOption(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountActivateOption", args...)
+// PrivatePostAccountActivateOption returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountActivateOption(args ...any) <-chan any {
+	return this.Fetch2Async("account/activate-option", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostAccountSetAutoLoan(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetAutoLoan", args...)
+// PrivatePostAccountSetAutoLoan returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSetAutoLoan(args ...any) <-chan any {
+	return this.Fetch2Async("account/set-auto-loan", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostAccountAccountLevelSwitchPreset(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountAccountLevelSwitchPreset", args...)
+// PrivatePostAccountAccountLevelSwitchPreset returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountAccountLevelSwitchPreset(args ...any) <-chan any {
+	return this.Fetch2Async("account/account-level-switch-preset", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostAccountSetAccountLevel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetAccountLevel", args...)
+// PrivatePostAccountSetAccountLevel returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSetAccountLevel(args ...any) <-chan any {
+	return this.Fetch2Async("account/set-account-level", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostAccountSetCollateralAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetCollateralAssets", args...)
+// PrivatePostAccountSetCollateralAssets returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSetCollateralAssets(args ...any) <-chan any {
+	return this.Fetch2Async("account/set-collateral-assets", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostAccountMmpReset(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountMmpReset", args...)
+// PrivatePostAccountMmpReset returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountMmpReset(args ...any) <-chan any {
+	return this.Fetch2Async("account/mmp-reset", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostAccountMmpConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountMmpConfig", args...)
+// PrivatePostAccountMmpConfig returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountMmpConfig(args ...any) <-chan any {
+	return this.Fetch2Async("account/mmp-config", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
-func (this *OkxCore) PrivatePostAccountFixedLoanBorrowingOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountFixedLoanBorrowingOrder", args...)
+// PrivatePostAccountFixedLoanBorrowingOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountFixedLoanBorrowingOrder(args ...any) <-chan any {
+	return this.Fetch2Async("account/fixed-loan/borrowing-order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *OkxCore) PrivatePostAccountFixedLoanAmendBorrowingOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountFixedLoanAmendBorrowingOrder", args...)
+// PrivatePostAccountFixedLoanAmendBorrowingOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountFixedLoanAmendBorrowingOrder(args ...any) <-chan any {
+	return this.Fetch2Async("account/fixed-loan/amend-borrowing-order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *OkxCore) PrivatePostAccountFixedLoanManualReborrow(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountFixedLoanManualReborrow", args...)
+// PrivatePostAccountFixedLoanManualReborrow returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountFixedLoanManualReborrow(args ...any) <-chan any {
+	return this.Fetch2Async("account/fixed-loan/manual-reborrow", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *OkxCore) PrivatePostAccountFixedLoanRepayBorrowingOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountFixedLoanRepayBorrowingOrder", args...)
+// PrivatePostAccountFixedLoanRepayBorrowingOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountFixedLoanRepayBorrowingOrder(args ...any) <-chan any {
+	return this.Fetch2Async("account/fixed-loan/repay-borrowing-order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *OkxCore) PrivatePostAccountMovePositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountMovePositions", args...)
+// PrivatePostAccountMovePositions returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountMovePositions(args ...any) <-chan any {
+	return this.Fetch2Async("account/move-positions", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostAccountSetAutoEarn(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetAutoEarn", args...)
+// PrivatePostAccountSetAutoEarn returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSetAutoEarn(args ...any) <-chan any {
+	return this.Fetch2Async("account/set-auto-earn", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostAccountSetSettleCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetSettleCurrency", args...)
+// PrivatePostAccountSetSettleCurrency returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSetSettleCurrency(args ...any) <-chan any {
+	return this.Fetch2Async("account/set-settle-currency", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostAccountSetTradingConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetTradingConfig", args...)
+// PrivatePostAccountSetTradingConfig returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSetTradingConfig(args ...any) <-chan any {
+	return this.Fetch2Async("account/set-trading-config", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PrivatePostAccountDemoAdjustBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountDemoAdjustBalance", args...)
+// PrivatePostAccountDemoAdjustBalance returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountDemoAdjustBalance(args ...any) <-chan any {
+	return this.Fetch2Async("account/demo-adjust-balance", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PrivatePostAssetSubaccountTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetSubaccountTransfer", args...)
+// PrivatePostAssetSubaccountTransfer returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAssetSubaccountTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("asset/subaccount/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostAccountSubaccountSetLoanAllocation(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSubaccountSetLoanAllocation", args...)
+// PrivatePostAccountSubaccountSetLoanAllocation returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAccountSubaccountSetLoanAllocation(args ...any) <-chan any {
+	return this.Fetch2Async("account/subaccount/set-loan-allocation", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostUsersSubaccountCreateSubaccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUsersSubaccountCreateSubaccount", args...)
+// PrivatePostUsersSubaccountCreateSubaccount returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostUsersSubaccountCreateSubaccount(args ...any) <-chan any {
+	return this.Fetch2Async("users/subaccount/create-subaccount", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostUsersSubaccountApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUsersSubaccountApikey", args...)
+// PrivatePostUsersSubaccountApikey returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostUsersSubaccountApikey(args ...any) <-chan any {
+	return this.Fetch2Async("users/subaccount/apikey", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostUsersSubaccountModifyApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUsersSubaccountModifyApikey", args...)
+// PrivatePostUsersSubaccountModifyApikey returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostUsersSubaccountModifyApikey(args ...any) <-chan any {
+	return this.Fetch2Async("users/subaccount/modify-apikey", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostUsersSubaccountSubaccountApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUsersSubaccountSubaccountApikey", args...)
+// PrivatePostUsersSubaccountSubaccountApikey returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostUsersSubaccountSubaccountApikey(args ...any) <-chan any {
+	return this.Fetch2Async("users/subaccount/subaccount-apikey", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostUsersSubaccountDeleteApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUsersSubaccountDeleteApikey", args...)
+// PrivatePostUsersSubaccountDeleteApikey returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostUsersSubaccountDeleteApikey(args ...any) <-chan any {
+	return this.Fetch2Async("users/subaccount/delete-apikey", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostUsersSubaccountSetTransferOut(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUsersSubaccountSetTransferOut", args...)
+// PrivatePostUsersSubaccountSetTransferOut returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostUsersSubaccountSetTransferOut(args ...any) <-chan any {
+	return this.Fetch2Async("users/subaccount/set-transfer-out", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotGridOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridOrderAlgo", args...)
+// PrivatePostTradingBotGridOrderAlgo returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotGridOrderAlgo(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/order-algo", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotGridCopyOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridCopyOrderAlgo", args...)
+// PrivatePostTradingBotGridCopyOrderAlgo returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotGridCopyOrderAlgo(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/copy-order-algo", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotGridAmendAlgoBasicParam(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridAmendAlgoBasicParam", args...)
+// PrivatePostTradingBotGridAmendAlgoBasicParam returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotGridAmendAlgoBasicParam(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/amend-algo-basic-param", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotGridAmendOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridAmendOrderAlgo", args...)
+// PrivatePostTradingBotGridAmendOrderAlgo returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotGridAmendOrderAlgo(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/amend-order-algo", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotGridStopOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridStopOrderAlgo", args...)
+// PrivatePostTradingBotGridStopOrderAlgo returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotGridStopOrderAlgo(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/stop-order-algo", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotGridClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridClosePosition", args...)
+// PrivatePostTradingBotGridClosePosition returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotGridClosePosition(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/close-position", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotGridCancelCloseOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridCancelCloseOrder", args...)
+// PrivatePostTradingBotGridCancelCloseOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotGridCancelCloseOrder(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/cancel-close-order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotGridOrderInstantTrigger(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridOrderInstantTrigger", args...)
+// PrivatePostTradingBotGridOrderInstantTrigger returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotGridOrderInstantTrigger(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/order-instant-trigger", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotGridWithdrawIncome(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridWithdrawIncome", args...)
+// PrivatePostTradingBotGridWithdrawIncome returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotGridWithdrawIncome(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/withdraw-income", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotGridComputeMarginBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridComputeMarginBalance", args...)
+// PrivatePostTradingBotGridComputeMarginBalance returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotGridComputeMarginBalance(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/compute-margin-balance", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotGridMarginBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridMarginBalance", args...)
+// PrivatePostTradingBotGridMarginBalance returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotGridMarginBalance(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/margin-balance", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotGridMinInvestment(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridMinInvestment", args...)
+// PrivatePostTradingBotGridMinInvestment returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotGridMinInvestment(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/min-investment", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotGridAdjustInvestment(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridAdjustInvestment", args...)
+// PrivatePostTradingBotGridAdjustInvestment returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotGridAdjustInvestment(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/grid/adjust-investment", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotSignalCreateSignal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalCreateSignal", args...)
+// PrivatePostTradingBotSignalCreateSignal returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotSignalCreateSignal(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/create-signal", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotSignalOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalOrderAlgo", args...)
+// PrivatePostTradingBotSignalOrderAlgo returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotSignalOrderAlgo(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/order-algo", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotSignalStopOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalStopOrderAlgo", args...)
+// PrivatePostTradingBotSignalStopOrderAlgo returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotSignalStopOrderAlgo(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/stop-order-algo", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotSignalMarginBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalMarginBalance", args...)
+// PrivatePostTradingBotSignalMarginBalance returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotSignalMarginBalance(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/margin-balance", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotSignalAmendTPSL(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalAmendTPSL", args...)
+// PrivatePostTradingBotSignalAmendTPSL returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotSignalAmendTPSL(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/amendTPSL", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotSignalSetInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalSetInstruments", args...)
+// PrivatePostTradingBotSignalSetInstruments returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotSignalSetInstruments(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/set-instruments", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotSignalClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalClosePosition", args...)
+// PrivatePostTradingBotSignalClosePosition returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotSignalClosePosition(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/close-position", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotSignalSubOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalSubOrder", args...)
+// PrivatePostTradingBotSignalSubOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotSignalSubOrder(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/sub-order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotSignalCancelSubOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalCancelSubOrder", args...)
+// PrivatePostTradingBotSignalCancelSubOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotSignalCancelSubOrder(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/signal/cancel-sub-order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotRecurringOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringOrderAlgo", args...)
+// PrivatePostTradingBotRecurringOrderAlgo returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotRecurringOrderAlgo(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/recurring/order-algo", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotRecurringAmendOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringAmendOrderAlgo", args...)
+// PrivatePostTradingBotRecurringAmendOrderAlgo returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotRecurringAmendOrderAlgo(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/recurring/amend-order-algo", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotRecurringStopOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringStopOrderAlgo", args...)
+// PrivatePostTradingBotRecurringStopOrderAlgo returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotRecurringStopOrderAlgo(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/recurring/stop-order-algo", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotDcaCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotDcaCreate", args...)
+// PrivatePostTradingBotDcaCreate returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotDcaCreate(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/dca/create", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotDcaAmendOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotDcaAmendOrderAlgo", args...)
+// PrivatePostTradingBotDcaAmendOrderAlgo returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotDcaAmendOrderAlgo(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/dca/amend-order-algo", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotDcaStop(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotDcaStop", args...)
+// PrivatePostTradingBotDcaStop returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotDcaStop(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/dca/stop", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotDcaOrdersManualBuy(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotDcaOrdersManualBuy", args...)
+// PrivatePostTradingBotDcaOrdersManualBuy returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotDcaOrdersManualBuy(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/dca/orders/manual-buy", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotDcaSettingsReinvestment(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotDcaSettingsReinvestment", args...)
+// PrivatePostTradingBotDcaSettingsReinvestment returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotDcaSettingsReinvestment(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/dca/settings/reinvestment", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotDcaSettingsTakeProfit(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotDcaSettingsTakeProfit", args...)
+// PrivatePostTradingBotDcaSettingsTakeProfit returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotDcaSettingsTakeProfit(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/dca/settings/take-profit", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotDcaMarginAdd(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotDcaMarginAdd", args...)
+// PrivatePostTradingBotDcaMarginAdd returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotDcaMarginAdd(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/dca/margin/add", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotDcaMarginReduce(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotDcaMarginReduce", args...)
+// PrivatePostTradingBotDcaMarginReduce returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotDcaMarginReduce(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/dca/margin/reduce", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotRecurringAddInvestment(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringAddInvestment", args...)
+// PrivatePostTradingBotRecurringAddInvestment returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotRecurringAddInvestment(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/recurring/add-investment", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotRecurringAmendPriceRange(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringAmendPriceRange", args...)
+// PrivatePostTradingBotRecurringAmendPriceRange returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotRecurringAmendPriceRange(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/recurring/amend-price-range", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotRecurringAmendRecurringAmount(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringAmendRecurringAmount", args...)
+// PrivatePostTradingBotRecurringAmendRecurringAmount returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotRecurringAmendRecurringAmount(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/recurring/amend-recurring-amount", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotRecurringAmendRecurringTime(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringAmendRecurringTime", args...)
+// PrivatePostTradingBotRecurringAmendRecurringTime returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotRecurringAmendRecurringTime(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/recurring/amend-recurring-time", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotRecurringPause(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringPause", args...)
+// PrivatePostTradingBotRecurringPause returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotRecurringPause(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/recurring/pause", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostTradingBotRecurringRestart(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringRestart", args...)
+// PrivatePostTradingBotRecurringRestart returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostTradingBotRecurringRestart(args ...any) <-chan any {
+	return this.Fetch2Async("tradingBot/recurring/restart", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostFinanceSavingsPurchaseRedempt(args ...any) <-chan any {
+// PrivatePostFinanceSavingsPurchaseRedempt returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceSavingsPurchaseRedempt(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFinanceSavingsPurchaseRedempt", args...)
 }
 
-func (this *OkxCore) PrivatePostFinanceSavingsSetLendingRate(args ...any) <-chan any {
+// PrivatePostFinanceSavingsSetLendingRate returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceSavingsSetLendingRate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFinanceSavingsSetLendingRate", args...)
 }
 
-func (this *OkxCore) PrivatePostFinanceStakingDefiPurchase(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiPurchase", args...)
+// PrivatePostFinanceStakingDefiPurchase returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceStakingDefiPurchase(args ...any) <-chan any {
+	return this.Fetch2Async("finance/staking-defi/purchase", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *OkxCore) PrivatePostFinanceStakingDefiRedeem(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiRedeem", args...)
+// PrivatePostFinanceStakingDefiRedeem returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceStakingDefiRedeem(args ...any) <-chan any {
+	return this.Fetch2Async("finance/staking-defi/redeem", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *OkxCore) PrivatePostFinanceStakingDefiCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiCancel", args...)
+// PrivatePostFinanceStakingDefiCancel returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceStakingDefiCancel(args ...any) <-chan any {
+	return this.Fetch2Async("finance/staking-defi/cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *OkxCore) PrivatePostFinanceStakingDefiEthPurchase(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiEthPurchase", args...)
+// PrivatePostFinanceStakingDefiEthPurchase returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceStakingDefiEthPurchase(args ...any) <-chan any {
+	return this.Fetch2Async("finance/staking-defi/eth/purchase", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *OkxCore) PrivatePostFinanceStakingDefiEthRedeem(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiEthRedeem", args...)
+// PrivatePostFinanceStakingDefiEthRedeem returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceStakingDefiEthRedeem(args ...any) <-chan any {
+	return this.Fetch2Async("finance/staking-defi/eth/redeem", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *OkxCore) PrivatePostFinanceStakingDefiEthCancelRedeem(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiEthCancelRedeem", args...)
+// PrivatePostFinanceStakingDefiEthCancelRedeem returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceStakingDefiEthCancelRedeem(args ...any) <-chan any {
+	return this.Fetch2Async("finance/staking-defi/eth/cancel-redeem", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *OkxCore) PrivatePostFinanceStakingDefiSolPurchase(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiSolPurchase", args...)
+// PrivatePostFinanceStakingDefiSolPurchase returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceStakingDefiSolPurchase(args ...any) <-chan any {
+	return this.Fetch2Async("finance/staking-defi/sol/purchase", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *OkxCore) PrivatePostFinanceStakingDefiSolRedeem(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiSolRedeem", args...)
+// PrivatePostFinanceStakingDefiSolRedeem returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceStakingDefiSolRedeem(args ...any) <-chan any {
+	return this.Fetch2Async("finance/staking-defi/sol/redeem", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *OkxCore) PrivatePostFinanceStakingDefiSolCancelRedeem(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiSolCancelRedeem", args...)
+// PrivatePostFinanceStakingDefiSolCancelRedeem returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceStakingDefiSolCancelRedeem(args ...any) <-chan any {
+	return this.Fetch2Async("finance/staking-defi/sol/cancel-redeem", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *OkxCore) PrivatePostFinanceFlexibleLoanMaxLoan(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceFlexibleLoanMaxLoan", args...)
+// PrivatePostFinanceFlexibleLoanMaxLoan returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceFlexibleLoanMaxLoan(args ...any) <-chan any {
+	return this.Fetch2Async("finance/flexible-loan/max-loan", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostFinanceFlexibleLoanAdjustCollateral(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceFlexibleLoanAdjustCollateral", args...)
+// PrivatePostFinanceFlexibleLoanAdjustCollateral returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceFlexibleLoanAdjustCollateral(args ...any) <-chan any {
+	return this.Fetch2Async("finance/flexible-loan/adjust-collateral", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostCopytradingAlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCopytradingAlgoOrder", args...)
+// PrivatePostFinanceFlexibleLoanBorrow returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceFlexibleLoanBorrow(args ...any) <-chan any {
+	return this.Fetch2Async("finance/flexible-loan/borrow", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostCopytradingCloseSubposition(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCopytradingCloseSubposition", args...)
+// PrivatePostFinanceFlexibleLoanRepay returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceFlexibleLoanRepay(args ...any) <-chan any {
+	return this.Fetch2Async("finance/flexible-loan/repay", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostCopytradingSetInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCopytradingSetInstruments", args...)
+// PrivatePostFinanceOkusdSubscribe returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceOkusdSubscribe(args ...any) <-chan any {
+	return this.Fetch2Async("finance/okusd/subscribe", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PrivatePostCopytradingAmendProfitSharingRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCopytradingAmendProfitSharingRatio", args...)
+// PrivatePostFinanceOkusdRedeem returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceOkusdRedeem(args ...any) <-chan any {
+	return this.Fetch2Async("finance/okusd/redeem", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *OkxCore) PrivatePostCopytradingFirstCopySettings(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCopytradingFirstCopySettings", args...)
+// PrivatePostCopytradingAlgoOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostCopytradingAlgoOrder(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/algo-order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostCopytradingAmendCopySettings(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCopytradingAmendCopySettings", args...)
+// PrivatePostCopytradingCloseSubposition returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostCopytradingCloseSubposition(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/close-subposition", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostCopytradingStopCopyTrading(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCopytradingStopCopyTrading", args...)
+// PrivatePostCopytradingSetInstruments returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostCopytradingSetInstruments(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/set-instruments", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostCopytradingBatchSetLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCopytradingBatchSetLeverage", args...)
+// PrivatePostCopytradingAmendProfitSharingRatio returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostCopytradingAmendProfitSharingRatio(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/amend-profit-sharing-ratio", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostBrokerNdCreateSubaccount(args ...any) <-chan any {
+// PrivatePostCopytradingFirstCopySettings returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostCopytradingFirstCopySettings(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/first-copy-settings", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivatePostCopytradingAmendCopySettings returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostCopytradingAmendCopySettings(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/amend-copy-settings", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivatePostCopytradingStopCopyTrading returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostCopytradingStopCopyTrading(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/stop-copy-trading", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivatePostCopytradingBatchSetLeverage returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostCopytradingBatchSetLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("copytrading/batch-set-leverage", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivatePostBrokerNdCreateSubaccount returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostBrokerNdCreateSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBrokerNdCreateSubaccount", args...)
 }
 
-func (this *OkxCore) PrivatePostBrokerNdDeleteSubaccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerNdDeleteSubaccount", args...)
+// PrivatePostBrokerNdDeleteSubaccount returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostBrokerNdDeleteSubaccount(args ...any) <-chan any {
+	return this.Fetch2Async("broker/nd/delete-subaccount", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostBrokerNdSubaccountApikey(args ...any) <-chan any {
+// PrivatePostBrokerNdSubaccountApikey returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostBrokerNdSubaccountApikey(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBrokerNdSubaccountApikey", args...)
 }
 
-func (this *OkxCore) PrivatePostBrokerNdSubaccountModifyApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerNdSubaccountModifyApikey", args...)
+// PrivatePostBrokerNdSubaccountModifyApikey returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostBrokerNdSubaccountModifyApikey(args ...any) <-chan any {
+	return this.Fetch2Async("broker/nd/subaccount/modify-apikey", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostBrokerNdSubaccountDeleteApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerNdSubaccountDeleteApikey", args...)
+// PrivatePostBrokerNdSubaccountDeleteApikey returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostBrokerNdSubaccountDeleteApikey(args ...any) <-chan any {
+	return this.Fetch2Async("broker/nd/subaccount/delete-apikey", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostBrokerNdSetSubaccountLevel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerNdSetSubaccountLevel", args...)
+// PrivatePostBrokerNdSetSubaccountLevel returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostBrokerNdSetSubaccountLevel(args ...any) <-chan any {
+	return this.Fetch2Async("broker/nd/set-subaccount-level", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostBrokerNdSetSubaccountFeeRate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerNdSetSubaccountFeeRate", args...)
+// PrivatePostBrokerNdSetSubaccountFeeRate returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostBrokerNdSetSubaccountFeeRate(args ...any) <-chan any {
+	return this.Fetch2Async("broker/nd/set-subaccount-fee-rate", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *OkxCore) PrivatePostBrokerNdSetSubaccountAssets(args ...any) <-chan any {
+// PrivatePostBrokerNdSetSubaccountAssets returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostBrokerNdSetSubaccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBrokerNdSetSubaccountAssets", args...)
 }
 
-func (this *OkxCore) PrivatePostAssetBrokerNdSubaccountDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetBrokerNdSubaccountDepositAddress", args...)
+// PrivatePostAssetBrokerNdSubaccountDepositAddress returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAssetBrokerNdSubaccountDepositAddress(args ...any) <-chan any {
+	return this.Fetch2Async("asset/broker/nd/subaccount-deposit-address", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *OkxCore) PrivatePostAssetBrokerNdModifySubaccountDepositAddress(args ...any) <-chan any {
+// PrivatePostAssetBrokerNdModifySubaccountDepositAddress returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAssetBrokerNdModifySubaccountDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAssetBrokerNdModifySubaccountDepositAddress", args...)
 }
 
-func (this *OkxCore) PrivatePostBrokerNdRebatePerOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerNdRebatePerOrders", args...)
+// PrivatePostBrokerNdRebatePerOrders returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostBrokerNdRebatePerOrders(args ...any) <-chan any {
+	return this.Fetch2Async("broker/nd/rebate-per-orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(36000)})
 }
 
-func (this *OkxCore) PrivatePostFinanceSfpDcdQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceSfpDcdQuote", args...)
+// PrivatePostFinanceSfpDcdQuote returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceSfpDcdQuote(args ...any) <-chan any {
+	return this.Fetch2Async("finance/sfp/dcd/quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostFinanceSfpDcdOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceSfpDcdOrder", args...)
+// PrivatePostFinanceSfpDcdOrder returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceSfpDcdOrder(args ...any) <-chan any {
+	return this.Fetch2Async("finance/sfp/dcd/order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostFinanceSfpDcdTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceSfpDcdTrade", args...)
+// PrivatePostFinanceSfpDcdTrade returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceSfpDcdTrade(args ...any) <-chan any {
+	return this.Fetch2Async("finance/sfp/dcd/trade", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostFinanceSfpDcdRedeemQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceSfpDcdRedeemQuote", args...)
+// PrivatePostFinanceSfpDcdRedeemQuote returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceSfpDcdRedeemQuote(args ...any) <-chan any {
+	return this.Fetch2Async("finance/sfp/dcd/redeem-quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostFinanceSfpDcdRedeem(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceSfpDcdRedeem", args...)
+// PrivatePostFinanceSfpDcdRedeem returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostFinanceSfpDcdRedeem(args ...any) <-chan any {
+	return this.Fetch2Async("finance/sfp/dcd/redeem", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *OkxCore) PrivatePostBrokerNdReportSubaccountIp(args ...any) <-chan any {
+// PrivatePostBrokerNdReportSubaccountIp returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostBrokerNdReportSubaccountIp(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBrokerNdReportSubaccountIp", args...)
 }
 
-func (this *OkxCore) PrivatePostBrokerDmaSubaccountApikey(args ...any) <-chan any {
+// PrivatePostBrokerDmaSubaccountApikey returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostBrokerDmaSubaccountApikey(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBrokerDmaSubaccountApikey", args...)
 }
 
-func (this *OkxCore) PrivatePostBrokerDmaTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerDmaTrades", args...)
+// PrivatePostBrokerDmaTrades returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostBrokerDmaTrades(args ...any) <-chan any {
+	return this.Fetch2Async("broker/dma/trades", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(36000)})
 }
 
-func (this *OkxCore) PrivatePostBrokerFdRebatePerOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerFdRebatePerOrders", args...)
+// PrivatePostBrokerFdRebatePerOrders returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostBrokerFdRebatePerOrders(args ...any) <-chan any {
+	return this.Fetch2Async("broker/fd/rebate-per-orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(36000)})
 }

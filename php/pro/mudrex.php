@@ -44,7 +44,7 @@ class mudrex extends \ccxt\async\mudrex {
         );
     }
 
-    public function request_id() {
+    public function request_id(): float {
         $reqid = $this->sum($this->safe_integer($this->options, 'correlationId', 0), 1);
         $this->options['correlationId'] = $reqid;
         return $reqid;
@@ -69,103 +69,113 @@ class mudrex extends \ccxt\async\mudrex {
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'ticker:' . $symbol;
-            $url = $this->urls['api']['ws'];
-            $this->set_broker_headers();
-            $baseIdString = ($market['baseId'] !== null) ? $market['baseId'] : '';
-            $quoteIdString = ($market['quoteId'] !== null) ? $market['quoteId'] : '';
-            $assetId = strtolower($baseIdString) . strtolower($quoteIdString);
-            $subscribe = array(
-                'id' => $this->request_id(),
-                'method' => 'SUBSCRIBE',
-                'params' => array( 'ticker@1s' ),
-                'assets' => array( $assetId ),
-            );
-            $request = $this->extend($subscribe, $params);
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        })();
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $messageHash = 'ticker:' . $symbolValue;
+        $url = $this->urls['api']['ws'];
+        $this->set_broker_headers();
+        $baseIdString = ($market['baseId'] !== null) ? $market['baseId'] : '';
+        $quoteIdString = ($market['quoteId'] !== null) ? $market['quoteId'] : '';
+        $assetId = strtolower($baseIdString) . strtolower($quoteIdString);
+        $subscribe = array(
+            'id' => $this->request_id(),
+            'method' => 'SUBSCRIBE',
+            'params' => array( 'ticker@1s' ),
+            'assets' => array( $assetId ),
+        );
+        $request = $this->extend($subscribe, $params);
+        return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $messageHashes = array();
+        $assets = array();
+        if ($symbolsNormalized !== null) {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $market = $this->market($symbolsNormalized[$i]);
+                $messageHashes[] = 'ticker:' . $market['symbol'];
+                $baseIdString = ($market['baseId'] !== null) ? $market['baseId'] : '';
+                $quoteIdString = ($market['quoteId'] !== null) ? $market['quoteId'] : '';
+                $assets[] = strtolower($baseIdString) . strtolower($quoteIdString);
             }
-            $symbols = $this->market_symbols($symbols);
-            $messageHashes = array();
-            $assets = array();
-            if ($symbols !== null) {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $market = $this->market($symbols[$i]);
-                    $messageHashes[] = 'ticker:' . $market['symbol'];
-                    $baseIdString = ($market['baseId'] !== null) ? $market['baseId'] : '';
-                    $quoteIdString = ($market['quoteId'] !== null) ? $market['quoteId'] : '';
-                    $assets[] = strtolower($baseIdString) . strtolower($quoteIdString);
-                }
+        }
+        $url = $this->urls['api']['ws'];
+        $this->set_broker_headers();
+        $subscribe = array(
+            'id' => $this->request_id(),
+            'method' => 'SUBSCRIBE',
+            'params' => array( 'ticker@1s' ),
+            'assets' => $assets,
+        );
+        $request = $this->extend($subscribe, $params);
+        $ticker = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
+        if ($this->newUpdates) {
+            $result = array();
+            $tickerSymbol = $this->safe_string($ticker, 'symbol');
+            if ($tickerSymbol !== null) {
+                $result[$tickerSymbol] = $ticker;
             }
-            $url = $this->urls['api']['ws'];
-            $this->set_broker_headers();
-            $subscribe = array(
-                'id' => $this->request_id(),
-                'method' => 'SUBSCRIBE',
-                'params' => array( 'ticker@1s' ),
-                'assets' => $assets,
-            );
-            $request = $this->extend($subscribe, $params);
-            $ticker = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
-            if ($this->newUpdates) {
-                $result = array();
-                $result[$ticker['symbol']] = $ticker;
-                return $result;
-            }
-            return $this->filter_by_array_tickers($this->tickers, 'symbol', $symbols);
-        })();
+            return $result;
+        }
+        return $this->filter_by_array_tickers($this->tickers, 'symbol', $symbolsNormalized);
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $priceType = $this->safe_string($params, 'price');
-            $params = $this->omit($params, 'price');
-            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            if ($interval !== '1s' && $interval !== '1m') {
-                throw new NotSupported($this->id . ' watchOHLCV() supports 1s and 1m timeframes only');
-            }
-            $prefix = 'kline';
-            if ($priceType === 'mark') {
-                $prefix = 'markKline';
-            }
-            $streamBaseId = ($market['baseId'] !== null) ? $market['baseId'] : '';
-            $streamQuoteId = ($market['quoteId'] !== null) ? $market['quoteId'] : '';
-            $stream = $prefix . '@' . $interval . '@' . strtolower($streamBaseId) . strtolower($streamQuoteId);
-            $messageHash = $stream;
-            $url = $this->urls['api']['ws'];
-            $this->set_broker_headers();
-            $subscribe = array(
-                'id' => $this->request_id(),
-                'method' => 'SUBSCRIBE',
-                'params' => array( $stream ),
-            );
-            $request = $this->extend($subscribe, $params);
-            $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-            if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        })();
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function handle_message(mixed $client, mixed $message) {
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $priceType = $this->safe_string($params, 'price');
+        $paramsOmitted = $this->omit($params, 'price');
+        $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        if ($interval !== '1s' && $interval !== '1m') {
+            throw new NotSupported($this->id . ' watchOHLCV() supports 1s and 1m timeframes only');
+        }
+        $prefix = 'kline';
+        if ($priceType === 'mark') {
+            $prefix = 'markKline';
+        }
+        $streamBaseId = ($market['baseId'] !== null) ? $market['baseId'] : '';
+        $streamQuoteId = ($market['quoteId'] !== null) ? $market['quoteId'] : '';
+        $stream = $prefix . '@' . $interval . '@' . strtolower($streamBaseId) . strtolower($streamQuoteId);
+        $messageHash = $stream;
+        $url = $this->urls['api']['ws'];
+        $this->set_broker_headers();
+        $subscribe = array(
+            'id' => $this->request_id(),
+            'method' => 'SUBSCRIBE',
+            'params' => array( $stream ),
+        );
+        $request = $this->extend($subscribe, $paramsOmitted);
+        $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
+        }
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
+    }
+
+    public function handle_message(Client $client, mixed $message) {
         if ($this->safe_string($message, 'method') === 'PONG') {
             return;
         }
@@ -184,7 +194,7 @@ class mudrex extends \ccxt\async\mudrex {
         }
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, array $message) {
         $error = $this->safe_dict($message, 'error', array());
         $code = $this->safe_string($error, 'code');
         $msg = $this->safe_string($error, 'msg');
@@ -195,7 +205,7 @@ class mudrex extends \ccxt\async\mudrex {
         throw new ExchangeError($feedback);
     }
 
-    public function handle_ohlcv(mixed $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         $stream = $this->safe_string($message, 'stream');
         if ($stream === null) {
             return;
@@ -218,8 +228,8 @@ class mudrex extends \ccxt\async\mudrex {
             $this->safe_number($data, 'c'),
             $this->safe_number($data, 'v'),
         );
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $tf);
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $tf);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
@@ -232,7 +242,7 @@ class mudrex extends \ccxt\async\mudrex {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_ticker(mixed $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $t = $data[$i];

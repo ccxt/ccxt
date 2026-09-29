@@ -59,7 +59,7 @@
                 "input": [
                     "LTC/USDT"
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\"}"
+                "output": { "symbol": "LTCUSDT" }
             }
         ],
         "fetchBalance": [
@@ -102,7 +102,7 @@
                     0.1,
                     50
                 ],
-                "output": "{\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"0.1\",\"symbol\":\"LTCUSDT\",\"price\":\"50\"}"
+                "output": { "type": "limit", "side": "buy", "quantity": "0.1", "symbol": "LTCUSDT", "price": "50" }
             }
         ]
     }
