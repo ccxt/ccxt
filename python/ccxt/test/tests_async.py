@@ -1269,6 +1269,18 @@ class testMainClass:
             count = count + 1
         return count
 
+    def effective_skip_keys(self, exchange, exchange_data, entry):
+        # 'forceCheckKeys' re-enables the full comparison (both presence and value)
+        # for the listed keys in this one entry, overriding the file-level 'skipKeys'
+        raw_skip_keys = exchange.safe_list(exchange_data, 'skipKeys', [])
+        force_check_keys = exchange.safe_list(entry, 'forceCheckKeys', [])
+        skip_keys = []
+        for i in range(0, len(raw_skip_keys)):
+            key = raw_skip_keys[i]
+            if not (exchange.in_array(key, force_check_keys)):
+                skip_keys.append(key)
+        return skip_keys
+
     def assert_new_and_stored_output_inner(self, exchange, skip_keys, new_output, stored_output, strict_type_check=True, asserting_key=None):
         if is_null_value(new_output) and is_null_value(stored_output):
             return True
@@ -1302,12 +1314,12 @@ class testMainClass:
             # iterate over the keys
             for i in range(0, len(stored_output_keys)):
                 key = stored_output_keys[i]
-                if exchange.in_array(key, skip_keys):
-                    continue
                 if not (exchange.in_array(key, new_output_keys)):
                     if (self.lang == 'C#') and self.is_vacant_value(exchange, stored_output[key]):
                         continue
                     self.assert_static_error(False, 'output key missing: ' + key, stored_output, new_output)
+                if exchange.in_array(key, skip_keys):
+                    continue
                 stored_value = stored_output[key]
                 new_value = new_output[key]
                 # Recurse into the *inner* (non-try/catch) variant: the
@@ -1701,7 +1713,7 @@ class testMainClass:
                 exchange.extend_exchange_options(global_options)
                 test_exchange_options = exchange.safe_value(result, 'options', {})
                 exchange.extend_exchange_options(test_exchange_options)
-                skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
+                skip_keys = self.effective_skip_keys(exchange, exchange_data, result)
                 await self.test_ws_statically(exchange, method, skip_keys, result)
                 if not is_sync():
                     await close(exchange)
@@ -1858,7 +1870,7 @@ class testMainClass:
                 if (is_disabled_java) and (self.lang == 'java'):
                     continue
                 type = exchange.safe_string(exchange_data, 'outputType')
-                skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
+                skip_keys = self.effective_skip_keys(exchange, exchange_data, result)
                 await self.test_request_statically(exchange, method, result, type, skip_keys)
                 # reset options
                 exchange.options = exchange.convert_to_safe_dictionary(exchange.deep_extend(old_exchange_options, {}))
@@ -1916,7 +1928,7 @@ class testMainClass:
                 is_disabled_java = exchange.safe_bool(result, 'disabledJava', False)
                 if (is_disabled_java) and (self.lang == 'java'):
                     continue
-                skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
+                skip_keys = self.effective_skip_keys(exchange, exchange_data, result)
                 await self.test_response_statically(exchange, method, skip_keys, result)
                 # reset options
                 # exchange.options = exchange.deepExtend (oldExchangeOptions, {});

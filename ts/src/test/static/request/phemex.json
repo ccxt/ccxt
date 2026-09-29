@@ -211,7 +211,7 @@
                     "limit",
                     "buy",
                     0.1,
-                    "55"
+                    55
                 ],
                 "output": { "symbol": "sLTCUSDT", "side": "Buy", "ordType": "Limit", "clOrdID": "ccxt202269fb13ce74759a10", "qtyType": "ByBase", "baseQtyEv": 10000000, "priceEp": 5500000000 }
             },
@@ -224,7 +224,7 @@
                     "limit",
                     "buy",
                     0.10000000800000003,
-                    "55"
+                    55
                 ],
                 "output": { "symbol": "sLTCUSDT", "side": "Buy", "ordType": "Limit", "clOrdID": "ccxt202269fb13ce74759a10", "qtyType": "ByBase", "baseQtyEv": 10000000, "priceEp": 5500000000 }
             },
@@ -339,7 +339,7 @@
                     "limit",
                     "buy",
                     0.11,
-                    "56"
+                    56
                 ]
             },
             {
@@ -352,7 +352,7 @@
                     "limit",
                     "buy",
                     0.14,
-                    "50"
+                    50
                 ]
             }
         ],

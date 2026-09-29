@@ -402,7 +402,7 @@ export default class woo extends Exchange {
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     getDedicatedNetworkId(currency: any, params: Dict): any;
-    parseDepositAddress(depositEntry: any, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositEntry: Dict, currency?: Currency): DepositAddress;
     getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     /**
      * @method
@@ -509,11 +509,11 @@ export default class woo extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     repayMargin(code: string, amount: number, symbol?: Str, params?: Dict): Promise<MarginLoan>;
-    parseMarginLoan(info: any, currency?: Currency): MarginLoan;
+    parseMarginLoan(info: Dict, currency?: Currency): MarginLoan;
     nonce(): number;
-    sign(path: any, section?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, section?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    parseIncome(income: any, market?: Market): object;
+    parseIncome(income: Dict, market?: Market): object;
     /**
      * @method
      * @name woo#fetchFundingHistory
@@ -547,7 +547,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     /**
      * @method
      * @name woo#fetchFundingRates

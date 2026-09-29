@@ -10,7 +10,7 @@ class ImplicitAPI:
     public_get_spot_api_v3_3_orderbook = publicGetSpotApiV33Orderbook = Entry[_Dict | _List]('spot/api/v3.3/orderbook', 'public', 'GET', {'cost': 5})
     public_get_spot_api_v3_3_orderbook_l2 = publicGetSpotApiV33OrderbookL2 = Entry[_Dict | _List]('spot/api/v3.3/orderbook/L2', 'public', 'GET', {'cost': 5})
     public_get_spot_api_v3_3_trades = publicGetSpotApiV33Trades = Entry[_List]('spot/api/v3.3/trades', 'public', 'GET', {'cost': 5})
-    public_get_spot_api_v3_3_time = publicGetSpotApiV33Time = Entry[_Dict | _List]('spot/api/v3.3/time', 'public', 'GET', {'cost': 5})
+    public_get_spot_api_v3_3_time = publicGetSpotApiV33Time = Entry[_Dict]('spot/api/v3.3/time', 'public', 'GET', {'cost': 5})
     public_get_futures_api_v2_3_market_summary = publicGetFuturesApiV23MarketSummary = Entry[_List]('futures/api/v2.3/market_summary', 'public', 'GET', {'cost': 5})
     public_get_futures_api_v2_3_ohlcv = publicGetFuturesApiV23Ohlcv = Entry[_List]('futures/api/v2.3/ohlcv', 'public', 'GET', {'cost': 5})
     public_get_futures_api_v2_3_price = publicGetFuturesApiV23Price = Entry[_Dict | _List]('futures/api/v2.3/price', 'public', 'GET', {'cost': 5})

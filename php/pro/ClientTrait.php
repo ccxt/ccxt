@@ -247,7 +247,7 @@ trait ClientTrait {
                     $index = $this->get_cache_index($orderBook, $stored->cache);
                     if ($index >= 0) {
                         $stored->reset($orderBook);
-                        $this->handle_deltas($stored, array_slice($stored->cache, $index));
+                        $this->handle_book_deltas($stored, array_slice($stored->cache, $index));
                         $stored->cache = array();
                         $client->resolve($stored, $messageHash);
                         return;

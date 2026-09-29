@@ -533,7 +533,11 @@ func main() {
 	before := time.Now().UnixMilli()
 	for true {
 		res := <-instance.CallInternal(method, parameters...)
-		PrettyPrintData(res)
+		if res.Err != nil {
+			fmt.Println(Red + res.Err.Error() + Reset)
+		} else {
+			PrettyPrintData(res.Value)
+		}
 
 		if !strings.HasPrefix(method, "watch") {
 			break

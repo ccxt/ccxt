@@ -295,10 +295,10 @@ class paymium(Exchange, ImplicitAPI):
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         timestamp = self.safe_timestamp(trade, 'created_at_int')
         id = self.safe_string(trade, 'uuid')
-        market = self.safe_market(None, market)
+        marketResolved = self.safe_market(None, market)
         side = self.safe_string(trade, 'side')
         price = self.safe_string(trade, 'price')
-        amountField = 'traded_' + market['base'].lower()
+        amountField = 'traded_' + marketResolved['base'].lower()
         amount = self.safe_string(trade, amountField)
         return self.safe_trade({
             'info': trade,
@@ -306,7 +306,7 @@ class paymium(Exchange, ImplicitAPI):
             'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': None,
             'side': side,
             'takerOrMaker': None,
@@ -314,7 +314,7 @@ class paymium(Exchange, ImplicitAPI):
             'amount': amount,
             'cost': None,
             'fee': None,
-        }, market)
+        }, marketResolved)
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -411,7 +411,7 @@ class paymium(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_addresses(response, codes, False)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -603,8 +603,12 @@ class paymium(Exchange, ImplicitAPI):
         # the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return self.milliseconds()
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        baseApiUrl = self.safe_string(self.urls['api'], 'rest')
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        baseUrl = baseApiUrl
+        url = baseUrl + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if len(query) > 0:
@@ -614,21 +618,25 @@ class paymium(Exchange, ImplicitAPI):
             # paymium requires an increasing nonce
             nonce = str(self.incrementing_nonce())
             auth = nonce + url
-            headers = {
+            signedHeaders = {
                 'Api-Key': self.apiKey,
                 'Api-Nonce': nonce,
             }
+            hasQuery = len(query) > 0
+            signedBody = body
+            if method == 'POST' and hasQuery:
+                signedBody = self.json(query)
             if method == 'POST':
-                if len(query) > 0:
-                    body = self.json(query)
-                    auth += body
-                    headers['Content-Type'] = 'application/json'
+                if hasQuery:
+                    auth += signedBody
+                    signedHeaders['Content-Type'] = 'application/json'
             else:
-                if len(query) > 0:
+                if hasQuery:
                     queryString = self.urlencode(query)
                     auth += queryString
                     url += '?' + queryString
-            headers['Api-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+            signedHeaders['Api-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+            return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
