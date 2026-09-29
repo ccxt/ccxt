@@ -670,13 +670,16 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const maxLimit = (market['type'] === 'spot') ? 300 : 1000;
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const price = this.safeString (paramsPaginate, 'price');
+        let maxLimit = 300;
+        if (market['swap'] && price === undefined) {
+            maxLimit = 1000;
+        }
         if (paginate) {
             const paramsExtended = this.extend (paramsPaginate, { 'calculateUntil': true });
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsExtended, maxLimit) as OHLCV[];
         }
-        const price = this.safeString (paramsPaginate, 'price');
         const bar = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'instId': market['id'],
