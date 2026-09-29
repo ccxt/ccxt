@@ -2344,7 +2344,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} params.clientOrderId client order id
+     * @param {float} [params.triggerPrice] price to trigger stop orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
@@ -2361,7 +2361,7 @@ export default class coinbaseinternational extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const triggerPrice = this.safeNumberN (paramsPortfolio, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
+        const triggerPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
         if (triggerPrice !== undefined) {
             request['trigger_price'] = triggerPrice;
         }

@@ -733,10 +733,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbol = this.safeString (resolved, 0);
         const timeframe = this.safeString (resolved, 1);
         const ohlcv = this.safeValue (resolved, 2);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
+            limitResolved = ohlcv.getLimit (symbol, limit);
         }
-        const filtered = this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol as string, timeframe as string, filtered);
     }
 
@@ -855,6 +856,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             channels.push ('trades.' + market['id'] + '.' + interval);
         }
         const trades = await this.subscribe (channels, channels, isPrivate, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -1522,7 +1524,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         symbols = this.marketSymbols (symbols);
         const result = await this.requestWs ('private/get_positions', params, true);
         const positions = this.parsePositions (result);
-        return this.filterByArrayPositions (positions, 'symbol', symbols, false);
+        return this.filterByArrayPositions (positions, 'symbol', symbols);
     }
 
     /**
