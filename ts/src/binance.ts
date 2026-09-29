@@ -772,7 +772,7 @@ export default class binance extends Exchange {
                         'exchangeInfo': { 'cost': 1 } as Endpoint<Dict>,
                         'depth': { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ] } as Endpoint<Dict>,
                         'trades': { 'cost': 5 } as Endpoint<List>,
-                        'historicalTrades': { 'cost': 20 } as Endpoint<List>,
+                        'historicalTrades': { 'cost': 200 } as Endpoint<List>, // Weight(IP) increased from 20 to 200 per the 2026-07-29 changelog, verified live
                         'aggTrades': { 'cost': 20 } as Endpoint<List>,
                         'premiumIndex': { 'cost': 10 } as Endpoint<List>,
                         'fundingRate': { 'cost': 1 } as Endpoint<List>,
@@ -859,7 +859,7 @@ export default class binance extends Exchange {
                 },
                 'dapiPrivateV2': {
                     'get': {
-                        'leverageBracket': { 'cost': 1 } as Endpoint<List>,
+                        'leverageBracket': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>, // 1 with symbol, 2 without, per the coin-m migration changelog, verified live
                     },
                 },
                 'fapiPublic': {
@@ -870,7 +870,7 @@ export default class binance extends Exchange {
                         'depth': { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ] } as Endpoint<Dict>,
                         'rpiDepth': { 'cost': 20 } as Endpoint<Dict>,
                         'trades': { 'cost': 5 } as Endpoint<List>,
-                        'historicalTrades': { 'cost': 20 } as Endpoint<List>,
+                        'historicalTrades': { 'cost': 200 } as Endpoint<List>, // Weight(IP) increased from 20 to 200 per the 2026-07-29 changelog, verified live
                         'aggTrades': { 'cost': 20 } as Endpoint<List>,
                         'klines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] } as Endpoint<List>,
                         'continuousKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] } as Endpoint<List>,
