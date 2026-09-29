@@ -854,7 +854,7 @@ export default class paradex extends Exchange {
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             'symbol': market['id'],
         };
-        const maxLimit = 100;
+        const maxLimit = 1000; // exchange has undocumented limit slightly above, but this is reliable limit
         const duration = this.parseTimeframe (timeframe);
         const price = this.safeString (params, 'price');
         if (price !== undefined) {
