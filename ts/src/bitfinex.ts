@@ -643,7 +643,6 @@ export default class bitfinex extends Exchange {
         const response = await this.publicGetConfConfig (this.extend (request, params));
         const spotMarketsInfo = this.safeList (response, 0, []);
         const futuresMarketsInfo = this.safeList (response, 1, []);
-        const securitiesMarketsIds = this.safeList (response, 2, []);
         const marginIds = this.safeList (response, 3, []);
         const markets = this.arrayConcat (spotMarketsInfo, futuresMarketsInfo);
         const result: List = [];
@@ -702,7 +701,6 @@ export default class bitfinex extends Exchange {
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'tradfi': this.inArray (id, securitiesMarketsIds),
                 'margin': (spot && this.inArray (id, marginIds)),
                 'swap': swap,
                 'future': false,
