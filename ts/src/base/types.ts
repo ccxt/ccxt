@@ -138,6 +138,10 @@ export interface MarketInterface {
         market?: MinMax,
     };
     created: Int;
+    baseName?: Str;               // venue coin name used on the wire (dydx, hyperliquid)
+    id2?: Str;                    // venue alternate market id (apex)
+    instIdCode?: Int;             // venue numeric instrument code (okx)
+    tiers?: Dict;                 // fee tiers (weex)
     info: any;
     outcomes?: PredictionOutcome[];
 }
@@ -562,6 +566,8 @@ export interface CurrencyInterface {
         },
     },
     networks: Dictionary<any>,
+    fees?: Dict;
+    valueScale?: Int;             // venue integer scale of currency values (phemex)
     info: any;
 }
 
@@ -586,6 +592,7 @@ export interface Account {
     type: Str,
     code: Str,
     info: any,
+    name?: Str,
 }
 
 export interface PartialBalances extends Dictionary<number> {
@@ -603,6 +610,7 @@ export interface DepositAddress {
     network?: Str;
     address: Str;
     tag?: Str;
+    note?: Str;
 }
 
 /** fetchDepositAddressesByNetwork: address structures indexed by unified network code */
@@ -667,6 +675,8 @@ export interface Position {
     stopLossPrice?: Num;
     takeProfitPrice?: Num;
     percentage?: Num;
+    isolated?: Bool;
+    exitPrice?: Num;
 }
 
 export interface BorrowInterest {
@@ -828,6 +838,8 @@ export interface FundingHistory {
     datetime?: Str;
     id: Str;
     amount: Num;
+    rate?: Num;
+    type?: Str;
 }
 
 export interface MarginMode {

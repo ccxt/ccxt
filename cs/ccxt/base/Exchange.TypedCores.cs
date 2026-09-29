@@ -2244,6 +2244,14 @@ public partial class BaseExchange
             }
             result["networks"] = networksTarget;
         }
+        if (typed.fees != null)
+        {
+            result["fees"] = typed.fees;
+        }
+        if (typed.valueScale != null)
+        {
+            result["valueScale"] = typed.valueScale;
+        }
         return result;
     }
 
@@ -2351,6 +2359,10 @@ public partial class BaseExchange
         if (typed.tag != null)
         {
             result["tag"] = typed.tag;
+        }
+        if (typed.note != null)
+        {
+            result["note"] = typed.note;
         }
         return result;
     }
@@ -2705,10 +2717,6 @@ public partial class BaseExchange
         {
             result["datetime"] = typed.datetime;
         }
-        if (typed.currency != null)
-        {
-            result["currency"] = typed.currency;
-        }
         if (typed.amount != null)
         {
             result["amount"] = typed.amount;
@@ -2916,54 +2924,6 @@ public partial class BaseExchange
         else
         {
             result["fundingRate"] = null;
-        }
-        if (typed.markPrice != null)
-        {
-            result["markPrice"] = typed.markPrice;
-        }
-        if (typed.indexPrice != null)
-        {
-            result["indexPrice"] = typed.indexPrice;
-        }
-        if (typed.interestRate != null)
-        {
-            result["interestRate"] = typed.interestRate;
-        }
-        if (typed.estimatedSettlePrice != null)
-        {
-            result["estimatedSettlePrice"] = typed.estimatedSettlePrice;
-        }
-        if (typed.fundingTimestamp != null)
-        {
-            result["fundingTimestamp"] = typed.fundingTimestamp;
-        }
-        if (typed.fundingDatetime != null)
-        {
-            result["fundingDatetime"] = typed.fundingDatetime;
-        }
-        if (typed.nextFundingRate != null)
-        {
-            result["nextFundingRate"] = typed.nextFundingRate;
-        }
-        if (typed.nextFundingTimestamp != null)
-        {
-            result["nextFundingTimestamp"] = typed.nextFundingTimestamp;
-        }
-        if (typed.nextFundingDatetime != null)
-        {
-            result["nextFundingDatetime"] = typed.nextFundingDatetime;
-        }
-        if (typed.previousFundingRate != null)
-        {
-            result["previousFundingRate"] = typed.previousFundingRate;
-        }
-        if (typed.previousFundingTimestamp != null)
-        {
-            result["previousFundingTimestamp"] = typed.previousFundingTimestamp;
-        }
-        if (typed.previousFundingDatetime != null)
-        {
-            result["previousFundingDatetime"] = typed.previousFundingDatetime;
         }
         return result;
     }
@@ -3608,10 +3568,6 @@ public partial class BaseExchange
         else
         {
             result["marginMode"] = null;
-        }
-        if (typed.leverage != null)
-        {
-            result["leverage"] = typed.leverage;
         }
         if (typed.longLeverage != null)
         {
@@ -4489,6 +4445,22 @@ public partial class BaseExchange
         if (typed.feeSide != null)
         {
             result["feeSide"] = typed.feeSide;
+        }
+        if (typed.baseName != null)
+        {
+            result["baseName"] = typed.baseName;
+        }
+        if (typed.id2 != null)
+        {
+            result["id2"] = typed.id2;
+        }
+        if (typed.instIdCode != null)
+        {
+            result["instIdCode"] = typed.instIdCode;
+        }
+        if (typed.tiers != null)
+        {
+            result["tiers"] = typed.tiers;
         }
         return result;
     }
@@ -5569,10 +5541,6 @@ public partial class BaseExchange
         if (typed.exitPrice != null)
         {
             result["exitPrice"] = typed.exitPrice;
-        }
-        if (typed.marginType != null)
-        {
-            result["marginType"] = typed.marginType;
         }
         return result;
     }
@@ -7347,10 +7315,6 @@ public partial class BaseExchange
         {
             result["symbol"] = null;
         }
-        if (typed.id != null)
-        {
-            result["id"] = typed.id;
-        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
@@ -8031,10 +7995,6 @@ public partial class BaseExchange
         else
         {
             result["internal"] = null;
-        }
-        if (typed.tokenSide != null)
-        {
-            result["tokenSide"] = typed.tokenSide;
         }
         return result;
     }

@@ -90,18 +90,8 @@ const FIELD_ALIASES: Record<string, Record<string, string>> = {
     'PredictionOrderRequest': { 'Parameters': 'params' },
 };
 
-/**
- * Go-only fields kept even though `ts/src/base/types.ts` does not declare them.
- * Removing a public field is source-breaking for Go consumers, so a field that is merely
- * stale is preserved verbatim (same choice PR #29502 made for the C# structs). The one
- * exception is `PredictionPosition.oppositeOutcome`, which #29502 removed from C# on the
- * grounds that TS is the source of truth; it is dropped here for cross-language parity.
- */
-const KEEP_PORT_ONLY: Record<string, string[]> = {
-    'FundingHistory': [ 'Currency' ],
-    'IsolatedBorrowRate': [ 'Rate' ],
-    'Leverage': [ 'Leverage' ],
-};
+/** Go-only fields kept although ts/src/base/types.ts does not declare them (none: TS is the source of truth). */
+const KEEP_PORT_ONLY: Record<string, string[]> = {};
 
 /**
  * Go field name -> forced Go type, for fields the port deliberately carries at a

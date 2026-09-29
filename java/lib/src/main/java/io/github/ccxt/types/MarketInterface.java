@@ -48,6 +48,10 @@ public final class MarketInterface extends TypedMap {
     public MarketMarginModes marginModes;
     public Limits limits;
     public Long created;
+    public String baseName;
+    public String id2;
+    public Long instIdCode;
+    public Map<String, Object> tiers;
     public List<PredictionOutcome> outcomes;
     public Map<String, Object> info;
 
@@ -98,6 +102,11 @@ public final class MarketInterface extends TypedMap {
         Object limitsRaw = TypeHelper.safeValue(data, "limits");
         this.limits = limitsRaw != null ? new Limits(limitsRaw) : null;
         this.created = TypeHelper.safeInteger(data, "created");
+        this.baseName = TypeHelper.safeString(data, "baseName");
+        this.id2 = TypeHelper.safeString(data, "id2");
+        this.instIdCode = TypeHelper.safeInteger(data, "instIdCode");
+        Object tiersRaw = TypeHelper.safeValue(data, "tiers");
+        this.tiers = tiersRaw instanceof Map ? (Map<String, Object>) tiersRaw : null;
         Object outcomesRaw = TypeHelper.safeValue(data, "outcomes");
         if (outcomesRaw instanceof List<?> outcomesList) {
             this.outcomes = ((List<Object>) outcomesList).stream().map(PredictionOutcome::new).collect(Collectors.toList());

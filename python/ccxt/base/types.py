@@ -125,6 +125,7 @@ class Account(TypedDict):
     type: Str
     code: Str
     info: dict[str, Any]
+    name: Str
 
 
 class Trade(TypedDict):
@@ -173,6 +174,8 @@ class Position(TypedDict):
     stopLossPrice: Num
     takeProfitPrice: Num
     percentage: Num
+    isolated: Bool
+    exitPrice: Num
 
 class OrderRequest(TypedDict):
     symbol: str
@@ -253,6 +256,8 @@ class FundingHistory(TypedDict):
     datetime: Str
     id: Str
     amount: Num
+    rate: Num
+    type: Str
 
 
 class Balances(dict[str, Balance]):
@@ -480,6 +485,10 @@ class MarketInterface(TypedDict):
     marginModes: MarketMarginModes
     limits: MarketLimits
     created: Int
+    baseName: Str
+    id2: Str
+    instIdCode: Int
+    tiers: dict[str, Any]
     info: dict[str, Any]
     outcomes: list['PredictionOutcome']
 
@@ -507,6 +516,8 @@ class CurrencyInterface(TypedDict):
     fee: Num
     limits: CurrencyLimits
     networks: dict[str, Any]
+    fees: dict[str, Any]
+    valueScale: Int
     info: dict[str, Any]
 
 
@@ -648,6 +659,7 @@ class DepositAddress(TypedDict):
     network: Str
     address: Str
     tag: Str
+    note: Str
 
 
 DepositAddresses = dict[str, DepositAddress]

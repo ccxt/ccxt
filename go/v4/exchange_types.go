@@ -228,6 +228,10 @@ type MarketInterface struct {
 	Precision      Precision
 	Limits         Limits
 	Created        *int64
+	BaseName       *string
+	Id2            *string
+	InstIdCode     *int64
+	Tiers          map[string]any
 	NumericId      *float64
 	SubType        *string
 	Prediction     *bool
@@ -302,6 +306,10 @@ func NewMarketInterface(data any) MarketInterface {
 		Precision:      precision,
 		Limits:         limits,
 		Created:        SafeInt64Typed(m, "created"),
+		BaseName:       SafeStringTyped(m, "baseName"),
+		Id2:            SafeStringTyped(m, "id2"),
+		InstIdCode:     SafeInt64Typed(m, "instIdCode"),
+		Tiers:          SafeMapTyped(m, "tiers"),
 		NumericId:      SafeFloatTyped(m, "numericId"),
 		SubType:        SafeStringTyped(m, "subType"),
 		Prediction:     SafeBoolTyped(m, "prediction"),
@@ -1378,7 +1386,6 @@ type IsolatedBorrowRate struct {
 	Quote     *string
 	QuoteRate *float64
 	Period    *int64
-	Rate      *float64
 	Timestamp *int64
 	Datetime  *string
 	Info      map[string]any
@@ -1392,7 +1399,6 @@ func NewIsolatedBorrowRate(data any) IsolatedBorrowRate {
 		Quote:     SafeStringTyped(data, "quote"),
 		QuoteRate: SafeFloatTyped(data, "quoteRate"),
 		Period:    SafeInt64Typed(data, "period"),
-		Rate:      SafeFloatTyped(data, "rate"),
 		Timestamp: SafeInt64Typed(data, "timestamp"),
 		Datetime:  SafeStringTyped(data, "datetime"),
 		Info:      GetInfo(data),
@@ -1568,20 +1574,22 @@ func NewNetwork(data any) Network {
 }
 
 type Currency struct {
-	Info      map[string]any
-	Id        *string
-	Code      *string
-	Precision *float64
-	Name      *string
-	Fee       *float64
-	Active    *bool
-	Deposit   *bool
-	Withdraw  *bool
-	NumericId *int64
-	Type      *string
-	Margin    *bool
-	Limits    CurrencyLimits
-	Networks  map[string]Network
+	Info       map[string]any
+	Id         *string
+	Code       *string
+	Precision  *float64
+	Name       *string
+	Fee        *float64
+	Active     *bool
+	Deposit    *bool
+	Withdraw   *bool
+	NumericId  *int64
+	Type       *string
+	Margin     *bool
+	Limits     CurrencyLimits
+	Networks   map[string]Network
+	Fees       map[string]any
+	ValueScale *int64
 }
 
 func NewCurrency(data any) Currency {
@@ -1593,20 +1601,22 @@ func NewCurrency(data any) Currency {
 	}
 
 	return Currency{
-		Info:      GetInfo(data),
-		Id:        SafeStringTyped(data, "id"),
-		Code:      SafeStringTyped(data, "code"),
-		Precision: SafeFloatTyped(data, "precision"),
-		Name:      SafeStringTyped(data, "name"),
-		Fee:       SafeFloatTyped(data, "fee"),
-		Active:    SafeBoolTyped(data, "active"),
-		Deposit:   SafeBoolTyped(data, "deposit"),
-		Withdraw:  SafeBoolTyped(data, "withdraw"),
-		NumericId: SafeInt64Typed(data, "numericId"),
-		Type:      SafeStringTyped(data, "type"),
-		Margin:    SafeBoolTyped(data, "margin"),
-		Limits:    NewCurrencyLimits(MapOrEmpty(SafeValue(data, "limits", map[string]any{}))),
-		Networks:  networks,
+		Info:       GetInfo(data),
+		Id:         SafeStringTyped(data, "id"),
+		Code:       SafeStringTyped(data, "code"),
+		Precision:  SafeFloatTyped(data, "precision"),
+		Name:       SafeStringTyped(data, "name"),
+		Fee:        SafeFloatTyped(data, "fee"),
+		Active:     SafeBoolTyped(data, "active"),
+		Deposit:    SafeBoolTyped(data, "deposit"),
+		Withdraw:   SafeBoolTyped(data, "withdraw"),
+		NumericId:  SafeInt64Typed(data, "numericId"),
+		Type:       SafeStringTyped(data, "type"),
+		Margin:     SafeBoolTyped(data, "margin"),
+		Limits:     NewCurrencyLimits(MapOrEmpty(SafeValue(data, "limits", map[string]any{}))),
+		Networks:   networks,
+		Fees:       SafeMapTyped(data, "fees"),
+		ValueScale: SafeInt64Typed(data, "valueScale"),
 	}
 }
 
@@ -1664,7 +1674,6 @@ type Leverage struct {
 	Info          map[string]any
 	Symbol        *string
 	MarginMode    *string
-	Leverage      *int64
 	LongLeverage  *float64
 	ShortLeverage *float64
 }
@@ -1674,7 +1683,6 @@ func NewLeverage(data any) Leverage {
 		Info:          GetInfo(data),
 		Symbol:        SafeStringTyped(data, "symbol"),
 		MarginMode:    SafeStringTyped(data, "marginMode"),
-		Leverage:      SafeInt64Typed(data, "leverage"),
 		LongLeverage:  SafeFloatTyped(data, "longLeverage"),
 		ShortLeverage: SafeFloatTyped(data, "shortLeverage"),
 	}
@@ -1734,11 +1742,13 @@ type Account struct {
 	Type *string
 	Code *string
 	Info map[string]any
+	Name *string
 }
 
 func NewAccount(data any) Account {
 	return Account{
 		Info: GetInfo(data),
+		Name: SafeStringTyped(data, "name"),
 		Id:   SafeStringTyped(data, "id"),
 		Type: SafeStringTyped(data, "type"),
 		Code: SafeStringTyped(data, "code"),
@@ -1863,6 +1873,8 @@ type Position struct {
 	LastUpdateTimestamp         *float64
 	LastPrice                   *float64
 	Percentage                  *float64
+	Isolated                    *bool
+	ExitPrice                   *float64
 	TakeProfitPrice             *float64
 	StopLossPrice               *float64
 }
@@ -1895,6 +1907,8 @@ func NewPosition(data any) Position {
 		LastUpdateTimestamp:         SafeFloatTyped(data, "lastUpdateTimestamp"),
 		LastPrice:                   SafeFloatTyped(data, "lastPrice"),
 		Percentage:                  SafeFloatTyped(data, "percentage"),
+		Isolated:                    SafeBoolTyped(data, "isolated"),
+		ExitPrice:                   SafeFloatTyped(data, "exitPrice"),
 		TakeProfitPrice:             SafeFloatTyped(data, "takeProfitPrice"),
 		StopLossPrice:               SafeFloatTyped(data, "stopLossPrice"),
 	}
@@ -1907,8 +1921,9 @@ type FundingHistory struct {
 	Code      *string
 	Symbol    *string
 	Datetime  *string
-	Currency  *string
 	Amount    *float64
+	Rate      *float64
+	Type      *string
 }
 
 func NewFundingHistory(data any) FundingHistory {
@@ -1917,8 +1932,9 @@ func NewFundingHistory(data any) FundingHistory {
 		Id:        SafeStringTyped(data, "id"),
 		Timestamp: SafeInt64Typed(data, "timestamp"),
 		Datetime:  SafeStringTyped(data, "datetime"),
-		Currency:  SafeStringTyped(data, "currency"),
 		Amount:    SafeFloatTyped(data, "amount"),
+		Rate:      SafeFloatTyped(data, "rate"),
+		Type:      SafeStringTyped(data, "type"),
 		Code:      SafeStringTyped(data, "code"),
 		Symbol:    SafeStringTyped(data, "symbol"),
 	}
@@ -2132,6 +2148,7 @@ type DepositAddress struct {
 	Network  *string
 	Address  *string
 	Tag      *string
+	Note     *string
 }
 
 func NewDepositAddress(data any) DepositAddress {
@@ -2141,6 +2158,7 @@ func NewDepositAddress(data any) DepositAddress {
 		Network:  SafeStringTyped(data, "network"),
 		Address:  SafeStringTyped(data, "address"),
 		Tag:      SafeStringTyped(data, "tag"),
+		Note:     SafeStringTyped(data, "note"),
 	}
 }
 

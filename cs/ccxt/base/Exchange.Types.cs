@@ -246,6 +246,10 @@ public struct Market
 
     public bool? index;
     public bool? stock;
+    public string? baseName;
+    public string? id2;
+    public Int64? instIdCode;
+    public Dictionary<string, object>? tiers;
     public Market(object market2)
     {
         var market = (Dictionary<string, object>)market2;
@@ -284,6 +288,10 @@ public struct Market
         marginModes = market.ContainsKey("marginModes") ? new MarketMarginModes(market["marginModes"]) : null;
         index = market.ContainsKey("index") && market["index"] != null ? (bool)market["index"] : null;
         stock = market.ContainsKey("stock") && market["stock"] != null ? (bool)market["stock"] : null;
+        baseName = Exchange.SafeString(market, "baseName");
+        id2 = Exchange.SafeString(market, "id2");
+        instIdCode = Exchange.SafeInteger(market, "instIdCode");
+        tiers = Exchange.SafeValue(market, "tiers") != null ? (Dictionary<string, object>)Exchange.SafeValue(market, "tiers") : null;
     }
 }
 
@@ -404,8 +412,6 @@ public struct Order
 public struct Ticker
 {
     public string? symbol;
-    // poloniex (and others) put the raw venue market id on the ticker next to `symbol`.
-    public string? id;
     public Int64? timestamp;
     public string? datetime;
     public double? high;
@@ -434,7 +440,6 @@ public struct Ticker
     {
         var ticker = (Dictionary<string, object>)ticker2;
         symbol = Exchange.SafeString(ticker, "symbol");
-        id = Exchange.SafeString(ticker, "id");
         timestamp = Exchange.SafeInteger(ticker, "timestamp");
         datetime = Exchange.SafeString(ticker, "datetime");
         high = Exchange.SafeFloat(ticker, "high");
@@ -742,7 +747,6 @@ public struct Transaction
     public string? datetime;
     public Fee? fee;
     public bool? @internal;
-    public string? tokenSide;
 
     public Transaction(object transaction2)
     {
@@ -767,7 +771,6 @@ public struct Transaction
         datetime = Exchange.SafeString(transaction, "datetime");
         fee = Exchange.SafeValue(transaction, "fee") != null ? new Fee(Exchange.SafeValue(transaction, "fee")) : null;
         @internal = Exchange.SafeValue(transaction, "internal") != null ? (bool)Exchange.SafeValue(transaction, "internal") : null;
-        tokenSide = Exchange.SafeString(transaction, "tokenSide");
     }
 }
 
@@ -1007,6 +1010,7 @@ public struct DepositAddress
     public string address;
     public string? tag;
 
+    public string? note;
     public DepositAddress(object depositAddress2)
     {
         var depositAddress = (Dictionary<string, object>)depositAddress2;
@@ -1015,6 +1019,7 @@ public struct DepositAddress
         network = Exchange.SafeString(depositAddress, "network");
         address = Exchange.SafeString(depositAddress, "address");
         tag = Exchange.SafeString(depositAddress, "tag");
+        note = Exchange.SafeString(depositAddress, "note");
     }
 }
 
@@ -1354,21 +1359,6 @@ public struct FundingRateHistory
     public Int64? timestamp;
     public string? datetime;
     public double? fundingRate;
-    // coinbaseinternational (and others) emit the full funding-rate key set here, not just
-    // the {symbol, timestamp, fundingRate} triple the TS interface names.
-    public double? markPrice;
-    public double? indexPrice;
-    public double? interestRate;
-    public double? estimatedSettlePrice;
-    public Int64? fundingTimestamp;
-    public string? fundingDatetime;
-    public double? nextFundingRate;
-    public Int64? nextFundingTimestamp;
-    public string? nextFundingDatetime;
-    public double? previousFundingRate;
-    public Int64? previousFundingTimestamp;
-    public string? previousFundingDatetime;
-
     public FundingRateHistory(object fundingRateEntry)
     {
         info = Helper.GetInfo(fundingRateEntry);
@@ -1376,18 +1366,6 @@ public struct FundingRateHistory
         datetime = Exchange.SafeString(fundingRateEntry, "datetime");
         timestamp = Exchange.SafeInteger(fundingRateEntry, "timestamp");
         fundingRate = Exchange.SafeFloat(fundingRateEntry, "fundingRate");
-        markPrice = Exchange.SafeFloat(fundingRateEntry, "markPrice");
-        indexPrice = Exchange.SafeFloat(fundingRateEntry, "indexPrice");
-        interestRate = Exchange.SafeFloat(fundingRateEntry, "interestRate");
-        estimatedSettlePrice = Exchange.SafeFloat(fundingRateEntry, "estimatedSettlePrice");
-        fundingTimestamp = Exchange.SafeInteger(fundingRateEntry, "fundingTimestamp");
-        fundingDatetime = Exchange.SafeString(fundingRateEntry, "fundingDatetime");
-        nextFundingRate = Exchange.SafeFloat(fundingRateEntry, "nextFundingRate");
-        nextFundingTimestamp = Exchange.SafeInteger(fundingRateEntry, "nextFundingTimestamp");
-        nextFundingDatetime = Exchange.SafeString(fundingRateEntry, "nextFundingDatetime");
-        previousFundingRate = Exchange.SafeFloat(fundingRateEntry, "previousFundingRate");
-        previousFundingTimestamp = Exchange.SafeInteger(fundingRateEntry, "previousFundingTimestamp");
-        previousFundingDatetime = Exchange.SafeString(fundingRateEntry, "previousFundingDatetime");
     }
 }
 
@@ -1466,12 +1444,8 @@ public struct Position
     public Int64? lastUpdateTimestamp;
     public double? lastPrice;
     public double? percentage;
-    // documented unified position keys that had no struct field, so a typed core dropped
-    // them: `isolated` (30 fixtures), `exitPrice` (7), `marginType` (7 - the raw venue
-    // spelling several venues still emit alongside marginMode).
     public bool? isolated;
     public double? exitPrice;
-    public string? marginType;
 
     public Position(object position)
     {
@@ -1505,7 +1479,6 @@ public struct Position
         stopLossPrice = Exchange.SafeFloat(position, "stopLossPrice");
         isolated = Exchange.SafeValue(position, "isolated") != null ? (bool)Exchange.SafeValue(position, "isolated") : null;
         exitPrice = Exchange.SafeFloat(position, "exitPrice");
-        marginType = Exchange.SafeString(position, "marginType");
     }
 
 }
@@ -1787,10 +1760,7 @@ public struct FundingHistory
     public string? code;
     public string? symbol;
     public string? datetime;
-    public string? currency;
     public double? amount;
-    // several venues emit the funding `rate` (9 fixtures) and a `type` (2) next to the
-    // unified keys; without a field the typed core dropped them.
     public double? rate;
     public string? type;
 
@@ -1800,7 +1770,6 @@ public struct FundingHistory
         id = Exchange.SafeString(funding, "id");
         timestamp = Exchange.SafeInteger(funding, "timestamp");
         datetime = Exchange.SafeString(funding, "datetime");
-        currency = Exchange.SafeString(funding, "currency");
         amount = Exchange.SafeFloat(funding, "amount");
         code = Exchange.SafeString(funding, "code");
         symbol = Exchange.SafeString(funding, "symbol");
@@ -1829,7 +1798,6 @@ public struct Leverage
     public string? symbol;
     public string? marginMode;
 
-    public Int64? leverage;
     public double? longLeverage;
     public double? shortLeverage;
 
@@ -1838,7 +1806,6 @@ public struct Leverage
         info = Helper.GetInfo(levObj);
         symbol = Exchange.SafeString(levObj, "symbol");
         marginMode = Exchange.SafeString(levObj, "marginMode");
-        leverage = Exchange.SafeInteger(levObj, "leverage");
         longLeverage = Exchange.SafeFloat(levObj, "longLeverage");
         shortLeverage = Exchange.SafeFloat(levObj, "shortLeverage");
     }
@@ -1975,6 +1942,10 @@ public struct MarketInterface
     public bool? percentage;
     public bool? tierBased;
     public string? feeSide;
+    public string? baseName;
+    public string? id2;
+    public Int64? instIdCode;
+    public Dictionary<string, object>? tiers;
     public MarketInterface(object market)
     {
         info = Helper.GetInfo(market);
@@ -2019,6 +1990,10 @@ public struct MarketInterface
         percentage = Exchange.SafeValue(market, "percentage") != null ? (bool)Exchange.SafeValue(market, "percentage") : null;
         tierBased = Exchange.SafeValue(market, "tierBased") != null ? (bool)Exchange.SafeValue(market, "tierBased") : null;
         feeSide = Exchange.SafeString(market, "feeSide");
+        baseName = Exchange.SafeString(market, "baseName");
+        id2 = Exchange.SafeString(market, "id2");
+        instIdCode = Exchange.SafeInteger(market, "instIdCode");
+        tiers = Exchange.SafeValue(market, "tiers") != null ? (Dictionary<string, object>)Exchange.SafeValue(market, "tiers") : null;
     }
 
 }
@@ -2056,6 +2031,8 @@ public struct Currency
     public CurrencyLimits? limits;
     public Dictionary<string, Network>? networks;
 
+    public Dictionary<string, object>? fees;
+    public Int64? valueScale;
     public Currency(object currency)
     {
 
@@ -2083,6 +2060,8 @@ public struct Currency
             }
         }
 
+        fees = Exchange.SafeValue(currency, "fees") != null ? (Dictionary<string, object>)Exchange.SafeValue(currency, "fees") : null;
+        valueScale = Exchange.SafeInteger(currency, "valueScale");
     }
 }
 
