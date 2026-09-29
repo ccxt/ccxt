@@ -6,7 +6,7 @@ import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, 
  */
 export default class extended extends Exchange {
     describe(): any;
-    loadMarkets(reload?: boolean, params?: Dict): Promise<import("./base/types.js").Dictionary<Market>>;
+    loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<Market>>;
     indexByStringifiedNumericId(input: Dict): Dict | undefined;
     /**
      * @method
@@ -98,8 +98,8 @@ export default class extended extends Exchange {
      * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseFundingHistory(history: Dict, market?: Market): FundingHistory;
-    parseFundingHistories(histories: any[], market?: Market, since?: Int, limit?: Int): FundingHistory[];
+    parseFundingHistory(history: any, market?: Market): FundingHistory;
+    parseFundingHistories(histories: any, market?: Market, since?: Int, limit?: Int): FundingHistory[];
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -365,7 +365,7 @@ export default class extended extends Exchange {
     createOrderSettlementData(isBuy: boolean, amountString: string, priceString: string, params?: Dict): Dict;
     createWithdrawalSettlementData(address: string, amountString: string, currency: Currency, account: Dict, params?: Dict): Dict;
     createTransferSettlementData(amountString: string, currency: Currency, account: Dict, toVault: string, toL2Key: string, params?: Dict): Dict;
-    createExtendedOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): Promise<Dict>;
+    createExtendedOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name extended#createOrder
@@ -534,5 +534,5 @@ export default class extended extends Exchange {
     getExtendedWithdrawalMsgHash(settlement: Dict, starkKey: string): string;
     getExtendedTransferMsgHash(settlement: Dict): string;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
 }

@@ -65,8 +65,8 @@ class mudrex extends mudrex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
-        const messageHash = 'ticker:' + symbolValue;
+        symbol = market['symbol'];
+        const messageHash = 'ticker:' + symbol;
         const url = this.urls['api']['ws'];
         this.setBrokerHeaders();
         const baseIdString = (market['baseId'] !== undefined) ? market['baseId'] : '';
@@ -85,12 +85,12 @@ class mudrex extends mudrex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         const messageHashes = [];
         const assets = [];
-        if (symbolsNormalized !== undefined) {
-            for (let i = 0; i < symbolsNormalized.length; i++) {
-                const market = this.market(symbolsNormalized[i]);
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market(symbols[i]);
                 messageHashes.push('ticker:' + market['symbol']);
                 const baseIdString = (market['baseId'] !== undefined) ? market['baseId'] : '';
                 const quoteIdString = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
@@ -109,22 +109,19 @@ class mudrex extends mudrex$1["default"] {
         const ticker = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const result = {};
-            const tickerSymbol = this.safeString(ticker, 'symbol');
-            if (tickerSymbol !== undefined) {
-                result[tickerSymbol] = ticker;
-            }
+            result[ticker['symbol']] = ticker;
             return result;
         }
-        return this.filterByArrayTickers(this.tickers, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers(this.tickers, 'symbol', symbols);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         const priceType = this.safeString(params, 'price');
-        const paramsOmitted = this.omit(params, 'price');
+        params = this.omit(params, 'price');
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         if (interval !== '1s' && interval !== '1m') {
             throw new errors.NotSupported(this.id + ' watchOHLCV() supports 1s and 1m timeframes only');
@@ -144,13 +141,12 @@ class mudrex extends mudrex$1["default"] {
             'method': 'SUBSCRIBE',
             'params': [stream],
         };
-        const request = this.extend(subscribe, paramsOmitted);
+        const request = this.extend(subscribe, params);
         const ohlcv = await this.watch(url, messageHash, request, messageHash);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit(symbolValue, limit);
+            limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleMessage(client, message) {
         if (this.safeString(message, 'method') === 'PONG') {

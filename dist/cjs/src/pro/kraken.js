@@ -127,68 +127,55 @@ class kraken extends kraken$1["default"] {
             request['params']['limit_price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
         }
         const isMarket = (type === 'market');
-        const [postOnly, paramsPostOnly] = this.handlePostOnly(isMarket, false, params);
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(isMarket, false, params);
         if (postOnly === true) {
             request['params']['post_only'] = true;
         }
-        const clientOrderId = this.safeString(paramsPostOnly, 'clientOrderId');
+        const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['params']['cl_ord_id'] = clientOrderId;
         }
-        const cost = this.safeString(paramsPostOnly, 'cost');
+        const cost = this.safeString(params, 'cost');
         if (cost !== undefined) {
             request['params']['order_qty'] = this.parseToNumeric(this.costToPrecision(symbol, cost));
         }
-        const stopLoss = this.safeDict(paramsPostOnly, 'stopLoss', {});
-        const takeProfit = this.safeDict(paramsPostOnly, 'takeProfit', {});
+        const stopLoss = this.safeDict(params, 'stopLoss', {});
+        const takeProfit = this.safeDict(params, 'takeProfit', {});
         const presetStopLoss = this.safeString(stopLoss, 'triggerPrice');
         const presetTakeProfit = this.safeString(takeProfit, 'triggerPrice');
         const presetStopLossLimit = this.safeString(stopLoss, 'price');
         const presetTakeProfitLimit = this.safeString(takeProfit, 'price');
         const isPresetStopLoss = presetStopLoss !== undefined;
         const isPresetTakeProfit = presetTakeProfit !== undefined;
-        const stopLossPrice = this.safeString(paramsPostOnly, 'stopLossPrice');
-        const takeProfitPrice = this.safeString(paramsPostOnly, 'takeProfitPrice');
+        const stopLossPrice = this.safeString(params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         const isStopLossPriceOrder = stopLossPrice !== undefined;
         const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
-        const trailingAmount = this.safeString(paramsPostOnly, 'trailingAmount');
-        const trailingPercent = this.safeString(paramsPostOnly, 'trailingPercent');
-        const trailingLimitAmount = this.safeString(paramsPostOnly, 'trailingLimitAmount');
-        const trailingLimitPercent = this.safeString(paramsPostOnly, 'trailingLimitPercent');
+        const trailingAmount = this.safeString(params, 'trailingAmount');
+        const trailingPercent = this.safeString(params, 'trailingPercent');
+        const trailingLimitAmount = this.safeString(params, 'trailingLimitAmount');
+        const trailingLimitPercent = this.safeString(params, 'trailingLimitPercent');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isTrailingLimitAmountOrder = trailingLimitAmount !== undefined;
         const isTrailingLimitPercentOrder = trailingLimitPercent !== undefined;
-        const offset = this.safeString(paramsPostOnly, 'offset', ''); // can set this to - for minus
-        let trailingAmountString = undefined;
-        if (trailingAmount !== undefined) {
-            trailingAmountString = offset + this.numberToString(trailingAmount);
-        }
-        let trailingPercentString = undefined;
-        if (trailingPercent !== undefined) {
-            trailingPercentString = offset + this.numberToString(trailingPercent);
-        }
-        let trailingLimitAmountString = undefined;
-        if (trailingLimitAmount !== undefined) {
-            trailingLimitAmountString = offset + this.numberToString(trailingLimitAmount);
-        }
-        let trailingLimitPercentString = undefined;
-        if (trailingLimitPercent !== undefined) {
-            trailingLimitPercentString = offset + this.numberToString(trailingLimitPercent);
-        }
-        let priceType = 'quote';
-        if (isTrailingPercentOrder || isTrailingLimitPercentOrder) {
-            priceType = 'pct';
-        }
+        const offset = this.safeString(params, 'offset', ''); // can set this to - for minus
+        const trailingAmountString = (trailingAmount !== undefined) ? offset + this.numberToString(trailingAmount) : undefined;
+        const trailingPercentString = (trailingPercent !== undefined) ? offset + this.numberToString(trailingPercent) : undefined;
+        const trailingLimitAmountString = (trailingLimitAmount !== undefined) ? offset + this.numberToString(trailingLimitAmount) : undefined;
+        const trailingLimitPercentString = (trailingLimitPercent !== undefined) ? offset + this.numberToString(trailingLimitPercent) : undefined;
+        const priceType = (isTrailingPercentOrder || isTrailingLimitPercentOrder) ? 'pct' : 'quote';
         if (method === 'createOrderWs') {
-            const reduceOnly = this.safeBool(paramsPostOnly, 'reduceOnly');
+            const reduceOnly = this.safeBool(params, 'reduceOnly');
             if (reduceOnly === true) {
                 request['params']['reduce_only'] = true;
             }
-            const timeInForce = this.safeStringLower(paramsPostOnly, 'timeInForce');
+            const timeInForce = this.safeStringLower(params, 'timeInForce');
             if (timeInForce !== undefined) {
                 request['params']['time_in_force'] = timeInForce;
             }
+            params = this.omit(params, ['reduceOnly', 'timeInForce']);
             if (isStopLossPriceOrder || isTakeProfitPriceOrder || isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder) {
                 request['params']['triggers'] = {};
             }
@@ -210,6 +197,7 @@ class kraken extends kraken$1["default"] {
                     request['params']['conditional']['order_type'] = 'take-profit-limit';
                     request['params']['conditional']['limit_price'] = this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfitLimit));
                 }
+                params = this.omit(params, ['stopLoss', 'takeProfit']);
             }
             else if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
                 if (isStopLossPriceOrder) {
@@ -288,17 +276,8 @@ class kraken extends kraken$1["default"] {
                 }
             }
         }
-        const isCreateOrder = (method === 'createOrderWs');
-        let paramsCreate = paramsPostOnly;
-        if (isCreateOrder) {
-            paramsCreate = this.omit(paramsPostOnly, ['reduceOnly', 'timeInForce']);
-        }
-        let paramsPreset = paramsCreate;
-        if (isCreateOrder && (isPresetStopLoss || isPresetTakeProfit)) {
-            paramsPreset = this.omit(paramsCreate, ['stopLoss', 'takeProfit']);
-        }
-        const paramsOmitted = this.omit(paramsPreset, ['clientOrderId', 'cost', 'offset', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent']);
-        return [request, paramsOmitted];
+        params = this.omit(params, ['clientOrderId', 'cost', 'offset', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent']);
+        return [request, params];
     }
     /**
      * @method
@@ -320,7 +299,7 @@ class kraken extends kraken$1["default"] {
         const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
         const messageHash = this.numberToString(requestId);
-        const request = {
+        let request = {
             'method': 'add_order',
             'params': {
                 'order_type': type,
@@ -331,8 +310,8 @@ class kraken extends kraken$1["default"] {
             },
             'req_id': requestId,
         };
-        const [requestValue, paramsValue] = this.orderRequestWs('createOrderWs', symbol, type, request, amount, price, params);
-        return await this.watch(url, messageHash, this.extend(requestValue, paramsValue), messageHash);
+        [request, params] = this.orderRequestWs('createOrderWs', symbol, type, request, amount, price, params);
+        return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     handleCreateEditOrder(client, message) {
         //
@@ -386,7 +365,7 @@ class kraken extends kraken$1["default"] {
         const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
         const messageHash = this.numberToString(requestId);
-        const request = {
+        let request = {
             'method': 'amend_order',
             'params': {
                 'order_id': id,
@@ -395,8 +374,8 @@ class kraken extends kraken$1["default"] {
             },
             'req_id': requestId,
         };
-        const [requestValue, paramsValue] = this.orderRequestWs('editOrderWs', symbol, type, request, amount, price, params);
-        return await this.watch(url, messageHash, this.extend(requestValue, paramsValue), messageHash);
+        [request, params] = this.orderRequestWs('editOrderWs', symbol, type, request, amount, price, params);
+        return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     /**
      * @method
@@ -539,7 +518,7 @@ class kraken extends kraken$1["default"] {
         //     }
         //
         const data = this.safeList(message, 'data', []);
-        const ticker = this.safeDict(data, 0);
+        const ticker = data[0];
         const symbol = this.safeString(ticker, 'symbol');
         const messageHash = this.getMessageHash('ticker', undefined, symbol);
         const vwap = this.safeString(ticker, 'vwap');
@@ -593,7 +572,7 @@ class kraken extends kraken$1["default"] {
         //     }
         //
         const data = this.safeList(message, 'data', []);
-        const trade = this.safeDict(data, 0);
+        const trade = data[0];
         const symbol = this.safeString(trade, 'symbol');
         const messageHash = this.getMessageHash('trade', undefined, symbol);
         let stored = this.safeValue(this.trades, symbol);
@@ -633,7 +612,7 @@ class kraken extends kraken$1["default"] {
         //     }
         //
         const data = this.safeList(message, 'data', []);
-        const first = this.safeDict(data, 0);
+        const first = data[0];
         const marketId = this.safeString(first, 'symbol');
         const symbol = this.safeSymbol(marketId);
         if (!(symbol in this.ohlcvs)) {
@@ -642,7 +621,7 @@ class kraken extends kraken$1["default"] {
         const interval = this.safeInteger(first, 'interval');
         const timeframe = this.findTimeframe(interval);
         const messageHash = this.getMessageHash('ohlcv', undefined, symbol);
-        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -651,7 +630,7 @@ class kraken extends kraken$1["default"] {
         }
         const ohlcvsLength = data.length;
         for (let i = 0; i < ohlcvsLength; i++) {
-            const candle = this.safeDict(data, i);
+            const candle = data[i];
             const datetime = this.safeString(candle, 'interval_begin');
             const timestamp = this.parse8601(datetime);
             const parsed = [
@@ -685,9 +664,9 @@ class kraken extends kraken$1["default"] {
      */
     async watchTicker(symbol, params = {}) {
         await this.loadMarkets();
-        const symbolValue = this.symbol(symbol);
-        const tickers = await this.watchTickers([symbolValue], params);
-        return tickers[symbolValue];
+        symbol = this.symbol(symbol);
+        const tickers = await this.watchTickers([symbol], params);
+        return tickers[symbol];
     }
     /**
      * @method
@@ -700,17 +679,14 @@ class kraken extends kraken$1["default"] {
      */
     async watchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const ticker = await this.watchMultiHelper('ticker', 'ticker', symbolsNormalized, undefined, params);
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const ticker = await this.watchMultiHelper('ticker', 'ticker', symbols, undefined, params);
         if (this.newUpdates) {
             const result = {};
-            const tickerSymbol = this.safeString(ticker, 'symbol');
-            if (tickerSymbol !== undefined) {
-                result[tickerSymbol] = ticker;
-            }
+            result[ticker['symbol']] = ticker;
             return result;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     /**
      * @method
@@ -723,18 +699,15 @@ class kraken extends kraken$1["default"] {
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        symbols = this.marketSymbols(symbols, undefined, false);
         params['event_trigger'] = 'bbo';
-        const ticker = await this.watchMultiHelper('bidask', 'ticker', symbolsNormalized, undefined, params);
+        const ticker = await this.watchMultiHelper('bidask', 'ticker', symbols, undefined, params);
         if (this.newUpdates) {
             const result = {};
-            const tickerSymbol = this.safeString(ticker, 'symbol');
-            if (tickerSymbol !== undefined) {
-                result[tickerSymbol] = ticker;
-            }
+            result[ticker['symbol']] = ticker;
             return result;
         }
-        return this.filterByArray(this.bidsasks, 'symbol', symbolsNormalized);
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
     }
     /**
      * @method
@@ -763,13 +736,12 @@ class kraken extends kraken$1["default"] {
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchMultiHelper('trade', 'trade', symbols, undefined, params);
-        let limitResolved = limit;
         if (this.newUpdates) {
             const first = this.safeList(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
-            limitResolved = trades.getLimit(tradeSymbol, limit);
+            limit = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     /**
      * @method
@@ -823,26 +795,25 @@ class kraken extends kraken$1["default"] {
         await this.loadMarkets();
         const name = 'ohlc';
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         const url = this.urls['api']['ws']['publicV2'];
         const requestId = this.requestId();
-        const messageHash = this.getMessageHash('ohlcv', undefined, symbolValue);
+        const messageHash = this.getMessageHash('ohlcv', undefined, symbol);
         const subscribe = {
             'method': 'subscribe',
             'params': {
                 'channel': name,
-                'symbol': [symbolValue],
+                'symbol': [symbol],
                 'interval': this.safeValue(this.timeframes, timeframe, timeframe),
             },
             'req_id': requestId,
         };
         const request = this.deepExtend(subscribe, params);
         const ohlcv = await this.watch(url, messageHash, request, messageHash);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit(symbolValue, limit);
+            limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limitResolved, 'timestamp', true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 'timestamp', true);
     }
     async loadMarkets(reload = false, params = {}) {
         const markets = await super.loadMarkets(reload, params);
@@ -1026,7 +997,7 @@ class kraken extends kraken$1["default"] {
     customHandleDeltas(bookside, deltas) {
         // const sortOrder = (key === 'bids') ? true : false;
         for (let j = 0; j < deltas.length; j++) {
-            const delta = this.safeDict(deltas, j);
+            const delta = deltas[j];
             const price = this.safeNumber(delta, 'price');
             const amount = this.safeNumber(delta, 'qty');
             bookside.store(price, amount);
@@ -1153,9 +1124,9 @@ class kraken extends kraken$1["default"] {
         const token = await this.authenticate();
         const subscriptionHash = 'executions';
         let messageHash = name;
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : undefined;
-        if (symbolResolved !== undefined) {
-            messageHash += ':' + symbolResolved;
+        if (symbol !== undefined) {
+            symbol = this.symbol(symbol);
+            messageHash += ':' + symbol;
         }
         const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
@@ -1171,11 +1142,10 @@ class kraken extends kraken$1["default"] {
             subscribe['params'] = this.deepExtend(subscribe['params'], params);
         }
         const result = await this.watch(url, messageHash, subscribe, subscriptionHash);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = result.getLimit(symbolResolved, limit);
+            limit = result.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(result, symbolResolved, since, limitResolved, true);
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit, true);
     }
     /**
      * @method
@@ -1276,7 +1246,7 @@ class kraken extends kraken$1["default"] {
         //
         let symbol = this.safeString(trade, 'symbol');
         if (market !== undefined) {
-            symbol = this.safeString(market, 'symbol');
+            symbol = market['symbol'];
         }
         let fee = undefined;
         if ('fees' in trade) {
@@ -1289,10 +1259,7 @@ class kraken extends kraken$1["default"] {
         }
         const datetime = this.safeString(trade, 'timestamp');
         const liquidityIndicator = this.safeString(trade, 'liquidity_ind');
-        let takerOrMaker = 'maker';
-        if (liquidityIndicator === 't') {
-            takerOrMaker = 'taker';
-        }
+        const takerOrMaker = (liquidityIndicator === 't') ? 'taker' : 'maker';
         return {
             'info': trade,
             'id': this.safeString(trade, 'exec_id'),
@@ -1468,25 +1435,25 @@ class kraken extends kraken$1["default"] {
     async watchMultiHelper(unifiedName, channelName, symbols = undefined, subscriptionArgs = undefined, params = {}) {
         await this.loadMarkets();
         // symbols are required
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, false);
-        if (symbolsNormalized === undefined) {
+        symbols = this.marketSymbols(symbols, undefined, false, true, false);
+        if (symbols === undefined) {
             return undefined;
         }
         const messageHashes = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
+        for (let i = 0; i < symbols.length; i++) {
             const eventTrigger = this.safeString(params, 'event_trigger');
             if (eventTrigger !== undefined) {
-                messageHashes.push(this.getMessageHash(channelName, undefined, this.symbol(symbolsNormalized[i])));
+                messageHashes.push(this.getMessageHash(channelName, undefined, this.symbol(symbols[i])));
             }
             else {
-                messageHashes.push(this.getMessageHash(unifiedName, undefined, this.symbol(symbolsNormalized[i])));
+                messageHashes.push(this.getMessageHash(unifiedName, undefined, this.symbol(symbols[i])));
             }
         }
         const request = {
             'method': 'subscribe',
             'params': {
                 'channel': channelName,
-                'symbol': symbolsNormalized,
+                'symbol': symbols,
             },
             'req_id': this.requestId(),
         };

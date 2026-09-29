@@ -967,8 +967,6 @@ class toobit(Exchange, ImplicitAPI):
         baseIdClean = baseParts[0]
         base = self.safe_currency_code(baseIdClean)
         quote = self.safe_currency_code(quoteId)
-        if (base is None) or (quote is None):
-            return None
         settleId = self.safe_string(market, 'marginToken')
         settle = self.safe_currency_code(settleId)
         status = self.safe_string(market, 'status')
@@ -1192,8 +1190,8 @@ class toobit(Exchange, ImplicitAPI):
         takerOrMaker = None
         if isMaker is not None:
             takerOrMaker = 'maker' if isMaker else 'taker'
-        marketResolved = self.safe_market(None, market)
-        symbol = marketResolved['symbol']
+        market = self.safe_market(None, market)
+        symbol = market['symbol']
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -1208,7 +1206,7 @@ class toobit(Exchange, ImplicitAPI):
             'cost': None,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        }, marketResolved)
+        }, market)
 
     def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
@@ -1237,14 +1235,15 @@ class toobit(Exchange, ImplicitAPI):
             request['startTime'] = since
         until = self.safe_integer(params, 'until')
         if until is not None:
+            params = self.omit(params, 'until')
             request['endTime'] = until
-        paramsOmitted = self.omit(params, 'until') if (until is not None) else params
         if limit is not None:
             request['limit'] = limit
         response = []
-        endpoint, paramsPrice = self.handle_option_string_and_params(paramsOmitted, 'fetchOHLCV', 'price')
+        endpoint = None
+        endpoint, params = self.handle_option_and_params(params, 'fetchOHLCV', 'price')
         if endpoint == 'index':
-            response = self.commonGetQuoteV1IndexKlines(self.extend(request, paramsPrice))
+            response = self.commonGetQuoteV1IndexKlines(self.extend(request, params))
             #
             #     {
             #         "code": 200,
@@ -1273,7 +1272,7 @@ class toobit(Exchange, ImplicitAPI):
             #     }
             #
         elif endpoint == 'mark':
-            response = self.commonGetQuoteV1MarkPriceKlines(self.extend(request, paramsPrice))
+            response = self.commonGetQuoteV1MarkPriceKlines(self.extend(request, params))
             #
             #     {
             #         "code": 200,
@@ -1292,7 +1291,7 @@ class toobit(Exchange, ImplicitAPI):
             #     }
             #
         else:
-            response = self.commonGetQuoteV1Klines(self.extend(request, paramsPrice))
+            response = self.commonGetQuoteV1Klines(self.extend(request, params))
             #
             #    [
             #        [
@@ -1338,22 +1337,23 @@ class toobit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols)
+        type = None
         market = None
         request = {}
-        if symbolsNormalized is not None:
-            symbol = self.safe_string(symbolsNormalized, 0)
+        if symbols is not None:
+            symbol = self.safe_string(symbols, 0)
             if symbol is not None:
                 market = self.market(symbol)
-            length = len(symbolsNormalized)
+            length = len(symbols)
             if (length == 1) and (market is not None):
                 request['symbol'] = market['id']
-        type, paramsMarketType = self.handle_market_type_and_params('fetchTickers', market, params)
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         response = None
         if type == 'spot':
-            response = self.commonGetQuoteV1Ticker24hr(self.extend(request, paramsMarketType))
+            response = self.commonGetQuoteV1Ticker24hr(self.extend(request, params))
         else:
-            response = self.commonGetQuoteV1ContractTicker24hr(self.extend(request, paramsMarketType))
+            response = self.commonGetQuoteV1ContractTicker24hr(self.extend(request, params))
         #
         #    [
         #        {
@@ -1370,19 +1370,19 @@ class toobit(Exchange, ImplicitAPI):
         #        },
         #        ...
         #
-        return self.parse_tickers(response, symbolsNormalized, paramsMarketType)
+        return self.parse_tickers(response, symbols, params)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         marketId = self.safe_string(ticker, 's')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(ticker, 't')
         last = self.safe_string(ticker, 'c')
         baseVolume = self.safe_string(ticker, 'v')
-        if (marketResolved['contract'] is True) and (marketResolved['contractSize'] is not None):
+        if (market['contract'] is True) and (market['contractSize'] is not None):
             # 'v' counts contracts, and a ticker reports base volume
-            baseVolume = Precise.string_mul(baseVolume, self.number_to_string(marketResolved['contractSize']))
+            baseVolume = Precise.string_mul(baseVolume, self.number_to_string(market['contractSize']))
         return self.safe_ticker({
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_string(ticker, 'h'),
@@ -1403,7 +1403,7 @@ class toobit(Exchange, ImplicitAPI):
             'baseVolume': baseVolume,
             'quoteVolume': self.safe_string(ticker, 'qv'),
             'info': ticker,
-        }, marketResolved)
+        }, market)
 
     def fetch_last_prices(self, symbols: Strings = None, params: dict = {}) -> LastPrices:
         """
@@ -1418,12 +1418,12 @@ class toobit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols)
         request = {}
-        if symbolsNormalized is not None:
-            length = len(symbolsNormalized)
+        if symbols is not None:
+            length = len(symbols)
             if length == 1:
-                market = self.market(symbolsNormalized[0])
+                market = self.market(symbols[0])
                 request['symbol'] = market['id']
         response = self.commonGetQuoteV1TickerPrice(self.extend(request, params))
         #
@@ -1434,13 +1434,13 @@ class toobit(Exchange, ImplicitAPI):
         #            "p": "0.823"
         #        },
         #
-        return self.parse_last_prices(response, symbolsNormalized)
+        return self.parse_last_prices(response, symbols)
 
-    def parse_last_price(self, entry: dict, market: Market = None) -> LastPrice:
+    def parse_last_price(self, entry: object, market: Market = None) -> LastPrice:
         marketId = self.safe_string(entry, 's')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         return {
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'timestamp': None,
             'datetime': None,
             'price': self.safe_number_omit_zero(entry, 'price'),
@@ -1461,12 +1461,12 @@ class toobit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols)
         request = {}
-        if symbolsNormalized is not None:
-            length = len(symbolsNormalized)
+        if symbols is not None:
+            length = len(symbols)
             if length == 1:
-                market = self.market(symbolsNormalized[0])
+                market = self.market(symbols[0])
                 request['symbol'] = market['id']
         response = self.commonGetQuoteV1TickerBookTicker(self.extend(request, params))
         #
@@ -1480,16 +1480,16 @@ class toobit(Exchange, ImplicitAPI):
         #            "t": "1755936610506"
         #        }, ...
         #
-        return self.parse_bids_asks_custom(response, symbolsNormalized)
+        return self.parse_bids_asks_custom(response, symbols)
 
-    def parse_bids_asks_custom(self, tickers: list[dict], symbols: Strings = None, params: dict = {}) -> Tickers:
+    def parse_bids_asks_custom(self, tickers: object, symbols: Strings = None, params: dict = {}) -> Tickers:
         results = []
         for i in range(0, len(tickers)):
             parsedTicker = self.parse_bid_ask_custom(tickers[i])
             ticker = self.extend(parsedTicker, params)
             results.append(ticker)
-        symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array(results, 'symbol', symbolsNormalized)
+        symbols = self.market_symbols(symbols)
+        return self.filter_by_array(results, 'symbol', symbols)
 
     def parse_bid_ask_custom(self, ticker: dict) -> dict:
         # 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
@@ -1520,12 +1520,12 @@ class toobit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols)
         request = {}
-        if symbolsNormalized is not None:
-            length = len(symbolsNormalized)
+        if symbols is not None:
+            length = len(symbols)
             if length == 1:
-                market = self.market(symbolsNormalized[0])
+                market = self.market(symbols[0])
                 request['symbol'] = market['id']
         response = self.commonGetApiV1FuturesFundingRate(self.extend(request, params))
         #
@@ -1536,7 +1536,7 @@ class toobit(Exchange, ImplicitAPI):
         #            "nextFundingTime": "1755964800000"
         #        },...
         #
-        return self.parse_funding_rates(response, symbolsNormalized)
+        return self.parse_funding_rates(response, symbols)
 
     def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         marketId = self.safe_string(contract, 'symbol')
@@ -1580,9 +1580,10 @@ class toobit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate)
+            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         market = self.market(symbol)
@@ -1591,7 +1592,7 @@ class toobit(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        response = self.commonGetApiV1FuturesHistoryFundingRate(self.extend(request, paramsPaginate))
+        response = self.commonGetApiV1FuturesHistoryFundingRate(self.extend(request, params))
         #
         #    [
         #        {
@@ -1627,7 +1628,8 @@ class toobit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         response = None
-        marketType = self.handle_market_type_and_params('fetchBalance', None, params)[0]
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         if self.in_array(marketType, ['swap', 'future']):
             response = self.privateGetApiV1FuturesBalance()
             #
@@ -1669,7 +1671,7 @@ class toobit(Exchange, ImplicitAPI):
         }
         balances = self.safe_list(response, 'balances', response)
         for i in range(0, len(balances)):
-            balance = self.safe_dict(balances, i)
+            balance = balances[i]
             code = self.safe_currency_code(self.safe_string(balance, 'asset'))
             account = self.account()
             account['free'] = self.safe_string_2(balance, 'free', 'availableBalance')
@@ -1698,13 +1700,14 @@ class toobit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
+        request = {}
         response = {}
         if market['spot'] is True:
-            request, paramsRequest = self.create_order_request(symbol, type, side, amount, price, params)
-            response = self.privatePostApiV1SpotOrder(self.extend(request, paramsRequest))
+            request, params = self.create_order_request(symbol, type, side, amount, price, params)
+            response = self.privatePostApiV1SpotOrder(self.extend(request, params))
         else:
-            request, paramsRequest = self.create_contract_order_request(symbol, type, side, amount, price, params)
-            response = self.privatePostApiV1FuturesOrder(self.extend(request, paramsRequest))
+            request, params = self.create_contract_order_request(symbol, type, side, amount, price, params)
+            response = self.privatePostApiV1FuturesOrder(self.extend(request, params))
         #
         #     {
         #         "symbol": "ETHUSDT",
@@ -1730,7 +1733,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def create_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> list:
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> list:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         market = self.market(symbol)
@@ -1743,21 +1746,23 @@ class toobit(Exchange, ImplicitAPI):
         }
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        cost, paramsCost = self.handle_param_string(params, 'cost')
+        cost = None
+        cost, params = self.handle_param_string(params, 'cost')
         if type == 'market' and side == 'buy':
             if cost is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires params["cost"] for market buy order')
             request['quantity'] = self.cost_to_precision(symbol, cost)
         else:
             request['quantity'] = self.amount_to_precision(symbol, amount)
-        isPostOnly, paramsPostOnly = self.handle_post_only(type == 'market', False, paramsCost)
+        isPostOnly = None
+        isPostOnly, params = self.handle_post_only(type == 'market', False, params)
         if isPostOnly is True:
             request['type'] = 'LIMIT_MAKER'
         else:
             request['type'] = type.upper()
-        return [request, paramsPostOnly]
+        return [request, params]
 
-    def create_contract_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> list:
+    def create_contract_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> list:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -1767,13 +1772,13 @@ class toobit(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),
         }
-        reduceOnly, paramsReduceOnly = self.handle_param_bool(params, 'reduceOnly')
+        reduceOnly = None
+        reduceOnly, params = self.handle_param_bool(params, 'reduceOnly')
         if side == 'buy':
-            request['side'] = 'BUY_CLOSE' if (reduceOnly is True) else 'BUY_OPEN'
+            side = 'BUY_CLOSE' if (reduceOnly is True) else 'BUY_OPEN'
         elif side == 'sell':
-            request['side'] = 'SELL_CLOSE' if (reduceOnly is True) else 'SELL_OPEN'
-        else:
-            request['side'] = side
+            side = 'SELL_CLOSE' if (reduceOnly is True) else 'SELL_OPEN'
+        request['side'] = side
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         if self.in_array(type, ['limit', 'LIMIT']):
@@ -1782,16 +1787,17 @@ class toobit(Exchange, ImplicitAPI):
         elif type == 'market':
             request['type'] = 'LIMIT'  # weird, but exchange works this way
             request['priceType'] = 'MARKET'
-        isPostOnly, paramsPostOnly = self.handle_post_only(type == 'market', False, paramsReduceOnly)
+        isPostOnly = None
+        isPostOnly, params = self.handle_post_only(type == 'market', False, params)
         if isPostOnly is True:
             request['timeInForce'] = 'LIMIT_MAKER'
-        values = self.handle_trigger_prices_and_params(symbol, paramsPostOnly)
+        values = self.handle_trigger_prices_and_params(symbol, params)
         triggerPrice = values[0]
-        paramsTrigger = values[3]
+        params = values[3]
         if triggerPrice is not None:
             request['stopPrice'] = triggerPrice
-        stopLoss = self.safe_dict(paramsTrigger, 'stopLoss')
-        takeProfit = self.safe_dict(paramsTrigger, 'takeProfit')
+        stopLoss = self.safe_dict(params, 'stopLoss')
+        takeProfit = self.safe_dict(params, 'takeProfit')
         hasStopLoss = (stopLoss is not None)
         hasTakeProfit = (takeProfit is not None)
         triggerPriceTypes = {
@@ -1807,6 +1813,7 @@ class toobit(Exchange, ImplicitAPI):
             triggerPriceType = self.safe_string(stopLoss, 'triggerPriceType')
             if triggerPriceType is not None:
                 request['slTriggerBy'] = self.safe_string(triggerPriceTypes, triggerPriceType, triggerPriceType)
+            params = self.omit(params, 'stopLoss')
         if hasTakeProfit:
             request['takeProfit'] = self.safe_value(takeProfit, 'triggerPrice')
             limitPrice = self.safe_value(takeProfit, 'price')
@@ -1816,10 +1823,10 @@ class toobit(Exchange, ImplicitAPI):
             triggerPriceType = self.safe_string(takeProfit, 'triggerPriceType')
             if triggerPriceType is not None:
                 request['tpTriggerBy'] = self.safe_string(triggerPriceTypes, triggerPriceType, triggerPriceType)
-        paramsOmitted = self.omit(paramsTrigger, ['stopLoss', 'takeProfit'])
-        if not ('newClientOrderId' in paramsOmitted):
+            params = self.omit(params, 'takeProfit')
+        if not ('newClientOrderId' in params):
             request['newClientOrderId'] = self.uuid()
-        return [request, paramsOmitted]
+        return [request, params]
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -1882,7 +1889,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer_2(order, 'transactTime', 'time')
         marketId = self.safe_string(order, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         rawType = self.safe_string(order, 'type')
         rawSideLower = self.safe_string_lower(order, 'side')
         reduceOnly = None
@@ -1907,7 +1914,7 @@ class toobit(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'lastUpdateTimestamp': self.safe_integer(order, 'updateTime'),
             'status': self.parse_order_status(self.safe_string(order, 'status')),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'type': self.parse_order_type(rawType),
             'timeInForce': self.safe_string(order, 'timeInForce'),
             'postOnly': (rawType == 'LIMIT_MAKER'),
@@ -1925,7 +1932,7 @@ class toobit(Exchange, ImplicitAPI):
             'reduceOnly': reduceOnly,
             'leverage': None,
             'hedged': None,
-        }, marketResolved)
+        }, market)
 
     def parse_order_status(self, status: Str):
         statuses = {
@@ -1970,14 +1977,15 @@ class toobit(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        marketType, paramsMarketType = self.handle_market_type_and_params('cancelOrder', market, params, 'none')
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('cancelOrder', market, params, 'none')
         if marketType == 'none':
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"')
         response = {}
         if marketType == 'spot':
-            response = self.privateDeleteApiV1SpotOrder(self.extend(request, paramsMarketType))
+            response = self.privateDeleteApiV1SpotOrder(self.extend(request, params))
         else:
-            response = self.privateDeleteApiV1FuturesOrder(self.extend(request, paramsMarketType))
+            response = self.privateDeleteApiV1FuturesOrder(self.extend(request, params))
         # response same as in `createOrder`
         status = self.parse_order_status(self.safe_string(response, 'status'))
         if status != 'open':
@@ -2002,17 +2010,18 @@ class toobit(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        marketType, paramsMarketType = self.handle_market_type_and_params('cancelAllOrders', market, params, 'none')
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('cancelAllOrders', market, params, 'none')
         if marketType == 'none':
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"')
         response = None
         if marketType == 'spot':
-            response = self.privateDeleteApiV1SpotOpenOrders(self.extend(request, paramsMarketType))
+            response = self.privateDeleteApiV1SpotOpenOrders(self.extend(request, params))
             #
             # {"success":true}  // always same response
             #
         else:
-            response = self.privateDeleteApiV1FuturesBatchOrders(self.extend(request, paramsMarketType))
+            response = self.privateDeleteApiV1FuturesBatchOrders(self.extend(request, params))
             #
             # { "code": 200, "message":"success", "timestamp":1541161088303 }
             #
@@ -2043,17 +2052,18 @@ class toobit(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        marketType, paramsMarketType = self.handle_market_type_and_params('cancelOrders', market, params, 'none')
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('cancelOrders', market, params, 'none')
         if marketType == 'none':
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"')
         response = None
         if marketType == 'spot':
-            response = self.privateDeleteApiV1SpotCancelOrderByIds(self.extend(request, paramsMarketType))
+            response = self.privateDeleteApiV1SpotCancelOrderByIds(self.extend(request, params))
             #
             # {"success":true}  // always same response
             #
         else:
-            response = self.privateDeleteApiV1FuturesCancelOrderByIds(self.extend(request, paramsMarketType))
+            response = self.privateDeleteApiV1FuturesCancelOrderByIds(self.extend(request, params))
             #
             # {
             #     "code":200,
@@ -2150,10 +2160,11 @@ class toobit(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         if limit is not None:
             request['limit'] = limit
-        marketType, paramsMarketType = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         response = []
         if marketType == 'spot':
-            response = self.privateGetApiV1SpotOpenOrders(self.extend(request, paramsMarketType))
+            response = self.privateGetApiV1SpotOpenOrders(self.extend(request, params))
             #
             #    [
             #        {
@@ -2182,7 +2193,7 @@ class toobit(Exchange, ImplicitAPI):
             #    ]
             #
         else:
-            response = self.privateGetApiV1FuturesOpenOrders(self.extend(request, paramsMarketType))
+            response = self.privateGetApiV1FuturesOpenOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -2204,15 +2215,16 @@ class toobit(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
+        request, params = self.handle_until_option('endTime', request, params)
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            requestUntil['symbol'] = market['id']
-        marketType = self.handle_market_type_and_params('fetchOrders', market, paramsUntil)[0]
+            request['symbol'] = market['id']
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchOrders', market, params)
         response = []
         if marketType == 'spot':
-            response = self.privateGetApiV1SpotTradeOrders(requestUntil)
+            response = self.privateGetApiV1SpotTradeOrders(request)
             #
             #    [
             #        {
@@ -2266,13 +2278,14 @@ class toobit(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         if since is not None:
             request['startTime'] = since
-        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
-        marketType = self.handle_market_type_and_params('fetchClosedOrders', market, paramsUntil)[0]
+        request, params = self.handle_until_option('endTime', request, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         response = []
         if marketType == 'spot':
             raise NotSupported(self.id + ' fetchOrders() is not supported for ' + marketType + ' markets')
         else:
-            response = self.privateGetApiV1FuturesHistoryOrders(requestUntil)
+            response = self.privateGetApiV1FuturesHistoryOrders(request)
             #
             #    [
             #        {
@@ -2332,11 +2345,12 @@ class toobit(Exchange, ImplicitAPI):
             request['limit'] = limit
         market = self.market(symbol)
         request['symbol'] = market['id']
-        marketType, paramsMarketType = self.handle_market_type_and_params('fetchMyTrades', market, params)
-        requestUntil, paramsUntil = self.handle_until_option('endTime', request, paramsMarketType)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        request, params = self.handle_until_option('endTime', request, params)
         response = []
         if marketType == 'spot':
-            response = self.privateGetApiV1AccountTrades(self.extend(requestUntil, paramsUntil))
+            response = self.privateGetApiV1AccountTrades(self.extend(request, params))
             #
             #    [
             #        {
@@ -2363,7 +2377,7 @@ class toobit(Exchange, ImplicitAPI):
             #        }, ...
             #
         else:
-            response = self.privateGetApiV1FuturesUserTrades(requestUntil)
+            response = self.privateGetApiV1FuturesUserTrades(request)
             #
             #    [
             #        {
@@ -2462,15 +2476,16 @@ class toobit(Exchange, ImplicitAPI):
             request['coin'] = currency['id']
         if since is not None:
             request['startTime'] = since
-        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
+        request, params = self.handle_until_option('endTime', request, params)
         if limit is not None:
-            requestUntil['limit'] = limit
-        marketType, paramsMarketType = self.handle_market_type_and_params('fetchLedger', None, paramsUntil)
+            request['limit'] = limit
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchLedger', None, params)
         response = None
         if marketType == 'spot':
-            response = self.privateGetApiV1AccountBalanceFlow(self.extend(requestUntil, paramsMarketType))
+            response = self.privateGetApiV1AccountBalanceFlow(self.extend(request, params))
         else:
-            response = self.privateGetApiV1FuturesBalanceFlow(self.extend(requestUntil, paramsMarketType))
+            response = self.privateGetApiV1FuturesBalanceFlow(self.extend(request, params))
         #
         # both answers are same format
         #
@@ -2493,7 +2508,7 @@ class toobit(Exchange, ImplicitAPI):
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         currencyId = self.safe_string(item, 'coinId')
-        currencyResolved = self.safe_currency(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(item, 'created')
         after = self.safe_number(item, 'total')
         amountRaw = self.safe_string(item, 'change', '')
@@ -2511,13 +2526,13 @@ class toobit(Exchange, ImplicitAPI):
             'referenceId': None,
             'referenceAccount': None,
             'type': self.parse_ledger_type(self.safe_string(item, 'flowType')),
-            'currency': currencyResolved['code'],
+            'currency': currency['code'],
             'amount': amount,
             'before': None,
             'after': after,
             'status': None,
             'fee': None,
-        }, currencyResolved)
+        }, currency)
 
     def parse_ledger_type(self, type: Str) -> Str:
         types = {
@@ -2538,19 +2553,21 @@ class toobit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         response = None
+        marketType = None
         market = None
-        marketType, paramsMarketType = self.handle_market_type_and_params('fetchTradingFees', None, params)
+        marketType, params = self.handle_market_type_and_params('fetchTradingFees', None, params)
         if marketType == 'spot':
             raise NotSupported(self.id + ' fetchTradingFees(): does not support ' + marketType + ' markets')
         elif self.in_array(marketType, ['swap', 'future']):
-            symbol, paramsSymbol = self.handle_param_string(paramsMarketType, 'symbol')
+            symbol = None
+            symbol, params = self.handle_param_string(params, 'symbol')
             if symbol is None:
                 raise BadRequest(self.id + ' fetchTradingFees requires a params["symbol"]')
             market = self.market(symbol)
             request = {
                 'symbol': market['id'],
             }
-            response = self.privateGetApiV1FuturesCommissionRate(self.extend(request, paramsSymbol))
+            response = self.privateGetApiV1FuturesCommissionRate(self.extend(request, params))
         #
         # {
         #     "openMakerFee": "0.000006", // The trade fee rate for opening pending orders
@@ -2616,12 +2633,12 @@ class toobit(Exchange, ImplicitAPI):
             request['coin'] = currency['id']
         if since is not None:
             request['startTime'] = since
-        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
+        request, params = self.handle_until_option('endTime', request, params)
         if limit is not None:
-            requestUntil['limit'] = limit
+            request['limit'] = limit
         response = []
         if type == 'deposits':
-            response = self.privateGetApiV1AccountDepositOrders(self.extend(requestUntil, paramsUntil))
+            response = self.privateGetApiV1AccountDepositOrders(self.extend(request, params))
             #
             # [
             #     {
@@ -2644,7 +2661,7 @@ class toobit(Exchange, ImplicitAPI):
             # ]
             #
         elif type == 'withdrawals':
-            response = self.privateGetApiV1AccountWithdrawOrders(self.extend(requestUntil, paramsUntil))
+            response = self.privateGetApiV1AccountWithdrawOrders(self.extend(request, params))
             #
             # [
             #     {
@@ -2672,7 +2689,7 @@ class toobit(Exchange, ImplicitAPI):
             #     }
             # ]
             #
-        return self.parse_transactions(response, currency, since, limit, paramsUntil)
+        return self.parse_transactions(response, currency, since, limit, params)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
@@ -2800,7 +2817,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositAddress, 'address')
         self.check_address(address)
         return {
@@ -2826,7 +2843,8 @@ class toobit(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.check_address(address)
-        networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' withdraw() : param["network"] is required')
         if self.markets is None:
@@ -2841,7 +2859,7 @@ class toobit(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['addressExt'] = tag
-        response = self.privatePostApiV1AccountWithdraw(self.extend(request, paramsNetworkCode))
+        response = self.privatePostApiV1AccountWithdraw(self.extend(request, params))
         #
         # {
         #     "status": 0,
@@ -2871,10 +2889,10 @@ class toobit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['type'] != 'swap':
             raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
-        marginModeValue = marginMode.upper()
+        marginMode = marginMode.upper()
         request = {
             'symbol': market['id'],
-            'marginType': marginModeValue,
+            'marginType': marginMode,
         }
         response = self.privatePostApiV1FuturesMarginType(self.extend(request, params))
         #
@@ -3000,14 +3018,14 @@ class toobit(Exchange, ImplicitAPI):
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         marketId = self.safe_string(position, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         side = self.safe_string_lower(position, 'side')
         quantity = self.safe_string(position, 'position')
         leverage = self.safe_integer(position, 'leverage')
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'id'),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'entryPrice': self.safe_number(position, 'avgPrice'),
             'markPrice': self.safe_number(position, 'markPrice'),
             'lastPrice': self.safe_number(position, 'lastPrice'),
@@ -3031,12 +3049,8 @@ class toobit(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        baseApiUrl = self.safe_string(self.urls['api'], api)
-        if baseApiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        baseUrl = baseApiUrl
-        url = baseUrl + '/' + self.implode_params(path, params)
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         isPost = method == 'POST'
         isDelete = method == 'DELETE'
         extraQuery = {}
@@ -3054,38 +3068,30 @@ class toobit(Exchange, ImplicitAPI):
             extraQuery['timestamp'] = str(timestamp)
             queryExtended = self.extend(query, extraQuery)
             queryString = ''
-            privateBody = None
             if isPost or isDelete:
                 # everything else except Batch-Orders
                 if not isinstance(params, list):
-                    privateBody = self.urlencode(queryExtended)
+                    body = self.urlencode(queryExtended)
                 else:
                     queryString = self.urlencode(extraQuery)
-                    privateBody = self.json(query)
+                    body = self.json(query)
             else:
                 queryString = self.urlencode(queryExtended)
-            payloadBody = body
-            if isPost or isDelete:
-                payloadBody = privateBody
             payload = queryString
-            if payloadBody is not None:
-                payload = payloadBody + payload
+            if body is not None:
+                payload = body + payload
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
             if queryString != '':
                 queryString += '&signature=' + signature
                 url += '?' + queryString
             else:
-                privateBody += '&signature=' + signature
-            privateHeaders = {
+                body += '&signature=' + signature
+            headers = {
                 'Referrer': 'CCXT',
                 'X-BB-APIKEY': self.apiKey,
                 'X-BB-API-PLATFORM': self.safe_string(self.options, 'brokerId', '177321641268789'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-            requestBody = body
-            if isPost or isDelete:
-                requestBody = privateBody
-            return {'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

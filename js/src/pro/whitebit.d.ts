@@ -1,5 +1,5 @@
 import whitebitRest from '../whitebit.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, List, Market, Strings, Tickers, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class whitebit extends whitebitRest {
     describe(): any;
@@ -78,7 +78,7 @@ export default class whitebit extends whitebitRest {
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     handleMyTrades(client: Client, message: Dict, subscription?: Dict | undefined): void;
-    parseWsTrade(trade: List, market?: Market): Trade;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
      * @name whitebit#watchOrders
@@ -107,7 +107,7 @@ export default class whitebit extends whitebitRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: Dict): Promise<Balances>;
-    setBalanceCache(client: Client, type: Str, subscriptionHash: any): void;
+    setBalanceCache(client: Client, type: any, subscriptionHash: any): void;
     loadBalanceSnapshot(client: any, messageHash: any, type: any, subscriptionHash: any): Promise<void>;
     handleBalance(client: Client, message: Dict): void;
     watchPublic(messageHash: string, method: string, reqParams?: any[], params?: Dict): Promise<any>;
@@ -115,7 +115,7 @@ export default class whitebit extends whitebitRest {
     watchPrivate(messageHash: string, method: string, reqParams?: any[], params?: Dict): Promise<any>;
     authenticate(params?: Dict): Promise<number>;
     handleAuthenticate(client: Client, message: Dict): Dict;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: Dict): void;
     handleSubscriptionStatus(client: Client, message: Dict, id: Int): void;
     handlePong(client: Client, message: Dict): Dict;

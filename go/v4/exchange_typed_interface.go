@@ -45,7 +45,7 @@ type IExchange interface {
 	FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error)
 	FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error)
 	FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error)
-	FetchPaymentMethods(params ...any) ([]map[string]any, error)
+	FetchPaymentMethods(params ...any) (map[string]any, error)
 	FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error)
 	FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error)
 	FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error)

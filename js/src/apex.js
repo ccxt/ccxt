@@ -514,10 +514,10 @@ export default class apex extends Exchange {
         const networks = {};
         const chains = this.options['_temp_currencies_chains'];
         for (let j = 0; j < chains.length; j++) {
-            const chain = this.safeDict(chains, j);
+            const chain = chains[j];
             const tokens = this.safeList(chain, 'tokens', []);
             for (let f = 0; f < tokens.length; f++) {
-                const token = this.safeDict(tokens, f);
+                const token = tokens[f];
                 const tokenName = this.safeString(token, 'token');
                 if (tokenName === currencyId) {
                     const networkId = this.safeString(chain, 'chainId');
@@ -528,7 +528,7 @@ export default class apex extends Exchange {
                             'id': networkId,
                             'network': networkCode,
                             'active': undefined,
-                            'deposit': (!this.safeBool(chain, 'depositDisable', false)),
+                            'deposit': (this.safeBool(chain, 'depositDisable') !== true),
                             'withdraw': this.safeBool(token, 'withdrawEnable'),
                             'fee': this.safeNumber(token, 'minFee'),
                             'precision': this.parseNumber(this.parsePrecision(this.safeString(token, 'decimals'))),
@@ -657,9 +657,6 @@ export default class apex extends Exchange {
         const base = this.safeCurrencyCode(baseId);
         const settleId = this.safeString(market, 'settleAssetId');
         const settle = this.safeCurrencyCode(settleId);
-        if ((baseId === undefined) || (quote === undefined) || (settle === undefined)) {
-            return undefined;
-        }
         const symbol = baseId + '/' + quote + ':' + settle;
         const expiry = 0;
         const takerFee = this.parseNumber('0.0002');
@@ -737,8 +734,8 @@ export default class apex extends Exchange {
         // }
         //
         const marketId = this.safeString(ticker, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
-        const symbol = this.safeSymbol(marketId, marketResolved);
+        market = this.safeMarket(marketId, market);
+        const symbol = this.safeSymbol(marketId, market);
         const last = this.safeString(ticker, 'lastPrice');
         const percentage = this.safeString(ticker, 'price24hPcnt');
         const quoteVolume = this.safeString(ticker, 'turnover24h');
@@ -768,7 +765,7 @@ export default class apex extends Exchange {
             'markPrice': this.safeString(ticker, 'markPrice'),
             'indexPrice': this.safeString(ticker, 'indexPrice'),
             'info': ticker,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -827,21 +824,23 @@ export default class apex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const request = {
+        let request = {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
             'symbol': this.safeString(market, 'id2'),
         };
-        // default is 200 when requested with `since`, max 200
-        const limitResolved = (limit === undefined) ? 200 : Math.min(limit, 200);
-        request['limit'] = limitResolved;
-        const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, params, 0.001);
-        if (since !== undefined) {
-            requestUntil['start'] = Math.floor(since / 1000);
+        if (limit === undefined) {
+            limit = 200; // default is 200 when requested with `since`
         }
-        const response = await this.publicGetV3Klines(this.extend(requestUntil, paramsUntil));
+        limit = Math.min(limit, 200); // fix maxcap
+        request['limit'] = limit; // max 200, default 200
+        [request, params] = this.handleUntilOption('end', request, params, 0.001);
+        if (since !== undefined) {
+            request['start'] = Math.floor(since / 1000);
+        }
+        const response = await this.publicGetV3Klines(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
         const OHLCVs = this.safeList(data, this.safeString(market, 'id2'), []);
-        return this.parseOHLCVs(OHLCVs, market, timeframe, since, limitResolved);
+        return this.parseOHLCVs(OHLCVs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -884,7 +883,10 @@ export default class apex extends Exchange {
         const request = {
             'symbol': this.safeString(market, 'id2'),
         };
-        request['limit'] = (limit === undefined) ? 100 : limit; // max 100, default 100
+        if (limit === undefined) {
+            limit = 100; // default is 200 when requested with `since`
+        }
+        request['limit'] = limit; // max 100, default 100
         const response = await this.publicGetV3Depth(this.extend(request, params));
         //
         // {
@@ -939,8 +941,10 @@ export default class apex extends Exchange {
         const request = {
             'symbol': this.safeString(market, 'id2'),
         };
-        const limitResolved = (limit === undefined) ? 500 : limit; // default is 50
-        request['limit'] = limitResolved;
+        if (limit === undefined) {
+            limit = 500; // default is 50
+        }
+        request['limit'] = limit;
         const response = await this.publicGetV3Trades(this.extend(request, params));
         //
         // [
@@ -963,7 +967,7 @@ export default class apex extends Exchange {
         //  ]
         //
         const trades = this.safeList(response, 'data', []);
-        return this.parseTrades(trades, market, since, limitResolved);
+        return this.parseTrades(trades, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -979,7 +983,7 @@ export default class apex extends Exchange {
         //  ]
         //
         const marketId = this.safeString2(trade, 's', 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         const id = this.safeString2(trade, 'i', 'id');
         const timestamp = this.safeIntegerN(trade, ['t', 'T', 'createdAt']);
         const priceString = this.safeString2(trade, 'p', 'price');
@@ -993,7 +997,7 @@ export default class apex extends Exchange {
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'type': type,
             'takerOrMaker': undefined,
             'side': side,
@@ -1001,7 +1005,7 @@ export default class apex extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -1045,8 +1049,8 @@ export default class apex extends Exchange {
         // }
         //
         const marketId = this.safeString(interest, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
-        const symbol = this.safeSymbol(marketId, marketResolved);
+        market = this.safeMarket(marketId, market);
+        const symbol = this.safeSymbol(marketId, market);
         return this.safeOpenInterest({
             'symbol': symbol,
             'openInterestAmount': this.safeString(interest, 'openInterest'),
@@ -1054,7 +1058,7 @@ export default class apex extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
             'info': interest,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -1185,8 +1189,8 @@ export default class apex extends Exchange {
         const orderId = this.safeString(order, 'id');
         const clientOrderId = this.safeString(order, 'clientId');
         const marketId = this.safeString(order, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
         const price = this.safeString(order, 'price');
         const amount = this.safeString(order, 'size');
         const orderType = this.safeString(order, 'type');
@@ -1221,10 +1225,10 @@ export default class apex extends Exchange {
             'trades': undefined,
             'fee': {
                 'cost': this.safeString(order, 'fee'),
-                'currency': marketResolved['settleId'],
+                'currency': market['settleId'],
             },
             'info': order,
-        }, marketResolved);
+        }, market);
     }
     parseTimeInForce(timeInForce) {
         const timeInForces = {
@@ -1261,15 +1265,14 @@ export default class apex extends Exchange {
         return this.safeString(types, type, type);
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        let marketResolved = undefined;
         if (market === undefined && marketId !== undefined) {
             const marketsMap = this.markets;
             const marketsById = this.markets_by_id;
             if ((marketsMap !== undefined) && (marketId in marketsMap)) {
-                marketResolved = marketsMap[marketId];
+                market = marketsMap[marketId];
             }
             else if ((marketsById !== undefined) && (marketId in marketsById)) {
-                marketResolved = marketsById[marketId];
+                market = marketsById[marketId];
             }
             else {
                 const newMarketId = this.addHyphenBeforeUsdt(marketId);
@@ -1278,24 +1281,17 @@ export default class apex extends Exchange {
                     const numMarkets = markets.length;
                     if (numMarkets > 0) {
                         if (marketsById[newMarketId][0]['id2'] === marketId) {
-                            marketResolved = marketsById[newMarketId][0];
+                            market = marketsById[newMarketId][0];
                         }
                     }
                 }
             }
         }
-        const marketValue = (marketResolved === undefined) ? market : marketResolved;
-        return super.safeMarket(marketId, marketValue, delimiter, marketType);
+        return super.safeMarket(marketId, market, delimiter, marketType);
     }
     generateRandomClientIdOmni(_accountId) {
         const hasAccountId = (_accountId !== undefined) && (_accountId !== '');
-        let accountId = undefined;
-        if (hasAccountId) {
-            accountId = _accountId;
-        }
-        else {
-            accountId = this.randNumber(12).toString();
-        }
+        const accountId = hasAccountId ? _accountId : this.randNumber(12).toString();
         return 'apexomni-' + accountId + '-' + this.milliseconds().toString() + '-' + this.randNumber(6).toString();
     }
     addHyphenBeforeUsdt(symbol) {
@@ -1348,7 +1344,9 @@ export default class apex extends Exchange {
         }
         const market = this.market(symbol);
         let orderType = type.toUpperCase();
-        this.checkRequiredArgument('createOrder', side, 'side');
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const orderSide = side.toUpperCase();
         const orderSize = this.amountToPrecision(symbol, amount);
         let orderPrice = '0';
@@ -1388,15 +1386,15 @@ export default class apex extends Exchange {
                 timeInForce = 'IMMEDIATE_OR_CANCEL';
             }
         }
-        const paramsOmitted = this.omit(params, 'timeInForce');
-        const paramsOmitted2 = this.omit(paramsOmitted, 'postOnly');
-        let clientOrderId = this.safeStringN(paramsOmitted2, ['clientId', 'clientOrderId', 'client_order_id']);
+        params = this.omit(params, 'timeInForce');
+        params = this.omit(params, 'postOnly');
+        let clientOrderId = this.safeStringN(params, ['clientId', 'clientOrderId', 'client_order_id']);
         const accountId = await this.getAccountId();
         if (clientOrderId === undefined) {
             clientOrderId = this.generateRandomClientIdOmni(accountId);
         }
         const finalClientOrderId = clientOrderId; // java req
-        const paramsOmitted3 = this.omit(paramsOmitted2, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice']);
+        params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice']);
         const finalOrderPrice = orderPrice; // java req
         const orderToSign = {
             'accountId': accountId,
@@ -1429,7 +1427,7 @@ export default class apex extends Exchange {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         request['signature'] = signature;
-        const response = await this.privatePostV3Order(this.extend(request, paramsOmitted3));
+        const response = await this.privatePostV3Order(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
@@ -1475,7 +1473,7 @@ export default class apex extends Exchange {
         const accountId = this.safeString(accountData, 'id', '');
         let currency = {};
         let assets = [];
-        if (fromAccount.toLowerCase() === 'contract') {
+        if (fromAccount !== undefined && fromAccount.toLowerCase() === 'contract') {
             assets = contractAssets;
         }
         else {
@@ -1497,8 +1495,8 @@ export default class apex extends Exchange {
             clientOrderId = this.generateRandomClientIdOmni(this.safeString(this.options, 'accountId'));
         }
         const finalClientOrderId = clientOrderId; // java req
-        const paramsOmitted = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
-        if (fromAccount.toLowerCase() === 'contract') {
+        params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
+        if (fromAccount !== undefined && fromAccount.toLowerCase() === 'contract') {
             const formattedUint32 = '4294967295';
             const zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
             const expireTime = timestampSeconds + 3600 * 24 * 28;
@@ -1523,7 +1521,7 @@ export default class apex extends Exchange {
                 'token': code,
                 'ethAddress': ethAddress,
             };
-            const response = await this.privatePostV3ContractTransferOut(this.extend(request, paramsOmitted));
+            const response = await this.privatePostV3ContractTransferOut(this.extend(request, params));
             const data = this.safeDict(response, 'data', {});
             const currentTime = this.milliseconds();
             const parsedAmount = this.parseNumber(amount);
@@ -1566,7 +1564,7 @@ export default class apex extends Exchange {
                 'receiverAddress': receiverAddress,
                 'nonce': finalNonce,
             };
-            const response = await this.privatePostV3TransferOut(this.extend(request, paramsOmitted));
+            const response = await this.privatePostV3TransferOut(this.extend(request, params));
             const data = this.safeDict(response, 'data', {});
             const currentTime = this.milliseconds();
             return this.extend(this.parseTransfer(data, this.currency(code)), {
@@ -1634,7 +1632,8 @@ export default class apex extends Exchange {
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
-            response = await this.privatePostV3DeleteClientOrderId(this.extend(request, this.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])));
+            params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
+            response = await this.privatePostV3DeleteClientOrderId(this.extend(request, params));
         }
         else {
             request['id'] = id;
@@ -1664,7 +1663,8 @@ export default class apex extends Exchange {
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
-            response = await this.privateGetV3OrderByClientOrderId(this.extend(request, this.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])));
+            params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
+            response = await this.privateGetV3OrderByClientOrderId(this.extend(request, params));
         }
         else {
             request['id'] = id;
@@ -1728,9 +1728,9 @@ export default class apex extends Exchange {
         const endTimeExclusive = this.safeIntegerN(params, ['endTime', 'endTimeExclusive', 'until']);
         if (endTimeExclusive !== undefined) {
             request['endTimeExclusive'] = endTimeExclusive;
+            params = this.omit(params, ['endTime', 'endTimeExclusive', 'until']);
         }
-        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit(params, ['endTime', 'endTimeExclusive', 'until']) : params;
-        const response = await this.privateGetV3HistoryOrders(this.extend(request, paramsOmitted));
+        const response = await this.privateGetV3HistoryOrders(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
         const orders = this.safeList(data, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
@@ -1759,8 +1759,8 @@ export default class apex extends Exchange {
         else {
             request['orderId'] = id;
         }
-        const paramsOmitted = this.omit(params, ['clientOrderId', 'clientId']);
-        const response = await this.privateGetV3OrderFills(this.extend(request, paramsOmitted));
+        params = this.omit(params, ['clientOrderId', 'clientId']);
+        const response = await this.privateGetV3OrderFills(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
         const orders = this.safeList(data, 'orders', []);
         return this.parseTrades(orders, undefined, since, limit);
@@ -1799,9 +1799,9 @@ export default class apex extends Exchange {
         const endTimeExclusive = this.safeIntegerN(params, ['endTime', 'endTimeExclusive', 'until']);
         if (endTimeExclusive !== undefined) {
             request['endTimeExclusive'] = endTimeExclusive;
+            params = this.omit(params, ['endTime', 'endTimeExclusive', 'until']);
         }
-        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit(params, ['endTime', 'endTimeExclusive', 'until']) : params;
-        const response = await this.privateGetV3Fills(this.extend(request, paramsOmitted));
+        const response = await this.privateGetV3Fills(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
         const orders = this.safeList(data, 'orders', []);
         return this.parseTrades(orders, market, since, limit);
@@ -1838,10 +1838,10 @@ export default class apex extends Exchange {
         }
         const endTimeExclusive = this.safeIntegerN(params, ['endTime', 'endTimeExclusive', 'until']);
         if (endTimeExclusive !== undefined) {
+            params = this.omit(params, ['endTime', 'endTimeExclusive', 'until']);
             request['endTimeExclusive'] = endTimeExclusive;
         }
-        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit(params, ['endTime', 'endTimeExclusive', 'until']) : params;
-        const response = await this.privateGetV3Funding(this.extend(request, paramsOmitted));
+        const response = await this.privateGetV3Funding(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
         const fundingValues = this.safeList(data, 'fundingValues', []);
         return this.parseIncomes(fundingValues, market, since, limit);
@@ -1862,12 +1862,12 @@ export default class apex extends Exchange {
         // }
         //
         const marketId = this.safeString(income, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
+        market = this.safeMarket(marketId, market, undefined, 'contract');
         const code = 'USDT';
         const timestamp = this.safeInteger(income, 'fundingTime');
         return {
             'info': income,
-            'symbol': this.safeSymbol(marketId, marketResolved),
+            'symbol': this.safeSymbol(marketId, market),
             'code': code,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -1939,8 +1939,8 @@ export default class apex extends Exchange {
         //     "customInitialMarginRate": "0"
         // }
         const marketId = this.safeString(position, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
         const side = this.safeStringLower(position, 'side');
         const quantity = this.safeString(position, 'size');
         const timestamp = this.safeInteger(position, 'updatedTime');
@@ -1976,12 +1976,8 @@ export default class apex extends Exchange {
         });
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseApiUrl = this.safeString(this.urls['api'], api);
-        if (baseApiUrl === undefined) {
-            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        let url = this.implodeHostname(baseApiUrl) + '/' + path;
-        const headersValue = {
+        let url = this.implodeHostname(this.urls['api'][api]) + '/' + path;
+        headers = {
             'User-Agent': 'apex-CCXT',
             'Accept': 'application/json',
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -2006,12 +2002,12 @@ export default class apex extends Exchange {
                 messageString = messageString + signBody;
             }
             const signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256, 'base64');
-            headersValue['APEX-SIGNATURE'] = signature;
-            headersValue['APEX-API-KEY'] = this.apiKey;
-            headersValue['APEX-TIMESTAMP'] = timestamp;
-            headersValue['APEX-PASSPHRASE'] = this.password;
+            headers['APEX-SIGNATURE'] = signature;
+            headers['APEX-API-KEY'] = this.apiKey;
+            headers['APEX-TIMESTAMP'] = timestamp;
+            headers['APEX-PASSPHRASE'] = this.password;
         }
-        return { 'url': url, 'method': method, 'body': signBody, 'headers': headersValue };
+        return { 'url': url, 'method': method, 'body': signBody, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //

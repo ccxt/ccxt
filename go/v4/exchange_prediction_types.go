@@ -316,7 +316,7 @@ type PredictionOutcome struct {
 func NewPredictionOutcome(data any) PredictionOutcome {
 	m := data.(map[string]any)
 	var precision *Precision
-	if p, ok := m["precision"].(map[string]any); ok && p != nil {
+	if p, ok := m["precision"].(map[string]any); ok {
 		prec := NewPrecision(p)
 		precision = &prec
 	}
@@ -393,7 +393,7 @@ func NewPredictionMarket(data any) PredictionMarket {
 		limits = NewLimits(v)
 	}
 	var fees *PredictionFees
-	if f, ok := m["fees"].(map[string]any); ok && f != nil {
+	if f, ok := m["fees"].(map[string]any); ok {
 		feesVal := NewPredictionFees(f)
 		fees = &feesVal
 	}

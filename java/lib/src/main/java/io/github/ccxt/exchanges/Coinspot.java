@@ -607,7 +607,7 @@ public class Coinspot extends CoinspotApi
         }});
     }
 
-    public Balances parseBalance(Object response)
+    public Object parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -622,13 +622,13 @@ public class Coinspot extends CoinspotApi
                 for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                 {
                     Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
-                    Map<String, Object> balance = (Map<String, Object>) this.safeDict(currencies, currencyId, (Object) null);
-                    String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-                    Map<String, Object> account = this.account();
-                    account.put("total", this.safeString(balance, "balance"));
+                    Object balance = Helpers.GetValue(currencies, currencyId);
+                    String code = this.safeCurrencyCode((String) (currencyId));
+                    Object account = this.account();
+                    ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        result.put(code, account);
+                        ((Map<String, Object>)result).put((String)code, account);
                     }
                 }
             }
@@ -638,12 +638,12 @@ public class Coinspot extends CoinspotApi
             for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
             {
                 Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-                String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-                Map<String, Object> account = this.account();
-                account.put("total", this.safeString(balances, currencyId));
+                String code = this.safeCurrencyCode((String) (currencyId));
+                Object account = this.account();
+                ((Map<String, Object>)account).put("total", this.safeString(balances, currencyId));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put(code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
         }
@@ -658,17 +658,18 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             String method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
-            Map<String, Object> response = null;
+            Object response = null;
             if ((java.util.Objects.equals(method, "private_post_ro_my_balances")) || (java.util.Objects.equals(method, "privatePostRoMyBalances")))
             {
                 response = (this.privatePostRoMyBalances(parameters)).join();
@@ -707,26 +708,28 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "cointype", market.get("id") );
+                put( "cointype", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> orderbook = (this.privatePostOrders(this.extend(request, parameters))).join();
-            return this.parseOrderBook(orderbook, market.get("symbol"), (Long) null, "buyorders", "sellorders", "rate", "amount", 2);
+            return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), null, "buyorders", "sellorders", "rate", "amount");
         }).thenApply(OrderBook::new);
 
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -737,7 +740,8 @@ public class Coinspot extends CoinspotApi
         //         }
         //     }
         //
-        String symbol = this.safeSymbol(null, market, (String) null, (String) null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        String symbol = this.safeSymbol(null, market);
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -772,16 +776,17 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> response = (this.publicGetLatest(parameters)).join();
             String id = this.safeString(market, "id", "");
             id = id.toLowerCase();
@@ -813,14 +818,16 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.publicGetLatest(parameters)).join();
             //
@@ -842,16 +849,16 @@ public class Coinspot extends CoinspotApi
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Map<String, Object> prices = (Map<String, Object>) this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
-            List<String> ids = new ArrayList<String>(prices.keySet());
+            List<Object> ids = new ArrayList<Object>(prices.keySet());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
-                Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
-                if (java.util.Objects.equals(market.get("spot"), true))
+                Object id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
+                Map<String, Object> market = (Map<String, Object>) this.safeMarket(id);
+                if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
                 {
-                    String symbol = (String) market.get("symbol");
+                    Object symbol = ((Map<String, Object>)market).get("symbol");
                     Object ticker = (prices == null || id == null ? null : prices.get(id));
-                    result.put(symbol, this.parseTicker(ticker, market));
+                    ((Map<String, Object>)result).put((String)symbol, this.parseTicker(ticker, market));
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
@@ -870,18 +877,21 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "cointype", market.get("id") );
+                put( "cointype", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.privatePostOrdersHistory(this.extend(request, parameters))).join();
             //
@@ -893,7 +903,7 @@ public class Coinspot extends CoinspotApi
             //     }
             //
             List<Object> trades = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -909,24 +919,28 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> market = null;
+            Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("startdate", this.yyyymmdd(since));
+                ((Map<String, Object>)request).put("startdate", this.yyyymmdd(since));
             }
             Map<String, Object> response = (this.privatePostRoMyTransactions(this.extend(request, parameters))).join();
             //  {
@@ -958,20 +972,20 @@ public class Coinspot extends CoinspotApi
             List<Object> buyTrades = (List<Object>) this.safeList(response, "buyorders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)buyTrades).size(); i++)
             {
-                ((Map<String, Object>)(buyTrades == null || i < 0 || i >= buyTrades.size() ? null : buyTrades.get(i))).put("side", "buy");
+                Helpers.addElementToObject(Helpers.GetValue(buyTrades, i), "side", "buy");
             }
             List<Object> sellTrades = (List<Object>) this.safeList(response, "sellorders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)sellTrades).size(); i++)
             {
-                ((Map<String, Object>)(sellTrades == null || i < 0 || i >= sellTrades.size() ? null : sellTrades.get(i))).put("side", "sell");
+                Helpers.addElementToObject(Helpers.GetValue(sellTrades, i), "side", "sell");
             }
             List<Object> trades = (List<Object>) this.arrayConcat(buyTrades, sellTrades);
-            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
-    public Trade parseTrade(Object trade, Map<String, Object> market)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // public fetchTrades
@@ -998,15 +1012,16 @@ public class Coinspot extends CoinspotApi
         //       "side": "buy",
         //       "price": 0.5168600000125209
         //     }
-        Long timestamp = null;
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object timestamp = null;
         String priceString = null;
-        Map<String, Object> fee = null;
+        Object fee = null;
         String audTotal = this.safeString(trade, "audtotal");
         String costString = this.safeString(trade, "total", audTotal);
         String side = this.safeString(trade, "side");
         String amountString = this.safeString(trade, "amount");
         String marketId = this.safeString(trade, "market");
-        String symbol = this.safeSymbol(marketId, market, "/", (String) null);
+        String symbol = this.safeSymbol(marketId, market, "/");
         Long solddate = this.safeInteger(trade, "solddate");
         if (!java.util.Objects.equals(solddate, null))
         {
@@ -1024,24 +1039,27 @@ public class Coinspot extends CoinspotApi
             String feeCurrencyId = "AUD";
             fee = new HashMap<String, Object>() {{
                 put( "cost", Coinspot.this.parseNumber(feeCost) );
-                put( "currency", Coinspot.this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null) );
+                put( "currency", Coinspot.this.safeCurrencyCode(feeCurrencyId) );
             }};
         }
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("info", trade);
-        mapLiteral1.put("id", null);
-        mapLiteral1.put("symbol", symbol);
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("order", null);
-        mapLiteral1.put("type", null);
-        mapLiteral1.put("side", side);
-        mapLiteral1.put("takerOrMaker", null);
-        mapLiteral1.put("price", this.parseNumber(priceString));
-        mapLiteral1.put("amount", this.parseNumber(amountString));
-        mapLiteral1.put("cost", this.parseNumber(costString));
-        mapLiteral1.put("fee", fee);
-        return this.safeTrade(mapLiteral1, market);
+        final Object finalTimestamp = timestamp;
+        final Object finalPriceString = priceString;
+        final Object finalFee = fee;
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+            put( "info", trade );
+            put( "id", null );
+            put( "symbol", symbol );
+            put( "timestamp", finalTimestamp );
+            put( "datetime", Coinspot.this.iso8601(finalTimestamp) );
+            put( "order", null );
+            put( "type", null );
+            put( "side", side );
+            put( "takerOrMaker", null );
+            put( "price", Coinspot.this.parseNumber(finalPriceString) );
+            put( "amount", Coinspot.this.parseNumber(amountString) );
+            put( "cost", Coinspot.this.parseNumber(costString) );
+            put( "fee", finalFee );
+        }}), market);
     }
 
     /**
@@ -1057,28 +1075,35 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
-
+        final Object type3 = type2;
+        final Object side3 = side2;
         return BaseExchange.supplyAsync(() -> {
-
+            Object type = type3;
+            Object side = side3;
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
-            String sideUpper = ((String)side).toUpperCase();
+            if (java.util.Objects.equals(side, null))
+            {
+                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
+            }
+            Object sideUpper = ((String)side).toUpperCase();
             if (java.util.Objects.equals(type, "market"))
             {
                 throw new ExchangeError((this.id + " createOrder() allows limit orders only")) ;
             }
-            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "cointype", market.get("id") );
+                put( "cointype", ((Map<String, Object>)market).get("id") );
                 put( "amount", amount );
                 put( "rate", price );
             }};
-            Map<String, Object> response = null;
+            Object response = null;
             if (java.util.Objects.equals(sideUpper, "BUY"))
             {
                 response = (this.privatePostMyBuy(this.extend(request, parameters))).join();
@@ -1092,9 +1117,10 @@ public class Coinspot extends CoinspotApi
             //
             // status - ok, error
             //
-            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-            mapLiteral2.put("info", response);
-            return this.safeOrder(mapLiteral2, (Map<String, Object>) null);
+            final Object finalResponse = response;
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                put( "info", finalResponse );
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -1110,34 +1136,37 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             String side = this.safeString(parameters, "side");
             if (!java.util.Objects.equals(side, "buy") && !java.util.Objects.equals(side, "sell"))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
             }
-            Map<String, Object> paramsOmitted = this.omit(parameters, "side");
+            parameters = this.omit(parameters, "side");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Map<String, Object> response = null;
+            Object response = null;
             if (java.util.Objects.equals(side, "buy"))
             {
-                response = (this.privatePostMyBuyCancel(this.extend(request, paramsOmitted))).join();
+                response = (this.privatePostMyBuyCancel(this.extend(request, parameters))).join();
             } else
             {
-                response = (this.privatePostMySellCancel(this.extend(request, paramsOmitted))).join();
+                response = (this.privatePostMySellCancel(this.extend(request, parameters))).join();
             }
             //
             // status - ok, error
             //
-            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-            mapLiteral3.put("info", response);
-            return this.safeOrder(mapLiteral3, (Map<String, Object>) null);
+            final Object finalResponse = response;
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                put( "info", finalResponse );
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -1157,52 +1186,47 @@ public class Coinspot extends CoinspotApi
         return null;
     }
 
-    public Long nonce()
+    public Object nonce()
     {
         // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object... optionalArgs)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
-        Boolean isVersionedApi = false;
-        Object version = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 0) : null;
-        Object accessType = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 1) : java.util.Objects.requireNonNullElse(api, "public");
+        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
+        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
+        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
+        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
+        Object isVersionedApi = false;
+        Object version = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(api, 0) : null;
+        Object accessType = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(api, 1) : api;
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        String fullPath = endpoint;
-        if (!java.util.Objects.equals(version, null))
-        {
-            fullPath = (("/" + version) + endpoint);
-        }
-        String apiUrl = this.safeString(this.urls.get("api"), accessType);
-        if (java.util.Objects.equals(apiUrl, null))
-        {
-            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
-        }
-        String url = (apiUrl + fullPath);
+        Object fullPath = (((!java.util.Objects.equals(version, null)))) ? (Helpers.add("/", version) + endpoint) : endpoint;
+        Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), accessType), fullPath);
         if (java.util.Objects.equals(accessType, "private"))
         {
-            this.checkRequiredCredentials(true);
+            this.checkRequiredCredentials();
             // coinspot requires an increasing nonce
             Object nonce = this.incrementingNonce();
-            requestBody = this.json(this.extend(new HashMap<String, Object>() {{
+            body = this.json(this.extend(new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters));
-            requestHeaders = Helpers.newMap(
-                "Content-Type", "application/json",
-                "key", this.apiKey,
-                "sign", this.hmac(this.encode(requestBody), this.encode(this.secret), sha512())
-            );
+            final Object finalBody = body;
+            headers = new HashMap<String, Object>() {{
+                put( "Content-Type", "application/json" );
+                put( "key", Coinspot.this.apiKey );
+                put( "sign", Coinspot.this.hmac(Coinspot.this.encode(finalBody), Coinspot.this.encode(Coinspot.this.secret), sha512()) );
+            }};
         }
-        {
-            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
-            h2kMap0.put("url", url);
-            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap0.put("body", requestBody);
-            h2kMap0.put("headers", requestHeaders);
-            return h2kMap0;
-        }
+        final Object finalBody_2 = body;
+        final Object finalHeaders = headers;
+        return new HashMap<String, Object>() {{
+            put( "url", url );
+            put( "method", method );
+            put( "body", finalBody_2 );
+            put( "headers", finalHeaders );
+        }};
     }
 }

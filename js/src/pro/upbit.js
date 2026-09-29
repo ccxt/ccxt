@@ -40,13 +40,14 @@ export default class upbit extends upbitRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let symbolsRequested = symbols;
         if (symbols === undefined) {
-            symbolsRequested = this.symbols;
+            symbols = this.symbols;
         }
-        const symbolsMarket = this.marketSymbols(symbolsRequested);
-        const symbolsNormalized = (symbolsMarket === undefined) ? [] : symbolsMarket;
-        const marketIds = this.marketIds(symbolsNormalized);
+        symbols = this.marketSymbols(symbols);
+        if (symbols === undefined) {
+            symbols = [];
+        }
+        const marketIds = this.marketIds(symbols);
         const url = this.implodeParams(this.urls['api']['ws'], {
             'hostname': this.hostname,
         });
@@ -57,9 +58,9 @@ export default class upbit extends upbitRest {
         }
         const subscriptions = client.subscriptions[subscriptionsKey];
         const messageHashes = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
+        for (let i = 0; i < symbols.length; i++) {
             const marketId = marketIds[i];
-            const symbol = symbolsNormalized[i];
+            const symbol = symbols[i];
             const messageHash = channel + ':' + symbol;
             messageHashes.push(messageHash);
             if (!(messageHash in subscriptions)) {
@@ -106,10 +107,7 @@ export default class upbit extends upbitRest {
         const newTickers = await this.watchPublicMultiple(symbols, 'ticker');
         if (this.newUpdates) {
             const tickers = {};
-            const newTickersSymbol = this.safeString(newTickers, 'symbol');
-            if (newTickersSymbol !== undefined) {
-                tickers[newTickersSymbol] = newTickers;
-            }
+            tickers[newTickers['symbol']] = newTickers;
             return tickers;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
@@ -141,13 +139,12 @@ export default class upbit extends upbitRest {
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchPublicMultiple(symbols, 'trade');
-        const first = this.safeDict(trades, 0);
-        const tradeSymbol = this.safeString(first, 'symbol');
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(tradeSymbol, limit);
+            const first = this.safeDict(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     /**
      * @method
@@ -267,7 +264,7 @@ export default class upbit extends upbitRest {
         const asks = orderbook['asks'];
         const data = this.safeList(message, 'orderbook_units', []);
         for (let i = 0; i < data.length; i++) {
-            const entry = this.safeDict(data, i);
+            const entry = data[i];
             const ask_price = this.safeFloat(entry, 'ask_price');
             const ask_size = this.safeFloat(entry, 'ask_size');
             const bid_price = this.safeFloat(entry, 'bid_price');
@@ -351,7 +348,7 @@ export default class upbit extends upbitRest {
             };
             this.options['ws'] = wsOptions;
         }
-        const url = this.safeString(this.urls['api'], 'ws') + '/private';
+        const url = this.urls['api']['ws'] + '/private';
         const client = this.client(url);
         return client;
     }
@@ -360,18 +357,14 @@ export default class upbit extends upbitRest {
         const request = {
             'type': channel,
         };
-        let symbolResolved = undefined;
         if (symbol !== undefined) {
             await this.loadMarkets();
             const market = this.market(symbol);
-            symbolResolved = market['symbol'];
-            const symbols = [symbolResolved];
+            symbol = market['symbol'];
+            const symbols = [symbol];
             const marketIds = this.marketIds(symbols);
             request['codes'] = marketIds;
-        }
-        let messageHashResolved = messageHash;
-        if (symbolResolved !== undefined) {
-            messageHashResolved = messageHash + ':' + symbolResolved;
+            messageHash = messageHash + ':' + symbol;
         }
         let url = this.implodeParams(this.urls['api']['ws'], {
             'hostname': this.hostname,
@@ -384,8 +377,8 @@ export default class upbit extends upbitRest {
             client.subscriptions[subscriptionsKey] = this.createSafeDictionary(true);
         }
         let channelKey = channel;
-        if (symbolResolved !== undefined) {
-            channelKey = channel + ':' + symbolResolved;
+        if (symbol !== undefined) {
+            channelKey = channel + ':' + symbol;
         }
         const subscriptions = client.subscriptions[subscriptionsKey];
         const isNewChannel = !(channelKey in subscriptions);
@@ -407,7 +400,7 @@ export default class upbit extends upbitRest {
         for (let i = 0; i < requests.length; i++) {
             message.push(requests[i]);
         }
-        return await this.watch(url, messageHashResolved, message, messageHashResolved);
+        return await this.watch(url, messageHash, message, messageHash);
     }
     /**
      * @method
@@ -427,11 +420,10 @@ export default class upbit extends upbitRest {
         const channel = 'myOrder';
         const messageHash = 'myOrder';
         const orders = await this.watchPrivate(symbol, channel, messageHash);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = orders.getLimit(symbol, limit);
+            limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     /**
      * @method
@@ -451,11 +443,10 @@ export default class upbit extends upbitRest {
         const channel = 'myOrder';
         const messageHash = 'myTrades';
         const trades = await this.watchPrivate(symbol, channel, messageHash);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(symbol, limit);
+            limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limitResolved, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     parseWsOrderStatus(status) {
         const statuses = {
@@ -506,12 +497,12 @@ export default class upbit extends upbitRest {
         const timestamp = this.parse8601(this.safeString(order, 'order_timestamp'));
         const status = this.parseWsOrderStatus(this.safeString(order, 'state'));
         const marketId = this.safeString(order, 'code');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         let fee = undefined;
         const feeCost = this.safeString(order, 'paid_fee');
         if (feeCost !== undefined) {
             fee = {
-                'currency': marketResolved['quote'],
+                'currency': market['quote'],
                 'cost': feeCost,
             };
         }
@@ -522,7 +513,7 @@ export default class upbit extends upbitRest {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': this.safeString(order, 'trade_timestamp'),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'type': this.safeString(order, 'order_type'),
             'timeInForce': this.safeString(order, 'time_in_force'),
             'postOnly': undefined,
@@ -551,12 +542,12 @@ export default class upbit extends upbitRest {
         }
         const timestamp = this.parse8601(this.safeString(trade, 'trade_timestamp'));
         const marketId = this.safeString(trade, 'code');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         let fee = undefined;
         const feeCost = this.safeString(trade, 'paid_fee');
         if (feeCost !== undefined) {
             fee = {
-                'currency': marketResolved['quote'],
+                'currency': market['quote'],
                 'cost': feeCost,
             };
         }
@@ -564,7 +555,7 @@ export default class upbit extends upbitRest {
             'id': this.safeString(trade, 'trade_uuid'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'side': side,
             'price': this.safeString(trade, 'price'),
             'amount': this.safeString(trade, 'volume'),
@@ -574,7 +565,7 @@ export default class upbit extends upbitRest {
             'type': this.safeString(trade, 'order_type'),
             'fee': fee,
             'info': trade,
-        }, marketResolved);
+        }, market);
     }
     handleMyOrder(client, message) {
         // see: parseWsOrder
@@ -614,7 +605,7 @@ export default class upbit extends upbitRest {
             if (fee !== undefined) {
                 parsed['fee'] = fee;
             }
-            const fees = this.safeList(order, 'fees');
+            const fees = this.safeValue(order, 'fees');
             if (fees !== undefined) {
                 parsed['fees'] = fees;
             }
@@ -666,7 +657,7 @@ export default class upbit extends upbitRest {
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601(timestamp);
         for (let i = 0; i < data.length; i++) {
-            const balance = this.safeDict(data, i);
+            const balance = data[i];
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const available = this.safeString(balance, 'balance');

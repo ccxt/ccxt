@@ -4,10 +4,10 @@ import type Client from '../base/ws/Client.js';
 export default class mudrex extends mudrexRest {
     describe(): any;
     ping(client: Client): {
-        id: number;
+        id: any;
         method: string;
     };
-    requestId(): number;
+    requestId(): any;
     /**
      * @ignore
      * @method

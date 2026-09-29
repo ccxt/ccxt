@@ -829,12 +829,13 @@ class deribit(Exchange, ImplicitAPI):
         instrumentsResponses = []
         result = []
         parsedMarkets = {}
-        fetchAllMarkets, paramsFetchAllMarkets = self.handle_option_bool_and_params(params, 'fetchMarkets', 'fetchAllMarkets', True)
+        fetchAllMarkets = None
+        fetchAllMarkets, params = self.handle_option_and_params(params, 'fetchMarkets', 'fetchAllMarkets', True)
         if fetchAllMarkets:
-            instrumentsResponse = await self.publicGetGetInstruments(paramsFetchAllMarkets)
+            instrumentsResponse = await self.publicGetGetInstruments(params)
             instrumentsResponses.append(instrumentsResponse)
         else:
-            currenciesResponse = await self.publicGetGetCurrencies(paramsFetchAllMarkets)
+            currenciesResponse = await self.publicGetGetCurrencies(params)
             #
             #     {
             #         "jsonrpc": "2.0",
@@ -865,7 +866,7 @@ class deribit(Exchange, ImplicitAPI):
                 request = {
                     'currency': currencyId,
                 }
-                instrumentsResponse = await self.publicGetGetInstruments(self.extend(request, paramsFetchAllMarkets))
+                instrumentsResponse = await self.publicGetGetInstruments(self.extend(request, params))
                 #
                 #     {
                 #         "jsonrpc":"2.0",
@@ -952,8 +953,6 @@ class deribit(Exchange, ImplicitAPI):
                 settleId = self.safe_string(market, 'settlement_currency')
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
-                if (base is None) or (quote is None):
-                    continue
                 settle = self.safe_currency_code(settleId)
                 settlementPeriod = self.safe_string(market, 'settlement_period')
                 swap = (settlementPeriod == 'perpetual')
@@ -992,7 +991,7 @@ class deribit(Exchange, ImplicitAPI):
                             symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
                     inverse = (quote != settle)
                     linear = (settle == quote)
-                parsedMarketValue = self.safe_bool(parsedMarkets, symbol)
+                parsedMarketValue = self.safe_value(parsedMarkets, symbol)
                 if parsedMarketValue is not None:
                     continue
                 if symbol is not None:
@@ -1062,7 +1061,7 @@ class deribit(Exchange, ImplicitAPI):
         else:
             summaries = [balance]
         for i in range(0, len(summaries)):
-            data = self.safe_dict(summaries, i)
+            data = summaries[i]
             currencyId = self.safe_string(data, 'currency')
             currencyCode = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1087,16 +1086,16 @@ class deribit(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         code = self.safe_string(params, 'code')
-        paramsOmitted = self.omit(params, 'code')
+        params = self.omit(params, 'code')
         request = {
         }
         if code is not None:
             request['currency'] = self.currency_id(code)
         response = None
         if code is None:
-            response = await self.privateGetGetAccountSummaries(paramsOmitted)
+            response = await self.privateGetGetAccountSummaries(params)
         else:
-            response = await self.privateGetGetAccountSummary(self.extend(request, paramsOmitted))
+            response = await self.privateGetGetAccountSummary(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -1365,18 +1364,18 @@ class deribit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols)
         code = self.safe_string_2(params, 'code', 'currency')
         type = None
-        paramsOmitted = self.omit(params, ['code'])
-        if symbolsNormalized is not None:
-            for i in range(0, len(symbolsNormalized)):
-                market = self.market(symbolsNormalized[i])
+        params = self.omit(params, ['code'])
+        if symbols is not None:
+            for i in range(0, len(symbols)):
+                market = self.market(symbols[i])
                 if code is not None and code != market['base']:
                     raise BadRequest(self.id + ' fetchTickers the base currency must be the same for all symbols, self endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency')
                 if code is None:
-                    code = self.safe_string(market, 'base')
-                    type = self.safe_string(market, 'type')
+                    code = market['base']
+                    type = market['type']
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for')
         currency = self.currency(code)
@@ -1393,7 +1392,7 @@ class deribit(Exchange, ImplicitAPI):
                 requestType = 'option'
             if requestType is not None:
                 request['kind'] = requestType
-        response = await self.publicGetGetBookSummaryByCurrency(self.extend(request, paramsOmitted))
+        response = await self.publicGetGetBookSummaryByCurrency(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -1431,7 +1430,7 @@ class deribit(Exchange, ImplicitAPI):
             symbol = ticker['symbol']
             if symbol is not None:
                 tickers[symbol] = ticker
-        return self.filter_by_array_tickers(tickers, 'symbol', symbolsNormalized)
+        return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
     async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
@@ -1450,9 +1449,10 @@ class deribit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 5000)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 5000)
         market = self.market(symbol)
         request = {
             'instrument_name': market['id'],
@@ -1460,24 +1460,23 @@ class deribit(Exchange, ImplicitAPI):
         }
         duration = self.parse_timeframe(timeframe)
         now = self.milliseconds()
-        # at max, it provides 5000 bars, but we set generous default here
-        windowLimit = 1000 if (limit is None) else limit
-        limitResolved = windowLimit if (since is None) else limit
-        sinceResolved = None if (since is None) else max(since - 1, 0)
         if since is None:
-            request['start_timestamp'] = now - (windowLimit - 1) * duration * 1000
+            if limit is None:
+                limit = 1000  # at max, it provides 5000 bars, but we set generous default here
+            request['start_timestamp'] = now - (limit - 1) * duration * 1000
             request['end_timestamp'] = now
         else:
-            request['start_timestamp'] = sinceResolved
+            since = max(since - 1, 0)
+            request['start_timestamp'] = since
             if limit is None:
                 request['end_timestamp'] = now
             else:
-                request['end_timestamp'] = self.sum(sinceResolved, limit * duration * 1000)
-        until = self.safe_integer(paramsPaginate, 'until')
-        paramsOmitted = self.omit(paramsPaginate, 'until') if (until is not None) else paramsPaginate
+                request['end_timestamp'] = self.sum(since, limit * duration * 1000)
+        until = self.safe_integer(params, 'until')
         if until is not None:
+            params = self.omit(params, 'until')
             request['end_timestamp'] = until
-        response = await self.publicGetGetTradingviewChartData(self.extend(request, paramsOmitted))
+        response = await self.publicGetGetTradingviewChartData(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -1497,9 +1496,9 @@ class deribit(Exchange, ImplicitAPI):
         #         "testnet": false
         #     }
         #
-        result = self.safe_dict(response, 'result', {})
+        result = self.safe_value(response, 'result', {})
         ohlcvs = self.convert_trading_view_to_ohlcv(result, 'ticks', 'open', 'high', 'low', 'close', 'volume', True)
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, sinceResolved, limitResolved)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -1550,12 +1549,12 @@ class deribit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'timestamp')
         side = self.safe_string(trade, 'direction')
         priceString = self.safe_string(trade, 'price')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         # Amount for inverse perpetual and futures is in USD which in ccxt is the cost
         # For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         amount = self.safe_string(trade, 'amount')
         cost = Precise.string_mul(amount, priceString)
-        if marketResolved['inverse'] is True:
+        if market['inverse'] is True:
             cost = Precise.string_div(amount, priceString)
         liquidity = self.safe_string(trade, 'liquidity')
         takerOrMaker = None
@@ -1585,7 +1584,7 @@ class deribit(Exchange, ImplicitAPI):
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }, marketResolved)
+        }, market)
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -1613,14 +1612,14 @@ class deribit(Exchange, ImplicitAPI):
         if limit is not None:
             request['count'] = min(limit, 1000)  # default 10
         until = self.safe_integer_2(params, 'until', 'end_timestamp')
-        paramsOmitted = self.omit(params, ['until']) if (until is not None) else params
         if until is not None:
+            params = self.omit(params, ['until'])
             request['end_timestamp'] = until
         response = None
         if (since is None) and not ('end_timestamp' in request):
-            response = await self.publicGetGetLastTradesByInstrument(self.extend(request, paramsOmitted))
+            response = await self.publicGetGetLastTradesByInstrument(self.extend(request, params))
         else:
-            response = await self.publicGetGetLastTradesByInstrumentAndTime(self.extend(request, paramsOmitted))
+            response = await self.publicGetGetLastTradesByInstrumentAndTime(self.extend(request, params))
         #
         #      {
         #          "jsonrpc":"2.0",
@@ -1887,7 +1886,7 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(order, 'instrument_name')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(order, 'creation_timestamp')
         lastUpdate = self.safe_integer(order, 'last_update_timestamp')
         id = self.safe_string(order, 'order_id')
@@ -1900,7 +1899,7 @@ class deribit(Exchange, ImplicitAPI):
         filledString = self.safe_string(order, 'filled_amount')
         amount = self.safe_string(order, 'amount')
         cost = Precise.string_mul(filledString, averageString)
-        if self.safe_bool(marketResolved, 'inverse', False):
+        if self.safe_bool(market, 'inverse') is True:
             if averageString != '0':
                 cost = Precise.string_div(amount, averageString)
         lastTradeTimestamp = None
@@ -1916,7 +1915,7 @@ class deribit(Exchange, ImplicitAPI):
             feeCostString = Precise.string_abs(feeCostString)
             fee = {
                 'cost': feeCostString,
-                'currency': marketResolved['base'],
+                'currency': market['base'],
             }
         rawType = self.safe_string(order, 'order_type')
         type = self.parse_order_type(rawType)
@@ -1931,13 +1930,13 @@ class deribit(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
             'price': priceString,
-            'triggerPrice': self.safe_number(order, 'stop_price'),
+            'triggerPrice': self.safe_value(order, 'stop_price'),
             'amount': amount,
             'cost': cost,
             'average': averageString,
@@ -1946,7 +1945,7 @@ class deribit(Exchange, ImplicitAPI):
             'status': status,
             'fee': fee,
             'trades': trades,
-        }, marketResolved)
+        }, market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -2036,7 +2035,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         trigger = self.safe_string(params, 'trigger', 'last_price')
         timeInForce = self.safe_string_upper(params, 'timeInForce')
-        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
+        reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
         # only stop loss sell orders are allowed when price crossed from above
         stopLossPrice = self.safe_value(params, 'stopLossPrice')
         # only take profit buy orders are allowed when price crossed from below
@@ -2095,12 +2094,12 @@ class deribit(Exchange, ImplicitAPI):
                 request['time_in_force'] = 'immediate_or_cancel'
             if timeInForce == 'FOK':
                 request['time_in_force'] = 'fill_or_kill'
-        paramsOmitted = self.omit(params, ['timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'trailingAmount'])
+        params = self.omit(params, ['timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'trailingAmount'])
         response = None
         if self.capitalize(side) == 'Buy':
-            response = await self.privateGetBuy(self.extend(request, paramsOmitted))
+            response = await self.privateGetBuy(self.extend(request, params))
         else:
-            response = await self.privateGetSell(self.extend(request, paramsOmitted))
+            response = await self.privateGetSell(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -2192,12 +2191,10 @@ class deribit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trigger_offset')
         isTrailingAmountOrder = trailingAmount is not None
-        paramsOmitted = params
-        if isTrailingAmountOrder:
-            paramsOmitted = self.omit(params, 'trigger_offset')
         if isTrailingAmountOrder:
             request['trigger_offset'] = self.parse_to_numeric(trailingAmount)
-        response = await self.privateGetEdit(self.extend(request, paramsOmitted))
+            params = self.omit(params, 'trigger_offset')
+        response = await self.privateGetEdit(self.extend(request, params))
         result = self.safe_dict(response, 'result', {})
         order = self.safe_value(result, 'order')
         trades = self.safe_list(result, 'trades', [])
@@ -2659,7 +2656,7 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         contract = self.safe_string(position, 'instrument_name')
-        marketResolved = self.safe_market(contract, market)
+        market = self.safe_market(contract, market)
         side = self.safe_string(position, 'direction')
         side = 'long' if (side == 'buy') else 'short'
         unrealizedPnl = self.safe_string(position, 'floating_profit_loss')
@@ -2670,7 +2667,7 @@ class deribit(Exchange, ImplicitAPI):
         return self.safe_position({
             'info': position,
             'id': None,
-            'symbol': self.safe_string(marketResolved, 'symbol'),
+            'symbol': self.safe_string(market, 'symbol'),
             'timestamp': None,
             'datetime': None,
             'lastUpdateTimestamp': None,
@@ -2761,11 +2758,11 @@ class deribit(Exchange, ImplicitAPI):
             await self.load_markets()
         code = self.safe_string(params, 'currency')
         request = {}
-        paramsOmitted = self.omit(params, 'currency') if (code is not None) else params
         if code is not None:
+            params = self.omit(params, 'currency')
             currency = self.currency(code)
             request['currency'] = currency['id']
-        response = await self.privateGetGetPositions(self.extend(request, paramsOmitted))
+        response = await self.privateGetGetPositions(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -2942,15 +2939,15 @@ class deribit(Exchange, ImplicitAPI):
             'destination': toAccount,
         }
         method = self.safe_string(params, 'method')
-        paramsOmitted = self.omit(params, 'method')
+        params = self.omit(params, 'method')
         if method is None:
             transferOptions = self.safe_dict(self.options, 'transfer', {})
             method = self.safe_string(transferOptions, 'method', 'privateGetSubmitTransferToSubaccount')
         response = None
         if method == 'privateGetSubmitTransferToUser':
-            response = await self.privateGetSubmitTransferToUser(self.extend(request, paramsOmitted))
+            response = await self.privateGetSubmitTransferToUser(self.extend(request, params))
         else:
-            response = await self.privateGetSubmitTransferToSubaccount(self.extend(request, paramsOmitted))
+            response = await self.privateGetSubmitTransferToSubaccount(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -3024,8 +3021,7 @@ class deribit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagAndParams = self.handle_withdraw_tag_and_params(tag, params)
-        paramsWithdrawTag = tagAndParams[1]
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         if self.markets is None:
             await self.load_markets()
@@ -3039,7 +3035,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         if self.twofa is not None:
             request['tfa'] = self.totp(self.twofa)
-        response = await self.privateGetWithdraw(self.extend(request, paramsWithdrawTag))
+        response = await self.privateGetWithdraw(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
     def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
@@ -3106,7 +3102,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'result', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    async def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
+    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
 
@@ -3157,38 +3153,38 @@ class deribit(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         maxEntriesPerRequest = 744  # seems exchange returns max 744 items per request
         eachItemDuration = '1h'
         if paginate:
             # fix for: https://github.com/ccxt/ccxt/issues/25040
-            paginationParams = self.extend(paramsPaginate, {'isDeribitPaginationCall': True})
+            paginationParams = self.extend(params, {'isDeribitPaginationCall': True})
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest)
         duration = self.parse_timeframe(eachItemDuration) * 1000
-        now = self.milliseconds()
+        time = self.milliseconds()
         month = 30 * 24 * 60 * 60 * 1000
-        sinceResolved = now - month if (since is None) else since
-        time = now if (since is None) else since + month
+        if since is None:
+            since = time - month
+        else:
+            time = since + month
         request = {
             'instrument_name': market['id'],
-            'start_timestamp': sinceResolved - 1,
+            'start_timestamp': since - 1,
         }
-        until = self.safe_integer_2(paramsPaginate, 'until', 'end_timestamp')
-        paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
+        until = self.safe_integer_2(params, 'until', 'end_timestamp')
         if until is not None:
+            params = self.omit(params, ['until'])
             request['end_timestamp'] = until
         else:
             request['end_timestamp'] = time
-        isPaginationCall = ('isDeribitPaginationCall' in paramsUntil)
-        paramsOmitted = paramsUntil
-        if isPaginationCall:
-            paramsOmitted = self.omit(paramsUntil, 'isDeribitPaginationCall')
-        if isPaginationCall:
+        if 'isDeribitPaginationCall' in params:
+            params = self.omit(params, 'isDeribitPaginationCall')
             if limit is None:
                 raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a limit argument')
-            maxUntil = self.sum(sinceResolved, limit * duration)
+            maxUntil = self.sum(since, limit * duration)
             request['end_timestamp'] = min(request['end_timestamp'], maxUntil)
-        response = await self.publicGetGetFundingRateHistory(self.extend(request, paramsOmitted))
+        response = await self.publicGetGetFundingRateHistory(self.extend(request, params))
         #
         #    {
         #        "jsonrpc": "2.0",
@@ -3207,10 +3203,10 @@ class deribit(Exchange, ImplicitAPI):
         rates = []
         result = self.safe_list(response, 'result', [])
         for i in range(0, len(result)):
-            fr = self.safe_dict(result, i)
+            fr = result[i]
             rate = self.parse_funding_rate(fr, market)
             rates.append(rate)
-        return self.filter_by_symbol_since_limit(rates, symbol, sinceResolved, limit)
+        return self.filter_by_symbol_since_limit(rates, symbol, since, limit)
 
     def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
@@ -3270,9 +3266,10 @@ class deribit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchLiquidations', 'paginate', False)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchLiquidations', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchLiquidations', symbol, since, limit, paramsPaginate, 'continuation', 'continuation', None)
+            return await self.fetch_paginated_call_cursor('fetchLiquidations', symbol, since, limit, params, 'continuation', 'continuation', None)
         market = self.market(symbol)
         if market['spot'] is True:
             raise NotSupported(self.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets')
@@ -3284,7 +3281,7 @@ class deribit(Exchange, ImplicitAPI):
             request['search_start_timestamp'] = since
         if limit is not None:
             request['count'] = limit
-        response = await self.publicGetGetLastSettlementsByInstrument(self.extend(request, paramsPaginate))
+        response = await self.publicGetGetLastSettlementsByInstrument(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -3672,14 +3669,14 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(chain, 'instrument_name')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         currencyId = self.safe_string(chain, 'base_currency')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = self.safe_integer(chain, 'timestamp')
         return {
             'info': chain,
             'currency': code,
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'impliedVolatility': None,
@@ -3777,27 +3774,27 @@ class deribit(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(interest, 'creation_timestamp')
         marketId = self.safe_string(interest, 'instrument_name')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         openInterest = self.safe_number(interest, 'open_interest')
         openInterestAmount = None
         openInterestValue = None
-        if (marketResolved['option'] is True) or ((marketResolved['future'] is True) and (marketResolved['linear'] is True)):
+        if (market['option'] is True) or ((market['future'] is True) and (market['linear'] is True)):
             openInterestAmount = openInterest
         else:
             openInterestValue = openInterest
         return self.safe_open_interest({
-            'symbol': self.safe_symbol(marketId, marketResolved),
+            'symbol': self.safe_symbol(marketId, market),
             'openInterestAmount': openInterestAmount,
             'openInterestValue': openInterestValue,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }, marketResolved)
+        }, market)
 
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         request = '/' + 'api/' + self.version + '/' + api + '/' + path
         if api == 'public':
             if len(params) > 0:
@@ -3812,18 +3809,10 @@ class deribit(Exchange, ImplicitAPI):
             requestData = method + "\n" + request + "\n" + requestBody + "\n"  # eslint-disable-line quotes
             auth = timestamp + "\n" + nonce + "\n" + requestData  # eslint-disable-line quotes
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            signedHeaders = {
+            headers = {
                 'Authorization': 'deri-hmac-sha256 id=' + self.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             }
-            baseApiUrl = self.safe_string(self.urls['api'], 'rest')
-            if baseApiUrl is None:
-                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-            signedUrl = baseApiUrl + request
-            return {'url': signedUrl, 'method': method, 'body': body, 'headers': signedHeaders}
-        apiUrl = self.safe_string(self.urls['api'], 'rest')
-        if apiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl + request
+        url = self.urls['api']['rest'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

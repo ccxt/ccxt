@@ -929,20 +929,17 @@ export default class bit2c extends Exchange {
         let fee = undefined;
         let side;
         let makerOrTaker = undefined;
-        let tradeMarket = undefined;
         const reference = this.safeString(trade, 'reference');
         if (reference !== undefined) {
             id = reference;
             timestamp = this.safeTimestamp(trade, 'ticks');
-            const rawPrice = this.safeString(trade, 'price');
-            if (rawPrice !== undefined) {
-                price = this.removeCommaFromValue(rawPrice);
-            }
+            price = this.safeString(trade, 'price');
+            price = this.removeCommaFromValue(price);
             amount = this.safeString(trade, 'firstAmount');
             const reference_parts = reference.split('|'); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             const marketId = this.safeString(trade, 'pair');
-            const marketByPair = this.safeMarket(marketId, market);
-            tradeMarket = this.safeMarket(reference_parts[0], marketByPair);
+            market = this.safeMarket(marketId, market);
+            market = this.safeMarket(reference_parts[0], market);
             const isMaker = this.safeBool(trade, 'isMaker');
             makerOrTaker = (isMaker === true) ? 'maker' : 'taker';
             orderId = (isMaker === true) ? reference_parts[2] : reference_parts[1];
@@ -966,7 +963,6 @@ export default class bit2c extends Exchange {
             id = this.safeString(trade, 'tid');
             price = this.safeString(trade, 'price');
             amount = this.safeString(trade, 'amount');
-            tradeMarket = this.safeMarket(undefined, market);
             side = this.safeValue(trade, 'isBid');
             if (side !== undefined) {
                 if ((side !== undefined) && (side !== '')) {
@@ -977,13 +973,13 @@ export default class bit2c extends Exchange {
                 }
             }
         }
-        const marketResolved = this.safeMarket(undefined, tradeMarket);
+        market = this.safeMarket(undefined, market);
         return this.safeTrade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'order': orderId,
             'type': undefined,
             'side': side,
@@ -992,7 +988,7 @@ export default class bit2c extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, marketResolved);
+        }, market);
     }
     isFiat(code) {
         return code === 'NIS';
@@ -1048,13 +1044,7 @@ export default class bit2c extends Exchange {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], 'rest');
-        if (apiUrl === undefined) {
-            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        let url = apiUrl + '/' + this.implodeParams(path, params);
-        let requestBody = undefined;
-        let requestHeaders = undefined;
+        let url = this.urls['api']['rest'] + '/' + this.implodeParams(path, params);
         if (api === 'public') {
             url += '.json';
         }
@@ -1072,18 +1062,16 @@ export default class bit2c extends Exchange {
                 }
             }
             else {
-                requestBody = auth;
+                body = auth;
             }
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512, 'base64');
-            requestHeaders = {
+            headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,
                 'sign': signature,
             };
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
-        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

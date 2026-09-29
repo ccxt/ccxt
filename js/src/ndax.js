@@ -523,10 +523,7 @@ export default class ndax extends Exchange {
         const id = this.safeString(rawCurrency, 'ProductId');
         const code = this.safeCurrencyCode(this.safeString(rawCurrency, 'Product'));
         const ProductType = this.safeString(rawCurrency, 'ProductType');
-        let type = 'crypto';
-        if (ProductType === 'NationalCurrency') {
-            type = 'fiat';
-        }
+        let type = (ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
         if (ProductType === 'Unknown') {
             // such currency is just a blanket entry
             type = 'other';
@@ -538,7 +535,7 @@ export default class ndax extends Exchange {
             'type': type,
             'precision': this.safeNumber(rawCurrency, 'TickSize'),
             'info': rawCurrency,
-            'active': (!this.safeBool(rawCurrency, 'IsDisabled', false)),
+            'active': (this.safeBool(rawCurrency, 'IsDisabled') !== true),
             'deposit': this.safeBool(rawCurrency, 'DepositEnabled'),
             'withdraw': this.safeBool(rawCurrency, 'WithdrawEnabled'),
             'fee': undefined,
@@ -625,9 +622,6 @@ export default class ndax extends Exchange {
         const quoteId = this.safeString(market, 'Product2');
         const base = this.safeCurrencyCode(this.safeString(market, 'Product1Symbol'));
         const quote = this.safeCurrencyCode(this.safeString(market, 'Product2Symbol'));
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         const sessionStatus = this.safeString(market, 'SessionStatus');
         const isDisable = this.safeBool(market, 'IsDisable');
         const sessionRunning = (sessionStatus === 'Running');
@@ -683,7 +677,6 @@ export default class ndax extends Exchange {
     }
     parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8, countOrIdKey = 2) {
         let nonce = undefined;
-        let latestTimestamp = timestamp;
         const result = {
             'symbol': symbol,
             'bids': [],
@@ -694,13 +687,13 @@ export default class ndax extends Exchange {
         };
         for (let i = 0; i < orderbook.length; i++) {
             const level = orderbook[i];
-            if (latestTimestamp === undefined) {
-                latestTimestamp = this.safeInteger(level, 2);
+            if (timestamp === undefined) {
+                timestamp = this.safeInteger(level, 2);
             }
             else {
                 const newTimestamp = this.safeInteger(level, 2);
                 if (newTimestamp !== undefined) {
-                    latestTimestamp = Math.max(latestTimestamp, newTimestamp);
+                    timestamp = Math.max(timestamp, newTimestamp);
                 }
             }
             if (nonce === undefined) {
@@ -719,8 +712,8 @@ export default class ndax extends Exchange {
         }
         result['bids'] = this.sortBy(result['bids'], 0, true);
         result['asks'] = this.sortBy(result['asks'], 0);
-        result['timestamp'] = latestTimestamp;
-        result['datetime'] = this.iso8601(latestTimestamp);
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601(timestamp);
         result['nonce'] = nonce;
         return result;
     }
@@ -740,11 +733,11 @@ export default class ndax extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const limitValue = (limit === undefined) ? 100 : limit; // default 100
+        limit = (limit === undefined) ? 100 : limit; // default 100
         const request = {
             'omsId': omsId,
             'InstrumentId': market['id'],
-            'Depth': limitValue, // default 100
+            'Depth': limit, // default 100
         };
         const response = await this.publicGetGetL2Snapshot(this.extend(request, params));
         //
@@ -823,8 +816,8 @@ export default class ndax extends Exchange {
         if (marketId === undefined) {
             marketId = this.safeString(ticker, 'trading_pairs');
         }
-        const marketResolved = this.safeMarket(marketId, market, '_');
-        const symbol = this.safeSymbol(marketId, marketResolved);
+        market = this.safeMarket(marketId, market, '_');
+        const symbol = this.safeSymbol(marketId, market);
         const last = this.safeString2(ticker, 'LastTradedPx', 'last_price');
         const percentage = this.safeString2(ticker, 'Rolling24HrPxChangePercent', 'price_change_percent_24h');
         const change = this.safeString(ticker, 'Rolling24HrPxChange');
@@ -852,7 +845,7 @@ export default class ndax extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -867,7 +860,7 @@ export default class ndax extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         const response = await this.publicGetSummary(params);
         //
         //     [
@@ -885,7 +878,7 @@ export default class ndax extends Exchange {
         //     ]
         //
         const tickers = this.parseTickers(response);
-        return this.filterByArrayTickers(tickers, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers(tickers, 'symbol', symbols);
     }
     /**
      * @method
@@ -1264,7 +1257,7 @@ export default class ndax extends Exchange {
             'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict(response, i);
+            const balance = response[i];
             const currencyId = this.safeString(balance, 'ProductId');
             if ((currencyId !== undefined) && (this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id)) {
                 const code = this.safeCurrencyCode(currencyId);
@@ -1297,12 +1290,12 @@ export default class ndax extends Exchange {
         if (accountId === undefined) {
             accountId = this.parseToInt(this.accounts[0]['id']);
         }
-        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
+        params = this.omit(params, ['accountId', 'AccountId']);
         const request = {
             'omsId': omsId,
             'AccountId': accountId,
         };
-        const response = await this.privateGetGetAccountPositions(this.extend(request, paramsOmitted));
+        const response = await this.privateGetGetAccountPositions(this.extend(request, params));
         //
         //     [
         //         {
@@ -1372,7 +1365,7 @@ export default class ndax extends Exchange {
         //     }
         //
         const currencyId = this.safeString(item, 'ProductId');
-        const currencyResolved = this.safeCurrency(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const credit = this.safeString(item, 'CR');
         const debit = this.safeString(item, 'DR');
         let amount = undefined;
@@ -1402,7 +1395,7 @@ export default class ndax extends Exchange {
             'referenceId': this.safeString(item, 'ReferenceId'),
             'referenceAccount': this.safeString(item, 'Counterparty'),
             'type': this.parseLedgerEntryType(this.safeString(item, 'ReferenceType')),
-            'currency': this.safeCurrencyCode(currencyId, currencyResolved),
+            'currency': this.safeCurrencyCode(currencyId, currency),
             'amount': this.parseNumber(amount),
             'before': this.parseNumber(before),
             'after': this.parseNumber(after),
@@ -1410,7 +1403,7 @@ export default class ndax extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'fee': undefined,
-        }, currencyResolved);
+        }, currency);
     }
     /**
      * @method
@@ -1431,7 +1424,7 @@ export default class ndax extends Exchange {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
+        params = this.omit(params, ['accountId', 'AccountId']);
         const request = {
             'omsId': omsId,
             'AccountId': accountId,
@@ -1439,7 +1432,7 @@ export default class ndax extends Exchange {
         if (limit !== undefined) {
             request['Depth'] = limit;
         }
-        const response = await this.privateGetGetAccountTransactions(this.extend(request, paramsOmitted));
+        const response = await this.privateGetGetAccountTransactions(this.extend(request, params));
         //
         //     [
         //         {
@@ -1606,7 +1599,7 @@ export default class ndax extends Exchange {
                 orderType = 4;
             }
         }
-        const paramsOmitted = this.omit(params, ['accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice']);
+        params = this.omit(params, ['accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice']);
         const market = this.market(symbol);
         const orderSide = (side === 'buy') ? 0 : 1;
         const amountString = this.amountToPrecision(symbol, amount);
@@ -1642,7 +1635,7 @@ export default class ndax extends Exchange {
         if (triggerPrice !== undefined) {
             request['StopPrice'] = triggerPrice;
         }
-        const response = await this.privatePostSendOrder(this.extend(request, paramsOmitted));
+        const response = await this.privatePostSendOrder(this.extend(request, params));
         //
         //     {
         //         "status":"Accepted",
@@ -1675,7 +1668,7 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
         const clientOrderId = this.safeInteger2(params, 'ClientOrderId', 'clientOrderId');
-        const paramsOmitted = this.omit(params, ['accountId', 'AccountId', 'clientOrderId', 'ClientOrderId']);
+        params = this.omit(params, ['accountId', 'AccountId', 'clientOrderId', 'ClientOrderId']);
         const market = this.market(symbol);
         const orderSide = (side === 'buy') ? 0 : 1;
         const amountString = this.amountToPrecision(symbol, amount);
@@ -1709,7 +1702,7 @@ export default class ndax extends Exchange {
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
         }
-        const response = await this.privatePostCancelReplaceOrder(this.extend(request, paramsOmitted));
+        const response = await this.privatePostCancelReplaceOrder(this.extend(request, params));
         //
         //     {
         //         "replacementOrderId": 1234,
@@ -1739,7 +1732,7 @@ export default class ndax extends Exchange {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
+        params = this.omit(params, ['accountId', 'AccountId']);
         const request = {
             'omsId': omsId,
             'AccountId': accountId,
@@ -1764,7 +1757,7 @@ export default class ndax extends Exchange {
         if (limit !== undefined) {
             request['Depth'] = limit;
         }
-        const response = await this.privateGetGetTradesHistory(this.extend(request, paramsOmitted));
+        const response = await this.privateGetGetTradesHistory(this.extend(request, params));
         //
         //     [
         //         {
@@ -1827,7 +1820,7 @@ export default class ndax extends Exchange {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
+        params = this.omit(params, ['accountId', 'AccountId']);
         const request = {
             'omsId': omsId,
             'AccountId': accountId,
@@ -1836,7 +1829,7 @@ export default class ndax extends Exchange {
             const market = this.market(symbol);
             request['IntrumentId'] = market['id'];
         }
-        const response = await this.privatePostCancelAllOrders(this.extend(request, paramsOmitted));
+        const response = await this.privatePostCancelAllOrders(this.extend(request, params));
         //
         //     {
         //         "result":true,
@@ -1886,8 +1879,8 @@ export default class ndax extends Exchange {
         else {
             request['OrderId'] = parseInt(id);
         }
-        const paramsOmitted = this.omit(params, ['clientOrderId', 'ClOrderId']);
-        const response = await this.privatePostCancelOrder(this.extend(request, paramsOmitted));
+        params = this.omit(params, ['clientOrderId', 'ClOrderId']);
+        const response = await this.privatePostCancelOrder(this.extend(request, params));
         const order = this.parseOrder(response, market);
         return this.extend(order, {
             'id': id,
@@ -1913,7 +1906,7 @@ export default class ndax extends Exchange {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
+        params = this.omit(params, ['accountId', 'AccountId']);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1922,7 +1915,7 @@ export default class ndax extends Exchange {
             'omsId': omsId,
             'AccountId': accountId,
         };
-        const response = await this.privateGetGetOpenOrders(this.extend(request, paramsOmitted));
+        const response = await this.privateGetGetOpenOrders(this.extend(request, params));
         //
         //     [
         //         {
@@ -1994,7 +1987,7 @@ export default class ndax extends Exchange {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
+        params = this.omit(params, ['accountId', 'AccountId']);
         const request = {
             'omsId': omsId,
             'AccountId': accountId,
@@ -2019,7 +2012,7 @@ export default class ndax extends Exchange {
         if (limit !== undefined) {
             request['Depth'] = limit;
         }
-        const response = await this.privateGetGetOrdersHistory(this.extend(request, paramsOmitted));
+        const response = await this.privateGetGetOrdersHistory(this.extend(request, params));
         //
         //     [
         //         {
@@ -2090,7 +2083,7 @@ export default class ndax extends Exchange {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
+        params = this.omit(params, ['accountId', 'AccountId']);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2100,7 +2093,7 @@ export default class ndax extends Exchange {
             'AccountId': accountId,
             'OrderId': parseInt(id),
         };
-        const response = await this.privateGetGetOrderStatus(this.extend(request, paramsOmitted));
+        const response = await this.privateGetGetOrderStatus(this.extend(request, params));
         //
         //     {
         //         "Side":"Sell",
@@ -2252,7 +2245,7 @@ export default class ndax extends Exchange {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
+        params = this.omit(params, ['accountId', 'AccountId']);
         const currency = this.currency(code);
         const request = {
             'omsId': omsId,
@@ -2260,7 +2253,7 @@ export default class ndax extends Exchange {
             'ProductId': currency['id'],
             'GenerateNewKey': false,
         };
-        const response = await this.privateGetGetDepositInfo(this.extend(request, paramsOmitted));
+        const response = await this.privateGetGetDepositInfo(this.extend(request, params));
         //
         //     {
         //         "result":true,
@@ -2299,7 +2292,7 @@ export default class ndax extends Exchange {
         const tag = this.safeString(parts, 1);
         let code = undefined;
         if (currency !== undefined) {
-            code = this.safeString(currency, 'code');
+            code = currency['code'];
         }
         this.checkAddress(address);
         return {
@@ -2343,7 +2336,7 @@ export default class ndax extends Exchange {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
+        params = this.omit(params, ['accountId', 'AccountId']);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2352,7 +2345,7 @@ export default class ndax extends Exchange {
             'omsId': omsId,
             'AccountId': accountId,
         };
-        const response = await this.privateGetGetDeposits(this.extend(request, paramsOmitted));
+        const response = await this.privateGetGetDeposits(this.extend(request, params));
         //
         //    "[
         //        {
@@ -2405,7 +2398,7 @@ export default class ndax extends Exchange {
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
+        params = this.omit(params, ['accountId', 'AccountId']);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2414,7 +2407,7 @@ export default class ndax extends Exchange {
             'omsId': omsId,
             'AccountId': accountId,
         };
-        const response = await this.privateGetGetWithdraws(this.extend(request, paramsOmitted));
+        const response = await this.privateGetGetWithdraws(this.extend(request, params));
         //
         //     [
         //         {
@@ -2603,7 +2596,7 @@ export default class ndax extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         // this method required login, password and twofa key
         const sessionToken = this.safeString(this.options, 'sessionToken');
         if (sessionToken === undefined) {
@@ -2619,8 +2612,8 @@ export default class ndax extends Exchange {
         }
         await this.loadAccounts();
         const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
-        const accountId = this.safeInteger2(paramsWithdrawTag, 'accountId', 'AccountId', defaultAccountId);
-        const paramsOmitted = this.omit(paramsWithdrawTag, ['accountId', 'AccountId']);
+        const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
+        params = this.omit(params, ['accountId', 'AccountId']);
         const currency = this.currency(code);
         const withdrawTemplateTypesRequest = {
             'omsId': omsId,
@@ -2668,9 +2661,9 @@ export default class ndax extends Exchange {
         }
         const withdrawTemplate = JSON.parse(template);
         withdrawTemplate['ExternalAddress'] = address;
-        if (tagWithdrawTag !== undefined) {
+        if (tag !== undefined) {
             if ('Memo' in withdrawTemplate) {
-                withdrawTemplate['Memo'] = tagWithdrawTag;
+                withdrawTemplate['Memo'] = tag;
             }
         }
         const withdrawPayload = {
@@ -2685,26 +2678,20 @@ export default class ndax extends Exchange {
             'TFaCode': totp(this.twofa),
             'Payload': this.json(withdrawPayload),
         };
-        const response = await this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, paramsOmitted));
+        const response = await this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, params));
         return this.parseTransaction(response, currency);
     }
     nonce() {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let bodySigned = undefined;
-        let headersSigned = undefined;
-        const apiUrl = this.safeString(this.urls['api'], api);
-        if (apiUrl === undefined) {
-            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        let url = apiUrl + '/' + this.implodeParams(path, params);
+        let url = this.urls['api'][api] + '/' + this.implodeParams(path, params);
         let query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
             if (path === 'Authenticate') {
                 const auth = this.login + ':' + this.password;
                 const auth64 = this.stringToBase64(auth);
-                headersSigned = {
+                headers = {
                     'Authorization': 'Basic ' + auth64,
                     // 'Content-Type': 'application/json',
                 };
@@ -2712,7 +2699,7 @@ export default class ndax extends Exchange {
             else if (path === 'Authenticate2FA') {
                 const pending2faToken = this.safeString(this.options, 'pending2faToken');
                 if (pending2faToken !== undefined) {
-                    headersSigned = {
+                    headers = {
                         'Pending2FaToken': pending2faToken,
                         // 'Content-Type': 'application/json',
                     };
@@ -2730,7 +2717,7 @@ export default class ndax extends Exchange {
                 const nonce = this.nonce().toString();
                 const auth = nonce + this.uid + this.apiKey;
                 const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-                headersSigned = {
+                headers = {
                     'Nonce': nonce,
                     'APIKey': this.apiKey,
                     'Signature': signature,
@@ -2738,13 +2725,13 @@ export default class ndax extends Exchange {
                 };
             }
             else {
-                headersSigned = {
+                headers = {
                     'APToken': sessionToken,
                 };
             }
             if (method === 'POST') {
-                headersSigned['Content-Type'] = 'application/json';
-                bodySigned = this.json(query);
+                headers['Content-Type'] = 'application/json';
+                body = this.json(query);
             }
             else {
                 if (Object.keys(query).length > 0) {
@@ -2752,9 +2739,7 @@ export default class ndax extends Exchange {
                 }
             }
         }
-        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
-        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (code === 404) {

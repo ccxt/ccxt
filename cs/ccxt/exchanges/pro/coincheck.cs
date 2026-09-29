@@ -69,7 +69,7 @@ public partial class coincheck : ccxt.coincheck
             { "channel", add((market.ContainsKey("id") ? market["id"] : null), "-orderbook") },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, message, messageHash));
+        object orderbook = await this.watch(url, messageHash, message, messageHash);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -98,19 +98,19 @@ public partial class coincheck : ccxt.coincheck
         string? symbol = this.symbol(this.safeString(message, 0));
         IDictionary<string, object> data = this.safeDict(message, 1, new Dictionary<string, object>() {});
         Int64? timestamp = this.safeTimestamp(data, "last_update_at");
-        ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp);
-        ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
+        Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(data, symbol, timestamp));
+        object orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
         {
-            orderbook = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
+            orderbook = this.orderBook(snapshot);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         } else
         {
             orderbook = this.getOrderBook(this.orderbooks, symbol);
-            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
+            (orderbook as IOrderBook).reset(snapshot);
         }
         string messageHash = ("orderbook:" + symbol);
-        client.resolve(orderbook, messageHash);
+        (client as WebSocketClient).resolve(orderbook, messageHash);
     }
 
     /**
@@ -126,13 +126,15 @@ public partial class coincheck : ccxt.coincheck
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        Dictionary<string, object> market = this.market(symbolVar);
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = ("trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -140,13 +142,12 @@ public partial class coincheck : ccxt.coincheck
             { "channel", add((market.ContainsKey("id") ? market["id"] : null), "-trades") },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, messageHash));
-        Int64? limitResolved = limit;
+        object trades = await this.watch(url, messageHash, message, messageHash);
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
@@ -167,24 +168,24 @@ public partial class coincheck : ccxt.coincheck
         //
         List<object> first = this.safeList(message, 0, new List<object>() {});
         string? symbol = this.symbol(this.safeString(first, 2));
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
+        object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            this.trades[(string)symbol] = stored;
+            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         for (int i = 0; i < getArrayLength(message); i++)
         {
             object data = this.safeValue(message, i);
-            ccxt.Trade trade = this.parseWsTrade(data);
-            stored.append(ccxt.BaseExchange.FromTrade(trade));
+            Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data));
+            callDynamically(stored, "append", new object[] {trade});
         }
         string messageHash = ("trade:" + symbol);
-        client.resolve(stored, messageHash);
+        (client as WebSocketClient).resolve(stored, messageHash);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override object parseWsTrade(object trade, object market = null)
     {
         //
         //     [
@@ -225,10 +226,10 @@ public partial class coincheck : ccxt.coincheck
         object data = this.safeValue(message, 0);
         if (!((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            this.handleOrderBook(client, message);
+            this.handleOrderBook(client as WebSocketClient, message);
         } else
         {
-            this.handleTrades(client, message);
+            this.handleTrades(client as WebSocketClient, message);
         }
     }
 }

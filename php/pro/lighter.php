@@ -66,7 +66,7 @@ class lighter extends \ccxt\async\lighter {
         ));
     }
 
-    public function get_message_hash(string $unifiedChannel, ?string $symbol = null, ?string $extra = null): string {
+    public function get_message_hash(string $unifiedChannel, ?string $symbol = null, ?string $extra = null) {
         $hash = $unifiedChannel;
         if ($symbol !== null) {
             $hash .= '::' . $symbol;
@@ -228,11 +228,11 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         $request = array(
             'channel' => 'order_book/' . $market['id'],
         );
-        $messageHash = $this->get_message_hash('orderbook', $symbolValue);
+        $messageHash = $this->get_message_hash('orderbook', $symbol);
         $orderbook = Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
         return $orderbook->limit();
     }
@@ -255,11 +255,11 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         $request = array(
             'channel' => 'order_book/' . $market['id'],
         );
-        $subMessageHash = $this->get_message_hash('orderbook', $symbolValue);
+        $subMessageHash = $this->get_message_hash('orderbook', $symbol);
         $messageHash = 'unsubscribe:' . $subMessageHash;
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
@@ -357,14 +357,14 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' watchTicker() is only supported for swap markets');
         }
         $request = array(
             'channel' => 'market_stats/' . $market['id'],
         );
-        $messageHash = $this->get_message_hash('ticker', $symbolValue);
+        $messageHash = $this->get_message_hash('ticker', $symbol);
         return Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
     }
 
@@ -386,14 +386,14 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' unWatchTicker() is only supported for swap markets');
         }
         $request = array(
             'channel' => 'market_stats/' . $market['id'],
         );
-        $subMessageHash = $this->get_message_hash('ticker', $symbolValue);
+        $subMessageHash = $this->get_message_hash('ticker', $symbol);
         $messageHash = 'unsubscribe:' . $subMessageHash;
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
@@ -415,8 +415,8 @@ class lighter extends \ccxt\async\lighter {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, true, true);
-        $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
+        $symbols = $this->market_symbols($symbols, null, true, true);
+        $firstMarket = $this->get_market_from_symbols($symbols);
         if (($firstMarket !== null) && ($firstMarket['swap'] !== true)) {
             throw new NotSupported($this->id . ' watchTickers() is only supported for swap markets');
         }
@@ -425,27 +425,24 @@ class lighter extends \ccxt\async\lighter {
         );
         $messageHashes = array();
         $symbolsLength = 0;
-        if ($symbolsNormalized !== null) {
-            $symbolsLength = count($symbolsNormalized);
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
         }
-        if (($symbolsNormalized === null) || ($symbolsLength === 0)) {
+        if (($symbols === null) || ($symbolsLength === 0)) {
             $messageHashes[] = $this->get_message_hash('ticker');
         } else {
-            for ($i = 0; $i < count($symbolsNormalized); $i++) {
-                $symbol = $symbolsNormalized[$i];
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
                 $messageHashes[] = $this->get_message_hash('ticker', $symbol);
             }
         }
         $newTicker = Async\await($this->subscribe_public_multiple($messageHashes, $this->extend($request, $params)));
         if ($this->newUpdates) {
             $result = array();
-            $newTickerSymbol = $this->safe_string($newTicker, 'symbol');
-            if ($newTickerSymbol !== null) {
-                $result[$newTickerSymbol] = $newTicker;
-            }
+            $result[$newTicker['symbol']] = $newTicker;
             return $result;
         }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
     public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -465,8 +462,8 @@ class lighter extends \ccxt\async\lighter {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, true, true);
-        $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
+        $symbols = $this->market_symbols($symbols, null, true, true);
+        $firstMarket = $this->get_market_from_symbols($symbols);
         if (($firstMarket !== null) && ($firstMarket['swap'] !== true)) {
             throw new NotSupported($this->id . ' unWatchTickers() is only supported for swap markets');
         }
@@ -564,10 +561,7 @@ class lighter extends \ccxt\async\lighter {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'size');
         $isMakerAsk = $this->safe_bool($trade, 'is_maker_ask');
-        $side = 'sell';
-        if ($isMakerAsk === true) {
-            $side = 'buy';
-        }
+        $side = ($isMakerAsk === true) ? 'buy' : 'sell';
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $tradeId,
@@ -672,7 +666,7 @@ class lighter extends \ccxt\async\lighter {
         $request = array(
             'channel' => 'trade/' . $market['id'],
         );
-        $messageHash = $this->get_message_hash('trade', $this->safe_string($market, 'symbol'));
+        $messageHash = $this->get_message_hash('trade', $market['symbol']);
         $trades = Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
@@ -698,7 +692,7 @@ class lighter extends \ccxt\async\lighter {
         $request = array(
             'channel' => 'trade/' . $market['id'],
         );
-        $subMessageHash = $this->get_message_hash('trade', $this->safe_string($market, 'symbol'));
+        $subMessageHash = $this->get_message_hash('trade', $market['symbol']);
         $messageHash = 'unsubscribe:' . $subMessageHash;
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
@@ -762,12 +756,7 @@ class lighter extends \ccxt\async\lighter {
         }
         $fee = null;
         if ($takerOrMaker !== null) {
-            $feeRateRaw = null;
-            if ($takerOrMaker === 'maker') {
-                $feeRateRaw = $this->safe_string($trade, 'maker_fee');
-            } else {
-                $feeRateRaw = $this->safe_string($trade, 'taker_fee');
-            }
+            $feeRateRaw = ($takerOrMaker === 'maker') ? $this->safe_string($trade, 'maker_fee') : $this->safe_string($trade, 'taker_fee');
             $feeRate = ($feeRateRaw !== null) ? Precise::string_div($feeRateRaw, '1000000') : '0';
             $feeAmount = Precise::string_mul($costString, $feeRate);
             $fee = array(
@@ -793,7 +782,7 @@ class lighter extends \ccxt\async\lighter {
         ), $market);
     }
 
-    public function handle_my_trades(Client $client, array $message): bool {
+    public function handle_my_trades(Client $client, mixed $message): bool {
         //
         //     {
         //         "channel": "account_all_trades:723310",
@@ -884,23 +873,22 @@ class lighter extends \ccxt\async\lighter {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($accountIndex, $paramsAccountIndex) = Async\await($this->handleAccountIndex($params, 'watchMyTrades', 'accountIndex', 'account_index'));
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'watchMyTrades', 'accountIndex', 'account_index'));
         $messageHash = $this->get_message_hash('myTrades');
-        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $this->safe_string($market, 'symbol');
-            $messageHash = $this->get_message_hash('myTrades', $symbolResolved);
+            $symbol = $market['symbol'];
+            $messageHash = $this->get_message_hash('myTrades', $symbol);
         }
         $request = array(
             'channel' => 'account_all_trades/' . $this->number_to_string($accountIndex),
         );
-        $trades = Async\await($this->subscribe_public($messageHash, $this->extend($request, $paramsAccountIndex)));
-        $limitResolved = $limit;
+        $trades = Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($symbolResolved, $limit);
+            $limit = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
     public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
@@ -921,13 +909,14 @@ class lighter extends \ccxt\async\lighter {
         if ($symbol !== null) {
             throw new NotSupported($this->id . ' unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only');
         }
-        list($accountIndex, $paramsAccountIndex) = Async\await($this->handleAccountIndex($params, 'unWatchMyTrades', 'accountIndex', 'account_index'));
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'unWatchMyTrades', 'accountIndex', 'account_index'));
         $subMessageHash = $this->get_message_hash('myTrades');
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $request = array(
             'channel' => 'account_all_trades/' . $this->number_to_string($accountIndex),
         );
-        return Async\await($this->unsubscribe($messageHash, $this->extend($request, $paramsAccountIndex)));
+        return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
 
     public function parse_ws_liquidation(array $liquidation, ?array $market = null) {
@@ -961,10 +950,7 @@ class lighter extends \ccxt\async\lighter {
         //
         $timestamp = $this->safe_integer($liquidation, 'timestamp');
         $isMakerAsk = $this->safe_bool($liquidation, 'is_maker_ask');
-        $side = 'sell';
-        if ($isMakerAsk === true) {
-            $side = 'buy';
-        }
+        $side = ($isMakerAsk === true) ? 'buy' : 'sell';
         $contracts = $this->safe_string($liquidation, 'size');
         $contractSize = $this->safe_string($market, 'contractSize');
         $price = $this->safe_string($liquidation, 'price');
@@ -1091,20 +1077,22 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
-        list($type, $paramsType) = $this->handle_param_string($params, 'type', $defaultType);
-        list($accountIndex, $paramsAccountIndex) = Async\await($this->handleAccountIndex($paramsType, 'watchBalance', 'accountIndex', 'account_index'));
+        $type = null;
+        list($type, $params) = $this->handle_param_string($params, 'type', $defaultType);
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'watchBalance', 'accountIndex', 'account_index'));
         $messageHash = $this->get_message_hash('balances', null, $type);
         $request = array();
         if ($type === 'spot') {
             $request['channel'] = 'account_all_assets/' . $this->number_to_string($accountIndex);
-            return Async\await($this->subscribe_private($messageHash, $this->extend($request, $paramsAccountIndex)));
+            return Async\await($this->subscribe_private($messageHash, $this->extend($request, $params)));
         } else {
             $request['channel'] = 'user_stats/' . $this->number_to_string($accountIndex);
-            return Async\await($this->subscribe_public($messageHash, $this->extend($request, $paramsAccountIndex)));
+            return Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
         }
     }
 
-    public function handle_balance(Client $client, array $message): bool {
+    public function handle_balance(Client $client, mixed $message): bool {
         //
         //    spot balance
         //    {
@@ -1170,7 +1158,7 @@ class lighter extends \ccxt\async\lighter {
             $assetIds = is_array($assets) ? array_keys($assets) : array();
             for ($i = 0; $i < count($assetIds); $i++) {
                 $assetId = $assetIds[$i];
-                $asset = $this->safe_dict($assets, $assetId);
+                $asset = $assets[$assetId];
                 $codeId = $this->safe_string($asset, 'symbol');
                 $code = $this->safe_currency_code($codeId);
                 $account = $this->account();
@@ -1216,23 +1204,23 @@ class lighter extends \ccxt\async\lighter {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($accountIndex, $paramsAccountIndex) = Async\await($this->handleAccountIndex($params, 'watchOrders', 'accountIndex', 'account_index'));
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'watchOrders', 'accountIndex', 'account_index'));
         $messageHash = null;
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash = $this->get_message_hash('orders', $this->safe_string($market, 'symbol'));
+            $messageHash = $this->get_message_hash('orders', $market['symbol']);
             $request['channel'] = 'account_orders/' . $market['id'] . '/' . $this->number_to_string($accountIndex);
         } else {
             $messageHash = $this->get_message_hash('orders');
             $request['channel'] = 'account_all_orders/' . $this->number_to_string($accountIndex);
         }
-        $orders = Async\await($this->subscribe_private($messageHash, $this->extend($request, $paramsAccountIndex)));
-        $limitResolved = $limit;
+        $orders = Async\await($this->subscribe_private($messageHash, $this->extend($request, $params)));
         if ($this->newUpdates) {
-            $limitResolved = $orders->getLimit($symbol, $limit);
+            $limit = $orders->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limitResolved, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
@@ -1252,19 +1240,20 @@ class lighter extends \ccxt\async\lighter {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($accountIndex, $paramsAccountIndex) = Async\await($this->handleAccountIndex($params, 'unWatchOrders', 'accountIndex', 'account_index'));
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'unWatchOrders', 'accountIndex', 'account_index'));
         $subMessageHash = null;
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $subMessageHash = $this->get_message_hash('orders', $this->safe_string($market, 'symbol'));
+            $subMessageHash = $this->get_message_hash('orders', $market['symbol']);
             $request['channel'] = 'account_orders/' . $market['id'] . '/' . $this->number_to_string($accountIndex);
         } else {
             $subMessageHash = $this->get_message_hash('orders');
             $request['channel'] = 'account_all_orders/' . $this->number_to_string($accountIndex);
         }
         $messageHash = 'unsubscribe:' . $subMessageHash;
-        return Async\await($this->unsubscribe($messageHash, $this->extend($request, $paramsAccountIndex)));
+        return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
 
     public function request_id(string $url): string {
@@ -1304,8 +1293,7 @@ class lighter extends \ccxt\async\lighter {
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id($url);
         $messageHash = 'jsonapi/sendtx:' . $requestId;
-        list($txType, $txInfo, $order) = Async\await($this->signAndCreateOrder('createOrderWs', $symbol, $type, $side, $amount, $price, $params));
-        $market = $this->market($symbol);
+        list($txType, $txInfo, $order, $market) = Async\await($this->signAndCreateOrder('createOrderWs', $symbol, $type, $side, $amount, $price, $params));
         $parsedTx = $this->parse_json($txInfo);
         $message = array(
             'type' => 'jsonapi/sendtx',
@@ -1342,8 +1330,7 @@ class lighter extends \ccxt\async\lighter {
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id($url);
         $messageHash = 'jsonapi/sendtx:' . $requestId;
-        list($txType, $txInfo) = Async\await($this->signAndCancelOrder('cancelOrderWs', $id, $symbol, $params));
-        $market = $this->market($symbol);
+        list($txType, $txInfo, $market) = Async\await($this->signAndCancelOrder('cancelOrderWs', $id, $symbol, $params));
         $parsedTx = $this->parse_json($txInfo);
         $message = array(
             'type' => 'jsonapi/sendtx',
@@ -1404,7 +1391,7 @@ class lighter extends \ccxt\async\lighter {
         $client->resolve($message, 'jsonapi/sendtx:' . $id);
     }
 
-    public function handle_orders(Client $client, array $message): bool {
+    public function handle_orders(Client $client, mixed $message): bool {
         //
         //    {
         //        "account": {ACCOUNT_INDEX},
@@ -1454,7 +1441,7 @@ class lighter extends \ccxt\async\lighter {
         return true;
     }
 
-    public function handle_error_message(Client $client, array $message): bool {
+    public function handle_error_message(Client $client, mixed $message): bool {
         //
         //     {
         //         "error": {
@@ -1727,7 +1714,7 @@ class lighter extends \ccxt\async\lighter {
         $this->clean_cache($ordersStructure);
     }
 
-    public function handle_ping(Client $client, array $message) {
+    public function handle_ping(Client $client, mixed $message) {
         //
         //     { "type": "ping" }
         //

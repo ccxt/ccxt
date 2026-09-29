@@ -68,8 +68,8 @@ class bitstamp(ccxt.async_support.bitstamp):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        messageHash = 'orderbook:' + symbolValue
+        symbol = market['symbol']
+        messageHash = 'orderbook:' + symbol
         channel = 'diff_order_book_' + market['id']
         url = self.urls['api']['ws']
         request = {
@@ -82,7 +82,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         orderbook = await self.watch(url, messageHash, message, messageHash)
         return orderbook.limit()
 
-    async def un_watch_order_book(self, symbol: str, params: dict = {}) -> object:
+    async def un_watch_order_book(self, symbol: str, params={}) -> object:
         """
         unsubscribe from the order book channel
 
@@ -95,12 +95,12 @@ class bitstamp(ccxt.async_support.bitstamp):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbol = market['symbol']
         channel = 'diff_order_book_' + market['id']
-        subHash = 'orderbook:' + symbolValue
-        return await self.un_watch_channel(channel, subHash, 'orderbook', [symbolValue], params)
+        subHash = 'orderbook:' + symbol
+        return await self.un_watch_channel(channel, subHash, 'orderbook', [symbol], params)
 
-    async def un_watch_channel(self, channel: str, subHash: str, topic: str, symbols: list[str], params: dict = {}) -> object:
+    async def un_watch_channel(self, channel: str, subHash: str, topic: str, symbols: list[str], params={}) -> object:
         """
  @ignore
         sends an unsubscribe request for a channel and cleans the related caches on confirmation
@@ -174,10 +174,10 @@ class bitstamp(ccxt.async_support.bitstamp):
             return
         elif nonce >= deltaNonce:
             return
-        self.handle_book_delta(storedOrderBook, delta)
+        self.handle_delta(storedOrderBook, delta)
         client.resolve(storedOrderBook, messageHash)
 
-    def handle_book_delta(self, orderbook: object, delta: object):
+    def handle_delta(self, orderbook: object, delta: object):
         timestamp = self.safe_timestamp(delta, 'timestamp')
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
@@ -196,7 +196,7 @@ class bitstamp(ccxt.async_support.bitstamp):
 
     def get_cache_index(self, orderbook: object, deltas: object) -> float:
         # we will consider it a fail
-        firstElement = self.safe_dict(deltas, 0)
+        firstElement = deltas[0]
         firstElementNonce = self.safe_integer(firstElement, 'microtimestamp')
         if firstElementNonce is None:
             return -1
@@ -204,7 +204,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         if (nonce is None) or (nonce < firstElementNonce):
             return -1
         for i in range(0, len(deltas)):
-            delta = self.safe_dict(deltas, i)
+            delta = deltas[i]
             deltaNonce = self.safe_integer(delta, 'microtimestamp')
             if deltaNonce == nonce:
                 return i + 1
@@ -222,8 +222,8 @@ class bitstamp(ccxt.async_support.bitstamp):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        messageHash = 'trades:' + symbolValue
+        symbol = market['symbol']
+        messageHash = 'trades:' + symbol
         url = self.urls['api']['ws']
         channel = 'live_trades_' + market['id']
         request = {
@@ -234,12 +234,11 @@ class bitstamp(ccxt.async_support.bitstamp):
         }
         message = self.extend(request, params)
         trades = await self.watch(url, messageHash, message, messageHash)
-        limitResolved = limit
         if self.newUpdates:
-            limitResolved = trades.getLimit(symbolValue, limit)
-        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
+    async def un_watch_trades(self, symbol: str, params={}) -> object:
         """
         unsubscribe from the trades channel
 
@@ -252,10 +251,10 @@ class bitstamp(ccxt.async_support.bitstamp):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbol = market['symbol']
         channel = 'live_trades_' + market['id']
-        subHash = 'trades:' + symbolValue
-        return await self.un_watch_channel(channel, subHash, 'trades', [symbolValue], params)
+        subHash = 'trades:' + symbol
+        return await self.un_watch_channel(channel, subHash, 'trades', [symbol], params)
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -277,12 +276,11 @@ class bitstamp(ccxt.async_support.bitstamp):
         timestamp = self.parse_to_int(microtimestamp / 1000)
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'amount')
-        marketResolved = self.safe_market(None, market)
-        symbol = marketResolved['symbol']
+        if market is None:
+            market = self.safe_market(None, market)
+        symbol = market['symbol']
         sideRaw = self.safe_integer(trade, 'type')
-        side = 'sell'
-        if sideRaw == 0:
-            side = 'buy'
+        side = 'buy' if (sideRaw == 0) else 'sell'
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -297,7 +295,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             'amount': amount,
             'cost': None,
             'fee': None,
-        }, marketResolved)
+        }, market)
 
     def handle_trade(self, client: Client, message: dict):
         #
@@ -328,7 +326,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         messageHash = 'trades:' + symbol
-        data = self.safe_dict(message, 'data')
+        data = self.safe_value(message, 'data')
         trade = self.parse_ws_trade(data, market)
         tradesArray = self.safe_value(self.trades, symbol)
         if tradesArray is None:
@@ -338,7 +336,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         tradesArray.append(trade)
         client.resolve(tradesArray, messageHash)
 
-    async def watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
+    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         watch the current funding rate
 
@@ -351,8 +349,8 @@ class bitstamp(ccxt.async_support.bitstamp):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        messageHash = 'fundingRate:' + symbolValue
+        symbol = market['symbol']
+        messageHash = 'fundingRate:' + symbol
         url = self.urls['api']['ws']
         channel = 'funding_rate_' + market['id']
         request = {
@@ -405,22 +403,21 @@ class bitstamp(ccxt.async_support.bitstamp):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbol = market['symbol']
         channel = 'private-my_orders'
         messageHash = channel + '_' + market['id']
         subscription = {
-            'symbol': symbolValue,
+            'symbol': symbol,
             'limit': limit,
             'type': channel,
             'params': params,
         }
         orders = await self.subscribe_private(subscription, messageHash, params)
-        limitResolved = limit
         if self.newUpdates:
-            limitResolved = orders.getLimit(symbolValue, limit)
-        return self.filter_by_since_limit(orders, since, limitResolved, 'timestamp', True)
+            limit = orders.getLimit(symbol, limit)
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    async def un_watch_orders(self, symbol: Str = None, params: dict = {}) -> object:
+    async def un_watch_orders(self, symbol: Str = None, params={}) -> object:
         """
         unsubscribe from the orders channel
 
@@ -435,13 +432,10 @@ class bitstamp(ccxt.async_support.bitstamp):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbol = market['symbol']
         await self.authenticate()
-        userId = self.safe_string(self.options, 'userId')
-        if userId is None:
-            raise AuthenticationError(self.id + ' unWatchOrders() requires a userId from authenticate()')
-        channel = 'private-my_orders_' + market['id'] + '-' + userId
-        return await self.un_watch_channel(channel, channel, 'orders', [symbolValue], params)
+        channel = 'private-my_orders_' + market['id'] + '-' + self.options['userId']
+        return await self.un_watch_channel(channel, channel, 'orders', [symbol], params)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -460,22 +454,21 @@ class bitstamp(ccxt.async_support.bitstamp):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbol = market['symbol']
         channel = 'private-my_trades'
         messageHash = channel + '_' + market['id']
         subscription = {
-            'symbol': symbolValue,
+            'symbol': symbol,
             'limit': limit,
             'type': channel,
             'params': params,
         }
         trades = await self.subscribe_private(subscription, messageHash, params)
-        limitResolved = limit
         if self.newUpdates:
-            limitResolved = trades.getLimit(symbolValue, limit)
-        return self.filter_by_symbol_since_limit(trades, symbolValue, since, limitResolved, True)
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    async def un_watch_my_trades(self, symbol: Str = None, params: dict = {}) -> object:
+    async def un_watch_my_trades(self, symbol: Str = None, params={}) -> object:
         """
         unsubscribe from the myTrades channel
 
@@ -490,13 +483,10 @@ class bitstamp(ccxt.async_support.bitstamp):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbol = market['symbol']
         await self.authenticate()
-        userId = self.safe_string(self.options, 'userId')
-        if userId is None:
-            raise AuthenticationError(self.id + ' unWatchMyTrades() requires a userId from authenticate()')
-        channel = 'private-my_trades_' + market['id'] + '-' + userId
-        return await self.un_watch_channel(channel, channel, 'myTrades', [symbolValue], params)
+        channel = 'private-my_trades_' + market['id'] + '-' + self.options['userId']
+        return await self.un_watch_channel(channel, channel, 'myTrades', [symbol], params)
 
     def handle_my_trades(self, client: Client, message: dict):
         #
@@ -534,7 +524,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         stored.append(trade)
         client.resolve(stored, channel)
 
-    def parse_ws_my_trade(self, trade: dict, market: Market = None) -> Trade:
+    def parse_ws_my_trade(self, trade: object, market: Market = None) -> Trade:
         #
         #     {
         #         "id": 635698396,
@@ -553,14 +543,14 @@ class bitstamp(ccxt.async_support.bitstamp):
         #
         microtimestamp = self.safe_integer(trade, 'microtimestamp', 0)
         timestamp = self.parse_to_int(microtimestamp / 1000)
-        marketResolved = self.safe_market(None, market)
-        symbol = marketResolved['symbol']
+        market = self.safe_market(None, market)
+        symbol = market['symbol']
         feeCost = self.safe_string(trade, 'fee')
         fee = None
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': marketResolved['quote'],
+                'currency': market['quote'],
             }
         return self.safe_trade({
             'info': trade,
@@ -576,7 +566,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             'amount': self.safe_string(trade, 'amount'),
             'cost': None,
             'fee': fee,
-        }, marketResolved)
+        }, market)
 
     def handle_orders(self, client: Client, message: dict):
         #
@@ -648,9 +638,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         #
         id = self.safe_string(order, 'id_str')
         orderTypeRaw = self.safe_string_lower(order, 'order_type')
-        side = 'buy'
-        if orderTypeRaw == '1':
-            side = 'sell'
+        side = 'sell' if (orderTypeRaw == '1') else 'buy'
         orderSubTypeRaw = self.safe_string_lower(order, 'order_subtype')  # https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
         orderType = None
         timeInForce = None
@@ -687,8 +675,8 @@ class bitstamp(ccxt.async_support.bitstamp):
             status = 'canceled'
         triggerPrice = self.safe_string(order, 'stop_price')
         timestamp = self.safe_timestamp(order, 'datetime')
-        marketResolved = self.safe_market(None, market)
-        symbol = marketResolved['symbol']
+        market = self.safe_market(None, market)
+        symbol = market['symbol']
         return self.safe_order({
             'info': order,
             'symbol': symbol,
@@ -712,7 +700,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             'status': status,
             'fee': None,
             'trades': None,
-        }, marketResolved)
+        }, market)
 
     def handle_order_book_subscription(self, client: Client, message: dict):
         channel = self.safe_string(message, 'channel')
@@ -848,7 +836,7 @@ class bitstamp(ccxt.async_support.bitstamp):
                 method = methods[key]
                 method(client, message)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: object) -> Bool:
         # {
         #     "event": "bts:error",
         #     "channel": '',
@@ -963,16 +951,13 @@ class bitstamp(ccxt.async_support.bitstamp):
     async def subscribe_private(self, subscription: dict, messageHash: str, params: dict = {}):
         url = self.urls['api']['ws']
         await self.authenticate()
-        userId = self.safe_string(self.options, 'userId')
-        if userId is None:
-            raise AuthenticationError(self.id + ' subscribePrivate() requires a userId from authenticate()')
-        messageHashValue = messageHash + ('-' + userId)
+        messageHash += '-' + self.options['userId']
         request = {
             'event': 'bts:subscribe',
             'data': {
-                'channel': messageHashValue,
+                'channel': messageHash,
                 'auth': self.options['wsSessionToken'],
             },
         }
-        subscription['messageHash'] = messageHashValue
-        return await self.watch(url, messageHashValue, self.extend(request, params), messageHashValue, subscription)
+        subscription['messageHash'] = messageHash
+        return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)

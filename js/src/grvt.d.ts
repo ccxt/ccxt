@@ -330,8 +330,8 @@ export default class grvt extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseIncome(income: Dict, market?: Market): {
-        info: Dict;
+    parseIncome(income: any, market?: Market): {
+        info: any;
         symbol: string;
         code: Str;
         timestamp: Int;
@@ -408,7 +408,7 @@ export default class grvt extends Exchange {
         chainId: number;
     };
     feeAmountMultiplier(): number;
-    createSignedRequest(request: Dict, structureType: string, currencyObj?: Dict | undefined, signerAddress?: Str): Dict;
+    createSignedRequest(request: any, structureType: string, currencyObj?: Dict | undefined, signerAddress?: Str): Dict;
     formatSignatureRS(value: string): string;
     defaultSignature(): {
         signer: string;
@@ -419,8 +419,8 @@ export default class grvt extends Exchange {
         nonce: number;
         chain_id: string;
     };
-    handleUntilOptionString(key: string, request: Dict, params?: Dict, multiplier?: number): [Dict, Dict];
-    requestId(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    handleUntilOptionString(key: string, request: Dict, params?: NullableDict, multiplier?: number): any[];
+    requestId(): any;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

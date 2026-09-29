@@ -341,9 +341,7 @@ class coinone(Exchange, ImplicitAPI):
         code = self.safe_currency_code(id)
         isWithdrawEnabled = self.safe_string(rawCurrency, 'withdraw_status', '') == 'normal'
         isDepositEnabled = self.safe_string(rawCurrency, 'deposit_status', '') == 'normal'
-        type = 'fiat'
-        if code != 'KRW':
-            type = 'crypto'
+        type = 'crypto' if (code != 'KRW') else 'fiat'
         return self.safe_currency_structure({
             'id': id,
             'code': code,
@@ -423,8 +421,6 @@ class coinone(Exchange, ImplicitAPI):
             quoteId = self.safe_string_upper(entry, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            if (base is None) or (quote is None):
-                continue
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -487,7 +483,7 @@ class coinone(Exchange, ImplicitAPI):
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            balance = self.safe_dict(balances, currencyId)
+            balance = balances[currencyId]
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_string(balance, 'avail')
@@ -570,14 +566,14 @@ class coinone(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols)
         request = {
             'quote_currency': 'KRW',
         }
         market = None
         response = None
-        if symbolsNormalized is not None:
-            first = self.safe_string(symbolsNormalized, 0)
+        if symbols is not None:
+            first = self.safe_string(symbols, 0)
             market = self.market(first)
             request['quote_currency'] = market['quote']
             request['target_currency'] = market['base']
@@ -618,7 +614,7 @@ class coinone(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'tickers', [])
-        return self.parse_tickers(data, symbolsNormalized)
+        return self.parse_tickers(data, symbols)
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -710,11 +706,8 @@ class coinone(Exchange, ImplicitAPI):
         quoteId = self.safe_string(ticker, 'quote_currency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = None
-        if (base is not None) and (quote is not None):
-            symbol = base + '/' + quote
         return self.safe_ticker({
-            'symbol': symbol,
+            'symbol': base + '/' + quote,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_string(ticker, 'high'),
@@ -761,7 +754,7 @@ class coinone(Exchange, ImplicitAPI):
         #     }
         #
         timestamp = self.safe_integer(trade, 'timestamp')
-        marketResolved = self.safe_market(None, market)
+        market = self.safe_market(None, market)
         isSellerMaker = self.safe_bool(trade, 'is_seller_maker')
         side = None
         if isSellerMaker is not None:
@@ -775,11 +768,7 @@ class coinone(Exchange, ImplicitAPI):
             feeCostString = Precise.string_abs(feeCostString)
             feeRateString = self.safe_string(trade, 'feeRate')
             feeRateString = Precise.string_abs(feeRateString)
-            feeCurrencyCode = None
-            if side == 'sell':
-                feeCurrencyCode = marketResolved['quote']
-            else:
-                feeCurrencyCode = marketResolved['base']
+            feeCurrencyCode = market['quote'] if (side == 'sell') else market['base']
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -791,7 +780,7 @@ class coinone(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'order': orderId,
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'type': None,
             'side': side,
             'takerOrMaker': None,
@@ -799,7 +788,7 @@ class coinone(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': None,
             'fee': fee,
-        }, marketResolved)
+        }, market)
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -995,7 +984,7 @@ class coinone(Exchange, ImplicitAPI):
         symbol = None
         if (base is not None) and (quote is not None):
             symbol = base + '/' + quote
-        marketResolved = self.safe_market(symbol, market, '/') if (symbol is not None) else market
+            market = self.safe_market(symbol, market, '/')
         timestamp = self.safe_timestamp_2(order, 'timestamp', 'updatedAt')
         if timestamp is None:
             timestamp = self.safe_integer_2(order, 'ordered_at', 'updated_at')  # v2.1 sends milliseconds
@@ -1019,9 +1008,7 @@ class coinone(Exchange, ImplicitAPI):
         fee = None
         feeCostString = self.safe_string(order, 'fee')
         if feeCostString is not None:
-            feeCurrencyCode = base
-            if side == 'sell':
-                feeCurrencyCode = quote
+            feeCurrencyCode = quote if (side == 'sell') else base
             fee = {
                 'cost': feeCostString,
                 'rate': self.safe_string_2(order, 'feeRate', 'fee_rate'),
@@ -1049,7 +1036,7 @@ class coinone(Exchange, ImplicitAPI):
             'status': status,
             'fee': fee,
             'trades': None,
-        }, marketResolved)
+        }, market)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -1195,7 +1182,7 @@ class coinone(Exchange, ImplicitAPI):
         result = {}
         for i in range(0, len(keys)):
             key = keys[i]
-            value = self.safe_string(walletAddress, key)
+            value = walletAddress[key]
             if (value is None) or (value is None) or (value == '') or (value == '-1'):
                 continue
             parts = key.split('_')
@@ -1222,32 +1209,18 @@ class coinone(Exchange, ImplicitAPI):
                 result[code] = depositAddress
         return result
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        apiUrl = self.safe_string(self.urls['api'], 'rest')
-        if apiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl + '/'
-        isPublic = (api == 'public') or (api == 'v2Public')
+        url = self.urls['api']['rest'] + '/'
         if api == 'v2Public':
-            apiUrl2 = self.safe_string(self.urls['api'], 'v2Public')
-            if apiUrl2 is None:
-                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-            url = apiUrl2 + '/'
+            url = self.urls['api']['v2Public'] + '/'
+            api = 'public'
         elif api == 'v2Private':
-            apiUrl3 = self.safe_string(self.urls['api'], 'v2Private')
-            if apiUrl3 is None:
-                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-            url = apiUrl3 + '/'
+            url = self.urls['api']['v2Private'] + '/'
         elif api == 'v2_1Private':
-            apiUrl4 = self.safe_string(self.urls['api'], 'v2_1Private')
-            if apiUrl4 is None:
-                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-            url = apiUrl4 + '/'
-        requestBody = None
-        requestHeaders = None
-        if isPublic:
+            url = self.urls['api']['v2_1Private'] + '/'
+        if api == 'public':
             url += request
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
@@ -1265,17 +1238,15 @@ class coinone(Exchange, ImplicitAPI):
                 'nonce': nonce,
             }, params))
             payload = self.string_to_base64(json)
-            requestBody = payload
+            body = payload
             secret = self.secret.upper()
             signature = self.hmac(self.encode(payload), self.encode(secret), hashlib.sha512)
-            requestHeaders = {
+            headers = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,
                 'X-COINONE-SIGNATURE': signature,
             }
-        bodyResolved = body if (requestBody is None) else requestBody
-        headersResolved = headers if (requestHeaders is None) else requestHeaders
-        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

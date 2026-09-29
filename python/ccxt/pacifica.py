@@ -572,14 +572,14 @@ class pacifica(Exchange, ImplicitAPI):
             },
         })
 
-    def initialize_client(self) -> bool:
+    def initialize_client(self):
         try:
             self.handle_builder_fee_approval()
         except Exception as e:
             return False
         return True
 
-    def handle_builder_fee_approval(self) -> bool:
+    def handle_builder_fee_approval(self):
         if self.isSandboxModeEnabled:  # At this stage, building codes are mostly only on the mainnet.
             return False
         buildFee = self.safe_bool(self.options, 'builderFee', True)
@@ -727,8 +727,6 @@ class pacifica(Exchange, ImplicitAPI):
             isolatedMargin = True
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        if (base is None) or (quote is None):
-            return None
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote
         if isSwap:
@@ -805,11 +803,12 @@ class pacifica(Exchange, ImplicitAPI):
         :param str [params.account]: will default to walletAddress if not provided
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        userAccount, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('fetchBalance', params)
+        userAccount = None
+        userAccount, params = self.handle_origin_and_single_address('fetchBalance', params)
         request = {
             'account': userAccount,
         }
-        response = self.publicGetAccount(self.extend(request, paramsOriginAndSingleAddress))
+        response = self.publicGetAccount(self.extend(request, params))
         # {
         #   "success": true,
         #   "data": {
@@ -856,7 +855,7 @@ class pacifica(Exchange, ImplicitAPI):
         result['USDC'] = usdcAccount
         spotBalances = self.safe_list(data, 'spot_balances', [])
         for i in range(0, len(spotBalances)):
-            balance = self.safe_dict(spotBalances, i)
+            balance = spotBalances[i]
             currencyId = self.safe_string(balance, 'symbol')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -885,7 +884,8 @@ class pacifica(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        userAccount, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('fetchLeverage', params)
+        userAccount = None
+        userAccount, params = self.handle_origin_and_single_address('fetchLeverage', params)
         cacheAddress = self.walletAddress
         settings = None
         if userAccount == cacheAddress:
@@ -894,7 +894,7 @@ class pacifica(Exchange, ImplicitAPI):
             request = {
                 'account': userAccount,
             }
-            settings = self.fetch_account_settings(self.extend(request, paramsOriginAndSingleAddress))
+            settings = self.fetch_account_settings(self.extend(request, params))
         setting = self.safe_dict(settings, symbol)
         if setting is None:
             # NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -915,9 +915,7 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         isIsolated = self.safe_bool(setting, 'isolated', False)
         leverage = self.safe_integer(setting, 'leverage')
-        marginMode = 'cross'
-        if isIsolated is True:
-            marginMode = 'isolated'
+        marginMode = 'isolated' if (isIsolated is True) else 'cross'
         return {
             'info': setting,
             'symbol': symbol,
@@ -947,11 +945,12 @@ class pacifica(Exchange, ImplicitAPI):
         :param str [params.account]: will default to walletAddress if not provided
         :returns dict: Dict repacked from list by symbol key
         """
-        userAccount, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('fetchAccountSettings', params)
+        userAccount = None
+        userAccount, params = self.handle_origin_and_single_address('fetchAccountSettings', params)
         request = {
             'account': userAccount,
         }
-        response = self.publicGetAccountSettings(self.extend(request, paramsOriginAndSingleAddress))
+        response = self.publicGetAccountSettings(self.extend(request, params))
         # {
         #   "success": true,
         #   "data": [
@@ -975,7 +974,7 @@ class pacifica(Exchange, ImplicitAPI):
             settings = self.fetch_account_settings(params)
             self.options['settings'] = settings
 
-    def parse_account_settings(self, settings: list[dict]) -> dict:
+    def parse_account_settings(self, settings: list[object]) -> dict:
         settingsLen = len(settings)
         if settingsLen == 0:
             return {}
@@ -999,7 +998,8 @@ class pacifica(Exchange, ImplicitAPI):
         :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
         self.load_account_settings()
-        userAccount, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('fetchMarginMode', params)
+        userAccount = None
+        userAccount, params = self.handle_origin_and_single_address('fetchMarginMode', params)
         cacheAddress = self.walletAddress
         settings = None
         if userAccount == cacheAddress:
@@ -1008,7 +1008,7 @@ class pacifica(Exchange, ImplicitAPI):
             request = {
                 'account': userAccount,
             }
-            settings = self.fetch_account_settings(self.extend(request, paramsOriginAndSingleAddress))
+            settings = self.fetch_account_settings(self.extend(request, params))
         # {
         #   "WLFI/USDC:USDC": {
         #       "symbol": "WLFI",
@@ -1039,9 +1039,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         # }
         isIsolated = self.safe_bool(setting, 'isolated', False)
-        marginMode = 'cross'
-        if isIsolated is True:
-            marginMode = 'isolated'
+        marginMode = 'isolated' if (isIsolated is True) else 'cross'
         return {
             'symbol': symbol,
             'marginMode': marginMode,
@@ -1063,12 +1061,13 @@ class pacifica(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        aggLevel, paramsAggLevel = self.handle_option_integer_and_params(params, 'fetchOrderBook', 'aggLevel', 1)
+        aggLevel = None
+        aggLevel, params = self.handle_option_and_params(params, 'fetchOrderBook', 'aggLevel', 1)
         request = {
             'symbol': market['id'],
             'agg_level': aggLevel,
         }
-        response = self.publicGetBook(self.extend(request, paramsAggLevel))
+        response = self.publicGetBook(self.extend(request, params))
         # {
         #   "success": true,
         #   "data": {
@@ -1164,8 +1163,8 @@ class pacifica(Exchange, ImplicitAPI):
         #       }
         #
         marketId = self.safe_string(info, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         funding = self.safe_number(info, 'funding')
         markPx = self.safe_number(info, 'mark')
         oraclePx = self.safe_number(info, 'oracle')
@@ -1216,18 +1215,19 @@ class pacifica(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, defaultMaxLimit)
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, defaultMaxLimit)
         tf = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
             'symbol': market['id'],
             'interval': tf,
             'start_time': since,
         }
-        requestUntil, paramsUntil = self.handle_until_option('end_time', request, paramsPaginate)
+        request, params = self.handle_until_option('end_time', request, params)
         nowMillis = self.milliseconds()
-        until = self.safe_integer(requestUntil, 'end_time')
+        until = self.safe_integer(request, 'end_time')
         if until is None:
             if limit is not None:
                 until = since + (limit * (self.parse_timeframe(tf) * 1000)) - 1
@@ -1235,8 +1235,8 @@ class pacifica(Exchange, ImplicitAPI):
                 until = since + (defaultMaxLimit * (self.parse_timeframe(tf) * 1000)) - 1
             if until > nowMillis:
                 until = nowMillis
-            requestUntil['end_time'] = until
-        response = self.publicGetKline(self.extend(requestUntil, paramsUntil))
+            request['end_time'] = until
+        response = self.publicGetKline(self.extend(request, params))
         #
         # {
         #   "success": true,
@@ -1346,21 +1346,23 @@ class pacifica(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
-        userAddress, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('fetchMyTrades', paramsPaginate)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate', False)
+        userAddress = None
+        userAddress, params = self.handle_origin_and_single_address('fetchMyTrades', params)
         defaultLimit = 100  # Default max limit
         if paginate:
-            return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, paramsOriginAndSingleAddress, 'next_cursor', 'cursor', None, defaultLimit)
+            return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'next_cursor', 'cursor', None, defaultLimit)
         request = {}
-        requestUntil, paramsUntil = self.handle_until_option('end_time', request, paramsOriginAndSingleAddress)
-        requestUntil['account'] = userAddress
+        request, params = self.handle_until_option('end_time', request, params)
+        request['account'] = userAddress
         if symbol is not None:
-            requestUntil['symbol'] = self.safe_string(market, 'id')
+            request['symbol'] = self.safe_string(market, 'id')
         if limit is not None:
-            requestUntil['limit'] = limit
+            request['limit'] = limit
         if since is not None:
-            requestUntil['start_time'] = since
-        response = self.publicGetTradesHistory(self.extend(requestUntil, paramsUntil))
+            request['start_time'] = since
+        response = self.publicGetTradesHistory(self.extend(request, params))
         #
         # {
         #   "success": true,
@@ -1422,8 +1424,8 @@ class pacifica(Exchange, ImplicitAPI):
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'amount')
         marketId = self.safe_string(trade, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         id = self.safe_string(trade, 'history_id')
         side = self.safe_string(trade, 'side')
         if side == 'open_long':
@@ -1460,7 +1462,7 @@ class pacifica(Exchange, ImplicitAPI):
                 'currency': 'USDC',
                 'rate': None,
             },
-        }, marketResolved)
+        }, market)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -1491,20 +1493,20 @@ class pacifica(Exchange, ImplicitAPI):
             self.load_markets()
         self.initialize_client()
         request, operationType = self.create_order_request(symbol, type, side, amount, price, params)
-        paramsOmitted = self.omit(params, [
+        params = self.omit(params, [
             'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
             'slippage', 'slippage_percent',
         ])
         response = None
         if operationType == 'create_market_order':
-            response = self.privatePostOrdersCreateMarket(self.extend(request, paramsOmitted))
+            response = self.privatePostOrdersCreateMarket(self.extend(request, params))
         elif operationType == 'create_stop_order':
-            response = self.privatePostOrdersStopCreate(self.extend(request, paramsOmitted))
+            response = self.privatePostOrdersStopCreate(self.extend(request, params))
         elif operationType == 'set_position_tpsl':
-            response = self.privatePostPositionsTpsl(self.extend(request, paramsOmitted))
+            response = self.privatePostPositionsTpsl(self.extend(request, params))
         else:  # create_order
-            response = self.privatePostOrdersCreate(self.extend(request, paramsOmitted))
+            response = self.privatePostOrdersCreate(self.extend(request, params))
         #
         # {
         #   'success': true,
@@ -1580,6 +1582,7 @@ class pacifica(Exchange, ImplicitAPI):
             operationType = 'create_stop_order'
             sigPayload['reduce_only'] = reduceOnly
             stopClientOrderId = self.safe_string(params, 'clientOrderId')
+            params = self.omit(params, ['clientOrderId'])
             stopPayload = {
                 'amount': self.amount_to_precision(symbol, amount),
                 'stop_price': self.price_to_precision(symbol, triggerPrice),
@@ -1592,7 +1595,10 @@ class pacifica(Exchange, ImplicitAPI):
         else:
             operationType = 'create_order'
             sigPayload['reduce_only'] = reduceOnly
-            sigPayload['tif'] = timeInForce
+            if timeInForce is None:
+                sigPayload['tif'] = 'GTC'
+            else:
+                sigPayload['tif'] = timeInForce
         if isTakeProfitOrder:
             tpPayload = {
                 'stop_price': self.price_to_precision(symbol, takeProfitPrice),
@@ -1611,11 +1617,10 @@ class pacifica(Exchange, ImplicitAPI):
             sigPayload['price'] = self.price_to_precision(symbol, price)
         if amount is not None and (operationType != 'create_stop_order' and operationType != 'set_position_tpsl'):
             sigPayload['amount'] = self.amount_to_precision(symbol, amount)
-        paramsClientOrderId = self.omit(params, ['clientOrderId']) if (operationType == 'create_stop_order') else params
-        clientOrderId = self.safe_string(paramsClientOrderId, 'clientOrderId')
+        clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             sigPayload['client_order_id'] = clientOrderId
-        request = self.post_action_request(operationType, sigPayload, paramsClientOrderId)
+        request = self.post_action_request(operationType, sigPayload, params)
         return [request, operationType]
 
     def batch_orders_request(self, actions: list[object]):
@@ -1657,7 +1662,7 @@ class pacifica(Exchange, ImplicitAPI):
         maxLen = self.handle_option('batchOrdersRequest', 'batchOrdersMax')
         if maxLen is not None:
             if lenActions > maxLen:
-                raise ExchangeError(self.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + self.number_to_string(maxLen))
+                raise ExchangeError(self.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + maxLen)
         return {
             'actions': actions,
         }
@@ -1666,7 +1671,7 @@ class pacifica(Exchange, ImplicitAPI):
         actions = []
         timestamp = self.milliseconds()  # unified sequence
         for i in range(0, len(orders)):
-            order = self.safe_dict(orders, i)
+            order = orders[i]
             symbol = self.safe_string(order, 'symbol')
             side = self.safe_string(order, 'side')
             price = self.safe_string(order, 'price')
@@ -1754,8 +1759,8 @@ class pacifica(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a "symbol" argument!')
         request = self.cancel_orders_request(ids, symbol, params)
-        paramsOmitted = self.omit(params, ['expiryWindow', 'clientOrderIds'])
-        response = self.privatePostOrdersBatch(self.extend(request, paramsOmitted))
+        params = self.omit(params, ['expiryWindow', 'clientOrderIds'])
+        response = self.privatePostOrdersBatch(self.extend(request, params))
         #
         # {
         #   "success": true,
@@ -1801,13 +1806,13 @@ class pacifica(Exchange, ImplicitAPI):
             }
             actions.append(action)
         clientOrderIds = self.safe_list(params, 'clientOrderIds', [])
-        paramsOmitted = self.omit(params, 'clientOrderIds')
+        params = self.omit(params, 'clientOrderIds')
         for i in range(0, len(clientOrderIds)):
             cloid = clientOrderIds[i]
             cloidParams = {
                 'clientOrderId': cloid,
             }
-            request = self.cancel_order_request(cloid, symbol, self.extend(cloidParams, paramsOmitted))
+            request = self.cancel_order_request(cloid, symbol, self.extend(cloidParams, params))
             action = {
                 'type': 'Cancel',
                 'data': request,
@@ -1831,8 +1836,8 @@ class pacifica(Exchange, ImplicitAPI):
             self.load_markets()
         self.initialize_client()
         request = self.cancel_all_orders_request(symbol, params)
-        paramsOmitted = self.omit(params, ['excludeReduceOnly', 'expiryWindow'])
-        response = self.privatePostOrdersCancelAll(self.extend(request, paramsOmitted))
+        params = self.omit(params, ['excludeReduceOnly', 'expiryWindow'])
+        response = self.privatePostOrdersCancelAll(self.extend(request, params))
         #
         # {
         #   success: true,
@@ -1885,12 +1890,12 @@ class pacifica(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         request = self.cancel_order_request(id, symbol, params)
         isStopOrder = self.safe_bool_2(params, 'trigger', 'stop', False)
-        paramsOmitted = self.omit(params, ['expiryWindow', 'trigger', 'stop', 'clientOrderId'])
+        params = self.omit(params, ['expiryWindow', 'trigger', 'stop', 'clientOrderId'])
         response = None
         if isStopOrder is True:
-            response = self.privatePostOrdersStopCancel(self.extend(request, paramsOmitted))
+            response = self.privatePostOrdersStopCancel(self.extend(request, params))
         else:
-            response = self.privatePostOrdersCancel(self.extend(request, paramsOmitted))
+            response = self.privatePostOrdersCancel(self.extend(request, params))
         #
         # response:
         # {
@@ -1899,9 +1904,7 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         #
         success = self.safe_bool(response, 'success', False)
-        status = 'closed'
-        if success is True:
-            status = 'canceled'
+        status = 'canceled' if (success is True) else 'closed'
         return self.safe_order({'id': id, 'status': status, 'info': response, 'symbol': symbol})
 
     def cancel_order_request(self, id: object, symbol: Str = None, params: dict = {}) -> dict:
@@ -1945,8 +1948,8 @@ class pacifica(Exchange, ImplicitAPI):
         self.initialize_client()
         market = self.market(symbol)
         request = self.edit_order_request(id, symbol, type, side, amount, price, market, params)
-        paramsOmitted = self.omit(params, ['expiryWindow', 'clientOrderId'])
-        response = self.privatePostOrdersEdit(self.extend(request, paramsOmitted))
+        params = self.omit(params, ['expiryWindow', 'clientOrderId'])
+        response = self.privatePostOrdersEdit(self.extend(request, params))
         #
         # {
         #     'data': {
@@ -2002,16 +2005,17 @@ class pacifica(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         market = self.market(symbol)
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         defaultLimit = 100  # Default max limit
         if paginate:
-            return self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'next_cursor', 'cursor', None, defaultLimit)
+            return self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'next_cursor', 'cursor', None, defaultLimit)
         request = {
             'symbol': market['id'],
         }
         if limit is not None:
             request['limit'] = limit
-        response = self.publicGetFundingRateHistory(self.extend(request, paramsPaginate))
+        response = self.publicGetFundingRateHistory(self.extend(request, params))
         #
         # {
         #   "success": true,
@@ -2057,7 +2061,7 @@ class pacifica(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols)
         response = self.publicGetInfoPrices(params)
         #
         #  {
@@ -2088,7 +2092,7 @@ class pacifica(Exchange, ImplicitAPI):
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
-        return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -2106,8 +2110,8 @@ class pacifica(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 'timestamp')
         return self.safe_ticker({
             'symbol': symbol,
@@ -2119,7 +2123,7 @@ class pacifica(Exchange, ImplicitAPI):
             'ask': None,
             'quoteVolume': self.safe_number(ticker, 'volume_24h'),
             'info': ticker,
-        }, marketResolved)
+        }, market)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -2193,14 +2197,15 @@ class pacifica(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        userAddress, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('fetchOpenOrders', params)
+        userAddress = None
+        userAddress, params = self.handle_origin_and_single_address('fetchOpenOrders', params)
         request = {
             'account': userAddress,
         }
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = self.publicGetOrders(self.extend(request, paramsOriginAndSingleAddress))
+        response = self.publicGetOrders(self.extend(request, params))
         #
         # {
         #   "success": true,
@@ -2247,11 +2252,13 @@ class pacifica(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate', False)
         defaultLimit = 100  # max default 100
         if paginate:
-            return self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, paramsPaginate, 'next_cursor', 'cursor', None, defaultLimit)
-        userAddress, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('fetchOrders', paramsPaginate)
+            return self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'next_cursor', 'cursor', None, defaultLimit)
+        userAddress = None
+        userAddress, params = self.handle_origin_and_single_address('fetchOrders', params)
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2260,7 +2267,7 @@ class pacifica(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        response = self.publicGetOrdersHistory(self.extend(request, paramsOriginAndSingleAddress))
+        response = self.publicGetOrdersHistory(self.extend(request, params))
         #
         # {
         #   "success": true,
@@ -2293,7 +2300,7 @@ class pacifica(Exchange, ImplicitAPI):
         orders = self.parse_orders(data, market, since, limit)
         return orders
 
-    def add_pagination_cursor_to_result(self, response: dict) -> list[dict]:
+    def add_pagination_cursor_to_result(self, response: dict) -> list[object]:
         data = self.safe_list(response, 'data', [])
         paginationCursor = self.safe_string(response, 'next_cursor')
         hasMore = self.safe_bool(response, 'has_more', False)
@@ -2390,7 +2397,7 @@ class pacifica(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def map_time_in_force(self, tifRaw: Str) -> str:
+    def map_time_in_force(self, tifRaw: Str):
         tifMap = {
             'GTC': 'GTC',
             'IOC': 'IOC',
@@ -2403,7 +2410,7 @@ class pacifica(Exchange, ImplicitAPI):
         tif = None
         if tifRaw is not None:
             tif = tifRaw.upper()
-        return self.safe_string(tifMap, tif, 'GTC')
+        return self.safe_string(tifMap, tif)
 
     def map_side(self, sideRaw: Str):
         sideMap = {
@@ -2511,8 +2518,8 @@ class pacifica(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string_2(order, 'symbol', 's')
-        marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.safe_integer_2(order, 'created_at', 'ct')
         status = self.safe_string_2(order, 'order_status', 'os', 'open')  # open if method is fetchOpenOrders
         side = self.safe_string(order, 'side', 'd')
@@ -2550,7 +2557,7 @@ class pacifica(Exchange, ImplicitAPI):
             'status': self.parse_order_status(status),
             'fee': None,
             'trades': None,
-        }, marketResolved)
+        }, market)
 
     def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
@@ -2579,12 +2586,13 @@ class pacifica(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        userAddress, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('fetchPositions', params)
-        symbolsNormalized = self.market_symbols(symbols)
+        userAddress = None
+        userAddress, params = self.handle_origin_and_single_address('fetchPositions', params)
+        symbols = self.market_symbols(symbols)
         request = {
             'account': userAddress,
         }
-        response = self.publicGetPositions(self.extend(request, paramsOriginAndSingleAddress))
+        response = self.publicGetPositions(self.extend(request, params))
         # {
         #   "success": true,
         #   "data": [
@@ -2608,7 +2616,7 @@ class pacifica(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(data)):
             result.append(self.parse_position(data[i], None))
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #
@@ -2625,8 +2633,8 @@ class pacifica(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(position, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         margin = self.safe_string(position, 'margin')
         marginMode = 'isolated' if (margin is not None and margin != '0') else 'cross'
         isIsolated = (marginMode == 'isolated')
@@ -2684,6 +2692,7 @@ class pacifica(Exchange, ImplicitAPI):
             'is_isolated': isIsolated,
         }
         request = self.post_action_request(operationType, sigPayload, params)
+        params = self.omit(params, ['expiryWindow'])
         response = self.privatePostAccountMargin(request)
         # {
         #     "success": true
@@ -2713,6 +2722,7 @@ class pacifica(Exchange, ImplicitAPI):
             'leverage': leverage,
         }
         request = self.post_action_request(operationType, sigPayload, params)
+        params = self.omit(params, ['expiryWindow'])
         response = self.privatePostAccountLeverage(request)
         # {
         #     "success": true
@@ -2741,8 +2751,8 @@ class pacifica(Exchange, ImplicitAPI):
             'amount': str(amount),
         }
         request = self.post_action_request(operationType, sigPayload, params)
-        paramsOmitted = self.omit(params, ['expiryWindow'])
-        response = self.privatePostAccountWithdraw(self.extend(request, paramsOmitted))
+        params = self.omit(params, ['expiryWindow'])
+        response = self.privatePostAccountWithdraw(self.extend(request, params))
         return {'info': response}
 
     def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
@@ -2758,12 +2768,13 @@ class pacifica(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        userAddress, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('fetchTradingFee', params)
+        userAddress = None
+        userAddress, params = self.handle_origin_and_single_address('fetchTradingFee', params)
         market = self.market(symbol)
         request = {
             'account': userAddress,
         }
-        response = self.publicGetAccount(self.extend(request, paramsOriginAndSingleAddress))
+        response = self.publicGetAccount(self.extend(request, params))
         # {
         #   "success": true,
         #   "data": {
@@ -2832,10 +2843,10 @@ class pacifica(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols)
         response = self.publicGetInfoPrices(params)
         data = self.safe_list(response, 'data', [])
-        return self.parse_open_interests(data, symbolsNormalized)
+        return self.parse_open_interests(data, symbols)
 
     def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """
@@ -2849,11 +2860,11 @@ class pacifica(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbolValue = self.symbol(symbol)
-        ois = self.fetch_open_interests([symbolValue], params)
-        oi = self.safe_dict(ois, symbolValue)
+        symbol = self.symbol(symbol)
+        ois = self.fetch_open_interests([symbol], params)
+        oi = self.safe_dict(ois, symbol)
         if oi is None:
-            raise BadSymbol(self.id + ' fetchOpenInterest() could not find open interest for ' + symbolValue)
+            raise BadSymbol(self.id + ' fetchOpenInterest() could not find open interest for ' + symbol)
         return oi
 
     def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
@@ -2872,10 +2883,10 @@ class pacifica(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(interest, 'symbol')
-        marketResolved = self.safe_market(marketId, market) if (marketId is not None) else market
         symbol = None
         if marketId is not None:
-            symbol = self.safe_string(marketResolved, 'symbol')
+            market = self.safe_market(marketId, market)
+            symbol = market['symbol']
         interestValue = None
         markPrice = self.safe_string(interest, 'mark')
         openInterest = self.safe_string(interest, 'open_interest')
@@ -2889,7 +2900,7 @@ class pacifica(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }, marketResolved)
+        }, market)
 
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
@@ -2908,17 +2919,19 @@ class pacifica(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
-        userAddress, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('fetchLedger', paramsPaginate)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate', False)
+        userAddress = None
+        userAddress, params = self.handle_origin_and_single_address('fetchLedger', params)
         defaultLimit = 100  # Default max limit
         if paginate:
-            return self.fetch_paginated_call_cursor('fetchLedger', code, since, limit, paramsOriginAndSingleAddress, 'next_cursor', 'cursor', None, defaultLimit)
+            return self.fetch_paginated_call_cursor('fetchLedger', code, since, limit, params, 'next_cursor', 'cursor', None, defaultLimit)
         request = {
             'account': userAddress,
         }
         if limit is not None:
             request['limit'] = limit
-        response = self.publicGetAccountBalanceHistory(self.extend(request, paramsOriginAndSingleAddress))
+        response = self.publicGetAccountBalanceHistory(self.extend(request, params))
         # {
         #   "success": true,
         #   "data": [
@@ -3009,8 +3022,10 @@ class pacifica(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
-        userAddress, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('fetchFundingHistory', paramsPaginate)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate', False)
+        userAddress = None
+        userAddress, params = self.handle_origin_and_single_address('fetchFundingHistory', params)
         request = {
             'account': userAddress,
         }
@@ -3018,8 +3033,8 @@ class pacifica(Exchange, ImplicitAPI):
             request['limit'] = limit
         defaultLimit = 100
         if paginate:
-            return self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, paramsOriginAndSingleAddress, 'next_cursor', 'cursor', None, defaultLimit)
-        response = self.publicGetFundingHistory(self.extend(request, paramsOriginAndSingleAddress))
+            return self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'next_cursor', 'cursor', None, defaultLimit)
+        response = self.publicGetFundingHistory(self.extend(request, params))
         # {
         #   "success": true,
         #   "data": [
@@ -3040,7 +3055,7 @@ class pacifica(Exchange, ImplicitAPI):
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_incomes(data, market, since, limit)
 
-    def parse_income(self, income: dict, market: Market = None) -> object:
+    def parse_income(self, income: object, market: Market = None) -> object:
         #
         #     {
         #       "history_id": 2287920,
@@ -3055,8 +3070,8 @@ class pacifica(Exchange, ImplicitAPI):
         id = self.safe_string(income, 'history_id')
         timestamp = self.safe_integer(income, 'created_at')
         marketId = self.safe_string(income, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         amount = self.safe_string(income, 'amount')
         code = self.safe_currency_code('USDC')
         rate = self.safe_number(income, 'rate')
@@ -3094,8 +3109,8 @@ class pacifica(Exchange, ImplicitAPI):
             'amount': self.number_to_string(amount),
         }
         request = self.post_action_request(operationType, sigPayload, params)
-        paramsOmitted = self.omit(params, ['expiryWindow'])
-        response = self.privatePostAccountSubaccountTransfer(self.extend(request, paramsOmitted))
+        params = self.omit(params, ['expiryWindow'])
+        response = self.privatePostAccountSubaccountTransfer(self.extend(request, params))
         #
         # {
         #   "success": true,
@@ -3156,20 +3171,26 @@ class pacifica(Exchange, ImplicitAPI):
         :returns dict: a response object
         """
         finalHeaders = {}
-        agentAddress, paramsAgentAddress = self.handle_option_string_and_params(params, 'createSubAccount', 'agentAddress')
-        originAddress, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('createSubAccount', paramsAgentAddress)
+        agentAddress = None
+        agentAddress, params = self.handle_option_and_params(params, 'createSubAccount', 'agentAddress')
+        originAddress = None
+        originAddress, params = self.handle_origin_and_single_address('createSubAccount', params)
         if originAddress is None:
             raise ArgumentsRequired(self.id + ' createSubAccount() requires "originAddress" in params or "walletAddress" in requiredCredentials')
         if agentAddress is not None:
             finalHeaders['agent_wallet'] = agentAddress
-        subAccountAddress, paramsSubAccountAddress = self.handle_option_string_and_params(paramsOriginAndSingleAddress, 'createSubAccount', 'subAccountAddress')
-        subAccountPrivateKey, paramsSubAccountPrivateKey = self.handle_option_string_and_params(paramsSubAccountAddress, 'createSubAccount', 'subAccountPrivateKey')
+        subAccountAddress = None
+        subAccountAddress, params = self.handle_option_and_params(params, 'createSubAccount', 'subAccountAddress')
+        subAccountPrivateKey = None
+        subAccountPrivateKey, params = self.handle_option_and_params(params, 'createSubAccount', 'subAccountPrivateKey')
         if subAccountAddress is None:
             raise ArgumentsRequired(self.id + ' createSubAccount() requires a "subAccountAddress"!')
         if subAccountPrivateKey is None:
             raise ArgumentsRequired(self.id + ' createSubAccount() requires a "subAccountPrivateKey"!')
-        timestamp, paramsTimestamp = self.handle_param_integer(paramsSubAccountPrivateKey, 'timestamp', self.milliseconds())
-        expiryWindow, paramsExpiryWindow = self.handle_option_integer_and_params_2(paramsTimestamp, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000)
+        timestamp = None
+        timestamp, params = self.handle_param_integer(params, 'timestamp', self.milliseconds())
+        expiryWindow = None
+        expiryWindow, params = self.handle_option_and_params_2(params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000)
         subaccountSignatureHeader = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
@@ -3195,7 +3216,7 @@ class pacifica(Exchange, ImplicitAPI):
         finalHeaders['timestamp'] = timestamp
         finalHeaders['expiry_window'] = expiryWindow
         request = finalHeaders
-        response = self.privatePostAccountSubaccountCreate(self.extend(request, paramsExpiryWindow))
+        response = self.privatePostAccountSubaccountCreate(self.extend(request, params))
         #
         # {
         #   "success": true,
@@ -3243,7 +3264,7 @@ class pacifica(Exchange, ImplicitAPI):
         request = self.post_action_request(operationType, sigPayload, params)
         return self.privatePostAccountBuilderCodesApprove(self.extend(request, params))
 
-    def fetch_builder_approvals(self, address: str) -> list[dict]:
+    def fetch_builder_approvals(self, address: str):
         request = {
             'account': address,
         }
@@ -3258,12 +3279,13 @@ class pacifica(Exchange, ImplicitAPI):
         return self.privatePostAccountBuilderCodesRevoke(self.extend(request, params))
 
     def handle_origin_and_single_address(self, methodName: str, params: dict) -> list:
-        address, paramsAccount = self.handle_param_string_2(params, 'account', 'address', None)  # this is for get endpoints that accept account or address
+        address = None
+        address, params = self.handle_param_string_2(params, 'account', 'address', None)  # this is for get endpoints that accept account or address
         if address is not None:
-            return [address, paramsAccount]
+            return [address, params]
         address1 = self.walletAddress
         if address1 is not None:
-            return [address1, paramsAccount]
+            return [address1, params]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires address either as "exchange.walletAddress = ..." or as parameter or "address" in params')
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
@@ -3298,32 +3320,26 @@ class pacifica(Exchange, ImplicitAPI):
                 raise ExchangeError(feedback)  # unknown message
         return None
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestBody = body
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'api'
-        if isTestnet:
-            urlKey = 'test'
-        baseApiUrl = self.safe_string(self.urls[urlKey], api)
-        if baseApiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        host = self.implode_hostname(baseApiUrl)
+        urlKey = 'test' if (isTestnet) else 'api'
+        host = self.implode_hostname(self.urls[urlKey][api])
         url = host + '/api/' + self.version + '/' + self.implode_params(path, params)
-        paramsOmitted = self.omit(params, self.extract_params(path))
-        paramsLen = len(paramsOmitted)
-        headersValue = {
+        params = self.omit(params, self.extract_params(path))
+        paramsLen = len(params)
+        headers = {
             'Content-Type': 'application/json',
         }
         if (method == 'GET') and (paramsLen > 0):
-            url += '?' + self.urlencode(paramsOmitted)
-            headersValue['Accept'] = '*/*'
+            url += '?' + self.urlencode(params)
+            headers['Accept'] = '*/*'
         if method == 'POST':
-            requestBody = self.json(paramsOmitted)
+            body = self.json(params)
         if self.handle_option('sign', 'apiKey') is not None:
-            headersValue['PF-API-KEY'] = self.options['apiKey']
-        return {'url': url, 'method': method, 'body': requestBody, 'headers': headersValue}
+            headers['PF-API-KEY'] = self.options['apiKey']
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: object = {}):
         cost = self.safe_string(config, 'cost', '1')
         costNumber = self.parse_number(cost)
         # 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
@@ -3384,8 +3400,9 @@ class pacifica(Exchange, ImplicitAPI):
                 isOperationSupportBuilder = self.safe_bool(self.options['builderSupportOperations'], operationType, False)
                 if isOperationSupportBuilder is True:
                     sigPayload['builder_code'] = builderCode
-        expiryWindow, paramsExpiryWindow = self.handle_option_integer_and_params_2(params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000)
-        timestamp = self.safe_integer(paramsExpiryWindow, 'timestamp', self.milliseconds())
+        expiryWindow = None
+        expiryWindow, params = self.handle_option_and_params_2(params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000)
+        timestamp = self.safe_integer(params, 'timestamp', self.milliseconds())
         signatureHeader = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
@@ -3393,8 +3410,10 @@ class pacifica(Exchange, ImplicitAPI):
         }
         signature = self.sign_message(signatureHeader, sigPayload, self.privateKey)
         finalHeaders = {}
-        agentAddress, paramsAgentAddress = self.handle_option_string_and_params(paramsExpiryWindow, 'postActionRequest', 'agentAddress')
-        originAddress = self.handle_origin_and_single_address('postActionRequest', paramsAgentAddress)[0]
+        agentAddress = None
+        agentAddress, params = self.handle_option_and_params(params, 'postActionRequest', 'agentAddress')
+        originAddress = None
+        originAddress, params = self.handle_origin_and_single_address('postActionRequest', params)
         if originAddress is None:
             raise ArgumentsRequired(self.id + ' action: ' + operationType + ' postActionRequest() requires "originAddress" in params or "walletAddress" in requiredCredentials')
         finalHeaders['account'] = originAddress

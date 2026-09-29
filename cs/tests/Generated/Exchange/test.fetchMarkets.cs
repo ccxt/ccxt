@@ -29,9 +29,9 @@ public partial class testMainClass : BaseTest
         {
             object market = getValue(marketValues, i);
             object symbol = getValue(market, "symbol");
-            if (!((symbol is string inOpKey0 && ids.ContainsKey(inOpKey0))))
+            if (!(inOp(ids, symbol)))
             {
-                ids[(string)symbol] = getValue(market, "id");
+                ((IDictionary<string,object>)ids)[(string)symbol] = getValue(market, "id");
             } else
             {
                 bool isDifferent = !isEqual(getValue(ids, symbol), getValue(market, "id"));

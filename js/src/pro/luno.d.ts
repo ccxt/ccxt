@@ -1,7 +1,6 @@
 import lunoRest from '../luno.js';
 import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 export default class luno extends lunoRest {
     describe(): any;
     /**
@@ -41,6 +40,6 @@ export default class luno extends lunoRest {
     };
     parseOrderBookBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, thirdKey?: IndexType): any[];
     customParseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, thirdKey?: IndexType): import("../base/types.js").Num[];
-    handleBookDelta(orderbook: Ob, message: any): void;
+    handleDelta(orderbook: any, message: any): void;
     handleMessage(client: Client, message: any): void;
 }

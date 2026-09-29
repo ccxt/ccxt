@@ -94,7 +94,7 @@ class coinex extends \ccxt\async\coinex {
         ));
     }
 
-    public function request_id(): float {
+    public function request_id() {
         $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
@@ -270,12 +270,10 @@ class coinex extends \ccxt\async\coinex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $params, 'spot');
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params, 'spot');
         Async\await($this->authenticate($type));
-        $url = $this->safe_string($this->urls['api']['ws'], $type);
-        if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
-        }
+        $url = $this->urls['api']['ws'][$type];
         // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
         $activeCurrencies = $this->filter_by($this->currencies_by_id, 'active', true);
         $activeCurrenciesById = $this->index_by($activeCurrencies, 'id');
@@ -294,7 +292,7 @@ class coinex extends \ccxt\async\coinex {
             'params' => array( 'ccy_list' => $currencies ),
             'id' => $this->request_id(),
         );
-        $request = $this->deep_extend($subscribe, $paramsMarketType);
+        $request = $this->deep_extend($subscribe, $params);
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
@@ -343,7 +341,7 @@ class coinex extends \ccxt\async\coinex {
         }
         $data = $this->safe_dict($message, 'data', array());
         $balances = $this->safe_list($data, 'balance_list', array());
-        $firstEntry = $this->safe_dict($balances, 0);
+        $firstEntry = $balances[0];
         $updated = $this->safe_integer($firstEntry, 'updated_at');
         $unrealizedPnl = $this->safe_string($firstEntry, 'unrealized_pnl');
         $isSpot = ($updated !== null);
@@ -445,21 +443,18 @@ class coinex extends \ccxt\async\coinex {
             Async\await($this->load_markets());
         }
         $market = null;
-        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $this->safe_string($market, 'symbol');
+            $symbol = $market['symbol'];
         }
-        list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params, 'spot');
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params, 'spot');
         Async\await($this->authenticate($type));
-        $url = $this->safe_string($this->urls['api']['ws'], $type);
-        if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
-        }
+        $url = $this->urls['api']['ws'][$type];
         $subscribedSymbols = array();
         $messageHash = 'myTrades';
         if ($market !== null) {
-            $messageHash .= ':' . $symbolResolved;
+            $messageHash .= ':' . $symbol;
             $subscribedSymbols[] = $market['id'];
         } else {
             if ($type === 'spot') {
@@ -473,13 +468,12 @@ class coinex extends \ccxt\async\coinex {
             'params' => array( 'market_list' => $subscribedSymbols ),
             'id' => $this->request_id(),
         );
-        $request = $this->deep_extend($message, $paramsMarketType);
+        $request = $this->deep_extend($message, $params);
         $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($symbolResolved, $limit);
+            $limit = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
     public function handle_my_trades(Client $client, array $message) {
@@ -505,10 +499,7 @@ class coinex extends \ccxt\async\coinex {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 'market');
         $isSpot = mb_strpos($client->url, 'spot') > -1;
-        $defaultType = 'swap';
-        if ($isSpot) {
-            $defaultType = 'spot';
-        }
+        $defaultType = $isSpot ? 'spot' : 'swap';
         $market = $this->safe_market($marketId, null, null, $defaultType);
         $symbol = $market['symbol'];
         $messageHash = 'myTrades:' . $symbol;
@@ -570,10 +561,7 @@ class coinex extends \ccxt\async\coinex {
         $trades = $this->safe_list($data, 'deal_list', array());
         $marketId = $this->safe_string($data, 'market');
         $isSpot = mb_strpos($client->url, 'spot') > -1;
-        $defaultType = 'swap';
-        if ($isSpot) {
-            $defaultType = 'spot';
-        }
+        $defaultType = $isSpot ? 'spot' : 'swap';
         $market = $this->safe_market($marketId, null, null, $defaultType);
         $symbol = $market['symbol'];
         $messageHash = 'trades:' . $symbol;
@@ -632,16 +620,13 @@ class coinex extends \ccxt\async\coinex {
         //
         $timestamp = $this->safe_integer($trade, 'created_at');
         $isSpot = (is_array($trade) && array_key_exists('margin_market' ?? '', $trade));
-        $defaultType = 'swap';
-        if ($isSpot) {
-            $defaultType = 'spot';
-        }
+        $defaultType = $isSpot ? 'spot' : 'swap';
         $marketId = $this->safe_string($trade, 'market');
-        $marketResolved = $this->safe_market($marketId, $market, null, $defaultType);
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $fee = array();
         $feeCost = $this->omit_zero($this->safe_string($trade, 'fee'));
         if ($feeCost !== null) {
-            $feeCurrencyId = $this->safe_string($trade, 'fee_ccy', $marketResolved['quote']);
+            $feeCurrencyId = $this->safe_string($trade, 'fee_ccy', $market['quote']);
             $fee = array(
                 'currency' => $this->safe_currency_code($feeCurrencyId),
                 'cost' => $feeCost,
@@ -652,7 +637,7 @@ class coinex extends \ccxt\async\coinex {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $this->safe_symbol($marketId, $marketResolved, null, $defaultType),
+            'symbol' => $this->safe_symbol($marketId, $market, null, $defaultType),
             'order' => $this->safe_string($trade, 'order_id'),
             'type' => null,
             'side' => $this->safe_string($trade, 'side'),
@@ -661,7 +646,7 @@ class coinex extends \ccxt\async\coinex {
             'amount' => $this->safe_string($trade, 'amount'),
             'cost' => null,
             'fee' => $fee,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -719,18 +704,16 @@ class coinex extends \ccxt\async\coinex {
             $marketIds = array();
             $messageHashes[] = 'tickers';
         }
-        list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchTickers', $market, $params);
-        $url = $this->safe_string($this->urls['api']['ws'], $type);
-        if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
-        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchTickers', $market, $params);
+        $url = $this->urls['api']['ws'][$type];
         $subscriptionHashes = array( 'all@ticker' );
         $subscribe = array(
             'method' => 'state.subscribe',
             'params' => array( 'market_list' => $marketIds ),
             'id' => $this->request_id(),
         );
-        $result = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $paramsMarketType), $subscriptionHashes));
+        $result = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $params), $subscriptionHashes));
         if ($this->newUpdates) {
             return $result;
         }
@@ -781,7 +764,8 @@ class coinex extends \ccxt\async\coinex {
         $subscribedSymbols = array();
         $messageHashes = array();
         $market = null;
-        list($callerMethodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'watchTradesForSymbols');
+        $callerMethodName = null;
+        list($callerMethodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchTradesForSymbols');
         $symbolsDefined = ($symbols !== null);
         if ($symbolsDefined) {
             for ($i = 0; $i < count($symbols); $i++) {
@@ -793,18 +777,16 @@ class coinex extends \ccxt\async\coinex {
         } else {
             $messageHashes[] = 'trades';
         }
-        list($type, $paramsMarketType) = $this->handle_market_type_and_params($callerMethodName, $market, $paramsCallerMethodName);
-        $url = $this->safe_string($this->urls['api']['ws'], $type);
-        if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
-        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params($callerMethodName, $market, $params);
+        $url = $this->urls['api']['ws'][$type];
         // const subscriptionHashes = [ 'trades' ];
         $subscribe = array(
             'method' => 'deals.subscribe',
             'params' => array( 'market_list' => $subscribedSymbols ),
             'id' => $this->request_id(),
         );
-        $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $paramsMarketType), $messageHashes));
+        $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $params), $messageHashes));
         if ($this->newUpdates) {
             return $trades;
         }
@@ -833,20 +815,24 @@ class coinex extends \ccxt\async\coinex {
         $watchOrderBookSubscriptions = array();
         $messageHashes = array();
         $market = null;
-        list($callerMethodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'watchOrderBookForSymbols');
+        $type = null;
+        $callerMethodName = null;
+        list($callerMethodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchOrderBookForSymbols');
         $options = $this->safe_dict($this->options, 'watchOrderBook', array());
         $limits = $this->safe_list($options, 'limits', array());
-        $limitResolved = ($limit === null) ? $this->safe_integer($options, 'defaultLimit', 50) : $limit;
-        if (!$this->in_array($limitResolved, $limits)) {
+        if ($limit === null) {
+            $limit = $this->safe_integer($options, 'defaultLimit', 50);
+        }
+        if (!$this->in_array($limit, $limits)) {
             throw new NotSupported($this->id . ' watchOrderBookForSymbols() limit must be one of ' . implode(', ', $limits));
         }
         $defaultAggregation = $this->safe_string($options, 'defaultAggregation', '0');
         $aggregations = $this->safe_list($options, 'aggregations', array());
-        $aggregation = $this->safe_string($paramsCallerMethodName, 'aggregation', $defaultAggregation);
+        $aggregation = $this->safe_string($params, 'aggregation', $defaultAggregation);
         if (!$this->in_array($aggregation, $aggregations)) {
             throw new NotSupported($this->id . ' watchOrderBookForSymbols() aggregation must be one of ' . implode(', ', $aggregations));
         }
-        $paramsOmitted = $this->omit($paramsCallerMethodName, 'aggregation');
+        $params = $this->omit($params, 'aggregation');
         $symbolsDefined = ($symbols !== null);
         if (!$symbolsDefined) {
             throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a symbol argument');
@@ -855,9 +841,9 @@ class coinex extends \ccxt\async\coinex {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
             $messageHashes[] = 'orderbook:' . $market['symbol'];
-            $watchOrderBookSubscriptions[$symbol] = array( $market['id'], $limitResolved, $aggregation, true );
+            $watchOrderBookSubscriptions[$symbol] = array( $market['id'], $limit, $aggregation, true );
         }
-        list($type, $paramsMarketType) = $this->handle_market_type_and_params($callerMethodName, $market, $paramsOmitted);
+        list($type, $params) = $this->handle_market_type_and_params($callerMethodName, $market, $params);
         $marketList = is_array($watchOrderBookSubscriptions) ? array_values($watchOrderBookSubscriptions) : array();
         $subscribe = array(
             'method' => 'depth.subscribe',
@@ -865,11 +851,8 @@ class coinex extends \ccxt\async\coinex {
             'id' => $this->request_id(),
         );
         // const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
-        $url = $this->safe_string($this->urls['api']['ws'], $type);
-        if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
-        }
-        $orderbooks = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $paramsMarketType), $messageHashes));
+        $url = $this->urls['api']['ws'][$type];
+        $orderbooks = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $params), $messageHashes));
         if ($this->newUpdates) {
             return $orderbooks;
         }
@@ -936,10 +919,7 @@ class coinex extends \ccxt\async\coinex {
         //     }
         //
         $isSpot = mb_strpos($client->url, 'spot') > -1;
-        $defaultType = 'swap';
-        if ($isSpot) {
-            $defaultType = 'spot';
-        }
+        $defaultType = $isSpot ? 'spot' : 'swap';
         $data = $this->safe_dict($message, 'data', array());
         $depth = $this->safe_dict($data, 'depth', array());
         $marketId = $this->safe_string($data, 'market');
@@ -994,20 +974,20 @@ class coinex extends \ccxt\async\coinex {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $paramsOmitted = $this->omit($params, array( 'trigger', 'stop' ));
+        $params = $this->omit($params, array( 'trigger', 'stop' ));
         $messageHash = 'orders';
         $market = null;
         $marketList = null;
-        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $this->safe_string($market, 'symbol');
+            $symbol = $market['symbol'];
         }
-        list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchOrders', $market, $paramsOmitted, 'spot');
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params, 'spot');
         Async\await($this->authenticate($type));
-        if ($symbolResolved !== null) {
+        if ($symbol !== null) {
             $marketList = array( $market['id'] );
-            $messageHash .= ':' . $symbolResolved;
+            $messageHash .= ':' . $symbol;
         } else {
             $marketList = array();
             if ($type === 'spot') {
@@ -1027,17 +1007,13 @@ class coinex extends \ccxt\async\coinex {
             'params' => array( 'market_list' => $marketList ),
             'id' => $this->request_id(),
         );
-        $url = $this->safe_string($this->urls['api']['ws'], $type);
-        if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
-        }
-        $request = $this->deep_extend($message, $paramsMarketType);
+        $url = $this->urls['api']['ws'][$type];
+        $request = $this->deep_extend($message, $params);
         $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $orders->getLimit($symbolResolved, $limit);
+            $limit = $orders->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function handle_orders(Client $client, array $message) {
@@ -1268,15 +1244,12 @@ class coinex extends \ccxt\async\coinex {
         $marketId = $this->safe_string($order, 'market');
         $status = $this->safe_string($order, 'status');
         $isSpot = (is_array($order) && array_key_exists('margin_market' ?? '', $order));
-        $defaultType = 'swap';
-        if ($isSpot) {
-            $defaultType = 'spot';
-        }
-        $marketResolved = $this->safe_market($marketId, $market, null, $defaultType);
+        $defaultType = $isSpot ? 'spot' : 'swap';
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $fee = null;
         $feeCost = $this->omit_zero($this->safe_string_2($order, 'fee', 'quote_ccy_fee'));
         if ($feeCost !== null) {
-            $feeCurrencyId = $this->safe_string($order, 'fee_ccy', $marketResolved['quote']);
+            $feeCurrencyId = $this->safe_string($order, 'fee_ccy', $market['quote']);
             $fee = array(
                 'currency' => $this->safe_currency_code($feeCurrencyId),
                 'cost' => $feeCost,
@@ -1289,7 +1262,7 @@ class coinex extends \ccxt\async\coinex {
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => $this->safe_integer($order, 'updated_at'),
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'type' => $this->safe_string($order, 'type'),
             'timeInForce' => null,
             'postOnly' => null,
@@ -1305,7 +1278,7 @@ class coinex extends \ccxt\async\coinex {
             'status' => $this->parse_ws_order_status($status),
             'fee' => $fee,
             'trades' => null,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function parse_ws_order_status(?string $status): ?string {
@@ -1352,18 +1325,16 @@ class coinex extends \ccxt\async\coinex {
         } else {
             $messageHashes[] = 'bidsasks';
         }
-        list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBidsAsks', $market, $params);
-        $url = $this->safe_string($this->urls['api']['ws'], $type);
-        if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
-        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchBidsAsks', $market, $params);
+        $url = $this->urls['api']['ws'][$type];
         $subscriptionHashes = array( 'all@bidsasks' );
         $subscribe = array(
             'method' => 'bbo.subscribe',
             'params' => array( 'market_list' => $marketIds ),
             'id' => $this->request_id(),
         );
-        $result = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $paramsMarketType), $subscriptionHashes));
+        $result = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $params), $subscriptionHashes));
         if ($this->newUpdates) {
             return $result;
         }
@@ -1406,10 +1377,10 @@ class coinex extends \ccxt\async\coinex {
         //
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $marketId = $this->safe_string($ticker, 'market');
-        $marketResolved = $this->safe_market($marketId, $market, null, $defaultType);
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $timestamp = $this->safe_integer($ticker, 'updated_at');
         return $this->safe_ticker(array(
-            'symbol' => $this->safe_symbol($marketId, $marketResolved, null, $defaultType),
+            'symbol' => $this->safe_symbol($marketId, $market, null, $defaultType),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'ask' => $this->safe_number($ticker, 'best_ask_price'),
@@ -1417,7 +1388,7 @@ class coinex extends \ccxt\async\coinex {
             'bid' => $this->safe_number($ticker, 'best_bid_price'),
             'bidVolume' => $this->safe_number($ticker, 'best_bid_size'),
             'info' => $ticker,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function handle_message(Client $client, array $message) {
@@ -1517,10 +1488,7 @@ class coinex extends \ccxt\async\coinex {
     }
 
     private function do_authenticate(string $type) {
-        $url = $this->safe_string($this->urls['api']['ws'], $type);
-        if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
-        }
+        $url = $this->urls['api']['ws'][$type];
         $client = $this->client($url);
         $time = $this->milliseconds();
         $timestamp = (string) $time;

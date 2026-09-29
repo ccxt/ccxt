@@ -108,9 +108,6 @@ export default class coinone extends coinoneRest {
         const quoteId = this.safeStringUpper(data, 'quote_currency');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return;
-        }
         const symbol = this.symbol(base + '/' + quote);
         const timestamp = this.safeInteger(data, 'timestamp');
         let orderbook = this.safeValue(this.orderbooks, symbol);
@@ -195,9 +192,6 @@ export default class coinone extends coinoneRest {
         const data = this.safeDict(message, 'data', {});
         const ticker = this.parseWsTicker(data);
         const symbol = ticker['symbol'];
-        if (symbol === undefined) {
-            return;
-        }
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
         client.resolve(this.tickers[symbol], messageHash);
@@ -234,10 +228,7 @@ export default class coinone extends coinoneRest {
         const quoteId = this.safeString(ticker, 'quote_currency');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        let symbol = undefined;
-        if ((base !== undefined) && (quote !== undefined)) {
-            symbol = this.symbol(base + '/' + quote);
-        }
+        const symbol = this.symbol(base + '/' + quote);
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -289,11 +280,10 @@ export default class coinone extends coinoneRest {
         };
         const message = this.extend(request, params);
         const trades = await this.watch(url, messageHash, message, messageHash);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(market['symbol'], limit);
+            limit = trades.getLimit(market['symbol'], limit);
         }
-        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -340,12 +330,9 @@ export default class coinone extends coinoneRest {
         const quoteId = this.safeStringUpper(trade, 'quote_currency');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        let symbol = undefined;
-        if ((base !== undefined) && (quote !== undefined)) {
-            symbol = base + '/' + quote;
-        }
+        const symbol = base + '/' + quote;
         const timestamp = this.safeInteger(trade, 'timestamp');
-        const marketResolved = this.safeMarket(symbol, market);
+        market = this.safeMarket(symbol, market);
         const isSellerMaker = this.safeBool(trade, 'is_seller_maker');
         let side = undefined;
         if (isSellerMaker !== undefined) {
@@ -359,7 +346,7 @@ export default class coinone extends coinoneRest {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'order': undefined,
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -367,7 +354,7 @@ export default class coinone extends coinoneRest {
             'amount': amountString,
             'cost': undefined,
             'fee': undefined,
-        }, marketResolved);
+        }, market);
     }
     handleErrorMessage(client, message) {
         //

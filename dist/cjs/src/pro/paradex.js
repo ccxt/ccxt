@@ -114,11 +114,10 @@ class paradex extends paradex$1["default"] {
             },
         };
         const trades = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(symbol, limit);
+            limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrade(client, message) {
         //
@@ -256,7 +255,7 @@ class paradex extends paradex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolValue = this.symbol(symbol);
+        symbol = this.symbol(symbol);
         const channel = 'markets_summary';
         const url = this.urls['api']['ws'];
         const request = {
@@ -266,7 +265,7 @@ class paradex extends paradex$1["default"] {
                 'channel': channel,
             },
         };
-        const messageHash = channel + '.' + symbolValue;
+        const messageHash = channel + '.' + symbol;
         return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
     }
     /**
@@ -282,7 +281,7 @@ class paradex extends paradex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         const channel = 'markets_summary';
         const url = this.urls['api']['ws'];
         const request = {
@@ -293,9 +292,9 @@ class paradex extends paradex$1["default"] {
             },
         };
         const messageHashes = [];
-        if (symbolsNormalized !== undefined && Array.isArray(symbolsNormalized)) {
-            for (let i = 0; i < symbolsNormalized.length; i++) {
-                const messageHash = channel + '.' + symbolsNormalized[i];
+        if (symbols !== undefined && Array.isArray(symbols)) {
+            for (let i = 0; i < symbols.length; i++) {
+                const messageHash = channel + '.' + symbols[i];
                 messageHashes.push(messageHash);
             }
         }
@@ -305,13 +304,10 @@ class paradex extends paradex$1["default"] {
         const newTicker = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
         if (this.newUpdates) {
             const result = {};
-            const newTickerSymbol = this.safeString(newTicker, 'symbol');
-            if (newTickerSymbol !== undefined) {
-                result[newTickerSymbol] = newTicker;
-            }
+            result[newTicker['symbol']] = newTicker;
             return result;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     /**
      * @method
@@ -331,11 +327,11 @@ class paradex extends paradex$1["default"] {
         await this.authenticate();
         let messageHash = 'orders';
         let channel = 'orders.';
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
             const market = this.market(symbol);
+            symbol = market['symbol'];
             channel += market['id'];
-            messageHash += ':' + symbolResolved;
+            messageHash += ':' + symbol;
         }
         else {
             channel += 'ALL';
@@ -349,11 +345,10 @@ class paradex extends paradex$1["default"] {
             },
         };
         const orders = await this.watch(url, messageHash, this.deepExtend(request, params), channel);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = orders.getLimit(symbolResolved, limit);
+            limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrder(client, message) {
         //
@@ -430,13 +425,11 @@ class paradex extends paradex$1["default"] {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const channel = this.safeString(params, 'channel');
+        const messageHash = channel + '.' + symbol;
         const ticker = this.parseTicker(data, market);
         this.tickers[symbol] = ticker;
         client.resolve(ticker, channel);
-        if (channel !== undefined) {
-            const messageHash = channel + '.' + symbol;
-            client.resolve(ticker, messageHash);
-        }
+        client.resolve(ticker, messageHash);
         return message;
     }
     /**
@@ -452,7 +445,7 @@ class paradex extends paradex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolValue = this.symbol(symbol);
+        symbol = this.symbol(symbol);
         const channel = 'funding_data';
         const url = this.urls['api']['ws'];
         const request = {
@@ -462,7 +455,7 @@ class paradex extends paradex$1["default"] {
                 'channel': channel,
             },
         };
-        const messageHash = channel + '.' + symbolValue;
+        const messageHash = channel + '.' + symbol;
         return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
     }
     /**
@@ -478,7 +471,7 @@ class paradex extends paradex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         const channel = 'funding_data';
         const url = this.urls['api']['ws'];
         const request = {
@@ -489,11 +482,11 @@ class paradex extends paradex$1["default"] {
             },
         };
         const messageHashes = [];
-        if (symbolsNormalized !== undefined) {
-            const symbolsLength = symbolsNormalized.length;
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
             if (symbolsLength > 0) {
-                for (let i = 0; i < symbolsNormalized.length; i++) {
-                    const messageHash = channel + '.' + symbolsNormalized[i];
+                for (let i = 0; i < symbols.length; i++) {
+                    const messageHash = channel + '.' + symbols[i];
                     messageHashes.push(messageHash);
                 }
             }
@@ -507,13 +500,10 @@ class paradex extends paradex$1["default"] {
         const newFundingRates = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
         if (this.newUpdates) {
             const result = {};
-            const newFundingRatesSymbol = this.safeString(newFundingRates, 'symbol');
-            if (newFundingRatesSymbol !== undefined) {
-                result[newFundingRatesSymbol] = newFundingRates;
-            }
+            result[newFundingRates['symbol']] = newFundingRates;
             return result;
         }
-        return this.filterByArray(this.fundingRates, 'symbol', symbolsNormalized);
+        return this.filterByArray(this.fundingRates, 'symbol', symbols);
     }
     handleFundingRate(client, message) {
         //
@@ -540,10 +530,8 @@ class paradex extends paradex$1["default"] {
         const symbol = fundingRate['symbol'];
         this.fundingRates[symbol] = fundingRate;
         const channel = this.safeString(params, 'channel');
-        if (channel !== undefined) {
-            const messageHash = channel + '.' + symbol;
-            client.resolve(fundingRate, messageHash);
-        }
+        const messageHash = channel + '.' + symbol;
+        client.resolve(fundingRate, messageHash);
     }
     parseFundingRateWs(contract, market = undefined) {
         //
@@ -561,10 +549,6 @@ class paradex extends paradex$1["default"] {
         const symbol = this.safeSymbol(marketId, market);
         const timestamp = this.safeInteger(contract, 'created_at');
         const fundingPeriod = this.safeString(contract, 'funding_period_hours');
-        let interval = undefined;
-        if (fundingPeriod !== undefined) {
-            interval = fundingPeriod + 'h';
-        }
         return {
             'info': contract,
             'symbol': symbol,
@@ -583,7 +567,7 @@ class paradex extends paradex$1["default"] {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': interval,
+            'interval': fundingPeriod + 'h',
         };
     }
     handleErrorMessage(client, message) {
@@ -610,7 +594,7 @@ class paradex extends paradex$1["default"] {
             if (errorCode !== undefined) {
                 const feedback = this.id + ' ' + this.json(error);
                 this.throwExactlyMatchedException(this.exceptions['exact'], '-32600', feedback);
-                const messageString = this.safeString(error, 'message');
+                const messageString = this.safeValue(error, 'message');
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
                 }

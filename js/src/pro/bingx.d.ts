@@ -3,7 +3,7 @@ import type { Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balance
 import Client from '../base/ws/Client.js';
 export default class bingx extends bingxRest {
     describe(): any;
-    unWatch(messageHash: string, subMessageHash: string, subscribeHash: string, dataType: string, topic: string, market: Market, methodName: string, params?: Dict): Promise<any>;
+    unWatch(messageHash: string, subMessageHash: string, subscribeHash: string, dataType: string, topic: string, market: Market, methodName: string, params?: {}): Promise<any>;
     /**
      * @method
      * @name bingx#watchTicker
@@ -27,7 +27,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
+    unWatchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: Dict): void;
     parseWsTicker(message: Dict, market?: Market, isInverse?: Bool): Ticker;
     getOrderBookLimitByMarketType(marketType: string, limit?: Int): number;
@@ -58,7 +58,7 @@ export default class bingx extends bingxRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
+    unWatchTrades(symbol: string, params?: {}): Promise<any>;
     handleTrades(client: Client, message: Dict): void;
     /**
      * @method
@@ -84,7 +84,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleOrderBook(client: Client, message: Dict): void;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
@@ -156,8 +156,8 @@ export default class bingx extends bingxRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: Dict): Promise<Balances>;
-    setBalanceCache(client: Client, type: string, subType: Str, subscriptionHash: string, params: Dict): void;
-    loadBalanceSnapshot(client: Client, messageHash: string, type: string, subType: Str): Promise<void>;
+    setBalanceCache(client: Client, type: any, subType: Str, subscriptionHash: string, params: Dict): void;
+    loadBalanceSnapshot(client: Client, messageHash: string, type: any, subType: Str): Promise<void>;
     /**
      * @method
      * @name bingx#watchPositions

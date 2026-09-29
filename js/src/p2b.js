@@ -379,9 +379,6 @@ export default class p2b extends Exchange {
         const quoteId = this.safeString(market, 'money');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         const limits = this.safeDict(market, 'limits');
         const maxAmount = this.safeString(limits, 'max_amount');
         const maxPrice = this.safeString(limits, 'max_price');
@@ -516,7 +513,8 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeDict(response, 'result', {});
-        return this.parseTicker(result, market);
+        const timestamp = this.safeIntegerProduct(response, 'cache_time', 1000);
+        return this.extend({ 'timestamp': timestamp, 'datetime': this.iso8601(timestamp) }, this.parseTicker(result, market));
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -551,32 +549,31 @@ export default class p2b extends Exchange {
         //    }
         //
         const timestamp = this.safeIntegerProduct(ticker, 'at', 1000);
-        let tickerInner = ticker;
         if ('ticker' in ticker) {
-            tickerInner = this.safeDict(ticker, 'ticker');
+            ticker = this.safeDict(ticker, 'ticker');
         }
-        const last = this.safeString(tickerInner, 'last');
+        const last = this.safeString(ticker, 'last');
         return this.safeTicker({
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'high': this.safeString(tickerInner, 'high'),
-            'low': this.safeString(tickerInner, 'low'),
-            'bid': this.safeString(tickerInner, 'bid'),
+            'high': this.safeString(ticker, 'high'),
+            'low': this.safeString(ticker, 'low'),
+            'bid': this.safeString(ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeString(tickerInner, 'ask'),
+            'ask': this.safeString(ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString(tickerInner, 'open'),
+            'open': this.safeString(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString(tickerInner, 'change'),
+            'percentage': this.safeString(ticker, 'change'),
             'average': undefined,
-            'baseVolume': this.safeString2(tickerInner, 'vol', 'volume'),
-            'quoteVolume': this.safeString(tickerInner, 'deal'),
-            'info': tickerInner,
+            'baseVolume': this.safeString2(ticker, 'vol', 'volume'),
+            'quoteVolume': this.safeString(ticker, 'deal'),
+            'info': ticker,
         }, market);
     }
     /**
@@ -877,7 +874,7 @@ export default class p2b extends Exchange {
         const keys = Object.keys(response);
         for (let i = 0; i < keys.length; i++) {
             const currencyId = keys[i];
-            const balance = this.safeDict(response, currencyId);
+            const balance = response[currencyId];
             const code = this.safeCurrencyCode(currencyId);
             const used = this.safeString(balance, 'freeze');
             const available = this.safeString(balance, 'available');
@@ -1124,7 +1121,7 @@ export default class p2b extends Exchange {
             await this.loadMarkets();
         }
         let until = this.safeInteger(params, 'until');
-        const paramsOmitted = this.omit(params, 'until');
+        params = this.omit(params, 'until');
         if (until === undefined) {
             if (since === undefined) {
                 until = this.milliseconds();
@@ -1133,12 +1130,14 @@ export default class p2b extends Exchange {
                 until = since + 86400000;
             }
         }
-        const sinceResolved = (since === undefined) ? (until - 86400000) : since;
-        if ((until - sinceResolved) > 86400000) {
+        if (since === undefined) {
+            since = until - 86400000;
+        }
+        if ((until - since) > 86400000) {
             throw new BadRequest(this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
         }
         const market = this.market(symbol);
-        const sinceSec = this.parseToInt(sinceResolved / 1000);
+        const sinceSec = this.parseToInt(since / 1000);
         const untilSec = this.parseToInt(until / 1000);
         const request = {
             'market': market['id'],
@@ -1148,7 +1147,7 @@ export default class p2b extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostAccountMarketDealHistory(this.extend(request, paramsOmitted));
+        const response = await this.privatePostAccountMarketDealHistory(this.extend(request, params));
         //
         //    {
         //        "success": true,
@@ -1177,7 +1176,7 @@ export default class p2b extends Exchange {
         //
         const result = this.safeDict(response, 'result', {});
         const deals = this.safeList(result, 'deals', []);
-        return this.parseTrades(deals, market, sinceResolved, limit);
+        return this.parseTrades(deals, market, since, limit);
     }
     /**
      * @method
@@ -1199,7 +1198,7 @@ export default class p2b extends Exchange {
             await this.loadMarkets();
         }
         let until = this.safeInteger(params, 'until');
-        const paramsOmitted = this.omit(params, 'until');
+        params = this.omit(params, 'until');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1212,11 +1211,13 @@ export default class p2b extends Exchange {
                 until = since + 86400000;
             }
         }
-        const sinceResolved = (since === undefined) ? (until - 86400000) : since;
-        if ((until - sinceResolved) > 86400000) {
+        if (since === undefined) {
+            since = until - 86400000;
+        }
+        if ((until - since) > 86400000) {
             throw new BadRequest(this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
         }
-        const sinceSec = this.parseToInt(sinceResolved / 1000);
+        const sinceSec = this.parseToInt(since / 1000);
         const untilSec = this.parseToInt(until / 1000);
         const request = {
             'startTime': sinceSec,
@@ -1228,7 +1229,7 @@ export default class p2b extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostAccountOrderHistory(this.extend(request, paramsOmitted));
+        const response = await this.privatePostAccountOrderHistory(this.extend(request, params));
         //
         //    {
         //        "success": true,
@@ -1261,7 +1262,7 @@ export default class p2b extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
             const marketOrders = result[marketId];
-            const parsedOrders = this.parseOrders(marketOrders, market, sinceResolved, limit);
+            const parsedOrders = this.parseOrders(marketOrders, market, since, limit);
             orders = this.arrayConcat(orders, parsedOrders);
         }
         return orders;
@@ -1306,7 +1307,7 @@ export default class p2b extends Exchange {
         //
         const timestamp = this.safeIntegerProduct2(order, 'timestamp', 'ctime', 1000);
         const marketId = this.safeString(order, 'market');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         return this.safeOrder({
             'info': order,
             'id': this.safeString2(order, 'id', 'orderId'),
@@ -1314,7 +1315,7 @@ export default class p2b extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'type': this.safeString(order, 'type'),
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1328,39 +1329,33 @@ export default class p2b extends Exchange {
             'remaining': this.safeString(order, 'left'),
             'status': undefined,
             'fee': {
-                'currency': marketResolved['quote'],
+                'currency': market['quote'],
                 'cost': this.safeString(order, 'dealFee'),
             },
             'trades': undefined,
-        }, marketResolved);
+        }, market);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseApiUrl = this.safeString(this.urls['api'], api);
-        if (baseApiUrl === undefined) {
-            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        const baseUrl = baseApiUrl;
-        let url = baseUrl + '/' + this.implodeParams(path, params);
-        const paramsOmitted = this.omit(params, this.extractParams(path));
+        let url = this.urls['api'][api] + '/' + this.implodeParams(path, params);
+        params = this.omit(params, this.extractParams(path));
         if (method === 'GET') {
-            if (Object.keys(paramsOmitted).length > 0) {
-                url += '?' + this.urlencode(paramsOmitted);
+            if (Object.keys(params).length > 0) {
+                url += '?' + this.urlencode(params);
             }
         }
         if (api === 'private') {
-            paramsOmitted['request'] = '/api/v2/' + path;
+            params['request'] = '/api/v2/' + path;
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
-            paramsOmitted['nonce'] = this.incrementingNonce().toString();
-            const payload = this.stringToBase64(this.json(paramsOmitted)); // Body json encoded in base64
-            const headersSigned = {
+            params['nonce'] = this.incrementingNonce().toString();
+            const payload = this.stringToBase64(this.json(params)); // Body json encoded in base64
+            headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
                 'X-TXC-PAYLOAD': payload,
                 'X-TXC-SIGNATURE': this.hmac(this.encode(payload), this.encode(this.secret), sha512),
             };
-            const bodyJson = this.json(paramsOmitted);
-            return { 'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned };
+            body = this.json(params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

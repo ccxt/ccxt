@@ -109,10 +109,7 @@ export default class okx extends okxRest {
             throw new ArgumentsRequired(this.id + ' getUrl() requires a channel argument');
         }
         const isSandbox = this.options['sandboxMode'];
-        let sandboxSuffix = '';
-        if (isSandbox === true) {
-            sandboxSuffix = '?brokerId=9999';
-        }
+        const sandboxSuffix = (isSandbox === true) ? '?brokerId=9999' : '';
         const isBusiness = (access === 'business');
         const isPublic = (access === 'public');
         const url = this.urls['api']['ws'];
@@ -128,31 +125,30 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let symbolsRequested = symbols;
         if (symbols === undefined) {
-            symbolsRequested = this.symbols;
+            symbols = this.symbols;
         }
-        const symbolsNormalized = this.marketSymbols(symbolsRequested);
+        symbols = this.marketSymbols(symbols);
         const url = this.getUrl(channel, access);
         const messageHashes = [];
         const args = [];
-        if (symbolsNormalized === undefined) {
+        if (symbols === undefined) {
             throw new ArgumentsRequired(this.id + ' subscribeMultiple() symbols is required');
         }
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            if (symbolsNormalized === undefined) {
+        for (let i = 0; i < symbols.length; i++) {
+            if (symbols === undefined) {
                 throw new ArgumentsRequired(this.id + ' subscribeMultiple() symbols is required');
             }
-            const marketId = this.marketId(symbolsNormalized[i]);
+            const marketId = this.marketId(symbols[i]);
             const arg = {
                 'channel': channel,
                 'instId': marketId,
             };
             args.push(this.extend(arg, params));
-            if (symbolsNormalized === undefined) {
+            if (symbols === undefined) {
                 throw new ArgumentsRequired(this.id + ' subscribeMultiple() symbols is required');
             }
-            messageHashes.push(channel + '::' + symbolsNormalized[i]);
+            messageHashes.push(channel + '::' + symbols[i]);
         }
         const request = {
             'op': 'subscribe',
@@ -168,10 +164,9 @@ export default class okx extends okxRest {
         const firstArgument = {
             'channel': channel,
         };
-        let messageHashResolved = messageHash;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            messageHashResolved += ':' + market['id'];
+            messageHash += ':' + market['id'];
             firstArgument['instId'] = market['id'];
         }
         const request = {
@@ -180,7 +175,7 @@ export default class okx extends okxRest {
                 this.deepExtend(firstArgument, params),
             ],
         };
-        return await this.watch(url, messageHashResolved, request, messageHashResolved);
+        return await this.watch(url, messageHash, request, messageHash);
     }
     /**
      * @method
@@ -218,12 +213,13 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
-        const channel = this.handleOptionStringAndParams(params, 'watchTrades', 'channel', 'trades')[0];
+        symbols = this.marketSymbols(symbols);
+        let channel = undefined;
+        [channel, params] = this.handleOptionAndParams(params, 'watchTrades', 'channel', 'trades');
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            const symbol = symbolsNormalized[i];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             messageHashes.push(channel + ':' + symbol);
             const marketId = this.marketId(symbol);
             const topic = {
@@ -243,13 +239,12 @@ export default class okx extends okxRest {
         }
         const url = this.getUrl(channel, access);
         const trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
-        const first = this.safeDict(trades, 0);
-        const tradeSymbol = this.safeString(first, 'symbol');
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(tradeSymbol, limit);
+            const first = this.safeDict(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     /**
      * @method
@@ -264,12 +259,13 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const channel = this.handleOptionStringAndParams(params, 'watchTrades', 'channel', 'trades')[0];
+        symbols = this.marketSymbols(symbols, undefined, false);
+        let channel = undefined;
+        [channel, params] = this.handleOptionAndParams(params, 'watchTrades', 'channel', 'trades');
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            const symbol = symbolsNormalized[i];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             messageHashes.push('unsubscribe:' + channel + ':' + symbol);
             const marketId = this.marketId(symbol);
             const topic = {
@@ -342,16 +338,14 @@ export default class okx extends okxRest {
         const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade(data[i]);
+            const messageHash = channel + ':' + symbol;
             let stored = this.safeValue(this.trades, symbol);
             if (stored === undefined) {
                 stored = new ArrayCache(tradesLimit);
                 this.trades[symbol] = stored;
             }
             stored.append(trade);
-            if (channel !== undefined) {
-                const messageHash = channel + ':' + symbol;
-                client.resolve(stored, messageHash);
-            }
+            client.resolve(stored, messageHash);
         }
     }
     /**
@@ -364,9 +358,9 @@ export default class okx extends okxRest {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async watchFundingRate(symbol, params = {}) {
-        const symbolValue = this.symbol(symbol);
-        const fr = await this.watchFundingRates([symbolValue], params);
-        return fr[symbolValue];
+        symbol = this.symbol(symbol);
+        const fr = await this.watchFundingRates([symbol], params);
+        return fr[symbol];
     }
     /**
      * @method
@@ -384,12 +378,12 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         const channel = 'funding-rate';
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            const symbol = symbolsNormalized[i];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             messageHashes.push(channel + ':' + symbol);
             const marketId = this.marketId(symbol);
             const topic = {
@@ -412,7 +406,7 @@ export default class okx extends okxRest {
             }
             return result;
         }
-        return this.filterByArray(this.fundingRates, 'symbol', symbolsNormalized);
+        return this.filterByArray(this.fundingRates, 'symbol', symbols);
     }
     handleFundingRate(client, message) {
         //
@@ -436,7 +430,7 @@ export default class okx extends okxRest {
         //
         const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const rawfr = this.safeDict(data, i);
+            const rawfr = data[i];
             const fundingRate = this.parseFundingRate(rawfr);
             const symbol = fundingRate['symbol'];
             if (symbol !== undefined) {
@@ -456,12 +450,13 @@ export default class okx extends okxRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchTicker', 'channel', 'tickers');
-        paramsChannel['channel'] = channel;
+        let channel = undefined;
+        [channel, params] = this.handleOptionAndParams(params, 'watchTicker', 'channel', 'tickers');
+        params['channel'] = channel;
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
-        const ticker = await this.watchTickers([symbolValue], paramsChannel);
-        return this.safeValue(ticker, symbolValue);
+        symbol = market['symbol'];
+        const ticker = await this.watchTickers([symbol], params);
+        return this.safeValue(ticker, symbol);
     }
     /**
      * @method
@@ -490,13 +485,14 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchTickers', 'channel', 'tickers');
-        const newTickers = await this.subscribeMultiple('public', channel, symbolsNormalized, paramsChannel);
+        symbols = this.marketSymbols(symbols, undefined, false);
+        let channel = undefined;
+        [channel, params] = this.handleOptionAndParams(params, 'watchTickers', 'channel', 'tickers');
+        const newTickers = await this.subscribeMultiple('public', channel, symbols, params);
         if (this.newUpdates) {
             return newTickers;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     /**
      * @method
@@ -509,12 +505,13 @@ export default class okx extends okxRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchMarkPrice(symbol, params = {}) {
-        const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchMarkPrice', 'channel', 'mark-price');
-        paramsChannel['channel'] = channel;
+        let channel = undefined;
+        [channel, params] = this.handleOptionAndParams(params, 'watchMarkPrice', 'channel', 'mark-price');
+        params['channel'] = channel;
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
-        const ticker = await this.watchMarkPrices([symbolValue], paramsChannel);
-        return ticker[symbolValue];
+        symbol = market['symbol'];
+        const ticker = await this.watchMarkPrices([symbol], params);
+        return ticker[symbol];
     }
     /**
      * @method
@@ -530,13 +527,14 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchMarkPrices', 'channel', 'mark-price');
-        const newTickers = await this.subscribeMultiple('public', channel, symbolsNormalized, paramsChannel);
+        symbols = this.marketSymbols(symbols, undefined, false);
+        let channel = undefined;
+        [channel, params] = this.handleOptionAndParams(params, 'watchMarkPrices', 'channel', 'mark-price');
+        const newTickers = await this.subscribeMultiple('public', channel, symbols, params);
         if (this.newUpdates) {
             return newTickers;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     /**
      * @method
@@ -552,12 +550,13 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const channel = this.handleOptionStringAndParams(params, 'watchTickers', 'channel', 'tickers')[0];
+        symbols = this.marketSymbols(symbols, undefined, false);
+        let channel = undefined;
+        [channel, params] = this.handleOptionAndParams(params, 'watchTickers', 'channel', 'tickers');
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            const symbol = symbolsNormalized[i];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             messageHashes.push('unsubscribe:ticker:' + symbol);
             const marketId = this.marketId(symbol);
             const topic = {
@@ -616,10 +615,8 @@ export default class okx extends okxRest {
             this.tickers[symbol] = ticker;
             newTickers[symbol] = ticker;
         }
-        if (channel !== undefined) {
-            const messageHash = channel + '::' + symbol;
-            client.resolve(newTickers, messageHash);
-        }
+        const messageHash = channel + '::' + symbol;
+        client.resolve(newTickers, messageHash);
     }
     /**
      * @method
@@ -636,19 +633,20 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchBidsAsks', 'channel', 'bbo-tbt');
+        symbols = this.marketSymbols(symbols, undefined, false);
+        let channel = undefined;
+        [channel, params] = this.handleOptionAndParams(params, 'watchBidsAsks', 'channel', 'bbo-tbt');
         const url = this.getUrl(channel, 'public');
         const messageHashes = [];
         const args = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            const marketId = this.marketId(symbolsNormalized[i]);
+        for (let i = 0; i < symbols.length; i++) {
+            const marketId = this.marketId(symbols[i]);
             const arg = {
                 'channel': channel,
                 'instId': marketId,
             };
-            args.push(this.extend(arg, paramsChannel));
-            messageHashes.push('bidask::' + symbolsNormalized[i]);
+            args.push(this.extend(arg, params));
+            messageHashes.push('bidask::' + symbols[i]);
         }
         const request = {
             'op': 'subscribe',
@@ -657,13 +655,10 @@ export default class okx extends okxRest {
         const newTickers = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const tickers = {};
-            const newTickersSymbol = this.safeString(newTickers, 'symbol');
-            if (newTickersSymbol !== undefined) {
-                tickers[newTickersSymbol] = newTickers;
-            }
+            tickers[newTickers['symbol']] = newTickers;
             return tickers;
         }
-        return this.filterByArray(this.bidsasks, 'symbol', symbolsNormalized);
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
     }
     handleBidAsk(client, message) {
         //
@@ -721,8 +716,8 @@ export default class okx extends okxRest {
     }
     parseWsBidAsk(ticker, market = undefined) {
         const marketId = this.safeString(ticker, 'instId');
-        const marketResolved = this.safeMarket(marketId, market);
-        const symbol = this.safeString(marketResolved, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const symbol = this.safeString(market, 'symbol');
         const timestamp = this.safeInteger(ticker, 'ts');
         let ask = this.safeString(ticker, 'askPx');
         let askVolume = this.safeString(ticker, 'askSz');
@@ -749,7 +744,7 @@ export default class okx extends okxRest {
             'bid': bid,
             'bidVolume': bidVolume,
             'info': ticker,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -766,26 +761,26 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
+        symbols = this.marketSymbols(symbols, undefined, true, true);
         const messageHash = 'liquidations';
         const messageHashes = [];
-        if (symbolsNormalized !== undefined) {
-            for (let i = 0; i < symbolsNormalized.length; i++) {
-                const symbol = symbolsNormalized[i];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
                 messageHashes.push(messageHash + '::' + symbol);
             }
         }
         else {
             messageHashes.push(messageHash);
         }
-        const market = this.getMarketFromSymbols(symbolsNormalized);
-        const marketType = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', market, params)[0];
+        const market = this.getMarketFromSymbols(symbols);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', market, params);
         const channel = 'liquidation-orders';
-        let type = marketType;
-        if (marketType === 'spot') {
+        if (type === 'spot') {
             type = 'SWAP';
         }
-        else if (marketType === 'future') {
+        else if (type === 'future') {
             type = 'futures';
         }
         if (type === undefined) {
@@ -806,7 +801,7 @@ export default class okx extends okxRest {
         if (this.newUpdates) {
             return newLiquidations;
         }
-        return this.filterBySymbolsSinceLimit(this.liquidations, symbolsNormalized, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
     }
     handleLiquidation(client, message) {
         //
@@ -867,18 +862,15 @@ export default class okx extends okxRest {
             await this.loadMarkets();
         }
         const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
-        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
-        let accessType = 'private';
-        if (isTrigger === true) {
-            accessType = 'business';
-        }
+        params = this.omit(params, ['stop', 'trigger']);
+        const accessType = (isTrigger === true) ? 'business' : 'private';
         await this.authenticate({ 'access': accessType });
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
+        symbols = this.marketSymbols(symbols, undefined, true, true);
         const messageHash = 'myLiquidations';
         const messageHashes = [];
-        if (symbolsNormalized !== undefined) {
-            for (let i = 0; i < symbolsNormalized.length; i++) {
-                const symbol = symbolsNormalized[i];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
                 messageHashes.push(messageHash + '::' + symbol);
             }
         }
@@ -895,11 +887,11 @@ export default class okx extends okxRest {
             ],
         };
         const url = this.getUrl(channel, 'private');
-        const newLiquidations = await this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsOmitted), messageHashes);
+        const newLiquidations = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
         if (this.newUpdates) {
             return newLiquidations;
         }
-        return this.filterBySymbolsSinceLimit(this.liquidations, symbolsNormalized, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
     }
     handleMyLiquidation(client, message) {
         //
@@ -987,13 +979,13 @@ export default class okx extends okxRest {
         const posData = this.safeList(liquidation, 'posData', []);
         const firstPosData = this.safeDict(posData, 0, {});
         const marketId = this.safeString(firstPosData, 'instId');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(firstPosData, 'uTIme');
         return this.safeLiquidation({
             'info': liquidation,
-            'symbol': this.safeSymbol(marketId, marketResolved),
+            'symbol': this.safeSymbol(marketId, market),
             'contracts': this.safeNumber(firstPosData, 'pos'),
-            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
+            'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidation, 'avgPx'),
             'baseValue': undefined,
             'quoteValue': undefined,
@@ -1025,13 +1017,13 @@ export default class okx extends okxRest {
         const details = this.safeList(liquidation, 'details', []);
         const liquidationDetails = this.safeDict(details, 0, {});
         const marketId = this.safeString(liquidation, 'instId');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(liquidationDetails, 'ts');
         return this.safeLiquidation({
             'info': liquidation,
-            'symbol': this.safeSymbol(marketId, marketResolved),
+            'symbol': this.safeSymbol(marketId, market),
             'contracts': this.safeNumber(liquidationDetails, 'sz'),
-            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
+            'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidationDetails, 'bkPx'),
             'side': this.safeString(liquidationDetails, 'side'),
             'baseValue': undefined,
@@ -1056,15 +1048,14 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolValue = this.symbol(symbol);
+        symbol = this.symbol(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const name = 'candle' + interval;
-        const ohlcv = await this.subscribe('public', name, name, symbolValue, params);
-        let limitResolved = limit;
+        const ohlcv = await this.subscribe('public', name, name, symbol, params);
         if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit(symbolValue, limit);
+            limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     /**
      * @method
@@ -1120,11 +1111,10 @@ export default class okx extends okxRest {
         };
         const url = this.getUrl('candle', 'public');
         const [symbol, timeframe, candles] = await this.watchMultiple(url, messageHashes, request, messageHashes);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = candles.getLimit(symbol, limit);
+            limit = candles.getLimit(symbol, limit);
         }
-        const filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
+        const filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
         return this.createOHLCVObject(symbol, timeframe, filtered);
     }
     /**
@@ -1250,9 +1240,9 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
-        const depthOption = this.handleOptionStringAndParams(params, 'watchOrderBook', 'depth', 'books')[0];
-        let depth = depthOption;
+        symbols = this.marketSymbols(symbols);
+        let depth = undefined;
+        [depth, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'depth', 'books');
         if (limit !== undefined) {
             if (limit === 1) {
                 depth = 'bbo-tbt';
@@ -1275,8 +1265,8 @@ export default class okx extends okxRest {
         }
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            const symbol = symbolsNormalized[i];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             messageHashes.push(depth + ':' + symbol);
             const marketId = this.marketId(symbol);
             const topic = {
@@ -1308,11 +1298,10 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        symbols = this.marketSymbols(symbols, undefined, false);
         let depth = undefined;
-        let paramsDepth = undefined;
-        [depth, paramsDepth] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'depth', 'books');
-        const limit = this.safeInteger(paramsDepth, 'limit');
+        [depth, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'depth', 'books');
+        const limit = this.safeInteger(params, 'limit');
         if (limit !== undefined) {
             if (limit === 1) {
                 depth = 'bbo-tbt';
@@ -1330,8 +1319,8 @@ export default class okx extends okxRest {
         const topics = [];
         const subMessageHashes = [];
         const messageHashes = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            const symbol = symbolsNormalized[i];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             subMessageHashes.push(depth + ':' + symbol);
             messageHashes.push('unsubscribe:orderbook:' + symbol);
             const marketId = this.marketId(symbol);
@@ -1586,7 +1575,7 @@ export default class okx extends okxRest {
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const access = this.safeString(params, 'access', 'private');
-        const paramsOmitted = this.omit(params, ['access']);
+        params = this.omit(params, ['access']);
         const url = this.getUrl('users', access);
         const messageHash = 'authenticated';
         const client = this.client(url);
@@ -1611,8 +1600,8 @@ export default class okx extends okxRest {
                 ],
             };
             // Only add params['access'] to prevent sending custom parameters, such as extraParams.
-            if ('access' in paramsOmitted) {
-                request['access'] = paramsOmitted['access'];
+            if ('access' in params) {
+                request['access'] = params['access'];
             }
             this.watch(url, messageHash, request, messageHash);
         }
@@ -1773,30 +1762,23 @@ export default class okx extends okxRest {
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // By default, receive order updates from any instrument type
-        const [typeOption, paramsType] = this.handleOptionStringAndParams(params, 'watchMyTrades', 'type', 'ANY');
-        const isTrigger = this.safeBool2(paramsType, 'trigger', 'stop', false);
-        const paramsOmitted = this.omit(paramsType, ['trigger', 'stop']);
+        let type = undefined;
+        [type, params] = this.handleOptionAndParams(params, 'watchMyTrades', 'type', 'ANY');
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
+        params = this.omit(params, ['trigger', 'stop']);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let access = 'private';
-        if (isTrigger === true) {
-            access = 'business';
-        }
+        const access = (isTrigger === true) ? 'business' : 'private';
         await this.authenticate({ 'access': access });
-        let channel = 'orders';
-        if (isTrigger === true) {
-            channel = 'orders-algo';
-        }
+        const channel = (isTrigger === true) ? 'orders-algo' : 'orders';
         let messageHash = channel + '::myTrades';
         let market = undefined;
-        let symbolResolved = undefined;
-        let type = typeOption;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbolResolved = market['symbol'];
-            type = this.safeString(market, 'type');
-            messageHash = messageHash + '::' + symbolResolved;
+            symbol = market['symbol'];
+            type = market['type'];
+            messageHash = messageHash + '::' + symbol;
         }
         if (type === 'future') {
             type = 'futures';
@@ -1805,7 +1787,8 @@ export default class okx extends okxRest {
             throw new ArgumentsRequired(this.id + ' watchMyTrades() type is required');
         }
         let uppercaseType = type.toUpperCase();
-        const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('watchMyTrades', paramsOmitted);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('watchMyTrades', params);
         if (uppercaseType === 'SPOT') {
             if (marginMode !== undefined) {
                 uppercaseType = 'MARGIN';
@@ -1814,12 +1797,11 @@ export default class okx extends okxRest {
         const request = {
             'instType': uppercaseType,
         };
-        const orders = await this.subscribe('private', messageHash, channel, undefined, this.extend(request, paramsMarginMode));
-        let limitResolved = limit;
+        const orders = await this.subscribe('private', messageHash, channel, undefined, this.extend(request, params));
         if (this.newUpdates) {
-            limitResolved = orders.getLimit(symbolResolved, limit);
+            limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     /**
      * @method
@@ -1837,13 +1819,13 @@ export default class okx extends okxRest {
             await this.loadMarkets();
         }
         await this.authenticate(params);
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         const request = {
             'instType': 'ANY',
         };
         const channel = 'positions';
         let newPositions = undefined;
-        if (symbolsNormalized === undefined) {
+        if (symbols === undefined) {
             const arg = {
                 'channel': 'positions',
                 'instType': 'ANY',
@@ -1857,12 +1839,12 @@ export default class okx extends okxRest {
             newPositions = await this.watch(url, channel, nonSymbolRequest, channel);
         }
         else {
-            newPositions = await this.subscribeMultiple('private', channel, symbolsNormalized, this.extend(request, params));
+            newPositions = await this.subscribeMultiple('private', channel, symbols, this.extend(request, params));
         }
         if (this.newUpdates) {
             return (newPositions === undefined) ? [] : newPositions;
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
     }
     handlePositions(client, message) {
         //
@@ -1945,7 +1927,7 @@ export default class okx extends okxRest {
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition(rawPosition);
-            if (position['contracts'] === 0 && this.safeString(rawPosition, 'posSide') === 'net') {
+            if (position['contracts'] === 0 && rawPosition['posSide'] === 'net') {
                 position['side'] = 'long';
                 const shortPosition = this.clone(position);
                 shortPosition['side'] = 'short';
@@ -1976,25 +1958,21 @@ export default class okx extends okxRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let type = undefined;
         // By default, receive order updates from any instrument type
-        const [typeOption, paramsType] = this.handleOptionStringAndParams(params, 'watchOrders', 'type', 'ANY');
-        const isTrigger = this.safeBool2(paramsType, 'stop', 'trigger', false);
-        const paramsOmitted = this.omit(paramsType, ['stop', 'trigger']);
+        [type, params] = this.handleOptionAndParams(params, 'watchOrders', 'type', 'ANY');
+        const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
+        params = this.omit(params, ['stop', 'trigger']);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let accessType = 'private';
-        if (isTrigger === true) {
-            accessType = 'business';
-        }
+        const accessType = (isTrigger === true) ? 'business' : 'private';
         await this.authenticate({ 'access': accessType });
         let market = undefined;
-        let symbolResolved = undefined;
-        let type = typeOption;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbolResolved = this.safeString(market, 'symbol');
-            type = this.safeString(market, 'type');
+            symbol = market['symbol'];
+            type = market['type'];
         }
         if (type === 'future') {
             type = 'futures';
@@ -2003,7 +1981,8 @@ export default class okx extends okxRest {
             throw new ArgumentsRequired(this.id + ' watchOrders() type is required');
         }
         let uppercaseType = type.toUpperCase();
-        const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('watchOrders', paramsOmitted);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('watchOrders', params);
         if (uppercaseType === 'SPOT') {
             if (marginMode !== undefined) {
                 uppercaseType = 'MARGIN';
@@ -2012,16 +1991,12 @@ export default class okx extends okxRest {
         const request = {
             'instType': uppercaseType,
         };
-        let channel = 'orders';
-        if (isTrigger === true) {
-            channel = 'orders-algo';
-        }
-        const orders = await this.subscribe('private', channel, channel, symbolResolved, this.extend(request, paramsMarginMode));
-        let limitResolved = limit;
+        const channel = (isTrigger === true) ? 'orders-algo' : 'orders';
+        const orders = await this.subscribe('private', channel, channel, symbol, this.extend(request, params));
         if (this.newUpdates) {
-            limitResolved = orders.getLimit(symbolResolved, limit);
+            limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrders(client, message) {
         //
@@ -2101,10 +2076,8 @@ export default class okx extends okxRest {
             }
             client.resolve(stored, channel);
             for (let i = 0; i < marketIds.length; i++) {
-                if (channel !== undefined) {
-                    const messageHash = channel + ':' + marketIds[i];
-                    client.resolve(stored, messageHash);
-                }
+                const messageHash = channel + ':' + marketIds[i];
+                client.resolve(stored, messageHash);
             }
         }
     }
@@ -2195,14 +2168,12 @@ export default class okx extends okxRest {
                 symbols[symbol] = true;
             }
         }
-        if (channel !== undefined) {
-            const messageHash = channel + '::myTrades';
-            client.resolve(this.myTrades, messageHash);
-            const tradeSymbols = Object.keys(symbols);
-            for (let i = 0; i < tradeSymbols.length; i++) {
-                const symbolMessageHash = messageHash + '::' + tradeSymbols[i];
-                client.resolve(this.myTrades, symbolMessageHash);
-            }
+        const messageHash = channel + '::myTrades';
+        client.resolve(this.myTrades, messageHash);
+        const tradeSymbols = Object.keys(symbols);
+        for (let i = 0; i < tradeSymbols.length; i++) {
+            const symbolMessageHash = messageHash + '::' + tradeSymbols[i];
+            client.resolve(this.myTrades, symbolMessageHash);
         }
     }
     requestId() {
@@ -2232,8 +2203,9 @@ export default class okx extends okxRest {
         await this.authenticate();
         const url = this.getUrl('private', 'private');
         const messageHash = this.requestId();
-        const [op, paramsOp] = this.handleOptionStringAndParams(params, 'createOrderWs', 'op', 'batch-orders');
-        const args = this.createOrderRequest(symbol, type, side, amount, price, paramsOp);
+        let op = undefined;
+        [op, params] = this.handleOptionAndParams(params, 'createOrderWs', 'op', 'batch-orders');
+        const args = this.createOrderRequest(symbol, type, side, amount, price, params);
         const market = this.market(symbol);
         const instIdCode = this.safeInteger(market, 'instIdCode');
         if (instIdCode !== undefined) {
@@ -2309,8 +2281,9 @@ export default class okx extends okxRest {
         await this.authenticate();
         const url = this.getUrl('private', 'private');
         const messageHash = this.requestId();
-        const [op, paramsOp] = this.handleOptionStringAndParams(params, 'editOrderWs', 'op', 'amend-order');
-        const args = this.editOrderRequest(id, symbol, type, side, amount, price, paramsOp);
+        let op = undefined;
+        [op, params] = this.handleOptionAndParams(params, 'editOrderWs', 'op', 'amend-order');
+        const args = this.editOrderRequest(id, symbol, type, side, amount, price, params);
         const market = this.market(symbol);
         const instIdCode = this.safeInteger(market, 'instIdCode');
         if (instIdCode !== undefined) {
@@ -2322,7 +2295,7 @@ export default class okx extends okxRest {
             'op': op,
             'args': [args],
         };
-        return await this.watch(url, messageHash, this.extend(request, paramsOp), messageHash);
+        return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     /**
      * @method
@@ -2346,7 +2319,7 @@ export default class okx extends okxRest {
         const url = this.getUrl('private', 'private');
         const messageHash = this.requestId();
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
-        const paramsOmitted = this.omit(params, ['clientOrderId', 'clOrdId']);
+        params = this.omit(params, ['clientOrderId', 'clOrdId']);
         const market = this.market(symbol);
         const instIdCode = this.safeInteger(market, 'instIdCode');
         const arg = {
@@ -2361,7 +2334,7 @@ export default class okx extends okxRest {
         const request = {
             'id': messageHash,
             'op': 'cancel-order',
-            'args': [this.extend(arg, paramsOmitted)],
+            'args': [this.extend(arg, params)],
         };
         return await this.watch(url, messageHash, request, messageHash);
     }
@@ -2503,7 +2476,7 @@ export default class okx extends okxRest {
                 else {
                     const data = this.safeList(message, 'data', []);
                     for (let i = 0; i < data.length; i++) {
-                        const d = this.safeDict(data, i);
+                        const d = data[i];
                         errorCode = this.safeString(d, 'sCode');
                         if (errorCode !== undefined) {
                             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
@@ -2582,10 +2555,8 @@ export default class okx extends okxRest {
         //
         //
         //
-        if (typeof message === 'string') {
-            if (message === 'pong') {
-                this.handlePong(client, message);
-            }
+        if (message === 'pong') {
+            this.handlePong(client, message);
             return;
         }
         // const table = this.safeString (message, 'table');

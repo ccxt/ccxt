@@ -1,4 +1,4 @@
-import { Int, Str } from '../types.js';
+import { Int } from '../types.js';
 interface CustomArray extends Array<any> {
     hashmap: object;
 }
@@ -10,13 +10,13 @@ declare class BaseCache extends Array {
 declare class ArrayCache extends BaseCache implements CustomArray {
     hashmap: object;
     constructor(maxSize?: Int);
-    getLimit(symbol: Str, limit: Int): Int;
+    getLimit(symbol: any, limit: any): any;
     clear(): void;
     append(item: any): void;
 }
 declare class ArrayCacheByTimestamp extends BaseCache {
     constructor(maxSize?: Int);
-    getLimit(symbol: Str, limit: Int): Int;
+    getLimit(symbol: any, limit: any): any;
     clear(): void;
     append(item: any): void;
 }

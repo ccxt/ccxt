@@ -48,7 +48,7 @@ export default class onetrading extends Exchange {
     fetchTradingFees(params?: Dict): Promise<TradingFees>;
     fetchPublicTradingFees(params?: Dict): Promise<Dict>;
     fetchPrivateTradingFees(params?: Dict): Promise<Dict>;
-    parseFeeTiers(feeTiers: Dict[], market?: Market): Dict;
+    parseFeeTiers(feeTiers: any[], market?: Market): Dict;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -220,6 +220,6 @@ export default class onetrading extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

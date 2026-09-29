@@ -89,7 +89,7 @@ export default class deribit extends deribitRest {
         const currencies = this.safeList(this.options, 'currencies', []);
         const channels = [];
         for (let i = 0; i < currencies.length; i++) {
-            const currencyCode = this.safeString(currencies, i);
+            const currencyCode = currencies[i];
             channels.push('user.portfolio.' + currencyCode);
         }
         const subscribe = {
@@ -176,7 +176,7 @@ export default class deribit extends deribitRest {
         const market = this.market(symbol);
         const url = this.urls['api']['ws'];
         const interval = this.safeString(params, 'interval', '100ms');
-        const paramsOmitted = this.omit(params, 'interval');
+        params = this.omit(params, 'interval');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -192,7 +192,7 @@ export default class deribit extends deribitRest {
             },
             'id': this.requestId(),
         };
-        const request = this.deepExtend(message, paramsOmitted);
+        const request = this.deepExtend(message, params);
         return await this.watch(url, channel, request, channel, request);
     }
     /**
@@ -209,10 +209,10 @@ export default class deribit extends deribitRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        symbols = this.marketSymbols(symbols, undefined, false);
         const url = this.urls['api']['ws'];
         const interval = this.safeString(params, 'interval', '100ms');
-        const paramsOmitted = this.omit(params, 'interval');
+        params = this.omit(params, 'interval');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -220,8 +220,8 @@ export default class deribit extends deribitRest {
             await this.authenticate();
         }
         const channels = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            const market = this.market(symbolsNormalized[i]);
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market(symbols[i]);
             channels.push('ticker.' + market['id'] + '.' + interval);
         }
         const message = {
@@ -232,17 +232,14 @@ export default class deribit extends deribitRest {
             },
             'id': this.requestId(),
         };
-        const request = this.deepExtend(message, paramsOmitted);
+        const request = this.deepExtend(message, params);
         const newTickers = await this.watchMultiple(url, channels, request, channels, request);
         if (this.newUpdates) {
             const tickers = {};
-            const newTickersSymbol = this.safeString(newTickers, 'symbol');
-            if (newTickersSymbol !== undefined) {
-                tickers[newTickersSymbol] = newTickers;
-            }
+            tickers[newTickers['symbol']] = newTickers;
             return tickers;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     handleTicker(client, message) {
         //
@@ -296,11 +293,11 @@ export default class deribit extends deribitRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        symbols = this.marketSymbols(symbols, undefined, false);
         const url = this.urls['api']['ws'];
         const channels = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            const market = this.market(symbolsNormalized[i]);
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market(symbols[i]);
             channels.push('quote.' + market['id']);
         }
         const message = {
@@ -315,13 +312,10 @@ export default class deribit extends deribitRest {
         const newTickers = await this.watchMultiple(url, channels, request, channels, request);
         if (this.newUpdates) {
             const tickers = {};
-            const newTickersSymbol = this.safeString(newTickers, 'symbol');
-            if (newTickersSymbol !== undefined) {
-                tickers[newTickersSymbol] = newTickers;
-            }
+            tickers[newTickers['symbol']] = newTickers;
             return tickers;
         }
-        return this.filterByArray(this.bidsasks, 'symbol', symbolsNormalized);
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
     }
     handleBidAsk(client, message) {
         //
@@ -351,8 +345,8 @@ export default class deribit extends deribitRest {
     }
     parseWsBidAsk(ticker, market = undefined) {
         const marketId = this.safeString(ticker, 'instrument_name');
-        const marketResolved = this.safeMarket(marketId, market);
-        const symbol = this.safeString(marketResolved, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const symbol = this.safeString(market, 'symbol');
         const timestamp = this.safeInteger(ticker, 'timestamp');
         return this.safeTicker({
             'symbol': symbol,
@@ -363,7 +357,7 @@ export default class deribit extends deribitRest {
             'bid': this.safeString(ticker, 'best_bid_price'),
             'bidVolume': this.safeString(ticker, 'best_bid_amount'),
             'info': ticker,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -393,18 +387,18 @@ export default class deribit extends deribitRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        const [interval, paramsInterval] = this.handleOptionStringAndParams(params, 'watchTradesForSymbols', 'interval', '100ms');
+        let interval = undefined;
+        [interval, params] = this.handleOptionAndParams(params, 'watchTradesForSymbols', 'interval', '100ms');
         if (interval === 'raw') {
             await this.authenticate();
         }
-        const trades = await this.watchMultipleWrapper('trades', interval, symbols, paramsInterval);
-        const first = this.safeDict(trades, 0);
-        const tradeSymbol = this.safeString(first, 'symbol');
-        let limitResolved = limit;
+        const trades = await this.watchMultipleWrapper('trades', interval, symbols, params);
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(tradeSymbol, limit);
+            const first = this.safeDict(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -466,11 +460,11 @@ export default class deribit extends deribitRest {
         await this.authenticate(params);
         if (symbol !== undefined) {
             await this.loadMarkets();
+            symbol = this.symbol(symbol);
         }
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : undefined;
         const url = this.urls['api']['ws'];
         const interval = this.safeString(params, 'interval', 'raw');
-        const paramsOmitted = this.omit(params, 'interval');
+        params = this.omit(params, 'interval');
         const channel = 'user.trades.any.any.' + interval;
         const message = {
             'jsonrpc': '2.0',
@@ -480,9 +474,9 @@ export default class deribit extends deribitRest {
             },
             'id': this.requestId(),
         };
-        const request = this.deepExtend(message, paramsOmitted);
+        const request = this.deepExtend(message, params);
         const trades = await this.watch(url, channel, request, channel, request);
-        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleMyTrades(client, message) {
         //
@@ -561,23 +555,25 @@ export default class deribit extends deribitRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        const [interval, paramsInterval] = this.handleOptionStringAndParams(params, 'watchOrderBookForSymbols', 'interval', '100ms');
+        let interval = undefined;
+        [interval, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'interval', '100ms');
         if (interval === 'raw') {
             await this.authenticate();
         }
-        // for more info on useDepthEndpoint, see comment in .options
-        const [useDepthEndpoint, paramsUseDepthEndpoint] = this.handleOptionBoolAndParams(paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
-        const [depth, paramsDepth] = this.handleOptionStringAndParams(paramsUseDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
-        const [group, paramsGroup] = this.handleOptionStringAndParams(paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
-        let descriptor = interval;
+        let descriptor = '';
+        let useDepthEndpoint = undefined; // for more info, see comment in .options
+        [useDepthEndpoint, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         if (useDepthEndpoint) {
+            let depth = undefined;
+            [depth, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'depth', '20');
+            let group = undefined;
+            [group, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'group', 'none');
             descriptor = group + '.' + depth + '.' + interval;
         }
-        let paramsResolved = paramsUseDepthEndpoint;
-        if (useDepthEndpoint) {
-            paramsResolved = paramsGroup;
+        else {
+            descriptor = interval;
         }
-        const orderbook = await this.watchMultipleWrapper('book', descriptor, symbols, paramsResolved);
+        const orderbook = await this.watchMultipleWrapper('book', descriptor, symbols, params);
         return orderbook.limit();
     }
     handleOrderBook(client, message) {
@@ -680,11 +676,10 @@ export default class deribit extends deribitRest {
     handleDelta(bookside, delta) {
         const price = delta[1];
         const amount = delta[2];
-        const action = this.safeString(delta, 0);
-        if (action === 'new' || action === 'change') {
+        if (delta[0] === 'new' || delta[0] === 'change') {
             bookside.storeArray([price, amount, 1]);
         }
-        else if (action === 'delete') {
+        else if (delta[0] === 'delete') {
             bookside.storeArray([price, amount, 0]);
         }
     }
@@ -709,12 +704,14 @@ export default class deribit extends deribitRest {
             await this.loadMarkets();
         }
         await this.authenticate(params);
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : undefined;
+        if (symbol !== undefined) {
+            symbol = this.symbol(symbol);
+        }
         const url = this.urls['api']['ws'];
         const currency = this.safeString(params, 'currency', 'any');
         const interval = this.safeString(params, 'interval', 'raw');
         const kind = this.safeString(params, 'kind', 'any');
-        const paramsOmitted = this.omit(params, 'interval', 'currency', 'kind');
+        params = this.omit(params, 'interval', 'currency', 'kind');
         const channel = 'user.orders.' + kind + '.' + currency + '.' + interval;
         const message = {
             'jsonrpc': '2.0',
@@ -724,13 +721,12 @@ export default class deribit extends deribitRest {
             },
             'id': this.requestId(),
         };
-        const request = this.deepExtend(message, paramsOmitted);
+        const request = this.deepExtend(message, params);
         const orders = await this.watch(url, channel, request, channel, request);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = orders.getLimit(symbolResolved, limit);
+            limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrders(client, message) {
         // Does not return a snapshot of current orders
@@ -804,9 +800,9 @@ export default class deribit extends deribitRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolValue = this.symbol(symbol);
-        const ohlcvs = await this.watchOHLCVForSymbols([[symbolValue, timeframe]], since, limit, params);
-        return ohlcvs[symbolValue][timeframe];
+        symbol = this.symbol(symbol);
+        const ohlcvs = await this.watchOHLCVForSymbols([[symbol, timeframe]], since, limit, params);
+        return ohlcvs[symbol][timeframe];
     }
     /**
      * @method
@@ -825,11 +821,10 @@ export default class deribit extends deribitRest {
             throw new ArgumentsRequired(this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
         const [symbol, timeframe, candles] = await this.watchMultipleWrapper('chart.trades', undefined, symbolsAndTimeframes, params);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = candles.getLimit(symbol, limit);
+            limit = candles.getLimit(symbol, limit);
         }
-        const filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
+        const filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
         return this.createOHLCVObject(symbol, timeframe, filtered);
     }
     handleOHLCV(client, message) {
@@ -916,19 +911,18 @@ export default class deribit extends deribitRest {
             }
             const current = symbolsArray[i];
             let market = undefined;
-            let currentDescriptor = undefined;
             if (isOHLCV) {
                 market = this.market(current[0]);
                 const unifiedTf = current[1];
-                currentDescriptor = this.safeString(this.timeframes, unifiedTf, unifiedTf);
+                const rawTf = this.safeString(this.timeframes, unifiedTf, unifiedTf);
+                channelDescriptor = rawTf;
             }
             else {
                 market = this.market(current);
-                currentDescriptor = channelDescriptor;
             }
-            const message = channelName + '.' + market['id'] + '.' + currentDescriptor;
+            const message = channelName + '.' + market['id'] + '.' + channelDescriptor;
             rawSubscriptions.push(message);
-            messageHashes.push(channelName + '|' + market['symbol'] + '|' + currentDescriptor);
+            messageHashes.push(channelName + '|' + market['symbol'] + '|' + channelDescriptor);
         }
         const request = {
             'jsonrpc': '2.0',

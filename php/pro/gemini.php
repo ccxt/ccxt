@@ -81,17 +81,12 @@ class gemini extends \ccxt\async\gemini {
             ),
         );
         $subscribeHash = 'l2:' . $market['symbol'];
-        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
-        if ($wsUrl === null) {
-            throw new ExchangeError($this->id . ' watchTrades() has no websocket url');
-        }
-        $url = $wsUrl . '/v2/marketdata';
+        $url = $this->urls['api']['ws'] . '/v2/marketdata';
         $trades = Async\await($this->watch($url, $messageHash, $request, $subscribeHash));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($market['symbol'], $limit);
+            $limit = $trades->getLimit($market['symbol'], $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -111,13 +106,12 @@ class gemini extends \ccxt\async\gemini {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $trades = Async\await($this->helper_for_watch_multiple_construct('trades', $symbols, $params));
-        $first = $this->safe_list($trades, 0);
-        $tradeSymbol = $this->safe_string($first, 'symbol');
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
+            $first = $this->safe_list($trades, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function parse_ws_trade(array $trade, ?array $market = null): array {
@@ -325,17 +319,12 @@ class gemini extends \ccxt\async\gemini {
             ),
         );
         $messageHash = 'ohlcv:' . $market['symbol'] . ':' . $timeframeId;
-        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
-        if ($wsUrl === null) {
-            throw new ExchangeError($this->id . ' watchOHLCV() has no websocket url');
-        }
-        $url = $wsUrl . '/v2/marketdata';
+        $url = $this->urls['api']['ws'] . '/v2/marketdata';
         $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $ohlcv->getLimit($symbol, $limit);
+            $limit = $ohlcv->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function handle_ohlcv(Client $client, array $message): array {
@@ -433,11 +422,7 @@ class gemini extends \ccxt\async\gemini {
             ),
         );
         $subscribeHash = 'l2:' . $market['symbol'];
-        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
-        if ($wsUrl === null) {
-            throw new ExchangeError($this->id . ' watchOrderBook() has no websocket url');
-        }
-        $url = $wsUrl . '/v2/marketdata';
+        $url = $this->urls['api']['ws'] . '/v2/marketdata';
         $orderbook = Async\await($this->watch($url, $messageHash, $request, $subscribeHash));
         return $orderbook->limit();
     }
@@ -464,7 +449,7 @@ class gemini extends \ccxt\async\gemini {
             $delta = $changes[$i];
             $price = $this->safe_number($delta, 1);
             $size = $this->safe_number($delta, 2);
-            $side = ($this->safe_string($delta, 0) === 'buy') ? 'bids' : 'asks';
+            $side = ($delta[0] === 'buy') ? 'bids' : 'asks';
             $bookside = $orderbook[$side];
             $bookside->store($price, $size);
             $orderbook[$side] = $bookside;
@@ -545,7 +530,7 @@ class gemini extends \ccxt\async\gemini {
         $messageHash = 'bidsasks:' . $symbol;
         // last update always overwrites the previous state and is the latest state
         for ($i = 0; $i < count($rawBidAskChanges); $i++) {
-            $entry = $this->safe_dict($rawBidAskChanges, $i);
+            $entry = $rawBidAskChanges[$i];
             $rawSide = $this->safe_string($entry, 'side');
             $price = $this->safe_number($entry, 'price');
             $sizeString = $this->safe_string($entry, 'remaining');
@@ -581,26 +566,22 @@ class gemini extends \ccxt\async\gemini {
         if ($symbols === null) {
             throw new NotSupported($this->id . ' watchMultiple requires at least one symbol');
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
-        $firstMarket = $this->market($symbolsNormalized[0]);
+        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $firstMarket = $this->market($symbols[0]);
         if (($firstMarket['spot'] !== true) && ($firstMarket['linear'] !== true)) {
             throw new NotSupported($this->id . ' watchMultiple supports only spot or linear-swap symbols');
         }
         $messageHashes = array();
         $marketIds = array();
-        for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $symbol = $symbolsNormalized[$i];
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $messageHash = $itemHashName . ':' . $symbol;
             $messageHashes[] = $messageHash;
             $market = $this->market($symbol);
             $marketIds[] = $market['id'];
         }
         $queryStr = implode(',', $marketIds);
-        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
-        if ($wsUrl === null) {
-            throw new ExchangeError($this->id . ' helperForWatchMultipleConstruct() has no websocket url');
-        }
-        $url = $wsUrl . '/v1/multimarketdata?symbols=' . $queryStr . '&heartbeat=true&';
+        $url = $this->urls['api']['ws'] . '/v1/multimarketdata?symbols=' . $queryStr . '&heartbeat=true&';
         if ($itemHashName === 'orderbook') {
             $url .= 'trades=false&bids=true&offers=true';
         } elseif ($itemHashName === 'bidsasks') {
@@ -639,7 +620,7 @@ class gemini extends \ccxt\async\gemini {
         $bids = $orderbook['bids'];
         $asks = $orderbook['asks'];
         for ($i = 0; $i < count($rawOrderBookChanges); $i++) {
-            $entry = $this->safe_dict($rawOrderBookChanges, $i);
+            $entry = $rawOrderBookChanges[$i];
             $price = $this->safe_number($entry, 'price');
             $size = $this->safe_number($entry, 'remaining');
             $rawSide = $this->safe_string($entry, 'side');
@@ -717,11 +698,7 @@ class gemini extends \ccxt\async\gemini {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
-        if ($wsUrl === null) {
-            throw new ExchangeError($this->id . ' watchOrders() has no websocket url');
-        }
-        $url = $wsUrl . '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
+        $url = $this->urls['api']['ws'] . '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -729,18 +706,16 @@ class gemini extends \ccxt\async\gemini {
             'url' => $url,
         );
         Async\await($this->authenticate($authParams));
-        $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
         }
-        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : null;
         $messageHash = 'orders';
         $orders = Async\await($this->watch($url, $messageHash, null, $messageHash));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $orders->getLimit($symbolResolved, $limit);
+            $limit = $orders->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function handle_heartbeat(Client $client, array $message): array {

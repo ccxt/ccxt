@@ -65,11 +65,7 @@ class hashkey extends hashkey$1["default"] {
         return await this.watch(url, messageHash, undefined, messageHash);
     }
     getPrivateUrl(listenKey) {
-        const wsUrl = this.safeString(this.urls['api']['ws'], 'private');
-        if (wsUrl === undefined) {
-            throw new errors.ExchangeError(this.id + ' getPrivateUrl() has no private websocket url');
-        }
-        return wsUrl + '/' + listenKey;
+        return this.urls['api']['ws']['private'] + '/' + listenKey;
     }
     /**
      * @method
@@ -89,16 +85,15 @@ class hashkey extends hashkey$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const topic = 'kline_' + interval;
-        const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe;
+        const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
         const ohlcv = await this.wathPublic(market, topic, messageHash, params);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit(symbolValue, limit);
+            limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -187,9 +182,9 @@ class hashkey extends hashkey$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         const topic = 'realtimes';
-        const messageHash = 'ticker:' + symbolValue;
+        const messageHash = 'ticker:' + symbol;
         return await this.wathPublic(market, topic, messageHash, params);
     }
     handleTicker(client, message) {
@@ -245,15 +240,14 @@ class hashkey extends hashkey$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         const topic = 'trade';
-        const messageHash = 'trades:' + symbolValue;
+        const messageHash = 'trades:' + symbol;
         const trades = await this.wathPublic(market, topic, messageHash, params);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(symbolValue, limit);
+            limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -315,9 +309,9 @@ class hashkey extends hashkey$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         const topic = 'depth';
-        const messageHash = 'orderbook:' + symbolValue;
+        const messageHash = 'orderbook:' + symbol;
         const orderbook = await this.wathPublic(market, topic, messageHash, params);
         return orderbook.limit();
     }
@@ -383,16 +377,15 @@ class hashkey extends hashkey$1["default"] {
             await this.loadMarkets();
         }
         let messageHash = 'orders';
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
-            messageHash = messageHash + ':' + symbolResolved;
+            symbol = this.symbol(symbol);
+            messageHash = messageHash + ':' + symbol;
         }
         const orders = await this.watchPrivate(messageHash);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = orders.getLimit(symbolResolved, limit);
+            limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrder(client, message) {
         //
@@ -445,7 +438,7 @@ class hashkey extends hashkey$1["default"] {
     }
     parseWsOrder(order, market = undefined) {
         const marketId = this.safeString(order, 's');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(order, 'O');
         let side = this.safeStringLower(order, 'S');
         let reduceOnly = undefined;
@@ -454,7 +447,7 @@ class hashkey extends hashkey$1["default"] {
         let timeInForce = this.safeString(order, 'f');
         let postOnly = undefined;
         [type, timeInForce, postOnly] = this.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce);
-        if (marketResolved['contract'] === true) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
+        if (market['contract'] === true) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = undefined;
         }
         return this.safeOrder({
@@ -465,7 +458,7 @@ class hashkey extends hashkey$1["default"] {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
             'status': this.parseOrderStatus(this.safeString(order, 'X')),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'side': side,
@@ -487,7 +480,7 @@ class hashkey extends hashkey$1["default"] {
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
             'info': order,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -505,16 +498,15 @@ class hashkey extends hashkey$1["default"] {
             await this.loadMarkets();
         }
         let messageHash = 'myTrades';
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
-            messageHash += ':' + symbolResolved;
+            symbol = this.symbol(symbol);
+            messageHash += ':' + symbol;
         }
         const trades = await this.watchPrivate(messageHash);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(symbolResolved, limit);
+            limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleMyTrade(client, message, subscription = {}) {
         //
@@ -575,7 +567,7 @@ class hashkey extends hashkey$1["default"] {
         //     }
         //
         const marketId = this.safeString(trade, 's');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(trade, 't');
         const isBuyerMaker = this.safeBool(trade, 'm');
         const isPublicTrade = this.safeString(trade, 'e') === undefined;
@@ -595,7 +587,7 @@ class hashkey extends hashkey$1["default"] {
             'id': this.safeString2(trade, 'v', 'T'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'side': side,
             'price': this.safeString(trade, 'p'),
             'amount': this.safeString(trade, 'q'),
@@ -605,7 +597,7 @@ class hashkey extends hashkey$1["default"] {
             'order': this.safeString(trade, 'o'),
             'fee': undefined,
             'info': trade,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -623,15 +615,15 @@ class hashkey extends hashkey$1["default"] {
             await this.loadMarkets();
         }
         const listenKey = await this.authenticate();
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         const messageHash = 'positions';
         const messageHashes = [];
-        if (symbolsNormalized === undefined) {
+        if (symbols === undefined) {
             messageHashes.push(messageHash);
         }
         else {
-            for (let i = 0; i < symbolsNormalized.length; i++) {
-                const symbol = symbolsNormalized[i];
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
                 messageHashes.push(messageHash + ':' + symbol);
             }
         }
@@ -640,7 +632,7 @@ class hashkey extends hashkey$1["default"] {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
     }
     handlePosition(client, message) {
         //
@@ -677,10 +669,10 @@ class hashkey extends hashkey$1["default"] {
     }
     parseWsPosition(position, market = undefined) {
         const marketId = this.safeString(position, 's');
-        const marketResolved = this.safeMarket(marketId);
+        market = this.safeMarket(marketId);
         const timestamp = this.safeInteger(position, 'E');
         return this.safePosition({
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -724,16 +716,18 @@ class hashkey extends hashkey$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const type = 'spot';
-        const typeMarketType = this.handleMarketTypeAndParams('watchBalance', undefined, params, type)[0];
-        const messageHash = 'balance:' + typeMarketType;
+        let type = 'spot';
+        [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params, type);
+        const messageHash = 'balance:' + type;
         const url = this.getPrivateUrl(listenKey);
         const client = this.client(url);
-        this.setBalanceCache(client, typeMarketType, messageHash);
-        const fetchBalanceSnapshot = this.handleOptionBoolAndParams(this.options, 'watchBalance', 'fetchBalanceSnapshot', true)[0];
-        const awaitBalanceSnapshot = this.handleOptionBoolAndParams(this.options, 'watchBalance', 'awaitBalanceSnapshot', false)[0];
+        this.setBalanceCache(client, type, messageHash);
+        let fetchBalanceSnapshot = undefined;
+        let awaitBalanceSnapshot = undefined;
+        [fetchBalanceSnapshot, params] = this.handleOptionAndParams(this.options, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [awaitBalanceSnapshot, params] = this.handleOptionAndParams(this.options, 'watchBalance', 'awaitBalanceSnapshot', false);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
-            await client.future(typeMarketType + ':fetchBalanceSnapshot');
+            await client.future(type + ':fetchBalanceSnapshot');
         }
         return await this.watch(url, messageHash, undefined, messageHash);
     }
@@ -786,10 +780,7 @@ class hashkey extends hashkey$1["default"] {
         const data = this.safeList(message, 'B', []);
         const balanceUpdate = this.safeDict(data, 0);
         const isSpot = event === 'outboundAccountInfo';
-        let type = 'swap';
-        if (isSpot) {
-            type = 'spot';
-        }
+        const type = isSpot ? 'spot' : 'swap';
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
@@ -799,7 +790,7 @@ class hashkey extends hashkey$1["default"] {
         const account = this.account();
         account['free'] = this.safeString(balanceUpdate, 'f');
         account['used'] = this.safeString(balanceUpdate, 'l');
-        if (code !== undefined) {
+        if ((type !== undefined) && (code !== undefined)) {
             this.balance[type][code] = account;
         }
         this.balance[type] = this.safeBalance(this.balance[type]);
@@ -882,34 +873,33 @@ class hashkey extends hashkey$1["default"] {
         }
     }
     handleMessage(client, message) {
-        let messageInner = message;
         if (Array.isArray(message)) {
-            messageInner = this.safeDict(message, 0, {});
+            message = this.safeDict(message, 0, {});
         }
-        const topic = this.safeString2(messageInner, 'topic', 'e');
+        const topic = this.safeString2(message, 'topic', 'e');
         if (topic === 'kline') {
-            this.handleOHLCV(client, messageInner);
+            this.handleOHLCV(client, message);
         }
         else if (topic === 'realtimes') {
-            this.handleTicker(client, messageInner);
+            this.handleTicker(client, message);
         }
         else if (topic === 'trade') {
-            this.handleTrades(client, messageInner);
+            this.handleTrades(client, message);
         }
         else if (topic === 'depth') {
-            this.handleOrderBook(client, messageInner);
+            this.handleOrderBook(client, message);
         }
         else if ((topic === 'contractExecutionReport') || (topic === 'executionReport')) {
-            this.handleOrder(client, messageInner);
+            this.handleOrder(client, message);
         }
         else if (topic === 'ticketInfo') {
-            this.handleMyTrade(client, messageInner);
+            this.handleMyTrade(client, message);
         }
         else if (topic === 'outboundContractPositionInfo') {
-            this.handlePosition(client, messageInner);
+            this.handlePosition(client, message);
         }
         else if ((topic === 'outboundAccountInfo') || (topic === 'outboundContractAccountInfo')) {
-            this.handleBalance(client, messageInner);
+            this.handleBalance(client, message);
         }
     }
 }

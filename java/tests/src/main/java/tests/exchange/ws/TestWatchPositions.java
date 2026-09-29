@@ -7,7 +7,6 @@ import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -31,7 +30,7 @@ public class TestWatchPositions extends BaseTest {
             Boolean success = true;
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
                 if (java.util.Objects.equals(response, null))
                 {
                     throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;
@@ -67,7 +66,7 @@ public class TestWatchPositions extends BaseTest {
             Boolean success2 = true;
             try
             {
-                positionsForSymbols = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+                positionsForSymbols = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))

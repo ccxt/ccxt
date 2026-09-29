@@ -15,16 +15,16 @@ public partial class BaseTest
             // Test 1: Concat two binaries
             object binary1 = exchange.stringToBinary("hello");
             object binary2 = exchange.stringToBinary(" world");
-            byte[] result1 = exchange.binaryConcat(binary1, binary2);
+            object result1 = exchange.binaryConcat(binary1, binary2);
             Assert(isEqual(exchange.binaryToString(result1), "hello world"));
             // Test 2: Concat three binaries
             object binary3 = exchange.stringToBinary("foo");
             object binary4 = exchange.stringToBinary("bar");
             object binary5 = exchange.stringToBinary("baz");
-            byte[] result2 = exchange.binaryConcat(binary3, binary4, binary5);
+            object result2 = exchange.binaryConcat(binary3, binary4, binary5);
             Assert(isEqual(exchange.binaryToString(result2), "foobarbaz"));
             // Test 3: Concat with hex bytes
-            byte[] result3 = exchange.binaryConcat(exchange.base16ToBinary("68656c6c6f"), exchange.stringToBinary(" world"));
+            object result3 = exchange.binaryConcat(exchange.base16ToBinary("68656c6c6f"), exchange.stringToBinary(" world"));
             Assert(isEqual(exchange.binaryToString(result3), "hello world"));
         }
 }

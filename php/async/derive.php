@@ -701,9 +701,6 @@ class derive extends Exchange {
         $quoteId = $this->safe_string($market, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        if (($base === null) || ($quote === null)) {
-            return null;
-        }
         $marketId = $this->safe_string($market, 'instrument_name');
         $symbol = $base . '/' . $quote;
         $settleId = null;
@@ -997,22 +994,21 @@ class derive extends Exchange {
             $market = $this->market($symbol);
             $request['instrument_name'] = $market['id'];
         }
-        $limitResolved = $limit;
-        if ($limit !== null && $limit > 1000) {
-            $limitResolved = 1000;
-        }
-        if ($limitResolved !== null) {
-            $request['page_size'] = $limitResolved; // default 100, max 1000
+        if ($limit !== null) {
+            if ($limit > 1000) {
+                $limit = 1000;
+            }
+            $request['page_size'] = $limit; // default 100, max 1000
         }
         if ($since !== null) {
             $request['from_timestamp'] = $since;
         }
         $until = $this->safe_integer($params, 'until');
-        $paramsOmitted = $this->omit($params, array( 'until' ));
+        $params = $this->omit($params, array( 'until' ));
         if ($until !== null) {
             $request['to_timestamp'] = $until;
         }
-        $response = Async\await($this->publicPostGetTradeHistory($this->extend($request, $paramsOmitted)));
+        $response = Async\await($this->publicPostGetTradeHistory($this->extend($request, $params)));
         //
         // {
         //     "result": {
@@ -1047,7 +1043,7 @@ class derive extends Exchange {
         //
         $result = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($result, 'trades', array());
-        return $this->parse_trades($data, $market, $since, $limitResolved);
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1152,11 +1148,11 @@ class derive extends Exchange {
             $request['start_timestamp'] = $since;
         }
         $until = $this->safe_integer($params, 'until');
-        $paramsOmitted = $this->omit($params, array( 'until' ));
+        $params = $this->omit($params, array( 'until' ));
         if ($until !== null) {
             $request['to_timestamp'] = $until;
         }
-        $response = Async\await($this->publicPostGetFundingRateHistory($this->extend($request, $paramsOmitted)));
+        $response = Async\await($this->publicPostGetFundingRateHistory($this->extend($request, $params)));
         //
         // {
         //     "result": {
@@ -1185,7 +1181,7 @@ class derive extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
@@ -1251,10 +1247,7 @@ class derive extends Exchange {
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ), $order), 'keccak', 'binary');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $DOMAIN_SEPARATOR = 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
-        if ($sandboxMode === true) {
-            $DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105';
-        }
+        $DOMAIN_SEPARATOR = ($sandboxMode === true) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
         $binaryDomainSeparator = $this->base16_to_binary($DOMAIN_SEPARATOR);
         $prefix = $this->base16_to_binary('1901');
         return $this->hash($this->binary_concat($prefix, $binaryDomainSeparator, $accountHash), 'keccak', 'hex');
@@ -1323,27 +1316,24 @@ class derive extends Exchange {
         if ($price === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument');
         }
-        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('createOrder', $params);
-        $test = $this->safe_bool($paramsDeriveSubaccountId, 'test', false);
-        $reduceOnly = $this->safe_bool_2($paramsDeriveSubaccountId, 'reduceOnly', 'reduce_only');
-        $timeInForce = $this->safe_string_lower_2($paramsDeriveSubaccountId, 'timeInForce', 'time_in_force');
-        $postOnly = $this->safe_bool($paramsDeriveSubaccountId, 'postOnly');
+        $subaccountId = null;
+        list($subaccountId, $params) = $this->handle_derive_subaccount_id('createOrder', $params);
+        $test = $this->safe_bool($params, 'test', false);
+        $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
+        $timeInForce = $this->safe_string_lower_2($params, 'timeInForce', 'time_in_force');
+        $postOnly = $this->safe_bool($params, 'postOnly');
         $orderType = strtolower($type);
         $orderSide = strtolower($side);
         $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         $nonce = $this->incrementing_nonce();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
-        $signatureExpiry = $this->safe_integer($paramsDeriveSubaccountId, 'signature_expiry_sec', $this->seconds() + 7776000);
+        $signatureExpiry = $this->safe_integer($params, 'signature_expiry_sec', $this->seconds() + 7776000);
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $TRADE_MODULE_ADDRESS = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
-        if ($sandboxMode === true) {
-            $TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
-        }
+        $TRADE_MODULE_ADDRESS = ($sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         $priceString = $this->number_to_string($price);
         $maxFee = null;
-        $paramsMaxFee = array();
-        list($maxFee, $paramsMaxFee) = $this->handle_option_and_params($paramsDeriveSubaccountId, 'createOrder', 'max_fee');
+        list($maxFee, $params) = $this->handle_option_and_params($params, 'createOrder', 'max_fee');
         if ($maxFee === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a max_fee argument in params');
         }
@@ -1360,7 +1350,8 @@ class derive extends Exchange {
             $subaccountId,
             $orderSideIsBuy,
         )), 'keccak', 'binary');
-        list($deriveWalletAddress, $paramsDeriveWalletAddress) = $this->handle_derive_wallet_address('createOrder', $paramsMaxFee);
+        $deriveWalletAddress = null;
+        list($deriveWalletAddress, $params) = $this->handle_derive_wallet_address('createOrder', $params);
         $signature = $this->sign_order(array(
             $ACTION_TYPEHASH,
             $subaccountId,
@@ -1395,9 +1386,9 @@ class derive extends Exchange {
         } elseif ($timeInForce !== null) {
             $request['time_in_force'] = $timeInForce;
         }
-        $stopLoss = $this->safe_value($paramsDeriveWalletAddress, 'stopLoss');
-        $takeProfit = $this->safe_value($paramsDeriveWalletAddress, 'takeProfit');
-        $triggerPriceType = $this->safe_string($paramsDeriveWalletAddress, 'trigger_price_type', 'mark');
+        $stopLoss = $this->safe_value($params, 'stopLoss');
+        $takeProfit = $this->safe_value($params, 'takeProfit');
+        $triggerPriceType = $this->safe_string($params, 'trigger_price_type', 'mark');
         if ($stopLoss !== null) {
             $stopLossPrice = $this->safe_string($stopLoss, 'triggerPrice', $stopLoss);
             $request['trigger_price'] = $stopLossPrice;
@@ -1409,16 +1400,16 @@ class derive extends Exchange {
             $request['trigger_type'] = 'takeprofit';
             $request['trigger_price_type'] = $triggerPriceType;
         }
-        $clientOrderId = $this->safe_string($paramsDeriveWalletAddress, 'clientOrderId');
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['label'] = $clientOrderId;
         }
         $request['signature'] = $signature;
-        $paramsOmitted = $this->omit($paramsDeriveWalletAddress, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type' ));
+        $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type' ));
         if ($test === true) {
-            $response = Async\await($this->privatePostOrderDebug($this->extend($request, $paramsOmitted)));
+            $response = Async\await($this->privatePostOrderDebug($this->extend($request, $params)));
         } else {
-            $response = Async\await($this->privatePostOrder($this->extend($request, $paramsOmitted)));
+            $response = Async\await($this->privatePostOrder($this->extend($request, $params)));
         }
         //
         // {
@@ -1521,24 +1512,22 @@ class derive extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('editOrder', $params);
-        $reduceOnly = $this->safe_bool_2($paramsDeriveSubaccountId, 'reduceOnly', 'reduce_only');
-        $timeInForce = $this->safe_string_lower_2($paramsDeriveSubaccountId, 'timeInForce', 'time_in_force');
-        $postOnly = $this->safe_bool($paramsDeriveSubaccountId, 'postOnly');
+        $subaccountId = null;
+        list($subaccountId, $params) = $this->handle_derive_subaccount_id('editOrder', $params);
+        $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
+        $timeInForce = $this->safe_string_lower_2($params, 'timeInForce', 'time_in_force');
+        $postOnly = $this->safe_bool($params, 'postOnly');
         $orderType = strtolower($type);
         $orderSide = strtolower($side);
         $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         $nonce = $this->incrementing_nonce();
-        $signatureExpiry = $this->safe_number($paramsDeriveSubaccountId, 'signature_expiry_sec', $this->seconds() + 7776000);
+        $signatureExpiry = $this->safe_number($params, 'signature_expiry_sec', $this->seconds() + 7776000);
         // TODO: subaccount id / trade module address
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $TRADE_MODULE_ADDRESS = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
-        if ($sandboxMode === true) {
-            $TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
-        }
+        $TRADE_MODULE_ADDRESS = ($sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         $priceString = $this->number_to_string($price);
-        $maxFeeString = $this->safe_string($paramsDeriveSubaccountId, 'max_fee', '0');
+        $maxFeeString = $this->safe_string($params, 'max_fee', '0');
         $amountString = $this->number_to_string($amount);
         $tradeModuleDataHash = $this->hash($this->eth_abi_encode(array(
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
@@ -1551,7 +1540,8 @@ class derive extends Exchange {
             $subaccountId,
             $orderSideIsBuy,
         )), 'keccak', 'binary');
-        list($deriveWalletAddress, $paramsDeriveWalletAddress) = $this->handle_derive_wallet_address('editOrder', $paramsDeriveSubaccountId);
+        $deriveWalletAddress = null;
+        list($deriveWalletAddress, $params) = $this->handle_derive_wallet_address('editOrder', $params);
         $signature = $this->sign_order(array(
             $ACTION_TYPEHASH,
             $subaccountId,
@@ -1586,13 +1576,13 @@ class derive extends Exchange {
         } elseif ($timeInForce !== null) {
             $request['time_in_force'] = $timeInForce;
         }
-        $clientOrderId = $this->safe_string($paramsDeriveWalletAddress, 'clientOrderId');
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['label'] = $clientOrderId;
         }
         $request['signature'] = $signature;
-        $paramsOmitted = $this->omit($paramsDeriveWalletAddress, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId' ));
-        $response = Async\await($this->privatePostReplace($this->extend($request, $paramsOmitted)));
+        $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId' ));
+        $response = Async\await($this->privatePostReplace($this->extend($request, $params)));
         //
         //   {
         //     "result":
@@ -1698,25 +1688,26 @@ class derive extends Exchange {
         }
         $market = $this->market($symbol);
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
-        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('cancelOrder', $params);
-        $paramsOmitted = $this->omit($paramsDeriveSubaccountId, array( 'trigger', 'stop' ));
+        $subaccountId = null;
+        list($subaccountId, $params) = $this->handle_derive_subaccount_id('cancelOrder', $params);
+        $params = $this->omit($params, array( 'trigger', 'stop' ));
         $request = array(
             'instrument_name' => $market['id'],
             'subaccount_id' => $subaccountId,
         );
-        $clientOrderIdUnified = $this->safe_string($paramsOmitted, 'clientOrderId');
-        $clientOrderIdExchangeSpecific = $this->safe_string($paramsOmitted, 'label', $clientOrderIdUnified);
+        $clientOrderIdUnified = $this->safe_string($params, 'clientOrderId');
+        $clientOrderIdExchangeSpecific = $this->safe_string($params, 'label', $clientOrderIdUnified);
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
         if ($isByClientOrder) {
             $request['label'] = $clientOrderIdExchangeSpecific;
-            $paramsLabel = $this->omit($paramsOmitted, array( 'clientOrderId', 'label' ));
-            $response = Async\await($this->privatePostCancelByLabel($this->extend($request, $paramsLabel)));
+            $params = $this->omit($params, array( 'clientOrderId', 'label' ));
+            $response = Async\await($this->privatePostCancelByLabel($this->extend($request, $params)));
         } else {
             $request['order_id'] = $id;
             if ($isTrigger === true) {
-                $response = Async\await($this->privatePostCancelTriggerOrder($this->extend($request, $paramsOmitted)));
+                $response = Async\await($this->privatePostCancelTriggerOrder($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePostCancel($this->extend($request, $paramsOmitted)));
+                $response = Async\await($this->privatePostCancel($this->extend($request, $params)));
             }
         }
         //
@@ -1793,15 +1784,16 @@ class derive extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('cancelAllOrders', $params);
+        $subaccountId = null;
+        list($subaccountId, $params) = $this->handle_derive_subaccount_id('cancelAllOrders', $params);
         $request = array(
             'subaccount_id' => $subaccountId,
         );
         if ($market !== null) {
             $request['instrument_name'] = $market['id'];
-            $response = Async\await($this->privatePostCancelByInstrument($this->extend($request, $paramsDeriveSubaccountId)));
+            $response = Async\await($this->privatePostCancelByInstrument($this->extend($request, $params)));
         } else {
-            $response = Async\await($this->privatePostCancelAll($this->extend($request, $paramsDeriveSubaccountId)));
+            $response = Async\await($this->privatePostCancelAll($this->extend($request, $params)));
         }
         //
         // {
@@ -1841,13 +1833,15 @@ class derive extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $paramsPaginate, 'page', 500));
+            return Async\await($this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $params, 'page', 500));
         }
-        $isTrigger = $this->safe_bool_2($paramsPaginate, 'trigger', 'stop', false);
-        $paramsOmitted = $this->omit($paramsPaginate, array( 'trigger', 'stop' ));
-        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchOrders', $paramsOmitted);
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
+        $params = $this->omit($params, array( 'trigger', 'stop' ));
+        $subaccountId = null;
+        list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchOrders', $params);
         $request = array(
             'subaccount_id' => $subaccountId,
         );
@@ -1864,7 +1858,7 @@ class derive extends Exchange {
         if ($isTrigger === true) {
             $request['status'] = 'untriggered';
         }
-        $response = Async\await($this->privatePostGetOrders($this->extend($request, $paramsDeriveSubaccountId)));
+        $response = Async\await($this->privatePostGetOrders($this->extend($request, $params)));
         //
         // {
         //     "result": {
@@ -1911,7 +1905,7 @@ class derive extends Exchange {
         // }
         //
         $data = $this->safe_dict($response, 'result');
-        $page = $this->safe_integer($paramsDeriveSubaccountId, 'page');
+        $page = $this->safe_integer($params, 'page');
         if ($page !== null) {
             $pagination = $this->safe_dict($data, 'pagination');
             $currentPage = $this->safe_integer($pagination, 'num_pages', 0);
@@ -2078,8 +2072,10 @@ class derive extends Exchange {
         $timestamp = $this->safe_integer_2($rawOrder, 'creation_timestamp', 'nonce');
         $orderId = $this->safe_string($order, 'order_id');
         $marketId = $this->safe_string($order, 'instrument_name');
-        $marketResolved = ($marketId !== null) ? $this->safe_market($marketId, $market) : $market;
-        $symbol = $this->safe_string($marketResolved, 'symbol');
+        if ($marketId !== null) {
+            $market = $this->safe_market($marketId, $market);
+        }
+        $symbol = $this->safe_string($market, 'symbol');
         $price = $this->safe_string($order, 'limit_price');
         $average = $this->safe_string($order, 'average_price');
         $amount = $this->safe_string($order, 'desired_amount');
@@ -2139,7 +2135,7 @@ class derive extends Exchange {
                 'currency' => 'USDC',
             ),
             'info' => $order,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2163,7 +2159,8 @@ class derive extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchOrderTrades', $params);
+        $subaccountId = null;
+        list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchOrderTrades', $params);
         $request = array(
             'order_id' => $id,
             'subaccount_id' => $subaccountId,
@@ -2179,7 +2176,7 @@ class derive extends Exchange {
         if ($since !== null) {
             $request['from_timestamp'] = $since;
         }
-        $response = Async\await($this->privatePostGetTradeHistory($this->extend($request, $paramsDeriveSubaccountId)));
+        $response = Async\await($this->privatePostGetTradeHistory($this->extend($request, $params)));
         //
         // {
         //     "result": {
@@ -2218,7 +2215,7 @@ class derive extends Exchange {
         //
         $result = $this->safe_dict($response, 'result', array());
         $trades = $this->safe_list($result, 'trades', array());
-        return $this->parse_trades($trades, $market, $since, $limit, $paramsDeriveSubaccountId);
+        return $this->parse_trades($trades, $market, $since, $limit, $params);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2242,11 +2239,13 @@ class derive extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, 'page', 500));
+            return Async\await($this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $params, 'page', 500));
         }
-        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchMyTrades', $paramsPaginate);
+        $subaccountId = null;
+        list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchMyTrades', $params);
         $request = array(
             'subaccount_id' => $subaccountId,
         );
@@ -2261,7 +2260,7 @@ class derive extends Exchange {
         if ($since !== null) {
             $request['from_timestamp'] = $since;
         }
-        $response = Async\await($this->privatePostGetTradeHistory($this->extend($request, $paramsDeriveSubaccountId)));
+        $response = Async\await($this->privatePostGetTradeHistory($this->extend($request, $params)));
         //
         // {
         //     "result": {
@@ -2299,7 +2298,7 @@ class derive extends Exchange {
         // }
         //
         $result = $this->safe_dict($response, 'result', array());
-        $page = $this->safe_integer($paramsDeriveSubaccountId, 'page');
+        $page = $this->safe_integer($params, 'page');
         if ($page !== null) {
             $pagination = $this->safe_dict($result, 'pagination');
             $currentPage = $this->safe_integer($pagination, 'num_pages', 0);
@@ -2308,7 +2307,7 @@ class derive extends Exchange {
             }
         }
         $trades = $this->safe_list($result, 'trades', array());
-        return $this->parse_trades($trades, $market, $since, $limit, $paramsDeriveSubaccountId);
+        return $this->parse_trades($trades, $market, $since, $limit, $params);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
@@ -2329,12 +2328,13 @@ class derive extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchPositions', $params);
+        $subaccountId = null;
+        list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchPositions', $params);
         $request = array(
             'subaccount_id' => $subaccountId,
         );
-        $paramsOmitted = $this->omit($paramsDeriveSubaccountId, array( 'subaccount_id' ));
-        $response = Async\await($this->privatePostGetPositions($this->extend($request, $paramsOmitted)));
+        $params = $this->omit($params, array( 'subaccount_id' ));
+        $response = Async\await($this->privatePostGetPositions($this->extend($request, $params)));
         //
         // {
         //     "result": {
@@ -2410,7 +2410,7 @@ class derive extends Exchange {
         // }
         //
         $contract = $this->safe_string($position, 'instrument_name');
-        $marketResolved = $this->safe_market($contract, $market);
+        $market = $this->safe_market($contract, $market);
         $size = $this->safe_string($position, 'amount');
         $side = null;
         if (Precise::string_gt($size, '0')) {
@@ -2418,7 +2418,7 @@ class derive extends Exchange {
         } else {
             $side = 'short';
         }
-        $contractSize = $this->safe_string($marketResolved, 'contractSize');
+        $contractSize = $this->safe_string($market, 'contractSize');
         $markPrice = $this->safe_string($position, 'mark_price');
         $timestamp = $this->safe_integer($position, 'creation_timestamp');
         $unrealisedPnl = $this->safe_string($position, 'unrealized_pnl');
@@ -2427,7 +2427,7 @@ class derive extends Exchange {
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
-            'symbol' => $this->safe_string($marketResolved, 'symbol'),
+            'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => null,
@@ -2475,11 +2475,13 @@ class derive extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $paramsPaginate, 'page', 500));
+            return Async\await($this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $params, 'page', 500));
         }
-        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchFundingHistory', $paramsPaginate);
+        $subaccountId = null;
+        list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchFundingHistory', $params);
         $request = array(
             'subaccount_id' => $subaccountId,
         );
@@ -2494,7 +2496,7 @@ class derive extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $response = Async\await($this->privatePostGetFundingHistory($this->extend($request, $paramsDeriveSubaccountId)));
+        $response = Async\await($this->privatePostGetFundingHistory($this->extend($request, $params)));
         //
         // {
         //     "result": {
@@ -2527,7 +2529,7 @@ class derive extends Exchange {
         // }
         //
         $result = $this->safe_dict($response, 'result', array());
-        $page = $this->safe_integer($paramsDeriveSubaccountId, 'page');
+        $page = $this->safe_integer($params, 'page');
         if ($page !== null) {
             $pagination = $this->safe_dict($result, 'pagination');
             $currentPage = $this->safe_integer($pagination, 'num_pages', 0);
@@ -2539,7 +2541,7 @@ class derive extends Exchange {
         return $this->parse_incomes($events, $market, $since, $limit);
     }
 
-    public function parse_income(array $income, ?array $market = null): array {
+    public function parse_income(mixed $income, ?array $market = null): array {
         //
         // {
         //     "instrument_name": "BTC-PERP",
@@ -2581,11 +2583,12 @@ class derive extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($deriveWalletAddress, $paramsDeriveWalletAddress) = $this->handle_derive_wallet_address('fetchBalance', $params);
+        $deriveWalletAddress = null;
+        list($deriveWalletAddress, $params) = $this->handle_derive_wallet_address('fetchBalance', $params);
         $request = array(
             'wallet' => $deriveWalletAddress,
         );
-        $response = Async\await($this->privatePostGetAllPortfolios($this->extend($request, $paramsDeriveWalletAddress)));
+        $response = Async\await($this->privatePostGetAllPortfolios($this->extend($request, $params)));
         //
         // {
         //     "result": [{
@@ -2643,10 +2646,10 @@ class derive extends Exchange {
             'info' => $response,
         );
         for ($i = 0; $i < count($response); $i++) {
-            $subaccount = $this->safe_dict($response, $i);
+            $subaccount = $response[$i];
             $collaterals = $this->safe_list($subaccount, 'collaterals', array());
             for ($j = 0; $j < count($collaterals); $j++) {
-                $balance = $this->safe_dict($collaterals, $j);
+                $balance = $collaterals[$j];
                 $code = $this->safe_currency_code($this->safe_string($balance, 'currency'));
                 $account = $this->safe_dict($result, $code);
                 if ($account === null) {
@@ -2684,14 +2687,15 @@ class derive extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchDeposits', $params);
+        $subaccountId = null;
+        list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchDeposits', $params);
         $request = array(
             'subaccount_id' => $subaccountId,
         );
         if ($since !== null) {
             $request['start_timestamp'] = $since;
         }
-        $response = Async\await($this->privatePostGetDepositHistory($this->extend($request, $paramsDeriveSubaccountId)));
+        $response = Async\await($this->privatePostGetDepositHistory($this->extend($request, $params)));
         //
         // {
         //     "result": {
@@ -2713,7 +2717,7 @@ class derive extends Exchange {
         $currency = $this->safe_currency($code);
         $result = $this->safe_dict($response, 'result', array());
         $events = $this->safe_list($result, 'events', array());
-        return $this->parse_transactions($events, $currency, $since, $limit, $paramsDeriveSubaccountId);
+        return $this->parse_transactions($events, $currency, $since, $limit, $params);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2736,14 +2740,15 @@ class derive extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchWithdrawals', $params);
+        $subaccountId = null;
+        list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchWithdrawals', $params);
         $request = array(
             'subaccount_id' => $subaccountId,
         );
         if ($since !== null) {
             $request['start_timestamp'] = $since;
         }
-        $response = Async\await($this->privatePostGetWithdrawalHistory($this->extend($request, $paramsDeriveSubaccountId)));
+        $response = Async\await($this->privatePostGetWithdrawalHistory($this->extend($request, $params)));
         //
         // {
         //     "result": {
@@ -2765,7 +2770,7 @@ class derive extends Exchange {
         $currency = $this->safe_currency($code);
         $result = $this->safe_dict($response, 'result', array());
         $events = $this->safe_list($result, 'events', array());
-        return $this->parse_transactions($events, $currency, $since, $limit, $paramsDeriveSubaccountId);
+        return $this->parse_transactions($events, $currency, $since, $limit, $params);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2819,27 +2824,29 @@ class derive extends Exchange {
     }
 
     public function handle_derive_subaccount_id(string $methodName, array $params): array {
-        list($derivesubAccountId, $paramsSubaccountId) = $this->handle_option_and_params($params, $methodName, 'subaccount_id');
+        $derivesubAccountId = null;
+        list($derivesubAccountId, $params) = $this->handle_option_and_params($params, $methodName, 'subaccount_id');
         if (($derivesubAccountId !== null) && ($derivesubAccountId !== '')) {
             $this->options['subaccount_id'] = $derivesubAccountId; // saving in options
-            return array( $derivesubAccountId, $paramsSubaccountId );
+            return array( $derivesubAccountId, $params );
         }
         $optionsWallet = $this->safe_string($this->options, 'subaccount_id');
         if ($optionsWallet !== null) {
-            return array( $optionsWallet, $paramsSubaccountId );
+            return array( $optionsWallet, $params );
         }
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.');
     }
 
-    public function handle_derive_wallet_address(string $methodName, array $params): array {
-        list($deriveWalletAddress, $paramsDeriveWalletAddress) = $this->handle_option_string_and_params($params, $methodName, 'deriveWalletAddress');
+    public function handle_derive_wallet_address(string $methodName, array $params) {
+        $deriveWalletAddress = null;
+        list($deriveWalletAddress, $params) = $this->handle_option_and_params($params, $methodName, 'deriveWalletAddress');
         if (($deriveWalletAddress !== null) && ($deriveWalletAddress !== '')) {
             $this->options['deriveWalletAddress'] = $deriveWalletAddress; // saving in options
-            return array( $deriveWalletAddress, $paramsDeriveWalletAddress );
+            return array( $deriveWalletAddress, $params );
         }
         $optionsWallet = $this->safe_string($this->options, 'deriveWalletAddress');
         if ($optionsWallet !== null) {
-            return array( $optionsWallet, $paramsDeriveWalletAddress );
+            return array( $optionsWallet, $params );
         }
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.');
     }
@@ -2865,25 +2872,20 @@ class derive extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
-        if ($apiUrl === null) {
-            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
-        }
-        $url = $apiUrl . '/' . $path;
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $url = $this->urls['api'][$api] . '/' . $path;
         if ($method === 'POST') {
-            $postHeaders = array(
+            $headers = array(
                 'Content-Type' => 'application/json',
             );
             if ($api === 'private') {
                 $now = (string) $this->milliseconds();
                 $signature = $this->sign_message($now, $this->privateKey);
-                $postHeaders['X-LyraWallet'] = $this->safe_string($this->options, 'deriveWalletAddress');
-                $postHeaders['X-LyraTimestamp'] = $now;
-                $postHeaders['X-LyraSignature'] = $signature;
+                $headers['X-LyraWallet'] = $this->safe_string($this->options, 'deriveWalletAddress');
+                $headers['X-LyraTimestamp'] = $now;
+                $headers['X-LyraSignature'] = $signature;
             }
-            $postBody = $this->json($params);
-            return array( 'url' => $url, 'method' => $method, 'body' => $postBody, 'headers' => $postHeaders );
+            $body = $this->json($params);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

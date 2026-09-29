@@ -99,17 +99,17 @@ class phemex extends phemex$1["default"] {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const marketValue = marketResolved;
+        market = marketResolved;
         const symbol = marketResolved['symbol'];
         const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 0.000001);
-        const lastString = this.fromEp(this.safeString(ticker, 'close'), marketValue);
+        const lastString = this.fromEp(this.safeString(ticker, 'close'), market);
         const last = this.parseNumber(lastString);
-        const quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 'turnover'), marketValue));
-        const baseVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 'volume'), marketValue));
+        const quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 'turnover'), market));
+        const baseVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 'volume'), market));
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
-        const openString = this.omitZero(this.fromEp(this.safeString(ticker, 'open'), marketValue));
+        const openString = this.omitZero(this.fromEp(this.safeString(ticker, 'open'), market));
         const open = this.parseNumber(openString);
         if ((openString !== undefined) && (lastString !== undefined)) {
             change = this.parseNumber(Precise["default"].stringSub(lastString, openString));
@@ -120,8 +120,8 @@ class phemex extends phemex$1["default"] {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'high': this.parseNumber(this.fromEp(this.safeString(ticker, 'high'), marketValue)),
-            'low': this.parseNumber(this.fromEp(this.safeString(ticker, 'low'), marketValue)),
+            'high': this.parseNumber(this.fromEp(this.safeString(ticker, 'high'), market)),
+            'low': this.parseNumber(this.fromEp(this.safeString(ticker, 'low'), market)),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -136,8 +136,8 @@ class phemex extends phemex$1["default"] {
             'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
-            'markPrice': this.parseNumber(this.fromEp(this.safeString(ticker, 'markPrice'), marketValue)),
-            'indexPrice': this.parseNumber(this.fromEp(this.safeString(ticker, 'indexPrice'), marketValue)),
+            'markPrice': this.parseNumber(this.fromEp(this.safeString(ticker, 'markPrice'), market)),
+            'indexPrice': this.parseNumber(this.fromEp(this.safeString(ticker, 'indexPrice'), market)),
             'info': ticker,
         });
     }
@@ -160,16 +160,16 @@ class phemex extends phemex$1["default"] {
         //
         const marketId = this.safeString(ticker, 0);
         const marketResolved = this.safeMarket(marketId, market);
-        const marketValue = marketResolved;
+        market = marketResolved;
         const symbol = marketResolved['symbol'];
-        const lastString = this.fromEp(this.safeString(ticker, 4), marketValue);
+        const lastString = this.fromEp(this.safeString(ticker, 4), market);
         const last = this.parseNumber(lastString);
-        const quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 6), marketValue));
-        const baseVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 5), marketValue));
+        const quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 6), market));
+        const baseVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 5), market));
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
-        const openString = this.omitZero(this.fromEp(this.safeString(ticker, 1), marketValue));
+        const openString = this.omitZero(this.fromEp(this.safeString(ticker, 1), market));
         const open = this.parseNumber(openString);
         if ((openString !== undefined) && (lastString !== undefined)) {
             change = this.parseNumber(Precise["default"].stringSub(lastString, openString));
@@ -180,8 +180,8 @@ class phemex extends phemex$1["default"] {
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': this.parseNumber(this.fromEp(this.safeString(ticker, 2), marketValue)),
-            'low': this.parseNumber(this.fromEp(this.safeString(ticker, 3), marketValue)),
+            'high': this.parseNumber(this.fromEp(this.safeString(ticker, 2), market)),
+            'low': this.parseNumber(this.fromEp(this.safeString(ticker, 3), market)),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -316,11 +316,12 @@ class phemex extends phemex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
-        const usePerpetualApi = this.safeString(paramsMarketType, 'settle') === 'USDT';
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
+        const usePerpetualApi = this.safeString(params, 'settle') === 'USDT';
         let messageHash = ':balance';
         messageHash = usePerpetualApi ? 'perpetual' + messageHash : type + messageHash;
-        return await this.subscribePrivate(type, messageHash, paramsMarketType);
+        return await this.subscribePrivate(type, messageHash, params);
     }
     handleBalance(type, client, message) {
         // spot
@@ -367,7 +368,7 @@ class phemex extends phemex$1["default"] {
         //
         this.balance['info'] = message;
         for (let i = 0; i < message.length; i++) {
-            const balance = this.safeDict(message, i);
+            const balance = message[i];
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const currency = this.safeDict(this.currencies, code, {});
@@ -515,7 +516,7 @@ class phemex extends phemex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         let name = 'spot_market24h';
@@ -525,7 +526,7 @@ class phemex extends phemex$1["default"] {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId();
         const subscriptionHash = name + '.subscribe';
-        const messageHash = 'ticker:' + symbolValue;
+        const messageHash = 'ticker:' + symbol;
         const subscribe = {
             'method': subscriptionHash,
             'id': requestId,
@@ -550,8 +551,8 @@ class phemex extends phemex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const first = symbolsNormalized[0];
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const first = symbols[0];
         const market = this.market(first);
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
@@ -563,8 +564,8 @@ class phemex extends phemex$1["default"] {
         const requestId = this.requestId();
         const subscriptionHash = name + '.subscribe';
         const messageHashes = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            messageHashes.push('ticker:' + symbolsNormalized[i]);
+        for (let i = 0; i < symbols.length; i++) {
+            messageHashes.push('ticker:' + symbols[i]);
         }
         const subscribe = {
             'method': subscriptionHash,
@@ -575,13 +576,10 @@ class phemex extends phemex$1["default"] {
         const ticker = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const result = {};
-            const tickerSymbol = this.safeString(ticker, 'symbol');
-            if (tickerSymbol !== undefined) {
-                result[tickerSymbol] = ticker;
-            }
+            result[ticker['symbol']] = ticker;
             return result;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     /**
      * @method
@@ -601,17 +599,14 @@ class phemex extends phemex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         const isUsdtSwap = (isSwap === true) && settleIsUSDT;
-        let name = 'trade';
-        if (isUsdtSwap) {
-            name = 'trade_p';
-        }
-        const messageHash = 'trade:' + symbolValue;
+        const name = isUsdtSwap ? 'trade_p' : 'trade';
+        const messageHash = 'trade:' + symbol;
         const method = name + '.subscribe';
         const subscribe = {
             'method': method,
@@ -622,11 +617,10 @@ class phemex extends phemex$1["default"] {
         };
         const request = this.deepExtend(subscribe, params);
         const trades = await this.watch(url, messageHash, request, messageHash);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(symbolValue, limit);
+            limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     /**
      * @method
@@ -646,17 +640,14 @@ class phemex extends phemex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         const isUsdtSwap = (isSwap === true) && settleIsUSDT;
-        let name = 'orderbook';
-        if (isUsdtSwap) {
-            name = 'orderbook_p';
-        }
-        const messageHash = 'orderbook:' + symbolValue;
+        const name = isUsdtSwap ? 'orderbook_p' : 'orderbook';
+        const messageHash = 'orderbook:' + symbol;
         const method = name + '.subscribe';
         const subscribe = {
             'method': method,
@@ -688,17 +679,14 @@ class phemex extends phemex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         const isUsdtSwap = (isSwap === true) && settleIsUSDT;
-        let name = 'kline';
-        if (isUsdtSwap) {
-            name = 'kline_p';
-        }
-        const messageHash = 'kline:' + timeframe + ':' + symbolValue;
+        const name = isUsdtSwap ? 'kline_p' : 'kline';
+        const messageHash = 'kline:' + timeframe + ':' + symbol;
         const method = name + '.subscribe';
         const subscribe = {
             'method': method,
@@ -710,11 +698,10 @@ class phemex extends phemex$1["default"] {
         };
         const request = this.deepExtend(subscribe, params);
         const ohlcv = await this.watch(url, messageHash, request, messageHash);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit(symbolValue, limit);
+            limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     customHandleDelta(bookside, delta, market = undefined) {
         const bidAsk = this.customParseBidAsk(delta, 0, 1, market);
@@ -817,28 +804,27 @@ class phemex extends phemex$1["default"] {
             await this.loadMarkets();
         }
         let market = undefined;
+        let type = undefined;
         let messageHash = 'trades:';
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
             market = this.market(symbol);
+            symbol = market['symbol'];
             messageHash = messageHash + market['symbol'];
+            if (market['settle'] === 'USDT') {
+                params = this.extend(params);
+                params['settle'] = 'USDT';
+            }
         }
-        const isUsdtMarket = (market !== undefined) && (market['settle'] === 'USDT');
-        let settleRequest = {};
-        if (isUsdtMarket) {
-            settleRequest = { 'settle': 'USDT' };
-        }
-        const [type, paramsType] = this.handleMarketTypeAndParams('watchMyTrades', market, this.extend(params, settleRequest));
-        if (symbolResolved === undefined) {
-            const settle = this.safeString(paramsType, 'settle');
+        [type, params] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
+        if (symbol === undefined) {
+            const settle = this.safeString(params, 'settle');
             messageHash = (settle === 'USDT') ? (messageHash + 'perpetual') : (messageHash + type);
         }
-        const trades = await this.subscribePrivate(type, messageHash, paramsType);
-        let limitResolved = limit;
+        const trades = await this.subscribePrivate(type, messageHash, params);
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(symbolResolved, limit);
+            limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleMyTrades(client, message) {
         //
@@ -986,27 +972,26 @@ class phemex extends phemex$1["default"] {
         }
         let messageHash = 'orders:';
         let market = undefined;
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
+        let type = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
+            symbol = market['symbol'];
             messageHash = messageHash + market['symbol'];
+            if (market['settle'] === 'USDT') {
+                params = this.extend(params);
+                params['settle'] = 'USDT';
+            }
         }
-        const isUsdtMarket = (market !== undefined) && (market['settle'] === 'USDT');
-        let settleRequest = {};
-        if (isUsdtMarket) {
-            settleRequest = { 'settle': 'USDT' };
-        }
-        const [type, paramsType] = this.handleMarketTypeAndParams('watchOrders', market, this.extend(params, settleRequest));
-        const isUSDTSettled = this.safeString(paramsType, 'settle') === 'USDT';
-        if (symbolResolved === undefined) {
+        [type, params] = this.handleMarketTypeAndParams('watchOrders', market, params);
+        const isUSDTSettled = this.safeString(params, 'settle') === 'USDT';
+        if (symbol === undefined) {
             messageHash = (isUSDTSettled) ? (messageHash + 'perpetual') : (messageHash + type);
         }
-        const orders = await this.subscribePrivate(type, messageHash, paramsType);
-        let limitResolved = limit;
+        const orders = await this.subscribePrivate(type, messageHash, params);
         if (this.newUpdates) {
-            limitResolved = orders.getLimit(symbolResolved, limit);
+            limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrders(client, message) {
         // spot update
@@ -1358,17 +1343,17 @@ class phemex extends phemex$1["default"] {
         }
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const marketValue = marketResolved;
+        market = marketResolved;
         const symbol = marketResolved['symbol'];
         const status = this.parseOrderStatus(this.safeString(order, 'ordStatus'));
         const side = this.safeStringLower(order, 'side');
         const type = this.parseOrderType(this.safeString(order, 'ordType'));
-        const price = this.safeString(order, 'priceRp', this.fromEp(this.safeString(order, 'priceEp'), marketValue));
+        const price = this.safeString(order, 'priceRp', this.fromEp(this.safeString(order, 'priceEp'), market));
         const amount = this.safeString(order, 'orderQty');
         const filled = this.safeString(order, 'cumQty');
         const remaining = this.safeString(order, 'leavesQty');
         const timestamp = this.safeIntegerProduct(order, 'actionTimeNs', 0.000001);
-        const cost = this.safeString(order, 'cumValueRv', this.fromEv(this.safeString(order, 'cumValueEv'), marketValue));
+        const cost = this.safeString(order, 'cumValueRv', this.fromEv(this.safeString(order, 'cumValueEv'), market));
         let lastTradeTimestamp = this.safeIntegerProduct(order, 'transactTimeNs', 0.000001);
         if (lastTradeTimestamp === 0) {
             lastTradeTimestamp = undefined;
@@ -1399,7 +1384,7 @@ class phemex extends phemex$1["default"] {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        }, marketValue);
+        }, market);
     }
     handleMessage(client, message) {
         // private spot update
@@ -1528,10 +1513,7 @@ class phemex extends phemex$1["default"] {
             this.handleOrders(client, orders);
         }
         if (('accounts' in message) || ('accounts_p' in message) || ('wallets' in message)) {
-            let type = 'spot';
-            if ('accounts' in message) {
-                type = 'swap';
-            }
+            let type = ('accounts' in message) ? 'swap' : 'spot';
             if ('accounts_p' in message) {
                 type = 'perpetual';
             }
@@ -1571,7 +1553,7 @@ class phemex extends phemex$1["default"] {
         const url = this.urls['api']['ws'];
         const requestId = this.seconds();
         const settleIsUSDT = (this.safeString(params, 'settle', '') === 'USDT');
-        const paramsOmitted = this.omit(params, 'settle');
+        params = this.omit(params, 'settle');
         let channel = 'aop.subscribe';
         if (type === 'spot') {
             channel = 'wo.subscribe';
@@ -1584,7 +1566,7 @@ class phemex extends phemex$1["default"] {
             'method': channel,
             'params': [],
         };
-        request = this.extend(request, paramsOmitted);
+        request = this.extend(request, params);
         return await this.watch(url, messageHash, request, channel);
     }
     async authenticate(params = {}) {

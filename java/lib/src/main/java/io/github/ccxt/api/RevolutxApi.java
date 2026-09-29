@@ -7,7 +7,6 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class RevolutxApi extends Exchange
@@ -25,9 +24,9 @@ public class RevolutxApi extends Exchange
      * Calls the publicGet20PublicOrderBookSymbol endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public CompletableFuture<Map<String, Object>>  publicGet20PublicOrderBookSymbol (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGet20PublicOrderBookSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGet20PublicOrderBookSymbol", optionalArgs);
     }
@@ -36,9 +35,9 @@ public class RevolutxApi extends Exchange
      * Calls the publicGet10PublicTickers endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public CompletableFuture<Map<String, Object>>  publicGet10PublicTickers (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGet10PublicTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicGet10PublicTickers", optionalArgs);
     }
@@ -47,9 +46,9 @@ public class RevolutxApi extends Exchange
      * Calls the publicGet10PublicCandlesSymbol endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public CompletableFuture<Map<String, Object>>  publicGet10PublicCandlesSymbol (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGet10PublicCandlesSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGet10PublicCandlesSymbol", optionalArgs);
     }
@@ -58,9 +57,9 @@ public class RevolutxApi extends Exchange
      * Calls the publicGet10PublicTradesAll endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public CompletableFuture<Map<String, Object>>  publicGet10PublicTradesAll (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGet10PublicTradesAll (Object... optionalArgs)
     {
         return this.callAsync ("publicGet10PublicTradesAll", optionalArgs);
     }
@@ -69,9 +68,9 @@ public class RevolutxApi extends Exchange
      * Calls the publicGet10PublicConfigurationCurrencies endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public CompletableFuture<Map<String, Object>>  publicGet10PublicConfigurationCurrencies (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGet10PublicConfigurationCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("publicGet10PublicConfigurationCurrencies", optionalArgs);
     }
@@ -80,9 +79,9 @@ public class RevolutxApi extends Exchange
      * Calls the publicGet10PublicConfigurationPairs endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public CompletableFuture<Map<String, Object>>  publicGet10PublicConfigurationPairs (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGet10PublicConfigurationPairs (Object... optionalArgs)
     {
         return this.callAsync ("publicGet10PublicConfigurationPairs", optionalArgs);
     }
@@ -102,9 +101,9 @@ public class RevolutxApi extends Exchange
      * Calls the privateGet10OrdersActive endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public CompletableFuture<Map<String, Object>>  privateGet10OrdersActive (Object... optionalArgs)
+    public CompletableFuture<Object>  privateGet10OrdersActive (Object... optionalArgs)
     {
         return this.callAsync ("privateGet10OrdersActive", optionalArgs);
     }
@@ -113,9 +112,9 @@ public class RevolutxApi extends Exchange
      * Calls the privateGet10OrdersHistorical endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public CompletableFuture<Map<String, Object>>  privateGet10OrdersHistorical (Object... optionalArgs)
+    public CompletableFuture<Object>  privateGet10OrdersHistorical (Object... optionalArgs)
     {
         return this.callAsync ("privateGet10OrdersHistorical", optionalArgs);
     }
@@ -124,9 +123,9 @@ public class RevolutxApi extends Exchange
      * Calls the privateGet10OrdersVenueOrderId endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public CompletableFuture<Map<String, Object>>  privateGet10OrdersVenueOrderId (Object... optionalArgs)
+    public CompletableFuture<Object>  privateGet10OrdersVenueOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateGet10OrdersVenueOrderId", optionalArgs);
     }
@@ -146,9 +145,9 @@ public class RevolutxApi extends Exchange
      * Calls the privateGet10TradesPrivateSymbol endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public CompletableFuture<Map<String, Object>>  privateGet10TradesPrivateSymbol (Object... optionalArgs)
+    public CompletableFuture<Object>  privateGet10TradesPrivateSymbol (Object... optionalArgs)
     {
         return this.callAsync ("privateGet10TradesPrivateSymbol", optionalArgs);
     }
@@ -168,9 +167,9 @@ public class RevolutxApi extends Exchange
      * Calls the privatePost10Orders endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public CompletableFuture<Map<String, Object>>  privatePost10Orders (Object... optionalArgs)
+    public CompletableFuture<Object>  privatePost10Orders (Object... optionalArgs)
     {
         return this.callAsync ("privatePost10Orders", optionalArgs);
     }
@@ -179,9 +178,9 @@ public class RevolutxApi extends Exchange
      * Calls the privatePut10OrdersVenueOrderId endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public CompletableFuture<Map<String, Object>>  privatePut10OrdersVenueOrderId (Object... optionalArgs)
+    public CompletableFuture<Object>  privatePut10OrdersVenueOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privatePut10OrdersVenueOrderId", optionalArgs);
     }
@@ -201,9 +200,9 @@ public class RevolutxApi extends Exchange
      * Calls the privateDelete10OrdersVenueOrderId endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public CompletableFuture<Map<String, Object>>  privateDelete10OrdersVenueOrderId (Object... optionalArgs)
+    public CompletableFuture<Object>  privateDelete10OrdersVenueOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateDelete10OrdersVenueOrderId", optionalArgs);
     }

@@ -629,7 +629,7 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
+        if self.options['adjustForTimeDifference'] is True:
             self.load_time_difference()
         response = self.publicGetApiV1Markets(params)
         return self.parse_markets(response)
@@ -728,8 +728,6 @@ class backpack(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quoteSymbol')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        if (base is None) or (quote is None):
-            return None
         symbol = base + '/' + quote
         filters = self.safe_dict(market, 'filters', {})
         priceFilter = self.safe_dict(filters, 'price', {})
@@ -876,8 +874,8 @@ class backpack(Exchange, ImplicitAPI):
         #     }, ...
         #
         marketId = self.safe_string(ticker, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
-        symbol = self.safe_symbol(marketId, marketResolved)
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_symbol(marketId, market)
         open = self.safe_string(ticker, 'firstPrice')
         last = self.safe_string(ticker, 'lastPrice')
         high = self.safe_string(ticker, 'high')
@@ -913,7 +911,7 @@ class backpack(Exchange, ImplicitAPI):
             'markPrice': None,
             'indexPrice': None,
             'info': ticker,
-        }, marketResolved)
+        }, market)
         return parsedTicker
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
@@ -977,28 +975,27 @@ class backpack(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'interval': interval,
         }
-        until, paramsUntil = self.handle_option_integer_and_params(params, 'fetchOHLCV', 'until')
+        until = None
+        until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
         if until is not None:
             request['endTime'] = self.parse_to_int(until / 1000)  # convert milliseconds to seconds
         defaultLimit = 100
-        limitResolved = limit
-        if (since is None) and (limit is None):
-            limitResolved = defaultLimit
         if since is None:
+            if limit is None:
+                limit = defaultLimit
             duration = self.parse_timeframe(timeframe)
             endTime = self.parse_to_int(until / 1000) if (until is not None and until is not None and until != 0) else self.seconds()
-            windowLimit = defaultLimit if (limit is None) else limit
-            startTime = endTime - (windowLimit * duration)
+            startTime = endTime - (limit * duration)
             request['startTime'] = startTime
         else:
             request['startTime'] = self.parse_to_int(since / 1000)  # convert milliseconds to seconds
-        price = self.safe_string(paramsUntil, 'price')
-        paramsOmitted = self.omit(paramsUntil, 'price') if (price is not None) else paramsUntil
+        price = self.safe_string(params, 'price')
         if price is not None:
             request['priceType'] = self.capitalize(price)
-        response = self.publicGetApiV1Klines(self.extend(request, paramsOmitted))
+            params = self.omit(params, 'price')
+        response = self.publicGetApiV1Klines(self.extend(request, params))
         ohlcvs = self.to_array(response)
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limitResolved)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -1026,7 +1023,7 @@ class backpack(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
 
@@ -1059,8 +1056,8 @@ class backpack(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(contract, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
-        symbol = self.safe_symbol(marketId, marketResolved)
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_symbol(marketId, market)
         nextFundingTimestamp = self.safe_integer(contract, 'nextFundingTimestamp')
         return {
             'info': contract,
@@ -1172,7 +1169,7 @@ class backpack(Exchange, ImplicitAPI):
                 'datetime': datetime,
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -1231,13 +1228,13 @@ class backpack(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         until = self.safe_integer(params, 'until')
-        paramsOmitted = self.omit(params, ['until']) if (until is not None) else params
         if until is not None:
+            params = self.omit(params, ['until'])
             request['to'] = until
-        fillType = self.safe_string(paramsOmitted, 'fillType')
+        fillType = self.safe_string(params, 'fillType')
         if fillType is None:
             request['fillType'] = 'User'  # default
-        response = self.privateGetWapiV1HistoryFills(self.extend(request, paramsOmitted))
+        response = self.privateGetWapiV1HistoryFills(self.extend(request, params))
         responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
@@ -1271,7 +1268,7 @@ class backpack(Exchange, ImplicitAPI):
         #
         id = self.safe_string_2(trade, 'id', 'tradeId')
         marketId = self.safe_string(trade, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'quantity')
         isBuyerMaker = self.safe_bool(trade, 'isBuyerMaker')
@@ -1302,7 +1299,7 @@ class backpack(Exchange, ImplicitAPI):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'id': id,
             'order': orderId,
             'type': None,
@@ -1312,7 +1309,7 @@ class backpack(Exchange, ImplicitAPI):
             'amount': amount,
             'cost': None,
             'fee': fee,
-        }, marketResolved)
+        }, market)
 
     def fetch_status(self, params: dict = {}) -> Status:
         """
@@ -1385,7 +1382,7 @@ class backpack(Exchange, ImplicitAPI):
         for i in range(0, len(balanceKeys)):
             id = balanceKeys[i]
             code = self.safe_currency_code(id)
-            balance = self.safe_dict(response, id)
+            balance = response[id]
             account = self.account()
             locked = self.safe_string(balance, 'locked')
             staked = self.safe_string(balance, 'staked')
@@ -1420,10 +1417,11 @@ class backpack(Exchange, ImplicitAPI):
             request['from'] = since
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
-        until, paramsUntil = self.handle_option_integer_and_params(params, 'fetchDeposits', 'until')
+        until = None
+        until, params = self.handle_option_and_params(params, 'fetchDeposits', 'until')
         if until is not None:
             request['endTime'] = until
-        response = self.privateGetWapiV1CapitalDeposits(self.extend(request, paramsUntil))
+        response = self.privateGetWapiV1CapitalDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -1449,10 +1447,11 @@ class backpack(Exchange, ImplicitAPI):
             request['from'] = since
         if limit is not None:
             request['limit'] = limit
-        until, paramsUntil = self.handle_option_integer_and_params(params, 'fetchWithdrawals', 'until')
+        until = None
+        until, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'until')
         if until is not None:
             request['to'] = until
-        response = self.privateGetWapiV1CapitalWithdrawals(self.extend(request, paramsUntil))
+        response = self.privateGetWapiV1CapitalWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
     def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
@@ -1480,7 +1479,7 @@ class backpack(Exchange, ImplicitAPI):
         if tag is not None:
             request['clientId'] = tag  # memo or tag
         networkCode, query = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
+        networkId = self.network_code_to_id(networkCode, currency['code'])
         if networkId is None:
             raise BadRequest(self.id + ' withdraw() requires a network parameter')
         request['blockchain'] = networkId
@@ -1629,17 +1628,18 @@ class backpack(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes')
         currency = self.currency(code)
         request = {
-            'blockchain': self.network_code_to_id(networkCode, self.safe_string(currency, 'code')),
+            'blockchain': self.network_code_to_id(networkCode, currency['code']),
         }
-        response = self.privateGetWapiV1CapitalDepositAddress(self.extend(request, paramsNetworkCode))
+        response = self.privateGetWapiV1CapitalDepositAddress(self.extend(request, params))
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
@@ -1647,10 +1647,10 @@ class backpack(Exchange, ImplicitAPI):
         #
         address = self.safe_string(depositAddress, 'address')
         currencyId = self.safe_string(depositAddress, 'currency')
-        currencyResolved = self.safe_currency(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         return {
             'info': depositAddress,
-            'currency': currencyResolved['code'],
+            'currency': currency['code'],
             'network': None,  # network is not returned by the API
             'address': address,
             'tag': None,
@@ -1708,7 +1708,7 @@ class backpack(Exchange, ImplicitAPI):
             self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = self.safe_dict(orders, i)
+            rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
@@ -1721,7 +1721,7 @@ class backpack(Exchange, ImplicitAPI):
         response = self.privatePostApiV1Orders(ordersRequests)
         return self.parse_orders(response)
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}):
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -1734,10 +1734,7 @@ class backpack(Exchange, ImplicitAPI):
         }
         triggerPrice = self.safe_string(params, 'triggerPrice')
         isTriggerOrder = triggerPrice is not None
-        quantityKey = 'quantity'
-        if isTriggerOrder:
-            quantityKey = 'triggerQuantity'
-        omitKeys = []
+        quantityKey = 'triggerQuantity' if isTriggerOrder else 'quantity'
         # handle basic limit/market order types
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
@@ -1746,23 +1743,22 @@ class backpack(Exchange, ImplicitAPI):
             cost = self.safe_string_2(params, 'cost', 'quoteQuantity')
             if cost is not None:
                 request['quoteQuantity'] = self.cost_to_precision(symbol, cost)
-                omitKeys.append('cost')
-                omitKeys.append('quoteQuantity')
+                params = self.omit(params, ['cost', 'quoteQuantity'])
             else:
                 request[quantityKey] = self.amount_to_precision(symbol, amount)
         # trigger orders
         if isTriggerOrder:
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-            omitKeys.append('triggerPrice')
+            params = self.omit(params, 'triggerPrice')
         clientOrderId = self.safe_integer(params, 'clientOrderId')  # the exchange requires uint
         if clientOrderId is not None:
             request['clientId'] = clientOrderId
-            omitKeys.append('clientOrderId')
-        postOnly, paramsPostOnly = self.handle_post_only(type == 'market', False, self.omit(params, omitKeys))
+            params = self.omit(params, 'clientOrderId')
+        postOnly = False
+        postOnly, params = self.handle_post_only(type == 'market', False, params)
         if postOnly:
-            paramsPostOnly['postOnly'] = True
-        bracketKeys = []
-        takeProfit = self.safe_dict(paramsPostOnly, 'takeProfit')
+            params['postOnly'] = True
+        takeProfit = self.safe_dict(params, 'takeProfit')
         if takeProfit is not None:
             takeProfitTriggerPrice = self.safe_string(takeProfit, 'triggerPrice')
             if takeProfitTriggerPrice is not None:
@@ -1770,8 +1766,8 @@ class backpack(Exchange, ImplicitAPI):
             takeProfitPrice = self.safe_string(takeProfit, 'price')
             if takeProfitPrice is not None:
                 request['takeProfitLimitPrice'] = self.price_to_precision(symbol, takeProfitPrice)
-            bracketKeys.append('takeProfit')
-        stopLoss = self.safe_dict(paramsPostOnly, 'stopLoss')
+            params = self.omit(params, 'takeProfit')
+        stopLoss = self.safe_dict(params, 'stopLoss')
         if stopLoss is not None:
             stopLossTriggerPrice = self.safe_string(stopLoss, 'triggerPrice')
             if stopLossTriggerPrice is not None:
@@ -1779,8 +1775,9 @@ class backpack(Exchange, ImplicitAPI):
             stopLossPrice = self.safe_string(stopLoss, 'price')
             if stopLossPrice is not None:
                 request['stopLossLimitPrice'] = self.price_to_precision(symbol, stopLossPrice)
-            bracketKeys.append('stopLoss')
-        selfTradePrevention, paramsSelfTradePrevention = self.handle_option_string_and_params(self.omit(paramsPostOnly, bracketKeys), 'createOrder', 'selfTradePrevention')
+            params = self.omit(params, 'stopLoss')
+        selfTradePrevention = None
+        selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
         if selfTradePrevention is not None:
             if selfTradePrevention == 'EXPIRE_MAKER':
                 request['selfTradePrevention'] = 'RejectMaker'
@@ -1788,7 +1785,7 @@ class backpack(Exchange, ImplicitAPI):
                 request['selfTradePrevention'] = 'RejectTaker'
             elif selfTradePrevention == 'EXPIRE_BOTH':
                 request['selfTradePrevention'] = 'RejectBoth'
-        return self.extend(request, paramsSelfTradePrevention)
+        return self.extend(request, params)
 
     def encode_order_side(self, side: Str) -> Str:
         sides = {
@@ -2085,8 +2082,8 @@ class backpack(Exchange, ImplicitAPI):
         positions = self.parse_positions(response)
         if self.is_empty(symbols):
             return positions
-        symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array_positions(positions, 'symbol', symbolsNormalized)
+        symbols = self.market_symbols(symbols)
+        return self.filter_by_array_positions(positions, 'symbol', symbols, False)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #
@@ -2125,8 +2122,8 @@ class backpack(Exchange, ImplicitAPI):
         #
         id = self.safe_string(position, 'positionId')
         marketId = self.safe_string(position, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         entryPrice = self.safe_string(position, 'entryPrice')
         markPrice = self.safe_string(position, 'markPrice')
         netCost = self.safe_string(position, 'netCost')
@@ -2196,7 +2193,7 @@ class backpack(Exchange, ImplicitAPI):
         response = self.privateGetWapiV1HistoryFunding(self.extend(request, params))
         return self.parse_incomes(response, market, since, limit)
 
-    def parse_income(self, income: dict, market: Market = None) -> object:
+    def parse_income(self, income: object, market: Market = None) -> object:
         #
         #     {
         #         "fundingRate": "0.0001",
@@ -2225,20 +2222,12 @@ class backpack(Exchange, ImplicitAPI):
         }
 
     def nonce(self) -> float:
-        timeDifference = self.safe_integer(self.options, 'timeDifference')
-        if timeDifference is None:
-            raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
-        return self.milliseconds() - timeDifference
+        return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         endpoint = '/' + path
-        apiUrl = self.safe_string(self.urls['api'], api)
-        if apiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl
+        url = self.urls['api'][api]
         sortedParams = params if isinstance(params, list) else self.keysort(params)
-        headersSigned = None
-        bodySigned = None
         if api == 'private':
             self.check_required_credentials()
             ts = str(self.nonce())
@@ -2257,7 +2246,7 @@ class backpack(Exchange, ImplicitAPI):
             secretBytes = self.base64_to_binary(self.secret)
             seed = self.array_slice(secretBytes, 0, 32)
             signature = self.eddsa(self.encode(payload), seed, 'ed25519')
-            headersSigned = {
+            headers = {
                 'X-Timestamp': ts,
                 'X-Window': recvWindow,
                 'X-API-Key': self.apiKey,
@@ -2265,18 +2254,14 @@ class backpack(Exchange, ImplicitAPI):
                 'X-Broker-Id': '1400',
             }
             if method != 'GET':
-                bodySigned = self.json(sortedParams)
-                headersSigned['Content-Type'] = 'application/json'
+                body = self.json(sortedParams)
+                headers['Content-Type'] = 'application/json'
         if method == 'GET':
             query = self.urlencode(sortedParams)
             if len(query) != 0:
                 endpoint += '?' + query
         url += endpoint
-        headersResolved = headersSigned if (api == 'private') else headers
-        bodyResolved = body
-        if (api == 'private') and (method != 'GET'):
-            bodyResolved = bodySigned
-        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def generate_batch_payload(self, params: object, ts: str, recvWindow: str, instruction: str) -> str:
         payload = ''

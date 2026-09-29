@@ -49,11 +49,7 @@ export default class bitopro extends bitoproRest {
         });
     }
     async watchPublic(path, messageHash, marketId) {
-        const wsUrl = this.safeString(this.urls['ws'], 'public');
-        if (wsUrl === undefined) {
-            throw new ExchangeError(this.id + ' watchPublic() has no public websocket url');
-        }
-        const url = wsUrl + '/' + path + '/' + marketId;
+        const url = this.urls['ws']['public'] + '/' + path + '/' + marketId;
         return await this.watch(url, messageHash, undefined, messageHash);
     }
     /**
@@ -76,8 +72,8 @@ export default class bitopro extends bitoproRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
-        const messageHash = 'ORDER_BOOK' + ':' + symbolValue;
+        symbol = market['symbol'];
+        const messageHash = 'ORDER_BOOK' + ':' + symbol;
         let endPart = undefined;
         if (limit === undefined) {
             endPart = market['id'];
@@ -114,6 +110,7 @@ export default class bitopro extends bitoproRest {
         const market = this.safeMarket(marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString(message, 'event');
+        const messageHash = event + ':' + symbol;
         let orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
             orderbook = this.orderBook({});
@@ -121,10 +118,7 @@ export default class bitopro extends bitoproRest {
         const timestamp = this.safeInteger(message, 'timestamp');
         const snapshot = this.parseOrderBook(message, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
         orderbook.reset(snapshot);
-        if (event !== undefined) {
-            const messageHash = event + ':' + symbol;
-            client.resolve(orderbook, messageHash);
-        }
+        client.resolve(orderbook, messageHash);
     }
     /**
      * @method
@@ -142,14 +136,13 @@ export default class bitopro extends bitoproRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
-        const messageHash = 'TRADE' + ':' + symbolValue;
+        symbol = market['symbol'];
+        const messageHash = 'TRADE' + ':' + symbol;
         const trades = await this.watchPublic('trades', messageHash, market['id']);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(symbolValue, limit);
+            limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrade(client, message) {
         //
@@ -175,6 +168,7 @@ export default class bitopro extends bitoproRest {
         const market = this.safeMarket(marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString(message, 'event');
+        const messageHash = event + ':' + symbol;
         const rawData = this.safeList(message, 'data', []);
         const trades = this.parseTrades(rawData, market);
         let tradesCache = this.safeValue(this.trades, symbol);
@@ -186,10 +180,7 @@ export default class bitopro extends bitoproRest {
             tradesCache.append(trades[i]);
         }
         this.trades[symbol] = tradesCache;
-        if (event !== undefined) {
-            const messageHash = event + ':' + symbol;
-            client.resolve(tradesCache, messageHash);
-        }
+        client.resolve(tradesCache, messageHash);
     }
     /**
      * @method
@@ -212,18 +203,13 @@ export default class bitopro extends bitoproRest {
             const market = this.market(symbol);
             messageHash = messageHash + ':' + market['symbol'];
         }
-        const wsUrl = this.safeString(this.urls['ws'], 'private');
-        if (wsUrl === undefined) {
-            throw new ExchangeError(this.id + ' watchMyTrades() has no private websocket url');
-        }
-        const url = wsUrl + '/' + 'user-trades';
+        const url = this.urls['ws']['private'] + '/' + 'user-trades';
         this.authenticate(url);
         const trades = await this.watch(url, messageHash, undefined, messageHash);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(symbol, limit);
+            limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleMyTrade(client, message) {
         //
@@ -254,9 +240,6 @@ export default class bitopro extends bitoproRest {
         const quoteId = this.safeString(data, 'quote');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return;
-        }
         const symbol = this.symbol(base + '/' + quote);
         const messageHash = this.safeString(message, 'event');
         if (this.myTrades === undefined) {
@@ -267,9 +250,7 @@ export default class bitopro extends bitoproRest {
         const parsed = this.parseWsTrade(data);
         trades.append(parsed);
         client.resolve(trades, messageHash);
-        if (messageHash !== undefined) {
-            client.resolve(trades, messageHash + ':' + symbol);
-        }
+        client.resolve(trades, messageHash + ':' + symbol);
     }
     parseWsTrade(trade, market = undefined) {
         //
@@ -297,11 +278,8 @@ export default class bitopro extends bitoproRest {
         const quoteId = this.safeString(trade, 'quote');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        let symbol = undefined;
-        if ((base !== undefined) && (quote !== undefined)) {
-            symbol = this.symbol(base + '/' + quote);
-        }
-        const marketResolved = this.safeMarket(symbol, market);
+        const symbol = this.symbol(base + '/' + quote);
+        market = this.safeMarket(symbol, market);
         const price = this.safeString(trade, 'price');
         const type = this.safeStringLower(trade, 'orderType');
         let side = this.safeString(trade, 'side');
@@ -348,7 +326,7 @@ export default class bitopro extends bitoproRest {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -364,8 +342,8 @@ export default class bitopro extends bitoproRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
-        const messageHash = 'TICKER' + ':' + symbolValue;
+        symbol = market['symbol'];
+        const messageHash = 'TICKER' + ':' + symbol;
         return await this.watchPublic('tickers', messageHash, market['id']);
     }
     handleTicker(client, message) {
@@ -395,16 +373,14 @@ export default class bitopro extends bitoproRest {
         const market = this.safeMarket(marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString(message, 'event');
+        const messageHash = event + ':' + symbol;
         const result = this.parseTicker(message, market);
         result['symbol'] = this.safeString(market, 'symbol'); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         const timestamp = this.safeInteger(message, 'timestamp');
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601(timestamp); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         this.tickers[symbol] = result;
-        if (event !== undefined) {
-            const messageHash = event + ':' + symbol;
-            client.resolve(result, messageHash);
-        }
+        client.resolve(result, messageHash);
     }
     authenticate(url) {
         if ((this.clients !== undefined) && (url in this.clients)) {
@@ -453,11 +429,7 @@ export default class bitopro extends bitoproRest {
             await this.loadMarkets();
         }
         const messageHash = 'ACCOUNT_BALANCE';
-        const wsUrl = this.safeString(this.urls['ws'], 'private');
-        if (wsUrl === undefined) {
-            throw new ExchangeError(this.id + ' watchBalance() has no private websocket url');
-        }
-        const url = wsUrl + '/' + 'account-balance';
+        const url = this.urls['ws']['private'] + '/' + 'account-balance';
         this.authenticate(url);
         return await this.watch(url, messageHash, undefined, messageHash);
     }

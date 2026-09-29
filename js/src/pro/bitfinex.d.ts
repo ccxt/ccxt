@@ -1,10 +1,10 @@
 import bitfinexRest from '../bitfinex.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, List } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitfinex extends bitfinexRest {
     describe(): any;
-    subscribe(channel: string, symbol: string, params?: Dict): Promise<any>;
-    unSubscribe(channel: string, topic: string, symbol: string, params?: Dict): Promise<any>;
+    subscribe(channel: any, symbol: any, params?: Dict): Promise<any>;
+    unSubscribe(channel: any, topic: any, symbol: any, params?: Dict): Promise<any>;
     subscribePrivate(messageHash: any): Promise<any>;
     /**
      * @method
@@ -82,7 +82,7 @@ export default class bitfinex extends bitfinexRest {
     handleTrades(client: Client, message: any[], subscription: Dict): void;
     parseWsTrade(trade: any, market?: Market): Trade;
     handleTicker(client: Client, message: any[], subscription: Dict): void;
-    parseWsTicker(ticker: List, market?: Market): Ticker;
+    parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name bitfinex#watchOrderBook
@@ -124,6 +124,6 @@ export default class bitfinex extends bitfinexRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     handleOrders(client: Client, message: any[], subscription: Dict): void;
     parseWsOrderStatus(status: Str): Str;
-    parseWsOrder(order: List, market?: Market): Order;
+    parseWsOrder(order: Dict, market?: Market): Order;
     handleMessage(client: Client, message: any): void;
 }

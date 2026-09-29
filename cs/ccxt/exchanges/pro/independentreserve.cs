@@ -49,20 +49,16 @@ public partial class independentreserve : ccxt.independentreserve
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
-        if ((wsUrl == null))
-        {
-            throw new ExchangeError ((this.id + " watchTrades() has no websocket url")) ;
-        }
-        string url = ((((wsUrl + "?subscribe=ticker-") + ((market.ContainsKey("base") ? market["base"] : null))) + "-") + ((market.ContainsKey("quote") ? market["quote"] : null)));
-        string messageHash = ("trades:" + symbolValue);
+        Dictionary<string, object> market = this.market(symbolVar);
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        object url = add(add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "?subscribe=ticker-"), (market.ContainsKey("base") ? market["base"] : null)), "-"), (market.ContainsKey("quote") ? market["quote"] : null));
+        string messageHash = ("trades:" + (symbolVar));
         object trades = await this.watch(url, messageHash, null, messageHash);
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
@@ -91,20 +87,20 @@ public partial class independentreserve : ccxt.independentreserve
         string? marketId = this.safeString(data, "Pair");
         string? symbol = this.safeSymbol(marketId, null, "-");
         string messageHash = ("trades:" + symbol);
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
+        object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            this.trades[(string)symbol] = stored;
+            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        ccxt.Trade trade = this.parseWsTrade(data);
-        stored.append(ccxt.BaseExchange.FromTrade(trade));
-        this.trades[(string)symbol] = stored;
-        client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageHash);
+        Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data));
+        callDynamically(stored, "append", new object[] {trade});
+        ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+        (client as WebSocketClient).resolve(getValue(this.trades, symbol), messageHash);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override object parseWsTrade(object trade, object market = null)
     {
         //
         //    {
@@ -148,26 +144,26 @@ public partial class independentreserve : ccxt.independentreserve
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        Int64? limitResolved = ((limit == null)) ? 100 : limit;
-        string? limitString = this.numberToString(limitResolved);
-        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
-        if ((wsUrl == null))
+        Dictionary<string, object> market = this.market(symbolVar);
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        if ((limitVar == null))
         {
-            throw new ExchangeError ((this.id + " watchOrderBook() has no websocket url")) ;
+            limitVar = 100;
         }
-        string url = ((((((wsUrl + "/orderbook/") + limitString) + "?subscribe=") + ((market.ContainsKey("base") ? market["base"] : null))) + "-") + ((market.ContainsKey("quote") ? market["quote"] : null)));
-        string messageHash = ((("orderbook:" + symbolValue) + ":") + limitString);
+        string? limitString = this.numberToString(limitVar);
+        object url = add(add(add(add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/orderbook/"), limitString), "?subscribe="), (market.ContainsKey("base") ? market["base"] : null)), "-"), (market.ContainsKey("quote") ? market["quote"] : null));
+        string messageHash = ((("orderbook:" + (symbolVar)) + ":") + limitString);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "receivedSnapshot", false },
         };
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, null, messageHash, subscription));
+        object orderbook = await this.watch(url, messageHash, null, messageHash, subscription);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -201,53 +197,49 @@ public partial class independentreserve : ccxt.independentreserve
         {
             return;
         }
-        List<object> parts = channel.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         string? depth = this.safeString(parts, 1);
         string? baseId = this.safeString(parts, 2);
         string? quoteId = this.safeString(parts, 3);
-        string? bs = this.safeCurrencyCode(baseId);
+        object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        if (((bs == null)) || ((quote == null)))
-        {
-            return;
-        }
-        string symbol = ((bs + "/") + quote);
+        object symbol = add(add(bs, "/"), quote);
         IDictionary<string, object> orderBook = this.safeDict(message, "Data", new Dictionary<string, object>() {});
-        string messageHash = ((("orderbook:" + symbol) + ":") + depth);
-        IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
+        string messageHash = ((("orderbook:" + (symbol)) + ":") + depth);
+        IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
         bool? receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
         Int64? timestamp = this.safeInteger(message, "Time");
         // let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (!((this.orderbooks != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(inOp(this.orderbooks, symbol)))
         {
-            ((IDictionary<string,object>)this.orderbooks)[symbol] = this.orderBook(new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        if (eventVar == "OrderBookSnapshot")
+        if ((eventVar == "OrderBookSnapshot"))
         {
-            ccxt.OrderBook snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume");
-            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
+            Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume"));
+            (orderbook as IOrderBook).reset(snapshot);
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag
-            ((IDictionary<string,object>)client.subscriptions)[messageHash] = this.extend(subscription, new Dictionary<string, object>() {
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = this.extend(subscription, new Dictionary<string, object>() {
                 { "receivedSnapshot", true },
             });
         } else
         {
             List<object> asks = this.safeList(orderBook, "Offers", new List<object>() {});
             List<object> bids = this.safeList(orderBook, "Bids", new List<object>() {});
-            this.handleDeltas(orderbook?.asks, asks);
-            this.handleDeltas(orderbook?.bids, bids);
-            orderbook["timestamp"] = timestamp;
-            orderbook["datetime"] = this.iso8601(timestamp);
+            this.handleDeltas(getValue(orderbook, "asks"), asks);
+            this.handleDeltas(getValue(orderbook, "bids"), bids);
+            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
+            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         }
-        bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
-        if (((checksum == true)) && ((receivedSnapshot == true)))
+        object checksum = this.handleOption("watchOrderBook", "checksum", true);
+        if ((isEqual(checksum, true)) && ((receivedSnapshot == true)))
         {
-            ccxt.pro.IAsks storedAsks = orderbook?.asks;
-            ccxt.pro.IBids storedBids = orderbook?.bids;
-            int asksLength = (storedAsks?.Count ?? 0);
-            int bidsLength = (storedBids?.Count ?? 0);
+            object storedAsks = getValue(orderbook, "asks");
+            object storedBids = getValue(orderbook, "bids");
+            int asksLength = getArrayLength(storedAsks);
+            int bidsLength = getArrayLength(storedBids);
             object payload = "";
             for (int i = 0; i < 10; i++)
             {
@@ -267,16 +259,16 @@ public partial class independentreserve : ccxt.independentreserve
             Int64? responseChecksum = this.safeInteger(orderBook, "Crc32");
             if ((calculatedChecksum != responseChecksum))
             {
-                var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
-                ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
-                ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
-                client.reject(error, messageHash);
+                var error = new ChecksumError(((this.id + " ") + (this.orderbookChecksumMessage(symbol))));
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+                ((WebSocketClient)client).reject(error, messageHash);
                 return;
             }
         }
         if ((receivedSnapshot == true))
         {
-            client.resolve(orderbook, messageHash);
+            (client as WebSocketClient).resolve(orderbook, messageHash);
         }
     }
 
@@ -286,7 +278,7 @@ public partial class independentreserve : ccxt.independentreserve
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
         // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
         object result = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
-        result = ((string)result).Replace(".", (string)"");
+        result = ((string)result).Replace((string)".", (string)"");
         // remove leading zeros
         result = this.parseNumber(result);
         result = this.numberToString(result);
@@ -299,11 +291,11 @@ public partial class independentreserve : ccxt.independentreserve
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleDeltas(object bookside, IList<object> deltas)
+    public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; i < (deltas?.Count ?? 0); i++)
+        for (int i = 0; i < getArrayLength(deltas); i++)
         {
-            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
+            this.handleDelta(bookside, getValue(deltas, i));
         }
     }
 
@@ -346,6 +338,6 @@ public partial class independentreserve : ccxt.independentreserve
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});
             return;
         }
-        throw new NotSupported (((this.id + " received an unsupported message: ") + this.json(message))) ;
+        throw new NotSupported ((string)((this.id + " received an unsupported message: ") + this.json(message))) ;
     }
 }

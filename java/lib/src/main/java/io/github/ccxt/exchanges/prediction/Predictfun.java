@@ -314,19 +314,20 @@ public class Predictfun extends PredictfunApi
      * @param {int} [params.limit] the maximum number of events to collect markets from
      * @returns {Market[]} array of market structures
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<PredictionEvent> events = (this.fetchEvents(parameters)).join();
-            Integer eventsLength = ((List<?>)events).size();
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object events = (this.fetchEvents((Object)(parameters))).join();
+            Object eventsLength = ((List<?>)events).size();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
-            for (var ei = 0; (eventsLength != null && ei < eventsLength); ei++)
+            for (var ei = 0; Helpers.isLessThan(ei, eventsLength); ei++)
             {
-                Object eventMarkets = (List<Object>)(this.safeList((events == null || ei < 0 || ei >= events.size() ? null : events.get(ei)), "markets", new ArrayList<Object>(Arrays.asList())));
-                Integer eventMarketsLength = ((List<?>)eventMarkets).size();
-                for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
+                Object eventMarkets = (List<Object>)(this.safeList((events == null || ei < 0 || ei >= ((List<?>)events).size() ? null : ((List<?>)events).get(ei)), "markets", new ArrayList<Object>(Arrays.asList())));
+                Object eventMarketsLength = ((List<?>)eventMarkets).size();
+                for (var mi = 0; Helpers.isLessThan(mi, eventMarketsLength); mi++)
                 {
                     ((List<Object>)markets).add((eventMarkets == null || mi < 0 || mi >= ((List<?>)eventMarkets).size() ? null : ((List<?>)eventMarkets).get(mi)));
                 }
@@ -346,13 +347,14 @@ public class Predictfun extends PredictfunApi
      * @param {string} [params.slug] event slug, overrides the id argument when both are given
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public CompletableFuture<PredictionEvent> fetchEvent(String id, Map<String, Object> parameters)
+    public CompletableFuture<PredictionEvent> fetchEvent(String id, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             // the id argument is the event slug, per the base fetchEvent (id) contract - params.slug
             // overrides it so a caller can pass the slug the same way fetchEvents () takes it
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             String paramSlug = this.safeString(parameters, "slug");
             Object slug = id;
             if (!java.util.Objects.equals(paramSlug, null))
@@ -363,10 +365,11 @@ public class Predictfun extends PredictfunApi
             {
                 throw new ArgumentsRequired((this.id + " fetchEvent() requires the \"id\" argument or the \"slug\" parameter")) ;
             }
-            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-            mapLiteral1.put("slug", slug);
-            List<PredictionEvent> events = (this.fetchEvents(this.extend(mapLiteral1, parameters))).join();
-            return this.safeDict(events, 0, (Object) null);
+            final Object finalSlug = slug;
+            Object events = (this.fetchEvents((Object)(this.extend(new HashMap<String, Object>() {{
+                put( "slug", finalSlug );
+            }}, parameters)))).join();
+            return this.safeDict(events, 0);
         }).thenApply(PredictionEvent::new);
 
     }
@@ -388,29 +391,28 @@ public class Predictfun extends PredictfunApi
      * @param {string} [params.marketVariant] predictfun enum value ('SPORTS_MATCH', 'CRYPTO_UP_DOWN' etc.)
      * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object parameters)
+    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Boolean allowUnscopedFetchEvents = (Boolean) this.safeBool(this.options, "allowUnscopedFetchEvents", false);
             if (!Boolean.TRUE.equals(allowUnscopedFetchEvents))
             {
-                this.requireEventQuery(Helpers.toMapArg(parameters));
+                this.requireEventQuery(parameters);
             }
-            List<Object> queries = this.parseSearchQueries(Helpers.toMapArg(parameters));
-            Integer queriesLength = ((List<?>)queries).size();
-            Object paramsValue = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
-            // keys dropped before the client-side pass; the categories listing also drops its limit
-            List<Object> postOmitKeys = new ArrayList<Object>(Arrays.asList("tags"));
-            Long userLimit = this.safeInteger(paramsValue, "limit");
-            Long fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
+            Object queries = this.parseSearchQueries(parameters);
+            Object queriesLength = ((List<?>)queries).size();
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
+            Long userLimit = this.safeInteger(parameters, "limit");
+            Object fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
             if (!java.util.Objects.equals(userLimit, null))
             {
                 fetchCap = userLimit;
             }
-            String slug = this.safeString2(paramsValue, "slug", "eventId");
-            Object rest = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("status", "limit", "sort", "eventId", "slug", "tags", "marketVariant")));
+            String slug = this.safeString2(parameters, "slug", "eventId");
+            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("status", "limit", "sort", "eventId", "slug", "tags", "marketVariant")));
             if (java.util.Objects.equals(this.markets, null))
             {
                 this.markets = this.createSafeDictionary();
@@ -418,30 +420,30 @@ public class Predictfun extends PredictfunApi
             Object rawTopics = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(slug, null))
             {
-                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-                mapLiteral2.put("slug", slug);
-                Map<String, Object> response = (this.predictfunGetV1CategoriesSlug(this.extend(mapLiteral2, rest))).join();
-                Object data = this.safeDict(response, "data", (Object) null);
+                final Object finalSlug = slug;
+                Map<String, Object> response = (this.predictfunGetV1CategoriesSlug(this.extend(new HashMap<String, Object>() {{
+                    put( "slug", finalSlug );
+                }}, rest))).join();
+                Object data = this.safeDict(response, "data");
                 rawTopics = new ArrayList<Object>(Arrays.asList(data));
-            } else if ((queriesLength != null && queriesLength > 0))
+            } else if (Helpers.isGreaterThan(queriesLength, 0))
             {
                 // a query/queries scope is answered by the dedicated search endpoint — the categories
                 // listing has no text filter, so paging it and matching client-side would both miss
                 // the venue's semantic matches and cost one request per page
-                rawTopics = (this.fetchRawTopicsByQueries(queries, Helpers.toMapArg(paramsValue))).join();
+                rawTopics = (this.fetchRawTopicsByQueries(queries, parameters)).join();
             } else
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{}};
-                Object tags = this.safeList(paramsValue, "tags", new ArrayList<Object>(Arrays.asList()));
-                Integer tagsLength = ((List<?>)tags).size();
-                if ((tagsLength != null && tagsLength > 0))
+                Object tags = this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
+                Object tagsLength = ((List<?>)tags).size();
+                if (Helpers.isGreaterThan(tagsLength, 0))
                 {
-                    String tagsString = String.join(",", (List<String>)tags);
-                    request.put("tagIds", tagsString);
+                    Object tagsString = String.join(",", (List<String>)tags);
+                    ((Map<String, Object>)request).put("tagIds", tagsString);
                 }
-                ((List<Object>)postOmitKeys).add("limit");
-                Object paramsCategories = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("limit", "tags")));
-                Map<String, Object> extendedRequest = this.extend(request, paramsCategories);
+                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit", "tags")));
+                Map<String, Object> extendedRequest = this.extend(request, parameters);
                 Map<String, Object> rawTopicsResponse = (this.predictfunGetV1Categories(extendedRequest)).join();
                 //
                 //     {
@@ -608,36 +610,36 @@ public class Predictfun extends PredictfunApi
                 //         "success": true
                 //     }
                 //
-                List<Object> data = (List<Object>) this.safeList(rawTopicsResponse, "data", new ArrayList<Object>(Arrays.asList()));
+                Object data = this.safeList(rawTopicsResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 rawTopics = this.arrayConcat(rawTopics, data);
-                Integer topicsLength = ((List<?>)rawTopics).size();
-                while ((fetchCap != null && (topicsLength == null || topicsLength < fetchCap)))
+                Object topicsLength = ((List<?>)rawTopics).size();
+                while (Helpers.isLessThan(topicsLength, fetchCap))
                 {
                     String nextPageToken = this.safeString(rawTopicsResponse, "cursor");
                     if (java.util.Objects.equals(nextPageToken, null))
                     {
                         break;
                     }
-                    extendedRequest.put("after", nextPageToken);
+                    Helpers.addElementToObject(extendedRequest, "after", nextPageToken);
                     rawTopicsResponse = (this.predictfunGetV1Categories(extendedRequest)).join();
-                    data = (List<Object>) this.safeList(rawTopicsResponse, "data", new ArrayList<Object>(Arrays.asList()));
+                    data = this.safeList(rawTopicsResponse, "data", new ArrayList<Object>(Arrays.asList()));
                     rawTopics = this.arrayConcat(rawTopics, data);
                     topicsLength = ((List<?>)rawTopics).size();
                 }
-                if ((topicsLength != null && (fetchCap == null || topicsLength > fetchCap)))
+                if (Helpers.isGreaterThan(topicsLength, fetchCap))
                 {
                     rawTopics = this.arraySlice(rawTopics, 0, fetchCap);
                 }
             }
-            Integer rawTopicsLength = ((List<?>)rawTopics).size();
+            Object rawTopicsLength = ((List<?>)rawTopics).size();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
+            for (var i = 0; Helpers.isLessThan(i, rawTopicsLength); i++)
             {
                 Object parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
                 ((List<Object>)result).add(parsedEvent);
                 Object parsedMarkets = (List<Object>)(this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList())));
-                Integer parsedMarketsLength = ((List<?>)parsedMarkets).size();
-                for (var mi = 0; (parsedMarketsLength != null && mi < parsedMarketsLength); mi++)
+                Object parsedMarketsLength = ((List<?>)parsedMarkets).size();
+                for (var mi = 0; Helpers.isLessThan(mi, parsedMarketsLength); mi++)
                 {
                     Object m = (parsedMarkets == null || mi < 0 || mi >= ((List<?>)parsedMarkets).size() ? null : ((List<?>)parsedMarkets).get(mi));
                     // prediction market rows are keyed by the unified 'market' handle
@@ -652,10 +654,10 @@ public class Predictfun extends PredictfunApi
             // scoping already happened server-side: the tag filter needs an event-level tags field
             // predictfun topics lack, and the query filter would drop semantic-search matches whose
             // title uses different words than the query
-            Object postParams = this.omit(paramsValue, postOmitKeys);
+            Object postParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("tags")));
             // status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
             // pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
-            String rawStatus = this.safeString(paramsValue, "status");
+            String rawStatus = this.safeString(parameters, "status");
             if (java.util.Objects.equals(rawStatus, "OPEN"))
             {
                 postParams = this.extend(postParams, new HashMap<String, Object>() {{
@@ -667,7 +669,7 @@ public class Predictfun extends PredictfunApi
                     put( "status", "closed" );
                 }});
             }
-            return this.applyEventFetchParams(result, Helpers.toMapArg(postParams), queries);
+            return this.applyEventFetchParams(result, postParams, queries);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
     }
@@ -683,7 +685,7 @@ public class Predictfun extends PredictfunApi
      * @param {string} [params.status] anything other than 'active' asks the venue to include resolved rows
      * @returns {object[]} an array of raw market topics, each with a nested markets list
      */
-    public CompletableFuture<Object> fetchRawTopicsByQueries(Object queries, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchRawTopicsByQueries(Object queries, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -691,6 +693,7 @@ public class Predictfun extends PredictfunApi
             // always ask for the venue's maximum page size - this is the per-type page size of the
             // search endpoint (it caps at 25 and defaults to 10), not the caller's event limit, which
             // applyEventFetchParams () applies to the parsed events afterwards
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Integer limit = 25;
             // resolved rows are excluded unless asked for — the unified status filter drives that
             String status = this.safeString(parameters, "status");
@@ -700,8 +703,8 @@ public class Predictfun extends PredictfunApi
                 includeResolved = "true";
             }
             // marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
-            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant")));
-            Integer queriesLength = ((List<?>)queries).size();
+            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant")));
+            Object queriesLength = ((List<?>)queries).size();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             // the venue answers every term separately and the same category comes back for each term
             // that matches it - emit it once, otherwise applyEventFetchParams (), which slices to the
@@ -709,13 +712,16 @@ public class Predictfun extends PredictfunApi
             Map<String, Object> seenSlugs = new HashMap<String, Object>() {{}};
             // market rows whose category row did not come back, bucketed by the slug they carry
             Map<String, Object> orphanMarkets = new HashMap<String, Object>() {{}};
-            List<String> orphanSlugs = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; (queriesLength != null && i < queriesLength); i++)
+            List<Object> orphanSlugs = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, queriesLength); i++)
             {
-                Map<String, Object> request = new HashMap<String, Object>();
-                request.put("query", (queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i)));
-                request.put("limit", limit);
-                request.put("includeResolved", includeResolved);
+                final Object finalI = i;
+                final Object finalIncludeResolved = includeResolved;
+                Map<String, Object> request = new HashMap<String, Object>() {{
+                    put( "query", Helpers.GetValue(queries, finalI) );
+                    put( "limit", limit );
+                    put( "includeResolved", finalIncludeResolved );
+                }};
                 Map<String, Object> response = (this.predictfunGetV1Search(this.extend(request, rest))).join();
                 //
                 //     {
@@ -767,10 +773,10 @@ public class Predictfun extends PredictfunApi
                 //
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Object categories = (List<Object>)(this.safeList(data, "categories", new ArrayList<Object>(Arrays.asList())));
-                Integer categoriesLength = ((List<?>)categories).size();
-                for (var ci = 0; (categoriesLength != null && ci < categoriesLength); ci++)
+                Object categoriesLength = ((List<?>)categories).size();
+                for (var ci = 0; Helpers.isLessThan(ci, categoriesLength); ci++)
                 {
-                    Map<String, Object> category = (Map<String, Object>) this.safeDict(categories, ci, (Object) null);
+                    Object category = (categories == null || ci < 0 || ci >= ((List<?>)categories).size() ? null : ((List<?>)categories).get(ci));
                     String categorySlug = this.safeString(category, "slug");
                     if (java.util.Objects.equals(categorySlug, null))
                     {
@@ -778,7 +784,7 @@ public class Predictfun extends PredictfunApi
                         ((List<Object>)result).add(category);
                     } else if (!(seenSlugs.containsKey(categorySlug)))
                     {
-                        seenSlugs.put(categorySlug, true);
+                        ((Map<String, Object>)seenSlugs).put((String)categorySlug, true);
                         ((List<Object>)result).add(category);
                     }
                 }
@@ -786,8 +792,8 @@ public class Predictfun extends PredictfunApi
                 // the other half of the payload and would otherwise be dropped, so bucket them by the
                 // categorySlug they carry
                 Object rawMarkets = (List<Object>)(this.safeList(data, "markets", new ArrayList<Object>(Arrays.asList())));
-                Integer rawMarketsLength = ((List<?>)rawMarkets).size();
-                for (var mi = 0; (rawMarketsLength != null && mi < rawMarketsLength); mi++)
+                Object rawMarketsLength = ((List<?>)rawMarkets).size();
+                for (var mi = 0; Helpers.isLessThan(mi, rawMarketsLength); mi++)
                 {
                     Object rawMarket = (rawMarkets == null || mi < 0 || mi >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(mi));
                     String marketSlug = this.safeString(rawMarket, "categorySlug");
@@ -799,24 +805,24 @@ public class Predictfun extends PredictfunApi
                             // AppendToArray reassigns only a local copy of a map-stored array
                             Object bucket = (orphanMarkets == null || marketSlug == null ? null : orphanMarkets.get(marketSlug));
                             ((List<Object>)bucket).add(rawMarket);
-                            orphanMarkets.put(marketSlug, bucket);
+                            ((Map<String, Object>)orphanMarkets).put((String)marketSlug, bucket);
                         } else
                         {
-                            orphanMarkets.put(marketSlug, new ArrayList<Object>(Arrays.asList(rawMarket)));
-                            orphanSlugs.add(marketSlug);
+                            ((Map<String, Object>)orphanMarkets).put((String)marketSlug, new ArrayList<Object>(Arrays.asList(rawMarket)));
+                            ((List<Object>)orphanSlugs).add(marketSlug);
                         }
                     }
                 }
             }
             // whatever the category rows did not claim is a market-only hit: synthesize the enclosing
             // topic from the market rows themselves, without spending a request per slug
-            Integer orphanSlugsLength = ((List<?>)orphanSlugs).size();
-            for (var i = 0; (orphanSlugsLength != null && i < orphanSlugsLength); i++)
+            Object orphanSlugsLength = ((List<?>)orphanSlugs).size();
+            for (var i = 0; Helpers.isLessThan(i, orphanSlugsLength); i++)
             {
-                String orphanSlug = (orphanSlugs == null || i < 0 || i >= orphanSlugs.size() ? null : orphanSlugs.get(i));
+                Object orphanSlug = (orphanSlugs == null || i < 0 || i >= orphanSlugs.size() ? null : orphanSlugs.get(i));
                 if (!(seenSlugs.containsKey(orphanSlug)))
                 {
-                    seenSlugs.put(orphanSlug, true);
+                    ((Map<String, Object>)seenSlugs).put((String)orphanSlug, true);
                     Object markets = (orphanMarkets == null || orphanSlug == null ? null : orphanMarkets.get(orphanSlug));
                     Map<String, Object> first = (Map<String, Object>) this.safeDict(markets, 0, new HashMap<String, Object>() {{}});
                     // the market row's 'status' is the registration enum ('REGISTERED' /
@@ -832,20 +838,22 @@ public class Predictfun extends PredictfunApi
                     {
                         topicStatus = "OPEN";
                     }
-                    HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-                    mapLiteral3.put("id", orphanSlug);
-                    mapLiteral3.put("slug", orphanSlug);
-                    mapLiteral3.put("title", this.safeString(first, "title"));
-                    mapLiteral3.put("description", this.safeString(first, "description"));
-                    mapLiteral3.put("imageUrl", this.safeString(first, "imageUrl"));
-                    mapLiteral3.put("marketVariant", this.safeString(first, "marketVariant"));
-                    mapLiteral3.put("isNegRisk", this.safeBool(first, "isNegRisk", (Object) null));
-                    mapLiteral3.put("isYieldBearing", this.safeBool(first, "isYieldBearing", (Object) null));
-                    mapLiteral3.put("isVisible", this.safeBool(first, "isVisible", (Object) null));
-                    mapLiteral3.put("status", topicStatus);
-                    mapLiteral3.put("createdAt", this.safeString(first, "createdAt"));
-                    mapLiteral3.put("markets", markets);
-                    ((List<Object>)result).add(mapLiteral3);
+    final Object finalOrphanSlug = orphanSlug;
+                    final Object finalTopicStatus = topicStatus;
+                                    ((List<Object>)result).add(new HashMap<String, Object>() {{
+                        put( "id", finalOrphanSlug );
+                        put( "slug", finalOrphanSlug );
+                        put( "title", Predictfun.this.safeString(first, "title") );
+                        put( "description", Predictfun.this.safeString(first, "description") );
+                        put( "imageUrl", Predictfun.this.safeString(first, "imageUrl") );
+                        put( "marketVariant", Predictfun.this.safeString(first, "marketVariant") );
+                        put( "isNegRisk", Predictfun.this.safeBool(first, "isNegRisk") );
+                        put( "isYieldBearing", Predictfun.this.safeBool(first, "isYieldBearing") );
+                        put( "isVisible", Predictfun.this.safeBool(first, "isVisible") );
+                        put( "status", finalTopicStatus );
+                        put( "createdAt", Predictfun.this.safeString(first, "createdAt") );
+                        put( "markets", markets );
+                    }});
                 }
             }
             return result;
@@ -1025,10 +1033,10 @@ public class Predictfun extends PredictfunApi
         Object rawMarkets = (List<Object>)(this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList())));
         List<Object> marketsList = new ArrayList<Object>(Arrays.asList());
         Boolean anyActive = false;
-        Integer rawMarketsLength = ((List<?>)rawMarkets).size();
-        for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
+        Object rawMarketsLength = ((List<?>)rawMarkets).size();
+        for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
         {
-            Map<String, Object> parsed = this.parseTopicMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i))), (Map<String, Object>) (rawTopic));
+            Object parsed = this.parseTopicMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i))), (Map<String, Object>) (rawTopic));
             ((List<Object>)marketsList).add(parsed);
             if (Boolean.TRUE.equals(this.safeBool(parsed, "active", false)))
             {
@@ -1045,31 +1053,32 @@ public class Predictfun extends PredictfunApi
         {
             active = (java.util.Objects.equals(status, "REGISTERED")) || (java.util.Objects.equals(status, "OPEN"));
         }
-        Boolean resolved = null;
+        Object resolved = null;
         if (!java.util.Objects.equals(status, null))
         {
             resolved = (java.util.Objects.equals(status, "RESOLVED")) || (java.util.Objects.equals(status, "SETTLED"));
         }
-        {
-            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
-            h2kMap0.put("id", slug);
-            h2kMap0.put("slug", slug);
-            h2kMap0.put("event", (((!java.util.Objects.equals(slug, null)))) ? this.shortenSlug((String) (slug)) : null);
-            h2kMap0.put("title", title);
-            h2kMap0.put("description", this.safeString(rawTopic, "description"));
-            h2kMap0.put("markets", marketsList);
-            h2kMap0.put("active", active);
-            h2kMap0.put("url", null);
-            h2kMap0.put("image", this.safeString(rawTopic, "imageUrl"));
-            h2kMap0.put("created", this.parse8601(created));
-            h2kMap0.put("createdDatetime", created);
-            h2kMap0.put("end", this.parse8601(endDate));
-            h2kMap0.put("endDatetime", endDate);
-            h2kMap0.put("category", this.safeString(rawTopic, "marketVariant"));
-            h2kMap0.put("resolved", resolved);
-            h2kMap0.put("info", rawTopic);
-            return h2kMap0;
-        }
+        final Object finalSlug = slug;
+        final Object finalActive = active;
+        final Object finalResolved = resolved;
+        return new HashMap<String, Object>() {{
+            put( "id", finalSlug );
+            put( "slug", finalSlug );
+            put( "event", (((!java.util.Objects.equals(finalSlug, null)))) ? Predictfun.this.shortenSlug(finalSlug) : null );
+            put( "title", title );
+            put( "description", Predictfun.this.safeString(rawTopic, "description") );
+            put( "markets", marketsList );
+            put( "active", finalActive );
+            put( "url", null );
+            put( "image", Predictfun.this.safeString(rawTopic, "imageUrl") );
+            put( "created", Predictfun.this.parse8601(created) );
+            put( "createdDatetime", created );
+            put( "end", Predictfun.this.parse8601(endDate) );
+            put( "endDatetime", endDate );
+            put( "category", Predictfun.this.safeString(rawTopic, "marketVariant") );
+            put( "resolved", finalResolved );
+            put( "info", rawTopic );
+        }};
     }
 
     /**
@@ -1080,7 +1089,7 @@ public class Predictfun extends PredictfunApi
      * @param {string} [text] the raw title or outcome label
      * @returns {string} the same text with '$' removed and thousands separators closed up
      */
-    public String stripPriceFormatting(String text)
+    public Object stripPriceFormatting(String text)
     {
         if (java.util.Objects.equals(text, null))
         {
@@ -1088,9 +1097,9 @@ public class Predictfun extends PredictfunApi
         }
         String digits = "0123456789";
         Object chars = this.stringToCharsArray(text);
-        Integer charsLength = ((List<?>)chars).size();
-        String stripped = "";
-        for (var i = 0; (charsLength != null && i < charsLength); i++)
+        Object charsLength = ((List<?>)chars).size();
+        Object stripped = "";
+        for (var i = 0; Helpers.isLessThan(i, charsLength); i++)
         {
             Object ch = (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i));
             Boolean keep = true;
@@ -1102,13 +1111,13 @@ public class Predictfun extends PredictfunApi
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                Boolean prevIsDigit = (i > 0) && (Helpers.getIndexOf(digits, Helpers.GetValue(chars, (((long) i) - 1L))) >= 0);
+                Boolean prevIsDigit = (Helpers.isGreaterThan(i, 0)) && (Helpers.getIndexOf(digits, Helpers.GetValue(chars, Helpers.subtract(i, 1))) >= 0);
                 Boolean nextIsDigit = (Helpers.isLessThan(((((long) i) + 1L)), charsLength)) && (Helpers.getIndexOf(digits, Helpers.GetValue(chars, (((long) i) + 1L))) >= 0);
                 keep = !(Boolean.TRUE.equals(prevIsDigit) && Boolean.TRUE.equals(nextIsDigit));
             }
             if (Boolean.TRUE.equals(keep))
             {
-                stripped = (stripped + ch);
+                stripped = Helpers.add(stripped, ch);
             }
         }
         return stripped;
@@ -1124,14 +1133,15 @@ public class Predictfun extends PredictfunApi
      * @param {int} [marketCount] how many markets the topic carries
      * @returns {string} the title to append, or the slug itself when the topic holds a single market
      */
-    public String titleForMarketSymbol(String topicSlug, String title, Long marketCount)
+    public Object titleForMarketSymbol(String topicSlug, String title, Object... optionalArgs)
     {
         // a topic holding one market needs nothing to tell its markets apart, and the title there
         // only restates the slug in another spelling - the venue writes the same window as
         // btc-updown-5m-1789017900 and as "Bitcoin Up or Down - September 10, 1:25AM-1:30AM ET".
         // returning the slug makes slugToMarketSymbol collapse the two halves into one part.
         // inside a multi-market topic the title is what keeps the handles apart, so it stays
-        if (((marketCount != null && marketCount == 1)) && (!java.util.Objects.equals(topicSlug, null)))
+        Object marketCount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        if ((Helpers.isEqual(marketCount, 1)) && (!java.util.Objects.equals(topicSlug, null)))
         {
             return topicSlug;
         }
@@ -1147,7 +1157,7 @@ public class Predictfun extends PredictfunApi
      * @param {object} rawTopic the enclosing raw market topic (carries slug/vendor/fees/dates)
      * @returns {object} a market structure
      */
-    public Map<String, Object> parseTopicMarket(Map<String, Object> rawMarket, Map<String, Object> rawTopic)
+    public Object parseTopicMarket(Map<String, Object> rawMarket, Map<String, Object> rawTopic)
     {
         //
         //     {
@@ -1238,16 +1248,12 @@ public class Predictfun extends PredictfunApi
         String topicSlug = this.safeString(rawMarket, "categorySlug");
         // the same handle parseEvent () derives for the enclosing event - stamping it here is what
         // lets every outcome-addressed structure (order, ticker, trade, position) report an event
-        String eventHandle = null;
-        if (!java.util.Objects.equals(topicSlug, null))
-        {
-            eventHandle = this.shortenSlug((String) (topicSlug));
-        }
+        String eventHandle = (((!java.util.Objects.equals(topicSlug, null)))) ? this.shortenSlug(topicSlug) : null;
         String title = this.safeString(rawMarket, "title", marketId);
         List<Object> topicMarkets = (List<Object>) this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList()));
-        Integer marketCount = ((List<?>)topicMarkets).size();
-        String symbolTitle = this.titleForMarketSymbol((String) (topicSlug), (String) (title), Helpers.toLongOrNull(marketCount));
-        Object marketSymbol = this.slugToMarketSymbol((String) (topicSlug), (String) (symbolTitle));
+        Object marketCount = ((List<?>)topicMarkets).size();
+        Object symbolTitle = this.titleForMarketSymbol((String) (topicSlug), (String) (title), marketCount);
+        Object marketSymbol = this.slugToMarketSymbol(topicSlug, symbolTitle);
         String tradingStatus = this.safeString(rawMarket, "tradingStatus");
         String status = this.safeString(rawMarket, "status");
         Boolean active = (java.util.Objects.equals(tradingStatus, "OPEN"));
@@ -1258,27 +1264,27 @@ public class Predictfun extends PredictfunApi
         Boolean resolved = (java.util.Objects.equals(status, "RESOLVED")) || (java.util.Objects.equals(status, "SETTLED"));
         String endDate = this.safeString(rawTopic, "endsAt");
         String feeRateBps = this.safeString(rawMarket, "feeRateBps", "200"); // todo check
-        Double feeRate = this.parseNumber(Precise.stringDiv(feeRateBps, "10000"));
+        Object feeRate = this.parseNumber(Precise.stringDiv(feeRateBps, "10000"));
         String decimalPrecision = this.safeString(rawMarket, "decimalPrecision", "2");
-        Double pricePrecision = this.parseNumber(this.parsePrecision(decimalPrecision));
+        Object pricePrecision = this.parseNumber(this.parsePrecision(decimalPrecision));
         Map<String, Object> precision = new HashMap<String, Object>() {{
             put( "amount", 0.01 );
             put( "price", pricePrecision );
         }};
-        List<Object> rawOutcomes = (List<Object>) this.safeList(rawMarket, "outcomes", new ArrayList<Object>(Arrays.asList()));
+        Object rawOutcomes = (List<Object>)(this.safeList(rawMarket, "outcomes", new ArrayList<Object>(Arrays.asList())));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
-        String resolvedOutcomeRaw = null;
-        Integer rawOutcomesLength = ((List<?>)rawOutcomes).size();
-        for (var oi = 0; (rawOutcomesLength != null && oi < rawOutcomesLength); oi++)
+        Object resolvedOutcomeRaw = null;
+        Object rawOutcomesLength = ((List<?>)rawOutcomes).size();
+        for (var oi = 0; Helpers.isLessThan(oi, rawOutcomesLength); oi++)
         {
-            Object rawOutcome = (rawOutcomes == null || oi < 0 || oi >= rawOutcomes.size() ? null : rawOutcomes.get(oi));
+            Object rawOutcome = (rawOutcomes == null || oi < 0 || oi >= ((List<?>)rawOutcomes).size() ? null : ((List<?>)rawOutcomes).get(oi));
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
             String rawLabel = this.safeStringUpper(rawOutcome, "name");
-            String label = this.stripPriceFormatting((String) (rawLabel));
+            Object label = this.stripPriceFormatting((String) (rawLabel));
             String tokenId = this.safeString(rawOutcome, "onChainId");
-            String outcomeHandle = ((marketSymbol + ":") + label);
-            Boolean winner = null;
+            Object outcomeHandle = ((marketSymbol + ":") + label);
+            Object winner = null;
             String outcomeStatus = this.safeString(rawOutcome, "status");
             Object settleFractionRaw = null;
             if (!java.util.Objects.equals(outcomeStatus, null))
@@ -1294,69 +1300,69 @@ public class Predictfun extends PredictfunApi
                 }
             }
             Object settleFraction = settleFractionRaw;
-            ((List<Object>)outcomes).add(Helpers.newMap(
-                "id", tokenId,
-                "outcomeId", tokenId,
-                "outcome", outcomeHandle,
-                "market", marketSymbol,
-                "event", eventHandle,
-                "label", label,
-                "price", null,
-                "active", active,
-                "winner", winner,
-                "settleFraction", settleFraction,
-                "precision", precision,
-                "info", this.extend(new HashMap<String, Object>() {{
+final Object finalMarketSymbol = marketSymbol;
+            final Object finalActive = active;
+            final Object finalWinner = winner;
+                        ((List<Object>)outcomes).add(new HashMap<String, Object>() {{
+                put( "id", tokenId );
+                put( "outcomeId", tokenId );
+                put( "outcome", outcomeHandle );
+                put( "market", finalMarketSymbol );
+                put( "event", eventHandle );
+                put( "label", label );
+                put( "price", null );
+                put( "active", finalActive );
+                put( "winner", finalWinner );
+                put( "settleFraction", settleFraction );
+                put( "precision", precision );
+                put( "info", Predictfun.this.extend(new HashMap<String, Object>() {{
                     put( "marketId", marketId );
-                }}, rawOutcome)
-            ));
+                }}, rawOutcome) );
+            }});
         }
-        String resolvedOutcome = resolvedOutcomeRaw;
+        Object resolvedOutcome = resolvedOutcomeRaw;
         String collateral = "USDT";
-        String marketType = "binary";
-        if ((rawOutcomesLength != null && rawOutcomesLength > 2))
-        {
-            marketType = "categorical";
-        }
+        String marketType = (((Helpers.isGreaterThan(rawOutcomesLength, 2)))) ? "categorical" : "binary";
         String createdDatetime = this.safeString(rawMarket, "createdAt");
-        {
-            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
-            h2kMap1.put("id", marketId);
-            h2kMap1.put("market", marketSymbol);
-            h2kMap1.put("base", collateral);
-            h2kMap1.put("quote", collateral);
-            h2kMap1.put("settle", null);
-            h2kMap1.put("baseId", marketId);
-            h2kMap1.put("quoteId", collateral);
-            h2kMap1.put("settleId", null);
-            h2kMap1.put("type", "prediction");
-            h2kMap1.put("marketType", marketType);
-            h2kMap1.put("executionModel", "clob");
-            h2kMap1.put("collateral", collateral);
-            h2kMap1.put("spot", false);
-            h2kMap1.put("margin", false);
-            h2kMap1.put("swap", false);
-            h2kMap1.put("future", false);
-            h2kMap1.put("option", false);
-            h2kMap1.put("prediction", true);
-            h2kMap1.put("active", active);
-            h2kMap1.put("resolved", resolved);
-            h2kMap1.put("resolvedOutcome", resolvedOutcome);
-            h2kMap1.put("contract", false);
-            h2kMap1.put("linear", null);
-            h2kMap1.put("inverse", null);
-            h2kMap1.put("contractSize", null);
-            h2kMap1.put("expiry", this.parse8601(endDate));
-            h2kMap1.put("expiryDatetime", endDate);
-            h2kMap1.put("strike", null);
-            h2kMap1.put("optionType", null);
-            h2kMap1.put("taker", feeRate);
-            h2kMap1.put("maker", 0);
-            h2kMap1.put("percentage", true);
-            h2kMap1.put("tierBased", false);
-            h2kMap1.put("feeSide", "get");
-            h2kMap1.put("precision", precision);
-            h2kMap1.put("limits", new HashMap<String, Object>() {{
+        final Object finalMarketSymbol = marketSymbol;
+        final Object finalActive = active;
+        return new HashMap<String, Object>() {{
+            put( "id", marketId );
+            put( "market", finalMarketSymbol );
+            put( "base", collateral );
+            put( "quote", collateral );
+            put( "settle", null );
+            put( "baseId", marketId );
+            put( "quoteId", collateral );
+            put( "settleId", null );
+            put( "type", "prediction" );
+            put( "marketType", marketType );
+            put( "executionModel", "clob" );
+            put( "collateral", collateral );
+            put( "spot", false );
+            put( "margin", false );
+            put( "swap", false );
+            put( "future", false );
+            put( "option", false );
+            put( "prediction", true );
+            put( "active", finalActive );
+            put( "resolved", resolved );
+            put( "resolvedOutcome", resolvedOutcome );
+            put( "contract", false );
+            put( "linear", null );
+            put( "inverse", null );
+            put( "contractSize", null );
+            put( "expiry", Predictfun.this.parse8601(endDate) );
+            put( "expiryDatetime", endDate );
+            put( "strike", null );
+            put( "optionType", null );
+            put( "taker", feeRate );
+            put( "maker", 0 );
+            put( "percentage", true );
+            put( "tierBased", false );
+            put( "feeSide", "get" );
+            put( "precision", precision );
+            put( "limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", 1 );
                     put( "max", 1 );
@@ -1373,12 +1379,11 @@ public class Predictfun extends PredictfunApi
                     put( "min", 1 );
                     put( "max", null );
                 }} );
-            }});
-            h2kMap1.put("outcomes", outcomes);
-            h2kMap1.put("info", rawMarket);
-            h2kMap1.put("created", this.parse8601(createdDatetime));
-            return h2kMap1;
-        }
+            }} );
+            put( "outcomes", outcomes );
+            put( "info", rawMarket );
+            put( "created", Predictfun.this.parse8601(createdDatetime) );
+        }};
     }
 
     /**
@@ -1391,13 +1396,15 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            (this.loadOutcome(outcome)).join();
+            Object outcomeObj = this.outcome(outcome);
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", Predictfun.this.safeString(info, "marketId") );
@@ -1425,12 +1432,12 @@ public class Predictfun extends PredictfunApi
             // The outcome lables are not the same as the outcome indexSet values, so we need to check the indexSet to determine which outcome is being requested
             Long indexSet = this.safeInteger(info, "indexSet");
             Boolean isYesOutcome = ((indexSet != null && indexSet == 1));
-            Object outcomeSymbol = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
+            Object outcomeSymbol = this.safeOutcomeSymbol(outcome, outcomeObj);
             // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
             if (Boolean.TRUE.equals(isYesOutcome))
             {
-                Map<String, Object> yesOrderbook = (Map<String, Object>) this.parseOrderBook(data, outcomeSymbol, timestamp, "bids", "asks", 0, 1, 2);
-                return this.safePredictionOrderBook((Map<String, Object>) (yesOrderbook), outcomeObj);
+                Map<String, Object> yesOrderbook = (Map<String, Object>) this.parseOrderBook(data, outcomeSymbol, timestamp, "bids", "asks", 0, 1);
+                return this.safePredictionOrderBook(yesOrderbook, outcomeObj);
             } else
             {
                 List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
@@ -1439,18 +1446,18 @@ public class Predictfun extends PredictfunApi
                 List<Object> noAsks = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)bids).size(); i++)
                 {
-                    List<Object> bid = (List<Object>) this.safeList(bids, i, (Object) null);
+                    Object bid = (bids == null || i < 0 || i >= bids.size() ? null : bids.get(i));
                     String bidPrice = this.safeString(bid, 0);
-                    Double bidSize = this.parseNumber(this.safeString(bid, 1));
-                    Double complementPrice = this.parseNumber(Precise.stringSub("1", bidPrice));
+                    Object bidSize = this.parseNumber(this.safeString(bid, 1));
+                    Object complementPrice = this.parseNumber(Precise.stringSub("1", bidPrice));
                     ((List<Object>)noAsks).add(new ArrayList<Object>(Arrays.asList(complementPrice, bidSize)));
                 }
                 for (var i = 0; i < ((List<?>)asks).size(); i++)
                 {
-                    List<Object> ask = (List<Object>) this.safeList(asks, i, (Object) null);
+                    Object ask = (asks == null || i < 0 || i >= asks.size() ? null : asks.get(i));
                     String askPrice = this.safeString(ask, 0);
-                    Double askSize = this.parseNumber(this.safeString(ask, 1));
-                    Double complementPrice = this.parseNumber(Precise.stringSub("1", askPrice));
+                    Object askSize = this.parseNumber(this.safeString(ask, 1));
+                    Object complementPrice = this.parseNumber(Precise.stringSub("1", askPrice));
                     ((List<Object>)noBids).add(new ArrayList<Object>(Arrays.asList(complementPrice, askSize)));
                 }
                 Map<String, Object> noOrderbook = new HashMap<String, Object>() {{
@@ -1460,7 +1467,7 @@ public class Predictfun extends PredictfunApi
                     put( "datetime", Predictfun.this.iso8601(timestamp) );
                     put( "nonce", null );
                 }};
-                return this.safePredictionOrderBook((Map<String, Object>) (noOrderbook), outcomeObj);
+                return this.safePredictionOrderBook(noOrderbook, outcomeObj);
             }
         }).thenApply(PredictionOrderBook::new);
 
@@ -1475,13 +1482,14 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Map<String, Object> parameters)
+    public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            (this.loadOutcome(outcome)).join();
+            Object outcomeObj = this.outcome(outcome);
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", Predictfun.this.safeString(info, "marketId") );
@@ -1521,7 +1529,7 @@ public class Predictfun extends PredictfunApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parsePredictionTicker((Map<String, Object>) (data), outcomeObj);
+            return this.parsePredictionTicker(data, outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -1535,7 +1543,7 @@ public class Predictfun extends PredictfunApi
      * @param {object} [market] the outcome the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public Map<String, Object> parsePredictionTicker(Map<String, Object> ticker, Map<String, Object> market)
+    public Object parsePredictionTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1564,16 +1572,17 @@ public class Predictfun extends PredictfunApi
         //         ]
         //     }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
         Long indexSet = this.safeInteger(info, "indexSet");
         List<Object> rawOutcomes = (List<Object>) this.safeList(ticker, "outcomes", new ArrayList<Object>(Arrays.asList()));
-        Integer rawOutcomesLength = ((List<?>)rawOutcomes).size();
+        Object rawOutcomesLength = ((List<?>)rawOutcomes).size();
         Object rawOutcome = new HashMap<String, Object>() {{}};
         Boolean outcomeFound = false;
-        for (var i = 0; (rawOutcomesLength != null && i < rawOutcomesLength); i++)
+        for (var i = 0; Helpers.isLessThan(i, rawOutcomesLength); i++)
         {
             Object candidate = (rawOutcomes == null || i < 0 || i >= rawOutcomes.size() ? null : rawOutcomes.get(i));
-            if (java.util.Objects.equals(this.safeInteger(candidate, "indexSet"), indexSet))
+            if (Helpers.isEqual(this.safeInteger(candidate, "indexSet"), indexSet))
             {
                 rawOutcome = candidate;
                 outcomeFound = true;
@@ -1585,14 +1594,14 @@ public class Predictfun extends PredictfunApi
             // an unmatched indexSet would otherwise return a ticker whose every quote is
             // undefined, which reads as an empty book rather than as a market that never
             // carried this outcome
-            Object requested = this.safeOutcomeSymbol((String) (null), market);
+            Object requested = this.safeOutcomeSymbol(null, market);
             throw new BadSymbol((((this.id + " fetchTicker() did not find ") + requested) + " among the outcomes of its market")) ;
         }
         // the venue quotes each outcome on its own side of the book, so no complement is needed
         Map<String, Object> bestBid = (Map<String, Object>) this.safeDict(rawOutcome, "bestBid", new HashMap<String, Object>() {{}});
         Map<String, Object> bestAsk = (Map<String, Object>) this.safeDict(rawOutcome, "bestAsk", new HashMap<String, Object>() {{}});
-        return (Map<String, Object>) (this.safePredictionTicker(new HashMap<String, Object>() {{
-            put( "outcome", Predictfun.this.safeOutcomeSymbol((String) (null), market) );
+        return this.safePredictionTicker(new HashMap<String, Object>() {{
+            put( "outcome", Predictfun.this.safeOutcomeSymbol(null, market) );
             put( "outcomeId", Predictfun.this.safeString(market, "outcomeId") );
             put( "label", Predictfun.this.safeString(market, "label") );
             put( "market", Predictfun.this.safeString(market, "market") );
@@ -1601,10 +1610,10 @@ public class Predictfun extends PredictfunApi
             put( "datetime", null );
             put( "high", null );
             put( "low", null );
-            put( "bid", Predictfun.this.safeNumber(bestBid, "price", (Object) null) );
-            put( "bidVolume", Predictfun.this.safeNumber(bestBid, "size", (Object) null) );
-            put( "ask", Predictfun.this.safeNumber(bestAsk, "price", (Object) null) );
-            put( "askVolume", Predictfun.this.safeNumber(bestAsk, "size", (Object) null) );
+            put( "bid", Predictfun.this.safeNumber(bestBid, "price") );
+            put( "bidVolume", Predictfun.this.safeNumber(bestBid, "size") );
+            put( "ask", Predictfun.this.safeNumber(bestAsk, "price") );
+            put( "askVolume", Predictfun.this.safeNumber(bestAsk, "size") );
             put( "open", null );
             put( "close", null );
             put( "last", null );
@@ -1614,7 +1623,7 @@ public class Predictfun extends PredictfunApi
             put( "baseVolume", null );
             put( "quoteVolume", null );
             put( "info", ticker );
-        }}, (Object) null));
+        }});
     }
 
     /**
@@ -1631,38 +1640,44 @@ public class Predictfun extends PredictfunApi
      * @param {string} [params.signerAddress] read another wallet's matches instead of the configured one
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public CompletableFuture<List<PredictionTrade>> fetchMyTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionTrade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             String signerAddress = this.safeString(parameters, "signerAddress", this.walletAddress);
             if (java.util.Objects.equals(signerAddress, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a walletAddress, or a \"signerAddress\" parameter for any other address")) ;
             }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("signerAddress", signerAddress);
+            final Object finalSignerAddress = signerAddress;
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "signerAddress", finalSignerAddress );
+            }};
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcome), false)).join();
-                outcomeObj = this.outcome((String) (outcome));
+                (this.loadOutcome(outcome)).join();
+                outcomeObj = this.outcome(outcome);
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-                request.put("marketId", this.safeString(info, "marketId"));
+                ((Map<String, Object>)request).put("marketId", this.safeString(info, "marketId"));
             }
-            Map<String, Object> query = this.omit(parameters, "signerAddress");
+            Object query = this.omit(parameters, "signerAddress");
             // the endpoint carries no time filter, it pages back from the most recent match, so
             // since is applied client side by parsePredictionTrades
             Map<String, Object> response = (this.predictfunGetV1OrdersMatches(this.extend(request, query))).join();
             // the venue answers with the shape documented in fetchTrades below
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            String wallet = signerAddress.toLowerCase();
+            Object wallet = signerAddress.toLowerCase();
             // a settlement names one taker and several makers, and the wallet may sit on either side,
             // so the legs it signed are the ones to report - a self trade legitimately yields two rows
             List<Object> flattenTrades = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
-            for (var i = 0; (dataLength != null && i < dataLength); i++)
+            Object dataLength = ((List<?>)data).size();
+            for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Map<String, Object> taker = (Map<String, Object>) this.safeDict(entry, "taker", new HashMap<String, Object>() {{}});
@@ -1679,8 +1694,8 @@ public class Predictfun extends PredictfunApi
                     }}));
                 }
                 List<Object> makers = (List<Object>) this.safeList(entry, "makers", new ArrayList<Object>(Arrays.asList()));
-                Integer makersLength = ((List<?>)makers).size();
-                for (var j = 0; (makersLength != null && j < makersLength); j++)
+                Object makersLength = ((List<?>)makers).size();
+                for (var j = 0; Helpers.isLessThan(j, makersLength); j++)
                 {
                     Object maker = (makers == null || j < 0 || j >= makers.size() ? null : makers.get(j));
                     String makerSigner = this.safeStringLower(maker, "signer");
@@ -1697,7 +1712,7 @@ public class Predictfun extends PredictfunApi
                     }
                 }
             }
-            return this.parsePredictionTrades(flattenTrades, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
+            return this.parsePredictionTrades(flattenTrades, outcomeObj, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
     }
@@ -1715,13 +1730,16 @@ public class Predictfun extends PredictfunApi
      * @param {string} [params.minValueUsdtWei] only return matches worth at least this many wei
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            (this.loadOutcome(outcome)).join();
+            Object outcomeObj = this.outcome(outcome);
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketId", Predictfun.this.safeString(info, "marketId") );
@@ -1767,10 +1785,10 @@ public class Predictfun extends PredictfunApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> flattenTrades = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
-            for (var i = 0; (dataLength != null && i < dataLength); i++)
+            Object dataLength = ((List<?>)data).size();
+            for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, (Object) null);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Map<String, Object> taker = (Map<String, Object>) this.safeDict(entry, "taker", new HashMap<String, Object>() {{}});
                 Map<String, Object> takerOutcome = (Map<String, Object>) this.safeDict(taker, "outcome", new HashMap<String, Object>() {{}});
                 Long takerIndexSet = this.safeInteger(takerOutcome, "indexSet");
@@ -1787,18 +1805,19 @@ public class Predictfun extends PredictfunApi
                         put( "type", "market" );
                     }};
                     partyToParse = this.extend(partyToParse, takerParty);
-                    HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-                    mapLiteral4.put("partyToParse", partyToParse);
-                    ((List<Object>)flattenTrades).add(this.extend(entry, mapLiteral4));
+    final Object finalPartyToParse = partyToParse;
+                                    ((List<Object>)flattenTrades).add(this.extend(entry, new HashMap<String, Object>() {{
+                        put( "partyToParse", finalPartyToParse );
+                    }}));
                 } else
                 {
                     List<Object> makers = (List<Object>) this.safeList(entry, "makers", new ArrayList<Object>(Arrays.asList()));
-                    Integer makersLength = ((List<?>)makers).size();
+                    Object makersLength = ((List<?>)makers).size();
                     Map<String, Object> makerParty = new HashMap<String, Object>() {{
                         put( "role", "maker" );
                         put( "type", "limit" );
                     }};
-                    for (var j = 0; (makersLength != null && j < makersLength); j++)
+                    for (var j = 0; Helpers.isLessThan(j, makersLength); j++)
                     {
                         Object maker = (makers == null || j < 0 || j >= makers.size() ? null : makers.get(j));
                         Map<String, Object> makerOutcome = (Map<String, Object>) this.safeDict(maker, "outcome", new HashMap<String, Object>() {{}});
@@ -1807,14 +1826,15 @@ public class Predictfun extends PredictfunApi
                         {
                             partyToParse = maker;
                             partyToParse = this.extend(partyToParse, makerParty);
-                            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-                            mapLiteral5.put("partyToParse", partyToParse);
-                            ((List<Object>)flattenTrades).add(this.extend(entry, mapLiteral5));
+    final Object finalPartyToParse_2 = partyToParse;
+                                                    ((List<Object>)flattenTrades).add(this.extend(entry, new HashMap<String, Object>() {{
+                                put( "partyToParse", finalPartyToParse_2 );
+                            }}));
                         }
                     }
                 }
             }
-            return this.parsePredictionTrades(flattenTrades, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
+            return this.parsePredictionTrades(flattenTrades, outcomeObj, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
     }
@@ -1828,8 +1848,9 @@ public class Predictfun extends PredictfunApi
      * @param {object} [market] the outcome the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public Object parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Object parsePredictionTrade(Object trade, Object... optionalArgs)
     {
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> party = (Map<String, Object>) this.safeDict(trade, "partyToParse", new HashMap<String, Object>() {{}});
         // fetchMyTrades spans several markets at once, so the row's identity comes from the party
         // it carries rather than from the outcome the caller asked for
@@ -1850,7 +1871,7 @@ public class Predictfun extends PredictfunApi
         amountStr = Precise.stringDiv(amountStr, "1000000000000000000");
         String side = null;
         String order = null;
-        Map<String, Object> fee = null;
+        Object fee = null;
         String quoteType = this.safeStringLower(party, "quoteType");
         if (java.util.Objects.equals(quoteType, "bid"))
         {
@@ -1860,35 +1881,41 @@ public class Predictfun extends PredictfunApi
             side = "sell";
         }
         order = this.safeString(party, "hash");
-        Map<String, Object> rawFee = (Map<String, Object>) this.safeDict(party, "fee", (Object) null);
+        Map<String, Object> rawFee = (Map<String, Object>) this.safeDict(party, "fee");
         if (!java.util.Objects.equals(rawFee, null))
         {
             String feeType = this.safeString(rawFee, "type");
             String feeCost = this.safeString(rawFee, "amount");
-            fee = Helpers.newMap(
-                "currency", (((java.util.Objects.equals(feeType, "COLLATERAL")))) ? "USDT" : null,
-                "cost", this.parseNumber(Precise.stringDiv(feeCost, "1000000000000000000"))
-            );
+            final Object finalFeeType = feeType;
+            fee = new HashMap<String, Object>() {{
+                put( "currency", (((java.util.Objects.equals(finalFeeType, "COLLATERAL")))) ? "USDT" : null );
+                put( "cost", Predictfun.this.parseNumber(Precise.stringDiv(feeCost, "1000000000000000000")) );
+            }};
         }
         Long timestamp = this.parse8601(this.safeString(trade, "executedAt"));
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("id", this.safeString(trade, "settlementId"));
-        mapLiteral6.put("order", order);
-        mapLiteral6.put("timestamp", timestamp);
-        mapLiteral6.put("datetime", this.iso8601(timestamp));
-        mapLiteral6.put("outcome", this.safeOutcomeSymbol((String) (null), outcomeObj));
-        mapLiteral6.put("outcomeId", this.safeString(outcomeObj, "outcomeId"));
-        mapLiteral6.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral6.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral6.put("type", this.safeString(party, "type"));
-        mapLiteral6.put("side", side);
-        mapLiteral6.put("takerOrMaker", this.safeString(party, "takerOrMaker"));
-        mapLiteral6.put("price", this.parseNumber(priceStr));
-        mapLiteral6.put("amount", this.parseNumber(amountStr));
-        mapLiteral6.put("cost", null);
-        mapLiteral6.put("fee", fee);
-        mapLiteral6.put("info", this.omit(trade, "partyToParse"));
-        return this.safePredictionTrade(mapLiteral6, (Object) null);
+        final Object finalOrder = order;
+        final Object finalSide = side;
+        final Object finalPriceStr = priceStr;
+        final Object finalAmountStr = amountStr;
+        final Object finalFee = fee;
+        return this.safePredictionTrade(new HashMap<String, Object>() {{
+            put( "id", Predictfun.this.safeString(trade, "settlementId") );
+            put( "order", finalOrder );
+            put( "timestamp", timestamp );
+            put( "datetime", Predictfun.this.iso8601(timestamp) );
+            put( "outcome", Predictfun.this.safeOutcomeSymbol(null, outcomeObj) );
+            put( "outcomeId", Predictfun.this.safeString(outcomeObj, "outcomeId") );
+            put( "label", Predictfun.this.safeString(outcomeObj, "label") );
+            put( "market", Predictfun.this.safeString(outcomeObj, "market") );
+            put( "type", Predictfun.this.safeString(party, "type") );
+            put( "side", finalSide );
+            put( "takerOrMaker", Predictfun.this.safeString(party, "takerOrMaker") );
+            put( "price", Predictfun.this.parseNumber(finalPriceStr) );
+            put( "amount", Predictfun.this.parseNumber(finalAmountStr) );
+            put( "cost", null );
+            put( "fee", finalFee );
+            put( "info", Predictfun.this.omit(trade, "partyToParse") );
+        }});
     }
 
     /**
@@ -1898,7 +1925,7 @@ public class Predictfun extends PredictfunApi
      * @param {bool} enable whether to use the testnet
      * @returns {undefined}
      */
-    public void setSandboxMode(Boolean enable)
+    public void setSandboxMode(Object enable)
     {
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
@@ -1907,14 +1934,14 @@ public class Predictfun extends PredictfunApi
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
         Helpers.addElementToObject(this.options, "sandboxMode", enable);
-        Helpers.addElementToObject(this.options, "chainId", ((Boolean.TRUE.equals(enable))) ? 97 : 56);
-        Helpers.addElementToObject(this.requiredCredentials, "apiKey", !Boolean.TRUE.equals(enable));
+        Helpers.addElementToObject(this.options, "chainId", ((Helpers.isTrue((enable)))) ? 97 : 56);
+        Helpers.addElementToObject(this.requiredCredentials, "apiKey", !Helpers.isTrue(enable));
         if (!java.util.Objects.equals(wasSandbox, enable))
         {
             // a token minted for one host is not valid on the other, so the live one is set aside
             // on the way in and taken back on the way out - a round trip through the sandbox then
             // costs no re-authentication. the sandbox token is not kept: it dies with the switch
-            if (Boolean.TRUE.equals(enable))
+            if (Helpers.isTrue(enable))
             {
                 Helpers.addElementToObject(this.options, "backupJwtToken", this.safeString(this.options, "jwtToken"));
                 Helpers.addElementToObject(this.options, "backupJwtTokenExpiresAt", this.safeInteger(this.options, "jwtTokenExpiresAt", 0));
@@ -1938,14 +1965,14 @@ public class Predictfun extends PredictfunApi
      * @param {string} message the message to hash
      * @returns {string} the 0x prefixed hash
      */
-    public String hashMessage(Object message)
+    public Object hashMessage(Object message)
     {
         Object binaryMessage = this.encode(message);
         Object binaryMessageLength = this.binaryLength(binaryMessage);
         Object x19 = this.base16ToBinary("19");
         Object newline = this.base16ToBinary("0a");
         Object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
-        return ("0x" + this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
+        return Helpers.add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 
     /**
@@ -1957,16 +1984,16 @@ public class Predictfun extends PredictfunApi
      * @param {string} privateKey the wallet private key
      * @returns {string} the 65 byte signature, 0x prefixed
      */
-    public String signHash(Object hash, Object privateKey)
+    public Object signHash(Object hash, Object privateKey)
     {
-        Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
+        Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
-        Object rRaw = signature.get("r");
-        Object sRaw = signature.get("s");
-        String r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
-        String s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
+        Object rRaw = Helpers.GetValue(signature, "r");
+        Object sRaw = Helpers.GetValue(signature, "s");
+        Object r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
+        Object s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
         // ecrecover wants v in {27,28} while the raw recovery id is {0,1}
-        String v = this.intToBase16(this.sum(27, signature.get("v")));
+        String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
         // assign before toLowerCase so the php regex matches, it only handles a bare identifier
         String signatureHex = ((("0x" + r) + s) + v);
         return signatureHex.toLowerCase();
@@ -1982,11 +2009,12 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {string} the JWT
      */
-    public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
+    public CompletableFuture<Object> authenticate(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if ((java.util.Objects.equals(this.walletAddress, null)) || (java.util.Objects.equals(this.privateKey, null)))
             {
                 throw new ArgumentsRequired((this.id + " authenticate() requires a walletAddress and a privateKey")) ;
@@ -1996,7 +2024,7 @@ public class Predictfun extends PredictfunApi
             Long expiresAt = this.safeInteger(this.options, "jwtTokenExpiresAt", 0);
             // a token outlives its window silently: the venue answers 401 on every order action once
             // it lapses, so re-issue before that rather than after the first failure
-            if ((!java.util.Objects.equals(cached, null)) && ((expiresAt != null && (now == null || now < expiresAt))))
+            if ((!java.util.Objects.equals(cached, null)) && (Helpers.isLessThan(now, expiresAt)))
             {
                 return cached;
             }
@@ -2010,11 +2038,13 @@ public class Predictfun extends PredictfunApi
             {
                 throw new AuthenticationError((this.id + " authenticate() got an auth reply without the \"message\" field to sign")) ;
             }
-            String signature = this.signHash(this.hashMessage(message), this.privateKey);
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("signer", this.walletAddress);
-            request.put("message", message);
-            request.put("signature", signature);
+            Object signature = this.signHash(this.hashMessage(message), this.privateKey);
+            final Object finalMessage = message;
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "signer", Predictfun.this.walletAddress );
+                put( "message", finalMessage );
+                put( "signature", signature );
+            }};
             Map<String, Object> response = (this.predictfunPostV1Auth(request)).join();
             //
             //     { "data": { "token": "eyJhbGciOi..." }, "success": true }
@@ -2101,7 +2131,7 @@ public class Predictfun extends PredictfunApi
         }}, order);
         // ethEncodeStructuredData returns the 0x1901 || domainSeparator || structHash preimage,
         // the digest that gets signed - and that the venue indexes the order by - is its keccak
-        String hash = ("0x" + this.hash(encoded, keccak(), "hex"));
+        String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
         return new HashMap<String, Object>() {{
             put( "hash", hash );
             put( "signature", Predictfun.this.signHash(hash, Predictfun.this.privateKey) );
@@ -2132,26 +2162,26 @@ public class Predictfun extends PredictfunApi
      * @param {bool} [params.isYieldBearing] override the market's yield bearing flag
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
-
+        final Object type3 = type2;
+        final Object side3 = side2;
         return BaseExchange.supplyAsync(() -> {
-
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+            Object type = type3;
+            Object side = side3;
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            (this.authenticate()).join();
+            (this.loadOutcome(outcome)).join();
+            Object outcomeObj = this.outcome(outcome);
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             if (java.util.Objects.equals(tokenId, null))
             {
                 throw new ArgumentsRequired(((this.id + " createOrder() could not resolve the on chain token id of ") + outcome)) ;
             }
-            String strategy = "LIMIT";
-            if (java.util.Objects.equals(type, "market"))
-            {
-                strategy = "MARKET";
-            }
+            String strategy = (((java.util.Objects.equals(type, "market")))) ? "MARKET" : "LIMIT";
             Boolean isMarket = (java.util.Objects.equals(strategy, "MARKET"));
-            if ((!Boolean.TRUE.equals(isMarket)) && (java.util.Objects.equals(price, null)))
+            if (Helpers.isTrue((!Boolean.TRUE.equals(isMarket))) && (java.util.Objects.equals(price, null)))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a \"price\" argument for a limit order")) ;
             }
@@ -2162,19 +2192,20 @@ public class Predictfun extends PredictfunApi
             // takerAmount sentinel of 1 is rejected as create_order_min_order_value_not_met (the order
             // value is read off the taker leg) and signing at the maximum price of 1 is rejected as
             // create_order_price_out_of_range (it wants 0 < price < 1)
-            String amountString = this.numberToString(amount);
-            String priceString = this.numberToString(price);
-            String priceToProvide = priceString;
+            Object amountString = this.numberToString(amount);
+            Object priceString = this.numberToString(price);
+            Object priceToProvide = priceString;
             // read through the extractor rather than off the instance, so one call can opt in without
             // reconfiguring the exchange - and so the key is taken out of params instead of riding
             // along into the request body
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "warnOnMarketOrderWithoutPrice", true);
-            Boolean warnOnMarketOrderWithoutPrice = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.first();
-            Map<String, Object> paramsWarnOnMarketOrderWithoutPrice = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.second();
+            Object warnOnMarketOrderWithoutPrice = true;
+            List<Object> warnOnMarketOrderWithoutPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "warnOnMarketOrderWithoutPrice", true);
+            warnOnMarketOrderWithoutPrice = ((List<Object>) warnOnMarketOrderWithoutPriceparametersVariable).get(0);
+            parameters = ((List<Object>) warnOnMarketOrderWithoutPriceparametersVariable).get(1);
             if (java.util.Objects.equals(price, null))
             {
                 // a priceless limit order already threw above, so this is a market order
-                if (Boolean.TRUE.equals(warnOnMarketOrderWithoutPrice))
+                if (Helpers.isTrue(warnOnMarketOrderWithoutPrice))
                 {
                     throw new ArgumentsRequired((this.id + " createOrder() market orders require a \"price\" argument. To use default values turn \"warnOnMarketOrderWithoutPrice\" off in options")) ;
                 }
@@ -2197,7 +2228,7 @@ public class Predictfun extends PredictfunApi
                 makerAmount = costWei;
                 takerAmount = quantityWei;
             }
-            String slippageBps = this.safeString(paramsWarnOnMarketOrderWithoutPrice, "slippageBps", "0");
+            String slippageBps = this.safeString(parameters, "slippageBps", "0");
             if (Precise.stringGt(slippageBps, "0"))
             {
                 if (Boolean.TRUE.equals(isBuy))
@@ -2216,14 +2247,14 @@ public class Predictfun extends PredictfunApi
             Map<String, Object> marketObj = (Map<String, Object>) this.safeDict(this.markets, marketSymbol, new HashMap<String, Object>() {{}});
             Map<String, Object> marketRow = (Map<String, Object>) this.safeDict(marketObj, "info", new HashMap<String, Object>() {{}});
             String marketFeeRateBps = this.safeString(marketRow, "feeRateBps", "200"); // should be at least 200
-            String feeRateBps = this.safeString(paramsWarnOnMarketOrderWithoutPrice, "feeRateBps", marketFeeRateBps);
+            String feeRateBps = this.safeString(parameters, "feeRateBps", marketFeeRateBps);
             Boolean marketIsNegRisk = (Boolean) this.safeBool(marketRow, "isNegRisk", false);
-            Object isNegRisk = this.safeBool(paramsWarnOnMarketOrderWithoutPrice, "isNegRisk", marketIsNegRisk);
+            Object isNegRisk = this.safeBool(parameters, "isNegRisk", marketIsNegRisk);
             Boolean marketIsYieldBearing = (Boolean) this.safeBool(marketRow, "isYieldBearing", false);
-            Object isYieldBearing = this.safeBool(paramsWarnOnMarketOrderWithoutPrice, "isYieldBearing", marketIsYieldBearing);
+            Object isYieldBearing = this.safeBool(parameters, "isYieldBearing", marketIsYieldBearing);
             Long defaultExpiration = this.safeInteger(this.options, "defaultExpiration", 3600); // 1 hour
-            Long expirationDelta = defaultExpiration;
-            Object expiration = this.safeInteger(paramsWarnOnMarketOrderWithoutPrice, "expiration");
+            Object expirationDelta = defaultExpiration;
+            Object expiration = this.safeInteger(parameters, "expiration");
             if (java.util.Objects.equals(expiration, null))
             {
                 if (Boolean.TRUE.equals(isMarket))
@@ -2234,60 +2265,69 @@ public class Predictfun extends PredictfunApi
                 expiration = this.sum(now, expirationDelta);
             }
             Object nonce = this.incrementingNonce();
-            String salt = this.safeString(paramsWarnOnMarketOrderWithoutPrice, "salt", this.numberToString(nonce));
-            String taker = "0x0000000000000000000000000000000000000000";
-            List<Object> takerOptionparamsTakerVariable = (List<Object>) this.handleOptionAndParams(paramsWarnOnMarketOrderWithoutPrice, "createOrder", "taker", taker);
-            var takerOption = ((List<Object>) takerOptionparamsTakerVariable).get(0);
-            Map<String, Object> paramsTaker = (Map<String, Object>) ((List<Object>) takerOptionparamsTakerVariable).get(1);
-            Map<String, Object> contractOrder = new HashMap<String, Object>();
-            contractOrder.put("salt", salt);
-            contractOrder.put("maker", this.walletAddress);
-            contractOrder.put("signer", this.walletAddress);
-            contractOrder.put("taker", takerOption);
-            contractOrder.put("tokenId", tokenId);
-            contractOrder.put("makerAmount", this.decimalToPrecision(makerAmount, TRUNCATE, 0, DECIMAL_PLACES));
-            contractOrder.put("takerAmount", this.decimalToPrecision(takerAmount, TRUNCATE, 0, DECIMAL_PLACES));
-            contractOrder.put("expiration", expiration);
-            contractOrder.put("nonce", this.safeString(paramsTaker, "nonce", "0"));
-            contractOrder.put("feeRateBps", feeRateBps);
-            contractOrder.put("side", ((Boolean.TRUE.equals(isBuy))) ? 0 : 1);
-            contractOrder.put("signatureType", 0);
+            String salt = this.safeString(parameters, "salt", this.numberToString(nonce));
+            Object taker = "0x0000000000000000000000000000000000000000";
+            List<Object> takerparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "taker", taker);
+            taker = ((List<Object>) takerparametersVariable).get(0);
+            parameters = ((List<Object>) takerparametersVariable).get(1);
+            final Object finalTaker = taker;
+            final Object finalTokenId = tokenId;
+            final Object finalMakerAmount = makerAmount;
+            final Object finalTakerAmount = takerAmount;
+            final Object finalExpiration = expiration;
+            final Object finalParameters = parameters;
+            Map<String, Object> contractOrder = new HashMap<String, Object>() {{
+                put( "salt", salt );
+                put( "maker", Predictfun.this.walletAddress );
+                put( "signer", Predictfun.this.walletAddress );
+                put( "taker", finalTaker );
+                put( "tokenId", finalTokenId );
+                put( "makerAmount", Predictfun.this.decimalToPrecision(finalMakerAmount, TRUNCATE, 0, DECIMAL_PLACES) );
+                put( "takerAmount", Predictfun.this.decimalToPrecision(finalTakerAmount, TRUNCATE, 0, DECIMAL_PLACES) );
+                put( "expiration", finalExpiration );
+                put( "nonce", Predictfun.this.safeString(finalParameters, "nonce", "0") );
+                put( "feeRateBps", feeRateBps );
+                put( "side", ((Boolean.TRUE.equals(isBuy))) ? 0 : 1 );
+                put( "signatureType", 0 );
+            }};
             Map<String, Object> signed = this.signPredictfunOrder((Map<String, Object>) (contractOrder), isNegRisk, isYieldBearing);
             Map<String, Object> orderPayload = this.extend(contractOrder, new HashMap<String, Object>() {{
                 put( "hash", Predictfun.this.safeString(signed, "hash") );
                 put( "signature", Predictfun.this.safeString(signed, "signature") );
             }});
-            Map<String, Object> data = new HashMap<String, Object>();
-            data.put("order", orderPayload);
-            data.put("pricePerShare", this.decimalToPrecision(priceWei, TRUNCATE, 0, DECIMAL_PLACES));
-            data.put("strategy", strategy);
-            Boolean postOnly = (Boolean) this.safeBool(paramsTaker, "isPostOnly", false);
-            List<Object> postOnlyOptionparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarket, postOnly, paramsTaker);
-            Boolean postOnlyOption = (Boolean) ((List<Object>) postOnlyOptionparamsPostOnlyVariable).get(0);
-            Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyOptionparamsPostOnlyVariable).get(1);
-            if (Boolean.TRUE.equals(postOnlyOption))
+            final Object finalStrategy = strategy;
+            Map<String, Object> data = new HashMap<String, Object>() {{
+                put( "order", orderPayload );
+                put( "pricePerShare", Predictfun.this.decimalToPrecision(priceWei, TRUNCATE, 0, DECIMAL_PLACES) );
+                put( "strategy", finalStrategy );
+            }};
+            Object postOnly = this.safeBool(parameters, "isPostOnly", false);
+            List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarket, postOnly, parameters);
+            postOnly = ((List<Object>) postOnlyparametersVariable).get(0);
+            parameters = ((List<Object>) postOnlyparametersVariable).get(1);
+            if (Helpers.isTrue(postOnly))
             {
-                data.put("isPostOnly", postOnlyOption);
+                ((Map<String, Object>)data).put("isPostOnly", postOnly);
             }
-            String timeInForce = this.safeStringUpper(paramsPostOnly, "timeInForce");
+            String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             if (java.util.Objects.equals(timeInForce, "FOK"))
             {
-                data.put("isFillOrKill", true);
+                ((Map<String, Object>)data).put("isFillOrKill", true);
             }
             // documented, and the venue takes it inside data rather than as a top level key
-            String selfTradePrevention = this.safeStringUpper(paramsPostOnly, "selfTradePrevention");
+            String selfTradePrevention = this.safeStringUpper(parameters, "selfTradePrevention");
             if (!java.util.Objects.equals(selfTradePrevention, null))
             {
-                data.put("selfTradePrevention", selfTradePrevention);
+                ((Map<String, Object>)data).put("selfTradePrevention", selfTradePrevention);
             }
             // every param the method consumes itself has to come out, otherwise it survives into the
             // extend below and is posted as a top level key next to 'data'
-            Map<String, Object> paramsOmitted = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker")));
             // the JWT authorises the order, the api key only authorises the request
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "data", data );
             }};
-            Map<String, Object> response = (this.predictfunPostV1Orders(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.predictfunPostV1Orders(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": {
@@ -2303,28 +2343,30 @@ public class Predictfun extends PredictfunApi
             // the venue answers with an id and a hash and nothing else - no price, size, side or
             // status - so the returned order is built from what was requested and signed, with only
             // the identifiers taken from the response
-            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-            mapLiteral7.put("id", this.safeString2(result, "orderHash", "hash"));
-            mapLiteral7.put("clientOrderId", null);
-            mapLiteral7.put("info", response);
-            mapLiteral7.put("timestamp", null);
-            mapLiteral7.put("datetime", null);
-            mapLiteral7.put("status", null);
-            mapLiteral7.put("outcome", this.safeString(outcomeObj, "outcome", outcome));
-            mapLiteral7.put("outcomeId", this.safeString(outcomeObj, "outcomeId"));
-            mapLiteral7.put("label", this.safeString(outcomeObj, "label"));
-            mapLiteral7.put("market", this.safeString(outcomeObj, "market"));
-            mapLiteral7.put("event", this.safeString(outcomeObj, "event"));
-            mapLiteral7.put("type", type);
-            mapLiteral7.put("side", side);
-            mapLiteral7.put("price", this.parseNumber(priceString));
-            mapLiteral7.put("amount", this.parseNumber(amountString));
-            mapLiteral7.put("filled", null);
-            mapLiteral7.put("remaining", null);
-            mapLiteral7.put("cost", null);
-            mapLiteral7.put("fee", null);
-            mapLiteral7.put("trades", new ArrayList<Object>(Arrays.asList()));
-            return this.safePredictionOrder(mapLiteral7, (Object) null);
+            final Object finalType = type;
+            final Object finalSide = side;
+            return this.safePredictionOrder(new HashMap<String, Object>() {{
+                put( "id", Predictfun.this.safeString2(result, "orderHash", "hash") );
+                put( "clientOrderId", null );
+                put( "info", response );
+                put( "timestamp", null );
+                put( "datetime", null );
+                put( "status", null );
+                put( "outcome", Predictfun.this.safeString(outcomeObj, "outcome", outcome) );
+                put( "outcomeId", Predictfun.this.safeString(outcomeObj, "outcomeId") );
+                put( "label", Predictfun.this.safeString(outcomeObj, "label") );
+                put( "market", Predictfun.this.safeString(outcomeObj, "market") );
+                put( "event", Predictfun.this.safeString(outcomeObj, "event") );
+                put( "type", finalType );
+                put( "side", finalSide );
+                put( "price", Predictfun.this.parseNumber(priceString) );
+                put( "amount", Predictfun.this.parseNumber(amountString) );
+                put( "filled", null );
+                put( "remaining", null );
+                put( "cost", null );
+                put( "fee", null );
+                put( "trades", new ArrayList<Object>(Arrays.asList()) );
+            }});
         }).thenApply(PredictionOrder::new);
 
     }
@@ -2345,30 +2387,34 @@ public class Predictfun extends PredictfunApi
      * @param {string} [params.after] cursor from a previous response
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Integer outcomesLength = 0;
+            Object outcomes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object outcomesLength = 0;
             if (!java.util.Objects.equals(outcomes, null))
             {
                 outcomesLength = ((List<?>)outcomes).size();
-                (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
+                (this.loadOutcomes(outcomes)).join();
             }
             String address = this.safeString(parameters, "address");
-            Map<String, Object> response = null;
+            Object response = null;
             if (!java.util.Objects.equals(address, null))
             {
                 // the by-address endpoint reads any wallet and is happy with just the api key
-                Map<String, Object> request = new HashMap<String, Object>();
-                request.put("address", address);
-                Map<String, Object> rest = this.omit(parameters, "address");
+                final Object finalAddress = address;
+                Map<String, Object> request = new HashMap<String, Object>() {{
+                    put( "address", finalAddress );
+                }};
+                Object rest = this.omit(parameters, "address");
                 response = (this.predictfunGetV1PositionsAddress(this.extend(request, rest))).join();
             } else
             {
                 // the JWT is what names the wallet whose positions come back
-                (this.authenticate(new HashMap<String, Object>() {{}})).join();
+                (this.authenticate()).join();
                 response = (this.predictfunGetV1Positions(parameters)).join();
             }
             //
@@ -2396,7 +2442,7 @@ public class Predictfun extends PredictfunApi
             //     }
             //
             List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object parsed = this.parsePredictionPositions(rows, new HashMap<String, Object>() {{}});
+            Object parsed = this.parsePredictionPositions(rows);
             if (java.util.Objects.equals(outcomesLength, 0))
             {
                 return parsed;
@@ -2404,15 +2450,15 @@ public class Predictfun extends PredictfunApi
             // the venue filters by marketId only, so a set of outcome handles is applied here
             Map<String, Object> wanted = new HashMap<String, Object>() {{}};
             List<Object> wantedOutcomes = this.toArray(outcomes);
-            for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
+            for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
             {
-                Map<String, Object> outcomeObj = this.outcome((String) ((wantedOutcomes == null || i < 0 || i >= wantedOutcomes.size() ? null : wantedOutcomes.get(i))));
+                Object outcomeObj = this.outcome((wantedOutcomes == null || i < 0 || i >= wantedOutcomes.size() ? null : wantedOutcomes.get(i)));
                 String wantedId = this.safeString(outcomeObj, "outcomeId", "");
-                wanted.put(wantedId, true);
+                ((Map<String, Object>)wanted).put((String)wantedId, true);
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer parsedLength = ((List<?>)parsed).size();
-            for (var i = 0; (parsedLength != null && i < parsedLength); i++)
+            Object parsedLength = ((List<?>)parsed).size();
+            for (var i = 0; Helpers.isLessThan(i, parsedLength); i++)
             {
                 Object position = (parsed == null || i < 0 || i >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(i));
                 String outcomeId = this.safeString(position, "outcomeId");
@@ -2436,22 +2482,23 @@ public class Predictfun extends PredictfunApi
      * @param {string} [params.address] read another wallet's position, which needs no JWT
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public CompletableFuture<PredictionPosition> fetchPosition(Object outcome, Map<String, Object> parameters)
+    public CompletableFuture<PredictionPosition> fetchPosition(Object outcome, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            (this.loadOutcome(outcome)).join();
+            Object outcomeObj = this.outcome(outcome);
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             // scope the call to the outcome's market so the wallet's other positions are not paged through
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketId", Predictfun.this.safeString(info, "marketId") );
             }};
-            List<PredictionPosition> positions = (this.fetchPositions(new ArrayList<Object>(Arrays.asList(outcome)), this.extend(request, parameters))).join();
+            Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(outcome))), (Object)(this.extend(request, parameters)))).join();
             // holding none of an outcome is an ordinary read, so the empty slot is returned rather
             // than raised - the same shape polymarket and binance answer with
-            return this.safeDict(positions, 0, (Object) null);
+            return this.safeDict(positions, 0);
         }).thenApply(PredictionPosition::new);
 
     }
@@ -2465,8 +2512,9 @@ public class Predictfun extends PredictfunApi
      * @param {object} [market] not used by predictfun parsePredictionPosition
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
+    public Object parsePredictionPosition(Object position, Object... optionalArgs)
     {
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> rawOutcome = (Map<String, Object>) this.safeDict(position, "outcome", new HashMap<String, Object>() {{}});
         Map<String, Object> rawMarket = (Map<String, Object>) this.safeDict(position, "market", new HashMap<String, Object>() {{}});
         String tokenId = this.safeString(rawOutcome, "onChainId");
@@ -2495,7 +2543,7 @@ public class Predictfun extends PredictfunApi
         String marketStatus = this.safeString(rawMarket, "status");
         Boolean settled = (java.util.Objects.equals(outcomeStatus, "WON")) || (java.util.Objects.equals(outcomeStatus, "LOST"));
         Boolean resolved = Boolean.TRUE.equals(settled) || (java.util.Objects.equals(marketStatus, "RESOLVED")) || (java.util.Objects.equals(marketStatus, "SETTLED"));
-        Boolean won = null;
+        Object won = null;
         String settleFraction = null;
         String payout = null;
         if (Boolean.TRUE.equals(settled))
@@ -2513,32 +2561,42 @@ public class Predictfun extends PredictfunApi
             realizedPnl = pnl;
             unrealizedPnl = null;
         }
-        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-        mapLiteral8.put("id", this.safeString(position, "id"));
-        mapLiteral8.put("timestamp", null);
-        mapLiteral8.put("datetime", null);
-        mapLiteral8.put("contracts", this.parseNumber(contracts));
-        mapLiteral8.put("contractSize", 1);
-        mapLiteral8.put("side", "long");
-        mapLiteral8.put("notional", this.parseNumber(notional));
-        mapLiteral8.put("unrealizedPnl", this.parseNumber(unrealizedPnl));
-        mapLiteral8.put("realizedPnl", this.parseNumber(realizedPnl));
-        mapLiteral8.put("collateral", this.parseNumber(collateral));
-        mapLiteral8.put("entryPrice", this.parseNumber(entryPrice));
-        mapLiteral8.put("markPrice", this.parseNumber(markPrice));
-        mapLiteral8.put("lastPrice", null);
-        mapLiteral8.put("percentage", this.parseNumber(percentage));
-        mapLiteral8.put("resolved", resolved);
-        mapLiteral8.put("won", won);
-        mapLiteral8.put("settleFraction", this.parseNumber(settleFraction));
-        mapLiteral8.put("payout", this.parseNumber(payout));
-        mapLiteral8.put("outcome", this.safeOutcomeSymbol((String) (null), outcomeObj));
-        mapLiteral8.put("outcomeId", this.safeString(outcomeObj, "outcomeId", tokenId));
-        mapLiteral8.put("label", this.safeString(outcomeObj, "label", this.safeStringUpper(rawOutcome, "name")));
-        mapLiteral8.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral8.put("event", this.safeString(outcomeObj, "event"));
-        mapLiteral8.put("info", position);
-        return this.safePredictionPosition(mapLiteral8);
+        final Object finalContracts = contracts;
+        final Object finalNotional = notional;
+        final Object finalUnrealizedPnl = unrealizedPnl;
+        final Object finalRealizedPnl = realizedPnl;
+        final Object finalCollateral = collateral;
+        final Object finalMarkPrice = markPrice;
+        final Object finalPercentage = percentage;
+        final Object finalWon = won;
+        final Object finalSettleFraction = settleFraction;
+        final Object finalPayout = payout;
+        return this.safePredictionPosition(new HashMap<String, Object>() {{
+            put( "id", Predictfun.this.safeString(position, "id") );
+            put( "timestamp", null );
+            put( "datetime", null );
+            put( "contracts", Predictfun.this.parseNumber(finalContracts) );
+            put( "contractSize", 1 );
+            put( "side", "long" );
+            put( "notional", Predictfun.this.parseNumber(finalNotional) );
+            put( "unrealizedPnl", Predictfun.this.parseNumber(finalUnrealizedPnl) );
+            put( "realizedPnl", Predictfun.this.parseNumber(finalRealizedPnl) );
+            put( "collateral", Predictfun.this.parseNumber(finalCollateral) );
+            put( "entryPrice", Predictfun.this.parseNumber(entryPrice) );
+            put( "markPrice", Predictfun.this.parseNumber(finalMarkPrice) );
+            put( "lastPrice", null );
+            put( "percentage", Predictfun.this.parseNumber(finalPercentage) );
+            put( "resolved", resolved );
+            put( "won", finalWon );
+            put( "settleFraction", Predictfun.this.parseNumber(finalSettleFraction) );
+            put( "payout", Predictfun.this.parseNumber(finalPayout) );
+            put( "outcome", Predictfun.this.safeOutcomeSymbol(null, outcomeObj) );
+            put( "outcomeId", Predictfun.this.safeString(outcomeObj, "outcomeId", tokenId) );
+            put( "label", Predictfun.this.safeString(outcomeObj, "label", Predictfun.this.safeStringUpper(rawOutcome, "name")) );
+            put( "market", Predictfun.this.safeString(outcomeObj, "market") );
+            put( "event", Predictfun.this.safeString(outcomeObj, "event") );
+            put( "info", position );
+        }});
     }
 
     /**
@@ -2551,13 +2609,15 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<PredictionOrder> cancelOrder(String id, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<PredictionOrder> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), outcome, parameters)).join();
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object orders = (this.cancelOrders((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(outcome), (Object)(parameters))).join();
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0);
             if (java.util.Objects.equals(order, null))
             {
                 throw new OrderNotFound(((this.id + " cancelOrder() could not remove ") + id)) ;
@@ -2577,28 +2637,30 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcome), false)).join();
-                outcomeObj = this.outcome((String) (outcome));
+                (this.loadOutcome(outcome)).join();
+                outcomeObj = this.outcome(outcome);
             }
-            Integer idsLength = ((List<?>)ids).size();
+            Object idsLength = ((List<?>)ids).size();
             if (java.util.Objects.equals(idsLength, 0))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires at least one order hash")) ;
             }
-            if ((idsLength != null && idsLength > 100))
+            if (Helpers.isGreaterThan(idsLength, 100))
             {
                 throw new BadRequest((this.id + " cancelOrders() takes at most 100 order hashes per call")) ;
             }
             // the JWT identifies the signer whose orders may be pulled
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            (this.authenticate()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "data", new HashMap<String, Object>() {{
                     put( "hashes", ids );
@@ -2615,8 +2677,8 @@ public class Predictfun extends PredictfunApi
             //     }
             //
             List<Object> rejected = (List<Object>) this.safeList(response, "rejected", new ArrayList<Object>(Arrays.asList()));
-            Integer rejectedLength = ((List<?>)rejected).size();
-            if ((rejectedLength != null && rejectedLength > 0))
+            Object rejectedLength = ((List<?>)rejected).size();
+            if (Helpers.isGreaterThan(rejectedLength, 0))
             {
                 throw new OrderNotFound(((this.id + " cancelOrders() was refused for ") + this.json(rejected))) ;
             }
@@ -2625,24 +2687,26 @@ public class Predictfun extends PredictfunApi
             List<Object> removed = (List<Object>) this.safeList(response, "removed", new ArrayList<Object>(Arrays.asList()));
             List<Object> noop = (List<Object>) this.safeList(response, "noop", new ArrayList<Object>(Arrays.asList()));
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
-            Integer removedLength = ((List<?>)removed).size();
-            for (var i = 0; (removedLength != null && i < removedLength); i++)
+            Object removedLength = ((List<?>)removed).size();
+            for (var i = 0; Helpers.isLessThan(i, removedLength); i++)
             {
-                ((List<Object>)rows).add(this.extend(response, Helpers.newMap(
-                    "orderHash", (removed == null || i < 0 || i >= removed.size() ? null : removed.get(i)),
-                    "status", "CANCELLED"
-                )));
+    final Object finalI = i;
+                            ((List<Object>)rows).add(this.extend(response, new HashMap<String, Object>() {{
+                    put( "orderHash", Helpers.GetValue(removed, finalI) );
+                    put( "status", "CANCELLED" );
+                }}));
             }
-            Integer noopLength = ((List<?>)noop).size();
-            for (var i = 0; (noopLength != null && i < noopLength); i++)
+            Object noopLength = ((List<?>)noop).size();
+            for (var i = 0; Helpers.isLessThan(i, noopLength); i++)
             {
                 // accepted, but nothing was resting to pull: the order had already filled, expired,
                 // was never booked, or had been removed before - so the status is left unknown
-                ((List<Object>)rows).add(this.extend(response, Helpers.newMap(
-                    "orderHash", (noop == null || i < 0 || i >= noop.size() ? null : noop.get(i))
-                )));
+    final Object finalI = i;
+                            ((List<Object>)rows).add(this.extend(response, new HashMap<String, Object>() {{
+                    put( "orderHash", Helpers.GetValue(noop, finalI) );
+                }}));
             }
-            return this.parsePredictionOrders(rows, outcomeObj, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parsePredictionOrders(rows, outcomeObj);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
@@ -2657,17 +2721,19 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<PredictionOrder> fetchOrder(Object id, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            (this.authenticate()).join();
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcome), false)).join();
-                outcomeObj = this.outcome((String) (outcome));
+                (this.loadOutcome(outcome)).join();
+                outcomeObj = this.outcome(outcome);
             }
             // the JWT identifies the wallet whose orders can be read
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2707,7 +2773,7 @@ public class Predictfun extends PredictfunApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parsePredictionOrder((Map<String, Object>) (data), Helpers.toMapArg(outcomeObj));
+            return this.parsePredictionOrder(data, outcomeObj);
         }).thenApply(PredictionOrder::new);
 
     }
@@ -2724,11 +2790,15 @@ public class Predictfun extends PredictfunApi
      * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "OPEN" );
             }};
@@ -2749,13 +2819,17 @@ public class Predictfun extends PredictfunApi
      * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> fetchClosedOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             // the venue's status filter is an enum of OPEN and FILLED only - expired and cancelled
             // orders cannot be asked for, so a closed order here means one that filled
+            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "FILLED" );
             }};
@@ -2778,19 +2852,23 @@ public class Predictfun extends PredictfunApi
      * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<Object> fetchOrdersHelper(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOrdersHelper(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcome), false)).join();
-                outcomeObj = this.outcome((String) (outcome));
+                (this.loadOutcome(outcome)).join();
+                outcomeObj = this.outcome(outcome);
             }
             // the JWT identifies the wallet whose orders are returned
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            (this.authenticate()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.predictfunGetV1Orders(this.extend(request, parameters))).join();
             //
@@ -2832,7 +2910,7 @@ public class Predictfun extends PredictfunApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             // since is deliberately not forwarded: the rows carry no timestamp, so the shared
             // since filter would drop every one of them
-            return this.parsePredictionOrders(data, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
+            return this.parsePredictionOrders(data, outcomeObj, since, limit);
         });
 
     }
@@ -2846,7 +2924,7 @@ public class Predictfun extends PredictfunApi
      * @param {object} [market] the outcome the order belongs to, resolved from the token id when omitted
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public Object parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
+    public Object parsePredictionOrder(Object order, Object... optionalArgs)
     {
         //
         // fetchOrder
@@ -2879,7 +2957,8 @@ public class Predictfun extends PredictfunApi
         //         "strategy": "LIMIT"
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict2(order, "order", "data", (Object) null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object data = this.safeDict2(order, "order", "data");
         // the fetch endpoints nest the hash inside the contract order, the create endpoint
         // returns it at the top level as orderHash - accept either
         String topLevelHash = this.safeString2(order, "hash", "orderHash");
@@ -2920,30 +2999,32 @@ public class Predictfun extends PredictfunApi
         String amountFilled = this.safeString(order, "amountFilled");
         String filled = Precise.stringDiv(amountFilled, "1000000000000000000");
         String filledCost = Precise.stringMul(filled, price);
-        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-        mapLiteral9.put("id", orderHash);
-        mapLiteral9.put("clientOrderId", null);
-        mapLiteral9.put("timestamp", null);
-        mapLiteral9.put("datetime", null);
-        mapLiteral9.put("status", this.parseOrderStatus(this.safeString(order, "status")));
-        mapLiteral9.put("type", this.safeStringLower(order, "strategy"));
-        mapLiteral9.put("timeInForce", null);
-        mapLiteral9.put("side", side);
-        mapLiteral9.put("price", price);
-        mapLiteral9.put("amount", amount);
-        mapLiteral9.put("filled", filled);
-        mapLiteral9.put("remaining", null);
-        mapLiteral9.put("cost", filledCost);
-        mapLiteral9.put("fee", null);
-        mapLiteral9.put("postOnly", this.safeBool(order, "isPostOnly", (Object) null));
-        mapLiteral9.put("trades", null);
-        mapLiteral9.put("outcome", this.safeOutcomeSymbol((String) (tokenId), outcomeObj));
-        mapLiteral9.put("outcomeId", this.safeString(outcomeObj, "outcomeId", tokenId));
-        mapLiteral9.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral9.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral9.put("event", this.safeString(outcomeObj, "event"));
-        mapLiteral9.put("info", order);
-        return this.safePredictionOrder(mapLiteral9, (Object) null);
+        final Object finalSide = side;
+        final Object finalPrice = price;
+        return this.safePredictionOrder(new HashMap<String, Object>() {{
+            put( "id", orderHash );
+            put( "clientOrderId", null );
+            put( "timestamp", null );
+            put( "datetime", null );
+            put( "status", Predictfun.this.parseOrderStatus(Predictfun.this.safeString(order, "status")) );
+            put( "type", Predictfun.this.safeStringLower(order, "strategy") );
+            put( "timeInForce", null );
+            put( "side", finalSide );
+            put( "price", finalPrice );
+            put( "amount", amount );
+            put( "filled", filled );
+            put( "remaining", null );
+            put( "cost", filledCost );
+            put( "fee", null );
+            put( "postOnly", Predictfun.this.safeBool(order, "isPostOnly") );
+            put( "trades", null );
+            put( "outcome", Predictfun.this.safeOutcomeSymbol(tokenId, outcomeObj) );
+            put( "outcomeId", Predictfun.this.safeString(outcomeObj, "outcomeId", tokenId) );
+            put( "label", Predictfun.this.safeString(outcomeObj, "label") );
+            put( "market", Predictfun.this.safeString(outcomeObj, "market") );
+            put( "event", Predictfun.this.safeString(outcomeObj, "event") );
+            put( "info", order );
+        }});
     }
 
     /**
@@ -3001,7 +3082,7 @@ public class Predictfun extends PredictfunApi
         // distinct failures share a generic slug, notably 'unauthorized', which the venue also
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
         String message = this.safeString(response, "message");
-        this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+        this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
         // the venue also answers 401 when the request was authorised but acted on someone else's
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
@@ -3012,7 +3093,7 @@ public class Predictfun extends PredictfunApi
             Helpers.addElementToObject(this.options, "jwtTokenExpiresAt", 0);
         }
         String error = this.safeString(response, "error");
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
+        this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
         if (Helpers.isEqual(statusCode, 400))
@@ -3108,26 +3189,26 @@ public class Predictfun extends PredictfunApi
      * @param {string} privateKey the wallet private key
      * @returns {string} the signed raw transaction
      */
-    public Object signEvmTransaction(Map<String, Object> tx, Object privateKey)
+    public Object signEvmTransaction(Object tx, Object privateKey)
     {
         Object accessList = this.rlpEncodeList(new ArrayList<Object>(Arrays.asList()));
-        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(this.safeInteger(tx, "chainId")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes((String) (this.remove0xPrefix(this.safeString(tx, "to")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes((String) (this.remove0xPrefix(this.safeString(tx, "data", "0x")))), accessList));
+        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes(this.intToRlpHex(this.safeInteger(tx, "chainId"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "nonce"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "gasLimit"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "value", "0x0"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList));
         String payload = ("02" + this.rlpEncodeList(fields));
         Object hashHex = this.hash(this.base16ToBinary(payload), keccak(), "hex");
-        Map<String,Object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
+        Object signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
         Object rHex = this.safeString(signature, "r");
         Object sHex = this.safeString(signature, "s");
-        rHex = this.padHexToEven((String) (rHex));
-        sHex = this.padHexToEven((String) (sHex));
+        rHex = this.padHexToEven(rHex);
+        sHex = this.padHexToEven(sHex);
         Long yParity = this.safeInteger(signature, "v");
         List<Object> signedFields = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)fields).size(); i++)
         {
             ((List<Object>)signedFields).add((fields == null || i < 0 || i >= fields.size() ? null : fields.get(i)));
         }
-        ((List<Object>)signedFields).add(this.rlpEncodeBytes((String) (this.intToRlpHex(yParity))));
-        ((List<Object>)signedFields).add(this.rlpEncodeBytes((String) (rHex)));
-        ((List<Object>)signedFields).add(this.rlpEncodeBytes((String) (sHex)));
+        ((List<Object>)signedFields).add(this.rlpEncodeBytes(this.intToRlpHex(yParity)));
+        ((List<Object>)signedFields).add(this.rlpEncodeBytes(rHex));
+        ((List<Object>)signedFields).add(this.rlpEncodeBytes(sHex));
         return ("0x02" + this.rlpEncodeList(signedFields));
     }
 
@@ -3148,18 +3229,20 @@ public class Predictfun extends PredictfunApi
      * @param {string} [params.gasLimit] gas limit as hex, defaults to 0x186a0
      * @returns {object} the transaction receipt when buying, and the list of receipts when selling - a neg risk market needs two
      */
-    public CompletableFuture<Object> approve(String outcome, Map<String, Object> parameters)
+    public CompletableFuture<Object> approve(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.privateKey, null))
             {
                 throw new ArgumentsRequired((this.id + " approve() requires a privateKey to sign the on-chain transaction")) ;
             }
             String side = this.safeStringLower(parameters, "side", "buy");
             Long chainId = this.safeInteger(this.options, "chainId", 56);
-            String chainKey = this.numberToString(chainId);
+            Object chainKey = this.numberToString(chainId);
             Map<String, Object> rpcUrls = (Map<String, Object>) this.safeDict(this.options, "rpcUrls", new HashMap<String, Object>() {{}});
             String rpcUrl = this.safeString(parameters, "rpcUrl", this.safeString(rpcUrls, chainKey));
             Object owner = this.safeString(parameters, "owner", this.walletAddress);
@@ -3174,8 +3257,8 @@ public class Predictfun extends PredictfunApi
             Object isYieldBearing = false;
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcome), false)).join();
-                Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+                (this.loadOutcome(outcome)).join();
+                Object outcomeObj = this.outcome(outcome);
                 String marketSymbol = this.safeString(outcomeObj, "market");
                 Map<String, Object> marketObj = (Map<String, Object>) this.safeDict(this.markets, marketSymbol, new HashMap<String, Object>() {{}});
                 Map<String, Object> marketRow = (Map<String, Object>) this.safeDict(marketObj, "info", new HashMap<String, Object>() {{}});
@@ -3214,8 +3297,8 @@ public class Predictfun extends PredictfunApi
                     approvedHex = "0000000000000000000000000000000000000000000000000000000000000001";
                 }
                 List<Object> receipts = new ArrayList<Object>(Arrays.asList());
-                Integer operatorsLength = ((List<?>)operators).size();
-                for (var i = 0; (operatorsLength != null && i < operatorsLength); i++)
+                Object operatorsLength = ((List<?>)operators).size();
+                for (var i = 0; Helpers.isLessThan(i, operatorsLength); i++)
                 {
                     Object operatorAddress = (operators == null || i < 0 || i >= operators.size() ? null : operators.get(i));
                     if (java.util.Objects.equals(operatorAddress, null))
@@ -3223,11 +3306,11 @@ public class Predictfun extends PredictfunApi
                         throw new ArgumentsRequired(((this.id + " approve() could not resolve the operator to approve for chain ") + chainKey)) ;
                     }
                     // setApprovalForAll(operator, approved) -> selector 0xa22cb465
-                    String approvalData = (("0xa22cb465" + this.padHexAddress((String) (operatorAddress))) + approvedHex);
+                    String approvalData = (("0xa22cb465" + this.padHexAddress(operatorAddress)) + approvedHex);
                     // each receipt is awaited before the next transaction goes out, so the nonce the
                     // second one looks up already counts the first
-                    Object approvalHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (ctfToken), "0x0", approvalData, (String) (gasLimit))).join();
-                    Object receipt = (this.waitForTransactionReceipt((String) (rpcUrl), (String) (approvalHash), 60000)).join();
+                    Object approvalHash = (this.sendEvmTransaction(rpcUrl, chainId, owner, ctfToken, "0x0", approvalData, gasLimit)).join();
+                    Object receipt = (this.waitForTransactionReceipt(rpcUrl, approvalHash)).join();
                     ((List<Object>)receipts).add(receipt);
                 }
                 return receipts;
@@ -3254,14 +3337,14 @@ public class Predictfun extends PredictfunApi
                 // the collateral has eighteen decimals, so the scaled amount runs past what a float
                 // can hold - it has to stay a string all the way into the bigint
                 String scaled = Precise.stringMul(amount, "1000000000000000000");
-                String amountInt = this.decimalToPrecision(scaled, TRUNCATE, 0, DECIMAL_PLACES);
+                Object amountInt = this.decimalToPrecision(scaled, TRUNCATE, 0, DECIMAL_PLACES);
                 String amountBase16 = this.intToBase16(this.convertToBigInt(amountInt));
-                amountHex = (((String)amountBase16).length() >= 64 ? ((String)amountBase16).substring(((String)amountBase16).length() - 64) : String.format("%" + (64 - ((String)amountBase16).length()) + "s", "").replace(' ', '0') + ((String)amountBase16));
+                amountHex = Helpers.padStart(amountBase16, ((Number)64).intValue(), ((String)"0").charAt(0));
             }
             // approve(spender, amount) -> selector 0x095ea7b3
-            String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + amountHex);
-            Object txHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (token), "0x0", approveData, (String) (gasLimit))).join();
-            return (this.waitForTransactionReceipt((String) (rpcUrl), (String) (txHash), 60000)).join();
+            String approveData = (("0x095ea7b3" + this.padHexAddress(spender)) + amountHex);
+            Object txHash = (this.sendEvmTransaction(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit)).join();
+            return (this.waitForTransactionReceipt(rpcUrl, txHash)).join();
         });
 
     }
@@ -3276,25 +3359,27 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public CompletableFuture<PredictionOrderBook> watchOrderBook(String outcome, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrderBook> watchOrderBook(String outcome, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            (this.loadOutcome(outcome)).join();
+            Object outcomeObj = this.outcome(outcome);
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String marketId = this.safeString(info, "marketId");
             if (java.util.Objects.equals(marketId, null))
             {
                 throw new ArgumentsRequired(((this.id + " watchOrderBook() could not resolve the market id of ") + outcome)) ;
             }
-            Object outcomeHandle = this.safeOutcomeSymbol((String) (null), outcomeObj);
+            Object outcomeHandle = this.safeOutcomeSymbol(null, outcomeObj);
             // the venue publishes one book per market, quoted on the yes side, and the no side is its
             // complement - so a single subscription serves both outcomes and each waits on its own hash
             String topic = ("predictOrderbook/" + marketId);
             String messageHash = ("orderbook::" + outcomeHandle);
-            Long requestId = this.requestId();
+            Object requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "requestId", requestId );
@@ -3304,14 +3389,16 @@ public class Predictfun extends PredictfunApi
             // the request id, so every registered subscription is indexed on it - and indexBy cannot
             // look inside a boolean. both outcomes wait on this one topic, so a rejected request has to
             // be able to release both of them
-            Map<String, Object> subscription = new HashMap<String, Object>();
-            subscription.put("id", this.numberToString(requestId));
-            subscription.put("topic", topic);
-            subscription.put("subscribeHash", topic);
-            subscription.put("messageHashes", this.orderBookMessageHashes((String) (marketId)));
-            String url = this.socketUrl();
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), topic, subscription)).join();
-            return orderbook.limit();
+            final Object finalMarketId = marketId;
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "id", Predictfun.this.numberToString(requestId) );
+                put( "topic", topic );
+                put( "subscribeHash", topic );
+                put( "messageHashes", Predictfun.this.orderBookMessageHashes((String) (finalMarketId)) );
+            }};
+            Object url = this.socketUrl();
+            Object orderbook = (this.watch(url, messageHash, this.extend(request, parameters), topic, subscription)).join();
+            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(PredictionOrderBook::new);
 
     }
@@ -3325,13 +3412,14 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object outcome, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(Object outcome, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            (this.loadOutcome(outcome)).join();
+            Object outcomeObj = this.outcome(outcome);
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String marketId = this.safeString(info, "marketId");
             if (java.util.Objects.equals(marketId, null))
@@ -3340,21 +3428,21 @@ public class Predictfun extends PredictfunApi
             }
             String topic = ("predictOrderbook/" + marketId);
             Object outcomes = this.outcomesByMarketId((String) (marketId));
-            Integer outcomesLength = ((List<?>)outcomes).size();
-            List<String> handles = new ArrayList<String>(Arrays.asList());
-            List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
-            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
+            Object outcomesLength = ((List<?>)outcomes).size();
+            List<Object> handles = new ArrayList<Object>(Arrays.asList());
+            List<Object> subMessageHashes = new ArrayList<Object>(Arrays.asList());
+            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
             {
                 String handle = this.safeString((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)), "outcome");
                 if (!java.util.Objects.equals(handle, null))
                 {
-                    handles.add(handle);
-                    subMessageHashes.add(("orderbook::" + handle));
-                    messageHashes.add(("unsubscribe::orderbook::" + handle));
+                    ((List<Object>)handles).add(handle);
+                    ((List<Object>)subMessageHashes).add(("orderbook::" + handle));
+                    ((List<Object>)messageHashes).add(("unsubscribe::orderbook::" + handle));
                 }
             }
-            Long requestId = this.requestId();
+            Object requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "requestId", requestId );
@@ -3371,8 +3459,8 @@ public class Predictfun extends PredictfunApi
                 put( "messageHashes", messageHashes );
                 put( "subscribeHash", topic );
             }};
-            String messageHash = ("unsubscribe::orderbook::" + this.safeOutcomeSymbol((String) (null), outcomeObj));
-            String url = this.socketUrl();
+            String messageHash = ("unsubscribe::orderbook::" + this.safeOutcomeSymbol(null, outcomeObj));
+            Object url = this.socketUrl();
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
         });
 
@@ -3389,9 +3477,9 @@ public class Predictfun extends PredictfunApi
     public Object orderBookMessageHashes(String marketId)
     {
         Object outcomes = this.outcomesByMarketId((String) (marketId));
-        Integer outcomesLength = ((List<?>)outcomes).size();
+        Object outcomesLength = ((List<?>)outcomes).size();
         List<Object> hashes = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
+        for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
         {
             String handle = this.safeString((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)), "outcome");
             if (!java.util.Objects.equals(handle, null))
@@ -3430,14 +3518,14 @@ public class Predictfun extends PredictfunApi
             // its list is a snapshot of that moment - a narrowed watcher that joined later is known
             // only to the client. read the live waiters now, or those later callers would never be
             // rejected and, with the subscription gone below, never retried or torn down either
-            messageHashes = this.walletEventMessageHashes(client, (String) null);
+            messageHashes = this.walletEventMessageHashes(client);
         }
-        Integer messageHashesLength = ((List<?>)messageHashes).size();
+        Object messageHashesLength = ((List<?>)messageHashes).size();
         if (java.util.Objects.equals(messageHashesLength, 0))
         {
             throw (error instanceof RuntimeException ? (RuntimeException)error : new RuntimeException(error));
         }
-        for (var i = 0; (messageHashesLength != null && i < messageHashesLength); i++)
+        for (var i = 0; Helpers.isLessThan(i, messageHashesLength); i++)
         {
             client.reject(error, (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i)));
         }
@@ -3455,13 +3543,13 @@ public class Predictfun extends PredictfunApi
     {
         List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-        Integer messageHashesLength = ((List<?>)messageHashes).size();
+        Object messageHashesLength = ((List<?>)messageHashes).size();
         // one wallet hash stands for a family: 'orders' is what an unnarrowed caller waits on and
         // 'orders::<outcome>' what a narrowed one waits on, so the base matches it as a prefix and
         // releases both. the book path needs no such thing - it registers the full narrowed hash of
         // every outcome of the market, and an exact match is what keeps a sibling market out of it
         Boolean isWalletTopic = (java.util.Objects.equals(this.safeString(subscription, "topic"), "walletEvents"));
-        for (var i = 0; (messageHashesLength != null && i < messageHashesLength); i++)
+        for (var i = 0; Helpers.isLessThan(i, messageHashesLength); i++)
         {
             this.cleanUnsubscription(client, (String) ((subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i))), (String) ((messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i))), isWalletTopic);
         }
@@ -3480,15 +3568,16 @@ public class Predictfun extends PredictfunApi
         // the reset is delegated to the base rather than written here: assigning undefined to an
         // inherited cache from a derived class is dropped outright by the go and c# transpilers,
         // silently leaving those two languages with a stale cache
-        Integer subMessageHashesLength = ((List<?>)subMessageHashes).size();
-        for (var i = 0; (subMessageHashesLength != null && i < subMessageHashesLength); i++)
+        Object subMessageHashesLength = ((List<?>)subMessageHashes).size();
+        for (var i = 0; Helpers.isLessThan(i, subMessageHashesLength); i++)
         {
             Object subHash = (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
             if ((java.util.Objects.equals(subHash, "orders")) || (java.util.Objects.equals(subHash, "myTrades")))
             {
-                HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
-                mapLiteral10.put("topic", subHash);
-                this.cleanCache(mapLiteral10);
+final Object finalSubHash = subHash;
+                                this.cleanCache(new HashMap<String, Object>() {{
+                    put( "topic", finalSubHash );
+                }});
             }
         }
     }
@@ -3504,19 +3593,22 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> watchOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> watchOrders(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             String messageHash = "orders";
-            Object outcomeResolved = outcome;
-            if (!java.util.Objects.equals(outcomeResolved, null))
+            if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcomeResolved), false)).join();
-                Map<String, Object> outcomeObj = this.outcome((String) (outcomeResolved));
-                outcomeResolved = this.safeOutcomeSymbol((String) (null), outcomeObj);
-                messageHash = ("orders::" + outcomeResolved);
+                (this.loadOutcome(outcome)).join();
+                Object outcomeObj = this.outcome(outcome);
+                outcome = this.safeOutcomeSymbol(null, outcomeObj);
+                messageHash = ("orders::" + outcome);
             } else
             {
                 // events arrive for whatever market the wallet traded, and the handler that resolves
@@ -3524,15 +3616,14 @@ public class Predictfun extends PredictfunApi
                 // await. without it the first events land on a cold cache and every one of them buckets
                 // into the cache under the same undefined outcome. the call is idempotent and returns
                 // without a request once the cache is warm
-                (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
+                (this.loadOutcomes()).join();
             }
-            List<Object> orders = (List<Object>) (this.watchWalletEvents(messageHash, parameters)).join();
-            Long limitResolved = limit;
+            Object orders = (this.watchWalletEvents(messageHash, parameters)).join();
             if (this.newUpdates)
             {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, outcomeResolved, limitResolved);
+                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{outcome, limit});
             }
-            return this.filterByOutcomeSinceLimit(orders, Helpers.toStringArg(outcomeResolved), since, limitResolved, true);
+            return this.filterByOutcomeSinceLimit(orders, outcome, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
@@ -3548,32 +3639,34 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public CompletableFuture<List<PredictionTrade>> watchMyTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionTrade>> watchMyTrades(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             String messageHash = "myTrades";
-            Object outcomeResolved = outcome;
-            if (!java.util.Objects.equals(outcomeResolved, null))
+            if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcomeResolved), false)).join();
-                Map<String, Object> outcomeObj = this.outcome((String) (outcomeResolved));
-                outcomeResolved = this.safeOutcomeSymbol((String) (null), outcomeObj);
-                messageHash = ("myTrades::" + outcomeResolved);
+                (this.loadOutcome(outcome)).join();
+                Object outcomeObj = this.outcome(outcome);
+                outcome = this.safeOutcomeSymbol(null, outcomeObj);
+                messageHash = ("myTrades::" + outcome);
             } else
             {
                 // same as watchOrders (): the fills come from the one wallet topic and are resolved by
                 // a synchronous handler, so the cache is warmed here rather than on the first event
-                (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
+                (this.loadOutcomes()).join();
             }
-            List<Object> trades = (List<Object>) (this.watchWalletEvents(messageHash, parameters)).join();
-            Long limitResolved = limit;
+            Object trades = (this.watchWalletEvents(messageHash, parameters)).join();
             if (this.newUpdates)
             {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, outcomeResolved, limitResolved);
+                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{outcome, limit});
             }
-            return this.filterByOutcomeSinceLimit(trades, Helpers.toStringArg(outcomeResolved), since, limitResolved, true);
+            return this.filterByOutcomeSinceLimit(trades, outcome, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
     }
@@ -3587,11 +3680,13 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    public CompletableFuture<Object> unWatchOrders(String outcome, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrders(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             return (this.unWatchWalletEvents("orders", parameters)).join();
         });
 
@@ -3606,11 +3701,13 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    public CompletableFuture<Object> unWatchMyTrades(String outcome, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchMyTrades(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             return (this.unWatchWalletEvents("myTrades", parameters)).join();
         });
 
@@ -3623,7 +3720,7 @@ public class Predictfun extends PredictfunApi
      * @description the wallet topic, which carries the jwt inside the topic string itself
      * @returns {string} the topic to subscribe to
      */
-    public CompletableFuture<String> walletEventsTopic()
+    public CompletableFuture<Object> walletEventsTopic()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3634,9 +3731,9 @@ public class Predictfun extends PredictfunApi
             // and has no business sitting in a subscription key
             // the local is not called jwt: that is the name of a base method, and the regex transpiler
             // rewrites such identifiers into self.jwt, which lands as a broken assignment in python
-            Object walletToken = (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            Object walletToken = (this.authenticate()).join();
             return ("predictWalletEvents/" + walletToken);
-        }).thenApply(res -> (String) res);
+        });
 
     }
 
@@ -3649,25 +3746,26 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} whatever the channel resolves with
      */
-    public CompletableFuture<Object> watchWalletEvents(Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchWalletEvents(Object messageHash, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            String topic = (this.walletEventsTopic()).join();
-            Long requestId = this.requestId();
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object topic = (this.walletEventsTopic()).join();
+            Object requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "requestId", requestId );
                 put( "params", new ArrayList<Object>(Arrays.asList(topic)) );
             }};
-            String url = this.socketUrl();
+            Object url = this.socketUrl();
             Client client = this.client(url);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", Predictfun.this.numberToString(requestId) );
                 put( "topic", "walletEvents" );
                 put( "subscribeHash", "walletEvents" );
-                put( "messageHashes", Predictfun.this.walletEventMessageHashes(client, Helpers.toStringArg(messageHash)) );
+                put( "messageHashes", Predictfun.this.walletEventMessageHashes(client, messageHash) );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), "walletEvents", subscription)).join();
         });
@@ -3683,16 +3781,17 @@ public class Predictfun extends PredictfunApi
      * @param {string} [messageHash] the hash this call is about to park on, not registered yet
      * @returns {string[]} the message hashes
      */
-    public Object walletEventMessageHashes(Client client, String messageHash)
+    public Object walletEventMessageHashes(Client client, Object... optionalArgs)
     {
         // handleSubscriptionError rejects exactly this list, so a hash missing from it belongs to a
         // caller the venue's refusal never reaches - watchOrders (outcome) would sit forever on a
         // topic that was turned down. the unnarrowed pair is always listed, the narrowed ones are
         // whatever is already live on this connection plus the hash watch () is about to register
+        Object messageHash = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> hashes = new ArrayList<Object>(Arrays.asList("orders", "myTrades"));
         List<Object> futures = Helpers.objectKeys(client.futures);
-        Integer futuresLength = ((List<?>)futures).size();
-        for (var i = 0; (futuresLength != null && i < futuresLength); i++)
+        Object futuresLength = ((List<?>)futures).size();
+        for (var i = 0; Helpers.isLessThan(i, futuresLength); i++)
         {
             Object future = (futures == null || i < 0 || i >= futures.size() ? null : futures.get(i));
             if (((((String)future).indexOf("orders::") == 0)) || ((((String)future).indexOf("myTrades::") == 0)))
@@ -3716,13 +3815,14 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    public CompletableFuture<Object> unWatchWalletEvents(Object channel, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchWalletEvents(Object channel, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            String topic = (this.walletEventsTopic()).join();
-            Long requestId = this.requestId();
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object topic = (this.walletEventsTopic()).join();
+            Object requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "requestId", requestId );
@@ -3738,7 +3838,7 @@ public class Predictfun extends PredictfunApi
                 put( "subscribeHash", "walletEvents" );
             }};
             String messageHash = ("unsubscribe::" + channel);
-            String url = this.socketUrl();
+            Object url = this.socketUrl();
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
         });
 
@@ -3751,9 +3851,9 @@ public class Predictfun extends PredictfunApi
      * @description the socket endpoint carrying the api key the venue demands on the handshake
      * @returns {string} the url to connect to
      */
-    public String socketUrl()
+    public Object socketUrl()
     {
-        Object urls = this.urls.get("api");
+        Object urls = ((Map<String, Object>)this.urls).get("api");
         String base = this.safeString(urls, "ws");
         if (java.util.Objects.equals(base, null))
         {
@@ -3775,7 +3875,7 @@ public class Predictfun extends PredictfunApi
      * @description a monotonic id the venue echoes back so a subscription reply can be matched to its request
      * @returns {int} the next request id
      */
-    public Long requestId()
+    public Object requestId()
     {
         Object next;
         synchronized (this) {
@@ -3783,7 +3883,7 @@ public class Predictfun extends PredictfunApi
         next = this.sum(previous, 1);
         Helpers.addElementToObject(this.options, "requestId", next);
         }
-        return Helpers.toLongOrNull(next);
+        return next;
     }
 
     /**
@@ -3795,18 +3895,19 @@ public class Predictfun extends PredictfunApi
      * @param {object} [market] the outcome the caller asked about
      * @returns {object} the outcome object, or a stub keyed by the token id when it is not cached
      */
-    public Object outcomeForToken(String tokenId, Object market)
+    public Object outcomeForToken(String tokenId, Object... optionalArgs)
     {
         // the list endpoints (orders, matches, positions) answer for the whole wallet rather than
         // for the outcome asked about, so the caller's outcome is only a hint. safeOutcome falls
         // back to it on any cache miss, which stamped the requested outcome onto rows from other
         // markets - and the outcome filter afterwards then kept them, as they now matched
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String hintId = this.safeString(market, "outcomeId");
         if ((java.util.Objects.equals(tokenId, null)) || (java.util.Objects.equals(hintId, tokenId)))
         {
-            return this.safeOutcome((String) (tokenId), market);
+            return this.safeOutcome(tokenId, market);
         }
-        return this.safeOutcome((String) (tokenId), (Object) null);
+        return this.safeOutcome(tokenId);
     }
 
     /**
@@ -3825,9 +3926,9 @@ public class Predictfun extends PredictfunApi
         {
             return result;
         }
-        List<String> handles = new ArrayList<String>(((Map<String, Object>)cached).keySet());
-        Integer handlesLength = ((List<?>)handles).size();
-        for (var i = 0; (handlesLength != null && i < handlesLength); i++)
+        List<Object> handles = new ArrayList<Object>(((Map<String, Object>)cached).keySet());
+        Object handlesLength = ((List<?>)handles).size();
+        for (var i = 0; Helpers.isLessThan(i, handlesLength); i++)
         {
             Object outcomeObj = Helpers.GetValue(cached, (handles == null || i < 0 || i >= handles.size() ? null : handles.get(i)));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
@@ -3894,32 +3995,32 @@ public class Predictfun extends PredictfunApi
         List<Object> yesAsks = new ArrayList<Object>(Arrays.asList());
         List<Object> noBids = new ArrayList<Object>(Arrays.asList());
         List<Object> noAsks = new ArrayList<Object>(Arrays.asList());
-        Integer bidsLength = ((List<?>)rawBids).size();
-        for (var i = 0; (bidsLength != null && i < bidsLength); i++)
+        Object bidsLength = ((List<?>)rawBids).size();
+        for (var i = 0; Helpers.isLessThan(i, bidsLength); i++)
         {
-            List<Object> bid = (List<Object>) this.safeList(rawBids, i, (Object) null);
+            Object bid = (rawBids == null || i < 0 || i >= ((List<?>)rawBids).size() ? null : ((List<?>)rawBids).get(i));
             String bidPrice = this.safeString(bid, 0);
-            Double bidSize = this.parseNumber(this.safeString(bid, 1));
+            Object bidSize = this.parseNumber(this.safeString(bid, 1));
             ((List<Object>)yesBids).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(bidPrice), bidSize)));
             // a bid for yes at p is an offer of no at 1 - p
             ((List<Object>)noAsks).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(Precise.stringSub("1", bidPrice)), bidSize)));
         }
-        Integer asksLength = ((List<?>)rawAsks).size();
-        for (var i = 0; (asksLength != null && i < asksLength); i++)
+        Object asksLength = ((List<?>)rawAsks).size();
+        for (var i = 0; Helpers.isLessThan(i, asksLength); i++)
         {
-            List<Object> ask = (List<Object>) this.safeList(rawAsks, i, (Object) null);
+            Object ask = (rawAsks == null || i < 0 || i >= ((List<?>)rawAsks).size() ? null : ((List<?>)rawAsks).get(i));
             String askPrice = this.safeString(ask, 0);
-            Double askSize = this.parseNumber(this.safeString(ask, 1));
+            Object askSize = this.parseNumber(this.safeString(ask, 1));
             ((List<Object>)yesAsks).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(askPrice), askSize)));
             ((List<Object>)noBids).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(Precise.stringSub("1", askPrice)), askSize)));
         }
         Object outcomes = this.outcomesByMarketId((String) (marketId));
-        Integer outcomesLength = ((List<?>)outcomes).size();
-        for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
+        Object outcomesLength = ((List<?>)outcomes).size();
+        for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
         {
-            Map<String, Object> outcomeObj = (Map<String, Object>) this.safeDict(outcomes, i, (Object) null);
+            Object outcomeObj = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            Boolean isYesOutcome = java.util.Objects.equals(this.safeInteger(outcomeInfo, "indexSet"), 1L);
+            Boolean isYesOutcome = Helpers.isEqual(this.safeInteger(outcomeInfo, "indexSet"), 1);
             String outcomeHandle = this.safeString(outcomeObj, "outcome");
             if (!java.util.Objects.equals(outcomeHandle, null))
             {
@@ -3927,7 +4028,7 @@ public class Predictfun extends PredictfunApi
                 {
                     Helpers.addElementToObject(this.orderbooks, outcomeHandle, this.orderBook(new HashMap<String, Object>() {{}}));
                 }
-                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(outcomeHandle);
+                Object orderbook = ((Map<?, ?>)this.orderbooks).get(outcomeHandle);
                 Object bids = yesBids;
                 Object asks = yesAsks;
                 if (!Boolean.TRUE.equals(isYesOutcome))
@@ -3935,16 +4036,19 @@ public class Predictfun extends PredictfunApi
                     bids = this.sortBy(noBids, 0, true);
                     asks = this.sortBy(noAsks, 0);
                 }
-                Helpers.callDynamically(orderbook, "reset", new Object[]{Helpers.newMap(
-                    "bids", bids,
-                    "asks", asks,
-                    "timestamp", timestamp,
-                    "datetime", this.iso8601(timestamp),
-                    "outcome", outcomeHandle,
-                    "outcomeId", this.safeString(outcomeObj, "outcomeId"),
-                    "market", this.safeString(outcomeObj, "market"),
-                    "nonce", this.safeInteger(data, "version")
-                )});
+final Object finalBids = bids;
+                final Object finalAsks = asks;
+                final Object finalOutcomeHandle = outcomeHandle;
+                                Helpers.callDynamically(orderbook, "reset", new Object[]{new HashMap<String, Object>() {{
+                    put( "bids", finalBids );
+                    put( "asks", finalAsks );
+                    put( "timestamp", timestamp );
+                    put( "datetime", Predictfun.this.iso8601(timestamp) );
+                    put( "outcome", finalOutcomeHandle );
+                    put( "outcomeId", Predictfun.this.safeString(outcomeObj, "outcomeId") );
+                    put( "market", Predictfun.this.safeString(outcomeObj, "market") );
+                    put( "nonce", Predictfun.this.safeInteger(data, "version") );
+                }}});
                 client.resolve(orderbook, ("orderbook::" + outcomeHandle));
             }
         }
@@ -4028,8 +4132,8 @@ public class Predictfun extends PredictfunApi
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
-        stored.append(order);
+        Object stored = this.orders;
+        Helpers.callDynamically(stored, "append", new Object[]{order});
         client.resolve(stored, "orders");
         String outcomeHandle = this.safeString(order, "outcome");
         if (!java.util.Objects.equals(outcomeHandle, null))
@@ -4055,8 +4159,8 @@ public class Predictfun extends PredictfunApi
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        stored.append(trade);
+        Object stored = this.myTrades;
+        Helpers.callDynamically(stored, "append", new Object[]{trade});
         client.resolve(stored, "myTrades");
         String outcomeHandle = this.safeString(trade, "outcome");
         if (!java.util.Objects.equals(outcomeHandle, null))
@@ -4078,12 +4182,12 @@ public class Predictfun extends PredictfunApi
         String marketId = this.safeString(details, "marketId");
         Long outcomeIndex = this.safeInteger(details, "outcomeIndex");
         Object outcomes = this.outcomesByMarketId((String) (marketId));
-        Integer outcomesLength = ((List<?>)outcomes).size();
-        for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
+        Object outcomesLength = ((List<?>)outcomes).size();
+        for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
         {
             Object candidate = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(candidate, "info", new HashMap<String, Object>() {{}});
-            if (java.util.Objects.equals(this.safeInteger(info, "indexSet"), outcomeIndex))
+            if (Helpers.isEqual(this.safeInteger(info, "indexSet"), outcomeIndex))
             {
                 return candidate;
             }
@@ -4097,22 +4201,16 @@ public class Predictfun extends PredictfunApi
         // undefined rather than guessed - a handle that does not match the one the rest of the api
         // reports is worse than none at all
         String topicSlug = this.safeString(details, "categorySlug");
-        String eventHandle = null;
-        if (!java.util.Objects.equals(topicSlug, null))
-        {
-            eventHandle = this.shortenSlug((String) (topicSlug));
-        }
-        String label = this.stripPriceFormatting(this.safeStringUpper(details, "outcomeName"));
-        {
-            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-            h2kMap2.put("outcome", null);
-            h2kMap2.put("outcomeId", null);
-            h2kMap2.put("market", null);
-            h2kMap2.put("label", label);
-            h2kMap2.put("event", eventHandle);
-            h2kMap2.put("info", details);
-            return h2kMap2;
-        }
+        String eventHandle = (((!java.util.Objects.equals(topicSlug, null)))) ? this.shortenSlug(topicSlug) : null;
+        Object label = this.stripPriceFormatting(this.safeStringUpper(details, "outcomeName"));
+        return new HashMap<String, Object>() {{
+            put( "outcome", null );
+            put( "outcomeId", null );
+            put( "market", null );
+            put( "label", label );
+            put( "event", eventHandle );
+            put( "info", details );
+        }};
     }
 
     /**
@@ -4202,34 +4300,39 @@ public class Predictfun extends PredictfunApi
             remaining = Precise.stringSub(amount, filled);
         }
         Long timestamp = this.safeInteger(eventVar, "timestamp");
-        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
-        mapLiteral11.put("id", this.safeString2(eventVar, "orderHash", "orderId"));
-        mapLiteral11.put("clientOrderId", null);
-        mapLiteral11.put("timestamp", timestamp);
-        mapLiteral11.put("datetime", this.iso8601(timestamp));
-        mapLiteral11.put("lastTradeTimestamp", null);
-        mapLiteral11.put("lastUpdateTimestamp", timestamp);
-        mapLiteral11.put("status", status);
-        mapLiteral11.put("type", this.safeStringLower(details, "strategyType"));
-        mapLiteral11.put("timeInForce", null);
-        mapLiteral11.put("side", side);
-        mapLiteral11.put("price", this.safeNumber(details, "price", (Object) null));
-        mapLiteral11.put("average", null);
-        mapLiteral11.put("amount", this.parseNumber(amount));
-        mapLiteral11.put("filled", this.parseNumber(filled));
-        mapLiteral11.put("remaining", this.parseNumber(remaining));
-        mapLiteral11.put("cost", this.safeNumber(details, "valueFilled", (Object) null));
-        mapLiteral11.put("fee", null);
-        mapLiteral11.put("reduceOnly", null);
-        mapLiteral11.put("postOnly", null);
-        mapLiteral11.put("trades", new ArrayList<Object>(Arrays.asList()));
-        mapLiteral11.put("outcome", this.safeOutcomeSymbol((String) (null), outcomeObj));
-        mapLiteral11.put("outcomeId", this.safeString(outcomeObj, "outcomeId"));
-        mapLiteral11.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral11.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral11.put("event", this.safeString(outcomeObj, "event"));
-        mapLiteral11.put("info", eventVar);
-        return this.safePredictionOrder(mapLiteral11, (Object) null);
+        final Object finalStatus = status;
+        final Object finalSide = side;
+        final Object finalAmount = amount;
+        final Object finalFilled = filled;
+        final Object finalRemaining = remaining;
+        return this.safePredictionOrder(new HashMap<String, Object>() {{
+            put( "id", Predictfun.this.safeString2(eventVar, "orderHash", "orderId") );
+            put( "clientOrderId", null );
+            put( "timestamp", timestamp );
+            put( "datetime", Predictfun.this.iso8601(timestamp) );
+            put( "lastTradeTimestamp", null );
+            put( "lastUpdateTimestamp", timestamp );
+            put( "status", finalStatus );
+            put( "type", Predictfun.this.safeStringLower(details, "strategyType") );
+            put( "timeInForce", null );
+            put( "side", finalSide );
+            put( "price", Predictfun.this.safeNumber(details, "price") );
+            put( "average", null );
+            put( "amount", Predictfun.this.parseNumber(finalAmount) );
+            put( "filled", Predictfun.this.parseNumber(finalFilled) );
+            put( "remaining", Predictfun.this.parseNumber(finalRemaining) );
+            put( "cost", Predictfun.this.safeNumber(details, "valueFilled") );
+            put( "fee", null );
+            put( "reduceOnly", null );
+            put( "postOnly", null );
+            put( "trades", new ArrayList<Object>(Arrays.asList()) );
+            put( "outcome", Predictfun.this.safeOutcomeSymbol(null, outcomeObj) );
+            put( "outcomeId", Predictfun.this.safeString(outcomeObj, "outcomeId") );
+            put( "label", Predictfun.this.safeString(outcomeObj, "label") );
+            put( "market", Predictfun.this.safeString(outcomeObj, "market") );
+            put( "event", Predictfun.this.safeString(outcomeObj, "event") );
+            put( "info", eventVar );
+        }});
     }
 
     /**
@@ -4249,41 +4352,45 @@ public class Predictfun extends PredictfunApi
         String price = Precise.stringDiv(this.safeString(fill, "executedPriceWei"), "1000000000000000000");
         String amount = Precise.stringDiv(this.safeString(fill, "executedSizeWei"), "1000000000000000000");
         String cost = Precise.stringDiv(this.safeString(fill, "executedValueWei"), "1000000000000000000");
-        Boolean isMaker = (Boolean) this.safeBool(eventVar, "isMaker", (Object) null);
+        Boolean isMaker = (Boolean) this.safeBool(eventVar, "isMaker");
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
-        Map<String, Object> rawFee = (Map<String, Object>) this.safeDict(eventVar, "fee", (Object) null);
-        Map<String, Object> fee = null;
+        Map<String, Object> rawFee = (Map<String, Object>) this.safeDict(eventVar, "fee");
+        Object fee = null;
         if (!java.util.Objects.equals(rawFee, null))
         {
             String feeType = this.safeString(rawFee, "type");
-            fee = Helpers.newMap(
-                "currency", (((java.util.Objects.equals(feeType, "COLLATERAL")))) ? "USDT" : null,
-                "cost", this.parseNumber(Precise.stringDiv(this.safeString(rawFee, "amountWei"), "1000000000000000000"))
-            );
+            final Object finalFeeType = feeType;
+            final Object finalRawFee = rawFee;
+            fee = new HashMap<String, Object>() {{
+                put( "currency", (((java.util.Objects.equals(finalFeeType, "COLLATERAL")))) ? "USDT" : null );
+                put( "cost", Predictfun.this.parseNumber(Precise.stringDiv(Predictfun.this.safeString(finalRawFee, "amountWei"), "1000000000000000000")) );
+            }};
         }
         Long timestamp = this.safeInteger(eventVar, "timestamp");
-        HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
-        mapLiteral12.put("id", this.safeString(eventVar, "settlementId"));
-        mapLiteral12.put("order", this.safeString(eventVar, "orderHash"));
-        mapLiteral12.put("timestamp", timestamp);
-        mapLiteral12.put("datetime", this.iso8601(timestamp));
-        mapLiteral12.put("outcome", this.safeString(order, "outcome"));
-        mapLiteral12.put("outcomeId", this.safeString(order, "outcomeId"));
-        mapLiteral12.put("label", this.safeString(order, "label"));
-        mapLiteral12.put("market", this.safeString(order, "market"));
-        mapLiteral12.put("type", this.safeString(order, "type"));
-        mapLiteral12.put("side", this.safeString(order, "side"));
-        mapLiteral12.put("takerOrMaker", takerOrMaker);
-        mapLiteral12.put("price", this.parseNumber(price));
-        mapLiteral12.put("amount", this.parseNumber(amount));
-        mapLiteral12.put("cost", this.parseNumber(cost));
-        mapLiteral12.put("fee", fee);
-        mapLiteral12.put("info", eventVar);
-        return this.safePredictionTrade(mapLiteral12, (Object) null);
+        final Object finalTakerOrMaker = takerOrMaker;
+        final Object finalFee = fee;
+        return this.safePredictionTrade(new HashMap<String, Object>() {{
+            put( "id", Predictfun.this.safeString(eventVar, "settlementId") );
+            put( "order", Predictfun.this.safeString(eventVar, "orderHash") );
+            put( "timestamp", timestamp );
+            put( "datetime", Predictfun.this.iso8601(timestamp) );
+            put( "outcome", Predictfun.this.safeString(order, "outcome") );
+            put( "outcomeId", Predictfun.this.safeString(order, "outcomeId") );
+            put( "label", Predictfun.this.safeString(order, "label") );
+            put( "market", Predictfun.this.safeString(order, "market") );
+            put( "type", Predictfun.this.safeString(order, "type") );
+            put( "side", Predictfun.this.safeString(order, "side") );
+            put( "takerOrMaker", finalTakerOrMaker );
+            put( "price", Predictfun.this.parseNumber(price) );
+            put( "amount", Predictfun.this.parseNumber(amount) );
+            put( "cost", Predictfun.this.parseNumber(cost) );
+            put( "fee", finalFee );
+            put( "info", eventVar );
+        }});
     }
 
     /**
@@ -4325,7 +4432,7 @@ public class Predictfun extends PredictfunApi
                 (client.send(reply)).join();
             } catch(Exception e)
             {
-                var error = new NetworkError(((this.id + " pong failed - ") + this.exceptionMessage(e, true)));
+                var error = new NetworkError(((this.id + " pong failed - ") + this.exceptionMessage(e)));
                 client.reset(error);
             }
             return null;
@@ -4350,7 +4457,7 @@ public class Predictfun extends PredictfunApi
             // it carries only the request id, so the subscription that request registered is found
             // by it - see handleSubscriptionStatus in pro/binance.ts
             String id = this.safeString(message, "requestId");
-            Map<String,Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
+            Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
             Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
             Boolean success = (Boolean) this.safeBool(message, "success", false);
             if (!Boolean.TRUE.equals(success))
@@ -4374,7 +4481,7 @@ public class Predictfun extends PredictfunApi
         {
             return;
         }
-        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("/"))));
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("/"))));
         String channel = this.safeString(parts, 0);
         if (java.util.Objects.equals(channel, "predictOrderbook"))
         {
@@ -4385,7 +4492,7 @@ public class Predictfun extends PredictfunApi
         }
     }
 
-    public Long nonce()
+    public Object nonce()
     {
         // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         // unique when two identical orders are signed within the same millisecond
@@ -4405,38 +4512,43 @@ public class Predictfun extends PredictfunApi
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object... optionalArgs)
     {
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.
         // the testnet is the exception, it is served without an API key at all
+        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "predictfun";
+        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
+        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
+        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         String apiKey = this.apiKey;
         if ((java.util.Objects.equals(apiKey, null)) && !Boolean.TRUE.equals(sandboxMode))
         {
             throw new AuthenticationError((this.id + " sign() requires the \"apiKey\" credential for all endpoints")) ;
         }
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "predictfun") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "predictfun") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "predictfun"), 0);
-        Object baseUrls = this.urls.get("api");
+        Object apiGroup = (((api instanceof String))) ? api : Helpers.GetValue(api, 0);
+        Object baseUrls = ((Map<String, Object>)this.urls).get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((String)((Map<String, Object>)baseUrls).get("predictfun")));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
+        if (java.util.Objects.equals(method, "GET"))
         {
-            if (Helpers.objectKeys(query).size() > 0)
+            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
         }
         Object existingHeaders = (((!java.util.Objects.equals(headers, null)))) ? headers : new HashMap<String, Object>() {{}};
-        Object headersValue = existingHeaders;
+        headers = existingHeaders;
         Map<String, Object> authHeaders = new HashMap<String, Object>() {{}};
-        if ((!java.util.Objects.equals(apiKey, null)) && (!Boolean.TRUE.equals(sandboxMode)))
+        if ((!java.util.Objects.equals(apiKey, null)) && Helpers.isTrue((!Boolean.TRUE.equals(sandboxMode))))
         {
             // the php transpiler prefixes every standalone 'api' with a $, string literals included,
             // since sign () has a parameter of that name - ending the literal right after it avoids that
             String apiKeyHeader = ("x-api" + "-key");
-            authHeaders.put(apiKeyHeader, apiKey);
+            ((Map<String, Object>)authHeaders).put((String)apiKeyHeader, apiKey);
         }
         // the API key authorises the request, the JWT authorises acting for a wallet - authenticate ()
         // caches it, so it is attached to every call once an order action has asked for one
@@ -4444,36 +4556,33 @@ public class Predictfun extends PredictfunApi
         // attaching it to public reads would hand the venue a wallet credential they do not need.
         // note v1/positions/{address} reads someone else's positions and is deliberately absent,
         // as is v1/orders/matches, which is the public trade feed
-        List<String> walletPaths = new ArrayList<String>(Arrays.asList("v1/orders", "v1/orders/{hash}", "v1/orders/remove", "v1/orders/remove-by-hash", "v1/account", "v1/account/activity", "v1/account/referral", "v1/positions", "v1/oauth/finalize", "v1/oauth/orders", "v1/oauth/orders/create", "v1/oauth/orders/cancel", "v1/oauth/positions"));
+        List<Object> walletPaths = new ArrayList<Object>(Arrays.asList("v1/orders", "v1/orders/{hash}", "v1/orders/remove", "v1/orders/remove-by-hash", "v1/account", "v1/account/activity", "v1/account/referral", "v1/positions", "v1/oauth/finalize", "v1/oauth/orders", "v1/oauth/orders/create", "v1/oauth/orders/cancel", "v1/oauth/positions"));
         String jwtToken = this.safeString(this.options, "jwtToken");
         // unlike the API key, the JWT IS required on the testnet - wallet endpoints there answer
         // 401 without it, so it is attached on both hosts
         if ((!java.util.Objects.equals(jwtToken, null)) && this.inArray(path, walletPaths))
         {
-            authHeaders.put("Authorization", ("Bearer " + jwtToken));
+            ((Map<String, Object>)authHeaders).put("Authorization", ("Bearer " + jwtToken));
         }
-        Object bodyValue = body;
-        if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
+        if (!java.util.Objects.equals(method, "GET"))
         {
             if (!Boolean.TRUE.equals(sandboxMode))
             {
-                this.checkRequiredCredentials(true);
+                this.checkRequiredCredentials();
             }
-            authHeaders.put("Content-Type", "application/json");
-            bodyValue = this.json(parameters);
+            ((Map<String, Object>)authHeaders).put("Content-Type", "application/json");
+            body = this.json(parameters);
         }
-        Map<String, Object> headersExtended = this.extend(headersValue, authHeaders);
-        {
-            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
-            h2kMap3.put("url", url);
-            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap3.put("body", bodyValue);
-            h2kMap3.put("headers", headersExtended);
-            return h2kMap3;
-        }
-    }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
+        headers = this.extend(headers, authHeaders);
+        final Object finalUrl = url;
+        final Object finalMethod = method;
+        final Object finalBody = body;
+        final Object finalHeaders = headers;
+        return new HashMap<String, Object>() {{
+            put( "url", finalUrl );
+            put( "method", finalMethod );
+            put( "body", finalBody );
+            put( "headers", finalHeaders );
+        }};
     }
 }

@@ -409,7 +409,7 @@ class bitso(Exchange, ImplicitAPI):
         amount = self.safe_string(firstBalance, 'amount')
         currencyId = self.safe_string(firstBalance, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        currencyResolved = self.safe_currency(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         details = self.safe_dict(item, 'details', {})
         referenceId = self.safe_string_2(details, 'fid', 'wid')
         if referenceId is None:
@@ -425,7 +425,7 @@ class bitso(Exchange, ImplicitAPI):
             cost = Precise.string_abs(amount)
             fee = {
                 'cost': cost,
-                'currency': currencyResolved,
+                'currency': currency,
             }
         timestamp = self.parse8601(self.safe_string(item, 'created_at'))
         return self.safe_ledger_entry({
@@ -444,7 +444,7 @@ class bitso(Exchange, ImplicitAPI):
             'after': None,
             'status': 'ok',
             'fee': fee,
-        }, currencyResolved)
+        }, currency)
 
     def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
@@ -499,8 +499,6 @@ class bitso(Exchange, ImplicitAPI):
             quote = quoteId.upper()
             base = self.safe_currency_code(base)
             quote = self.safe_currency_code(quote)
-            if (base is None) or (quote is None):
-                continue
             fees = self.safe_dict(market, 'fees', {})
             flatRate = self.safe_dict(fees, 'flat_rate', {})
             takerString = self.safe_string(flatRate, 'taker')
@@ -517,7 +515,7 @@ class bitso(Exchange, ImplicitAPI):
             takerFees = []
             makerFees = []
             for j in range(0, len(feeTiers)):
-                tier = self.safe_dict(feeTiers, j)
+                tier = feeTiers[j]
                 volume = self.safe_number(tier, 'volume')
                 takerFee = self.safe_number(tier, 'taker')
                 makerFee = self.safe_number(tier, 'maker')
@@ -655,7 +653,7 @@ class bitso(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response: object) -> Balances:
-        payload = self.safe_dict(response, 'payload', {})
+        payload = self.safe_value(response, 'payload', {})
         balances = self.safe_list(payload, 'balances', [])
         result = {
             'info': response,
@@ -663,7 +661,7 @@ class bitso(Exchange, ImplicitAPI):
             'datetime': None,
         }
         for i in range(0, len(balances)):
-            balance = self.safe_dict(balances, i)
+            balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -796,7 +794,7 @@ class bitso(Exchange, ImplicitAPI):
             'book': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
-        ticker = self.safe_dict(response, 'payload')
+        ticker = self.safe_value(response, 'payload')
         #
         #     {
         #         "success":true,
@@ -1106,16 +1104,18 @@ class bitso(Exchange, ImplicitAPI):
         if (since is not None) and not markerInParams:
             raise ExchangeError(self.id + ' fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id')
         # convert it to an integer unconditionally
-        paramsMarker = params
         if markerInParams:
-            paramsMarker = self.extend(params, {'marker': int(params['marker'])})
+            marker = int(params['marker'])
+            params = self.extend(params, {
+                'marker': marker,
+            })
         request = {
             'book': market['id'],
             'limit': limit,  # default = 25, max = 100
             # 'sort': 'desc', // default = desc
             # 'marker': id, // integer id to start from
         }
-        response = self.privateGetUserTrades(self.extend(request, paramsMarker))
+        response = self.privateGetUserTrades(self.extend(request, params))
         payload = self.safe_list(response, 'payload', [])
         return self.parse_trades(payload, market, since, limit)
 
@@ -1320,16 +1320,18 @@ class bitso(Exchange, ImplicitAPI):
         if (since is not None) and not markerInParams:
             raise ExchangeError(self.id + ' fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id')
         # convert it to an integer unconditionally
-        paramsMarker = params
         if markerInParams:
-            paramsMarker = self.extend(params, {'marker': int(params['marker'])})
+            marker = int(params['marker'])
+            params = self.extend(params, {
+                'marker': marker,
+            })
         request = {
             'book': market['id'],
             'limit': limit,  # default = 25, max = 100
             # 'sort': 'desc', // default = desc
             # 'marker': id, // integer id to start from
         }
-        response = self.privateGetOpenOrders(self.extend(request, paramsMarker))
+        response = self.privateGetOpenOrders(self.extend(request, params))
         payload = self.safe_list(response, 'payload', [])
         orders = self.parse_orders(payload, market, since, limit)
         return orders
@@ -1573,7 +1575,7 @@ class bitso(Exchange, ImplicitAPI):
                         'withdraw': None,
                     },
                 }
-        withdrawalFees = self.safe_dict(payload, 'withdrawal_fees', {})
+        withdrawalFees = self.safe_value(payload, 'withdrawal_fees', [])
         currencyIds = list(withdrawalFees.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
@@ -1693,7 +1695,7 @@ class bitso(Exchange, ImplicitAPI):
         #
         result = {}
         depositResponse = self.safe_list(response, 'deposit_fees', [])
-        withdrawalResponse = self.safe_dict(response, 'withdrawal_fees', {})
+        withdrawalResponse = self.safe_value(response, 'withdrawal_fees', [])
         for i in range(0, len(depositResponse)):
             entry = depositResponse[i]
             currencyId = self.safe_string(entry, 'currency')
@@ -1703,7 +1705,7 @@ class bitso(Exchange, ImplicitAPI):
                     result[code] = {
                         'deposit': {
                             'fee': self.safe_number(entry, 'fee'),
-                            'percentage': (not self.safe_bool(entry, 'is_fixed', False)),
+                            'percentage': (self.safe_bool(entry, 'is_fixed') is not True),
                         },
                         'withdraw': {
                             'fee': None,
@@ -1735,7 +1737,7 @@ class bitso(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         if self.markets is None:
             self.load_markets()
@@ -1753,10 +1755,10 @@ class bitso(Exchange, ImplicitAPI):
         request = {
             'amount': amount,
             'address': address,
-            'destination_tag': tagWithdrawTag,
+            'destination_tag': tag,
         }
         classMethod = 'privatePost' + method + 'Withdrawal'
-        response = getattr(self, classMethod)(self.extend(request, paramsWithdrawTag))
+        response = getattr(self, classMethod)(self.extend(request, params))
         #
         #     {
         #         "success": true,
@@ -1818,7 +1820,7 @@ class bitso(Exchange, ImplicitAPI):
         #     }
         #
         currencyId = self.safe_string_2(transaction, 'currency', 'asset')
-        currencyResolved = self.safe_currency(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         details = self.safe_dict(transaction, 'details', {})
         datetime = self.safe_string(transaction, 'created_at')
         withdrawalAddress = self.safe_string(details, 'withdrawal_address')
@@ -1826,7 +1828,7 @@ class bitso(Exchange, ImplicitAPI):
         networkId = self.safe_string_2(transaction, 'network', 'method')
         status = self.safe_string(transaction, 'status')
         withdrawId = self.safe_string(transaction, 'wid')
-        networkCode = self.network_id_to_code(networkId, self.safe_string(currencyResolved, 'code'))
+        networkCode = self.network_id_to_code(networkId, currency['code'])
         networkCodeUpper = networkCode.upper() if (networkCode is not None) else None
         return {
             'id': self.safe_string_2(transaction, 'wid', 'fid'),
@@ -1839,7 +1841,7 @@ class bitso(Exchange, ImplicitAPI):
             'addressTo': withdrawalAddress,
             'amount': self.safe_number(transaction, 'amount'),
             'type': 'deposit' if (withdrawId is None) else 'withdrawal',
-            'currency': self.safe_currency_code(currencyId, currencyResolved),
+            'currency': self.safe_currency_code(currencyId, currency),
             'status': self.parse_transaction_status(status),
             'updated': None,
             'tagFrom': None,
@@ -1863,18 +1865,13 @@ class bitso(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = headers
-        requestBody = body
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method == 'GET' or method == 'DELETE':
             if len(query) > 0:
                 endpoint += '?' + self.urlencode(query)
-        apiUrl = self.safe_string(self.urls['api'], 'rest')
-        if apiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl + endpoint
+        url = self.urls['api']['rest'] + endpoint
         if api == 'private':
             self.check_required_credentials()
             # bitso rejects a nonce that is not higher than the previous one (error 104)
@@ -1884,15 +1881,15 @@ class bitso(Exchange, ImplicitAPI):
             request = ''.join(content)
             if method != 'GET' and method != 'DELETE':
                 if len(query) > 0:
-                    requestBody = self.json(query)
-                    request += requestBody
+                    body = self.json(query)
+                    request += body
             signature = self.hmac(self.encode(request), self.encode(self.secret), hashlib.sha256)
             auth = self.apiKey + ':' + nonce + ':' + signature
-            requestHeaders = {
+            headers = {
                 'Authorization': 'Bitso ' + auth,
                 # 'Content-Type': 'application/json',
             }
-        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

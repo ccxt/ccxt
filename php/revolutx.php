@@ -69,33 +69,33 @@ class revolutx extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        '2.0/public/order-book/{symbol}' => array( 'cost' => 1 ),
-                        '1.0/public/tickers' => array( 'cost' => 1 ),
-                        '1.0/public/candles/{symbol}' => array( 'cost' => 1 ),
-                        '1.0/public/trades/all' => array( 'cost' => 1 ),
-                        '1.0/public/configuration/currencies' => array( 'cost' => 1 ),
-                        '1.0/public/configuration/pairs' => array( 'cost' => 1 ),
+                        '2.0/public/order-book/{symbol}' => 1,
+                        '1.0/public/tickers' => 1,
+                        '1.0/public/candles/{symbol}' => 1,
+                        '1.0/public/trades/all' => 1,
+                        '1.0/public/configuration/currencies' => 1,
+                        '1.0/public/configuration/pairs' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         '1.0/balances' => 1,
-                        '1.0/orders/active' => array( 'cost' => 1 ),
-                        '1.0/orders/historical' => array( 'cost' => 1 ),
-                        '1.0/orders/{venue_order_id}' => array( 'cost' => 1 ),
+                        '1.0/orders/active' => 1,
+                        '1.0/orders/historical' => 1,
+                        '1.0/orders/{venue_order_id}' => 1,
                         '1.0/orders/fills/{venue_order_id}' => 1,
-                        '1.0/trades/private/{symbol}' => array( 'cost' => 1 ),
+                        '1.0/trades/private/{symbol}' => 1,
                         '1.0/transactions' => 1,
                     ),
                     'post' => array(
-                        '1.0/orders' => array( 'cost' => 1 ),
+                        '1.0/orders' => 1,
                     ),
                     'put' => array(
-                        '1.0/orders/{venue_order_id}' => array( 'cost' => 1 ),
+                        '1.0/orders/{venue_order_id}' => 1,
                     ),
                     'delete' => array(
                         '1.0/orders' => 1,
-                        '1.0/orders/{venue_order_id}' => array( 'cost' => 1 ),
+                        '1.0/orders/{venue_order_id}' => 1,
                     ),
                 ),
             ),
@@ -206,19 +206,12 @@ class revolutx extends Exchange {
         ));
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = null;
-        $requestBody = null;
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $implodedPath = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $queryKeys = is_array($query) ? array_keys($query) : array();
         $queryLength = count($queryKeys);
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
-        if ($baseApiUrl === null) {
-            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
-        }
-        $baseUrl = $baseApiUrl;
-        $url = $baseUrl . '/' . $implodedPath;
+        $url = $this->urls['api'][$api] . '/' . $implodedPath;
         $queryString = '';
         if ($api === 'private') {
             $this->check_required_credentials();
@@ -234,20 +227,22 @@ class revolutx extends Exchange {
                     $url .= '?' . $queryString;
                 }
             } else {
-                $requestBody = $this->json($query);
+                $body = $this->json($query);
             }
             $requestPath = '/api/' . $implodedPath;
-            $bodyValue = ($requestBody !== null) ? $requestBody : $body;
-            $bodyString = ($bodyValue !== null) ? $bodyValue : '';
+            $bodyString = '';
+            if ($body !== null) {
+                $bodyString = $body;
+            }
             $message = $timestamp . strtoupper($method) . $requestPath . $queryString . $bodyString;
             $signature = $this->eddsa($this->encode($message), $this->privateKey, 'ed25519');
-            $requestHeaders = array(
+            $headers = array(
                 'X-Revx-API-Key' => $this->apiKey,
                 'X-Revx-Timestamp' => $timestamp,
                 'X-Revx-Signature' => $signature,
             );
             if ($method === 'POST' || $method === 'PUT') {
-                $requestHeaders['Content-Type'] = 'application/json';
+                $headers['Content-Type'] = 'application/json';
             }
         } else {
             if ($method === 'GET') {
@@ -256,13 +251,11 @@ class revolutx extends Exchange {
                     $url .= '?' . $queryString;
                 }
             } else {
-                $requestBody = $this->json($query);
-                $requestHeaders = array( 'Content-Type' => 'application/json' );
+                $body = $this->json($query);
+                $headers = array( 'Content-Type' => 'application/json' );
             }
         }
-        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function parse_market(array $market): array {
@@ -376,9 +369,6 @@ class revolutx extends Exchange {
             $market = $this->safe_dict($markets, $key, array());
             $base = $this->safe_string($market, 'base');
             $quote = $this->safe_string($market, 'quote');
-            if (($base === null) || ($quote === null)) {
-                continue;
-            }
             $marketId = $base . '-' . $quote;
             $marketData = $this->extend($market, array( 'id' => $marketId ));
             $result[] = $this->parse_market($marketData);

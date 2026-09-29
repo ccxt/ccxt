@@ -487,8 +487,6 @@ class krakenfutures(Exchange, ImplicitAPI):
             quoteId = 'usd'  # always USD
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            if (base is None) or (quote is None):
-                continue
             # swap == perpetual
             settle = None
             settleId = None
@@ -748,8 +746,8 @@ class krakenfutures(Exchange, ImplicitAPI):
         #    }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(ticker, 'lastTime'))
         open = self.safe_string(ticker, 'open24h')
         last = self.safe_string(ticker, 'last')
@@ -759,11 +757,11 @@ class krakenfutures(Exchange, ImplicitAPI):
         volume = self.safe_string(ticker, 'vol24h')
         baseVolume = None
         quoteVolume = None
-        isIndex = self.safe_bool(marketResolved, 'index', False)
+        isIndex = self.safe_bool(market, 'index', False)
         if isIndex is not True:
-            if marketResolved['linear'] is True:
+            if market['linear'] is True:
                 baseVolume = volume
-            elif marketResolved['inverse'] is True:
+            elif market['inverse'] is True:
                 quoteVolume = volume
         return self.safe_ticker({
             'symbol': symbol,
@@ -867,7 +865,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         makerFee = None
         takerFee = None
         for i in range(0, len(tiers)):
-            tier = self.safe_dict(tiers, i)
+            tier = tiers[i]
             tierVolume = self.safe_string(tier, 'usdVolume')
             if (volume is None) or Precise.string_ge(volume, tierVolume):
                 makerFee = self.safe_string(tier, 'makerFee')
@@ -901,10 +899,11 @@ class krakenfutures(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 2000)
-        priceType = self.safe_string(paramsPaginate, 'price', 'trade')
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 2000)
+        priceType = self.safe_string(params, 'price', 'trade')
         if priceType == 'index':
             priceType = 'spot'  # the venue's name for index-price candles
         elif (priceType != 'trade') and (priceType != 'mark') and (priceType != 'spot'):
@@ -914,22 +913,22 @@ class krakenfutures(Exchange, ImplicitAPI):
             'price_type': priceType,
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        paramsOmitted = self.omit(paramsPaginate, 'price')
-        windowLimit = 2000 if (limit is None) else min(limit, 2000)
-        limitResolved = None
-        if (since is not None) or (limit is not None):
-            limitResolved = windowLimit
+        params = self.omit(params, 'price')
         if since is not None:
             duration = self.parse_timeframe(timeframe)
             request['from'] = self.parse_to_int(since / 1000)
-            toTimestamp = self.sum(request['from'], windowLimit * duration - 1)
+            if limit is None:
+                limit = 2000
+            limit = min(limit, 2000)
+            toTimestamp = self.sum(request['from'], limit * duration - 1)
             currentTimestamp = self.seconds()
             request['to'] = min(toTimestamp, currentTimestamp)
-        elif limitResolved is not None:
+        elif limit is not None:
+            limit = min(limit, 2000)
             duration = self.parse_timeframe(timeframe)
             request['to'] = self.seconds()
-            request['from'] = self.parse_to_int(request['to'] - (duration * limitResolved))
-        response = self.chartsGetPriceTypeSymbolInterval(self.extend(request, paramsOmitted))
+            request['from'] = self.parse_to_int(request['to'] - (duration * limit))
+        response = self.chartsGetPriceTypeSymbolInterval(self.extend(request, params))
         #
         #    {
         #        "candles": [
@@ -946,7 +945,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #    }
         #
         candles = self.safe_list(response, 'candles')
-        return self.parse_ohlcvs(candles, market, timeframe, since, limitResolved)
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -986,24 +985,26 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, paramsPaginate)
+            return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        method, paramsMethod = self.handle_option_string_and_params(paramsPaginate, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions')
+        method = None
+        method, params = self.handle_option_and_params(params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions')
         rawTrades = []
         isFullHistoryEndpoint = (method == 'historyGetMarketSymbolExecutions')
         if isFullHistoryEndpoint:
-            requestUntil, paramsUntil = self.handle_until_option('before', request, paramsMethod)
+            request, params = self.handle_until_option('before', request, params)
             if since is not None:
-                requestUntil['since'] = since
-                requestUntil['sort'] = 'asc'
+                request['since'] = since
+                request['sort'] = 'asc'
             if limit is not None:
-                requestUntil['count'] = limit
-            response = self.historyGetMarketSymbolExecutions(self.extend(requestUntil, paramsUntil))
+                request['count'] = limit
+            response = self.historyGetMarketSymbolExecutions(self.extend(request, params))
             #
             #    {
             #        "elements": [
@@ -1059,14 +1060,14 @@ class krakenfutures(Exchange, ImplicitAPI):
             length = len(elements)
             for i in range(0, length):
                 index = length - 1 - i
-                element = self.safe_dict(elements, index)
+                element = elements[index]
                 event = self.safe_dict(element, 'event', {})
                 executionContainer = self.safe_dict(event, 'Execution', {})
                 rawTrade = self.safe_dict(executionContainer, 'execution', {})
                 rawTrades.append(rawTrade)
         else:
-            requestUntil, paramsUntil = self.handle_until_option('lastTime', request, paramsMethod)
-            response = self.publicGetHistory(self.extend(requestUntil, paramsUntil))
+            request, params = self.handle_until_option('lastTime', request, params)
+            response = self.publicGetHistory(self.extend(request, params))
             #
             #    {
             #        "result": "success",
@@ -1178,15 +1179,15 @@ class krakenfutures(Exchange, ImplicitAPI):
             type = self.safe_string(priorEdit, 'type')
         if type is not None:
             type = self.parse_order_type(type)
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         cost = None
-        linear = self.safe_bool(marketResolved, 'linear')
-        if (amount is not None) and (price is not None) and (marketResolved is not None):
+        linear = self.safe_bool(market, 'linear')
+        if (amount is not None) and (price is not None) and (market is not None):
             if linear is True:
                 cost = Precise.string_mul(amount, price)  # in quote
             else:
                 cost = Precise.string_div(amount, price)  # in base
-            contractSize = self.safe_string(marketResolved, 'contractSize')
+            contractSize = self.safe_string(market, 'contractSize')
             cost = Precise.string_mul(cost, contractSize)
         takerOrMaker = None
         fillType = self.safe_string(trade, 'fillType')
@@ -1204,12 +1205,12 @@ class krakenfutures(Exchange, ImplicitAPI):
                 takerOrMaker = 'taker'
         fee = None
         if (takerOrMaker is not None) and (cost is not None):
-            feeRate = self.safe_string(marketResolved, takerOrMaker)
+            feeRate = self.safe_string(market, takerOrMaker)
             # fees are charged in the settlement currency: the quote currency
             # for linear contracts, the base currency for inverse contracts
-            feeCurrency = self.safe_string(marketResolved, 'settle')
+            feeCurrency = self.safe_string(market, 'settle')
             if feeCurrency is None:
-                feeCurrency = self.safe_string(marketResolved, 'quote')
+                feeCurrency = self.safe_string(market, 'quote')
             fee = {
                 'cost': Precise.string_mul(cost, feeRate),
                 'currency': feeCurrency,
@@ -1218,7 +1219,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         return self.safe_trade({
             'info': trade,
             'id': id,
-            'symbol': self.safe_string(marketResolved, 'symbol'),
+            'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'order': order,
@@ -1237,61 +1238,62 @@ class krakenfutures(Exchange, ImplicitAPI):
         if side is None:
             raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        typeValue = self.safe_string(params, 'orderType', type)
+        symbol = market['symbol']
+        type = self.safe_string(params, 'orderType', type)
         timeInForce = self.safe_string(params, 'timeInForce')
-        postOnly, paramsPostOnly = self.handle_post_only(typeValue == 'market', typeValue == 'post', params)
+        postOnly = False
+        postOnly, params = self.handle_post_only(type == 'market', type == 'post', params)
         if postOnly:
-            typeValue = 'post'
+            type = 'post'
         elif timeInForce == 'ioc':
-            typeValue = 'ioc'
-        elif typeValue == 'limit':
-            typeValue = 'lmt'
-        elif typeValue == 'market':
-            typeValue = 'mkt'
+            type = 'ioc'
+        elif type == 'limit':
+            type = 'lmt'
+        elif type == 'market':
+            type = 'mkt'
         request = {
             'symbol': market['id'],
             'side': side,
-            'size': self.amount_to_precision(symbolValue, amount),
+            'size': self.amount_to_precision(symbol, amount),
         }
-        clientOrderId = self.safe_string_2(paramsPostOnly, 'clientOrderId', 'cliOrdId')
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'cliOrdId')
         if clientOrderId is not None:
             request['cliOrdId'] = clientOrderId
-        triggerPrice = self.safe_string_2(paramsPostOnly, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         isTriggerOrder = triggerPrice is not None
-        stopLossTriggerPrice = self.safe_string(paramsPostOnly, 'stopLossPrice')
-        takeProfitTriggerPrice = self.safe_string(paramsPostOnly, 'takeProfitPrice')
+        stopLossTriggerPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_string(params, 'takeProfitPrice')
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
-        triggerSignal = self.safe_string(paramsPostOnly, 'triggerSignal', 'last')
-        reduceOnly = self.safe_bool(paramsPostOnly, 'reduceOnly')
+        triggerSignal = self.safe_string(params, 'triggerSignal', 'last')
+        reduceOnly = self.safe_value(params, 'reduceOnly')
         if isStopLossOrTakeProfitTrigger or isTriggerOrder:
             request['triggerSignal'] = triggerSignal
         if isTriggerOrder:
-            typeValue = 'stp'
-            request['stopPrice'] = self.price_to_precision(symbolValue, triggerPrice)
+            type = 'stp'
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         elif isStopLossOrTakeProfitTrigger:
             reduceOnly = True
             if isStopLossTriggerOrder:
-                typeValue = 'stp'
-                request['stopPrice'] = self.price_to_precision(symbolValue, stopLossTriggerPrice)
+                type = 'stp'
+                request['stopPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
             elif isTakeProfitTriggerOrder:
-                typeValue = 'take_profit'
-                request['stopPrice'] = self.price_to_precision(symbolValue, takeProfitTriggerPrice)
+                type = 'take_profit'
+                request['stopPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
         if reduceOnly is True:
             request['reduceOnly'] = True
-        request['orderType'] = typeValue
-        priceValue = self.parse_number(price)  # some callers pass null instead of undefined, normalize it
-        isLimitOrder = (typeValue == 'lmt') or (typeValue == 'post') or (typeValue == 'ioc')
-        limitPriceParam = self.safe_string(paramsPostOnly, 'limitPrice')  # the venue's own field name, forwarded as-is by this.extend below
-        if isLimitOrder and (priceValue is None) and (limitPriceParam is None):
-            raise ArgumentsRequired(self.id + ' createOrder () requires a price argument for ' + typeValue + ' orders')
-        isMarketOrder = (typeValue == 'mkt')
-        if (priceValue is not None) and not isMarketOrder:
-            request['limitPrice'] = self.price_to_precision(symbolValue, priceValue)
-        paramsOmitted = self.omit(paramsPostOnly, ['clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
-        return self.extend(request, paramsOmitted)
+        request['orderType'] = type
+        price = self.parse_number(price)  # some callers pass null instead of undefined, normalize it
+        isLimitOrder = (type == 'lmt') or (type == 'post') or (type == 'ioc')
+        limitPriceParam = self.safe_string(params, 'limitPrice')  # the venue's own field name, forwarded as-is by this.extend below
+        if isLimitOrder and (price is None) and (limitPriceParam is None):
+            raise ArgumentsRequired(self.id + ' createOrder () requires a price argument for ' + type + ' orders')
+        isMarketOrder = (type == 'mkt')
+        if (price is not None) and not isMarketOrder:
+            request['limitPrice'] = self.price_to_precision(symbol, price)
+        params = self.omit(params, ['clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+        return self.extend(request, params)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -1403,7 +1405,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = self.safe_dict(orders, i)
+            rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
@@ -1726,15 +1728,15 @@ class krakenfutures(Exchange, ImplicitAPI):
             request['since'] = since
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         response: dict
-        paramsOmitted = self.omit(params, ['trigger', 'stop'])
         if isTrigger is True:
-            response = self.historyGetTriggers(self.extend(request, paramsOmitted))
+            params = self.omit(params, ['trigger', 'stop'])
+            response = self.historyGetTriggers(self.extend(request, params))
         else:
             response = self.historyGetOrders(self.extend(request, params))
         allOrders = self.safe_list(response, 'elements', [])
         closedOrders = []
         for i in range(0, len(allOrders)):
-            order = self.safe_dict(allOrders, i)
+            order = allOrders[i]
             event = self.safe_dict(order, 'event', {})
             orderPlaced = self.safe_dict_2(event, 'OrderPlaced', 'OrderTriggerActivated')
             orderUpdated = self.safe_dict(event, 'OrderUpdated')
@@ -1777,15 +1779,15 @@ class krakenfutures(Exchange, ImplicitAPI):
             request['from'] = since
         response: dict
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
-        paramsOmitted = self.omit(params, ['trigger', 'stop'])
         if isTrigger is True:
-            response = self.historyGetTriggers(self.extend(request, paramsOmitted))
+            params = self.omit(params, ['trigger', 'stop'])
+            response = self.historyGetTriggers(self.extend(request, params))
         else:
             response = self.historyGetOrders(self.extend(request, params))
         allOrders = self.safe_list(response, 'elements', [])
         canceledAndRejected = []
         for i in range(0, len(allOrders)):
-            order = self.safe_dict(allOrders, i)
+            order = allOrders[i]
             event = self.safe_dict(order, 'event', {})
             isCancelledTriggerOrder = ('OrderTriggerCancelled' in event)
             orderPlaced = self.safe_dict_2(event, 'OrderPlaced', 'OrderTriggerCancelled')
@@ -2260,8 +2262,8 @@ class krakenfutures(Exchange, ImplicitAPI):
         status = self.parse_order_status(statusId)
         isClosed = self.in_array(status, ['canceled', 'rejected', 'closed'])
         marketId = self.safe_string_2(details, 'symbol', 'tradeable')
-        marketResolved = self.safe_market(marketId, market)
-        symbol = self.safe_string(marketResolved, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_string(market, 'symbol')
         timestamp = self.parse8601(self.safe_string_2(details, 'timestamp', 'receivedTime'))
         lastUpdateTimestamp = self.parse8601(self.safe_string(details, 'lastUpdateTime'))
         amount = self.safe_string(details, 'quantity')
@@ -2273,7 +2275,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if tradesLength > 0:
             vwapSum = '0.0'
             for i in range(0, len(trades)):
-                trade = self.safe_dict(trades, i)
+                trade = trades[i]
                 tradeAmount = self.safe_string(trade, 'amount')
                 tradePrice = self.safe_string(trade, 'price')
                 filled2 = Precise.string_add(filled2, tradeAmount)
@@ -2297,12 +2299,10 @@ class krakenfutures(Exchange, ImplicitAPI):
         if (amount is None) and (not isPrior) and (remaining is not None):
             amount = Precise.string_add(filled, remaining)
         cost = None
-        if (filled is not None) and (marketResolved is not None):
-            whichPrice = price
-            if average is not None:
-                whichPrice = average
+        if (filled is not None) and (market is not None):
+            whichPrice = average if (average is not None) else price
             if whichPrice is not None:
-                if marketResolved['linear'] is True:
+                if market['linear'] is True:
                     cost = Precise.string_mul(filled, whichPrice)  # in quote
                 else:
                     cost = Precise.string_div(filled, whichPrice)  # in base
@@ -2417,9 +2417,9 @@ class krakenfutures(Exchange, ImplicitAPI):
             request['count'] = limit * 2
         until = self.safe_integer(params, 'until')
         if until is not None:
+            params = self.omit(params, 'until')
             request['before'] = until
-        paramsOmitted = self.omit(params, 'until') if (until is not None) else params
-        response = self.historyGetAccountLog(self.extend(request, paramsOmitted))
+        response = self.historyGetAccountLog(self.extend(request, params))
         #
         #    {
         #        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -2488,9 +2488,9 @@ class krakenfutures(Exchange, ImplicitAPI):
             request['count'] = limit
         until = self.safe_integer(params, 'until')
         if until is not None:
+            params = self.omit(params, 'until')
             request['before'] = until
-        paramsOmitted = self.omit(params, 'until') if (until is not None) else params
-        response = self.historyGetAccountLog(self.extend(request, paramsOmitted))
+        response = self.historyGetAccountLog(self.extend(request, params))
         #
         #    {
         #        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -2526,7 +2526,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         logs = self.safe_list(response, 'logs', [])
         return self.parse_incomes(logs, market, since, limit)
 
-    def parse_income(self, income: dict, market: Market = None) -> object:
+    def parse_income(self, income: object, market: Market = None) -> object:
         #
         #    {
         #        "asset": "usd",
@@ -2607,7 +2607,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(item, 'date'))
         currencyId = self.safe_string(item, 'asset')
         code = self.safe_currency_code(currencyId, currency)
-        currencyResolved = self.safe_currency(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         before = self.safe_string(item, 'old_balance')
         after = self.safe_string(item, 'new_balance')
         feeCost = self.safe_string(item, 'fee')
@@ -2644,9 +2644,9 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'cost': self.parse_number(feeCost),
                 'currency': code,
             },
-        }, currencyResolved)
+        }, currency)
 
-    def fetch_balance(self, params: dict = {}) -> Balances:
+    def fetch_balance(self, params={}) -> Balances:
         """
 
         https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
@@ -2661,8 +2661,8 @@ class krakenfutures(Exchange, ImplicitAPI):
             self.load_markets()
         type = self.safe_string_2(params, 'type', 'account')
         symbol = self.safe_string(params, 'symbol')
-        paramsOmitted = self.omit(params, ['type', 'account', 'symbol'])
-        response = self.privateGetAccounts(paramsOmitted)
+        params = self.omit(params, ['type', 'account', 'symbol'])
+        response = self.privateGetAccounts(params)
         #
         #    {
         #        "result": "success",
@@ -2756,18 +2756,13 @@ class krakenfutures(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' fetchBalance requires symbol argument for margin accounts')
             type = symbol
         if type is None:
-            if symbol is None:
-                type = 'flex'
-            else:
-                type = symbol
+            type = 'flex' if (symbol is None) else symbol
         accountName = self.parse_account(type)
         accounts = self.safe_dict(response, 'accounts')
         account = self.safe_dict(accounts, accountName)
         if account is None:
-            if type is None:
-                type = ''
-            if symbol is None:
-                symbol = ''
+            type = '' if (type is None) else type
+            symbol = '' if (symbol is None) else symbol
             raise BadRequest(self.id + ' fetchBalance has no account for ' + type)
         balance = self.parse_balance(account)
         balance['info'] = response
@@ -2886,7 +2881,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'tickers', [])
         fundingRates = []
         for i in range(0, len(tickers)):
-            entry = self.safe_dict(tickers, i)
+            entry = tickers[i]
             entry_symbol = self.safe_string(entry, 'symbol')
             if marketIds is not None:
                 if not self.in_array(entry_symbol, marketIds):
@@ -2999,7 +2994,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         rates = self.safe_value(response, 'rates')
         result = []
         for i in range(0, len(rates)):
-            item = self.safe_dict(rates, i)
+            item = rates[i]
             datetime = self.safe_string(item, 'timestamp')
             result.append({
                 'info': item,
@@ -3051,7 +3046,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             raise ExchangeNotAvailable(self.id + ' fetchPositions() returned a response without an "openPositions" list')
         return self.parse_positions(positions, symbols)
 
-    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
+    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         fetches historical positions, by default the events that closed a position
 
@@ -3093,9 +3088,9 @@ class krakenfutures(Exchange, ImplicitAPI):
             request['count'] = limit
         until = self.safe_integer(params, 'until')
         if until is not None:
+            params = self.omit(params, 'until')
             request['before'] = until
-        paramsOmitted = self.omit(params, 'until') if (until is not None) else params
-        response = self.historyGetPositions(self.extend(request, paramsOmitted))
+        response = self.historyGetPositions(self.extend(request, params))
         #
         #    {
         #        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -3217,11 +3212,11 @@ class krakenfutures(Exchange, ImplicitAPI):
             elif Precise.string_lt(signedSize, '0'):
                 side = 'short'
         marketId = self.safe_string_2(position, 'symbol', 'tradeable')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         return {
             'info': position,
             'id': self.safe_string(position, 'executionUid'),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': datetime,
             'initialMargin': None,
@@ -3234,7 +3229,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'unrealizedPnl': self.safe_number(position, 'unrealizedPnl'),
             'realizedPnl': self.safe_number(position, 'realizedPnL'),
             'contracts': self.parse_number(contracts),
-            'contractSize': self.safe_number(marketResolved, 'contractSize'),
+            'contractSize': self.safe_number(market, 'contractSize'),
             'marginRatio': None,
             'liquidationPrice': None,
             'markPrice': None,
@@ -3346,7 +3341,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #
         marginLevels = self.safe_list(info, 'marginLevels')
         marketId = self.safe_string(info, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         tiers = []
         if marginLevels is None:
             return tiers
@@ -3360,8 +3355,8 @@ class krakenfutures(Exchange, ImplicitAPI):
                 previousTier['maxNotional'] = minNotional
             tiers.append({
                 'tier': self.sum(i, 1),
-                'symbol': self.safe_symbol(marketId, marketResolved),
-                'currency': marketResolved['quote'],
+                'symbol': self.safe_symbol(marketId, market),
+                'currency': market['quote'],
                 'minNotional': minNotional,
                 'maxNotional': None,
                 'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMargin'),
@@ -3416,7 +3411,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         else:
             return account
 
-    def transfer_out(self, code: str, amount: float, params: dict = {}) -> TransferEntry:
+    def transfer_out(self, code: str, amount: float, params: dict = {}):
         """
         transfer from futures wallet to spot wallet
         :param str code: Unified currency code
@@ -3426,7 +3421,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         return self.transfer(code, amount, 'future', 'spot', params)
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
 
         https://docs.kraken.com/api/docs/futures-api/trading/transfer
@@ -3589,33 +3584,29 @@ class krakenfutures(Exchange, ImplicitAPI):
             raise BadRequest(feedback)
         raise ExchangeError(feedback)  # unknown message
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         apiVersions = self.safe_dict(self.options['versions'], api, {})
         methodVersions = self.safe_dict(apiVersions, method, {})
         defaultVersion = self.safe_string(methodVersions, path, self.version)
         version = self.safe_string(params, 'version', defaultVersion)
-        paramsOmitted = self.omit(params, 'version')
+        params = self.omit(params, 'version')
         apiAccess = self.safe_dict(self.options['access'], api, {})
         methodAccess = self.safe_dict(apiAccess, method, {})
         access = self.safe_string(methodAccess, path, 'public')
-        endpoint = version + '/' + self.implode_params(path, paramsOmitted)
-        paramsOmitted2 = self.omit(paramsOmitted, self.extract_params(path))
+        endpoint = version + '/' + self.implode_params(path, params)
+        params = self.omit(params, self.extract_params(path))
         query = endpoint
         postData = ''
         if path == 'batchorder':
-            postData = 'json=' + self.json(paramsOmitted2)
-        elif len(paramsOmitted2) > 0:
-            if 'orderIds' in paramsOmitted2:
-                postData = self.urlencode_with_array_repeat(paramsOmitted2)
+            postData = 'json=' + self.json(params)
+            body = postData
+        elif len(params) > 0:
+            if 'orderIds' in params:
+                postData = self.urlencode_with_array_repeat(params)
             else:
-                postData = self.urlencode(paramsOmitted2)
+                postData = self.urlencode(params)
             query += '?' + postData
-        apiUrl = self.safe_string(self.urls['api'], api)
-        if apiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl + query
-        requestBody = postData if (path == 'batchorder') else body
-        privateHeaders = None
+        url = self.urls['api'][api] + query
         if api == 'private' or access == 'private':
             self.check_required_credentials()
             auth = postData + '/api/'
@@ -3625,11 +3616,10 @@ class krakenfutures(Exchange, ImplicitAPI):
             hash = self.hash(self.encode(auth), 'sha256', 'binary')  # 2
             secret = self.base64_to_binary(self.secret)  # 3
             signature = self.hmac(hash, secret, hashlib.sha512, 'base64')  # 4-5
-            privateHeaders = {
+            headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json',
                 'APIKey': self.apiKey,
                 'Authent': signature,
             }
-        requestHeaders = privateHeaders if (privateHeaders is not None) else headers
-        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}

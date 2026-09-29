@@ -772,8 +772,7 @@ class BaseExchange(SyncExchange):
     async def fetch_margin_mode(self, symbol: str, params: dict = {}):
         if self.has['fetchMarginModes'] is not None and self.has['fetchMarginModes'] is not False:
             marginModes = await self.fetch_margin_modes([symbol], params)
-            marginMode = self.safe_dict(marginModes, symbol)
-            return marginMode
+            return self.safe_dict(marginModes, symbol)
         else:
             raise NotSupported(self.id + ' fetchMarginMode() is not supported yet')
 
@@ -831,8 +830,7 @@ class BaseExchange(SyncExchange):
     async def fetch_leverage(self, symbol: str, params: dict = {}):
         if self.has['fetchLeverages'] is not None and self.has['fetchLeverages'] is not False:
             leverages = await self.fetch_leverages([symbol], params)
-            leverage = self.safe_dict(leverages, symbol)
-            return leverage
+            return self.safe_dict(leverages, symbol)
         else:
             raise NotSupported(self.id + ' fetchLeverage() is not supported yet')
 
@@ -929,7 +927,7 @@ class BaseExchange(SyncExchange):
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
-    async def fetch_web_endpoint(self, method: str, endpointMethod: object, returnAsJson: object, startRegex: Str = None, endRegex: Str = None):
+    async def fetch_web_endpoint(self, method: object, endpointMethod: object, returnAsJson: object, startRegex: Str = None, endRegex: Str = None):
         errorMessage = ''
         options = self.safe_value(self.options, method, {})
         muteOnFailure = self.safe_bool(options, 'webApiMuteFailure', True)
@@ -937,7 +935,7 @@ class BaseExchange(SyncExchange):
             # if it was not explicitly disabled, then don't fetch
             if not self.safe_bool(options, 'webApiEnable', True):
                 return None
-            maxRetries = self.safe_integer(options, 'webApiRetries', 10)
+            maxRetries = self.safe_value(options, 'webApiRetries', 10)
             response = None
             retry = 0
             shouldBreak = False
@@ -992,24 +990,22 @@ class BaseExchange(SyncExchange):
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
-    async def fetch2(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
+    async def fetch2(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config={}):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             await self.throttle(cost)
         retries = 0
-        # implicit endpoints may pass a list body as params: keep it an untyped box
-        requestParams = params
-        retriesMaxRetriesOnFailure, paramsMaxRetriesOnFailure = self.handle_option_integer_and_params(requestParams, path, 'maxRetriesOnFailure', retries)
+        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', retries)
         retryDelay = 0
-        retryDelayMaxRetriesOnFailureDelay, paramsMaxRetriesOnFailureDelay = self.handle_option_integer_and_params(paramsMaxRetriesOnFailure, path, 'maxRetriesOnFailureDelay', retryDelay)
+        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', retryDelay)
         fetchDataCacheEnabled = self.fetchHistoryCacheSize > 0
-        for i in range(0, retriesMaxRetriesOnFailure + 1):
+        for i in range(0, retries + 1):
             fetchData = None
             if fetchDataCacheEnabled:
                 fetchData = {'request': None, 'response': {'body': None}, 'error': None}
             try:
                 self.set_last_rest_request_timestamp()
-                request = self.sign(path, api, method, paramsMaxRetriesOnFailureDelay, headers, body)
+                request = self.sign(path, api, method, params, headers, body)
                 if fetchData is not None:
                     fetchData['request'] = request
                 self.set_last_request(request)
@@ -1023,19 +1019,19 @@ class BaseExchange(SyncExchange):
                     fetchData['error'] = e
                     self.add_fetch_cache(fetchData)
                 if isinstance(e, OperationFailed):
-                    if i < retriesMaxRetriesOnFailure:
+                    if i < retries:
                         if self.verbose:
                             index = i + 1
-                            self.log('Request failed with the error: ' + str(e) + ', retrying ' + str(index) + ' of ' + str(retriesMaxRetriesOnFailure) + '...')
-                        if (retryDelayMaxRetriesOnFailureDelay is not None) and (retryDelayMaxRetriesOnFailureDelay != 0):
-                            await self.sleep(retryDelayMaxRetriesOnFailureDelay)
+                            self.log('Request failed with the error: ' + str(e) + ', retrying ' + str(index) + ' of ' + str(retries) + '...')
+                        if (retryDelay is not None) and (retryDelay != 0):
+                            await self.sleep(retryDelay)
                     else:
                         raise e
                 else:
                     raise e
         return None  # this line is never reached, but exists for c# value return requirement
 
-    async def request(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
+    async def request(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config={}):
         return await self.fetch2(path, api, method, params, headers, body, config)
 
     async def load_accounts(self, reload=False, params: dict = {}):
@@ -1105,7 +1101,7 @@ class BaseExchange(SyncExchange):
         if self.has['fetchBorrowRates'] is None or self.has['fetchBorrowRates'] is False:
             raise NotSupported(self.id + ' fetchCrossBorrowRate() is not supported yet')
         borrowRates = await self.fetch_cross_borrow_rates(params)
-        rate = self.safe_dict(borrowRates, code)
+        rate = self.safe_value(borrowRates, code)
         if rate is None:
             raise ExchangeError(self.id + ' fetchCrossBorrowRate() could not find the borrow rate for currency code ' + code)
         return rate
@@ -1160,11 +1156,11 @@ class BaseExchange(SyncExchange):
         if self.has['fetchPositionsADLRank'] is not None and self.has['fetchPositionsADLRank'] is not False:
             await self.load_markets()
             market = self.market(symbol)
-            symbolResolved = market['symbol']
-            ranks = await self.fetch_positions_adl_rank([symbolResolved], params)
+            symbol = market['symbol']
+            ranks = await self.fetch_positions_adl_rank([symbol], params)
             rank = self.safe_dict(ranks, 0)
             if rank is None:
-                raise NullResponse(self.id + ' fetchPositionsADLRank() could not find a rank for ' + symbolResolved)
+                raise NullResponse(self.id + ' fetchPositionsADLRank() could not find a rank for ' + symbol)
             else:
                 return rank
         else:
@@ -1254,8 +1250,8 @@ class BaseExchange(SyncExchange):
                 return depositAddress
         elif self.has['fetchDepositAddressesByNetwork'] is not None and self.has['fetchDepositAddressesByNetwork'] is not False:
             network = self.safe_string(params, 'network')
-            paramsOmitted = self.omit(params, 'network')
-            addressStructures = await self.fetch_deposit_addresses_by_network(code, paramsOmitted)
+            params = self.omit(params, 'network')
+            addressStructures = await self.fetch_deposit_addresses_by_network(code, params)
             if network is not None:
                 return self.safe_dict(addressStructures, network)
             else:
@@ -1305,13 +1301,13 @@ class BaseExchange(SyncExchange):
         if self.has['fetchFundingRates'] is not None and self.has['fetchFundingRates'] is not False:
             await self.load_markets()
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbol = market['symbol']
             if market['contract'] is not True:
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
-            rates = await self.fetch_funding_rates([symbolResolved], params)
-            rate = self.safe_dict(rates, symbolResolved)
+            rates = await self.fetch_funding_rates([symbol], params)
+            rate = self.safe_value(rates, symbol)
             if rate is None:
-                raise NullResponse(self.id + ' fetchFundingRate () returned no data for ' + symbolResolved)
+                raise NullResponse(self.id + ' fetchFundingRate () returned no data for ' + symbol)
             else:
                 return rate
         else:
@@ -1321,13 +1317,13 @@ class BaseExchange(SyncExchange):
         if self.has['fetchFundingIntervals'] is not None and self.has['fetchFundingIntervals'] is not False:
             await self.load_markets()
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbol = market['symbol']
             if market['contract'] is not True:
                 raise BadSymbol(self.id + ' fetchFundingInterval() supports contract markets only')
-            rates = await self.fetch_funding_intervals([symbolResolved], params)
-            rate = self.safe_dict(rates, symbolResolved)
+            rates = await self.fetch_funding_intervals([symbol], params)
+            rate = self.safe_value(rates, symbol)
             if rate is None:
-                raise NullResponse(self.id + ' fetchFundingInterval() returned no data for ' + symbolResolved)
+                raise NullResponse(self.id + ' fetchFundingInterval() returned no data for ' + symbol)
             else:
                 return rate
         else:
@@ -1404,30 +1400,32 @@ class BaseExchange(SyncExchange):
 
     async def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}, maxEntriesPerRequest: Int = None, removeRepeated=True):
         maxCalls = 10
-        maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', maxCalls)
+        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', maxCalls)
         maxRetries = 3
-        maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(paramsPaginationCalls, method, 'maxRetries', maxRetries)
-        paginationDirection, paramsPaginationDirection = self.handle_option_and_params(paramsMaxRetries, method, 'paginationDirection', 'backward')
+        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', maxRetries)
+        paginationDirection = None
+        paginationDirection, params = self.handle_option_and_params(params, method, 'paginationDirection', 'backward')
         paginationTimestamp = None
-        removeRepeatedOption, paramsRemoveRepeated = self.handle_option_and_params(paramsPaginationDirection, method, 'removeRepeated', removeRepeated)
+        removeRepeatedOption = removeRepeated
+        removeRepeatedOption, params = self.handle_option_and_params(params, method, 'removeRepeated', removeRepeated)
         calls = 0
         result = []
         errors = 0
-        until = self.safe_integer_n(paramsRemoveRepeated, ['until', 'untill', 'till'])  # do not omit it from params here
-        maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsRemoveRepeated)
+        until = self.safe_integer_n(params, ['until', 'untill', 'till'])  # do not omit it from params here
+        maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         if (paginationDirection == 'forward'):
             if since is None:
                 raise ArgumentsRequired(self.id + ' pagination requires a since argument when paginationDirection set to forward')
             paginationTimestamp = since
-        while((calls < maxCallsPaginationCalls)):
+        while((calls < maxCalls)):
             calls += 1
             try:
                 if paginationDirection == 'backward':
                     # do it backwards, starting from the last
                     # UNTIL filtering is required in order to work
                     if paginationTimestamp is not None:
-                        paramsMaxEntriesPerRequest['until'] = paginationTimestamp - 1
-                    response = await getattr(self, method)(symbol, None, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
+                        params['until'] = paginationTimestamp - 1
+                    response = await getattr(self, method)(symbol, None, maxEntriesPerRequest, params)
                     responseLength = len(response)
                     if self.verbose:
                         backwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
@@ -1446,7 +1444,7 @@ class BaseExchange(SyncExchange):
                         break
                 else:
                     # do it forwards, starting from the since
-                    response = await getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
+                    response = await getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequest, params)
                     responseLength = len(response)
                     if self.verbose:
                         forwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
@@ -1467,7 +1465,7 @@ class BaseExchange(SyncExchange):
                         break
             except Exception as e:
                 errors += 1
-                if errors > maxRetriesOption:
+                if errors > maxRetries:
                     raise e
         uniqueResults = result
         if removeRepeatedOption:
@@ -1478,37 +1476,37 @@ class BaseExchange(SyncExchange):
 
     async def safe_deterministic_call(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params: dict = {}):
         maxRetries = 3
-        maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(params, method, 'maxRetries', maxRetries)
+        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', maxRetries)
         errors = 0
-        while(errors <= maxRetriesOption):
+        while(errors <= maxRetries):
             try:
                 if (timeframe is not None and timeframe != '') and method != 'fetchFundingRateHistory':
-                    return await getattr(self, method)(symbol, timeframe, since, limit, paramsMaxRetries)
+                    return await getattr(self, method)(symbol, timeframe, since, limit, params)
                 else:
-                    return await getattr(self, method)(symbol, since, limit, paramsMaxRetries)
+                    return await getattr(self, method)(symbol, since, limit, params)
             except Exception as e:
                 if isinstance(e, RateLimitExceeded):
                     raise e  # if we are rate limited, we should not retry and fail fast
                 errors += 1
-                if errors > maxRetriesOption:
+                if errors > maxRetries:
                     raise e
         return []
 
     async def fetch_paginated_call_deterministic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params: dict = {}, maxEntriesPerRequest: Int = None):
         maxCalls = 10
-        maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', maxCalls)
-        maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsPaginationCalls)
+        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', maxCalls)
+        maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         # paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         # pagination always walks forward internally, so strip it here to avoid leaking an
         # unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
-        paramsOmitted = self.omit(paramsMaxEntriesPerRequest, 'paginationDirection')
+        params = self.omit(params, 'paginationDirection')
         current = self.milliseconds()
         tasks = []
         time = self.parse_timeframe(timeframe) * 1000
-        maxEntriesPerRequestValue = self.require_value(maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required')
-        step = time * maxEntriesPerRequestValue
-        until = self.safe_integer_2(paramsOmitted, 'until', 'till')  # do not omit it here
-        currentSince = current - (maxCallsPaginationCalls * step) - 1
+        maxEntriesPerRequest = self.require_value(maxEntriesPerRequest, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required')
+        step = time * maxEntriesPerRequest
+        until = self.safe_integer_2(params, 'until', 'till')  # do not omit it here
+        currentSince = current - (maxCalls * step) - 1
         if since is not None:
             if until is not None:
                 # the recent-window floor below would jump past a fully-historical [ since, until ]
@@ -1524,15 +1522,15 @@ class BaseExchange(SyncExchange):
             if since is None:
                 raise ArgumentsRequired(self.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set')
             requiredCalls = int(math.ceil((until - since)) / step)
-            if requiredCalls > maxCallsPaginationCalls:
-                raise BadRequest(self.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + str(maxCallsPaginationCalls) + ' required calls is ' + str(requiredCalls))
-        for i in range(0, maxCallsPaginationCalls):
+            if requiredCalls > maxCalls:
+                raise BadRequest(self.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + str(maxCalls) + ' required calls is ' + str(requiredCalls))
+        for i in range(0, maxCalls):
             if (until is not None) and (currentSince >= until):
                 break
             if currentSince >= current:
                 break
-            tasks.append(self.safe_deterministic_call(method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted))
-            currentSince = currentSince + step - 1
+            tasks.append(self.safe_deterministic_call(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params))
+            currentSince = self.sum(currentSince, step) - 1
         results = await asyncio.gather(*tasks)
         result = []
         for i in range(0, len(results)):
@@ -1543,36 +1541,36 @@ class BaseExchange(SyncExchange):
 
     async def fetch_paginated_call_cursor(self, method: str, symbol: Str | Strings = None, since: Int = None, limit: Int = None, params: dict = {}, cursorReceived: Str = None, cursorSent: Str = None, cursorIncrement: Int = None, maxEntriesPerRequest: Int = None):
         maxCalls = 10
-        maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', maxCalls)
+        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', maxCalls)
         maxRetries = 3
-        maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(paramsPaginationCalls, method, 'maxRetries', maxRetries)
-        maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsMaxRetries)
+        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', maxRetries)
+        maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         cursorValue = None
         i = 0
         errors = 0
         result = []
-        timeframe = self.safe_string(paramsMaxEntriesPerRequest, 'timeframe')
-        paramsOmitted = self.omit(paramsMaxEntriesPerRequest, 'timeframe')  # reading the timeframe from the method arguments to avoid changing the signature
-        while(i < maxCallsPaginationCalls):
+        timeframe = self.safe_string(params, 'timeframe')
+        params = self.omit(params, 'timeframe')  # reading the timeframe from the method arguments to avoid changing the signature
+        while(i < maxCalls):
             try:
                 if cursorValue is not None:
                     if cursorIncrement is not None:
                         cursorValue = self.parse_to_int(cursorValue) + cursorIncrement
-                    paramsOmitted[cursorSent] = cursorValue
+                    params[cursorSent] = cursorValue
                 response = None
                 if method == 'fetchAccounts':
-                    response = await getattr(self, method)(paramsOmitted)
+                    response = await getattr(self, method)(params)
                 elif method == 'getLeverageTiersPaginated' or method == 'fetchPositions':
-                    response = await getattr(self, method)(symbol, paramsOmitted)
+                    response = await getattr(self, method)(symbol, params)
                 elif method == 'fetchOpenInterestHistory':
                     if not isinstance(symbol, str):
                         # fetchOpenInterestHistory takes a single symbol, never a list
                         raise ArgumentsRequired(self.id + ' fetchPaginatedCallCursor() requires a symbol argument')
                     if timeframe is None:
                         raise ArgumentsRequired(self.id + ' fetchPaginatedCallCursor() requires a timeframe argument')
-                    response = await getattr(self, method)(symbol, timeframe, since, maxEntriesPerRequestOption, paramsOmitted)
+                    response = await getattr(self, method)(symbol, timeframe, since, maxEntriesPerRequest, params)
                 else:
-                    response = await getattr(self, method)(symbol, since, maxEntriesPerRequestOption, paramsOmitted)
+                    response = await getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
                 errors = 0
                 if response is None:
                     raise NullResponse(self.id + ' fetchPaginatedCallCursor() returned empty response')
@@ -1606,7 +1604,7 @@ class BaseExchange(SyncExchange):
                     break
             except Exception as e:
                 errors += 1
-                if errors > maxRetriesOption:
+                if errors > maxRetries:
                     raise e
             i += 1
         sorted = self.sort_cursor_paginated_result(result)
@@ -1615,17 +1613,17 @@ class BaseExchange(SyncExchange):
 
     async def fetch_paginated_call_incremental(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}, pageKey: Str = None, maxEntriesPerRequest: Int = None):
         maxCalls = 10
-        maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', maxCalls)
+        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', maxCalls)
         maxRetries = 3
-        maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(paramsPaginationCalls, method, 'maxRetries', maxRetries)
-        maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsMaxRetries)
+        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', maxRetries)
+        maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         i = 0
         errors = 0
         result = []
-        while(i < maxCallsPaginationCalls):
+        while(i < maxCalls):
             try:
-                paramsMaxEntriesPerRequest[pageKey] = i + 1
-                response = await getattr(self, method)(symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
+                params[pageKey] = i + 1
+                response = await getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:
@@ -1637,7 +1635,7 @@ class BaseExchange(SyncExchange):
                 result = self.array_concat(result, response)
             except Exception as e:
                 errors += 1
-                if errors > maxRetriesOption:
+                if errors > maxRetries:
                     raise e
             i += 1
         sorted = self.sort_cursor_paginated_result(result)
@@ -1724,7 +1722,7 @@ class BaseExchange(SyncExchange):
 
 class Exchange(BaseExchange):
 
-    async def close_position(self, symbol: str, side: Str = None, params: dict = {}):
+    async def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}):
         raise NotSupported(self.id + ' closePosition() is not supported yet')
 
     async def close_all_positions(self, params: dict = {}):
@@ -1799,11 +1797,11 @@ class Exchange(BaseExchange):
         if self.has['fetchMarkPrices'] is not None and self.has['fetchMarkPrices'] is not False:
             await self.load_markets()
             market = self.market(symbol)
-            symbolResolved = market['symbol']
-            tickers = await self.fetchMarkPrices([symbolResolved], params)
-            ticker = self.safe_dict(tickers, symbolResolved)
+            symbol = market['symbol']
+            tickers = await self.fetchMarkPrices([symbol], params)
+            ticker = self.safe_dict(tickers, symbol)
             if ticker is None:
-                raise NullResponse(self.id + ' fetchMarkPrices() could not find a ticker for ' + symbolResolved)
+                raise NullResponse(self.id + ' fetchMarkPrices() could not find a ticker for ' + symbol)
             else:
                 return ticker
         else:
@@ -1903,9 +1901,9 @@ class Exchange(BaseExchange):
         :param float [params.stopLossAmount]: *not available on all exchanges* the amount for a stop loss
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        paramsValue = self.set_take_profit_and_stop_loss_params(symbol, type, side, amount, price, takeProfit, stopLoss, params)
+        params = self.set_take_profit_and_stop_loss_params(symbol, type, side, amount, price, takeProfit, stopLoss, params)
         if self.has['createOrderWithTakeProfitAndStopLossWs'] is not None and self.has['createOrderWithTakeProfitAndStopLossWs'] is not False:
-            return await self.createOrderWs(symbol, type, side, amount, price, paramsValue)
+            return await self.createOrderWs(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createOrderWithTakeProfitAndStopLossWs() is not supported yet')
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}):
@@ -1952,9 +1950,9 @@ class Exchange(BaseExchange):
         """
         if stopLossPrice is None:
             raise ArgumentsRequired(self.id + ' createStopLossOrderWs() requires a stopLossPrice argument')
-        paramsExtended = self.extend(params, {'stopLossPrice': stopLossPrice})
+        params = self.extend(params, {'stopLossPrice': stopLossPrice})
         if self.has['createStopLossOrderWs'] is not None and self.has['createStopLossOrderWs'] is not False:
-            return await self.createOrderWs(symbol, type, side, amount, price, paramsExtended)
+            return await self.createOrderWs(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createStopLossOrderWs() is not supported yet')
 
     async def create_stop_market_order_ws(self, symbol: str, side: OrderSide, amount: float, triggerPrice: float, params: dict = {}):
@@ -1985,9 +1983,9 @@ class Exchange(BaseExchange):
         """
         if takeProfitPrice is None:
             raise ArgumentsRequired(self.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument')
-        paramsExtended = self.extend(params, {'takeProfitPrice': takeProfitPrice})
+        params = self.extend(params, {'takeProfitPrice': takeProfitPrice})
         if self.has['createTakeProfitOrderWs'] is not None and self.has['createTakeProfitOrderWs'] is not False:
-            return await self.createOrderWs(symbol, type, side, amount, price, paramsExtended)
+            return await self.createOrderWs(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTakeProfitOrderWs() is not supported yet')
 
     async def create_trailing_amount_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params: dict = {}):
@@ -2048,9 +2046,9 @@ class Exchange(BaseExchange):
         """
         if triggerPrice is None:
             raise ArgumentsRequired(self.id + ' createTriggerOrderWs() requires a triggerPrice argument')
-        paramsExtended = self.extend(params, {'triggerPrice': triggerPrice})
+        params = self.extend(params, {'triggerPrice': triggerPrice})
         if self.has['createTriggerOrderWs'] is not None and self.has['createTriggerOrderWs'] is not False:
-            return await self.createOrderWs(symbol, type, side, amount, price, paramsExtended)
+            return await self.createOrderWs(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTriggerOrderWs() is not supported yet')
 
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}):
@@ -2091,11 +2089,11 @@ class Exchange(BaseExchange):
         if self.has['fetchTickersWs'] is not None and self.has['fetchTickersWs'] is not False:
             await self.load_markets()
             market = self.market(symbol)
-            symbolResolved = market['symbol']
-            tickers = await self.fetchTickersWs([symbolResolved], params)
-            ticker = self.safe_dict(tickers, symbolResolved)
+            symbol = market['symbol']
+            tickers = await self.fetchTickersWs([symbol], params)
+            ticker = self.safe_dict(tickers, symbol)
             if ticker is None:
-                raise NullResponse(self.id + ' fetchTickerWs() could not find a ticker for ' + symbolResolved)
+                raise NullResponse(self.id + ' fetchTickerWs() could not find a ticker for ' + symbol)
             else:
                 return ticker
         else:
@@ -2133,8 +2131,7 @@ class Exchange(BaseExchange):
     async def fetch_open_interest(self, symbol: str, params: dict = {}):
         if self.has['fetchOpenInterests'] is not None and self.has['fetchOpenInterests'] is not False:
             openInterests = await self.fetch_open_interests([symbol], params)
-            openInterest = self.safe_dict(openInterests, symbol)
-            return openInterest
+            return self.safe_dict(openInterests, symbol)
         else:
             raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
@@ -2178,11 +2175,11 @@ class Exchange(BaseExchange):
         if self.has['fetchTickers'] is not None and self.has['fetchTickers'] is not False:
             await self.load_markets()
             market = self.market(symbol)
-            symbolResolved = market['symbol']
-            tickers = await self.fetch_tickers([symbolResolved], params)
-            ticker = self.safe_dict(tickers, symbolResolved)
+            symbol = market['symbol']
+            tickers = await self.fetch_tickers([symbol], params)
+            ticker = self.safe_dict(tickers, symbol)
             if ticker is None:
-                raise NullResponse(self.id + ' fetchTickers() could not find a ticker for ' + symbolResolved)
+                raise NullResponse(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
             else:
                 return ticker
         else:
@@ -2318,9 +2315,9 @@ class Exchange(BaseExchange):
         """
         if triggerPrice is None:
             raise ArgumentsRequired(self.id + ' createTriggerOrder() requires a triggerPrice argument')
-        paramsExtended = self.extend(params, {'triggerPrice': triggerPrice})
+        params = self.extend(params, {'triggerPrice': triggerPrice})
         if self.has['createTriggerOrder'] is not None and self.has['createTriggerOrder'] is not False:
-            return await self.create_order(symbol, type, side, amount, price, paramsExtended)
+            return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTriggerOrder() is not supported yet')
 
     async def create_stop_loss_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, stopLossPrice: Num = None, params: dict = {}):
@@ -2337,9 +2334,9 @@ class Exchange(BaseExchange):
         """
         if stopLossPrice is None:
             raise ArgumentsRequired(self.id + ' createStopLossOrder() requires a stopLossPrice argument')
-        paramsExtended = self.extend(params, {'stopLossPrice': stopLossPrice})
+        params = self.extend(params, {'stopLossPrice': stopLossPrice})
         if self.has['createStopLossOrder'] is not None and self.has['createStopLossOrder'] is not False:
-            return await self.create_order(symbol, type, side, amount, price, paramsExtended)
+            return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createStopLossOrder() is not supported yet')
 
     async def create_take_profit_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, takeProfitPrice: Num = None, params: dict = {}):
@@ -2356,9 +2353,9 @@ class Exchange(BaseExchange):
         """
         if takeProfitPrice is None:
             raise ArgumentsRequired(self.id + ' createTakeProfitOrder() requires a takeProfitPrice argument')
-        paramsExtended = self.extend(params, {'takeProfitPrice': takeProfitPrice})
+        params = self.extend(params, {'takeProfitPrice': takeProfitPrice})
         if self.has['createTakeProfitOrder'] is not None and self.has['createTakeProfitOrder'] is not False:
-            return await self.create_order(symbol, type, side, amount, price, paramsExtended)
+            return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTakeProfitOrder() is not supported yet')
 
     async def create_order_with_take_profit_and_stop_loss(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, takeProfit: Num = None, stopLoss: Num = None, params: dict = {}):
@@ -2382,9 +2379,9 @@ class Exchange(BaseExchange):
         :param float [params.stopLossAmount]: *not available on all exchanges* the amount for a stop loss
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        paramsValue = self.set_take_profit_and_stop_loss_params(symbol, type, side, amount, price, takeProfit, stopLoss, params)
+        params = self.set_take_profit_and_stop_loss_params(symbol, type, side, amount, price, takeProfit, stopLoss, params)
         if self.has['createOrderWithTakeProfitAndStopLoss'] is not None and self.has['createOrderWithTakeProfitAndStopLoss'] is not False:
-            return await self.create_order(symbol, type, side, amount, price, paramsValue)
+            return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createOrderWithTakeProfitAndStopLoss() is not supported yet')
 
     async def create_orders(self, orders: list[OrderRequest], params: dict = {}):
@@ -2510,5 +2507,4 @@ class Exchange(BaseExchange):
         if self.has['fetchTradingFees'] is None or self.has['fetchTradingFees'] is False:
             raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
         fees = await self.fetch_trading_fees(params)
-        fee = self.safe_dict(fees, symbol)
-        return fee
+        return self.safe_dict(fees, symbol)

@@ -964,9 +964,6 @@ class toobit extends Exchange {
         $baseIdClean = $baseParts[0];
         $base = $this->safe_currency_code($baseIdClean);
         $quote = $this->safe_currency_code($quoteId);
-        if (($base === null) || ($quote === null)) {
-            return null;
-        }
         $settleId = $this->safe_string($market, 'marginToken');
         $settle = $this->safe_currency_code($settleId);
         $status = $this->safe_string($market, 'status');
@@ -1205,8 +1202,8 @@ class toobit extends Exchange {
         if ($isMaker !== null) {
             $takerOrMaker = $isMaker ? 'maker' : 'taker';
         }
-        $marketResolved = $this->safe_market(null, $market);
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market(null, $market);
+        $symbol = $market['symbol'];
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -1221,7 +1218,7 @@ class toobit extends Exchange {
             'cost' => null,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1253,16 +1250,17 @@ class toobit extends Exchange {
         }
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
+            $params = $this->omit($params, 'until');
             $request['endTime'] = $until;
         }
-        $paramsOmitted = ($until !== null) ? $this->omit($params, 'until') : $params;
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
         $response = array();
-        list($endpoint, $paramsPrice) = $this->handle_option_string_and_params($paramsOmitted, 'fetchOHLCV', 'price');
+        $endpoint = null;
+        list($endpoint, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'price');
         if ($endpoint === 'index') {
-            $response = $this->commonGetQuoteV1IndexKlines($this->extend($request, $paramsPrice));
+            $response = $this->commonGetQuoteV1IndexKlines($this->extend($request, $params));
             //
             //     {
             //         "code": 200,
@@ -1291,7 +1289,7 @@ class toobit extends Exchange {
             //     }
             //
         } elseif ($endpoint === 'mark') {
-            $response = $this->commonGetQuoteV1MarkPriceKlines($this->extend($request, $paramsPrice));
+            $response = $this->commonGetQuoteV1MarkPriceKlines($this->extend($request, $params));
             //
             //     {
             //         "code": 200,
@@ -1310,7 +1308,7 @@ class toobit extends Exchange {
             //     }
             //
         } else {
-            $response = $this->commonGetQuoteV1Klines($this->extend($request, $paramsPrice));
+            $response = $this->commonGetQuoteV1Klines($this->extend($request, $params));
             //
             //    [
             //        [
@@ -1361,25 +1359,26 @@ class toobit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols);
+        $type = null;
         $market = null;
         $request = array();
-        if ($symbolsNormalized !== null) {
-            $symbol = $this->safe_string($symbolsNormalized, 0);
+        if ($symbols !== null) {
+            $symbol = $this->safe_string($symbols, 0);
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $length = count($symbolsNormalized);
+            $length = count($symbols);
             if (($length === 1) && ($market !== null)) {
                 $request['symbol'] = $market['id'];
             }
         }
-        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         $response = null;
         if ($type === 'spot') {
-            $response = $this->commonGetQuoteV1Ticker24hr($this->extend($request, $paramsMarketType));
+            $response = $this->commonGetQuoteV1Ticker24hr($this->extend($request, $params));
         } else {
-            $response = $this->commonGetQuoteV1ContractTicker24hr($this->extend($request, $paramsMarketType));
+            $response = $this->commonGetQuoteV1ContractTicker24hr($this->extend($request, $params));
         }
         //
         //    [
@@ -1397,21 +1396,21 @@ class toobit extends Exchange {
         //        },
         //        ...
         //
-        return $this->parse_tickers($response, $symbolsNormalized, $paramsMarketType);
+        return $this->parse_tickers($response, $symbols, $params);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 's');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($ticker, 't');
         $last = $this->safe_string($ticker, 'c');
         $baseVolume = $this->safe_string($ticker, 'v');
-        if (($marketResolved['contract'] === true) && ($marketResolved['contractSize'] !== null)) {
+        if (($market['contract'] === true) && ($market['contractSize'] !== null)) {
             // 'v' counts contracts, and a ticker reports base volume
-            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($marketResolved['contractSize']));
+            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($market['contractSize']));
         }
         return $this->safe_ticker(array(
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'h'),
@@ -1432,7 +1431,7 @@ class toobit extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_string($ticker, 'qv'),
             'info' => $ticker,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function fetch_last_prices(?array $symbols = null, $params = array()): array {
@@ -1449,12 +1448,12 @@ class toobit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols);
         $request = array();
-        if ($symbolsNormalized !== null) {
-            $length = count($symbolsNormalized);
+        if ($symbols !== null) {
+            $length = count($symbols);
             if ($length === 1) {
-                $market = $this->market($symbolsNormalized[0]);
+                $market = $this->market($symbols[0]);
                 $request['symbol'] = $market['id'];
             }
         }
@@ -1467,14 +1466,14 @@ class toobit extends Exchange {
         //            "p": "0.823"
         //        },
         //
-        return $this->parse_last_prices($response, $symbolsNormalized);
+        return $this->parse_last_prices($response, $symbols);
     }
 
-    public function parse_last_price(array $entry, ?array $market = null): array {
+    public function parse_last_price(mixed $entry, ?array $market = null): array {
         $marketId = $this->safe_string($entry, 's');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         return array(
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'timestamp' => null,
             'datetime' => null,
             'price' => $this->safe_number_omit_zero($entry, 'price'),
@@ -1497,12 +1496,12 @@ class toobit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols);
         $request = array();
-        if ($symbolsNormalized !== null) {
-            $length = count($symbolsNormalized);
+        if ($symbols !== null) {
+            $length = count($symbols);
             if ($length === 1) {
-                $market = $this->market($symbolsNormalized[0]);
+                $market = $this->market($symbols[0]);
                 $request['symbol'] = $market['id'];
             }
         }
@@ -1518,18 +1517,18 @@ class toobit extends Exchange {
         //            "t": "1755936610506"
         //        }, ...
         //
-        return $this->parse_bids_asks_custom($response, $symbolsNormalized);
+        return $this->parse_bids_asks_custom($response, $symbols);
     }
 
-    public function parse_bids_asks_custom(array $tickers, ?array $symbols = null, $params = array()): array {
+    public function parse_bids_asks_custom(mixed $tickers, ?array $symbols = null, $params = array()): array {
         $results = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $parsedTicker = $this->parse_bid_ask_custom($tickers[$i]);
             $ticker = $this->extend($parsedTicker, $params);
             $results[] = $ticker;
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array($results, 'symbol', $symbolsNormalized);
+        $symbols = $this->market_symbols($symbols);
+        return $this->filter_by_array($results, 'symbol', $symbols);
     }
 
     public function parse_bid_ask_custom(array $ticker): array {
@@ -1563,12 +1562,12 @@ class toobit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols);
         $request = array();
-        if ($symbolsNormalized !== null) {
-            $length = count($symbolsNormalized);
+        if ($symbols !== null) {
+            $length = count($symbols);
             if ($length === 1) {
-                $market = $this->market($symbolsNormalized[0]);
+                $market = $this->market($symbols[0]);
                 $request['symbol'] = $market['id'];
             }
         }
@@ -1581,7 +1580,7 @@ class toobit extends Exchange {
         //            "nextFundingTime": "1755964800000"
         //        },...
         //
-        return $this->parse_funding_rates($response, $symbolsNormalized);
+        return $this->parse_funding_rates($response, $symbols);
     }
 
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
@@ -1628,9 +1627,10 @@ class toobit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate);
+            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
         }
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
@@ -1642,7 +1642,7 @@ class toobit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->commonGetApiV1FuturesHistoryFundingRate($this->extend($request, $paramsPaginate));
+        $response = $this->commonGetApiV1FuturesHistoryFundingRate($this->extend($request, $params));
         //
         //    [
         //        {
@@ -1681,7 +1681,8 @@ class toobit extends Exchange {
             $this->load_markets();
         }
         $response = null;
-        $marketType = $this->handle_market_type_and_params('fetchBalance', null, $params)[0];
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         if ($this->in_array($marketType, array( 'swap', 'future' ))) {
             $response = $this->privateGetApiV1FuturesBalance();
             //
@@ -1725,7 +1726,7 @@ class toobit extends Exchange {
         );
         $balances = $this->safe_list($response, 'balances', $response);
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $this->safe_dict($balances, $i);
+            $balance = $balances[$i];
             $code = $this->safe_currency_code($this->safe_string($balance, 'asset'));
             $account = $this->account();
             $account['free'] = $this->safe_string_2($balance, 'free', 'availableBalance');
@@ -1758,13 +1759,14 @@ class toobit extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        $request = array();
         $response = array();
         if ($market['spot'] === true) {
-            list($request, $paramsRequest) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-            $response = $this->privatePostApiV1SpotOrder($this->extend($request, $paramsRequest));
+            list($request, $params) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = $this->privatePostApiV1SpotOrder($this->extend($request, $params));
         } else {
-            list($request, $paramsRequest) = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
-            $response = $this->privatePostApiV1FuturesOrder($this->extend($request, $paramsRequest));
+            list($request, $params) = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = $this->privatePostApiV1FuturesOrder($this->extend($request, $params));
         }
         //
         //     {
@@ -1792,7 +1794,7 @@ class toobit extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
@@ -1808,7 +1810,8 @@ class toobit extends Exchange {
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        list($cost, $paramsCost) = $this->handle_param_string($params, 'cost');
+        $cost = null;
+        list($cost, $params) = $this->handle_param_string($params, 'cost');
         if ($type === 'market' && $side === 'buy') {
             if ($cost === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires params["cost"] for market buy order');
@@ -1817,16 +1820,17 @@ class toobit extends Exchange {
         } else {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
-        list($isPostOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', false, $paramsCost);
+        $isPostOnly = null;
+        list($isPostOnly, $params) = $this->handle_post_only($type === 'market', false, $params);
         if ($isPostOnly === true) {
             $request['type'] = 'LIMIT_MAKER';
         } else {
             $request['type'] = strtoupper($type);
         }
-        return array( $request, $paramsPostOnly );
+        return array( $request, $params );
     }
 
-    public function create_contract_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
+    public function create_contract_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
@@ -1838,14 +1842,14 @@ class toobit extends Exchange {
             'symbol' => $market['id'],
             'quantity' => $this->amount_to_precision($symbol, $amount),
         );
-        list($reduceOnly, $paramsReduceOnly) = $this->handle_param_bool($params, 'reduceOnly');
+        $reduceOnly = null;
+        list($reduceOnly, $params) = $this->handle_param_bool($params, 'reduceOnly');
         if ($side === 'buy') {
-            $request['side'] = ($reduceOnly === true) ? 'BUY_CLOSE' : 'BUY_OPEN';
+            $side = ($reduceOnly === true) ? 'BUY_CLOSE' : 'BUY_OPEN';
         } elseif ($side === 'sell') {
-            $request['side'] = ($reduceOnly === true) ? 'SELL_CLOSE' : 'SELL_OPEN';
-        } else {
-            $request['side'] = $side;
+            $side = ($reduceOnly === true) ? 'SELL_CLOSE' : 'SELL_OPEN';
         }
+        $request['side'] = $side;
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -1856,18 +1860,19 @@ class toobit extends Exchange {
             $request['type'] = 'LIMIT'; // weird, but exchange works this way
             $request['priceType'] = 'MARKET';
         }
-        list($isPostOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', false, $paramsReduceOnly);
+        $isPostOnly = null;
+        list($isPostOnly, $params) = $this->handle_post_only($type === 'market', false, $params);
         if ($isPostOnly === true) {
             $request['timeInForce'] = 'LIMIT_MAKER';
         }
-        $values = $this->handle_trigger_prices_and_params($symbol, $paramsPostOnly);
+        $values = $this->handle_trigger_prices_and_params($symbol, $params);
         $triggerPrice = $values[0];
-        $paramsTrigger = $values[3];
+        $params = $values[3];
         if ($triggerPrice !== null) {
             $request['stopPrice'] = $triggerPrice;
         }
-        $stopLoss = $this->safe_dict($paramsTrigger, 'stopLoss');
-        $takeProfit = $this->safe_dict($paramsTrigger, 'takeProfit');
+        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $takeProfit = $this->safe_dict($params, 'takeProfit');
         $hasStopLoss = ($stopLoss !== null);
         $hasTakeProfit = ($takeProfit !== null);
         $triggerPriceTypes = array(
@@ -1885,6 +1890,7 @@ class toobit extends Exchange {
             if ($triggerPriceType !== null) {
                 $request['slTriggerBy'] = $this->safe_string($triggerPriceTypes, $triggerPriceType, $triggerPriceType);
             }
+            $params = $this->omit($params, 'stopLoss');
         }
         if ($hasTakeProfit) {
             $request['takeProfit'] = $this->safe_value($takeProfit, 'triggerPrice');
@@ -1897,12 +1903,12 @@ class toobit extends Exchange {
             if ($triggerPriceType !== null) {
                 $request['tpTriggerBy'] = $this->safe_string($triggerPriceTypes, $triggerPriceType, $triggerPriceType);
             }
+            $params = $this->omit($params, 'takeProfit');
         }
-        $paramsOmitted = $this->omit($paramsTrigger, array( 'stopLoss', 'takeProfit' ));
-        if (!(is_array($paramsOmitted) && array_key_exists('newClientOrderId' ?? '', $paramsOmitted))) {
+        if (!(is_array($params) && array_key_exists('newClientOrderId' ?? '', $params))) {
             $request['newClientOrderId'] = $this->uuid();
         }
-        return array( $request, $paramsOmitted );
+        return array( $request, $params );
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1966,7 +1972,7 @@ class toobit extends Exchange {
         //
         $timestamp = $this->safe_integer_2($order, 'transactTime', 'time');
         $marketId = $this->safe_string($order, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $rawType = $this->safe_string($order, 'type');
         $rawSideLower = $this->safe_string_lower($order, 'side');
         $reduceOnly = null;
@@ -1994,7 +2000,7 @@ class toobit extends Exchange {
             'lastTradeTimestamp' => null,
             'lastUpdateTimestamp' => $this->safe_integer($order, 'updateTime'),
             'status' => $this->parse_order_status($this->safe_string($order, 'status')),
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'type' => $this->parse_order_type($rawType),
             'timeInForce' => $this->safe_string($order, 'timeInForce'),
             'postOnly' => ($rawType === 'LIMIT_MAKER'),
@@ -2012,7 +2018,7 @@ class toobit extends Exchange {
             'reduceOnly' => $reduceOnly,
             'leverage' => null,
             'hedged' => null,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function parse_order_status(?string $status) {
@@ -2064,15 +2070,16 @@ class toobit extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('cancelOrder', $market, $params, 'none');
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params, 'none');
         if ($marketType === 'none') {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
         $response = array();
         if ($marketType === 'spot') {
-            $response = $this->privateDeleteApiV1SpotOrder($this->extend($request, $paramsMarketType));
+            $response = $this->privateDeleteApiV1SpotOrder($this->extend($request, $params));
         } else {
-            $response = $this->privateDeleteApiV1FuturesOrder($this->extend($request, $paramsMarketType));
+            $response = $this->privateDeleteApiV1FuturesOrder($this->extend($request, $params));
         }
         // response same as in `createOrder`
         $status = $this->parse_order_status($this->safe_string($response, 'status'));
@@ -2102,18 +2109,19 @@ class toobit extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params, 'none');
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params, 'none');
         if ($marketType === 'none') {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
         $response = null;
         if ($marketType === 'spot') {
-            $response = $this->privateDeleteApiV1SpotOpenOrders($this->extend($request, $paramsMarketType));
+            $response = $this->privateDeleteApiV1SpotOpenOrders($this->extend($request, $params));
             //
             // {"success":true}  // always same response
             //
         } else {
-            $response = $this->privateDeleteApiV1FuturesBatchOrders($this->extend($request, $paramsMarketType));
+            $response = $this->privateDeleteApiV1FuturesBatchOrders($this->extend($request, $params));
             //
             // { "code": 200, "message":"success", "timestamp":1541161088303 }
             //
@@ -2148,18 +2156,19 @@ class toobit extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('cancelOrders', $market, $params, 'none');
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrders', $market, $params, 'none');
         if ($marketType === 'none') {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
         $response = null;
         if ($marketType === 'spot') {
-            $response = $this->privateDeleteApiV1SpotCancelOrderByIds($this->extend($request, $paramsMarketType));
+            $response = $this->privateDeleteApiV1SpotCancelOrderByIds($this->extend($request, $params));
             //
             // {"success":true}  // always same response
             //
         } else {
-            $response = $this->privateDeleteApiV1FuturesCancelOrderByIds($this->extend($request, $paramsMarketType));
+            $response = $this->privateDeleteApiV1FuturesCancelOrderByIds($this->extend($request, $params));
             //
             // {
             //     "code":200,
@@ -2265,10 +2274,11 @@ class toobit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         $response = array();
         if ($marketType === 'spot') {
-            $response = $this->privateGetApiV1SpotOpenOrders($this->extend($request, $paramsMarketType));
+            $response = $this->privateGetApiV1SpotOpenOrders($this->extend($request, $params));
             //
             //    [
             //        {
@@ -2297,7 +2307,7 @@ class toobit extends Exchange {
             //    ]
             //
         } else {
-            $response = $this->privateGetApiV1FuturesOpenOrders($this->extend($request, $paramsMarketType));
+            $response = $this->privateGetApiV1FuturesOpenOrders($this->extend($request, $params));
         }
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -2324,16 +2334,17 @@ class toobit extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $requestUntil['symbol'] = $market['id'];
+            $request['symbol'] = $market['id'];
         }
-        $marketType = $this->handle_market_type_and_params('fetchOrders', $market, $paramsUntil)[0];
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
         $response = array();
         if ($marketType === 'spot') {
-            $response = $this->privateGetApiV1SpotTradeOrders($requestUntil);
+            $response = $this->privateGetApiV1SpotTradeOrders($request);
             //
             //    [
             //        {
@@ -2392,13 +2403,14 @@ class toobit extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
-        $marketType = $this->handle_market_type_and_params('fetchClosedOrders', $market, $paramsUntil)[0];
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
         $response = array();
         if ($marketType === 'spot') {
             throw new NotSupported($this->id . ' fetchOrders() is not supported for ' . $marketType . ' markets');
         } else {
-            $response = $this->privateGetApiV1FuturesHistoryOrders($requestUntil);
+            $response = $this->privateGetApiV1FuturesHistoryOrders($request);
             //
             //    [
             //        {
@@ -2466,11 +2478,12 @@ class toobit extends Exchange {
         }
         $market = $this->market($symbol);
         $request['symbol'] = $market['id'];
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $paramsMarketType);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = array();
         if ($marketType === 'spot') {
-            $response = $this->privateGetApiV1AccountTrades($this->extend($requestUntil, $paramsUntil));
+            $response = $this->privateGetApiV1AccountTrades($this->extend($request, $params));
             //
             //    [
             //        {
@@ -2497,7 +2510,7 @@ class toobit extends Exchange {
             //        }, ...
             //
         } else {
-            $response = $this->privateGetApiV1FuturesUserTrades($requestUntil);
+            $response = $this->privateGetApiV1FuturesUserTrades($request);
             //
             //    [
             //        {
@@ -2604,16 +2617,17 @@ class toobit extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         if ($limit !== null) {
-            $requestUntil['limit'] = $limit;
+            $request['limit'] = $limit;
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchLedger', null, $paramsUntil);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchLedger', null, $params);
         $response = null;
         if ($marketType === 'spot') {
-            $response = $this->privateGetApiV1AccountBalanceFlow($this->extend($requestUntil, $paramsMarketType));
+            $response = $this->privateGetApiV1AccountBalanceFlow($this->extend($request, $params));
         } else {
-            $response = $this->privateGetApiV1FuturesBalanceFlow($this->extend($requestUntil, $paramsMarketType));
+            $response = $this->privateGetApiV1FuturesBalanceFlow($this->extend($request, $params));
         }
         //
         // both answers are same format
@@ -2638,7 +2652,7 @@ class toobit extends Exchange {
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
         $currencyId = $this->safe_string($item, 'coinId');
-        $currencyResolved = $this->safe_currency($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer($item, 'created');
         $after = $this->safe_number($item, 'total');
         $amountRaw = $this->safe_string($item, 'change', '');
@@ -2657,13 +2671,13 @@ class toobit extends Exchange {
             'referenceId' => null,
             'referenceAccount' => null,
             'type' => $this->parse_ledger_type($this->safe_string($item, 'flowType')),
-            'currency' => $currencyResolved['code'],
+            'currency' => $currency['code'],
             'amount' => $amount,
             'before' => null,
             'after' => $after,
             'status' => null,
             'fee' => null,
-        ), $currencyResolved);
+        ), $currency);
     }
 
     public function parse_ledger_type(?string $type): ?string {
@@ -2687,12 +2701,14 @@ class toobit extends Exchange {
             $this->load_markets();
         }
         $response = null;
+        $marketType = null;
         $market = null;
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
         if ($marketType === 'spot') {
             throw new NotSupported($this->id . ' fetchTradingFees() => does not support ' . $marketType . ' markets');
         } elseif ($this->in_array($marketType, array( 'swap', 'future' ))) {
-            list($symbol, $paramsSymbol) = $this->handle_param_string($paramsMarketType, 'symbol');
+            $symbol = null;
+            list($symbol, $params) = $this->handle_param_string($params, 'symbol');
             if ($symbol === null) {
                 throw new BadRequest($this->id . ' fetchTradingFees requires a params["symbol"]');
             }
@@ -2700,7 +2716,7 @@ class toobit extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = $this->privateGetApiV1FuturesCommissionRate($this->extend($request, $paramsSymbol));
+            $response = $this->privateGetApiV1FuturesCommissionRate($this->extend($request, $params));
         }
         //
         // {
@@ -2774,13 +2790,13 @@ class toobit extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         if ($limit !== null) {
-            $requestUntil['limit'] = $limit;
+            $request['limit'] = $limit;
         }
         $response = array();
         if ($type === 'deposits') {
-            $response = $this->privateGetApiV1AccountDepositOrders($this->extend($requestUntil, $paramsUntil));
+            $response = $this->privateGetApiV1AccountDepositOrders($this->extend($request, $params));
             //
             // [
             //     {
@@ -2803,7 +2819,7 @@ class toobit extends Exchange {
             // ]
             //
         } elseif ($type === 'withdrawals') {
-            $response = $this->privateGetApiV1AccountWithdrawOrders($this->extend($requestUntil, $paramsUntil));
+            $response = $this->privateGetApiV1AccountWithdrawOrders($this->extend($request, $params));
             //
             // [
             //     {
@@ -2832,7 +2848,7 @@ class toobit extends Exchange {
             // ]
             //
         }
-        return $this->parse_transactions($response, $currency, $since, $limit, $paramsUntil);
+        return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2968,7 +2984,7 @@ class toobit extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         return array(
@@ -2995,7 +3011,8 @@ class toobit extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         $this->check_address($address);
-        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' withdraw() : param["network"] is required');
         }
@@ -3013,7 +3030,7 @@ class toobit extends Exchange {
         if ($tag !== null) {
             $request['addressExt'] = $tag;
         }
-        $response = $this->privatePostApiV1AccountWithdraw($this->extend($request, $paramsNetworkCode));
+        $response = $this->privatePostApiV1AccountWithdraw($this->extend($request, $params));
         //
         // {
         //     "status": 0,
@@ -3047,10 +3064,10 @@ class toobit extends Exchange {
         if ($market['type'] !== 'swap') {
             throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
         }
-        $marginModeValue = strtoupper($marginMode);
+        $marginMode = strtoupper($marginMode);
         $request = array(
             'symbol' => $market['id'],
-            'marginType' => $marginModeValue,
+            'marginType' => $marginMode,
         );
         $response = $this->privatePostApiV1FuturesMarginType($this->extend($request, $params));
         //
@@ -3188,14 +3205,14 @@ class toobit extends Exchange {
 
     public function parse_position(array $position, ?array $market = null): array {
         $marketId = $this->safe_string($position, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $side = $this->safe_string_lower($position, 'side');
         $quantity = $this->safe_string($position, 'position');
         $leverage = $this->safe_integer($position, 'leverage');
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'entryPrice' => $this->safe_number($position, 'avgPrice'),
             'markPrice' => $this->safe_number($position, 'markPrice'),
             'lastPrice' => $this->safe_number($position, 'lastPrice'),
@@ -3220,13 +3237,8 @@ class toobit extends Exchange {
         ));
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
-        if ($baseApiUrl === null) {
-            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
-        }
-        $baseUrl = $baseApiUrl;
-        $url = $baseUrl . '/' . $this->implode_params($path, $params);
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $isPost = $method === 'POST';
         $isDelete = $method === 'DELETE';
         $extraQuery = array();
@@ -3246,44 +3258,34 @@ class toobit extends Exchange {
             $extraQuery['timestamp'] = (string) $timestamp;
             $queryExtended = $this->extend($query, $extraQuery);
             $queryString = '';
-            $privateBody = null;
             if ($isPost || $isDelete) {
                 // everything else except Batch-Orders
                 if ((gettype($params) !== 'array' || array_keys($params) !== array_keys(array_keys($params)))) {
-                    $privateBody = $this->urlencode($queryExtended);
+                    $body = $this->urlencode($queryExtended);
                 } else {
                     $queryString = $this->urlencode($extraQuery);
-                    $privateBody = $this->json($query);
+                    $body = $this->json($query);
                 }
             } else {
                 $queryString = $this->urlencode($queryExtended);
             }
-            $payloadBody = $body;
-            if ($isPost || $isDelete) {
-                $payloadBody = $privateBody;
-            }
             $payload = $queryString;
-            if ($payloadBody !== null) {
-                $payload = $payloadBody . $payload;
+            if ($body !== null) {
+                $payload = $body . $payload;
             }
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'hex');
             if ($queryString !== '') {
                 $queryString .= '&signature=' . $signature;
                 $url .= '?' . $queryString;
             } else {
-                $privateBody .= '&signature=' . $signature;
+                $body .= '&signature=' . $signature;
             }
-            $privateHeaders = array(
+            $headers = array(
                 'Referrer' => 'CCXT',
                 'X-BB-APIKEY' => $this->apiKey,
                 'X-BB-API-PLATFORM' => $this->safe_string($this->options, 'brokerId', '177321641268789'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
-            $requestBody = $body;
-            if ($isPost || $isDelete) {
-                $requestBody = $privateBody;
-            }
-            return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $privateHeaders );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

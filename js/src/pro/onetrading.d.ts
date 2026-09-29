@@ -1,7 +1,6 @@
 import onetradingRest from '../onetrading.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 export default class onetrading extends onetradingRest {
     describe(): any;
     /**
@@ -60,8 +59,8 @@ export default class onetrading extends onetradingRest {
      */
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
-    handleBookDelta(orderbook: Ob, delta: any): void;
-    handleBookDeltas(orderbook: Ob, deltas: any): void;
+    handleDelta(orderbook: any, delta: any): void;
+    handleDeltas(orderbook: any, deltas: any): void;
     /**
      * @method
      * @name onetrading#watchOrders
@@ -96,7 +95,7 @@ export default class onetrading extends onetradingRest {
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: Dict): void;
-    findTimeframe(timeframe: any, timeframes?: any): Str;
+    findTimeframe(timeframe: any, timeframes?: any): string | undefined;
     handleSubscriptions(client: Client, message: Dict): Dict;
     handleHeartbeat(client: Client, message: Dict): Dict;
     handleErrorMessage(client: Client, message: Dict): Bool;

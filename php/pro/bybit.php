@@ -183,7 +183,7 @@ class bybit extends \ccxt\async\bybit {
         );
     }
 
-    public function request_id(): float {
+    public function request_id() {
         $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
@@ -196,11 +196,10 @@ class bybit extends \ccxt\async\bybit {
     }
 
     private function do_get_url_by_market_type(?string $symbol = null, ?bool $isPrivate = false, ?string $method = null, $params = array()) {
-        $accessibility = 'public';
-        if ($isPrivate) {
-            $accessibility = 'private';
+        $accessibility = $isPrivate ? 'private' : 'public';
+        if ($method === null) {
+            $method = '';
         }
-        $methodValue = ($method === null) ? '' : $method;
         $isUsdcSettled = null;
         $isSpot = null;
         $type = null;
@@ -209,12 +208,11 @@ class bybit extends \ccxt\async\bybit {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $isUsdcSettled = $market['settle'] === 'USDC';
-            $type = $this->safe_string($market, 'type');
+            $type = $market['type'];
         } else {
-            list($marketType, $paramsMarketType) = $this->handle_market_type_and_params($methodValue, null, $params);
-            $type = $marketType;
+            list($type, $params) = $this->handle_market_type_and_params($method, null, $params);
             $defaultSettle = $this->safe_string($this->options, 'defaultSettle');
-            $defaultSettle = $this->safe_string_2($paramsMarketType, 'settle', 'defaultSettle', $defaultSettle);
+            $defaultSettle = $this->safe_string_2($params, 'settle', 'defaultSettle', $defaultSettle);
             $isUsdcSettled = ($defaultSettle === 'USDC');
         }
         $isSpot = ($type === 'spot');
@@ -231,7 +229,8 @@ class bybit extends \ccxt\async\bybit {
             if ($isSpot) {
                 $url = $url[$accessibility]['spot'];
             } elseif (($type === 'swap') || ($type === 'future')) {
-                $subType = $this->handle_sub_type_and_params($methodValue, $market, $params, 'linear')[0];
+                $subType = null;
+                list($subType, $params) = $this->handle_sub_type_and_params($method, $market, $params, 'linear');
                 $url = $url[$accessibility][$subType];
             } else {
                 // option
@@ -243,8 +242,8 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function clean_params(array $params): array {
-        $paramsOmitted = $this->omit($params, array( 'type', 'subType', 'settle', 'defaultSettle', 'unifiedMargin' ));
-        return $paramsOmitted;
+        $params = $this->omit($params, array( 'type', 'subType', 'settle', 'defaultSettle', 'unifiedMargin' ));
+        return $params;
     }
 
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
@@ -419,10 +418,10 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $messageHash = 'ticker:' . $symbolValue;
-        $url = Async\await($this->get_url_by_market_type($symbolValue, false, 'watchTicker', $params));
-        $paramsValue = $this->clean_params($params);
+        $symbol = $market['symbol'];
+        $messageHash = 'ticker:' . $symbol;
+        $url = Async\await($this->get_url_by_market_type($symbol, false, 'watchTicker', $params));
+        $params = $this->clean_params($params);
         $options = $this->safe_dict($this->options, 'watchTicker', array());
         $topic = $this->safe_string($options, 'name', 'tickers');
         if (($market['spot'] !== true) && $topic !== 'tickers') {
@@ -430,7 +429,7 @@ class bybit extends \ccxt\async\bybit {
         }
         $topic .= '.' . $market['id'];
         $topics = array( $topic );
-        return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $paramsValue));
+        return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -451,29 +450,26 @@ class bybit extends \ccxt\async\bybit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsValue = $this->market_symbols($symbols, null, false);
+        $symbols = $this->market_symbols($symbols, null, false);
         $messageHashes = array();
-        $url = Async\await($this->get_url_by_market_type($symbolsValue[0], false, 'watchTickers', $params));
-        $paramsValue = $this->clean_params($params);
+        $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchTickers', $params));
+        $params = $this->clean_params($params);
         $options = $this->safe_dict($this->options, 'watchTickers', array());
         $topic = $this->safe_string($options, 'name', 'tickers');
-        $marketIds = $this->market_ids($symbolsValue);
+        $marketIds = $this->market_ids($symbols);
         $topics = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $topics[] = $topic . '.' . $marketId;
-            $messageHashes[] = 'ticker:' . $symbolsValue[$i];
+            $messageHashes[] = 'ticker:' . $symbols[$i];
         }
-        $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $paramsValue));
+        $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
         if ($this->newUpdates) {
             $result = array();
-            $tickerSymbol = $this->safe_string($ticker, 'symbol');
-            if ($tickerSymbol !== null) {
-                $result[$tickerSymbol] = $ticker;
-            }
+            $result[$ticker['symbol']] = $ticker;
             return $result;
         }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbolsValue);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
     public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -494,22 +490,22 @@ class bybit extends \ccxt\async\bybit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsValue = $this->market_symbols($symbols, null, false);
+        $symbols = $this->market_symbols($symbols, null, false);
         $options = $this->safe_dict($this->options, 'watchTickers', array());
         $topic = $this->safe_string($options, 'name', 'tickers');
         $messageHashes = array();
         $subMessageHashes = array();
-        $marketIds = $this->market_ids($symbolsValue);
+        $marketIds = $this->market_ids($symbols);
         $topics = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $symbol = $symbolsValue[$i];
+            $symbol = $symbols[$i];
             $topics[] = $topic . '.' . $marketId;
             $subMessageHashes[] = 'ticker:' . $symbol;
             $messageHashes[] = 'unsubscribe:ticker:' . $symbol;
         }
-        $url = Async\await($this->get_url_by_market_type($symbolsValue[0], false, 'watchTickers', $params));
-        return Async\await($this->un_watch_topics($url, 'ticker', $symbolsValue, $messageHashes, $subMessageHashes, $topics, $params));
+        $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchTickers', $params));
+        return Async\await($this->un_watch_topics($url, 'ticker', $symbols, $messageHashes, $subMessageHashes, $topics, $params));
     }
 
     public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -645,21 +641,18 @@ class bybit extends \ccxt\async\bybit {
         $updateType = $this->safe_string($message, 'type', '');
         $data = $this->safe_dict($message, 'data', array());
         $isSpot = $this->safe_string($data, 'usdIndexPrice') !== null;
-        $type = 'contract';
-        if ($isSpot) {
-            $type = 'spot';
-        }
+        $type = $isSpot ? 'spot' : 'contract';
         $symbol = null;
         $parsed = null;
         if (($updateType === 'snapshot')) {
             $parsed = $this->parse_ticker($data);
-            $symbol = $this->safe_string($parsed, 'symbol');
+            $symbol = $parsed['symbol'];
         } elseif ($updateType === 'delta') {
             $topicParts = explode('.', $topic);
             $topicLength = count($topicParts);
             $marketId = $this->safe_string($topicParts, $topicLength - 1);
             $market = $this->safe_market($marketId, null, null, $type);
-            $symbol = $this->safe_string($market, 'symbol');
+            $symbol = $market['symbol'];
             // update the info in place
             $ticker = $this->safe_dict($this->tickers, $symbol, array());
             $rawTicker = $this->safe_dict($ticker, 'info', array());
@@ -694,26 +687,26 @@ class bybit extends \ccxt\async\bybit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsValue = $this->market_symbols($symbols, null, false);
+        $symbols = $this->market_symbols($symbols, null, false);
         $messageHashes = array();
-        $url = Async\await($this->get_url_by_market_type($symbolsValue[0], false, 'watchBidsAsks', $params));
-        $paramsValue = $this->clean_params($params);
-        $marketIds = $this->market_ids($symbolsValue);
+        $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchBidsAsks', $params));
+        $params = $this->clean_params($params);
+        $marketIds = $this->market_ids($symbols);
         $topics = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $topic = 'orderbook.1.' . $marketId;
             $topics[] = $topic;
-            $messageHashes[] = 'bidask:' . $symbolsValue[$i];
+            $messageHashes[] = 'bidask:' . $symbols[$i];
         }
-        $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $paramsValue));
+        $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
         if ($this->newUpdates) {
             return $ticker;
         }
-        return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsValue);
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
     }
 
-    public function parse_ws_bid_ask(mixed $orderbook, ?array $market = null): array {
+    public function parse_ws_bid_ask(mixed $orderbook, ?array $market = null) {
         $timestamp = $this->safe_integer($orderbook, 'timestamp');
         $bids = $this->sort_by($this->aggregate($orderbook['bids']), 0);
         $asks = $this->sort_by($this->aggregate($orderbook['asks']), 0);
@@ -790,11 +783,10 @@ class bybit extends \ccxt\async\bybit {
             $messageHashes[] = 'ohlcv::' . $symbolString . '::' . $unfiedTimeframe;
         }
         list($symbol, $timeframe, $stored) = Async\await($this->watch_topics($url, $messageHashes, $rawHashes, $params));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $stored->getLimit($symbol, $limit);
+            $limit = $stored->getLimit($symbol, $limit);
         }
-        $filtered = $this->filter_by_since_limit($stored, $since, $limitResolved, 0, true);
+        $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
         return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
     }
 
@@ -893,10 +885,7 @@ class bybit extends \ccxt\async\bybit {
         }
         $marketId = $this->safe_string($topicParts, $topicLength - 1);
         $isSpot = mb_strpos($client->url, 'spot') > -1;
-        $marketType = 'contract';
-        if ($isSpot) {
-            $marketType = 'spot';
-        }
+        $marketType = $isSpot ? 'spot' : 'contract';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $ohlcvsByTimeframe = $this->safe_dict($this->ohlcvs, $symbol);
@@ -933,11 +922,8 @@ class bybit extends \ccxt\async\bybit {
         //         "timestamp": 1670363219614
         //     }
         //
-        $isInverse = $this->safe_bool($market, 'inverse', false);
-        $volumeIndex = 'volume';
-        if ($isInverse) {
-            $volumeIndex = 'turnover';
-        }
+        $isInverse = ($this->safe_bool($market, 'inverse') === true);
+        $volumeIndex = $isInverse ? 'turnover' : 'volume';
         return array(
             $this->safe_integer($ohlcv, 'start'),
             $this->safe_number($ohlcv, 'open'),
@@ -984,13 +970,16 @@ class bybit extends \ccxt\async\bybit {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
-        $url = Async\await($this->get_url_by_market_type($symbolsNormalized[0], false, 'watchOrderBook', $params));
-        $paramsValue = $this->clean_params($params);
-        $market = $this->market($symbolsNormalized[0]);
-        $defaultLimit = ($market['option'] === true) ? 100 : 50;
-        $limitResolved = ($limit === null) ? $defaultLimit : $limit;
-        if ($limit !== null) {
+        $symbols = $this->market_symbols($symbols);
+        $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchOrderBook', $params));
+        $params = $this->clean_params($params);
+        $market = $this->market($symbols[0]);
+        if ($limit === null) {
+            $limit = 50;
+            if ($market['option'] === true) {
+                $limit = 100;
+            }
+        } else {
             $limits = array(
                 'spot' => array( 1, 50, 200, 1000 ),
                 'option' => array( 25, 100 ),
@@ -1003,15 +992,15 @@ class bybit extends \ccxt\async\bybit {
         }
         $topics = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $symbol = $symbolsNormalized[$i];
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $marketId = $this->market_id($symbol);
-            $topic = 'orderbook.' . (string) $limitResolved . '.' . $marketId;
+            $topic = 'orderbook.' . (string) $limit . '.' . $marketId;
             $topics[] = $topic;
             $messageHash = 'orderbook:' . $symbol;
             $messageHashes[] = $messageHash;
         }
-        $orderbook = Async\await($this->watch_topics($url, $messageHashes, $topics, $paramsValue));
+        $orderbook = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
         return $orderbook->limit();
     }
 
@@ -1033,20 +1022,21 @@ class bybit extends \ccxt\async\bybit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, false);
+        $symbols = $this->market_symbols($symbols, null, false);
         $channel = 'orderbook.';
         $limit = $this->safe_integer($params, 'limit');
-        $paramsOmitted = ($limit !== null) ? $this->omit($params, 'limit') : $params;
-        if ($limit === null) {
-            $firstMarket = $this->market($symbolsNormalized[0]);
+        if ($limit !== null) {
+            $params = $this->omit($params, 'limit');
+        } else {
+            $firstMarket = $this->market($symbols[0]);
             $limit = ($firstMarket['spot'] === true) ? 50 : 500;
         }
         $channel .= (string) $limit;
         $subMessageHashes = array();
         $messageHashes = array();
         $topics = array();
-        for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $symbol = $symbolsNormalized[$i];
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $market = $this->market($symbol);
             $marketId = $market['id'];
             $topic = $channel . '.' . $marketId;
@@ -1054,8 +1044,8 @@ class bybit extends \ccxt\async\bybit {
             $subMessageHashes[] = 'orderbook:' . $symbol;
             $topics[] = $topic;
         }
-        $url = Async\await($this->get_url_by_market_type($symbolsNormalized[0], false, 'watchOrderBook', $paramsOmitted));
-        return Async\await($this->un_watch_topics($url, 'orderbook', $symbolsNormalized, $messageHashes, $subMessageHashes, $topics, $paramsOmitted));
+        $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchOrderBook', $params));
+        return Async\await($this->un_watch_topics($url, 'orderbook', $symbols, $messageHashes, $subMessageHashes, $topics, $params));
     }
 
     public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
@@ -1113,10 +1103,7 @@ class bybit extends \ccxt\async\bybit {
         $isSnapshot = ($type === 'snapshot');
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
-        $marketType = 'contract';
-        if ($isSpot) {
-            $marketType = 'spot';
-        }
+        $marketType = $isSpot ? 'spot' : 'contract';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($message, 'ts');
@@ -1193,31 +1180,30 @@ class bybit extends \ccxt\async\bybit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
-        $symbolsLength = count($symbolsNormalized);
+        $symbols = $this->market_symbols($symbols);
+        $symbolsLength = count($symbols);
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
-        $paramsValue = $this->clean_params($params);
-        $url = Async\await($this->get_url_by_market_type($symbolsNormalized[0], false, 'watchTrades', $paramsValue));
+        $params = $this->clean_params($params);
+        $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchTrades', $params));
         $topics = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $symbol = $symbolsNormalized[$i];
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $market = $this->market($symbol);
             $topic = 'publicTrade.' . $market['id'];
             $topics[] = $topic;
             $messageHash = 'trade:' . $symbol;
             $messageHashes[] = $messageHash;
         }
-        $trades = Async\await($this->watch_topics($url, $messageHashes, $topics, $paramsValue));
-        $first = $this->safe_dict($trades, 0);
-        $tradeSymbol = $this->safe_string($first, 'symbol');
-        $limitResolved = $limit;
+        $trades = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
+            $first = $this->safe_dict($trades, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
@@ -1237,13 +1223,13 @@ class bybit extends \ccxt\async\bybit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, false, true);
-        $url = Async\await($this->get_url_by_market_type($symbolsNormalized[0], false, 'unWatchTradesForSymbols', $params));
+        $symbols = $this->market_symbols($symbols, null, false, true);
+        $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'unWatchTradesForSymbols', $params));
         $messageHashes = array();
         $topics = array();
         $subMessageHashes = array();
-        for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $symbol = $symbolsNormalized[$i];
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $market = $this->market($symbol);
             $topic = 'publicTrade.' . $market['id'];
             $topics[] = $topic;
@@ -1251,7 +1237,7 @@ class bybit extends \ccxt\async\bybit {
             $messageHashes[] = $messageHash;
             $subMessageHashes[] = 'trade:' . $symbol;
         }
-        return Async\await($this->un_watch_topics($url, 'trades', $symbolsNormalized, $messageHashes, $subMessageHashes, $topics, $params));
+        return Async\await($this->un_watch_topics($url, 'trades', $symbols, $messageHashes, $subMessageHashes, $topics, $params));
     }
 
     public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
@@ -1292,10 +1278,7 @@ class bybit extends \ccxt\async\bybit {
         $trades = $data;
         $parts = explode('.', $topic);
         $isSpot = mb_strpos($client->url, 'spot') !== false;
-        $marketType = 'contract';
-        if ($isSpot) {
-            $marketType = 'spot';
-        }
+        $marketType = ($isSpot) ? 'spot' : 'contract';
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
@@ -1347,16 +1330,13 @@ class bybit extends \ccxt\async\bybit {
         //
         $id = $this->safe_string_n($trade, array( 'i', 'T', 'v' ));
         $isContract = (is_array($trade) && array_key_exists('BT' ?? '', $trade));
-        $marketType = 'spot';
-        if ($isContract) {
-            $marketType = 'contract';
-        }
+        $marketType = $isContract ? 'contract' : 'spot';
         if ($market !== null) {
-            $marketType = $this->safe_string($market, 'type');
+            $marketType = $market['type'];
         }
         $marketId = $this->safe_string($trade, 's');
-        $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($marketId, $market, null, $marketType);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_2($trade, 't', 'T');
         $side = $this->safe_string_lower($trade, 'S');
         $takerOrMaker = null;
@@ -1384,7 +1364,7 @@ class bybit extends \ccxt\async\bybit {
             'amount' => $amount,
             'cost' => null,
             'fee' => null,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function get_private_type(string $url): string {
@@ -1421,11 +1401,11 @@ class bybit extends \ccxt\async\bybit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
-            $messageHash .= ':' . $symbolResolved;
+            $symbol = $this->symbol($symbol);
+            $messageHash .= ':' . $symbol;
         }
-        $url = Async\await($this->get_url_by_market_type($symbolResolved, true, $method, $params));
+        $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
         Async\await($this->authenticate($url));
         $topicByMarket = array(
             'spot' => 'ticketInfo',
@@ -1433,16 +1413,16 @@ class bybit extends \ccxt\async\bybit {
             'usdc' => 'user.openapi.perp.trade',
         );
         $topic = $this->safe_string($topicByMarket, $this->get_private_type($url));
-        list($executionFast, $paramsExecutionFast) = $this->handle_option_bool_and_params($params, 'watchMyTrades', 'executionFast', false);
+        $executionFast = false;
+        list($executionFast, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'executionFast', false);
         if ($executionFast) {
             $topic = 'execution.fast';
         }
-        $trades = Async\await($this->watch_topics($url, array( $messageHash ), array( $topic ), $paramsExecutionFast));
-        $limitResolved = $limit;
+        $trades = Async\await($this->watch_topics($url, array( $messageHash ), array( $topic ), $params));
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($symbolResolved, $limit);
+            $limit = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
     public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
@@ -1479,11 +1459,12 @@ class bybit extends \ccxt\async\bybit {
             'usdc' => 'user.openapi.perp.trade',
         );
         $topic = $this->safe_string($topicByMarket, $this->get_private_type($url));
-        list($executionFast, $paramsExecutionFast) = $this->handle_option_bool_and_params($params, 'watchMyTrades', 'executionFast', false);
+        $executionFast = false;
+        list($executionFast, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'executionFast', false);
         if ($executionFast) {
             $topic = 'execution.fast';
         }
-        return Async\await($this->un_watch_topics($url, 'myTrades', array(), array( $messageHash ), array( $subHash ), array( $topic ), $paramsExecutionFast));
+        return Async\await($this->un_watch_topics($url, 'myTrades', array(), array( $messageHash ), array( $subHash ), array( $topic ), $params));
     }
 
     public function handle_my_trades(Client $client, array $message) {
@@ -1654,32 +1635,29 @@ class bybit extends \ccxt\async\bybit {
         }
         $method = 'watchPositions';
         $messageHash = '';
-        $symbolsNormalized = $symbols;
         if (($symbols !== null) && !$this->is_empty($symbols)) {
-            $symbolsNormalized = $this->market_symbols($symbols);
+            $symbols = $this->market_symbols($symbols);
+            $messageHash = '::' . implode(',', $symbols);
         }
-        if (($symbolsNormalized !== null) && !$this->is_empty($symbolsNormalized)) {
-            $messageHash = '::' . implode(',', $symbolsNormalized);
-        }
-        $firstSymbol = $this->safe_string($symbolsNormalized, 0);
+        $firstSymbol = $this->safe_string($symbols, 0);
         $url = Async\await($this->get_url_by_market_type($firstSymbol, true, $method, $params));
         $messageHash = 'positions' . $messageHash;
         $client = $this->client($url);
         Async\await($this->authenticate($url));
-        $this->set_positions_cache($client, $symbolsNormalized);
+        $this->set_positions_cache($client, $symbols);
         $cache = $this->positions;
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
         if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($cache === null)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
-            return $this->filter_by_symbols_since_limit($snapshot, $symbolsNormalized, $since, $limit, true);
+            return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
         }
         $topics = array( 'position' );
         $newPositions = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
         if ($this->newUpdates) {
             return $newPositions;
         }
-        return $this->filter_by_symbols_since_limit($cache, $symbolsNormalized, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($cache, $symbols, $since, $limit, true);
     }
 
     public function set_positions_cache(Client $client, ?array $symbols = null) {
@@ -1856,16 +1834,18 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $url = Async\await($this->get_url_by_market_type($symbolValue, false, 'watchLiquidations', $params));
-        list($method, $paramsMethod) = $this->handle_option_string_and_params($this->clean_params($params), 'watchLiquidations', 'method', 'allLiquidation');
-        $messageHash = 'liquidations::' . $symbolValue;
+        $symbol = $market['symbol'];
+        $url = Async\await($this->get_url_by_market_type($symbol, false, 'watchLiquidations', $params));
+        $params = $this->clean_params($params);
+        $method = null;
+        list($method, $params) = $this->handle_option_and_params($params, 'watchLiquidations', 'method', 'allLiquidation');
+        $messageHash = 'liquidations::' . $symbol;
         $topic = $method . '.' . $market['id'];
-        $newLiquidation = Async\await($this->watch_topics($url, array( $messageHash ), array( $topic ), $paramsMethod));
+        $newLiquidation = Async\await($this->watch_topics($url, array( $messageHash ), array( $topic ), $params));
         if ($this->newUpdates) {
             return $newLiquidation;
         }
-        return $this->filter_by_symbols_since_limit($this->liquidations, array( $symbolValue ), $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->liquidations, array( $symbol ), $since, $limit, true);
     }
 
     public function handle_liquidation(Client $client, array $message) {
@@ -1901,7 +1881,7 @@ class bybit extends \ccxt\async\bybit {
         if ((gettype($message['data']) === 'array' && array_keys($message['data']) === array_keys(array_keys($message['data'])))) {
             $rawLiquidations = $this->safe_list($message, 'data', array());
             for ($i = 0; $i < count($rawLiquidations); $i++) {
-                $rawLiquidation = $this->safe_dict($rawLiquidations, $i);
+                $rawLiquidation = $rawLiquidations[$i];
                 $marketId = $this->safe_string($rawLiquidation, 's');
                 $market = $this->safe_market($marketId, null, '', 'contract');
                 $symbol = $market['symbol'];
@@ -1932,7 +1912,7 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function parse_ws_liquidation(?array $liquidation, ?array $market = null) {
+    public function parse_ws_liquidation(mixed $liquidation, ?array $market = null) {
         //
         //     {
         //         "price": "0.03803",
@@ -1951,13 +1931,13 @@ class bybit extends \ccxt\async\bybit {
         //     }
         //
         $marketId = $this->safe_string_2($liquidation, 'symbol', 's');
-        $marketResolved = $this->safe_market($marketId, $market, '', 'contract');
+        $market = $this->safe_market($marketId, $market, '', 'contract');
         $timestamp = $this->safe_integer_2($liquidation, 'updatedTime', 'T');
         return $this->safe_liquidation(array(
             'info' => $liquidation,
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'contracts' => $this->safe_number_2($liquidation, 'size', 'v'),
-            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number_2($liquidation, 'price', 'p'),
             'side' => $this->safe_string_lower_2($liquidation, 'side', 'S'),
             'baseValue' => null,
@@ -1988,11 +1968,11 @@ class bybit extends \ccxt\async\bybit {
         }
         $method = 'watchOrders';
         $messageHash = 'orders';
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
-            $messageHash .= ':' . $symbolResolved;
+            $symbol = $this->symbol($symbol);
+            $messageHash .= ':' . $symbol;
         }
-        $url = Async\await($this->get_url_by_market_type($symbolResolved, true, $method, $params));
+        $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
         Async\await($this->authenticate($url));
         $topicsByMarket = array(
             'spot' => array( 'order', 'stopOrder' ),
@@ -2001,11 +1981,10 @@ class bybit extends \ccxt\async\bybit {
         );
         $topics = $this->safe_list($topicsByMarket, $this->get_private_type($url));
         $orders = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $orders->getLimit($symbolResolved, $limit);
+            $limit = $orders->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
@@ -2208,12 +2187,14 @@ class bybit extends \ccxt\async\bybit {
         }
         $method = 'watchBalance';
         $messageHash = 'balances';
-        list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $params);
-        list($subType, $paramsSubType) = $this->handle_sub_type_and_params('watchBalance', null, $paramsMarketType);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('watchBalance', null, $params);
         $unified = Async\await($this->isUnifiedEnabled());
         $isUnifiedMargin = $this->safe_bool($unified, 0, false);
         $isUnifiedAccount = $this->safe_bool($unified, 1, false);
-        $url = Async\await($this->get_url_by_market_type(null, true, $method, $paramsSubType));
+        $url = Async\await($this->get_url_by_market_type(null, true, $method, $params));
         Async\await($this->authenticate($url));
         $topicByMarket = array(
             'spot' => 'outboundAccountInfo',
@@ -2248,7 +2229,7 @@ class bybit extends \ccxt\async\bybit {
             }
         }
         $topics = array( $this->safe_string($topicByMarket, $this->get_private_type($url)) );
-        return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $paramsSubType));
+        return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
     }
 
     public function handle_balance(Client $client, array $message) {
@@ -2917,7 +2898,7 @@ class bybit extends \ccxt\async\bybit {
                 $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
                 for ($j = 0; $j < count($messageHashes); $j++) {
                     $unsubHash = $messageHashes[$j];
-                    $subHash = $this->safe_string($subMessageHashes, $j);
+                    $subHash = $subMessageHashes[$j];
                     $usePrefix = ($subHash === 'orders') || ($subHash === 'myTrades') || ($subHash === 'positions');
                     $this->clean_unsubscription($client, $subHash, $unsubHash, $usePrefix);
                 }

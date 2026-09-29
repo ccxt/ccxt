@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/binance.js';
-import type { OrderSide, OrderType, Int, int, Str, Dict, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade } from '../base/types.js';
+import type { Int, int, Str, Dict, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade } from '../base/types.js';
 /**
  * @class binance
  * @augments Exchange
@@ -23,7 +23,7 @@ export default class binance extends Exchange {
      * @param {int} [params.limit] for an unscoped listing (no query), the max number of topics to collect (defaults to options.maxFetchMarketsLimit, 200)
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: Dict): Promise<Market[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     /**
      * @ignore
      * @method
@@ -34,7 +34,7 @@ export default class binance extends Exchange {
      * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
      * @returns {object[]} raw market topic objects
      */
-    fetchRawTopics(maxTopics: Int, rest?: Dict): Promise<any[]>;
+    fetchRawTopics(maxTopics: Int, rest?: {}): Promise<any[]>;
     /**
      * @ignore
      * @method
@@ -44,7 +44,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra params forwarded verbatim to the detail endpoint
      * @returns {object} the raw market topic object
      */
-    fetchRawTopicDetail(topicId: string, params?: Dict): Promise<any>;
+    fetchRawTopicDetail(topicId: string, params?: {}): Promise<any>;
     /**
      * @ignore
      * @method
@@ -85,7 +85,7 @@ export default class binance extends Exchange {
      * @param {object} [rest] extra params forwarded verbatim to the search endpoint
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    fetchEventsByQuery(queries: string[], limit: Int, rest?: Dict): Promise<any[]>;
+    fetchEventsByQuery(queries: string[], limit: Int, rest?: {}): Promise<any[]>;
     /**
      * @method
      * @name binance#fetchEvent
@@ -95,7 +95,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    fetchEvent(id: string, params?: Dict): Promise<PredictionEvent>;
+    fetchEvent(id: string, params?: {}): Promise<PredictionEvent>;
     /**
      * @ignore
      * @method
@@ -124,7 +124,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    fetchTicker(outcome: string, params?: Dict): Promise<PredictionTicker>;
+    fetchTicker(outcome: Str, params?: {}): Promise<PredictionTicker>;
     /**
      * @ignore
      * @method
@@ -144,7 +144,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    fetchTickers(outcomes?: Strings, params?: Dict): Promise<PredictionTickers>;
+    fetchTickers(outcomes?: Strings, params?: {}): Promise<PredictionTickers>;
     /**
      * @method
      * @name binance#fetchOrderBook
@@ -155,7 +155,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    fetchOrderBook(outcome: string, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
+    fetchOrderBook(outcome: Str, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name binance#fetchBalance
@@ -165,7 +165,7 @@ export default class binance extends Exchange {
      * @param {string} [params.type] 'CeDefi', 'FUNDING', or 'SPOT'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: Dict): Promise<Balances>;
+    fetchBalance(params?: {}): Promise<Balances>;
     /**
      * @ignore
      * @method
@@ -191,7 +191,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    fetchOpenOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
+    fetchOpenOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name binance#fetchOrders
@@ -208,7 +208,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    fetchOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
+    fetchOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name binance#fetchPositions
@@ -219,7 +219,7 @@ export default class binance extends Exchange {
      * @param {string} [params.tab] Position status tab. Values from PositionQueryType. Default ONGOING
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    fetchPositions(outcomes?: Strings, params?: Dict): Promise<PredictionPosition[]>;
+    fetchPositions(outcomes?: Strings, params?: {}): Promise<PredictionPosition[]>;
     /**
      * @method
      * @name binance#fetchPosition
@@ -229,7 +229,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    fetchPosition(outcome: string, params?: Dict): Promise<PredictionPosition>;
+    fetchPosition(outcome: string, params?: {}): Promise<PredictionPosition>;
     /**
      * @ignore
      * @method
@@ -256,7 +256,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    fetchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
+    fetchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
     /**
      * @ignore
      * @method
@@ -276,7 +276,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a wallet
      */
-    fetchWallet(methodName: string, params?: Dict): Promise<any>;
+    fetchWallet(methodName: string, params?: {}): Promise<any>;
     /**
      * @method
      * @name binance#fetchQuote
@@ -290,7 +290,7 @@ export default class binance extends Exchange {
      * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
      * @returns {object} a quote
      */
-    fetchQuote(request: Dict, params?: Dict): Promise<any>;
+    fetchQuote(request: Dict, params?: {}): Promise<any>;
     priceToPrecision(outcome: Str, price: any): string;
     amountToPrecision(outcome: Str, amount: any): string;
     /**
@@ -313,7 +313,7 @@ export default class binance extends Exchange {
      * @param {string} [params.cost] Buy prediction market with USDT cost, only for buy side
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    createOrder(outcome: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<PredictionOrder>;
+    createOrder(outcome: string, type: string, side: string, amount: number, price?: Num, params?: {}): Promise<PredictionOrder>;
     /**
      * @method
      * @name binance#createMarketOrderWithCost
@@ -325,7 +325,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: Dict): Promise<PredictionOrder>;
+    createMarketOrderWithCost(symbol: string, side: string, cost: number, params?: {}): Promise<PredictionOrder>;
     /**
      * @method
      * @name binance#cancelOrder
@@ -336,7 +336,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    cancelOrder(id: string, outcome?: Str, params?: Dict): Promise<PredictionOrder>;
+    cancelOrder(id: string, outcome?: Str, params?: {}): Promise<PredictionOrder>;
     /**
      * @method
      * @name binance#cancelOrders
@@ -347,7 +347,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    cancelOrders(ids: string[], outcome?: Str, params?: Dict): Promise<PredictionOrder[]>;
+    cancelOrders(ids: string[], outcome?: Str, params?: {}): Promise<PredictionOrder[]>;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
      * @ignore
@@ -362,7 +362,7 @@ export default class binance extends Exchange {
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

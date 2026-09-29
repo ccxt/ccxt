@@ -75,34 +75,34 @@ class opinion extends opinion$1["default"] {
                 'opinion': {
                     'public': {
                         'get': {
-                            'market': { 'cost': 1 },
-                            'market/{marketId}': { 'cost': 1 },
-                            'market/categorical/{marketId}': { 'cost': 1 },
-                            'market/slug/{slug}': { 'cost': 1 },
+                            'market': 1,
+                            'market/{marketId}': 1,
+                            'market/categorical/{marketId}': 1,
+                            'market/slug/{slug}': 1,
                             'label': 1,
-                            'token/latest-price': { 'cost': 1 },
-                            'token/orderbook': { 'cost': 1 },
-                            'token/price-history': { 'cost': 1 },
-                            'quoteToken': { 'cost': 1 },
+                            'token/latest-price': 1,
+                            'token/orderbook': 1,
+                            'token/price-history': 1,
+                            'quoteToken': 1,
                         },
                     },
                     'private': {
                         'get': {
-                            'order': { 'cost': 1 },
-                            'order/{orderId}': { 'cost': 1 },
-                            'positions/user/{walletAddress}': { 'cost': 1 },
-                            'trade/user/{walletAddress}': { 'cost': 1 },
-                            'auth/api-key': { 'cost': 1 },
-                            'user/auth': { 'cost': 1 },
-                            'user/balance': { 'cost': 1 },
+                            'order': 1,
+                            'order/{orderId}': 1,
+                            'positions/user/{walletAddress}': 1,
+                            'trade/user/{walletAddress}': 1,
+                            'auth/api-key': 1,
+                            'user/auth': 1,
+                            'user/balance': 1,
                         },
                         'post': {
-                            'auth/api-key': { 'cost': 1 },
-                            'order': { 'cost': 1 },
-                            'order/cancel': { 'cost': 1 },
+                            'auth/api-key': 1,
+                            'order': 1,
+                            'order/cancel': 1,
                         },
                         'delete': {
-                            'auth/api-key': { 'cost': 1 },
+                            'auth/api-key': 1,
                         },
                     },
                 },
@@ -603,13 +603,7 @@ class opinion extends opinion$1["default"] {
         const eventId = this.safeString(rawEvent, 'marketId');
         const slug = this.safeString(rawEvent, 'slug');
         const title = this.safeString(rawEvent, 'marketTitle');
-        let eventHandle = undefined;
-        if (title !== undefined) {
-            eventHandle = this.shortenSlug(title);
-        }
-        else {
-            eventHandle = this.shortenSlug(slug);
-        }
+        const eventHandle = (title !== undefined) ? this.shortenSlug(title) : this.shortenSlug(slug);
         const rawChildren = this.safeList(rawEvent, 'childMarkets', []);
         const rawChildrenLength = rawChildren.length;
         const marketsList = [];
@@ -842,7 +836,7 @@ class opinion extends opinion$1["default"] {
         const candles = [];
         const historyLength = history.length;
         for (let i = 0; i < historyLength; i++) {
-            const point = this.safeDict(history, i);
+            const point = history[i];
             const price = this.safeNumber(point, 'p');
             const timestamp = this.safeTimestamp(point, 't');
             if ((price !== undefined) && (timestamp !== undefined)) {
@@ -1412,7 +1406,7 @@ class opinion extends opinion$1["default"] {
         const balances = this.safeList(data, 'balances', []);
         const balancesLength = balances.length;
         for (let i = 0; i < balancesLength; i++) {
-            const balance = this.safeDict(balances, i);
+            const balance = balances[i];
             const code = this.safeString(balance, 'symbol', 'USDT');
             result[code] = {
                 'free': this.safeNumber(balance, 'availableBalance'),
@@ -1709,7 +1703,7 @@ class opinion extends opinion$1["default"] {
         const marketKeys = Object.keys(this.markets);
         const marketKeysLength = marketKeys.length;
         for (let i = 0; i < marketKeysLength; i++) {
-            const market = this.safeDict(this.markets, marketKeys[i]);
+            const market = this.markets[marketKeys[i]];
             const info = this.safeDict(market, 'info', {});
             if (this.safeInteger(info, 'marketId') === marketId) {
                 const outcomes = this.safeList(market, 'outcomes', []);
@@ -1992,15 +1986,9 @@ class opinion extends opinion$1["default"] {
         // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         // per the docs and confirmed live
         const sideInt = this.safeInteger(message, 'side');
-        let side = 'sell';
-        if (sideInt === 1) {
-            side = 'buy';
-        }
+        const side = (sideInt === 1) ? 'buy' : 'sell';
         const tradingMethod = this.safeInteger(message, 'tradingMethod');
-        let type = 'limit';
-        if (tradingMethod === 1) {
-            type = 'market';
-        }
+        const type = (tradingMethod === 1) ? 'market' : 'limit';
         const order = this.safePredictionOrder({
             'id': this.safeString(message, 'orderId'),
             'clientOrderId': undefined,
@@ -2144,7 +2132,7 @@ class opinion extends opinion$1["default"] {
         let url = baseUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const existingHeaders = (headers !== undefined) ? headers : {};
-        const headersExtended = this.extend({
+        headers = this.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders);
@@ -2157,9 +2145,9 @@ class opinion extends opinion$1["default"] {
                 const actionByMethod = { 'POST': 'create', 'GET': 'get', 'DELETE': 'delete' };
                 const action = this.safeString(actionByMethod, method, 'get');
                 const timestamp = this.numberToString(this.seconds());
-                headersExtended['OPINION_ADDRESS'] = this.walletAddress;
-                headersExtended['OPINION_SIGNATURE'] = this.signApiKeyAuth(this.walletAddress, action, timestamp);
-                headersExtended['OPINION_TIMESTAMP'] = timestamp;
+                headers['OPINION_ADDRESS'] = this.walletAddress;
+                headers['OPINION_SIGNATURE'] = this.signApiKeyAuth(this.walletAddress, action, timestamp);
+                headers['OPINION_TIMESTAMP'] = timestamp;
             }
             else {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
@@ -2169,19 +2157,18 @@ class opinion extends opinion$1["default"] {
                 if (apiKey === undefined) {
                     throw new errors.AuthenticationError(this.id + ' ' + path + ' requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first');
                 }
-                headersExtended['apikey'] = apiKey;
+                headers['apikey'] = apiKey;
             }
         }
-        let bodyValue = body;
         if (method === 'GET') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
         else {
-            bodyValue = this.json(query);
+            body = this.json(query);
         }
-        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
 

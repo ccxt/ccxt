@@ -273,9 +273,6 @@ export default class zaif extends Exchange {
         const [baseId, quoteId] = name.split('/');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         const symbol = base + '/' + quote;
         return this.safeMarketStructure({
             'id': id,
@@ -743,7 +740,7 @@ export default class zaif extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -759,10 +756,10 @@ export default class zaif extends Exchange {
             // 'message': 'Hi!', // XEM and others
             // 'opt_fee': 0.003, // BTC and MONA only
         };
-        if (tagWithdrawTag !== undefined) {
-            request['message'] = tagWithdrawTag;
+        if (tag !== undefined) {
+            request['message'] = tag;
         }
-        const result = await this.privatePostWithdraw(this.extend(request, paramsWithdrawTag));
+        const result = await this.privatePostWithdraw(this.extend(request, params));
         //
         //     {
         //         "success": 1,
@@ -796,13 +793,13 @@ export default class zaif extends Exchange {
         //         }
         //     }
         //
-        const currencyResolved = this.safeCurrency(undefined, currency);
+        currency = this.safeCurrency(undefined, currency);
         let fee = undefined;
         const feeCost = this.safeNumber(transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': currencyResolved['code'],
+                'currency': currency['code'],
             };
         }
         return {
@@ -816,7 +813,7 @@ export default class zaif extends Exchange {
             'addressTo': undefined,
             'amount': undefined,
             'type': undefined,
-            'currency': currencyResolved['code'],
+            'currency': currency['code'],
             'status': undefined,
             'updated': undefined,
             'tagFrom': undefined,
@@ -834,12 +831,7 @@ export default class zaif extends Exchange {
         return nonce.toFixed(8);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseApiUrl = this.safeString(this.urls['api'], 'rest');
-        if (baseApiUrl === undefined) {
-            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        const baseUrl = baseApiUrl;
-        let url = baseUrl + '/';
+        let url = this.urls['api']['rest'] + '/';
         if (api === 'public') {
             url += 'api/' + this.version + '/' + this.implodeParams(path, params);
         }
@@ -858,16 +850,15 @@ export default class zaif extends Exchange {
                 url += 'tapi';
             }
             const nonce = this.customNonce();
-            const bodyEncoded = this.urlencode(this.extend({
+            body = this.urlencode(this.extend({
                 'method': path,
                 'nonce': nonce,
             }, params));
-            const headersSigned = {
+            headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac(this.encode(bodyEncoded), this.encode(this.secret), sha512),
+                'Sign': this.hmac(this.encode(body), this.encode(this.secret), sha512),
             };
-            return { 'url': url, 'method': method, 'body': bodyEncoded, 'headers': headersSigned };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

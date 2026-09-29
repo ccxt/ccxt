@@ -37,7 +37,7 @@ export default class derive extends deriveRest {
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     /**
      * @method
      * @name derive#unWatchTrades
@@ -46,7 +46,7 @@ export default class derive extends deriveRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
+    unWatchTrades(symbol: string, params?: {}): Promise<any>;
     unWatchPublic(messageHash: string, message: Dict, subscription: Dict): Promise<any>;
     handleOrderBookUnSubscription(client: Client, topic: string): void;
     handleTradesUnSubscription(client: Client, topic: string): void;

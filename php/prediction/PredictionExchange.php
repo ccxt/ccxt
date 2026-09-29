@@ -464,14 +464,12 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         if ($outcomeObj !== null) {
             return $outcomeObj;
         }
-        // stub for an unknown handle; it only carries the identity keys, not the market fields
-        $outcomeObjValue = array( 'outcome' => $outcomeIdOrSymbol, 'outcomeId' => $outcomeIdOrSymbol, 'market' => null, 'label' => null, 'event' => null, 'info' => array());
-        return $outcomeObjValue;
+        return array( 'outcome' => $outcomeIdOrSymbol, 'outcomeId' => $outcomeIdOrSymbol, 'market' => null, 'label' => null, 'event' => null, 'info' => array());
     }
 
     public function safe_outcome_symbol(?string $outcomeIdOrSymbol, mixed $outcomeObj = null) {
-        $outcomeObjValue = $this->safe_outcome($outcomeIdOrSymbol, $outcomeObj);
-        return $outcomeObjValue['outcome'];
+        $outcomeObj = $this->safe_outcome($outcomeIdOrSymbol, $outcomeObj);
+        return $outcomeObj['outcome'];
     }
 
     public function shorten_slug(?string $slug) {
@@ -567,8 +565,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        $outcomeValue = ($outcome === null) ? '' : $outcome;
-        $upper = strtoupper($outcomeValue);
+        if ($outcome === null) {
+            $outcome = '';
+        }
+        $upper = strtoupper($outcome);
         $allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         $chars = $this->string_to_chars_array($upper);
         $label = '';
@@ -917,7 +917,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
     }
 
-    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()) {
+    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()) {
         /**
          * fetches the order book for a prediction $outcome
          * @param {string} $outcome unified $outcome handle
@@ -1496,13 +1496,11 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         $fallback = $this->safe_string_2($orderbook, 'outcome', 'symbol');
-        $identity = array(
-            'outcome' => ($outcomeObj === null) ? $fallback : $this->safe_string($outcomeObj, 'outcome', $fallback),
-            'outcomeId' => ($outcomeObj === null) ? $this->safe_string($orderbook, 'outcomeId') : $this->safe_string($outcomeObj, 'outcomeId'),
-            'market' => ($outcomeObj === null) ? $this->safe_string($orderbook, 'market') : $this->safe_string($outcomeObj, 'market'),
-        );
+        $orderbook['outcome'] = ($outcomeObj === null) ? $fallback : $this->safe_string($outcomeObj, 'outcome', $fallback);
+        $orderbook['outcomeId'] = ($outcomeObj === null) ? $this->safe_string($orderbook, 'outcomeId') : $this->safe_string($outcomeObj, 'outcomeId');
+        $orderbook['market'] = ($outcomeObj === null) ? $this->safe_string($orderbook, 'market') : $this->safe_string($outcomeObj, 'market');
         // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
-        return $this->extend($this->omit($orderbook, 'symbol'), $identity);
+        return $this->omit($orderbook, 'symbol');
     }
 
     public function parse_prediction_ticker(array $ticker, ?array $market = null) {

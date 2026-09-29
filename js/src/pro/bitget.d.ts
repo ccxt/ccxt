@@ -122,8 +122,8 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
-    unWatchChannel(symbol: string, channel: string, messageHashTopic: string, methodName: string, params?: Dict): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchChannel(symbol: string, channel: string, messageHashTopic: string, methodName: string, params?: {}): Promise<any>;
     /**
      * @method
      * @name bitget#watchOrderBookForSymbols
@@ -184,7 +184,7 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {any} status of the unwatch request
      */
-    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
+    unWatchTrades(symbol: string, params?: {}): Promise<any>;
     handleTrades(client: Client, message: Dict): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
@@ -272,7 +272,7 @@ export default class bitget extends bitgetRest {
     handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): string;
-    handlePong(client: Client, message: any): any;
+    handlePong(client: Client, message: Dict): Dict;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleOrderBookUnSubscription(client: Client, message: Dict): void;
     handleTradesUnSubscription(client: Client, message: Dict): void;

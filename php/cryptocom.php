@@ -558,14 +558,15 @@ class cryptocom extends Exchange {
         if (!$this->check_required_credentials(false)) {
             return array();
         }
-        list($skipFetchCurrencies, $paramsSkipFetchCurrencies) = $this->handle_option_bool_and_params($params, 'fetchCurrencies', 'skipFetchCurrencies', false);
+        $skipFetchCurrencies = false;
+        list($skipFetchCurrencies, $params) = $this->handle_option_and_params($params, 'fetchCurrencies', 'skipFetchCurrencies', false);
         if ($skipFetchCurrencies) {
             // sub-accounts can't access this endpoint
             return array();
         }
         $response = array();
         try {
-            $response = $this->v1PrivatePostPrivateGetCurrencyNetworks($paramsSkipFetchCurrencies);
+            $response = $this->v1PrivatePostPrivateGetCurrencyNetworks($params);
         } catch (Exception $e) {
             $erString = $this->exception_message($e);
             if (mb_strpos($erString, 'SYS_ERROR') !== false) {
@@ -786,9 +787,6 @@ class cryptocom extends Exchange {
             $settleId = $spot ? null : $quoteId;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            if (($base === null) || ($quote === null)) {
-                continue;
-            }
             $settle = $spot ? null : $this->safe_currency_code($settleId);
             $optionType = $this->safe_string_lower($market, 'put_call');
             $strike = $this->safe_string($market, 'strike');
@@ -936,18 +934,17 @@ class cryptocom extends Exchange {
          *
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-$tickers
          *
-         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} $symbol unified $symbol of the market to fetch the $ticker for
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbolValue = $this->symbol($symbol);
-        $tickers = $this->fetch_tickers(array( $symbolValue ), $params);
-        $ticker = $this->safe_dict($tickers, $symbolValue);
-        return $ticker;
+        $symbol = $this->symbol($symbol);
+        $tickers = $this->fetch_tickers(array( $symbol ), $params);
+        return $this->safe_value($tickers, $symbol);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -967,9 +964,10 @@ class cryptocom extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $paramsPaginate);
+            return $this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params);
         }
         $market = null;
         $request = array();
@@ -983,12 +981,12 @@ class cryptocom extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $until = $this->safe_integer($paramsPaginate, 'until');
-        $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, array( 'until' ));
         if ($until !== null) {
             $request['end_time'] = $until;
         }
-        $response = $this->v1PrivatePostPrivateGetOrderHistory($this->extend($request, $paramsOmitted));
+        $response = $this->v1PrivatePostPrivateGetOrderHistory($this->extend($request, $params));
         //
         //     {
         //         "id": 1686881486183,
@@ -1050,9 +1048,10 @@ class cryptocom extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $paramsPaginate);
+            return $this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params);
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1064,12 +1063,12 @@ class cryptocom extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer($paramsPaginate, 'until');
-        $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, array( 'until' ));
         if ($until !== null) {
             $request['end_ts'] = $until;
         }
-        $response = $this->v1PublicGetPublicGetTrades($this->extend($request, $paramsOmitted));
+        $response = $this->v1PublicGetPublicGetTrades($this->extend($request, $params));
         //
         //     {
         //         "id": -1,
@@ -1113,37 +1112,37 @@ class cryptocom extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 300);
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 300);
         }
         $market = $this->market($symbol);
         $request = array(
             'instrument_name' => $market['id'],
             'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $limitResolved = $limit;
-        if (($limit !== null) && ($limit > 300)) {
-            $limitResolved = 300;
-        }
-        if ($limitResolved !== null) {
-            $request['count'] = $limitResolved;
+        if ($limit !== null) {
+            if ($limit > 300) {
+                $limit = 300;
+            }
+            $request['count'] = $limit;
         }
         $now = $this->microseconds();
         $duration = $this->parse_timeframe($timeframe);
-        $until = $this->safe_integer($paramsPaginate, 'until', $now);
-        $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
+        $until = $this->safe_integer($params, 'until', $now);
+        $params = $this->omit($params, array( 'until' ));
         if ($since !== null) {
             $request['start_ts'] = $since - $duration * 1000;
-            if ($limitResolved !== null) {
-                $request['end_ts'] = $this->sum($since, $duration * $limitResolved * 1000);
+            if ($limit !== null) {
+                $request['end_ts'] = $this->sum($since, $duration * $limit * 1000);
             } else {
                 $request['end_ts'] = $until;
             }
         } else {
             $request['end_ts'] = $until;
         }
-        $response = $this->v1PublicGetPublicGetCandlestick($this->extend($request, $paramsOmitted));
+        $response = $this->v1PublicGetPublicGetCandlestick($this->extend($request, $params));
         //
         //     {
         //         "id": -1,
@@ -1167,7 +1166,7 @@ class cryptocom extends Exchange {
         //
         $result = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($result, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limitResolved);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -1223,7 +1222,7 @@ class cryptocom extends Exchange {
         $positionBalances = $this->safe_list($data[0], 'position_balances', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($positionBalances); $i++) {
-            $balance = $this->safe_dict($positionBalances, $i);
+            $balance = $positionBalances[$i];
             $currencyId = $this->safe_string($balance, 'instrument_name');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1354,7 +1353,7 @@ class cryptocom extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
@@ -1373,14 +1372,16 @@ class cryptocom extends Exchange {
         }
         $broker = $this->safe_string($this->options, 'broker', 'CCXT');
         $request['broker_id'] = $broker;
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('createOrder', $market, $params);
-        list($marginMode, $paramsValue) = $this->custom_handle_margin_mode_and_params('createOrder', $paramsMarketType);
+        $marketType = null;
+        $marginMode = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        list($marginMode, $params) = $this->custom_handle_margin_mode_and_params('createOrder', $params);
         if (($marketType === 'margin') || ($marginMode !== null)) {
             $request['spot_margin'] = 'MARGIN';
         } elseif ($marketType === 'spot') {
             $request['spot_margin'] = 'SPOT';
         }
-        $timeInForce = $this->safe_string_upper_2($paramsValue, 'timeInForce', 'time_in_force');
+        $timeInForce = $this->safe_string_upper_2($params, 'timeInForce', 'time_in_force');
         if ($timeInForce !== null) {
             if ($timeInForce === 'GTC') {
                 $request['time_in_force'] = 'GOOD_TILL_CANCEL';
@@ -1392,14 +1393,14 @@ class cryptocom extends Exchange {
                 $request['time_in_force'] = $timeInForce;
             }
         }
-        $postOnly = $this->safe_bool($paramsValue, 'postOnly', false);
+        $postOnly = $this->safe_bool($params, 'postOnly', false);
         if (($postOnly === true) || ($timeInForce === 'PO')) {
             $request['exec_inst'] = array( 'POST_ONLY' );
             $request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
-        $triggerPrice = $this->safe_string_n($paramsValue, array( 'stopPrice', 'triggerPrice', 'ref_price' ));
-        $stopLossPrice = $this->safe_number($paramsValue, 'stopLossPrice');
-        $takeProfitPrice = $this->safe_number($paramsValue, 'takeProfitPrice');
+        $triggerPrice = $this->safe_string_n($params, array( 'stopPrice', 'triggerPrice', 'ref_price' ));
+        $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
         $isTrigger = ($triggerPrice !== null);
         $isStopLossTrigger = ($stopLossPrice !== null);
         $isTakeProfitTrigger = ($takeProfitPrice !== null);
@@ -1452,8 +1453,8 @@ class cryptocom extends Exchange {
         } else {
             $request['type'] = $uppercaseType;
         }
-        $paramsOmitted = $this->omit($paramsValue, array( 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
-        return $this->extend($request, $paramsOmitted);
+        $params = $this->omit($params, array( 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        return $this->extend($request, $params);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
@@ -1512,7 +1513,7 @@ class cryptocom extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $this->safe_dict($orders, $i);
+            $rawOrder = $orders[$i];
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
@@ -1669,14 +1670,13 @@ class cryptocom extends Exchange {
         } else {
             $request['type'] = $uppercaseType;
         }
-        $isMarketBuy = ($side === 'buy') && (($uppercaseType === 'MARKET') || ($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT'));
-        $paramsMarketBuy = $params;
-        if ($isMarketBuy) {
+        if (($side === 'buy') && (($uppercaseType === 'MARKET') || ($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT'))) {
             // use createmarketBuy logic here
             $quoteAmount = null;
-            list($createMarketBuyOrderRequiresPrice, $paramsCreateMarketBuy) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            $cost = $this->safe_number_2($paramsCreateMarketBuy, 'cost', 'notional');
-            $paramsMarketBuy = $this->omit($paramsCreateMarketBuy, 'cost');
+            $createMarketBuyOrderRequiresPrice = true;
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            $cost = $this->safe_number_2($params, 'cost', 'notional');
+            $params = $this->omit($params, 'cost');
             if ($cost !== null) {
                 $quoteAmount = $this->cost_to_precision($symbol, $cost);
             } elseif ($createMarketBuyOrderRequiresPrice) {
@@ -1695,8 +1695,8 @@ class cryptocom extends Exchange {
         } else {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
-        $paramsOmitted = $this->omit($paramsMarketBuy, array( 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
-        return $this->extend($request, $paramsOmitted);
+        $params = $this->omit($params, array( 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        return $this->extend($request, $params);
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
@@ -1734,15 +1734,15 @@ class cryptocom extends Exchange {
                 throw new ArgumentsRequired($this->id . ' editOrder() requires an id argument or orig_client_oid parameter');
             } else {
                 $request['orig_client_oid'] = $originalClientOrderId;
+                $params = $this->omit($params, array( 'orig_client_oid', 'clientOrderId' ));
             }
         }
-        $paramsOmitted = ($id === null) ? $this->omit($params, array( 'orig_client_oid', 'clientOrderId' )) : $params;
         if (($amount === null) || ($price === null)) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values');
         }
         $request['new_quantity'] = $this->amount_to_precision($symbol, $amount);
         $request['new_price'] = $this->price_to_precision($symbol, $price);
-        return $this->extend($request, $paramsOmitted);
+        return $this->extend($request, $params);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): array {
@@ -1857,7 +1857,7 @@ class cryptocom extends Exchange {
         }
         $orderRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $order = $this->safe_dict($orders, $i);
+            $order = $orders[$i];
             $id = $this->safe_string($order, 'id');
             $symbol = $this->safe_string($order, 'symbol');
             $market = $this->market($symbol);
@@ -1957,9 +1957,10 @@ class cryptocom extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, 100);
+            return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params, 100);
         }
         $request = array();
         $market = null;
@@ -1973,12 +1974,12 @@ class cryptocom extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $until = $this->safe_integer($paramsPaginate, 'until');
-        $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, array( 'until' ));
         if ($until !== null) {
             $request['end_time'] = $until;
         }
-        $response = $this->v1PrivatePostPrivateGetTrades($this->extend($request, $paramsOmitted));
+        $response = $this->v1PrivatePostPrivateGetTrades($this->extend($request, $params));
         //
         //     {
         //         "id": 1686942003520,
@@ -2040,7 +2041,7 @@ class cryptocom extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2050,15 +2051,16 @@ class cryptocom extends Exchange {
             'amount' => $amount,
             'address' => $address,
         );
-        if ($tagWithdrawTag !== null) {
-            $request['address_tag'] = $tagWithdrawTag;
+        if ($tag !== null) {
+            $request['address_tag'] = $tag;
         }
-        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
         $networkId = $this->network_code_to_id($networkCode, $code);
         if ($networkId !== null) {
             $request['network_id'] = $networkId;
         }
-        $response = $this->v1PrivatePostPrivateCreateWithdrawal($this->extend($request, $paramsNetworkCode));
+        $response = $this->v1PrivatePostPrivateCreateWithdrawal($this->extend($request, $params));
         //
         //    {
         //        "id":-1,
@@ -2156,8 +2158,8 @@ class cryptocom extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $network = $this->safe_string_upper($params, 'network');
-        $paramsOmitted = $this->omit($params, array( 'network' ));
-        $depositAddressesRaw = $this->fetch_deposit_addresses_by_network($code, $paramsOmitted);
+        $params = $this->omit($params, array( 'network' ));
+        $depositAddressesRaw = $this->fetch_deposit_addresses_by_network($code, $params);
         $depositAddresses = $depositAddressesRaw;
         if (is_array($depositAddresses) && array_key_exists($network ?? '', $depositAddresses)) {
             return $depositAddresses[$network];
@@ -2196,11 +2198,11 @@ class cryptocom extends Exchange {
             $request['page_size'] = $limit;
         }
         $until = $this->safe_integer($params, 'until');
-        $paramsOmitted = $this->omit($params, array( 'until' ));
+        $params = $this->omit($params, array( 'until' ));
         if ($until !== null) {
             $request['end_ts'] = $until;
         }
-        $response = $this->v1PrivatePostPrivateGetDepositHistory($this->extend($request, $paramsOmitted));
+        $response = $this->v1PrivatePostPrivateGetDepositHistory($this->extend($request, $params));
         //
         //     {
         //         "id": 1688701375714,
@@ -2258,11 +2260,11 @@ class cryptocom extends Exchange {
             $request['page_size'] = $limit;
         }
         $until = $this->safe_integer($params, 'until');
-        $paramsOmitted = $this->omit($params, array( 'until' ));
+        $params = $this->omit($params, array( 'until' ));
         if ($until !== null) {
             $request['end_ts'] = $until;
         }
-        $response = $this->v1PrivatePostPrivateGetWithdrawalHistory($this->extend($request, $paramsOmitted));
+        $response = $this->v1PrivatePostPrivateGetWithdrawalHistory($this->extend($request, $params));
         //
         //     {
         //         "id": 1688613879534,
@@ -2327,10 +2329,10 @@ class cryptocom extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 't');
         $marketId = $this->safe_string($ticker, 'i');
-        $marketResolved = $this->safe_market($marketId, $market, '_');
+        $market = $this->safe_market($marketId, $market, '_');
         $last = $this->safe_string($ticker, 'a');
         return $this->safe_ticker(array(
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_number($ticker, 'h'),
@@ -2348,9 +2350,9 @@ class cryptocom extends Exchange {
             'percentage' => $this->safe_string($ticker, 'c'),
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'v'),
-            'quoteVolume' => ($marketResolved['quote'] === 'USD') ? $this->safe_string($ticker, 'vv') : null,
+            'quoteVolume' => ($market['quote'] === 'USD') ? $this->safe_string($ticker, 'vv') : null,
             'info' => $ticker,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -2390,7 +2392,7 @@ class cryptocom extends Exchange {
         //
         $timestamp = $this->safe_integer_2($trade, 't', 'create_time');
         $marketId = $this->safe_string_2($trade, 'i', 'instrument_name');
-        $marketResolved = $this->safe_market($marketId, $market, '_');
+        $market = $this->safe_market($marketId, $market, '_');
         $feeCurrency = $this->safe_string($trade, 'fee_instrument_name');
         $feeCostString = $this->safe_string($trade, 'fees');
         return $this->safe_trade(array(
@@ -2398,7 +2400,7 @@ class cryptocom extends Exchange {
             'id' => $this->safe_string_2($trade, 'd', 'trade_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'order' => $this->safe_string($trade, 'order_id'),
             'side' => $this->safe_string_lower_2($trade, 's', 'side'),
             'takerOrMaker' => $this->safe_string_lower($trade, 'taker_side'),
@@ -2410,7 +2412,7 @@ class cryptocom extends Exchange {
                 'currency' => $this->safe_currency_code($feeCurrency),
                 'cost' => $this->parse_number(Precise::string_neg($feeCostString)),
             ),
-        ), $marketResolved);
+        ), $market);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -2518,7 +2520,7 @@ class cryptocom extends Exchange {
         if ($execInst !== null) {
             $postOnly = false;
             for ($i = 0; $i < count($execInst); $i++) {
-                $inst = $this->safe_string($execInst, $i);
+                $inst = $execInst[$i];
                 if ($inst === 'POST_ONLY') {
                     $postOnly = true;
                     break;
@@ -2673,10 +2675,9 @@ class cryptocom extends Exchange {
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_bool($params, 'margin', false);
-        $paramsOmitted = $this->omit($params, 'margin');
+        $params = $this->omit($params, 'margin');
         $marginMode = null;
-        $paramsMarginMode = null;
-        list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params($methodName, $paramsOmitted);
+        list($marginMode, $params) = $this->handle_margin_mode_and_params($methodName, $params);
         if ($marginMode !== null) {
             if ($marginMode !== 'cross') {
                 throw new NotSupported($this->id . ' only cross margin is supported');
@@ -2686,7 +2687,7 @@ class cryptocom extends Exchange {
                 $marginMode = 'cross';
             }
         }
-        return array( $marginMode, $paramsMarginMode );
+        return array( $marginMode, $params );
     }
 
     public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
@@ -2722,7 +2723,7 @@ class cryptocom extends Exchange {
         );
         if ($networkList !== null) {
             for ($i = 0; $i < $networkListLength; $i++) {
-                $networkInfo = $this->safe_dict($networkList, $i);
+                $networkInfo = $networkList[$i];
                 $networkId = $this->safe_string($networkInfo, 'network_id');
                 $currencyCode = $this->safe_string($currency, 'code');
                 $networkCode = $this->network_id_to_code($networkId, $currencyCode);
@@ -2788,11 +2789,11 @@ class cryptocom extends Exchange {
             $request['limit'] = $limit;
         }
         $until = $this->safe_integer($params, 'until');
-        $paramsOmitted = $this->omit($params, array( 'until' ));
+        $params = $this->omit($params, array( 'until' ));
         if ($until !== null) {
             $request['end_time'] = $until;
         }
-        $response = $this->v1PrivatePostPrivateGetTransactions($this->extend($request, $paramsOmitted));
+        $response = $this->v1PrivatePostPrivateGetTransactions($this->extend($request, $params));
         //
         //     {
         //         "id": 1686813195698,
@@ -2851,7 +2852,7 @@ class cryptocom extends Exchange {
         $timestamp = $this->safe_integer($item, 'event_timestamp_ms');
         $currencyId = $this->safe_string($item, 'instrument_name');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $currencyResolved = $this->safe_currency($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $amount = $this->safe_string($item, 'transaction_qty');
         $direction = null;
         if (Precise::string_lt($amount, '0')) {
@@ -2879,7 +2880,7 @@ class cryptocom extends Exchange {
                 'currency' => null,
                 'cost' => null,
             ),
-        ), $currencyResolved);
+        ), $currency);
     }
 
     public function parse_ledger_entry_type(?string $type): ?string {
@@ -3015,8 +3016,7 @@ class cryptocom extends Exchange {
             $market = $this->market($symbol);
         }
         $type = null;
-        $paramsMarketType = null;
-        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
+        list($type, $params) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
         $this->check_required_argument('fetchSettlementHistory', $type, 'type', array( 'future', 'option', 'WARRANT', 'FUTURE' ));
         if ($type === 'option') {
             $type = 'WARRANT';
@@ -3024,7 +3024,7 @@ class cryptocom extends Exchange {
         $request = array(
             'instrument_type' => strtoupper($type),
         );
-        $response = $this->v1PublicGetPublicGetExpiredSettlementPrice($this->extend($request, $paramsMarketType));
+        $response = $this->v1PublicGetPublicGetExpiredSettlementPrice($this->extend($request, $params));
         //
         //     {
         //         "id": -1,
@@ -3186,9 +3186,10 @@ class cryptocom extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate);
+            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
         }
         $market = $this->market($symbol);
         if ($market['swap'] !== true) {
@@ -3204,12 +3205,12 @@ class cryptocom extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer($paramsPaginate, 'until');
-        $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, array( 'until' ));
         if ($until !== null) {
             $request['end_ts'] = $until;
         }
-        $response = $this->v1PublicGetPublicGetValuations($this->extend($request, $paramsOmitted));
+        $response = $this->v1PublicGetPublicGetValuations($this->extend($request, $params));
         //
         //     {
         //         "id": -1,
@@ -3242,7 +3243,7 @@ class cryptocom extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function fetch_position(string $symbol, $params = array()): array {
@@ -3303,19 +3304,19 @@ class cryptocom extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols);
         $request = array();
         $market = null;
-        if ($symbolsNormalized !== null) {
+        if ($symbols !== null) {
             $symbol = null;
-            if ((gettype($symbolsNormalized) === 'array' && array_keys($symbolsNormalized) === array_keys(array_keys($symbolsNormalized)))) {
-                $symbolsLength = count($symbolsNormalized);
+            if ((gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
+                $symbolsLength = count($symbols);
                 if ($symbolsLength > 1) {
                     throw new BadRequest($this->id . ' fetchPositions() symbols argument cannot contain more than 1 symbol');
                 }
-                $symbol = $symbolsNormalized[0];
+                $symbol = $symbols[0];
             } else {
-                $symbol = $symbolsNormalized;
+                $symbol = $symbols;
             }
             $market = $this->market($symbol);
             $request['instrument_name'] = $market['id'];
@@ -3352,7 +3353,7 @@ class cryptocom extends Exchange {
             $marketInner = $this->safe_market($marketId, null, null, 'contract');
             $result[] = $this->parse_position($entry, $marketInner);
         }
-        return $this->filter_by_array_positions($result, 'symbol', null);
+        return $this->filter_by_array_positions($result, 'symbol', null, false);
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -3370,8 +3371,8 @@ class cryptocom extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($position, 'instrument_name');
-        $marketResolved = $this->safe_market($marketId, $market, null, 'contract');
-        $symbol = $this->safe_symbol($marketId, $marketResolved, null, 'contract');
+        $market = $this->safe_market($marketId, $market, null, 'contract');
+        $symbol = $this->safe_symbol($marketId, $market, null, 'contract');
         $timestamp = $this->safe_integer($position, 'update_timestamp_ms');
         $amount = $this->safe_string($position, 'quantity');
         return $this->safe_position(array(
@@ -3383,7 +3384,7 @@ class cryptocom extends Exchange {
             'hedged' => null,
             'side' => Precise::string_gt($amount, '0') ? 'long' : 'short',
             'contracts' => $this->parse_number(Precise::string_abs($amount)),
-            'contractSize' => $marketResolved['contractSize'],
+            'contractSize' => $market['contractSize'],
             'entryPrice' => null,
             'markPrice' => null,
             'notional' => null,
@@ -3573,14 +3574,8 @@ class cryptocom extends Exchange {
             $symbol = $this->symbols[$i];
             $market = $this->market($symbol);
             $isSwap = $market['swap'];
-            $takerFeeKey = 'effective_spot_taker_rate_bps';
-            if ($isSwap === true) {
-                $takerFeeKey = 'effective_deriv_taker_rate_bps';
-            }
-            $makerFeeKey = 'effective_spot_maker_rate_bps';
-            if ($isSwap === true) {
-                $makerFeeKey = 'effective_deriv_maker_rate_bps';
-            }
+            $takerFeeKey = ($isSwap === true) ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
+            $makerFeeKey = ($isSwap === true) ? 'effective_deriv_maker_rate_bps' : 'effective_spot_maker_rate_bps';
             $tradingFee = array(
                 'info' => $response,
                 'symbol' => $symbol,
@@ -3614,16 +3609,10 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $type = $this->safe_string($api, 0);
         $access = $this->safe_string($api, 1);
-        $apiUrl = $this->safe_string($this->urls['api'], $type);
-        if ($apiUrl === null) {
-            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
-        }
-        $url = $apiUrl . '/' . $path;
+        $url = $this->urls['api'][$type] . '/' . $path;
         $query = $this->omit($params, $this->extract_params($path));
         if ($access === 'public') {
             if (count($query) > 0) {
@@ -3638,7 +3627,7 @@ class cryptocom extends Exchange {
             $payload = $path . $nonce . $this->apiKey . $strSortKey . $nonce;
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
             $paramsKeysLength = count($paramsKeys);
-            $requestBody = $this->json(array(
+            $body = $this->json(array(
                 'id' => $nonce,
                 'method' => $path,
                 'params' => $params,
@@ -3654,13 +3643,13 @@ class cryptocom extends Exchange {
             if ($paramsKeysLength === 0) {
                 $paramsString = '{}';
                 $arrayString = '[]';
-                $requestBody = str_replace($arrayString, $paramsString, $requestBody);
+                $body = str_replace($arrayString, $paramsString, $body);
             }
-            $requestHeaders = array(
+            $headers = array(
                 'Content-Type' => 'application/json',
             );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

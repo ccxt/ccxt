@@ -624,9 +624,6 @@ class blofin extends Exchange {
         $settle = $this->safe_currency_code($settleId);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        if (($base === null) || ($quote === null)) {
-            return null;
-        }
         $symbol = $base . '/' . $quote;
         if ($swap) {
             $symbol = $symbol . ':' . $settle;
@@ -716,9 +713,9 @@ class blofin extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
-        $limitValue = ($limit === null) ? 50 : $limit;
-        if ($limitValue !== null) {
-            $request['size'] = $limitValue; // max 100
+        $limit = ($limit === null) ? 50 : $limit;
+        if ($limit !== null) {
+            $request['size'] = $limit; // max 100
         }
         $response = $this->publicGetMarketBooks($this->extend($request, $params));
         //
@@ -770,11 +767,11 @@ class blofin extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'instId');
-        $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
-        $spot = $this->safe_bool($marketResolved, 'spot', false);
+        $spot = $this->safe_bool($market, 'spot', false);
         $quoteVolume = ($spot === true) ? $this->safe_string($ticker, 'volCurrency24h') : null;
         $baseVolume = $this->safe_string($ticker, 'vol24h');
         $high = $this->safe_string($ticker, 'high24h');
@@ -802,7 +799,7 @@ class blofin extends Exchange {
             'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): array {
@@ -865,10 +862,10 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetMarketTickers($params);
         $tickers = $this->safe_list($response, 'data', array());
-        return $this->parse_tickers($tickers, $symbolsNormalized);
+        return $this->parse_tickers($tickers, $symbols);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -916,8 +913,8 @@ class blofin extends Exchange {
         //
         $id = $this->safe_string($trade, 'tradeId');
         $marketId = $this->safe_string($trade, 'instId');
-        $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($trade, 'ts');
         $price = $this->safe_string_2($trade, 'price', 'fillPrice');
         $amount = $this->safe_string_2($trade, 'size', 'fillSize');
@@ -928,11 +925,11 @@ class blofin extends Exchange {
         $feeCurrency = $this->safe_string($trade, 'feeCurrency');
         $isSpot = $feeCurrency !== null;
         if ($feeCurrency === null) {
-            $feeCurrency = $this->safe_string($marketResolved, 'settle');
+            $feeCurrency = $market['settle'];
         } elseif ($feeCurrency === 'base_currency') {
-            $feeCurrency = $this->safe_string($marketResolved, 'base');
+            $feeCurrency = $market['base'];
         } elseif ($feeCurrency === 'quote_currency') {
-            $feeCurrency = $this->safe_string($marketResolved, 'quote');
+            $feeCurrency = $market['quote'];
         }
         if ($feeCost !== null) {
             $fee = array(
@@ -941,7 +938,7 @@ class blofin extends Exchange {
             );
         }
         if ($isSpot) {
-            $spotSymbol = $marketResolved['base'] . '/' . $marketResolved['quote'];
+            $spotSymbol = $market['base'] . '/' . $market['quote'];
             $cost = $this->parse_number(Precise::string_mul($price, $amount));
             $result = array(
                 'info' => $trade,
@@ -977,7 +974,7 @@ class blofin extends Exchange {
                 'amount' => $amount,
                 'cost' => null,
                 'fee' => $fee,
-            ), $marketResolved);
+            ), $market);
         }
     }
 
@@ -997,9 +994,10 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchTrades', $symbol, $since, $limit, $paramsPaginate, 'tradeId', 'after', null, 100);
+            return $this->fetch_paginated_call_cursor('fetchTrades', $symbol, $since, $limit, $params, 'tradeId', 'after', null, 100);
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1009,9 +1007,10 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100
         }
-        list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades');
+        $method = null;
+        list($method, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'method', 'publicGetMarketTrades');
         if ($method === 'publicGetMarketTrades') {
-            $response = $this->publicGetMarketTrades($this->extend($request, $paramsMethod));
+            $response = $this->publicGetMarketTrades($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
@@ -1061,25 +1060,26 @@ class blofin extends Exchange {
         }
         $market = $this->market($symbol);
         $paginate = false;
-        $query = null;
-        list($paginate, $query) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $query, 100);
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 100);
         }
-        $limitResolved = ($limit === null) ? 100 : $limit; // default 100, max 100
+        if ($limit === null) {
+            $limit = 100; // default 100, max 100
+        }
         $request = array(
             'instId' => $market['id'],
             'bar' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            'limit' => $limitResolved,
+            'limit' => $limit,
         );
-        $until = $this->safe_integer($query, 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
             $request['after'] = $until;
-            $query = $this->omit($query, 'until');
+            $params = $this->omit($params, 'until');
         }
-        $response = $this->publicGetMarketCandles($this->extend($request, $query));
+        $response = $this->publicGetMarketCandles($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limitResolved);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1103,10 +1103,9 @@ class blofin extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        $query = null;
-        list($paginate, $query) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $query, 100);
+            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 100);
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1118,12 +1117,12 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $until = $this->safe_integer($query, 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
             $request['after'] = $until;
-            $query = $this->omit($query, 'until');
+            $params = $this->omit($params, 'until');
         }
-        $response = $this->publicGetMarketFundingRateHistory($this->extend($request, $query));
+        $response = $this->publicGetMarketFundingRateHistory($this->extend($request, $params));
         $rates = array();
         $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
@@ -1138,7 +1137,7 @@ class blofin extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
@@ -1259,7 +1258,7 @@ class blofin extends Exchange {
         $timestamp = $this->safe_integer($data, 'ts');
         $details = $this->safe_list($data, 'details', array());
         for ($i = 0; $i < count($details); $i++) {
-            $balance = $this->safe_dict($details, $i);
+            $balance = $details[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1299,7 +1298,7 @@ class blofin extends Exchange {
         $result = array( 'info' => $response );
         $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $balance = $this->safe_dict($data, $i);
+            $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1338,16 +1337,17 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($accountType, $paramsAccountType) = $this->handle_option_string_and_params_2($params, 'fetchBalance', 'accountType', 'type');
+        $accountType = null;
+        list($accountType, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'accountType', 'type');
         $request = array(
         );
         if ($accountType !== null && $accountType !== 'swap') {
             $options = $this->safe_dict($this->options, 'accountsByType', array());
             $parsedAccountType = $this->safe_string($options, $accountType, $accountType);
             $request['accountType'] = $parsedAccountType;
-            $response = $this->privateGetAssetBalances($this->extend($request, $paramsAccountType));
+            $response = $this->privateGetAssetBalances($this->extend($request, $params));
         } else {
-            $response = $this->privateGetAccountBalance($this->extend($request, $paramsAccountType));
+            $response = $this->privateGetAccountBalance($this->extend($request, $params));
         }
         return $this->parse_balance_by_type($response);
     }
@@ -1368,37 +1368,33 @@ class blofin extends Exchange {
             'brokerId' => $this->safe_string($this->options, 'brokerId', 'ec6dd3a7dd982d0b'),
         );
         $marginMode = null;
-        $query = null;
-        list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params, 'cross');
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params, 'cross');
         $request['marginMode'] = $marginMode;
-        $triggerPriceAny = $this->safe_string_n($query, array( 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
-        $triggerPriceSlTp = $this->safe_string_2($query, 'stopLossPrice', 'takeProfitPrice');
-        $timeInForce = $this->safe_string($query, 'timeInForce', 'GTC');
-        $isHedged = $this->safe_bool($query, 'hedged', false);
+        $triggerPriceAny = $this->safe_string_n($params, array( 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        $triggerPriceSlTp = $this->safe_string_2($params, 'stopLossPrice', 'takeProfitPrice');
+        $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
+        $isHedged = $this->safe_bool($params, 'hedged', false);
         if ($isHedged === true) {
             $request['positionSide'] = ($side === 'buy') ? 'long' : 'short';
         }
         $isMarketOrder = $type === 'market';
-        $query = $this->omit($query, array( 'timeInForce' ));
+        $params = $this->omit($params, array( 'timeInForce' ));
         $ioc = ($timeInForce === 'IOC') || ($type === 'ioc');
         $marketIOC = ($isMarketOrder && $ioc);
         if ($isMarketOrder || $marketIOC) {
             $request['orderType'] = 'market';
         } else {
-            $key = 'price';
-            if ($triggerPriceAny !== null) {
-                $key = 'orderPrice';
-            }
+            $key = ($triggerPriceAny !== null) ? 'orderPrice' : 'price';
             $request[$key] = $this->price_to_precision($symbol, $price);
         }
         $postOnly = false;
-        list($postOnly, $query) = $this->handle_post_only($isMarketOrder, $type === 'post_only', $query);
+        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $type === 'post_only', $params);
         if ($postOnly) {
             $request['type'] = 'post_only';
         }
-        $stopLoss = $this->safe_dict($query, 'stopLoss');
-        $takeProfit = $this->safe_dict($query, 'takeProfit');
-        $query = $this->omit($query, array( 'stopLoss', 'takeProfit', 'hedged' ));
+        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $takeProfit = $this->safe_dict($params, 'takeProfit');
+        $params = $this->omit($params, array( 'stopLoss', 'takeProfit', 'hedged' ));
         $hasStopLoss = $stopLoss !== null;
         $hasTakeProfit = $takeProfit !== null;
         if ($hasStopLoss || $hasTakeProfit) {
@@ -1423,9 +1419,9 @@ class blofin extends Exchange {
             if ($triggerPriceSlTp !== null) {
                 $request['reduceOnly'] = true;
             }
-            $query = $this->omit($query, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
+            $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
         }
-        return $this->extend($request, $query);
+        return $this->extend($request, $params);
     }
 
     public function parse_order_status(?string $status) {
@@ -1497,15 +1493,15 @@ class blofin extends Exchange {
             $type = 'trigger';
         }
         $marketId = $this->safe_string($order, 'instId');
-        $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $marketResolved, '-');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $filled = $this->safe_string($order, 'filledSize');
         $price = $this->safe_string_n($order, array( 'px', 'price', 'orderPrice' ));
         $average = $this->safe_string($order, 'averagePrice');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $feeCostString = $this->safe_string($order, 'fee');
         $amount = $this->safe_string($order, 'size');
-        $contractSize = $this->safe_string($marketResolved, 'contractSize');
+        $contractSize = $this->safe_string($market, 'contractSize');
         $baseAmount = Precise::string_mul($contractSize, $filled);
         $cost = null;
         if ($average !== null) {
@@ -1559,7 +1555,7 @@ class blofin extends Exchange {
             'fee' => $fee,
             'trades' => null,
             'reduceOnly' => $reduceOnly,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
@@ -1600,21 +1596,22 @@ class blofin extends Exchange {
         $isStopLossPriceDefined = $this->safe_string($params, 'stopLossPrice') !== null;
         $isTakeProfitPriceDefined = $this->safe_string($params, 'takeProfitPrice') !== null;
         $isTriggerOrder = $this->safe_string($params, 'triggerPrice') !== null;
-        list($isTpslEndpoint, $paramsTpsl) = $this->handle_option_bool_and_params($params, 'createOrder', 'tpsl', false);
+        $isTpslEndpoint = false;
+        list($isTpslEndpoint, $params) = $this->handle_option_and_params($params, 'createOrder', 'tpsl', false);
         $isCombinedSlTp = ($isStopLossPriceDefined && $isTakeProfitPriceDefined) || $isTpslEndpoint;
         $isSlOrTp = $isStopLossPriceDefined || $isTakeProfitPriceDefined;
-        $reduceOnly = $this->safe_bool($paramsTpsl, 'reduceOnly');
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly');
         if ($reduceOnly !== null) {
-            $paramsTpsl['reduceOnly'] = $reduceOnly ? 'true' : 'false';
+            $params['reduceOnly'] = $reduceOnly ? 'true' : 'false';
         }
         if ($isCombinedSlTp) {
-            $tpslRequest = $this->create_tpsl_order_request($symbol, $type, $side, $amount, $price, $paramsTpsl);
+            $tpslRequest = $this->create_tpsl_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = $this->privatePostTradeOrderTpsl($tpslRequest);
         } elseif ($isTriggerOrder || $isSlOrTp) {
-            $triggerRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $paramsTpsl);
+            $triggerRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = $this->privatePostTradeOrderAlgo($triggerRequest);
         } else {
-            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $paramsTpsl);
+            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = $this->privatePostTradeOrder($request);
         }
         if ($isCombinedSlTp || $isSlOrTp || $isTriggerOrder) {
@@ -1629,7 +1626,7 @@ class blofin extends Exchange {
         return $order;
     }
 
-    public function create_tpsl_order_request(?string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
+    public function create_tpsl_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
         $hedged = $this->safe_bool($params, 'hedged', false);
         $positionSide = 'net';
@@ -1662,6 +1659,7 @@ class blofin extends Exchange {
                     throw new ArgumentsRequired($this->id . ' createTpslOrder() requires a "stopLossLimitPrice" parameter (instead of "price" argument) for stop loss orders when the order type is not market');
                 }
                 $request['slOrderPrice'] = $this->price_to_precision($symbol, $slLimitPrice);
+                $params = $this->omit($params, 'stopLossLimitPrice');
             }
         }
         if ($takeProfitPrice !== null) {
@@ -1674,18 +1672,12 @@ class blofin extends Exchange {
                     throw new ArgumentsRequired($this->id . ' createTpslOrder() requires a "takeProfitLimitPrice" parameter (instead of "price" argument) for take profit orders when the order type is not market');
                 }
                 $request['tpOrderPrice'] = $this->price_to_precision($symbol, $tpLimitPrice);
+                $params = $this->omit($params, 'takeProfitLimitPrice');
             }
         }
         $request['marginMode'] = $marginMode;
-        // the limit prices are consumed only when the order type is not market
-        $consumedKeys = array( 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' );
-        if (($stopLossPrice !== null) && ($type !== 'market')) {
-            $consumedKeys[] = 'stopLossLimitPrice';
-        }
-        if (($takeProfitPrice !== null) && ($type !== 'market')) {
-            $consumedKeys[] = 'takeProfitLimitPrice';
-        }
-        return $this->extend($request, $this->omit($params, $consumedKeys));
+        $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' ));
+        return $this->extend($request, $params);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -1757,7 +1749,7 @@ class blofin extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $this->safe_dict($orders, $i);
+            $rawOrder = $orders[$i];
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
@@ -1792,9 +1784,10 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $paramsPaginate);
+            return $this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $params);
         }
         $request = array(
         );
@@ -1806,10 +1799,11 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        $isTrigger = $this->safe_bool_n($paramsPaginate, array( 'stop', 'trigger' ), false);
-        $isTpSl = $this->safe_bool_2($paramsPaginate, 'tpsl', 'TPSL', false);
-        list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsPaginate, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
-        $query = $this->omit($paramsMethod, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
+        $isTrigger = $this->safe_bool_n($params, array( 'stop', 'trigger' ), false);
+        $isTpSl = $this->safe_bool_2($params, 'tpsl', 'TPSL', false);
+        $method = null;
+        list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
+        $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
         if (($isTpSl === true) || ($method === 'privateGetTradeOrdersTpslPending')) {
             $response = $this->privateGetTradeOrdersTpslPending($this->extend($request, $query));
         } elseif (($isTrigger === true) || ($method === 'privateGetTradeOrdersAlgoPending')) {
@@ -1841,9 +1835,10 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate);
+            return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params);
         }
         $request = array(
         );
@@ -1852,14 +1847,14 @@ class blofin extends Exchange {
             $market = $this->market($symbol);
             $request['instId'] = $market['id'];
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $paramsPaginate);
+        list($request, $params) = $this->handle_until_option('end', $request, $params);
         if ($limit !== null) {
-            $requestUntil['limit'] = $limit; // default 100, max 100
+            $request['limit'] = $limit; // default 100, max 100
         }
         $type = 'swap';
-        list($typeMarketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchMyTrades', $market, $paramsUntil, $type);
-        if ($typeMarketType === 'spot') {
-            $requestUntil['instType'] = 'SPOT';
+        list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params, $type);
+        if ($type === 'spot') {
+            $request['instType'] = 'SPOT';
             //
             //     {
             //         "code": "0",
@@ -1881,9 +1876,9 @@ class blofin extends Exchange {
             //         ]
             //     }
             //
-            $response = $this->privateGetSpotTradeFillsHistory($this->extend($requestUntil, $paramsMarketType));
+            $response = $this->privateGetSpotTradeFillsHistory($this->extend($request, $params));
         } else {
-            $response = $this->privateGetTradeFillsHistory($this->extend($requestUntil, $paramsMarketType));
+            $response = $this->privateGetTradeFillsHistory($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
@@ -1906,9 +1901,10 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchDeposits', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchDeposits', $code, $since, $limit, $paramsPaginate);
+            return $this->fetch_paginated_call_dynamic('fetchDeposits', $code, $since, $limit, $params);
         }
         $request = array(
         );
@@ -1923,10 +1919,10 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('after', $request, $paramsPaginate);
-        $response = $this->privateGetAssetDepositHistory($this->extend($requestUntil, $paramsUntil));
+        list($request, $params) = $this->handle_until_option('after', $request, $params);
+        $response = $this->privateGetAssetDepositHistory($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_transactions($data, $currency, $since, $limit, $paramsUntil);
+        return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1946,9 +1942,10 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchWithdrawals', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $paramsPaginate);
+            return $this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $params);
         }
         $request = array(
         );
@@ -1963,10 +1960,10 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('after', $request, $paramsPaginate);
-        $response = $this->privateGetAssetWithdrawalHistory($this->extend($requestUntil, $paramsUntil));
+        list($request, $params) = $this->handle_until_option('after', $request, $params);
+        $response = $this->privateGetAssetWithdrawalHistory($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_transactions($data, $currency, $since, $limit, $paramsUntil);
+        return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
     public function network_code_to_chain_id(string $networkCode): ?string {
@@ -2041,9 +2038,7 @@ class blofin extends Exchange {
         //   with 152002 "Invalid parameter" - see options["networks"]
         // - 152002 responses omit the offending field name even though the
         //   error table documents the message as "Parameter {} error"
-        $tagValue = null;
-        $query = null;
-        list($tagValue, $query) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -2051,26 +2046,26 @@ class blofin extends Exchange {
             'address' => $address,
             'amount' => $this->number_to_string($amount),
         );
-        $dest = $this->safe_string($query, 'dest', 'onchain');
+        $dest = $this->safe_string($params, 'dest', 'onchain');
         $request['dest'] = $dest;
-        $query = $this->omit($query, 'dest');
+        $params = $this->omit($params, 'dest');
         if ($dest === 'onchain') {
             $this->check_address($address);
             // the doc's Request Parameters table marks addrType "Required:
             // No", but the live venue rejects on-chain withdrawals without
             // it (152001 "Parameter addrType cannot be empty") - default to
             // 1 = wallet address, callers can override for other kinds
-            $request['addrType'] = $this->safe_string($query, 'addrType', '1');
-            $query = $this->omit($query, 'addrType');
+            $request['addrType'] = $this->safe_string($params, 'addrType', '1');
+            $params = $this->omit($params, 'addrType');
         }
-        if ($tagValue !== null) {
-            $request['tag'] = $tagValue;
+        if ($tag !== null) {
+            $request['tag'] = $tag;
         }
         // consume the unified network key unconditionally so it never leaks
         // onto the wire; an explicit raw params['chain'] takes precedence
         $networkCode = null;
-        list($networkCode, $query) = $this->handle_network_code_and_params($query);
-        $chain = $this->safe_string($query, 'chain');
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        $chain = $this->safe_string($params, 'chain');
         if ($chain === null) {
             if ($networkCode !== null) {
                 $request['chain'] = $this->network_code_to_chain_id($networkCode);
@@ -2079,7 +2074,7 @@ class blofin extends Exchange {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires a params["network"] or params["chain"] for on-chain withdrawals');
             }
         }
-        $response = $this->privatePostAssetWithdrawalApply($this->extend($request, $query));
+        $response = $this->privatePostAssetWithdrawalApply($this->extend($request, $params));
         //
         //     {
         //         "code": "0",
@@ -2116,9 +2111,10 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $paramsPaginate);
+            return $this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params);
         }
         $request = array(
         );
@@ -2130,8 +2126,8 @@ class blofin extends Exchange {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $paramsPaginate);
-        $response = $this->privateGetAssetBills($this->extend($requestUntil, $paramsUntil));
+        list($request, $params) = $this->handle_until_option('end', $request, $params);
+        $response = $this->privateGetAssetBills($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_ledger($data, $currency, $since, $limit);
     }
@@ -2276,7 +2272,7 @@ class blofin extends Exchange {
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
         $currencyId = $this->safe_string($item, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $currencyResolved = $this->safe_currency($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer($item, 'ts');
         return $this->safe_ledger_entry(array(
             'info' => $item,
@@ -2294,7 +2290,7 @@ class blofin extends Exchange {
             'after' => null,
             'status' => 'ok',
             'fee' => null,
-        ), $currencyResolved);
+        ), $currency);
     }
 
     public function parse_ids(mixed $ids) {
@@ -2339,7 +2335,7 @@ class blofin extends Exchange {
             $method = 'privatePostTradeCancelTpsl';
         }
         if ($clientOrderIds === null) {
-            $orderIds = $this->parse_ids($ids);
+            $ids = $this->parse_ids($ids);
             if ($tpslIds !== null) {
                 for ($i = 0; $i < count($tpslIds); $i++) {
                     $request[] = array(
@@ -2348,15 +2344,15 @@ class blofin extends Exchange {
                     );
                 }
             }
-            for ($i = 0; $i < count($orderIds); $i++) {
+            for ($i = 0; $i < count($ids); $i++) {
                 if ($trigger === true) {
                     $request[] = array(
-                        'tpslId' => $orderIds[$i],
+                        'tpslId' => $ids[$i],
                         'instId' => $market['id'],
                     );
                 } else {
                     $request[] = array(
-                        'orderId' => $orderIds[$i],
+                        'orderId' => $ids[$i],
                         'instId' => $market['id'],
                     );
                 }
@@ -2465,11 +2461,11 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols);
         $response = $this->privateGetAccountPositions($params);
         $data = $this->safe_list($response, 'data', array());
         $result = $this->parse_positions($data);
-        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2505,8 +2501,8 @@ class blofin extends Exchange {
         if ($since !== null) {
             $request['begin'] = $since;
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $params);
-        $response = $this->privateGetAccountPositionsHistory($this->extend($requestUntil, $paramsUntil));
+        list($request, $params) = $this->handle_until_option('end', $request, $params);
+        $response = $this->privateGetAccountPositionsHistory($this->extend($request, $params));
         //
         //    {
         //        "code": "0",
@@ -2535,7 +2531,7 @@ class blofin extends Exchange {
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
-        $positions = $this->parse_positions($data, $symbols, $paramsUntil);
+        $positions = $this->parse_positions($data, $symbols, $params);
         return $this->filter_by_since_limit($positions, $since, $limit);
     }
 
@@ -2590,8 +2586,8 @@ class blofin extends Exchange {
         //            },
         //
         $marketId = $this->safe_string($position, 'instId');
-        $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $pos = $this->safe_string($position, 'positions');
         $contractsAbs = Precise::string_abs($pos);
         $side = $this->safe_string($position, 'positionSide');
@@ -2608,11 +2604,11 @@ class blofin extends Exchange {
                 }
             }
         }
-        $contractSize = $this->safe_number($marketResolved, 'contractSize');
+        $contractSize = $this->safe_number($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         $markPriceString = $this->safe_string($position, 'markPrice');
         $notionalString = $this->safe_string($position, 'notionalUsd');
-        if ($marketResolved['inverse'] === true) {
+        if ($market['inverse'] === true) {
             $notionalString = Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
         }
         $notional = $this->parse_number($notionalString);
@@ -2697,16 +2693,15 @@ class blofin extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchLeverages() requires a symbols argument');
         }
         $marginMode = null;
-        $query = null;
-        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchLeverages', $params);
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverages', $params);
         if ($marginMode === null) {
-            $marginMode = $this->safe_string($query, 'marginMode', 'cross'); // cross as default marginMode
+            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross as default marginMode
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
             throw new BadRequest($this->id . ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
-        $symbolsList = $symbolsNormalized;
+        $symbols = $this->market_symbols($symbols);
+        $symbolsList = $symbols;
         $instIds = '';
         for ($i = 0; $i < count($symbolsList); $i++) {
             $entry = $symbolsList[$i];
@@ -2721,7 +2716,7 @@ class blofin extends Exchange {
             'instId' => $instIds,
             'marginMode' => $marginMode,
         );
-        $response = $this->privateGetAccountBatchLeverageInfo($this->extend($request, $query));
+        $response = $this->privateGetAccountBatchLeverageInfo($this->extend($request, $params));
         //
         //     {
         //         "code": "0",
@@ -2736,7 +2731,7 @@ class blofin extends Exchange {
         //     }
         //
         $leverages = $this->safe_list($response, 'data', array());
-        return $this->parse_leverages($leverages, $symbolsNormalized, 'instId');
+        return $this->parse_leverages($leverages, $symbols, 'instId');
     }
 
     public function fetch_leverage(string $symbol, $params = array()): array {
@@ -2754,10 +2749,9 @@ class blofin extends Exchange {
             $this->load_markets();
         }
         $marginMode = null;
-        $query = null;
-        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
         if ($marginMode === null) {
-            $marginMode = $this->safe_string($query, 'marginMode', 'cross'); // cross as default marginMode
+            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross as default marginMode
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
             throw new BadRequest($this->id . ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated');
@@ -2767,7 +2761,7 @@ class blofin extends Exchange {
             'instId' => $market['id'],
             'marginMode' => $marginMode,
         );
-        $response = $this->privateGetAccountLeverageInfo($this->extend($request, $query));
+        $response = $this->privateGetAccountLeverageInfo($this->extend($request, $params));
         //
         //     {
         //         "code": "0",
@@ -2820,7 +2814,8 @@ class blofin extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
             throw new BadRequest($this->id . ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
@@ -2829,7 +2824,7 @@ class blofin extends Exchange {
             'marginMode' => $marginMode,
             'instId' => $market['id'],
         );
-        $response = $this->privatePostAccountSetLeverage($this->extend($request, $paramsMarginMode));
+        $response = $this->privatePostAccountSetLeverage($this->extend($request, $params));
         return $response;
     }
 
@@ -2856,7 +2851,8 @@ class blofin extends Exchange {
         }
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('closePosition', $params, 'cross');
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('closePosition', $params, 'cross');
         $request = array(
             'instId' => $market['id'],
             'marginMode' => $marginMode,
@@ -2864,7 +2860,7 @@ class blofin extends Exchange {
         if ($clientOrderId !== null) {
             $request['clientOrderId'] = $clientOrderId;
         }
-        $response = $this->privatePostTradeClosePosition($this->extend($request, $paramsMarginMode));
+        $response = $this->privatePostTradeClosePosition($this->extend($request, $params));
         return $this->safe_dict($response, 'data');
     }
 
@@ -2886,9 +2882,10 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchClosedOrders', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $paramsPaginate);
+            return $this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params);
         }
         $request = array(
         );
@@ -2903,9 +2900,10 @@ class blofin extends Exchange {
         if ($since !== null) {
             $request['begin'] = $since;
         }
-        $isTrigger = $this->safe_bool_n($paramsPaginate, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
-        list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsPaginate, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
-        $query = $this->omit($paramsMethod, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
+        $isTrigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
+        $method = null;
+        list($method, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
+        $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
         if (($isTrigger === true) || ($method === 'privateGetTradeOrdersTpslHistory')) {
             $response = $this->privateGetTradeOrdersTpslHistory($this->extend($request, $query));
         } else {
@@ -3054,7 +3052,7 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
         $response = $this->privateGetAccountPositions($params);
         //
         //     {
@@ -3086,7 +3084,7 @@ class blofin extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_adl_ranks($data, $symbolsNormalized);
+        return $this->parse_adl_ranks($data, $symbols);
     }
 
     public function parse_adl_rank(array $info, ?array $market = null): array {
@@ -3164,14 +3162,10 @@ class blofin extends Exchange {
         return null;
     }
 
-    public function sign(string $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(mixed $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
-        if ($apiUrl === null) {
-            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
-        }
-        $url = $apiUrl . $request;
+        $url = $this->urls['api']['rest'] . $request;
         // const type = this.getPathAuthenticationType (path);
         if ($api === 'public') {
             if (!$this->is_empty($query)) {
@@ -3180,14 +3174,13 @@ class blofin extends Exchange {
         } elseif ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
-            $signedHeaders = array(
+            $headers = array(
                 'ACCESS-KEY' => $this->apiKey,
                 'ACCESS-PASSPHRASE' => $this->password,
                 'ACCESS-TIMESTAMP' => $timestamp,
                 'ACCESS-NONCE' => $timestamp,
             );
             $sign_body = '';
-            $signedBody = null;
             if ($method === 'GET') {
                 if (!$this->is_empty($query)) {
                     $urlencodedQuery = '?' . $this->urlencode($query);
@@ -3196,16 +3189,14 @@ class blofin extends Exchange {
                 }
             } else {
                 if (!$this->is_empty($query)) {
-                    $signedBody = $this->json($query);
-                    $sign_body = $signedBody;
+                    $body = $this->json($query);
+                    $sign_body = $body;
                 }
-                $signedHeaders['Content-Type'] = 'application/json';
+                $headers['Content-Type'] = 'application/json';
             }
             $auth = $request . $method . $timestamp . $timestamp . $sign_body;
             $signature = base64_encode($this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'));
-            $signedHeaders['ACCESS-SIGN'] = $signature;
-            $bodyResolved = ($signedBody === null) ? $body : $signedBody;
-            return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $signedHeaders );
+            $headers['ACCESS-SIGN'] = $signature;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

@@ -176,7 +176,7 @@ export default class toobit extends toobitRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
-    setPositionsCache(client: Client, type: string, symbols?: Strings): void;
+    setPositionsCache(client: Client, type: string, symbols?: Strings, isPortfolioMargin?: Bool): void;
     loadPositionsSnapshot(client: Client, messageHash: string, type: string): Promise<void>;
     handlePositions(client: Client, message: any): void;
     parseWsPosition(position: Dict, market?: Market): Position;

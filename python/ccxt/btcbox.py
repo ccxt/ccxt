@@ -324,8 +324,6 @@ class btcbox(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quoteId = self.safe_string(market, 'quote')
         quote = self.safe_currency_code(quoteId)
-        if (base is None) or (quote is None):
-            return None
         symbol = base + '/' + quote
         return self.safe_market_structure({
             'id': self.safe_string(market, 'symbol'),
@@ -500,7 +498,7 @@ class btcbox(Exchange, ImplicitAPI):
         #      }
         #
         timestamp = self.safe_timestamp(trade, 'date')
-        marketResolved = self.safe_market(None, market)
+        market = self.safe_market(None, market)
         id = self.safe_string(trade, 'tid')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
@@ -512,7 +510,7 @@ class btcbox(Exchange, ImplicitAPI):
             'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'takerOrMaker': None,
@@ -520,7 +518,7 @@ class btcbox(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': None,
             'fee': None,
-        }, marketResolved)
+        }, market)
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -601,8 +599,9 @@ class btcbox(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
-        symbolResolved = 'BTC/JPY' if (symbol is None) else symbol
-        market = self.market(symbolResolved)
+        if symbol is None:
+            symbol = 'BTC/JPY'
+        market = self.market(symbol)
         request = {
             'id': id,
             'coin': market['baseId'],
@@ -643,7 +642,7 @@ class btcbox(Exchange, ImplicitAPI):
         datetimeString = self.safe_string(order, 'datetime')
         timestamp = None
         if datetimeString is not None:
-            timestamp = self.parse8601(datetimeString + '+09:00')  # Tokyo time
+            timestamp = self.parse8601(order['datetime'] + '+09:00')  # Tokyo time
         amount = self.safe_string(order, 'amount_original')
         remaining = self.safe_string(order, 'amount_outstanding')
         price = self.safe_string(order, 'price')
@@ -654,7 +653,7 @@ class btcbox(Exchange, ImplicitAPI):
             if Precise.string_equals(remaining, '0'):
                 status = 'closed'
         trades = None  # todo: this.parseTrades (order['trades']);
-        marketResolved = self.safe_market(None, market)
+        market = self.safe_market(None, market)
         side = self.safe_string(order, 'type')
         return self.safe_order({
             'id': id,
@@ -670,7 +669,7 @@ class btcbox(Exchange, ImplicitAPI):
             'timeInForce': None,
             'postOnly': None,
             'status': status,
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'price': price,
             'triggerPrice': None,
             'cost': None,
@@ -678,7 +677,7 @@ class btcbox(Exchange, ImplicitAPI):
             'fee': None,
             'info': order,
             'average': None,
-        }, marketResolved)
+        }, market)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -694,8 +693,9 @@ class btcbox(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
-        symbolResolved = 'BTC/JPY' if (symbol is None) else symbol
-        market = self.market(symbolResolved)
+        if symbol is None:
+            symbol = 'BTC/JPY'
+        market = self.market(symbol)
         request = self.extend({
             'id': id,
             'coin': market['baseId'],
@@ -719,8 +719,9 @@ class btcbox(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
-        symbolResolved = 'BTC/JPY' if (symbol is None) else symbol
-        market = self.market(symbolResolved)
+        if symbol is None:
+            symbol = 'BTC/JPY'
+        market = self.market(symbol)
         request = {
             'type': type,  # 'open' or 'all'
             'coin': market['baseId'],
@@ -777,11 +778,8 @@ class btcbox(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], 'rest')
-        if apiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl + '/' + self.version + '/' + path
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + path
         if api == 'public':
             if len(params) > 0:
                 url += '?' + self.urlencode(params)
@@ -797,11 +795,10 @@ class btcbox(Exchange, ImplicitAPI):
             request = self.urlencode(query)
             secret = self.hash(self.encode(self.secret), 'md5')
             query['signature'] = self.hmac(self.encode(request), self.encode(secret), hashlib.sha256)
-            signedBody = self.urlencode(query)
-            signedHeaders = {
+            body = self.urlencode(query)
+            headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-            return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
@@ -818,7 +815,7 @@ class btcbox(Exchange, ImplicitAPI):
         self.throw_exactly_matched_exception(self.exceptions, code, feedback)
         raise ExchangeError(feedback)  # unknown message
 
-    def request(self, path: str, api='public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
+    def request(self, path: object, api='public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: object = {}):
         response = self.fetch2(path, api, method, params, headers, body, config)
         if isinstance(response, str):
             # sometimes the exchange returns whitespace prepended to json

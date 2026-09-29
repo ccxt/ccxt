@@ -519,10 +519,7 @@ class ndax extends Exchange {
         $id = $this->safe_string($rawCurrency, 'ProductId');
         $code = $this->safe_currency_code($this->safe_string($rawCurrency, 'Product'));
         $ProductType = $this->safe_string($rawCurrency, 'ProductType');
-        $type = 'crypto';
-        if ($ProductType === 'NationalCurrency') {
-            $type = 'fiat';
-        }
+        $type = ($ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
         if ($ProductType === 'Unknown') {
             // such currency is just a blanket entry
             $type = 'other';
@@ -534,7 +531,7 @@ class ndax extends Exchange {
             'type' => $type,
             'precision' => $this->safe_number($rawCurrency, 'TickSize'),
             'info' => $rawCurrency,
-            'active' => (!$this->safe_bool($rawCurrency, 'IsDisabled', false)),
+            'active' => ($this->safe_bool($rawCurrency, 'IsDisabled') !== true),
             'deposit' => $this->safe_bool($rawCurrency, 'DepositEnabled'),
             'withdraw' => $this->safe_bool($rawCurrency, 'WithdrawEnabled'),
             'fee' => null,
@@ -623,9 +620,6 @@ class ndax extends Exchange {
         $quoteId = $this->safe_string($market, 'Product2');
         $base = $this->safe_currency_code($this->safe_string($market, 'Product1Symbol'));
         $quote = $this->safe_currency_code($this->safe_string($market, 'Product2Symbol'));
-        if (($base === null) || ($quote === null)) {
-            return null;
-        }
         $sessionStatus = $this->safe_string($market, 'SessionStatus');
         $isDisable = $this->safe_bool($market, 'IsDisable');
         $sessionRunning = ($sessionStatus === 'Running');
@@ -682,7 +676,6 @@ class ndax extends Exchange {
 
     public function parse_order_book(mixed $orderbook, mixed $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 6, int|string $amountKey = 8, int|string $countOrIdKey = 2) {
         $nonce = null;
-        $latestTimestamp = $timestamp;
         $result = array(
             'symbol' => $symbol,
             'bids' => array(),
@@ -693,12 +686,12 @@ class ndax extends Exchange {
         );
         for ($i = 0; $i < count($orderbook); $i++) {
             $level = $orderbook[$i];
-            if ($latestTimestamp === null) {
-                $latestTimestamp = $this->safe_integer($level, 2);
+            if ($timestamp === null) {
+                $timestamp = $this->safe_integer($level, 2);
             } else {
                 $newTimestamp = $this->safe_integer($level, 2);
                 if ($newTimestamp !== null) {
-                    $latestTimestamp = max($latestTimestamp, $newTimestamp);
+                    $timestamp = max($timestamp, $newTimestamp);
                 }
             }
             if ($nonce === null) {
@@ -716,8 +709,8 @@ class ndax extends Exchange {
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
         $result['asks'] = $this->sort_by($result['asks'], 0);
-        $result['timestamp'] = $latestTimestamp;
-        $result['datetime'] = $this->iso8601($latestTimestamp);
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->iso8601($timestamp);
         $result['nonce'] = $nonce;
         return $result;
     }
@@ -738,11 +731,11 @@ class ndax extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $limitValue = ($limit === null) ? 100 : $limit; // default 100
+        $limit = ($limit === null) ? 100 : $limit; // default 100
         $request = array(
             'omsId' => $omsId,
             'InstrumentId' => $market['id'],
-            'Depth' => $limitValue, // default 100
+            'Depth' => $limit, // default 100
         );
         $response = $this->publicGetGetL2Snapshot($this->extend($request, $params));
         //
@@ -822,8 +815,8 @@ class ndax extends Exchange {
         if ($marketId === null) {
             $marketId = $this->safe_string($ticker, 'trading_pairs');
         }
-        $marketResolved = $this->safe_market($marketId, $market, '_');
-        $symbol = $this->safe_symbol($marketId, $marketResolved);
+        $market = $this->safe_market($marketId, $market, '_');
+        $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_string_2($ticker, 'LastTradedPx', 'last_price');
         $percentage = $this->safe_string_2($ticker, 'Rolling24HrPxChangePercent', 'price_change_percent_24h');
         $change = $this->safe_string($ticker, 'Rolling24HrPxChange');
@@ -851,7 +844,7 @@ class ndax extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): array {
@@ -867,7 +860,7 @@ class ndax extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetSummary($params);
         //
         //     [
@@ -885,7 +878,7 @@ class ndax extends Exchange {
         //     ]
         //
         $tickers = $this->parse_tickers($response);
-        return $this->filter_by_array_tickers($tickers, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): array {
@@ -1018,7 +1011,7 @@ class ndax extends Exchange {
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade(mixed $trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1265,7 +1258,7 @@ class ndax extends Exchange {
             'datetime' => null,
         );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $this->safe_dict($response, $i);
+            $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'ProductId');
             if (($currencyId !== null) && ($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId ?? '', $this->currencies_by_id))) {
                 $code = $this->safe_currency_code($currencyId);
@@ -1299,12 +1292,12 @@ class ndax extends Exchange {
         if ($accountId === null) {
             $accountId = $this->parse_to_int($this->accounts[0]['id']);
         }
-        $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $request = array(
             'omsId' => $omsId,
             'AccountId' => $accountId,
         );
-        $response = $this->privateGetGetAccountPositions($this->extend($request, $paramsOmitted));
+        $response = $this->privateGetGetAccountPositions($this->extend($request, $params));
         //
         //     [
         //         {
@@ -1339,7 +1332,7 @@ class ndax extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_ledger_entry_type(?string $type): ?string {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'Trade' => 'trade',
             'Deposit' => 'transaction',
@@ -1376,7 +1369,7 @@ class ndax extends Exchange {
         //     }
         //
         $currencyId = $this->safe_string($item, 'ProductId');
-        $currencyResolved = $this->safe_currency($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $credit = $this->safe_string($item, 'CR');
         $debit = $this->safe_string($item, 'DR');
         $amount = null;
@@ -1404,7 +1397,7 @@ class ndax extends Exchange {
             'referenceId' => $this->safe_string($item, 'ReferenceId'),
             'referenceAccount' => $this->safe_string($item, 'Counterparty'),
             'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'ReferenceType')),
-            'currency' => $this->safe_currency_code($currencyId, $currencyResolved),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
             'amount' => $this->parse_number($amount),
             'before' => $this->parse_number($before),
             'after' => $this->parse_number($after),
@@ -1412,7 +1405,7 @@ class ndax extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'fee' => null,
-        ), $currencyResolved);
+        ), $currency);
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1434,7 +1427,7 @@ class ndax extends Exchange {
         $this->load_accounts();
         $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-        $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $request = array(
             'omsId' => $omsId,
             'AccountId' => $accountId,
@@ -1442,7 +1435,7 @@ class ndax extends Exchange {
         if ($limit !== null) {
             $request['Depth'] = $limit;
         }
-        $response = $this->privateGetGetAccountTransactions($this->extend($request, $paramsOmitted));
+        $response = $this->privateGetGetAccountTransactions($this->extend($request, $params));
         //
         //     [
         //         {
@@ -1611,7 +1604,7 @@ class ndax extends Exchange {
                 $orderType = 4;
             }
         }
-        $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice' ));
+        $params = $this->omit($params, array( 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice' ));
         $market = $this->market($symbol);
         $orderSide = ($side === 'buy') ? 0 : 1;
         $amountString = $this->amount_to_precision($symbol, $amount);
@@ -1647,7 +1640,7 @@ class ndax extends Exchange {
         if ($triggerPrice !== null) {
             $request['StopPrice'] = $triggerPrice;
         }
-        $response = $this->privatePostSendOrder($this->extend($request, $paramsOmitted));
+        $response = $this->privatePostSendOrder($this->extend($request, $params));
         //
         //     {
         //         "status":"Accepted",
@@ -1681,7 +1674,7 @@ class ndax extends Exchange {
         $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $clientOrderId = $this->safe_integer_2($params, 'ClientOrderId', 'clientOrderId');
-        $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId' ));
+        $params = $this->omit($params, array( 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId' ));
         $market = $this->market($symbol);
         $orderSide = ($side === 'buy') ? 0 : 1;
         $amountString = $this->amount_to_precision($symbol, $amount);
@@ -1715,7 +1708,7 @@ class ndax extends Exchange {
         if ($clientOrderId !== null) {
             $request['ClientOrderId'] = $clientOrderId;
         }
-        $response = $this->privatePostCancelReplaceOrder($this->extend($request, $paramsOmitted));
+        $response = $this->privatePostCancelReplaceOrder($this->extend($request, $params));
         //
         //     {
         //         "replacementOrderId": 1234,
@@ -1746,7 +1739,7 @@ class ndax extends Exchange {
         $this->load_accounts();
         $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-        $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $request = array(
             'omsId' => $omsId,
             'AccountId' => $accountId,
@@ -1771,7 +1764,7 @@ class ndax extends Exchange {
         if ($limit !== null) {
             $request['Depth'] = $limit;
         }
-        $response = $this->privateGetGetTradesHistory($this->extend($request, $paramsOmitted));
+        $response = $this->privateGetGetTradesHistory($this->extend($request, $params));
         //
         //     [
         //         {
@@ -1835,7 +1828,7 @@ class ndax extends Exchange {
         $this->load_accounts();
         $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-        $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $request = array(
             'omsId' => $omsId,
             'AccountId' => $accountId,
@@ -1844,7 +1837,7 @@ class ndax extends Exchange {
             $market = $this->market($symbol);
             $request['IntrumentId'] = $market['id'];
         }
-        $response = $this->privatePostCancelAllOrders($this->extend($request, $paramsOmitted));
+        $response = $this->privatePostCancelAllOrders($this->extend($request, $params));
         //
         //     {
         //         "result":true,
@@ -1894,8 +1887,8 @@ class ndax extends Exchange {
         } else {
             $request['OrderId'] = intval($id);
         }
-        $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'ClOrderId' ));
-        $response = $this->privatePostCancelOrder($this->extend($request, $paramsOmitted));
+        $params = $this->omit($params, array( 'clientOrderId', 'ClOrderId' ));
+        $response = $this->privatePostCancelOrder($this->extend($request, $params));
         $order = $this->parse_order($response, $market);
         return $this->extend($order, array(
             'id' => $id,
@@ -1922,7 +1915,7 @@ class ndax extends Exchange {
         $this->load_accounts();
         $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-        $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1931,7 +1924,7 @@ class ndax extends Exchange {
             'omsId' => $omsId,
             'AccountId' => $accountId,
         );
-        $response = $this->privateGetGetOpenOrders($this->extend($request, $paramsOmitted));
+        $response = $this->privateGetGetOpenOrders($this->extend($request, $params));
         //
         //     [
         //         {
@@ -2004,7 +1997,7 @@ class ndax extends Exchange {
         $this->load_accounts();
         $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-        $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $request = array(
             'omsId' => $omsId,
             'AccountId' => $accountId,
@@ -2029,7 +2022,7 @@ class ndax extends Exchange {
         if ($limit !== null) {
             $request['Depth'] = $limit;
         }
-        $response = $this->privateGetGetOrdersHistory($this->extend($request, $paramsOmitted));
+        $response = $this->privateGetGetOrdersHistory($this->extend($request, $params));
         //
         //     [
         //         {
@@ -2101,7 +2094,7 @@ class ndax extends Exchange {
         $this->load_accounts();
         $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-        $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2111,7 +2104,7 @@ class ndax extends Exchange {
             'AccountId' => $accountId,
             'OrderId' => intval($id),
         );
-        $response = $this->privateGetGetOrderStatus($this->extend($request, $paramsOmitted));
+        $response = $this->privateGetGetOrderStatus($this->extend($request, $params));
         //
         //     {
         //         "Side":"Sell",
@@ -2263,7 +2256,7 @@ class ndax extends Exchange {
         $this->load_accounts();
         $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-        $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $currency = $this->currency($code);
         $request = array(
             'omsId' => $omsId,
@@ -2271,7 +2264,7 @@ class ndax extends Exchange {
             'ProductId' => $currency['id'],
             'GenerateNewKey' => false,
         );
-        $response = $this->privateGetGetDepositInfo($this->extend($request, $paramsOmitted));
+        $response = $this->privateGetGetDepositInfo($this->extend($request, $params));
         //
         //     {
         //         "result":true,
@@ -2287,7 +2280,7 @@ class ndax extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         // fetchDepositAddress, createDepositAddress
         //
@@ -2311,7 +2304,7 @@ class ndax extends Exchange {
         $tag = $this->safe_string($parts, 1);
         $code = null;
         if ($currency !== null) {
-            $code = $this->safe_string($currency, 'code');
+            $code = $currency['code'];
         }
         $this->check_address($address);
         return array(
@@ -2355,7 +2348,7 @@ class ndax extends Exchange {
         $this->load_accounts();
         $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-        $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
@@ -2364,7 +2357,7 @@ class ndax extends Exchange {
             'omsId' => $omsId,
             'AccountId' => $accountId,
         );
-        $response = $this->privateGetGetDeposits($this->extend($request, $paramsOmitted));
+        $response = $this->privateGetGetDeposits($this->extend($request, $params));
         //
         //    "[
         //        {
@@ -2418,7 +2411,7 @@ class ndax extends Exchange {
         $this->load_accounts();
         $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-        $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
@@ -2427,7 +2420,7 @@ class ndax extends Exchange {
             'omsId' => $omsId,
             'AccountId' => $accountId,
         );
-        $response = $this->privateGetGetWithdraws($this->extend($request, $paramsOmitted));
+        $response = $this->privateGetGetWithdraws($this->extend($request, $params));
         //
         //     [
         //         {
@@ -2616,7 +2609,7 @@ class ndax extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         // this method required login, password and twofa key
         $sessionToken = $this->safe_string($this->options, 'sessionToken');
         if ($sessionToken === null) {
@@ -2632,8 +2625,8 @@ class ndax extends Exchange {
         }
         $this->load_accounts();
         $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-        $accountId = $this->safe_integer_2($paramsWithdrawTag, 'accountId', 'AccountId', $defaultAccountId);
-        $paramsOmitted = $this->omit($paramsWithdrawTag, array( 'accountId', 'AccountId' ));
+        $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $currency = $this->currency($code);
         $withdrawTemplateTypesRequest = array(
             'omsId' => $omsId,
@@ -2681,9 +2674,9 @@ class ndax extends Exchange {
         }
         $withdrawTemplate = json_decode($template, $as_associative_array = true);
         $withdrawTemplate['ExternalAddress'] = $address;
-        if ($tagWithdrawTag !== null) {
+        if ($tag !== null) {
             if (is_array($withdrawTemplate) && array_key_exists('Memo' ?? '', $withdrawTemplate)) {
-                $withdrawTemplate['Memo'] = $tagWithdrawTag;
+                $withdrawTemplate['Memo'] = $tag;
             }
         }
         $withdrawPayload = array(
@@ -2698,7 +2691,7 @@ class ndax extends Exchange {
             'TFaCode' => $this->totp($this->twofa),
             'Payload' => $this->json($withdrawPayload),
         );
-        $response = $this->privatePostCreateWithdrawTicket($this->deep_extend($withdrawRequest, $paramsOmitted));
+        $response = $this->privatePostCreateWithdrawTicket($this->deep_extend($withdrawRequest, $params));
         return $this->parse_transaction($response, $currency);
     }
 
@@ -2706,27 +2699,21 @@ class ndax extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $bodySigned = null;
-        $headersSigned = null;
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
-        if ($apiUrl === null) {
-            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
-        }
-        $url = $apiUrl . '/' . $this->implode_params($path, $params);
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($path === 'Authenticate') {
                 $auth = $this->login . ':' . $this->password;
                 $auth64 = base64_encode($auth);
-                $headersSigned = array(
+                $headers = array(
                     'Authorization' => 'Basic ' . $auth64,
                     // 'Content-Type': 'application/json',
                 );
             } elseif ($path === 'Authenticate2FA') {
                 $pending2faToken = $this->safe_string($this->options, 'pending2faToken');
                 if ($pending2faToken !== null) {
-                    $headersSigned = array(
+                    $headers = array(
                         'Pending2FaToken' => $pending2faToken,
                         // 'Content-Type': 'application/json',
                     );
@@ -2743,29 +2730,27 @@ class ndax extends Exchange {
                 $nonce = (string) $this->nonce();
                 $auth = $nonce . $this->uid . $this->apiKey;
                 $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-                $headersSigned = array(
+                $headers = array(
                     'Nonce' => $nonce,
                     'APIKey' => $this->apiKey,
                     'Signature' => $signature,
                     'UserId' => $this->uid,
                 );
             } else {
-                $headersSigned = array(
+                $headers = array(
                     'APToken' => $sessionToken,
                 );
             }
             if ($method === 'POST') {
-                $headersSigned['Content-Type'] = 'application/json';
-                $bodySigned = $this->json($query);
+                $headers['Content-Type'] = 'application/json';
+                $body = $this->json($query);
             } else {
                 if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             }
         }
-        $headersResolved = ($headersSigned === null) ? $headers : $headersSigned;
-        $bodyResolved = ($bodySigned === null) ? $body : $bodySigned;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

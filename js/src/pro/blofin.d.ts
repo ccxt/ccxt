@@ -168,7 +168,7 @@ export default class blofin extends blofinRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     handlePositions(client: Client, message: Dict): void;
-    parseWsPosition(position: Dict, market?: Market): Position;
+    parseWsPosition(position: any, market?: Market): Position;
     /**
      * @method
      * @name blofin#watchFundingRate
@@ -178,7 +178,7 @@ export default class blofin extends blofinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    watchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
+    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     handleFundingRate(client: Client, message: Dict): void;
     watchMultipleWrapper(isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray?: any, params?: Dict): Promise<any>;
     getSubscriptionRequest(args: any): {

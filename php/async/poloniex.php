@@ -696,23 +696,18 @@ class poloniex extends Exchange {
          * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         Async\await($this->load_markets());
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 500));
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 500));
         }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $keyStart = 'sTime';
-        if ($market['spot'] === true) {
-            $keyStart = 'startTime';
-        }
-        $keyEnd = 'eTime';
-        if ($market['spot'] === true) {
-            $keyEnd = 'endTime';
-        }
+        $keyStart = ($market['spot'] === true) ? 'startTime' : 'sTime';
+        $keyEnd = ($market['spot'] === true) ? 'endTime' : 'eTime';
         if ($since !== null) {
             $request[$keyStart] = $since;
         }
@@ -720,9 +715,9 @@ class poloniex extends Exchange {
             // limit should in between 100 and 500
             $request['limit'] = $limit;
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option($keyEnd, $request, $paramsPaginate);
+        list($request, $params) = $this->handle_until_option($keyEnd, $request, $params);
         if ($market['contract'] === true) {
-            $responseRaw = Async\await($this->swapPublicGetV3MarketCandles($this->extend($requestUntil, $paramsUntil)));
+            $responseRaw = Async\await($this->swapPublicGetV3MarketCandles($this->extend($request, $params)));
             //
             //     {
             //         code: "200",
@@ -743,7 +738,7 @@ class poloniex extends Exchange {
             $data = $this->safe_list($responseRaw, 'data');
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         }
-        $response = Async\await($this->publicGetMarketsSymbolCandles($this->extend($requestUntil, $paramsUntil)));
+        $response = Async\await($this->publicGetMarketsSymbolCandles($this->extend($request, $params)));
         //
         //     [
         //         [
@@ -898,9 +893,6 @@ class poloniex extends Exchange {
         $quoteId = $this->safe_string($market, 'quoteCurrencyName');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        if (($base === null) || ($quote === null)) {
-            return null;
-        }
         $state = $this->safe_string($market, 'state');
         $active = $state === 'NORMAL';
         $symbolTradeLimit = $this->safe_dict($market, 'symbolTradeLimit');
@@ -993,13 +985,10 @@ class poloniex extends Exchange {
         $settleId = $this->safe_string($market, 'sCcy');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        if (($base === null) || ($quote === null)) {
-            return null;
-        }
         $settle = $this->safe_currency_code($settleId);
         $status = $this->safe_string($market, 'status');
         $active = $status === 'OPEN';
-        $linear = $this->safe_string($market, 'ctType') === 'LINEAR';
+        $linear = $market['ctType'] === 'LINEAR';
         $symbol = $base . '/' . $quote;
         if ($linear) {
             $symbol .= ':' . $settle;
@@ -1012,10 +1001,7 @@ class poloniex extends Exchange {
         if ($alias !== null) {
             $type = 'future';
         }
-        $marketType = 'swap';
-        if ($type === 'future') {
-            $marketType = 'future';
-        }
+        $marketType = ($type === 'future') ? 'future' : 'swap';
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -1136,16 +1122,17 @@ class poloniex extends Exchange {
         //
         $timestamp = $this->safe_integer_2($ticker, 'ts', 'cT');
         $marketId = $this->safe_string_2($ticker, 'symbol', 's');
-        $marketResolved = $this->safe_market($marketId);
+        $market = $this->safe_market($marketId);
         $baseVolume = $this->safe_string_2($ticker, 'quantity', 'qty');
-        if (($marketResolved['contract'] === true) && ($marketResolved['contractSize'] !== null)) {
+        if (($market['contract'] === true) && ($market['contractSize'] !== null)) {
             // 'quantity' counts contracts, and a ticker reports base volume
-            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($marketResolved['contractSize']));
+            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($market['contractSize']));
         }
         $relativeChange = $this->safe_string_2($ticker, 'dailyChange', 'dc');
         $percentage = Precise::string_mul($relativeChange, '100');
         return $this->safe_ticker(array(
-            'symbol' => $marketResolved['symbol'],
+            'id' => $marketId,
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string_2($ticker, 'high', 'h'),
@@ -1166,7 +1153,7 @@ class poloniex extends Exchange {
             'markPrice' => $this->safe_string_2($ticker, 'markPrice', 'mPx'),
             'indexPrice' => $this->safe_string($ticker, 'iPx'),
             'info' => $ticker,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -1187,19 +1174,20 @@ class poloniex extends Exchange {
         Async\await($this->load_markets());
         $market = null;
         $request = array();
-        $symbolsNormalized = $this->market_symbols($symbols, null, true, true, false);
-        if ($symbolsNormalized !== null) {
-            $symbolsLength = count($symbolsNormalized);
+        if ($symbols !== null) {
+            $symbols = $this->market_symbols($symbols, null, true, true, false);
+            $symbolsLength = count($symbols);
             if ($symbolsLength > 0) {
-                $market = $this->market($symbolsNormalized[0]);
+                $market = $this->market($symbols[0]);
                 if ($symbolsLength === 1) {
                     $request['symbol'] = $market['id'];
                 }
             }
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         if ($marketType === 'swap') {
-            $responseRaw = Async\await($this->swapPublicGetV3MarketTickers($this->extend($request, $paramsMarketType)));
+            $responseRaw = Async\await($this->swapPublicGetV3MarketTickers($this->extend($request, $params)));
             //
             //    {
             //        "code": "200",
@@ -1227,9 +1215,9 @@ class poloniex extends Exchange {
             //            },
             //
             $data = $this->safe_list($responseRaw, 'data');
-            return $this->parse_tickers($data, $symbolsNormalized);
+            return $this->parse_tickers($data, $symbols);
         }
-        $response = Async\await($this->publicGetMarketsTicker24h($paramsMarketType));
+        $response = Async\await($this->publicGetMarketsTicker24h($params));
         //
         //     [
         //         {
@@ -1254,7 +1242,7 @@ class poloniex extends Exchange {
         //         }
         //     ]
         //
-        return $this->parse_tickers($response, $symbolsNormalized);
+        return $this->parse_tickers($response, $symbols);
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {
@@ -1311,7 +1299,7 @@ class poloniex extends Exchange {
         $chains = $this->safe_list($entry, 'networkList', array());
         $chainsLength = count($chains);
         for ($j = 0; $j < $chainsLength; $j++) {
-            $chain = $this->safe_dict($chains, $j);
+            $chain = $chains[$j];
             $chainId = $this->safe_string($chain, 'blockchain');
             $networkCode = $this->network_id_to_code($chainId, $code);
             if ($networkCode !== null) {
@@ -1377,8 +1365,7 @@ class poloniex extends Exchange {
         );
         if ($market['contract'] === true) {
             $tickers = Async\await($this->fetch_tickers(array( $market['symbol'] ), $params));
-            $contractTicker = $this->safe_dict($tickers, $symbol);
-            return $contractTicker;
+            return $this->safe_dict($tickers, $symbol);
         }
         $response = Async\await($this->publicGetMarketsSymbolTicker24h($this->extend($request, $params)));
         //
@@ -1507,8 +1494,8 @@ class poloniex extends Exchange {
         $orderId = $this->safe_string_2($trade, 'orderId', 'ordId');
         $timestamp = $this->safe_integer_n($trade, array( 'ts', 'createTime', 'cT', 'cTime' ));
         $marketId = $this->safe_string($trade, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market, '_');
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($marketId, $market, '_');
+        $symbol = $market['symbol'];
         $side = $this->safe_string_lower_2($trade, 'side', 'takerSide');
         $fee = null;
         $priceString = $this->safe_string_2($trade, 'price', 'px');
@@ -1537,7 +1524,7 @@ class poloniex extends Exchange {
             'amount' => $amountString,
             'cost' => $costString,
             'fee' => $fee,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1621,28 +1608,24 @@ class poloniex extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         Async\await($this->load_markets());
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
         }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchMyTrades', $market, $paramsPaginate);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $isContract = $this->in_array($marketType, array( 'swap', 'future' ));
         $request = array(
             // 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
             // 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
         );
-        $startKey = 'startTime';
-        if ($isContract) {
-            $startKey = 'sTime';
-        }
-        $endKey = 'endTime';
-        if ($isContract) {
-            $endKey = 'eTime';
-        }
+        $startKey = $isContract ? 'sTime' : 'startTime';
+        $endKey = $isContract ? 'eTime' : 'endTime';
         if ($since !== null) {
             $request[$startKey] = $since;
         }
@@ -1652,9 +1635,9 @@ class poloniex extends Exchange {
         if ($isContract && $symbol !== null) {
             $request['symbol'] = $this->safe_string($market, 'id');
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option($endKey, $request, $paramsMarketType);
+        list($request, $params) = $this->handle_until_option($endKey, $request, $params);
         if ($isContract) {
-            $raw = Async\await($this->swapPrivateGetV3TradeOrderTrades($this->extend($requestUntil, $paramsUntil)));
+            $raw = Async\await($this->swapPrivateGetV3TradeOrderTrades($this->extend($request, $params)));
             //
             //    {
             //        "code": "200",
@@ -1689,7 +1672,7 @@ class poloniex extends Exchange {
             $data = $this->safe_list($raw, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }
-        $response = Async\await($this->privateGetTrades($this->extend($requestUntil, $paramsUntil)));
+        $response = Async\await($this->privateGetTrades($this->extend($request, $params)));
         //
         //     [
         //         {
@@ -1832,12 +1815,12 @@ class poloniex extends Exchange {
             $timestamp = $this->parse8601($this->safe_string($order, 'date'));
         }
         $marketId = $this->safe_string($order, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market, '_');
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($marketId, $market, '_');
+        $symbol = $market['symbol'];
         $resultingTrades = $this->safe_value($order, 'resultingTrades');
         if ($resultingTrades !== null) {
             if ((gettype($resultingTrades) !== 'array' || array_keys($resultingTrades) !== array_keys(array_keys($resultingTrades)))) {
-                $resultingTrades = $this->safe_value($resultingTrades, $this->safe_string($marketResolved, 'id', $marketId));
+                $resultingTrades = $this->safe_value($resultingTrades, $this->safe_string($market, 'id', $marketId));
             }
         }
         $price = $this->safe_string_n($order, array( 'price', 'rate', 'px' ));
@@ -1854,7 +1837,7 @@ class poloniex extends Exchange {
         $feeCurrencyCode = null;
         $rate = $this->safe_string($order, 'fee');
         if ($feeCurrency === null) {
-            $feeCurrencyCode = ($side === 'buy') ? $marketResolved['base'] : $marketResolved['quote'];
+            $feeCurrencyCode = ($side === 'buy') ? $market['base'] : $market['quote'];
         } else {
             // poloniex accepts a 30% discount to pay fees in TRX
             $feeCurrencyCode = $this->safe_currency_code($feeCurrency);
@@ -1898,7 +1881,7 @@ class poloniex extends Exchange {
             'reduceOnly' => $reduceOnly,
             'leverage' => $leverage,
             'hedged' => $hedged,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function parse_order_type(?string $status): ?string {
@@ -1952,16 +1935,17 @@ class poloniex extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         if ($limit !== null) {
             $max = ($marketType === 'spot') ? 2000 : 100;
             $request['limit'] = $max($limit, $max);
         }
-        $isTrigger = $this->safe_bool_2($paramsMarketType, 'trigger', 'stop');
-        $paramsOmitted = $this->omit($paramsMarketType, array( 'trigger', 'stop' ));
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
+        $params = $this->omit($params, array( 'trigger', 'stop' ));
         $response = array();
         if ($marketType !== 'spot') {
-            $raw = Async\await($this->swapPrivateGetV3TradeOrderOpens($this->extend($request, $paramsOmitted)));
+            $raw = Async\await($this->swapPrivateGetV3TradeOrderOpens($this->extend($request, $params)));
             //
             //    {
             //        "code": "200",
@@ -2003,9 +1987,9 @@ class poloniex extends Exchange {
             //
             $response = $this->safe_list($raw, 'data', array());
         } elseif ($isTrigger === true) {
-            $response = Async\await($this->privateGetSmartorders($this->extend($request, $paramsOmitted)));
+            $response = Async\await($this->privateGetSmartorders($this->extend($request, $params)));
         } else {
-            $response = Async\await($this->privateGetOrders($this->extend($request, $paramsOmitted)));
+            $response = Async\await($this->privateGetOrders($this->extend($request, $params)));
         }
         //
         //     [
@@ -2058,7 +2042,8 @@ class poloniex extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params, 'swap');
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params, 'swap');
         if ($marketType === 'spot') {
             throw new NotSupported($this->id . ' fetchClosedOrders() is not supported for spot markets yet');
         }
@@ -2068,8 +2053,8 @@ class poloniex extends Exchange {
         if ($since !== null) {
             $request['sTime'] = $since;
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('eTime', $request, $paramsMarketType);
-        $response = Async\await($this->swapPrivateGetV3TradeOrderHistory($this->extend($requestUntil, $paramsUntil)));
+        list($request, $params) = $this->handle_until_option('eTime', $request, $params);
+        $response = Async\await($this->swapPrivateGetV3TradeOrderHistory($this->extend($request, $params)));
         //
         //    {
         //        "code": "200",
@@ -2146,18 +2131,18 @@ class poloniex extends Exchange {
             // 'amount': amount,
         );
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
-        list($requestValue, $paramsValue) = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
+        list($request, $params) = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
         $response = array();
         if (($market['swap'] === true) || ($market['future'] === true)) {
-            $responseInitial = Async\await($this->swapPrivatePostV3TradeOrder($this->extend($requestValue, $paramsValue)));
+            $responseInitial = Async\await($this->swapPrivatePostV3TradeOrder($this->extend($request, $params)));
             //
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
             //
             $response = $this->safe_dict($responseInitial, 'data', array());
         } elseif ($triggerPrice !== null) {
-            $response = Async\await($this->privatePostSmartorders($this->extend($requestValue, $paramsValue)));
+            $response = Async\await($this->privatePostSmartorders($this->extend($request, $params)));
         } else {
-            $response = Async\await($this->privatePostOrders($this->extend($requestValue, $paramsValue)));
+            $response = Async\await($this->privatePostOrders($this->extend($request, $params)));
         }
         //
         //     {
@@ -2171,32 +2156,28 @@ class poloniex extends Exchange {
     public function order_request(string $symbol, string $type, string $side, ?float $amount, array $request, ?float $price = null, $params = array()): array {
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         $market = $this->market($symbol);
-        $isContract = ($market['contract'] === true);
-        list($marginMode, $paramsMarginMode) = $this->handle_param_string($params, 'marginMode');
-        list($hedged, $paramsHedged) = $this->handle_param_string($paramsMarginMode, 'hedged');
-        // marginMode and hedged are consumed for contract markets only
-        $query = $params;
-        if ($isContract) {
-            $query = $paramsHedged;
-        }
-        if ($isContract) {
+        if ($market['contract'] === true) {
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_param_string($params, 'marginMode');
             if ($marginMode !== null) {
                 $this->check_required_argument('createOrder', $marginMode, 'marginMode', array( 'cross', 'isolated' ));
                 $request['mgnMode'] = strtoupper($marginMode);
             }
+            $hedged = null;
+            list($hedged, $params) = $this->handle_param_string($params, 'hedged');
             if (($hedged !== null) && ($hedged !== '')) {
                 if ($marginMode === null) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a marginMode parameter "cross" or "isolated" for hedged orders');
                 }
-                if (!(is_array($query) && array_key_exists('posSide' ?? '', $query))) {
+                if (!(is_array($params) && array_key_exists('posSide' ?? '', $params))) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a posSide parameter "LONG" or "SHORT" for hedged orders');
                 }
             }
         }
         $upperCaseType = strtoupper($type);
         $isMarket = $upperCaseType === 'MARKET';
-        $isPostOnly = $this->is_post_only($isMarket, $upperCaseType === 'LIMIT_MAKER', $query);
-        $queryOmitted = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice' ));
+        $isPostOnly = $this->is_post_only($isMarket, $upperCaseType === 'LIMIT_MAKER', $params);
+        $params = $this->omit($params, array( 'postOnly', 'triggerPrice', 'stopPrice' ));
         if ($triggerPrice !== null) {
             if ($market['spot'] !== true) {
                 throw new InvalidOrder($this->id . ' createOrder() does not support trigger orders for ' . $market['type'] . ' markets');
@@ -2211,9 +2192,9 @@ class poloniex extends Exchange {
             if ($side === 'buy') {
                 $quoteAmount = null;
                 $createMarketBuyOrderRequiresPrice = true;
-                list($createMarketBuyOrderRequiresPrice, $queryOmitted) = $this->handle_option_bool_and_params($queryOmitted, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                $cost = $this->safe_number($queryOmitted, 'cost');
-                $queryOmitted = $this->omit($queryOmitted, 'cost');
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number($params, 'cost');
+                $params = $this->omit($params, 'cost');
                 if ($cost !== null) {
                     $quoteAmount = $this->cost_to_precision($symbol, $cost);
                 } elseif ($createMarketBuyOrderRequiresPrice && ($market['spot'] === true)) {
@@ -2228,42 +2209,27 @@ class poloniex extends Exchange {
                 } else {
                     $quoteAmount = $this->cost_to_precision($symbol, $amount);
                 }
-                $amountKey = 'sz';
-                if ($market['spot'] === true) {
-                    $amountKey = 'amount';
-                }
+                $amountKey = ($market['spot'] === true) ? 'amount' : 'sz';
                 $request[$amountKey] = $quoteAmount;
             } else {
-                $amountKey = 'sz';
-                if ($market['spot'] === true) {
-                    $amountKey = 'quantity';
-                }
+                $amountKey = ($market['spot'] === true) ? 'quantity' : 'sz';
                 $request[$amountKey] = $this->amount_to_precision($symbol, $amount);
             }
         } else {
-            $amountKey = 'sz';
-            if ($market['spot'] === true) {
-                $amountKey = 'quantity';
-            }
+            $amountKey = ($market['spot'] === true) ? 'quantity' : 'sz';
             $request[$amountKey] = $this->amount_to_precision($symbol, $amount);
-            $priceKey = 'px';
-            if ($market['spot'] === true) {
-                $priceKey = 'price';
-            }
+            $priceKey = ($market['spot'] === true) ? 'price' : 'px';
             $request[$priceKey] = $this->price_to_precision($symbol, $price);
         }
-        $clientOrderId = $this->safe_string_2($queryOmitted, 'clientOrderId', 'clOrdId');
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clOrdId');
         if ($clientOrderId !== null) {
             // the futures v3 api silently ignores the spot key and generates its own id
-            $clientOrderIdKey = 'clOrdId';
-            if ($market['spot'] === true) {
-                $clientOrderIdKey = 'clientOrderId';
-            }
+            $clientOrderIdKey = ($market['spot'] === true) ? 'clientOrderId' : 'clOrdId';
             $request[$clientOrderIdKey] = $clientOrderId;
-            $queryOmitted = $this->omit($queryOmitted, array( 'clientOrderId', 'clOrdId' ));
+            $params = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
         }
         // remember the timestamp before issuing the request
-        return array( $request, $queryOmitted );
+        return array( $request, $params );
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
@@ -2298,12 +2264,12 @@ class poloniex extends Exchange {
             // 'timeInForce': timeInForce,
         );
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
-        list($requestValue, $paramsValue) = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
+        list($request, $params) = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
         $response = array();
         if ($triggerPrice !== null) {
-            $response = Async\await($this->privatePutSmartordersId($this->extend($requestValue, $paramsValue)));
+            $response = Async\await($this->privatePutSmartordersId($this->extend($request, $params)));
         } else {
-            $response = Async\await($this->privatePutOrdersId($this->extend($requestValue, $paramsValue)));
+            $response = Async\await($this->privatePutOrdersId($this->extend($request, $params)));
         }
         //
         //     {
@@ -2358,15 +2324,17 @@ class poloniex extends Exchange {
             return $this->parse_order($this->safe_dict($raw, 'data', array()));
         }
         $clientOrderId = $this->safe_value($params, 'clientOrderId');
-        $idValue = ($clientOrderId !== null) ? $clientOrderId : $id;
-        $request['id'] = $idValue;
+        if ($clientOrderId !== null) {
+            $id = $clientOrderId;
+        }
+        $request['id'] = $id;
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'trigger', 'stop' ));
+        $params = $this->omit($params, array( 'clientOrderId', 'trigger', 'stop' ));
         $response = array();
         if ($isTrigger === true) {
-            $response = Async\await($this->privateDeleteSmartordersId($this->extend($request, $paramsOmitted)));
+            $response = Async\await($this->privateDeleteSmartordersId($this->extend($request, $params)));
         } else {
-            $response = Async\await($this->privateDeleteOrdersId($this->extend($request, $paramsOmitted)));
+            $response = Async\await($this->privateDeleteOrdersId($this->extend($request, $params)));
         }
         //
         //   {
@@ -2410,9 +2378,10 @@ class poloniex extends Exchange {
             );
         }
         $response = array();
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         if ($marketType === 'swap' || $marketType === 'future') {
-            $raw = Async\await($this->swapPrivateDeleteV3TradeAllOrders($this->extend($request, $paramsMarketType)));
+            $raw = Async\await($this->swapPrivateDeleteV3TradeAllOrders($this->extend($request, $params)));
             //
             //    {
             //        "code": "200",
@@ -2430,12 +2399,12 @@ class poloniex extends Exchange {
             $response = $this->safe_list($raw, 'data', array());
             return $this->parse_orders($response, $market);
         }
-        $isTrigger = $this->safe_bool_2($paramsMarketType, 'trigger', 'stop');
-        $paramsOmitted = $this->omit($paramsMarketType, array( 'trigger', 'stop' ));
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
+        $params = $this->omit($params, array( 'trigger', 'stop' ));
         if ($isTrigger === true) {
-            $response = Async\await($this->privateDeleteSmartorders($this->extend($request, $paramsOmitted)));
+            $response = Async\await($this->privateDeleteSmartorders($this->extend($request, $params)));
         } else {
-            $response = Async\await($this->privateDeleteOrders($this->extend($request, $paramsOmitted)));
+            $response = Async\await($this->privateDeleteOrders($this->extend($request, $params)));
         }
         //
         //     [
@@ -2475,27 +2444,28 @@ class poloniex extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         Async\await($this->load_markets());
-        $idValue = (string) $id;
+        $id = (string) $id;
         $request = array(
-            'id' => $idValue,
+            'id' => $id,
         );
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
         if ($marketType !== 'spot') {
             throw new NotSupported($this->id . ' fetchOrder() is not supported for ' . $marketType . ' markets yet');
         }
-        $isTrigger = $this->safe_bool_2($paramsMarketType, 'trigger', 'stop');
-        $paramsOmitted = $this->omit($paramsMarketType, array( 'trigger', 'stop' ));
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
+        $params = $this->omit($params, array( 'trigger', 'stop' ));
         $response = array();
         if ($isTrigger === true) {
-            $response = Async\await($this->privateGetSmartordersId($this->extend($request, $paramsOmitted)));
+            $response = Async\await($this->privateGetSmartordersId($this->extend($request, $params)));
             $response = $this->safe_value($response, 0);
         } else {
-            $response = Async\await($this->privateGetOrdersId($this->extend($request, $paramsOmitted)));
+            $response = Async\await($this->privateGetOrdersId($this->extend($request, $params)));
         }
         //
         //     {
@@ -2519,7 +2489,7 @@ class poloniex extends Exchange {
         //     }
         //
         $order = $this->parse_order($response);
-        $order['id'] = $idValue;
+        $order['id'] = $id;
         return $order;
     }
 
@@ -2593,7 +2563,7 @@ class poloniex extends Exchange {
             $result['datetime'] = $this->iso8601($ts);
             $details = $this->safe_list($response, 'details', array());
             for ($i = 0; $i < count($details); $i++) {
-                $balance = $this->safe_dict($details, $i);
+                $balance = $details[$i];
                 $currencyId = $this->safe_string($balance, 'ccy');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
@@ -2639,9 +2609,10 @@ class poloniex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         Async\await($this->load_markets());
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         if ($marketType !== 'spot') {
-            $responseRaw = Async\await($this->swapPrivateGetV3AccountBalance($paramsMarketType));
+            $responseRaw = Async\await($this->swapPrivateGetV3AccountBalance($params));
             //
             //    {
             //        "code": "200",
@@ -2685,7 +2656,7 @@ class poloniex extends Exchange {
         $request = array(
             'accountType' => 'SPOT',
         );
-        $response = Async\await($this->privateGetAccountsBalances($this->extend($request, $paramsMarketType)));
+        $response = Async\await($this->privateGetAccountsBalances($this->extend($request, $params)));
         //
         //     [
         //         {
@@ -2844,8 +2815,8 @@ class poloniex extends Exchange {
          */
         Async\await($this->load_markets());
         list($request, $extraParams, $currency, $networkEntry) = $this->prepare_request_for_deposit_address($code, $params);
-        $paramsValue = $extraParams;
-        $response = Async\await($this->privatePostWalletsAddress($this->extend($request, $paramsValue)));
+        $params = $extraParams;
+        $response = Async\await($this->privatePostWalletsAddress($this->extend($request, $params)));
         //
         //     {
         //         "address" : "0xfxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf"
@@ -2870,8 +2841,8 @@ class poloniex extends Exchange {
          */
         Async\await($this->load_markets());
         list($request, $extraParams, $currency, $networkEntry) = $this->prepare_request_for_deposit_address($code, $params);
-        $paramsValue = $extraParams;
-        $response = Async\await($this->privateGetWalletsAddresses($this->extend($request, $paramsValue)));
+        $params = $extraParams;
+        $response = Async\await($this->privateGetWalletsAddresses($this->extend($request, $params)));
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
@@ -2891,8 +2862,7 @@ class poloniex extends Exchange {
         }
         $currency = $this->currency($code);
         $networkCode = null;
-        $query = null;
-        list($networkCode, $query) = $this->handle_network_code_and_params($params);
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode === null) {
             // we need to know the network to find out the currency-junction
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires a network parameter for ' . $code . '.');
@@ -2908,10 +2878,10 @@ class poloniex extends Exchange {
         $request = array(
             'currency' => $exchangeNetworkId,
         );
-        return array( $request, $query, $currency, $networkEntry );
+        return array( $request, $params, $currency, $networkEntry );
     }
 
-    public function parse_deposit_address_special(array $response, mixed $currency, array $networkEntry): array {
+    public function parse_deposit_address_special(mixed $response, mixed $currency, mixed $networkEntry): array {
         $address = $this->safe_string($response, 'address');
         if ($address === null) {
             $address = $this->safe_string($response, $networkEntry['id']);
@@ -3007,7 +2977,7 @@ class poloniex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $currency = $this->currency($code);
         $request = array(
@@ -3015,16 +2985,17 @@ class poloniex extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
             'address' => $address,
         );
-        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode === null) {
             // we need to know the network to find out the currency-junction
             throw new ArgumentsRequired($this->id . ' withdraw requires a network parameter for ' . $code . '.');
         }
         $request['network'] = $this->network_code_to_id($networkCode, $code);
-        if ($tagWithdrawTag !== null) {
-            $request['paymentId'] = $tagWithdrawTag;
+        if ($tag !== null) {
+            $request['paymentId'] = $tag;
         }
-        $response = Async\await($this->privatePostV2WalletsWithdraw($this->extend($request, $paramsNetworkCode)));
+        $response = Async\await($this->privatePostV2WalletsWithdraw($this->extend($request, $params)));
         //
         //     {
         //         "response": "Withdrew 1.00000000 USDT.",
@@ -3255,13 +3226,13 @@ class poloniex extends Exchange {
         //         }
         //
         $depositWithdrawFees = array();
-        $codesValue = $this->market_codes($codes);
+        $codes = $this->market_codes($codes);
         $responseKeys = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($responseKeys); $i++) {
             $currencyId = $responseKeys[$i];
             $code = $this->safe_currency_code($currencyId);
             $feeInfo = $response[$currencyId];
-            if (($code !== null) && (($codesValue === null) || ($this->in_array($code, $codesValue)))) {
+            if (($code !== null) && (($codes === null) || ($this->in_array($code, $codes)))) {
                 $currency = $this->currency($code);
                 $depositWithdrawFees[$code] = $this->parse_deposit_withdraw_fee($feeInfo, $currency);
                 $childChains = $this->safe_value($feeInfo, 'childChains');
@@ -3270,7 +3241,7 @@ class poloniex extends Exchange {
                     for ($j = 0; $j < count($childChains); $j++) {
                         $networkId = $childChains[$j];
                         $networkId = str_replace($code, '', $networkId);
-                        $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
+                        $networkCode = $this->network_id_to_code($networkId, $currency['code']);
                         $networkInfo = $this->safe_dict($response, $networkId);
                         $networkObject = array();
                         $withdrawFee = $this->safe_number($networkInfo, 'withdrawalFee');
@@ -3397,30 +3368,26 @@ class poloniex extends Exchange {
         //     }
         //
         // if it's being parsed from "withdraw()" method, get the original response
-        $transactionValue = $transaction;
         if (is_array($transaction) && array_key_exists('withdrawNetworkEntry' ?? '', $transaction)) {
-            $transactionValue = $transaction['response'];
+            $transaction = $transaction['response'];
         }
-        $timestamp = $this->safe_timestamp($transactionValue, 'timestamp');
-        $currencyId = $this->safe_string($transactionValue, 'currency');
+        $timestamp = $this->safe_timestamp($transaction, 'timestamp');
+        $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
-        $status = $this->safe_string($transactionValue, 'status', 'pending');
+        $status = $this->safe_string($transaction, 'status', 'pending');
         $status = $this->parse_transaction_status($status);
-        $txid = $this->safe_string($transactionValue, 'txid');
-        $type = 'deposit';
-        if (is_array($transactionValue) && array_key_exists('withdrawalRequestsId' ?? '', $transactionValue)) {
-            $type = 'withdrawal';
-        }
-        $id = $this->safe_string_2($transactionValue, 'withdrawalRequestsId', 'depositNumber');
-        $address = $this->safe_string($transactionValue, 'address');
-        $tag = $this->safe_string($transactionValue, 'paymentID');
-        $amountString = $this->safe_string($transactionValue, 'amount');
-        $feeCostString = $this->safe_string($transactionValue, 'fee');
+        $txid = $this->safe_string($transaction, 'txid');
+        $type = (is_array($transaction) && array_key_exists('withdrawalRequestsId' ?? '', $transaction)) ? 'withdrawal' : 'deposit';
+        $id = $this->safe_string_2($transaction, 'withdrawalRequestsId', 'depositNumber');
+        $address = $this->safe_string($transaction, 'address');
+        $tag = $this->safe_string($transaction, 'paymentID');
+        $amountString = $this->safe_string($transaction, 'amount');
+        $feeCostString = $this->safe_string($transaction, 'fee');
         if ($type === 'withdrawal') {
             $amountString = Precise::string_sub($amountString, $feeCostString);
         }
         return array(
-            'info' => $transactionValue,
+            'info' => $transaction,
             'id' => $id,
             'currency' => $code,
             'amount' => $this->parse_number($amountString),
@@ -3468,13 +3435,15 @@ class poloniex extends Exchange {
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('setLeverage', $params);
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
         if ($marginMode === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a marginMode parameter "cross" or "isolated"');
         }
-        list($hedged, $paramsHedged) = $this->handle_param_bool($paramsMarginMode, 'hedged', false);
+        $hedged = null;
+        list($hedged, $params) = $this->handle_param_bool($params, 'hedged', false);
         if ($hedged === true) {
-            if (!(is_array($paramsHedged) && array_key_exists('posSide' ?? '', $paramsHedged))) {
+            if (!(is_array($params) && array_key_exists('posSide' ?? '', $params))) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a posSide parameter for hedged mode => "LONG" or "SHORT"');
             }
         }
@@ -3483,7 +3452,7 @@ class poloniex extends Exchange {
             'mgnMode' => strtoupper($marginMode),
             'symbol' => $market['id'],
         );
-        $response = Async\await($this->swapPrivatePostV3PositionLeverage($this->extend($request, $paramsHedged)));
+        $response = Async\await($this->swapPrivatePostV3PositionLeverage($this->extend($request, $params)));
         return $response;
     }
 
@@ -3506,12 +3475,13 @@ class poloniex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
         if ($marginMode === null) {
             throw new ArgumentsRequired($this->id . ' fetchLeverage() requires a marginMode parameter "cross" or "isolated"');
         }
         $request['mgnMode'] = strtoupper($marginMode);
-        $response = Async\await($this->swapPrivateGetV3PositionLeverages($this->extend($request, $paramsMarginMode)));
+        $response = Async\await($this->swapPrivateGetV3PositionLeverages($this->extend($request, $params)));
         //
         //  for one-way mode:
         //
@@ -3559,7 +3529,7 @@ class poloniex extends Exchange {
         $marginMode = null;
         $data = $this->safe_list($leverage, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $this->safe_dict($data, $i);
+            $entry = $data[$i];
             $marketId = $this->safe_string($entry, 'symbol');
             // mgnMode arrives upper case; parseOrder and parsePosition read the
             // same field with safeStringLower
@@ -3632,10 +3602,7 @@ class poloniex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} $response from the exchange
          */
-        $mode = 'ONE_WAY';
-        if ($hedged) {
-            $mode = 'HEDGE';
-        }
+        $mode = $hedged ? 'HEDGE' : 'ONE_WAY';
         $request = array(
             'posMode' => $mode,
         );
@@ -3666,7 +3633,7 @@ class poloniex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
         Async\await($this->load_markets());
-        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols);
         $response = Async\await($this->swapPrivateGetV3TradePositionOpens($params));
         //
         //    {
@@ -3704,7 +3671,7 @@ class poloniex extends Exchange {
         //    }
         //
         $positions = $this->safe_list($response, 'data', array());
-        return $this->parse_positions($positions, $symbolsNormalized);
+        return $this->parse_positions($positions, $symbols);
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -3738,7 +3705,7 @@ class poloniex extends Exchange {
         //            }
         //
         $marketId = $this->safe_string($position, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($position, 'cTime');
         $marginMode = $this->safe_string_lower($position, 'mgnMode');
         $leverage = $this->safe_string($position, 'lever');
@@ -3751,7 +3718,7 @@ class poloniex extends Exchange {
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'notional' => $notional,
             'marginMode' => $marginMode,
             'liquidationPrice' => $this->safe_number($position, 'liqPx'),
@@ -3786,10 +3753,10 @@ class poloniex extends Exchange {
     private function do_modify_margin_helper(string $symbol, mixed $amount, string $type, $params = array()) {
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $amountResolved = $this->amount_to_precision($symbol, $amount);
+        $amount = $this->amount_to_precision($symbol, $amount);
         $request = array(
             'symbol' => $market['id'],
-            'amt' => Precise::string_abs($amountResolved),
+            'amt' => Precise::string_abs($amount),
             'type' => strtoupper($type), // 'ADD' or 'REDUCE'
         );
         // todo: hedged handling, tricky
@@ -3811,7 +3778,7 @@ class poloniex extends Exchange {
         // }
         //
         if ($type === 'reduce') {
-            $amountResolved = Precise::string_abs($amountResolved);
+            $amount = Precise::string_abs($amount);
         }
         $data = $this->safe_dict($response, 'data');
         return $this->parse_margin_modification($data, $market);
@@ -3819,12 +3786,12 @@ class poloniex extends Exchange {
 
     public function parse_margin_modification(array $data, ?array $market = null): array {
         $marketId = $this->safe_string($data, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $rawType = $this->safe_string($data, 'type');
         $type = ($rawType === 'ADD') ? 'add' : 'reduce';
         return array(
             'info' => $data,
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'type' => $type,
             'marginMode' => null,
             'amount' => $this->safe_number($data, 'amt'),
@@ -3870,7 +3837,7 @@ class poloniex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api']['spot'];
         if ($this->in_array($api, array( 'swapPublic', 'swapPrivate' ))) {
             $url = $this->urls['api']['swap'];
@@ -3880,8 +3847,6 @@ class poloniex extends Exchange {
         }
         $query = $this->omit($params, $this->extract_params($path));
         $implodedPath = $this->implode_params($path, $params);
-        $bodyJson = null;
-        $signedHeaders = null;
         if ($api === 'public' || $api === 'swapPublic') {
             $url .= '/' . $implodedPath;
             if (count($query) > 0) {
@@ -3896,8 +3861,8 @@ class poloniex extends Exchange {
             if (($method === 'POST') || ($method === 'PUT') || ($method === 'DELETE')) {
                 $auth .= "\n"; // eslint-disable-line quotes
                 if (count($query) > 0) {
-                    $bodyJson = $this->json($query);
-                    $auth .= 'requestBody=' . $bodyJson . '&';
+                    $body = $this->json($query);
+                    $auth .= 'requestBody=' . $body . '&';
                 }
                 $auth .= 'signTimestamp=' . $timestamp;
             } else {
@@ -3909,16 +3874,14 @@ class poloniex extends Exchange {
                 }
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
-            $signedHeaders = array(
+            $headers = array(
                 'Content-Type' => 'application/json',
                 'key' => $this->apiKey,
                 'signTimestamp' => $timestamp,
                 'signature' => $signature,
             );
         }
-        $bodyResolved = ($bodyJson === null) ? $body : $bodyJson;
-        $headersResolved = ($signedHeaders === null) ? $headers : $signedHeaders;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

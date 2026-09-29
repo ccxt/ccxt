@@ -34,16 +34,16 @@ public partial class testMainClass : BaseTest
         object contractSize = exchange.safeString(entry, "contractSize");
         object price = exchange.safeString(entry, "price");
         object baseValue = exchange.safeString(entry, "baseValue");
-        if (((contracts != null)) && (!(contracts is "")) && ((contractSize != null)) && (!(contractSize is "")))
+        if (((contracts != null)) && (!isEqual(contracts, "")) && ((contractSize != null)) && (!isEqual(contractSize, "")))
         {
             assert(Precise.stringEq(baseValue, Precise.stringMul(contracts, contractSize)), ("baseValue == contracts * contractSize" + (logText)));
-            if (((price != null)) && (!(price is "")))
+            if (((price != null)) && (!isEqual(price, "")))
             {
                 assert(Precise.stringEq(baseValue, Precise.stringMul(Precise.stringMul(contracts, contractSize), price)), ("quoteValue == contracts * contractSize * price" + (logText)));
             }
         }
         // if singular was called, then symbol needs to be asserted
-        if ((method is "watchLiquidations") || (method is "fetchLiquidations"))
+        if (isEqual(method, "watchLiquidations") || isEqual(method, "fetchLiquidations"))
         {
             testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
         }

@@ -273,7 +273,7 @@ export default class poloniex extends Exchange {
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     prepareRequestForDepositAddress(code: string, params?: Dict): any;
-    parseDepositAddressSpecial(response: Dict, currency: any, networkEntry: Dict): DepositAddress;
+    parseDepositAddressSpecial(response: any, currency: any, networkEntry: any): DepositAddress;
     /**
      * @method
      * @name poloniex#transfer
@@ -431,6 +431,6 @@ export default class poloniex extends Exchange {
      */
     addMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

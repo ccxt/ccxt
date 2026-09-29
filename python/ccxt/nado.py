@@ -418,12 +418,15 @@ class nado(Exchange, ImplicitAPI):
         amountX18 = self.convert_to_x18(amountString)
         if side == 'sell':
             amountX18 = Precise.string_mul(amountX18, '-1')
-        subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'createOrder', 'subaccount', 'default')
-        expiration, paramsExpiration = self.handle_option_string_and_params(paramsSubaccount, 'createOrder', 'expiration', '4294967295')
-        recvWindow, paramsRecvWindow = self.handle_option_integer_and_params(paramsExpiration, 'createOrder', 'recvWindow', 5000)
+        subaccount = None
+        subaccount, params = self.handle_option_and_params(params, 'createOrder', 'subaccount', 'default')
+        expiration = None
+        expiration, params = self.handle_option_and_params(params, 'createOrder', 'expiration', '4294967295')
+        recvWindow = None
+        recvWindow, params = self.handle_option_and_params(params, 'createOrder', 'recvWindow', 5000)
         nonce = self.create_order_nonce(recvWindow)
-        requestId = self.safe_integer(paramsRecvWindow, 'id')
-        spotLeverage = self.safe_bool_2(paramsRecvWindow, 'spotLeverage', 'spot_leverage')
+        requestId = self.safe_integer(params, 'id')
+        spotLeverage = self.safe_bool_2(params, 'spotLeverage', 'spot_leverage')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         order = {
             'sender': sender,
@@ -440,20 +443,17 @@ class nado(Exchange, ImplicitAPI):
         if spotLeverage is not None:
             placeOrder['spot_leverage'] = spotLeverage
         isBuy = (side == 'buy')
-        triggerPrice = self.safe_string_2(paramsRecvWindow, 'triggerPrice', 'stopPrice')
-        stopLossTriggerPrice = self.safe_string(paramsRecvWindow, 'stopLossPrice')
-        takeProfitTriggerPrice = self.safe_string(paramsRecvWindow, 'takeProfitPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        stopLossTriggerPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_string(params, 'takeProfitPrice')
         isStopLossOrder = stopLossTriggerPrice is not None
         isTakeProfitOrder = takeProfitTriggerPrice is not None
         isStopOrder = triggerPrice is not None
         isTriggerOrder = isStopOrder or isStopLossOrder or isTakeProfitOrder
         if isStopOrder:
-            # the final omit drops triggerDirection from the request
-            triggerDirectionAndParams = self.handle_trigger_direction_and_params(paramsRecvWindow)
-            triggerDirection = triggerDirectionAndParams[0]
-            directionSuffix = 'below'
-            if triggerDirection == 'ascending':
-                directionSuffix = 'above'
+            triggerDirection = None
+            triggerDirection, params = self.handle_trigger_direction_and_params(params)
+            directionSuffix = 'above' if (triggerDirection == 'ascending') else 'below'
             triggerPriceX18 = self.convert_to_x18(triggerPrice)
             priceRequirement = {}
             priceRequirement['oracle_price_' + directionSuffix] = triggerPriceX18
@@ -464,38 +464,35 @@ class nado(Exchange, ImplicitAPI):
             }
             placeOrder['trigger'] = trigger
         elif isStopLossOrder or isTakeProfitOrder:
-            oracleSide = ''
+            triggerDirection = ''
             if isBuy:
-                oracleSide = 'above' if isStopLossOrder else 'below'
+                triggerDirection = 'above' if isStopLossOrder else 'below'
             else:
-                oracleSide = 'below' if isStopLossOrder else 'above'
-            if isStopLossOrder:
-                triggerPrice = stopLossTriggerPrice
-            else:
-                triggerPrice = takeProfitTriggerPrice
+                triggerDirection = 'below' if isStopLossOrder else 'above'
+            triggerPrice = stopLossTriggerPrice if isStopLossOrder else takeProfitTriggerPrice
             triggerPriceX18 = self.convert_to_x18(triggerPrice)
             priceRequirement = {}
-            priceRequirement['oracle_price_' + oracleSide] = triggerPriceX18
+            priceRequirement['oracle_price_' + triggerDirection] = triggerPriceX18
             trigger = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
                 },
             }
             placeOrder['trigger'] = trigger
-        appendix = self.safe_string(paramsRecvWindow, 'appendix')
+        appendix = self.safe_string(params, 'appendix')
         if appendix is None:
-            appendix = self.create_order_appendix(isTriggerOrder, paramsRecvWindow)
+            appendix = self.create_order_appendix(isTriggerOrder, params)
         order['appendix'] = appendix
         contracts = self.query_contracts()
         chainId = self.safe_string(contracts, 'chain_id')
         signature = self.sign_order(order, productId, chainId)
         placeOrder['order'] = order
         placeOrder['signature'] = signature
-        paramsOmitted = self.omit(paramsRecvWindow, ['expiration', 'nonce', 'appendix', 'reduceOnly', 'postOnly', 'timeInForce', 'id', 'spotLeverage', 'spot_leverage', 'triggerPrice', 'stopPrice', 'triggerDirection', 'stopLossPrice', 'takeProfitPrice'])
+        params = self.omit(params, ['expiration', 'nonce', 'appendix', 'reduceOnly', 'postOnly', 'timeInForce', 'id', 'spotLeverage', 'spot_leverage', 'triggerPrice', 'stopPrice', 'triggerDirection', 'stopLossPrice', 'takeProfitPrice'])
         request = {
             'place_order': placeOrder,
         }
-        return self.extend(request, paramsOmitted)
+        return self.extend(request, params)
 
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
@@ -572,18 +569,21 @@ class nado(Exchange, ImplicitAPI):
         if side == 'sell':
             amountX18 = Precise.string_mul(amountX18, '-1')
         editOrderOptions = self.safe_dict(self.options, 'editOrder', {})
-        subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'editOrder', 'subaccount', 'default')
-        expiration, paramsExpiration = self.handle_option_string_and_params(paramsSubaccount, 'editOrder', 'expiration', '4294967295')
-        recvWindow, paramsRecvWindow = self.handle_option_integer_and_params(paramsExpiration, 'editOrder', 'recvWindow', 5000)
+        subaccount = None
+        subaccount, params = self.handle_option_and_params(params, 'editOrder', 'subaccount', 'default')
+        expiration = None
+        expiration, params = self.handle_option_and_params(params, 'editOrder', 'expiration', '4294967295')
+        recvWindow = None
+        recvWindow, params = self.handle_option_and_params(params, 'editOrder', 'recvWindow', 5000)
         cancelNonce = self.create_order_nonce(recvWindow)
         orderNonce = Precise.string_add(cancelNonce, '1')
-        appendix = self.safe_string(paramsRecvWindow, 'appendix')
+        appendix = self.safe_string(params, 'appendix')
         if appendix is None:
-            appendix = self.create_order_appendix(False, paramsRecvWindow)
-        requestId = self.safe_integer(paramsRecvWindow, 'id')
-        spotLeverage = self.safe_bool_2(paramsRecvWindow, 'spotLeverage', 'spot_leverage')
-        placeRequiresUnfilled = self.safe_bool_2(paramsRecvWindow, 'placeRequiresUnfilled', 'place_requires_unfilled', self.safe_bool(editOrderOptions, 'placeRequiresUnfilled', True))
-        paramsOmitted = self.omit(paramsRecvWindow, ['expiration', 'nonce', 'appendix', 'reduceOnly', 'postOnly', 'timeInForce', 'id', 'spotLeverage', 'spot_leverage', 'placeRequiresUnfilled', 'place_requires_unfilled'])
+            appendix = self.create_order_appendix(False, params)
+        requestId = self.safe_integer(params, 'id')
+        spotLeverage = self.safe_bool_2(params, 'spotLeverage', 'spot_leverage')
+        placeRequiresUnfilled = self.safe_bool_2(params, 'placeRequiresUnfilled', 'place_requires_unfilled', self.safe_bool(editOrderOptions, 'placeRequiresUnfilled', True))
+        params = self.omit(params, ['expiration', 'nonce', 'appendix', 'reduceOnly', 'postOnly', 'timeInForce', 'id', 'spotLeverage', 'spot_leverage', 'placeRequiresUnfilled', 'place_requires_unfilled'])
         sender = self.create_subaccount(self.walletAddress, subaccount)
         cancelTx = {
             'sender': sender,
@@ -624,7 +624,7 @@ class nado(Exchange, ImplicitAPI):
         request = {
             'cancel_and_place': cancelAndPlace,
         }
-        return self.extend(request, paramsOmitted)
+        return self.extend(request, params)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -641,8 +641,7 @@ class nado(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         orders = self.cancel_orders([id], symbol, params)
-        canceled = self.safe_dict(orders, 0)
-        return canceled
+        return self.safe_dict(orders, 0)
 
     def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -663,8 +662,8 @@ class nado(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
-        paramsOmitted = self.omit(params, ['stop', 'trigger'])
-        request = self.cancel_all_orders_request(symbol, paramsOmitted)
+        params = self.omit(params, ['stop', 'trigger'])
+        request = self.cancel_all_orders_request(symbol, params)
         response = None
         if trigger is True:
             response = self.triggerPrivatePostExecute(request)
@@ -721,9 +720,11 @@ class nado(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             productIds.append(self.parse_to_int(market['id']))
-        subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'cancelAllOrders', 'subaccount', 'default')
+        subaccount = None
+        subaccount, params = self.handle_option_and_params(params, 'cancelAllOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
-        recvWindow, paramsRecvWindow = self.handle_option_integer_and_params(paramsSubaccount, 'cancelAllOrders', 'recvWindow', 5000)
+        recvWindow = None
+        recvWindow, params = self.handle_option_and_params(params, 'cancelAllOrders', 'recvWindow', 5000)
         nonce = self.create_order_nonce(recvWindow)
         tx = {
             'sender': sender,
@@ -736,8 +737,8 @@ class nado(Exchange, ImplicitAPI):
         if endpointAddress is None:
             raise ExchangeError(self.id + ' cancelAllOrders() requires endpoint_addr from contracts query')
         signature = self.sign_cancellation_products(tx, chainId, endpointAddress)
-        requestId = self.safe_integer(paramsRecvWindow, 'id')
-        paramsOmitted = self.omit(paramsRecvWindow, ['id'])
+        requestId = self.safe_integer(params, 'id')
+        params = self.omit(params, ['id'])
         cancelProductOrders = {
             'tx': tx,
             'signature': signature,
@@ -747,7 +748,7 @@ class nado(Exchange, ImplicitAPI):
         request = {
             'cancel_product_orders': cancelProductOrders,
         }
-        return self.extend(request, paramsOmitted)
+        return self.extend(request, params)
 
     def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -770,8 +771,8 @@ class nado(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
-        paramsOmitted = self.omit(params, ['stop', 'trigger'])
-        request = self.cancel_orders_request(ids, symbol, paramsOmitted)
+        params = self.omit(params, ['stop', 'trigger'])
+        request = self.cancel_orders_request(ids, symbol, params)
         response = None
         if trigger is True:
             response = self.triggerPrivatePostExecute(request)
@@ -827,12 +828,14 @@ class nado(Exchange, ImplicitAPI):
         """
         market = self.market(symbol)
         productId = self.parse_to_int(market['id'])
-        subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'cancelOrders', 'subaccount', 'default')
+        subaccount = None
+        subaccount, params = self.handle_option_and_params(params, 'cancelOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         productIds = []
         for i in range(0, len(ids)):
             productIds.append(productId)
-        recvWindow, paramsRecvWindow = self.handle_option_integer_and_params(paramsSubaccount, 'cancelOrders', 'recvWindow', 5000)
+        recvWindow = None
+        recvWindow, params = self.handle_option_and_params(params, 'cancelOrders', 'recvWindow', 5000)
         nonce = self.create_order_nonce(recvWindow)
         tx = {
             'sender': sender,
@@ -846,10 +849,10 @@ class nado(Exchange, ImplicitAPI):
         if endpointAddress is None:
             raise ExchangeError(self.id + ' cancelOrders() requires endpoint_addr from contracts query')
         signature = self.sign_cancellation(tx, chainId, endpointAddress)
-        requestId = self.safe_integer(paramsRecvWindow, 'id')
-        requiredUnfilledAmountRaw = self.safe_string(paramsRecvWindow, 'required_unfilled_amount')
-        requiredUnfilledAmount = self.safe_string(paramsRecvWindow, 'requiredUnfilledAmount')
-        paramsOmitted = self.omit(paramsRecvWindow, ['id', 'requiredUnfilledAmount', 'required_unfilled_amount'])
+        requestId = self.safe_integer(params, 'id')
+        requiredUnfilledAmountRaw = self.safe_string(params, 'required_unfilled_amount')
+        requiredUnfilledAmount = self.safe_string(params, 'requiredUnfilledAmount')
+        params = self.omit(params, ['id', 'requiredUnfilledAmount', 'required_unfilled_amount'])
         cancelOrders = {
             'tx': tx,
             'signature': signature,
@@ -863,7 +866,7 @@ class nado(Exchange, ImplicitAPI):
         request = {
             'cancel_orders': cancelOrders,
         }
-        return self.extend(request, paramsOmitted)
+        return self.extend(request, params)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -928,13 +931,15 @@ class nado(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             productIds.append(self.parse_to_int(market['id']))
-        subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'fetchOrders', 'subaccount', 'default')
+        subaccount = None
+        subaccount, params = self.handle_option_and_params(params, 'fetchOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
-        trigger = self.safe_bool_2(paramsSubaccount, 'stop', 'trigger')
-        paramsOmitted = self.omit(paramsSubaccount, ['stop', 'trigger'])
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
+        params = self.omit(params, ['stop', 'trigger'])
         if trigger is not True:
             raise NotSupported(self.id + ' fetchOrders only support trigger')
-        recvWindow, paramsRecvWindow = self.handle_option_integer_and_params(paramsOmitted, 'fetchOrders', 'recvWindow', 5000)
+        recvWindow = None
+        recvWindow, params = self.handle_option_and_params(params, 'fetchOrders', 'recvWindow', 5000)
         tx = {
             'sender': sender,
             'recvTime': self.number_to_string(self.milliseconds() + recvWindow),
@@ -951,7 +956,7 @@ class nado(Exchange, ImplicitAPI):
         endpointAddress = self.safe_string(contracts, 'endpoint_addr')
         signature = self.sign_fetch_trigger_orders(tx, chainId, endpointAddress)
         request['signature'] = signature
-        response = self.triggerPrivatePostQuery(self.extend(request, paramsRecvWindow))
+        response = self.triggerPrivatePostQuery(self.extend(request, params))
         #
         # {
         #     "status": "success",
@@ -1003,11 +1008,12 @@ class nado(Exchange, ImplicitAPI):
         if self.walletAddress is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires walletAddress')
         self.load_markets()
-        subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'fetchOpenOrders', 'subaccount', 'default')
+        subaccount = None
+        subaccount, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
-        trigger = self.safe_bool_2(paramsSubaccount, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         if trigger is True:
-            return self.fetch_orders(symbol, since, limit, self.extend(paramsSubaccount, {
+            return self.fetch_orders(symbol, since, limit, self.extend(params, {
                 'status_types': [
                     'waiting_price', 'waiting_dependency',
                 ],
@@ -1020,7 +1026,7 @@ class nado(Exchange, ImplicitAPI):
             'type': 'subaccount_orders',
             'product_id': self.parse_to_int(market['id']),
         }
-        response = self.gatewayPublicGetQuery(self.extend(request, paramsSubaccount))
+        response = self.gatewayPublicGetQuery(self.extend(request, params))
         #
         # single product
         #
@@ -1074,11 +1080,12 @@ class nado(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'fetchClosedOrders', 'subaccount', 'default')
+        subaccount = None
+        subaccount, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
-        trigger = self.safe_bool_2(paramsSubaccount, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         if trigger is True:
-            return self.fetch_orders(symbol, since, limit, self.extend(paramsSubaccount, {
+            return self.fetch_orders(symbol, since, limit, self.extend(params, {
                 'status_types': [
                     'triggered', 'triggering', 'twap_executing', 'twap_completed',
                 ],
@@ -1090,13 +1097,13 @@ class nado(Exchange, ImplicitAPI):
         }
         if market is not None:
             ordersRequest['product_ids'] = [self.parse_to_int(market['id'])]
-        ordersRequestUntil, paramsUntil = self.handle_until_option('max_time', ordersRequest, paramsSubaccount, 0.001)
+        ordersRequest, params = self.handle_until_option('max_time', ordersRequest, params, 0.001)
         if limit is not None:
-            ordersRequestUntil['limit'] = min(limit, 500)
+            ordersRequest['limit'] = min(limit, 500)
         request = {
-            'orders': ordersRequestUntil,
+            'orders': ordersRequest,
         }
-        response = self.archivePost(self.deep_extend(request, paramsUntil))
+        response = self.archivePost(self.deep_extend(request, params))
         #
         #     {
         #         "orders": [
@@ -1182,7 +1189,8 @@ class nado(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'fetchMyTrades', 'subaccount', 'default')
+        subaccount = None
+        subaccount, params = self.handle_option_and_params(params, 'fetchMyTrades', 'subaccount', 'default')
         matchesRequest = {
             'subaccounts': [
                 self.create_subaccount(self.walletAddress, subaccount),
@@ -1190,13 +1198,13 @@ class nado(Exchange, ImplicitAPI):
         }
         if market is not None:
             matchesRequest['product_ids'] = [self.parse_to_int(market['id'])]
-        matchesRequestUntil, paramsUntil = self.handle_until_option('max_time', matchesRequest, paramsSubaccount, 0.001)
+        matchesRequest, params = self.handle_until_option('max_time', matchesRequest, params, 0.001)
         if limit is not None:
-            matchesRequestUntil['limit'] = min(limit, 500)
+            matchesRequest['limit'] = min(limit, 500)
         request = {
-            'matches': matchesRequestUntil,
+            'matches': matchesRequest,
         }
-        response = self.archivePost(self.deep_extend(request, paramsUntil))
+        response = self.archivePost(self.deep_extend(request, params))
         #
         #     {
         #         "matches": [
@@ -1249,12 +1257,13 @@ class nado(Exchange, ImplicitAPI):
         if self.walletAddress is None:
             raise ArgumentsRequired(self.id + ' fetchBalance() requires walletAddress')
         self.load_markets()
-        subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'fetchBalance', 'subaccount', 'default')
+        subaccount = None
+        subaccount, params = self.handle_option_and_params(params, 'fetchBalance', 'subaccount', 'default')
         request = {
             'type': 'subaccount_info',
             'subaccount': self.create_subaccount(self.walletAddress, subaccount),
         }
-        response = self.gatewayPublicGetQuery(self.extend(request, paramsSubaccount))
+        response = self.gatewayPublicGetQuery(self.extend(request, params))
         #
         #     {
         #         "status": "success",
@@ -1316,7 +1325,8 @@ class nado(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        subaccount, paramsSubaccount = self.handle_option_string_and_params(params, methodName, 'subaccount', 'default')
+        subaccount = None
+        subaccount, params = self.handle_option_and_params(params, methodName, 'subaccount', 'default')
         eventsRequest = {
             'subaccounts': [
                 self.create_subaccount(self.walletAddress, subaccount),
@@ -1332,11 +1342,11 @@ class nado(Exchange, ImplicitAPI):
             eventsRequest['product_ids'] = [
                 self.parse_to_int(currency['id']),
             ]
-        eventsRequestUntil, paramsUntil = self.handle_until_option('max_time', eventsRequest, paramsSubaccount, 0.001)
+        eventsRequest, params = self.handle_until_option('max_time', eventsRequest, params, 0.001)
         request = {
-            'events': eventsRequestUntil,
+            'events': eventsRequest,
         }
-        response = self.archivePost(self.deep_extend(request, paramsUntil))
+        response = self.archivePost(self.deep_extend(request, params))
         #
         #     {
         #         "events": [
@@ -1402,13 +1412,14 @@ class nado(Exchange, ImplicitAPI):
         if self.walletAddress is None:
             raise ArgumentsRequired(self.id + ' fetchPositions() requires walletAddress')
         self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
-        subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'fetchPositions', 'subaccount', 'default')
+        symbols = self.market_symbols(symbols)
+        subaccount = None
+        subaccount, params = self.handle_option_and_params(params, 'fetchPositions', 'subaccount', 'default')
         request = {
             'type': 'subaccount_info',
             'subaccount': self.create_subaccount(self.walletAddress, subaccount),
         }
-        response = self.gatewayPublicGetQuery(self.extend(request, paramsSubaccount))
+        response = self.gatewayPublicGetQuery(self.extend(request, params))
         #
         #     {
         #         "status": "success",
@@ -1455,7 +1466,7 @@ class nado(Exchange, ImplicitAPI):
                     product = rawProduct
                     break
             result.append(self.parse_position(self.extend({'product': product}, position)))
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def fetch_time(self, params: dict = {}) -> Int:
         """
@@ -1565,9 +1576,7 @@ class nado(Exchange, ImplicitAPI):
             pair = self.safe_dict(pairsById, id, {})
             asset = self.safe_dict(assetsById, id, {})
             rawType = self.safe_string(market, 'type')
-            type = rawType
-            if rawType == 'perp':
-                type = 'swap'
+            type = 'swap' if (rawType == 'perp') else rawType
             contract = (type == 'swap')
             tickerId = self.safe_string_2(pair, 'ticker_id', 'tickerId')
             if tickerId is None:
@@ -1576,8 +1585,6 @@ class nado(Exchange, ImplicitAPI):
             rawQuoteId = self.safe_string(pair, 'quote', 'USDT0')
             base = self.safe_currency_code(self.remove_market_suffix(rawBaseId))
             quote = self.safe_currency_code(rawQuoteId)
-            if (base is None) or (quote is None):
-                continue
             baseAsset = self.safe_dict(assetsByCode, base, asset)
             quoteAsset = self.safe_dict(assetsByCode, quote)
             baseId = self.safe_string(baseAsset, 'product_id', rawBaseId)
@@ -1692,7 +1699,7 @@ class nado(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols)
         response = self.archiveV2PublicGetTickers(params)
         #
         #     {
@@ -1709,7 +1716,7 @@ class nado(Exchange, ImplicitAPI):
         #     }
         #
         tickers = self.to_array(response)
-        return self.parse_tickers(tickers, symbolsNormalized)
+        return self.parse_tickers(tickers, symbols)
 
     def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -1723,14 +1730,14 @@ class nado(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        tickers = self.fetch_tickers([symbolValue], params)
-        ticker = self.safe_dict(tickers, symbolValue)
+        symbol = market['symbol']
+        tickers = self.fetch_tickers([symbol], params)
+        ticker = self.safe_dict(tickers, symbol)
         if ticker is None:
-            raise BadSymbol(self.id + ' fetchTicker() ticker not found for ' + symbolValue)
+            raise BadSymbol(self.id + ' fetchTicker() ticker not found for ' + symbol)
         return ticker
 
-    def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
 
@@ -1794,7 +1801,8 @@ class nado(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingHistory() supports swap contracts only')
-        subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'fetchFundingHistory', 'subaccount', 'default')
+        subaccount = None
+        subaccount, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'subaccount', 'default')
         request = {
             'interest_and_funding': {
                 'subaccount': self.create_subaccount(self.walletAddress, subaccount),
@@ -1804,7 +1812,7 @@ class nado(Exchange, ImplicitAPI):
                 'limit': 100 if (limit is None) else min(limit, 100),
             },
         }
-        response = self.archivePost(self.deep_extend(request, paramsSubaccount))
+        response = self.archivePost(self.deep_extend(request, params))
         #
         #     {
         #         "interest_payments": [],
@@ -1841,7 +1849,7 @@ class nado(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `funding rate structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexed by market symbols
         """
         self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols, 'swap', True)
+        symbols = self.market_symbols(symbols, 'swap', True)
         response = self.archiveV2PublicGetContracts(params)
         #
         #     {
@@ -1871,7 +1879,7 @@ class nado(Exchange, ImplicitAPI):
         for i in range(0, len(tickers)):
             ticker = tickers[i]
             rates.append(self.safe_dict(response, ticker, {}))
-        return self.parse_funding_rates(rates, symbolsNormalized)
+        return self.parse_funding_rates(rates, symbols)
 
     def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """
@@ -1928,7 +1936,7 @@ class nado(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
         """
         self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols, 'swap', True)
+        symbols = self.market_symbols(symbols, 'swap', True)
         response = self.archiveV2PublicGetContracts(params)
         #
         #     {
@@ -1958,7 +1966,7 @@ class nado(Exchange, ImplicitAPI):
         for i in range(0, len(tickers)):
             ticker = tickers[i]
             interests.append(self.safe_dict(response, ticker, {}))
-        return self.parse_open_interests(interests, symbolsNormalized)
+        return self.parse_open_interests(interests, symbols)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -2052,7 +2060,7 @@ class nado(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         until = self.safe_integer(params, 'until')
-        paramsOmitted = self.omit(params, 'until')
+        params = self.omit(params, 'until')
         request = {
             'candlesticks': {
                 'product_id': self.parse_to_int(market['id']),
@@ -2063,7 +2071,7 @@ class nado(Exchange, ImplicitAPI):
             request['candlesticks']['limit'] = min(limit, 500)
         if until is not None:
             request['candlesticks']['max_time'] = self.parse_to_int(until / 1000)
-        response = self.archivePost(self.deep_extend(request, paramsOmitted))
+        response = self.archivePost(self.deep_extend(request, params))
         #
         #     {
         #         "candlesticks": [
@@ -2138,7 +2146,7 @@ class nado(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(trade, 'product_id')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         timestamp = self.safe_timestamp(trade, 'timestamp')
         rawOrder = self.safe_dict(trade, 'order')
         isArchiveMatch = rawOrder is not None
@@ -2173,7 +2181,7 @@ class nado(Exchange, ImplicitAPI):
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': marketResolved['quote'],
+                'currency': market['quote'],
             }
         parsedAmount = None
         if amountString is not None:
@@ -2193,7 +2201,7 @@ class nado(Exchange, ImplicitAPI):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'id': self.safe_string_2(trade, 'trade_id', 'submission_idx'),
             'order': self.safe_string(trade, 'digest'),
             'type': None,
@@ -2203,7 +2211,7 @@ class nado(Exchange, ImplicitAPI):
             'amount': parsedAmount,
             'cost': parsedCost,
             'fee': fee,
-        }, marketResolved)
+        }, market)
 
     def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
@@ -2228,11 +2236,11 @@ class nado(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(contract, 'product_id')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         fundingTimestamp = self.safe_timestamp(contract, 'next_funding_rate_timestamp')
         return {
             'info': contract,
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'markPrice': self.safe_number(contract, 'mark_price'),
             'indexPrice': self.safe_number(contract, 'index_price'),
             'interestRate': None,
@@ -2264,12 +2272,12 @@ class nado(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(funding, 'product_id')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         timestamp = self.safe_timestamp(funding, 'timestamp')
         return {
             'info': funding,
-            'symbol': marketResolved['symbol'],
-            'code': self.safe_string(marketResolved, 'settle'),
+            'symbol': market['symbol'],
+            'code': self.safe_string(market, 'settle'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'id': self.safe_string(funding, 'idx'),
@@ -2299,23 +2307,23 @@ class nado(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(interest, 'product_id')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         return self.safe_open_interest({
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'openInterestAmount': self.safe_number(interest, 'open_interest'),
             'openInterestValue': self.safe_number(interest, 'open_interest_usd'),
             'timestamp': None,
             'datetime': None,
             'info': interest,
-        }, marketResolved)
+        }, market)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         marketId = self.safe_string(ticker, 'product_id')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         timestamp = None
         last = self.safe_string(ticker, 'last_price')
         return self.safe_ticker({
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
@@ -2335,7 +2343,7 @@ class nado(Exchange, ImplicitAPI):
             'baseVolume': self.safe_string(ticker, 'base_volume'),
             'quoteVolume': self.safe_string(ticker, 'quote_volume'),
             'info': ticker,
-        }, marketResolved)
+        }, market)
 
     def parse_currency(self, rawCurrency: dict) -> Currency:
         canDeposit = self.safe_bool(rawCurrency, 'can_deposit', False)
@@ -2388,14 +2396,14 @@ class nado(Exchange, ImplicitAPI):
         }
         balances = self.safe_list(response, 'spot_balances', [])
         for i in range(0, len(balances)):
-            rawBalance = self.safe_dict(balances, i)
+            rawBalance = balances[i]
             currencyId = self.safe_string(rawBalance, 'product_id')
             code = self.safe_currency_code(currencyId)
             if code == '0':
                 code = 'USDT0'
             elif code == currencyId:
                 market = self.safe_market(currencyId, None, None, 'spot')
-                if self.safe_bool(market, 'spot', False):
+                if self.safe_bool(market, 'spot') is True:
                     code = self.safe_string(market, 'base', code)
             balance = self.safe_dict(rawBalance, 'balance', {})
             amount = Precise.string_div(self.safe_string(balance, 'amount'), '1000000000000000000')
@@ -2486,7 +2494,7 @@ class nado(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(position, 'product_id')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         balance = self.safe_dict(position, 'balance', {})
         amountString = self.safe_string(balance, 'amount')
         product = self.safe_dict(position, 'product', {})
@@ -2514,14 +2522,14 @@ class nado(Exchange, ImplicitAPI):
         return self.safe_position({
             'info': position,
             'id': None,
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'timestamp': None,
             'datetime': None,
             'isolated': None,
             'hedged': False,
             'side': side,
             'contracts': contracts,
-            'contractSize': self.safe_number(marketResolved, 'contractSize'),
+            'contractSize': self.safe_number(market, 'contractSize'),
             'entryPrice': entryPrice,
             'markPrice': markPrice,
             'notional': notional,
@@ -2627,13 +2635,12 @@ class nado(Exchange, ImplicitAPI):
         lastTradeTimestamp = None
         lastUpdateTimestamp = None
         status = None
-        marketResolved = None
         cancelOrderDigest = self.safe_string(order, 'digest')
         archiveFilled = self.safe_string(order, 'base_filled')
         if archiveFilled is not None:
             id = cancelOrderDigest
             marketId = self.safe_string(order, 'product_id')
-            marketResolved = self.safe_market(marketId, market)
+            market = self.safe_market(marketId, market)
             amountString = self.safe_string(order, 'amount')
             if amountString is not None:
                 side = 'sell' if Precise.string_lt(amountString, '0') else 'buy'
@@ -2656,12 +2663,12 @@ class nado(Exchange, ImplicitAPI):
             if feeCost is not None:
                 fee = {
                     'cost': feeCost,
-                    'currency': self.safe_string(marketResolved, 'quote'),
+                    'currency': market['quote'],
                 }
         elif cancelOrderDigest is not None:
             id = cancelOrderDigest
             marketId = self.safe_string(order, 'product_id')
-            marketResolved = self.safe_market(marketId, market)
+            market = self.safe_market(marketId, market)
             amountString = self.safe_string(order, 'amount')
             if amountString is not None:
                 side = 'sell' if Precise.string_lt(amountString, '0') else 'buy'
@@ -2679,7 +2686,7 @@ class nado(Exchange, ImplicitAPI):
             placeOrder = self.safe_dict_2(order, 'place_order', 'order', {})
             rawOrder = self.safe_dict(placeOrder, 'order', {})
             marketId = self.safe_string(placeOrder, 'product_id')
-            marketResolved = self.safe_market(marketId, market)
+            market = self.safe_market(marketId, market)
             data = self.safe_dict(order, 'data', {})
             id = self.safe_string(data, 'digest')
             if id is None:
@@ -2710,7 +2717,7 @@ class nado(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'type': 'limit',
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -2726,7 +2733,7 @@ class nado(Exchange, ImplicitAPI):
             'status': status,
             'fee': fee,
             'trades': None,
-        }, marketResolved)
+        }, market)
 
     def parse_order_time_in_force(self, timeInForce: Str):
         timeInForces = {
@@ -2790,11 +2797,12 @@ class nado(Exchange, ImplicitAPI):
     def create_subaccount(self, walletAddress: Str, subaccount: Str = 'default'):
         if walletAddress is None:
             raise ArgumentsRequired(self.id + ' createSubaccount() requires walletAddress')
-        subaccountName = 'default' if (subaccount is None) else subaccount
+        if subaccount is None:
+            subaccount = 'default'
         address = self.remove0x_prefix(walletAddress).lower()
         if len(address) != 40:
             raise BadRequest(self.id + ' createOrder() requires a 20-byte walletAddress')
-        encoded = self.remove0x_prefix(self.string_to_base16(subaccountName))
+        encoded = self.remove0x_prefix(self.string_to_base16(subaccount))
         if len(encoded) > 24:
             raise BadRequest(self.id + ' createOrder() subaccount must fit in 12 bytes')
         return '0x' + address + self.pad_hex(encoded, 24, False)
@@ -2818,11 +2826,7 @@ class nado(Exchange, ImplicitAPI):
         if length is None:
             raise ArgumentsRequired(self.id + ' padHex() requires length')
         zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
-        padded = None
-        if left:
-            padded = (zeros + value)
-        else:
-            padded = (value + zeros)
+        padded = (zeros + value) if left else (value + zeros)
         if left:
             start = len(padded) - length
             return padded[start:len(padded)]
@@ -2919,29 +2923,24 @@ class nado(Exchange, ImplicitAPI):
             return marketId[0:-5]
         return marketId
 
-    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestBody = None
+    def sign(self, path: object, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         endpoint = api[0]
         if isinstance(api, str):
             endpoint = api
-        baseApiUrl = self.safe_string(self.urls['api'], endpoint)
-        if baseApiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = baseApiUrl
+        url = self.urls['api'][endpoint]
         if path != '':
             url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        headersValue = {}
+        headers = {}
         if (endpoint == 'gateway') or (endpoint == 'archive'):
-            headersValue['Accept-Encoding'] = 'gzip, br, deflate'
+            headers['Accept-Encoding'] = 'gzip, br, deflate'
         if method == 'GET':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
-            headersValue['Content-Type'] = 'application/json'
-            requestBody = self.json(query)
-        bodyResult = requestBody if (requestBody is not None) else body
-        return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue}
+            headers['Content-Type'] = 'application/json'
+            body = self.json(query)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: Int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (response is None) or (response is None):

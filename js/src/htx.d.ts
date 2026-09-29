@@ -1,5 +1,5 @@
 import Exchange from './abstract/htx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, MarketInterface, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, DepositAddresses, LastPrice, LastPrices, Liquidation, FundingHistory } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, DepositAddresses, LastPrice, LastPrices, Liquidation, FundingHistory } from './base/types.js';
 /**
  * @class htx
  * @augments Exchange
@@ -117,7 +117,7 @@ export default class htx extends Exchange {
      * @returns {object} a dictionary of lastprices structures
      */
     fetchLastPrices(symbols?: Strings, params?: Dict): Promise<LastPrices>;
-    parseLastPrice(entry: Dict, market?: Market): LastPrice;
+    parseLastPrice(entry: any, market?: Market): LastPrice;
     /**
      * @method
      * @name htx#fetchOrderBook
@@ -498,7 +498,7 @@ export default class htx extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrders(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
-    parseCancelOrders(orders: NullableDict): List;
+    parseCancelOrders(orders: any): List;
     /**
      * @method
      * @name htx#cancelAllOrders
@@ -522,13 +522,13 @@ export default class htx extends Exchange {
      * @returns {object} the api result
      */
     cancelAllOrdersAfter(timeout: Int, params?: Dict): Promise<Dict>;
-    parseDepositAddress(depositAddress: Dict, currency?: Currency): {
+    parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: Str;
         address: Str;
         tag: Str;
         network: Str;
         note: Str;
-        info: Dict;
+        info: any;
     };
     /**
      * @method
@@ -665,7 +665,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     /**
      * @method
      * @name htx#fetchFundingRates
@@ -692,7 +692,7 @@ export default class htx extends Exchange {
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<BorrowInterest[]>;
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     nonce(): number;
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
      * @method
@@ -723,7 +723,7 @@ export default class htx extends Exchange {
      * @returns {object} response from the exchange
      */
     setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
-    parseIncome(income: Dict, market?: Market): Dict;
+    parseIncome(income: any, market?: Market): Dict;
     parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method
@@ -752,7 +752,7 @@ export default class htx extends Exchange {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPosition(symbol: string, params?: Dict): Promise<Position>;
-    parseLedgerEntryType(type: Str): Str;
+    parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**
      * @method
@@ -867,7 +867,7 @@ export default class htx extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     repayCrossMargin(code: string, amount: number, params?: Dict): Promise<MarginLoan>;
-    parseMarginLoan(info: NullableDict, currency?: Currency): MarginLoan;
+    parseMarginLoan(info: Dict, currency?: Currency): MarginLoan;
     /**
      * @method
      * @name htx#fetchSettlementHistory
@@ -896,8 +896,14 @@ export default class htx extends Exchange {
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
-    parseSettlements(settlements: any, market: MarketInterface): List;
-    parseSettlement(settlement: NullableDict, market: Market): Dict;
+    parseSettlements(settlements: any, market: any): List;
+    parseSettlement(settlement: any, market: any): {
+        info: any;
+        symbol: string;
+        price: Num;
+        timestamp: Int;
+        datetime: string | undefined;
+    };
     /**
      * @method
      * @name htx#fetchLiquidations
@@ -934,7 +940,7 @@ export default class htx extends Exchange {
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} [an order structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
+    closePosition(symbol: string, side?: OrderSide, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name htx#setPositionMode

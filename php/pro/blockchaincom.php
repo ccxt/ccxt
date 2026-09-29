@@ -121,7 +121,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $result = array( 'info' => $message );
         $balances = $this->safe_list($message, 'balances', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $entry = $this->safe_dict($balances, $i);
+            $entry = $balances[$i];
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -157,9 +157,9 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $messageHash = 'ohlcv:' . $symbolValue;
+        $messageHash = 'ohlcv:' . $symbol;
         $request = array(
             'action' => 'subscribe',
             'channel' => 'prices',
@@ -169,11 +169,10 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $request = $this->deep_extend($request, $params);
         $url = $this->urls['api']['ws'];
         $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
+            $limit = $ohlcv->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function handle_ohlcv(Client $client, array $message) {
@@ -240,9 +239,9 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         $url = $this->urls['api']['ws'];
-        $messageHash = 'ticker:' . $symbolValue;
+        $messageHash = 'ticker:' . $symbol;
         $request = array(
             'action' => 'subscribe',
             'channel' => 'ticker',
@@ -356,9 +355,9 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         $url = $this->urls['api']['ws'];
-        $messageHash = 'trades:' . $symbolValue;
+        $messageHash = 'trades:' . $symbol;
         $request = array(
             'action' => 'subscribe',
             'channel' => 'trades',
@@ -464,10 +463,9 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             Async\await($this->load_markets());
         }
         Async\await($this->authenticate());
-        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $this->safe_string($market, 'symbol');
+            $symbol = $market['symbol'];
         }
         $url = $this->urls['api']['ws'];
         $message = array(
@@ -477,11 +475,10 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $messageHash = 'orders';
         $request = $this->deep_extend($message, $params);
         $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $orders->getLimit($symbolResolved, $limit);
+            $limit = $orders->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function handle_orders(Client $client, array $message) {
@@ -620,7 +617,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $datetime = $this->safe_string($order, 'transactTime');
         $status = $this->safe_string($order, 'ordStatus');
         $marketId = $this->safe_string($order, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $tradeId = $this->safe_string($order, 'tradeId');
         $trades = array();
         if ($tradeId !== '0') {
@@ -632,7 +629,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             'datetime' => $datetime,
             'timestamp' => $this->parse8601($datetime),
             'status' => $this->parse_ws_order_status($status),
-            'symbol' => $this->safe_symbol($marketId, $marketResolved),
+            'symbol' => $this->safe_symbol($marketId, $market),
             'type' => $this->safe_string($order, 'ordType'), // limit, market, stop, stopLimit, trailingStop, fillOrKill
             'timeInForce' => $this->safe_string($order, 'timeInForce'),
             'postOnly' => $this->safe_string($order, 'execInst') === 'ALO',
@@ -647,12 +644,12 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             'fee' => array(
                 'rate' => null,
                 'cost' => $this->safe_number($order, 'fee'),
-                'currency' => $this->safe_string($marketResolved, 'quote'),
+                'currency' => $this->safe_string($market, 'quote'),
             ),
             'info' => $order,
             'lastTradeTimestamp' => null,
             'average' => $this->safe_string($order, 'avgPx'),
-        ), $marketResolved);
+        ), $market);
     }
 
     public function parse_ws_order_status(?string $status): ?string {
@@ -690,14 +687,14 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $market = $this->market($symbol);
         $url = $this->urls['api']['ws'];
         $type = $this->safe_string($params, 'type', 'l2');
-        $paramsOmitted = $this->omit($params, 'type');
+        $params = $this->omit($params, 'type');
         $messageHash = 'orderbook:' . $symbol . ':' . $type;
         $subscribe = array(
             'action' => 'subscribe',
             'channel' => $type,
             'symbol' => $market['id'],
         );
-        $request = $this->deep_extend($subscribe, $paramsOmitted);
+        $request = $this->deep_extend($subscribe, $params);
         $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
         return $orderbook->limit();
     }

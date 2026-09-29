@@ -282,6 +282,7 @@ class mudrex extends mudrex$1["default"] {
         }
         const market = this.market(symbol);
         const priceType = this.safeString(params, 'price');
+        params = this.omit(params, 'price');
         // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
         const assetPair = market['baseId'] + '/' + market['quoteId'];
         const request = {
@@ -307,8 +308,8 @@ class mudrex extends mudrex$1["default"] {
         }
         let endTime = startTime + duration * requestLimit;
         const until = this.safeInteger(params, 'until');
-        const paramsOmitted = this.omit(params, ['price', 'until']);
         if (until !== undefined) {
+            params = this.omit(params, 'until');
             endTime = this.parseToInt(until / 1000);
         }
         else if (endTime > now) {
@@ -316,12 +317,12 @@ class mudrex extends mudrex$1["default"] {
         }
         request['start_time'] = startTime;
         request['end_time'] = endTime;
-        let response;
+        let response = undefined;
         if (priceType === 'mark') {
-            response = await this.marketGetPriceMarkKline(this.extend(request, paramsOmitted));
+            response = await this.marketGetPriceMarkKline(this.extend(request, params));
         }
         else {
-            response = await this.marketGetPriceKline(this.extend(request, paramsOmitted));
+            response = await this.marketGetPriceKline(this.extend(request, params));
         }
         //
         //     {
@@ -410,8 +411,8 @@ class mudrex extends mudrex$1["default"] {
     }
     parseTicker(ticker, market = undefined) {
         const ms = this.safeString(ticker, 'symbol');
-        const marketResolved = this.safeMarket(ms, market);
-        const symbol = marketResolved['symbol'];
+        market = this.safeMarket(ms, market);
+        const symbol = market['symbol'];
         const pct = this.safeNumber(ticker, 'change_perc');
         return this.safeTicker({
             'symbol': symbol,
@@ -434,7 +435,7 @@ class mudrex extends mudrex$1["default"] {
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber(ticker, 'volume'),
             'info': ticker,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -458,7 +459,7 @@ class mudrex extends mudrex$1["default"] {
                 items = this.safeList(data, 'items', []);
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let itemsLength = items.length;
-                if (itemsLength === 0) {
+                if ((itemsLength === undefined) || (itemsLength === 0)) {
                     items = this.safeList(data, 'results', []);
                     itemsLength = items.length;
                 }
@@ -470,7 +471,7 @@ class mudrex extends mudrex$1["default"] {
                 items = this.toArray(data);
             }
             const numItems = items.length;
-            if (numItems === 0) {
+            if ((numItems === undefined) || (numItems === 0)) {
                 paging = false;
                 break;
             }
@@ -568,22 +569,23 @@ class mudrex extends mudrex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, params, 'swap');
-        const requested = this.safeStringN(paramsMarketType, ['trade_currency', 'tradeCurrency', 'currency']);
-        const paramsOmitted = this.omit(paramsMarketType, ['trade_currency', 'tradeCurrency', 'currency']);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params, 'swap');
+        const requested = this.safeStringN(params, ['trade_currency', 'tradeCurrency', 'currency']);
+        params = this.omit(params, ['trade_currency', 'tradeCurrency', 'currency']);
         const request = {};
         let response = undefined;
         if (type === 'spot') {
             if (requested !== undefined) {
                 request['currency'] = requested;
             }
-            response = await this.privateGetWalletFunds(this.extend(request, paramsOmitted));
+            response = await this.privateGetWalletFunds(this.extend(request, params));
         }
         else {
             if (requested !== undefined) {
                 request['trade_currency'] = requested;
             }
-            response = await this.privateGetFuturesFunds(this.extend(request, paramsOmitted));
+            response = await this.privateGetFuturesFunds(this.extend(request, params));
         }
         let currency = requested;
         if (currency === undefined) {
@@ -670,8 +672,8 @@ class mudrex extends mudrex$1["default"] {
             'margin_type': marginType,
             'leverage': leverage,
         };
-        const paramsOmitted = this.omit(params, ['marginType']);
-        const response = await this.privatePostFuturesAssetIdLeverage(this.extend(request, paramsOmitted));
+        params = this.omit(params, ['marginType']);
+        const response = await this.privatePostFuturesAssetIdLeverage(this.extend(request, params));
         return response;
     }
     /**
@@ -711,7 +713,7 @@ class mudrex extends mudrex$1["default"] {
             if (positionId === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order');
             }
-            const paramsOmitted = this.omit(params, ['stopLossPrice', 'takeProfitPrice', 'positionId', 'position_id']);
+            params = this.omit(params, ['stopLossPrice', 'takeProfitPrice', 'positionId', 'position_id']);
             const riskRequest = {
                 'position_id': positionId,
             };
@@ -723,7 +725,7 @@ class mudrex extends mudrex$1["default"] {
                 riskRequest['is_stoploss'] = true;
                 riskRequest['stoploss_price'] = this.priceToPrecision(symbol, stopLossPrice);
             }
-            const riskResponse = await this.privatePostFuturesPositionsPositionIdRiskorder(this.extend(riskRequest, paramsOmitted));
+            const riskResponse = await this.privatePostFuturesPositionsPositionIdRiskorder(this.extend(riskRequest, params));
             const riskData = this.safeDict(riskResponse, 'data', riskResponse);
             return this.parseOrder(riskData, market);
         }
@@ -752,8 +754,8 @@ class mudrex extends mudrex$1["default"] {
             request['is_stoploss'] = true;
             request['stoploss_price'] = this.priceToPrecision(symbol, this.safeStringN(stopLoss, ['triggerPrice', 'stopPrice', 'price']));
         }
-        const orderParams = this.omit(params, ['leverage', 'reduceOnly', 'takeProfit', 'stopLoss']);
-        const response = await this.privatePostFuturesAssetIdOrder(this.extend(request, orderParams));
+        params = this.omit(params, ['leverage', 'reduceOnly', 'takeProfit', 'stopLoss']);
+        const response = await this.privatePostFuturesAssetIdOrder(this.extend(request, params));
         const data = this.safeDict(response, 'data', response);
         // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
         const merged = this.extend(data, { 'order_type': request['order_type'], 'trigger_type': request['trigger_type'] });
@@ -814,7 +816,7 @@ class mudrex extends mudrex$1["default"] {
     }
     parseOrder(order, market = undefined) {
         const oms = this.safeString(order, 'symbol');
-        const marketResolved = this.safeMarket(oms, market);
+        market = this.safeMarket(oms, market);
         const oid = this.safeString2(order, 'order_id', 'id');
         const rawSide = this.safeStringUpper(order, 'order_type');
         let side = undefined;
@@ -851,7 +853,7 @@ class mudrex extends mudrex$1["default"] {
         }
         const ts = this.parse8601(this.safeString(order, 'created_at'));
         const status = this.parseOrderStatus(this.safeStringLower(order, 'status'));
-        const sym = marketResolved['symbol'];
+        const sym = market['symbol'];
         return this.safeOrder({
             'info': order,
             'id': oid,
@@ -879,7 +881,7 @@ class mudrex extends mudrex$1["default"] {
             'fees': [],
             'lastUpdateTimestamp': this.parse8601(this.safeString(order, 'updated_at')),
             'reduceOnly': this.safeBool(order, 'reduce_only'),
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -952,7 +954,7 @@ class mudrex extends mudrex$1["default"] {
             q['limit'] = limit;
         }
         const request = this.extend(q, params);
-        let response;
+        let response = undefined;
         if (state === 'closed') {
             response = await this.privateGetFuturesOrdersHistory(request);
         }
@@ -1060,7 +1062,7 @@ class mudrex extends mudrex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         const request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1088,13 +1090,13 @@ class mudrex extends mudrex$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const positions = this.parsePositions(data, symbolsNormalized);
+        const positions = this.parsePositions(data, symbols);
         return this.filterBySinceLimit(positions, since, limit);
     }
     parsePosition(position, market = undefined) {
-        const marketResolved = this.safeMarket(undefined, market);
+        market = this.safeMarket(undefined, market);
         const ms = this.safeString(position, 'symbol');
-        const symbol = this.safeSymbol(ms, marketResolved);
+        const symbol = this.safeSymbol(ms, market);
         // open positions use "order_type", closed positions (history) use "position_type"
         const rawSide = this.safeStringUpper2(position, 'order_type', 'position_type');
         let side = undefined;
@@ -1110,7 +1112,7 @@ class mudrex extends mudrex$1["default"] {
         }
         const quantityString = this.safeString(position, 'quantity');
         const entryPriceString = this.safeString(position, 'entry_price');
-        const contractSizeString = this.safeString(marketResolved, 'contractSize', '1');
+        const contractSizeString = this.safeString(market, 'contractSize', '1');
         let notional = undefined;
         if ((quantityString !== undefined) && (entryPriceString !== undefined)) {
             notional = this.parseNumber(Precise["default"].stringMul(Precise["default"].stringMul(quantityString, entryPriceString), contractSizeString));
@@ -1126,7 +1128,7 @@ class mudrex extends mudrex$1["default"] {
             'hedged': false,
             'side': side,
             'contracts': this.safeNumber(position, 'quantity'),
-            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
+            'contractSize': this.safeNumber(market, 'contractSize'),
             'entryPrice': this.safeNumber(position, 'entry_price'),
             'markPrice': undefined,
             'lastPrice': this.safeNumber(position, 'closed_price'), // exit price for closed positions
@@ -1190,12 +1192,12 @@ class mudrex extends mudrex$1["default"] {
             if (orderType === 'LIMIT' && lp !== undefined) {
                 request['limit_price'] = lp;
             }
-            const partialParams = this.omit(params, ['order_type', 'limit_price', 'amount', 'position_id']);
-            const partialResponse = await this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, partialParams));
+            params = this.omit(params, ['order_type', 'limit_price', 'amount', 'position_id']);
+            const partialResponse = await this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, params));
             return partialResponse;
         }
-        const closeParams = this.omit(params, ['position_id']);
-        const response = await this.privatePostFuturesPositionsPositionIdClose(this.extend(request, closeParams));
+        params = this.omit(params, ['position_id']);
+        const response = await this.privatePostFuturesPositionsPositionIdClose(this.extend(request, params));
         return response;
     }
     /**
@@ -1231,8 +1233,8 @@ class mudrex extends mudrex$1["default"] {
             'position_id': positionId,
             'margin': this.costToPrecision(symbol, amount),
         };
-        const paramsOmitted = this.omit(params, ['position_id']);
-        const response = await this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, paramsOmitted));
+        params = this.omit(params, ['position_id']);
+        const response = await this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, params));
         return response;
     }
     /**
@@ -1269,7 +1271,8 @@ class mudrex extends mudrex$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const [maxCalls, paramsPaginationCalls] = this.handleOptionIntegerAndParams(params, 'fetchMyTrades', 'paginationCalls', 10);
+        let maxCalls = undefined;
+        [maxCalls, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginationCalls', 10);
         let pageSize = 0;
         if (limit !== undefined) {
             // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
@@ -1286,7 +1289,7 @@ class mudrex extends mudrex$1["default"] {
                 request['limit'] = pageSize;
                 request['offset'] = offset;
             }
-            const response = await this.privateGetFuturesFeeHistory(this.extend(request, paramsPaginationCalls));
+            const response = await this.privateGetFuturesFeeHistory(this.extend(request, params));
             const data = this.safeList(response, 'data', []);
             const dataLength = data.length;
             for (let i = 0; i < dataLength; i++) {
@@ -1331,7 +1334,7 @@ class mudrex extends mudrex$1["default"] {
             let rebate = undefined;
             for (let j = 0; j < rebateKeys.length; j++) {
                 if (rebateKeys[j] === transactionKeys[i]) {
-                    rebate = this.safeString(rebateAmounts, j);
+                    rebate = rebateAmounts[j];
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                     rebateKeys[j] = undefined;
                     break;
@@ -1363,8 +1366,8 @@ class mudrex extends mudrex$1["default"] {
         //     }
         //
         const ms = this.safeString(trade, 'symbol');
-        const marketResolved = this.safeMarket(ms, market);
-        const symbol = marketResolved['symbol'];
+        market = this.safeMarket(ms, market);
+        const symbol = market['symbol'];
         const ts = this.parse8601(this.safeString(trade, 'created_at'));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         const side = this.safeStringLower(trade, 'order_type');
@@ -1408,7 +1411,7 @@ class mudrex extends mudrex$1["default"] {
             'amount': undefined,
             'cost': this.safeString(trade, 'transaction_amount'),
             'fee': fee,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -1448,7 +1451,7 @@ class mudrex extends mudrex$1["default"] {
                 useInr = true;
             }
         }
-        let response;
+        let response = undefined;
         if (useInr) {
             response = await this.privatePostFuturesTransfersInr(this.extend(body, params));
         }

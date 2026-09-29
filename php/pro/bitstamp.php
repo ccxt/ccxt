@@ -75,8 +75,8 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $messageHash = 'orderbook:' . $symbolValue;
+        $symbol = $market['symbol'];
+        $messageHash = 'orderbook:' . $symbol;
         $channel = 'diff_order_book_' . $market['id'];
         $url = $this->urls['api']['ws'];
         $request = array(
@@ -108,10 +108,10 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         $channel = 'diff_order_book_' . $market['id'];
-        $subHash = 'orderbook:' . $symbolValue;
-        return Async\await($this->un_watch_channel($channel, $subHash, 'orderbook', array( $symbolValue ), $params));
+        $subHash = 'orderbook:' . $symbol;
+        return Async\await($this->un_watch_channel($channel, $subHash, 'orderbook', array( $symbol ), $params));
     }
 
     public function un_watch_channel(string $channel, string $subHash, string $topic, array $symbols, $params = array()): PromiseInterface {
@@ -197,11 +197,11 @@ class bitstamp extends \ccxt\async\bitstamp {
         } elseif ($nonce >= $deltaNonce) {
             return;
         }
-        $this->handle_book_delta($storedOrderBook, $delta);
+        $this->handle_delta($storedOrderBook, $delta);
         $client->resolve($storedOrderBook, $messageHash);
     }
 
-    public function handle_book_delta(mixed $orderbook, mixed $delta) {
+    public function handle_delta(mixed $orderbook, mixed $delta) {
         $timestamp = $this->safe_timestamp($delta, 'timestamp');
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
@@ -223,7 +223,7 @@ class bitstamp extends \ccxt\async\bitstamp {
 
     public function get_cache_index(mixed $orderbook, mixed $deltas): float {
         // we will consider it a fail
-        $firstElement = $this->safe_dict($deltas, 0);
+        $firstElement = $deltas[0];
         $firstElementNonce = $this->safe_integer($firstElement, 'microtimestamp');
         if ($firstElementNonce === null) {
             return -1;
@@ -233,7 +233,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             return -1;
         }
         for ($i = 0; $i < count($deltas); $i++) {
-            $delta = $this->safe_dict($deltas, $i);
+            $delta = $deltas[$i];
             $deltaNonce = $this->safe_integer($delta, 'microtimestamp');
             if ($deltaNonce === $nonce) {
                 return $i + 1;
@@ -259,8 +259,8 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $messageHash = 'trades:' . $symbolValue;
+        $symbol = $market['symbol'];
+        $messageHash = 'trades:' . $symbol;
         $url = $this->urls['api']['ws'];
         $channel = 'live_trades_' . $market['id'];
         $request = array(
@@ -271,11 +271,10 @@ class bitstamp extends \ccxt\async\bitstamp {
         );
         $message = $this->extend($request, $params);
         $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($symbolValue, $limit);
+            $limit = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
@@ -296,13 +295,13 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         $channel = 'live_trades_' . $market['id'];
-        $subHash = 'trades:' . $symbolValue;
-        return Async\await($this->un_watch_channel($channel, $subHash, 'trades', array( $symbolValue ), $params));
+        $subHash = 'trades:' . $symbol;
+        return Async\await($this->un_watch_channel($channel, $subHash, 'trades', array( $symbol ), $params));
     }
 
-    public function parse_ws_trade(?array $trade, ?array $market = null): array {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "buy_order_id": 1211625836466176,
@@ -322,13 +321,12 @@ class bitstamp extends \ccxt\async\bitstamp {
         $timestamp = $this->parse_to_int($microtimestamp / 1000);
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'amount');
-        $marketResolved = $this->safe_market(null, $market);
-        $symbol = $marketResolved['symbol'];
-        $sideRaw = $this->safe_integer($trade, 'type');
-        $side = 'sell';
-        if ($sideRaw === 0) {
-            $side = 'buy';
+        if ($market === null) {
+            $market = $this->safe_market(null, $market);
         }
+        $symbol = $market['symbol'];
+        $sideRaw = $this->safe_integer($trade, 'type');
+        $side = ($sideRaw === 0) ? 'buy' : 'sell';
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -343,7 +341,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             'amount' => $amount,
             'cost' => null,
             'fee' => null,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function handle_trade(Client $client, array $message) {
@@ -376,7 +374,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $messageHash = 'trades:' . $symbol;
-        $data = $this->safe_dict($message, 'data');
+        $data = $this->safe_value($message, 'data');
         $trade = $this->parse_ws_trade($data, $market);
         $tradesArray = $this->safe_value($this->trades, $symbol);
         if ($tradesArray === null) {
@@ -406,8 +404,8 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $messageHash = 'fundingRate:' . $symbolValue;
+        $symbol = $market['symbol'];
+        $messageHash = 'fundingRate:' . $symbol;
         $url = $this->urls['api']['ws'];
         $channel = 'funding_rate_' . $market['id'];
         $request = array(
@@ -469,21 +467,20 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         $channel = 'private-my_orders';
         $messageHash = $channel . '_' . $market['id'];
         $subscription = array(
-            'symbol' => $symbolValue,
+            'symbol' => $symbol,
             'limit' => $limit,
             'type' => $channel,
             'params' => $params,
         );
         $orders = Async\await($this->subscribe_private($subscription, $messageHash, $params));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $orders->getLimit($symbolValue, $limit);
+            $limit = $orders->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($orders, $since, $limitResolved, 'timestamp', true);
+        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }
 
     public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
@@ -507,14 +504,10 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         Async\await($this->authenticate());
-        $userId = $this->safe_string($this->options, 'userId');
-        if ($userId === null) {
-            throw new AuthenticationError($this->id . ' unWatchOrders() requires a userId from authenticate()');
-        }
-        $channel = 'private-my_orders_' . $market['id'] . '-' . $userId;
-        return Async\await($this->un_watch_channel($channel, $channel, 'orders', array( $symbolValue ), $params));
+        $channel = 'private-my_orders_' . $market['id'] . '-' . $this->options['userId'];
+        return Async\await($this->un_watch_channel($channel, $channel, 'orders', array( $symbol ), $params));
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -540,21 +533,20 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         $channel = 'private-my_trades';
         $messageHash = $channel . '_' . $market['id'];
         $subscription = array(
-            'symbol' => $symbolValue,
+            'symbol' => $symbol,
             'limit' => $limit,
             'type' => $channel,
             'params' => $params,
         );
         $trades = Async\await($this->subscribe_private($subscription, $messageHash, $params));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($symbolValue, $limit);
+            $limit = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbolValue, $since, $limitResolved, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
     public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
@@ -578,14 +570,10 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         Async\await($this->authenticate());
-        $userId = $this->safe_string($this->options, 'userId');
-        if ($userId === null) {
-            throw new AuthenticationError($this->id . ' unWatchMyTrades() requires a userId from authenticate()');
-        }
-        $channel = 'private-my_trades_' . $market['id'] . '-' . $userId;
-        return Async\await($this->un_watch_channel($channel, $channel, 'myTrades', array( $symbolValue ), $params));
+        $channel = 'private-my_trades_' . $market['id'] . '-' . $this->options['userId'];
+        return Async\await($this->un_watch_channel($channel, $channel, 'myTrades', array( $symbol ), $params));
     }
 
     public function handle_my_trades(Client $client, array $message) {
@@ -627,7 +615,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $client->resolve($stored, $channel);
     }
 
-    public function parse_ws_my_trade(array $trade, ?array $market = null): array {
+    public function parse_ws_my_trade(mixed $trade, ?array $market = null): array {
         //
         //     {
         //         "id": 635698396,
@@ -646,14 +634,14 @@ class bitstamp extends \ccxt\async\bitstamp {
         //
         $microtimestamp = $this->safe_integer($trade, 'microtimestamp', 0);
         $timestamp = $this->parse_to_int($microtimestamp / 1000);
-        $marketResolved = $this->safe_market(null, $market);
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market(null, $market);
+        $symbol = $market['symbol'];
         $feeCost = $this->safe_string($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $marketResolved['quote'],
+                'currency' => $market['quote'],
             );
         }
         return $this->safe_trade(array(
@@ -670,7 +658,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             'amount' => $this->safe_string($trade, 'amount'),
             'cost' => null,
             'fee' => $fee,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function handle_orders(Client $client, array $message) {
@@ -746,10 +734,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         //
         $id = $this->safe_string($order, 'id_str');
         $orderTypeRaw = $this->safe_string_lower($order, 'order_type');
-        $side = 'buy';
-        if ($orderTypeRaw === '1') {
-            $side = 'sell';
-        }
+        $side = ($orderTypeRaw === '1') ? 'sell' : 'buy';
         $orderSubTypeRaw = $this->safe_string_lower($order, 'order_subtype'); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
         $orderType = null;
         $timeInForce = null;
@@ -789,8 +774,8 @@ class bitstamp extends \ccxt\async\bitstamp {
         }
         $triggerPrice = $this->safe_string($order, 'stop_price');
         $timestamp = $this->safe_timestamp($order, 'datetime');
-        $marketResolved = $this->safe_market(null, $market);
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market(null, $market);
+        $symbol = $market['symbol'];
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,
@@ -814,7 +799,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function handle_order_book_subscription(Client $client, array $message) {
@@ -967,7 +952,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         }
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         // {
         //     "event": "bts:error",
         //     "channel": '',
@@ -1100,19 +1085,15 @@ class bitstamp extends \ccxt\async\bitstamp {
     private function do_subscribe_private(array $subscription, string $messageHash, $params = array()) {
         $url = $this->urls['api']['ws'];
         Async\await($this->authenticate());
-        $userId = $this->safe_string($this->options, 'userId');
-        if ($userId === null) {
-            throw new AuthenticationError($this->id . ' subscribePrivate() requires a userId from authenticate()');
-        }
-        $messageHashValue = $messageHash . ('-' . $userId);
+        $messageHash .= '-' . $this->options['userId'];
         $request = array(
             'event' => 'bts:subscribe',
             'data' => array(
-                'channel' => $messageHashValue,
+                'channel' => $messageHash,
                 'auth' => $this->options['wsSessionToken'],
             ),
         );
-        $subscription['messageHash'] = $messageHashValue;
-        return Async\await($this->watch($url, $messageHashValue, $this->extend($request, $params), $messageHashValue, $subscription));
+        $subscription['messageHash'] = $messageHash;
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
     }
 }

@@ -714,7 +714,7 @@ class weex extends weex$1["default"] {
         });
     }
     nonce() {
-        return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
+        return this.milliseconds() - this.options['timeDifference'];
     }
     /**
      * @method
@@ -746,13 +746,14 @@ class weex extends weex$1["default"] {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime(params = {}) {
-        const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchTime', undefined, params);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchTime', undefined, params);
         let response = undefined;
         if (type !== 'spot') {
-            response = await this.contractGetCapiV3MarketTime(paramsMarketType);
+            response = await this.contractGetCapiV3MarketTime(params);
         }
         else {
-            response = await this.publicGetApiV3Time(paramsMarketType);
+            response = await this.publicGetApiV3Time(params);
         }
         //
         //     {
@@ -959,7 +960,7 @@ class weex extends weex$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.safeBool(this.options, 'adjustForTimeDifference', false)) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const promises = [
@@ -1035,9 +1036,6 @@ class weex extends weex$1["default"] {
         const settleId = this.safeString(market, 'marginAsset');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         const settle = this.safeCurrencyCode(settleId);
         let active = true;
         let symbol = base + '/' + quote;
@@ -1144,12 +1142,13 @@ class weex extends weex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
-        const market = this.getMarketFromSymbols(symbolsNormalized);
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchTickers', market, params);
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        const market = this.getMarketFromSymbols(symbols);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         let symbolsLength = 0;
-        if (symbolsNormalized !== undefined) {
-            symbolsLength = symbolsNormalized.length;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
         }
         const request = {};
         if (symbolsLength === 1) {
@@ -1179,7 +1178,7 @@ class weex extends weex$1["default"] {
             //         }
             //     ]
             //
-            response = await this.publicGetApiV3MarketTicker24hr(this.extend(request, paramsMarketType));
+            response = await this.publicGetApiV3MarketTicker24hr(this.extend(request, params));
         }
         else {
             //
@@ -1201,12 +1200,12 @@ class weex extends weex$1["default"] {
             //         }
             //     ]
             //
-            response = await this.contractGetCapiV3MarketTicker24hr(this.extend(request, paramsMarketType));
+            response = await this.contractGetCapiV3MarketTicker24hr(this.extend(request, params));
         }
         if (!Array.isArray(response)) {
             response = [response];
         }
-        return this.parseTickers(response, symbolsNormalized);
+        return this.parseTickers(response, symbols);
     }
     /**
      * @method
@@ -1223,15 +1222,16 @@ class weex extends weex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
-        const market = this.getMarketFromSymbols(symbolsNormalized);
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        const market = this.getMarketFromSymbols(symbols);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.publicGetApiV3MarketTickerBookTicker(paramsMarketType);
+            response = await this.publicGetApiV3MarketTickerBookTicker(params);
         }
         else {
-            response = await this.contractGetCapiV3MarketTickerBookTicker(paramsMarketType);
+            response = await this.contractGetCapiV3MarketTickerBookTicker(params);
         }
         if (!Array.isArray(response)) {
             response = [response];
@@ -1244,7 +1244,7 @@ class weex extends weex$1["default"] {
             const tickerMarket = this.safeMarket(marketId, undefined, undefined, marketType);
             results.push(this.parseTicker(rawTicker, tickerMarket));
         }
-        return this.filterByArrayTickers(results, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers(results, 'symbol', symbols);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -1313,11 +1313,11 @@ class weex extends weex$1["default"] {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = 'swap';
         }
-        const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
+        market = this.safeMarket(marketId, market, undefined, marketType);
         const timestamp = this.safeInteger2(ticker, 'closeTime', 'time');
         const percentage = Precise["default"].stringMul(this.safeString(ticker, 'priceChangePercent'), '100');
         return this.safeTicker({
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, 'highPrice'),
@@ -1339,7 +1339,7 @@ class weex extends weex$1["default"] {
             'markPrice': markPrice,
             'indexPrice': this.safeString(ticker, 'indexPrice'),
             'info': ticker,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -1354,13 +1354,14 @@ class weex extends weex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
-        const market = this.getMarketFromSymbols(symbolsNormalized);
-        const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchLastPrices', market, params);
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        const market = this.getMarketFromSymbols(symbols);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchLastPrices', market, params);
         if (type !== 'spot') {
             throw new errors.NotSupported(this.id + ' fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets');
         }
-        const response = await this.publicGetApiV3MarketTickerPrice(paramsMarketType);
+        const response = await this.publicGetApiV3MarketTickerPrice(params);
         //
         //     [
         //         {
@@ -1369,7 +1370,7 @@ class weex extends weex$1["default"] {
         //         }
         //     ]
         //
-        return this.parseLastPrices(response, symbolsNormalized);
+        return this.parseLastPrices(response, symbols);
     }
     parseLastPrice(entry, market = undefined) {
         //
@@ -1379,9 +1380,9 @@ class weex extends weex$1["default"] {
         //     }
         //
         const marketId = this.safeString(entry, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market, undefined, 'spot');
+        market = this.safeMarket(marketId, market, undefined, 'spot');
         return {
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
             'price': this.safeNumberOmitZero(entry, 'price'),
@@ -1407,12 +1408,13 @@ class weex extends weex$1["default"] {
         if (market['contract'] !== true) {
             throw new errors.NotSupported(this.id + ' fetchMarkPrice() supports contract markets only');
         }
-        const [priceType, paramsPriceType] = this.handleOptionStringAndParams(params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
+        let priceType = undefined;
+        [priceType, params] = this.handleOptionAndParams(params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
         const request = {
             'symbol': market['id'],
             'priceType': priceType,
         };
-        const response = await this.contractGetCapiV3MarketSymbolPrice(this.extend(request, paramsPriceType));
+        const response = await this.contractGetCapiV3MarketSymbolPrice(this.extend(request, params));
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -1443,7 +1445,7 @@ class weex extends weex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, 'swap'); // reject non-contract symbols instead of silently filtering the result to an empty dict
+        symbols = this.marketSymbols(symbols, 'swap'); // reject non-contract symbols instead of silently filtering the result to an empty dict
         const response = await this.contractGetCapiV3MarketPremiumIndex(params);
         //
         //     [
@@ -1460,7 +1462,7 @@ class weex extends weex$1["default"] {
         //         }
         //     ]
         //
-        return this.parseTickers(response, symbolsNormalized);
+        return this.parseTickers(response, symbols);
     }
     /**
      * @method
@@ -1590,13 +1592,15 @@ class weex extends weex$1["default"] {
             await this.loadMarkets();
         }
         const maxHistoricalLimit = 100;
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            const paramsExtended = this.extend(paramsPaginate, { 'historical': true });
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsExtended, maxHistoricalLimit);
+            params = this.extend(params, { 'historical': true });
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxHistoricalLimit);
         }
-        const until = this.safeInteger(paramsPaginate, 'until');
-        const [historical, paramsHistorical] = this.handleOptionBoolAndParams(paramsPaginate, 'fetchOHLCV', 'historical', false);
+        const until = this.safeInteger(params, 'until');
+        let historical = false;
+        [historical, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'historical');
         const timeframeOption = this.safeDict(this.options, 'timeframes', {});
         const contractTimeframes = this.safeDict(timeframeOption, 'contract', {});
         const market = this.market(symbol);
@@ -1604,11 +1608,12 @@ class weex extends weex$1["default"] {
             'symbol': market['id'],
             'interval': this.safeString(contractTimeframes, timeframe, timeframe),
         };
-        const priceType = this.safeStringUpper(paramsHistorical, 'price');
-        const paramsOmitted = this.omit(paramsHistorical, ['historical', 'until', 'price']);
+        const priceType = this.safeStringUpper(params, 'price');
+        params = this.omit(params, ['historical', 'until', 'price']);
         let response = undefined;
-        // hardcap threshold
-        const limitResolved = (limit === undefined) ? undefined : Math.min(limit, 1000);
+        if (limit !== undefined) {
+            limit = Math.min(limit, 1000); // hardcap threshold
+        }
         if (historical) {
             if (priceType !== undefined) {
                 request['priceType'] = priceType;
@@ -1618,10 +1623,7 @@ class weex extends weex$1["default"] {
             if ((since === undefined) || (until === undefined)) {
                 const now = this.milliseconds();
                 const duration = this.parseTimeframe(timeframe) * 1000;
-                let numberOfCandles = maxHistoricalLimit;
-                if (limitResolved !== undefined && limitResolved !== null && limitResolved !== 0) {
-                    numberOfCandles = limitResolved;
-                }
+                const numberOfCandles = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxHistoricalLimit;
                 const timeDelta = numberOfCandles * duration;
                 if ((since === undefined) && (until === undefined)) {
                     endTime = now;
@@ -1639,23 +1641,23 @@ class weex extends weex$1["default"] {
             }
             request['startTime'] = startTime;
             request['endTime'] = endTime;
-            response = await this.contractGetCapiV3MarketHistoryKlines(this.extend(request, paramsOmitted));
+            response = await this.contractGetCapiV3MarketHistoryKlines(this.extend(request, params));
         }
         else {
-            if (limitResolved !== undefined) {
-                request['limit'] = limitResolved;
+            if (limit !== undefined) {
+                request['limit'] = limit;
             }
             if (priceType === 'MARK') {
-                response = await this.contractGetCapiV3MarketMarkPriceKlines(this.extend(request, paramsOmitted));
+                response = await this.contractGetCapiV3MarketMarkPriceKlines(this.extend(request, params));
             }
             else if (priceType === 'INDEX') {
-                response = await this.contractGetCapiV3MarketIndexPriceKlines(this.extend(request, paramsOmitted));
+                response = await this.contractGetCapiV3MarketIndexPriceKlines(this.extend(request, params));
             }
             else {
-                response = await this.contractGetCapiV3MarketKlines(this.extend(request, paramsOmitted));
+                response = await this.contractGetCapiV3MarketKlines(this.extend(request, params));
             }
         }
-        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limitResolved);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         return [
@@ -1770,16 +1772,13 @@ class weex extends weex$1["default"] {
         else if (isBuyerMaker !== undefined) {
             side = isBuyerMaker ? 'sell' : 'buy';
         }
-        const tradeMarketId = this.safeString(trade, 'symbol');
-        const realizedPnl = this.safeString(trade, 'realizedPnl');
-        let tradeMarketType = 'spot';
-        if (realizedPnl !== undefined) {
-            tradeMarketType = 'swap';
-        }
-        const marketResolved = this.safeMarket((market === undefined) ? tradeMarketId : undefined, market, undefined, tradeMarketType);
-        let isSpot = undefined;
+        let isSpot = true;
         if (market === undefined) {
-            isSpot = tradeMarketType === 'spot';
+            const marketId = this.safeString(trade, 'symbol');
+            const realizedPnl = this.safeString(trade, 'realizedPnl');
+            const marketType = (realizedPnl !== undefined) ? 'swap' : 'spot';
+            market = this.safeMarket(marketId, undefined, undefined, marketType);
+            isSpot = marketType === 'spot';
         }
         else {
             isSpot = market['spot'];
@@ -1791,10 +1790,10 @@ class weex extends weex$1["default"] {
             let feeCurrency = this.safeCurrencyCode(commissionAsset);
             if (isSpot === true) {
                 if (side === 'buy') {
-                    feeCurrency = this.safeString(marketResolved, 'base');
+                    feeCurrency = market['base'];
                 }
                 else {
-                    feeCurrency = this.safeString(marketResolved, 'quote');
+                    feeCurrency = market['quote'];
                 }
             }
             fee = {
@@ -1816,7 +1815,7 @@ class weex extends weex$1["default"] {
             'order': this.safeString(trade, 'orderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
@@ -1824,7 +1823,7 @@ class weex extends weex$1["default"] {
             'amount': this.safeString(trade, 'qty'),
             'cost': this.safeString(trade, 'quoteQty'),
             'fee': fee,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -1880,14 +1879,14 @@ class weex extends weex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         let symbolsLength = 0;
-        if (symbolsNormalized !== undefined) {
-            symbolsLength = symbolsNormalized.length;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
         }
         const request = {};
         if (symbolsLength === 1) {
-            const market = this.getMarketFromSymbols(symbolsNormalized);
+            const market = this.getMarketFromSymbols(symbols);
             request['symbol'] = this.safeString(market, 'id');
         }
         const response = await this.contractGetCapiV3MarketPremiumIndex(this.extend(request, params));
@@ -1906,7 +1905,7 @@ class weex extends weex$1["default"] {
         //         }
         //     ]
         //
-        return this.parseFundingRates(response, symbolsNormalized);
+        return this.parseFundingRates(response, symbols);
     }
     parseFundingRate(contract, market = undefined) {
         const marketId = this.safeString(contract, 'symbol');
@@ -1960,7 +1959,7 @@ class weex extends weex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const request = {
+        let request = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -1969,8 +1968,8 @@ class weex extends weex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, params);
-        const response = await this.contractGetCapiV3MarketFundingRate(this.extend(requestUntil, paramsUntil));
+        [request, params] = this.handleUntilOption('endTime', request, params);
+        const response = await this.contractGetCapiV3MarketFundingRate(this.extend(request, params));
         return this.parseFundingRateHistories(response, market, since, limit);
     }
     parseFundingRateHistory(contract, market = undefined) {
@@ -2006,12 +2005,11 @@ class weex extends weex$1["default"] {
      */
     async fetchBalance(params = {}) {
         const requestedType = this.safeString(params, 'type');
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-        // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
-        let type = marketType;
         if ((sandboxMode === true) && (requestedType === undefined)) {
-            type = 'swap';
+            type = 'swap'; // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
         }
         let response = undefined;
         if (type === 'spot') {
@@ -2044,7 +2042,7 @@ class weex extends weex$1["default"] {
             //         "uid": 8886281669
             //     }
             //
-            response = await this.privateGetApiV3Account(paramsMarketType);
+            response = await this.privateGetApiV3Account(params);
         }
         else {
             //
@@ -2059,10 +2057,10 @@ class weex extends weex$1["default"] {
             //     ]
             //
             if (sandboxMode === true) {
-                response = await this.contractPrivateGetCapiV3SimBalance(paramsMarketType);
+                response = await this.contractPrivateGetCapiV3SimBalance(params);
             }
             else {
-                response = await this.contractPrivateGetCapiV3AccountBalance(paramsMarketType);
+                response = await this.contractPrivateGetCapiV3AccountBalance(params);
             }
         }
         return this.parseBalance(response);
@@ -2106,15 +2104,16 @@ class weex extends weex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const request = {};
+        let request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
         }
         const maxLimit = 100;
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchTransfers', 'paginate', false);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchTransfers', code, since, limit, paramsPaginate, maxLimit);
+            return await this.fetchPaginatedCallDynamic('fetchTransfers', code, since, limit, params, maxLimit);
         }
         if (since !== undefined) {
             request['after'] = since;
@@ -2122,8 +2121,8 @@ class weex extends weex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('before', request, paramsPaginate);
-        const response = await this.privateGetApiV3AccountTransferRecords(this.extend(requestUntil, paramsUntil));
+        [request, params] = this.handleUntilOption('before', request, params);
+        const response = await this.privateGetApiV3AccountTransferRecords(this.extend(request, params));
         //
         //     [
         //         {
@@ -2253,14 +2252,14 @@ class weex extends weex$1["default"] {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         let clientOrderId = this.safeString(params, 'clientOrderId');
-        const paramsOmitted = this.omit(params, 'clientOrderId');
+        params = this.omit(params, 'clientOrderId');
         if (clientOrderId === undefined) {
-            const partner = this.safeString(paramsOmitted, 'partner', 'b-WEEX111125');
+            const partner = this.safeString(params, 'partner', 'b-WEEX111125');
             clientOrderId = partner + '-' + this.uuid22();
         }
         request['newClientOrderId'] = clientOrderId;
         // timeInForce is passed directly from params
-        return this.extend(request, paramsOmitted);
+        return this.extend(request, params);
     }
     /**
      * @method
@@ -2479,8 +2478,8 @@ class weex extends weex$1["default"] {
                 }
             }
         }
-        const paramsOmitted = this.omit(params, ['takeProfit', 'stopLoss', 'stopLossPrice', 'takeProfitPrice', 'triggerPriceType', 'stopLossPriceType', 'takeProfitPriceType', 'clientOrderId', 'callerMethodName']);
-        return this.extend(request, paramsOmitted);
+        params = this.omit(params, ['takeProfit', 'stopLoss', 'stopLossPrice', 'takeProfitPrice', 'triggerPriceType', 'stopLossPriceType', 'takeProfitPriceType', 'clientOrderId', 'callerMethodName']);
+        return this.extend(request, params);
     }
     encodeTriggerPriceType(triggerPriceType) {
         const types = {
@@ -2511,14 +2510,15 @@ class weex extends weex$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const [type, paramsMarketType] = this.handleMarketTypeAndParams('cancelOrder', market, params);
-        const trigger = this.safeBool(paramsMarketType, 'trigger', false);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('cancelOrder', market, params);
+        const trigger = this.safeBool(params, 'trigger', false);
         if ((trigger === true) && id === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires an id argument for trigger orders');
         }
         const request = {};
-        const clientOrderId = this.safeString(paramsMarketType, 'clientOrderId');
-        const paramsOmitted = this.omit(paramsMarketType, ['clientOrderId', 'trigger']);
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        params = this.omit(params, ['clientOrderId', 'trigger']);
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         }
@@ -2542,13 +2542,13 @@ class weex extends weex$1["default"] {
             //         "status": "CANCELED"
             //     }
             //
-            response = await this.privateDeleteApiV3Order(this.extend(request, paramsOmitted));
+            response = await this.privateDeleteApiV3Order(this.extend(request, params));
         }
         else if (trigger === true) {
-            response = await this.contractPrivateDeleteCapiV3AlgoOrder(this.extend(request, paramsOmitted));
+            response = await this.contractPrivateDeleteCapiV3AlgoOrder(this.extend(request, params));
         }
         else {
-            response = await this.contractPrivateDeleteCapiV3Order(this.extend(request, paramsOmitted));
+            response = await this.contractPrivateDeleteCapiV3Order(this.extend(request, params));
         }
         if (response === undefined) {
             throw new errors.NullResponse(this.id + ' parseOrder() returned empty response');
@@ -2580,21 +2580,22 @@ class weex extends weex$1["default"] {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
-        const trigger = this.safeBool(paramsMarketType, 'trigger', false);
-        const paramsOmitted = this.omit(paramsMarketType, 'trigger');
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
+        const trigger = this.safeBool(params, 'trigger', false);
+        params = this.omit(params, 'trigger');
         let response = undefined;
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument for spot markets');
             }
-            response = await this.privateDeleteApiV3OpenOrders(this.extend(request, paramsOmitted));
+            response = await this.privateDeleteApiV3OpenOrders(this.extend(request, params));
         }
         else if (trigger === true) {
-            response = await this.contractPrivateDeleteCapiV3AlgoOpenOrders(this.extend(request, paramsOmitted));
+            response = await this.contractPrivateDeleteCapiV3AlgoOpenOrders(this.extend(request, params));
         }
         else {
-            response = await this.contractPrivateDeleteCapiV3AllOpenOrders(this.extend(request, paramsOmitted));
+            response = await this.contractPrivateDeleteCapiV3AllOpenOrders(this.extend(request, params));
         }
         const extendedParams = {
             'status': 'canceled',
@@ -2623,10 +2624,11 @@ class weex extends weex$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('cancelOrders', market, params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('cancelOrders', market, params);
         const isSpot = (marketType === 'spot');
-        const clientOrderIds = this.safeList(paramsMarketType, 'clientOrderIds');
-        const paramsOmitted = this.omit(paramsMarketType, 'clientOrderIds');
+        const clientOrderIds = this.safeList(params, 'clientOrderIds');
+        params = this.omit(params, 'clientOrderIds');
         if (clientOrderIds !== undefined) {
             if (isSpot) {
                 request['origClientOrderIds'] = clientOrderIds;
@@ -2648,10 +2650,10 @@ class weex extends weex$1["default"] {
         }
         let response = undefined;
         if (isSpot) {
-            response = await this.privateDeleteApiV3OrderBatch(this.extend(request, paramsOmitted));
+            response = await this.privateDeleteApiV3OrderBatch(this.extend(request, params));
         }
         else {
-            response = await this.contractPrivateDeleteCapiV3BatchOrders(this.extend(request, paramsOmitted));
+            response = await this.contractPrivateDeleteCapiV3BatchOrders(this.extend(request, params));
         }
         const ordersResponse = this.safeList(response, 'orderList', []);
         const extendedParams = {
@@ -2680,14 +2682,15 @@ class weex extends weex$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrder', market, params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOrder', market, params);
         const isSpot = (marketType === 'spot');
         const request = {};
         if ((id === undefined) && !isSpot) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires an id argument for non-spot markets');
         }
-        const clientOrderId = this.safeString(paramsMarketType, 'clientOrderId');
-        const paramsOmitted = this.omit(paramsMarketType, 'clientOrderId');
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        params = this.omit(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         }
@@ -2717,10 +2720,10 @@ class weex extends weex$1["default"] {
             //         "isWorking": true
             //     }
             //
-            response = await this.privateGetApiV3Order(this.extend(request, paramsOmitted));
+            response = await this.privateGetApiV3Order(this.extend(request, params));
         }
         else {
-            response = await this.contractPrivateGetCapiV3Order(this.extend(request, paramsOmitted));
+            response = await this.contractPrivateGetCapiV3Order(this.extend(request, params));
         }
         if (response === undefined) {
             throw new errors.NullResponse(this.id + ' parseOrder() returned empty response');
@@ -2750,17 +2753,19 @@ class weex extends weex$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
         const isSpot = (marketType === 'spot');
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(paramsMarketType, 'fetchOpenOrders', 'paginate', false);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'paginate', false);
         const maxLimit = 100;
         if (paginate) {
             if (isSpot) {
                 throw new errors.NotSupported(this.id + ' fetchOpenOrders() pagination is not supported for spot markets');
             }
-            return await this.fetchPaginatedCallDynamic('fetchOpenOrders', symbol, since, limit, paramsPaginate, maxLimit);
+            return await this.fetchPaginatedCallDynamic('fetchOpenOrders', symbol, since, limit, params, maxLimit);
         }
-        const request = {};
+        let request = {};
         if (symbol !== undefined) {
             request['symbol'] = this.safeString(market, 'id');
         }
@@ -2786,7 +2791,7 @@ class weex extends weex$1["default"] {
             //         }
             //     ]
             //
-            response = await this.privateGetApiV3OpenOrders(this.extend(request, paramsPaginate));
+            response = await this.privateGetApiV3OpenOrders(this.extend(request, params));
         }
         else {
             if (since !== undefined) {
@@ -2795,10 +2800,10 @@ class weex extends weex$1["default"] {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsPaginate);
-            const trigger = this.safeBool(paramsUntil, 'trigger', false);
+            [request, params] = this.handleUntilOption('endTime', request, params);
+            const trigger = this.safeBool(params, 'trigger', false);
             if (trigger === true) {
-                const paramsOmitted = this.omit(paramsUntil, 'trigger');
+                params = this.omit(params, 'trigger');
                 //
                 //     [
                 //         {
@@ -2830,7 +2835,7 @@ class weex extends weex$1["default"] {
                 //         }
                 //     ]
                 //
-                response = await this.contractPrivateGetCapiV3OpenAlgoOrders(this.extend(requestUntil, paramsOmitted));
+                response = await this.contractPrivateGetCapiV3OpenAlgoOrders(this.extend(request, params));
             }
             else {
                 //
@@ -2857,7 +2862,7 @@ class weex extends weex$1["default"] {
                 //         }
                 //     ]
                 //
-                response = await this.contractPrivateGetCapiV3OpenOrders(this.extend(requestUntil, paramsUntil));
+                response = await this.contractPrivateGetCapiV3OpenOrders(this.extend(request, params));
             }
         }
         const extendedParams = {
@@ -2888,16 +2893,17 @@ class weex extends weex$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
         let orders = undefined;
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument for spot markets');
             }
-            orders = await this.fetchOrders(symbol, since, undefined, paramsMarketType);
+            orders = await this.fetchOrders(symbol, since, undefined, params);
         }
         else {
-            orders = await this.fetchCanceledAndClosedOrders(symbol, since, limit, paramsMarketType);
+            orders = await this.fetchCanceledAndClosedOrders(symbol, since, limit, params);
         }
         return this.filterBy(orders, 'status', 'closed');
     }
@@ -2924,16 +2930,17 @@ class weex extends weex$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchCanceledOrders', market, params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchCanceledOrders', market, params);
         let orders = undefined;
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchCanceledOrders() requires a symbol argument for spot markets');
             }
-            orders = await this.fetchOrders(symbol, since, undefined, paramsMarketType);
+            orders = await this.fetchOrders(symbol, since, undefined, params);
         }
         else {
-            orders = await this.fetchCanceledAndClosedOrders(symbol, since, limit, paramsMarketType);
+            orders = await this.fetchCanceledAndClosedOrders(symbol, since, limit, params);
         }
         return this.filterBy(orders, 'status', 'canceled');
     }
@@ -2962,11 +2969,12 @@ class weex extends weex$1["default"] {
             throw new errors.NotSupported(this.id + ' fetchOrders() supports spot markets only');
         }
         const maxLimit = 1000;
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOrders', 'paginate', false);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, paramsPaginate, maxLimit);
+            return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, params, maxLimit);
         }
-        const request = {
+        let request = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -2975,8 +2983,8 @@ class weex extends weex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, maxLimit);
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsPaginate);
-        const response = await this.privateGetApiV3AllOrders(this.extend(requestUntil, paramsUntil));
+        [request, params] = this.handleUntilOption('endTime', request, params);
+        const response = await this.privateGetApiV3AllOrders(this.extend(request, params));
         //
         //     [
         //         {
@@ -3022,16 +3030,18 @@ class weex extends weex$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchCanceledAndClosedOrders', market, params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchCanceledAndClosedOrders', market, params);
         if (marketType === 'spot') {
             throw new errors.NotSupported(this.id + ' fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status "canceled" or "closed"');
         }
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(paramsMarketType, 'fetchCanceledAndClosedOrders', 'paginate', false);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         const maxLimit = 1000;
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate, maxLimit);
+            return await this.fetchPaginatedCallDynamic('fetchCanceledAndClosedOrders', symbol, since, limit, params, maxLimit);
         }
-        const request = {};
+        let request = {};
         if (symbol !== undefined) {
             request['symbol'] = this.toSandboxMarketId(market);
         }
@@ -3041,14 +3051,14 @@ class weex extends weex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsPaginate);
+        [request, params] = this.handleUntilOption('endTime', request, params);
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         let response = undefined;
         if (sandboxMode === true) {
-            response = await this.contractPrivateGetCapiV3SimOrderHistory(this.extend(requestUntil, paramsUntil));
+            response = await this.contractPrivateGetCapiV3SimOrderHistory(this.extend(request, params));
         }
         else {
-            response = await this.contractPrivateGetCapiV3OrderHistory(this.extend(requestUntil, paramsUntil));
+            response = await this.contractPrivateGetCapiV3OrderHistory(this.extend(request, params));
         }
         //
         //     [
@@ -3182,13 +3192,12 @@ class weex extends weex$1["default"] {
         if ((errorCode !== undefined) || (errorMessage !== undefined)) {
             this.handleOrderOrPositionError(errorCode, errorMessage, order);
         }
-        const orderMarketId = this.fromSandboxMarketId(this.safeString(order, 'symbol'));
-        const positionSide = this.safeString(order, 'positionSide');
-        let orderMarketType = 'swap';
-        if (positionSide === undefined) {
-            orderMarketType = 'spot';
+        if (market === undefined) {
+            const marketId = this.fromSandboxMarketId(this.safeString(order, 'symbol'));
+            const positionSide = this.safeString(order, 'positionSide');
+            const marketType = (positionSide === undefined) ? 'spot' : 'swap';
+            market = this.safeMarket(marketId, undefined, undefined, marketType);
         }
-        const marketResolved = this.safeMarket((market === undefined) ? orderMarketId : undefined, market, undefined, orderMarketType);
         const timestamp = this.safeIntegerN(order, ['transactTime', 'time', 'createTime']);
         const rawStatus = this.safeStringLower2(order, 'status', 'algoStatus'); // algo (trigger) order payloads carry algoStatus instead of status
         const triggerPrice = this.omitZero(this.safeString2(order, 'triggerPrice', 'stopPrice'));
@@ -3216,7 +3225,7 @@ class weex extends weex$1["default"] {
         return this.safeOrder({
             'id': this.safeStringN(order, ['orderId', 'algoId', 'successOrderId']),
             'clientOrderId': this.safeStringN(order, ['clientOrderId', 'origClientOrderId', 'clientAlgoId']),
-            'symbol': this.safeString(marketResolved, 'symbol'),
+            'symbol': this.safeString(market, 'symbol'),
             'type': this.parseOrderType(rawType),
             'timeInForce': this.safeString(order, 'timeInForce'),
             'postOnly': undefined,
@@ -3239,7 +3248,7 @@ class weex extends weex$1["default"] {
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'info': order,
-        }, marketResolved);
+        }, market);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -3267,17 +3276,21 @@ class weex extends weex$1["default"] {
         return this.safeString(types, type, type);
     }
     handleOrderOrPositionError(errorCode, errorMessage, order) {
-        const errorCodeValue = (errorCode === undefined) ? '' : errorCode;
-        const errorMessageValue = (errorMessage === undefined) ? '' : errorMessage;
-        if ((errorCodeValue === '') && (errorMessageValue === '')) {
+        if (errorCode === undefined) {
+            errorCode = '';
+        }
+        if (errorMessage === undefined) {
+            errorMessage = '';
+        }
+        if ((errorCode === '') && (errorMessage === '')) {
             // some endpoints could return an empty string if there is no error
             return;
         }
         const feedback = this.id + ' ' + this.json(order);
-        this.throwExactlyMatchedException(this.exceptions['exact'], errorMessageValue, feedback);
-        this.throwExactlyMatchedException(this.exceptions['exact'], errorCodeValue, feedback);
-        this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessageValue, feedback);
-        this.throwBroadlyMatchedException(this.exceptions['broad'], errorCodeValue, feedback);
+        this.throwExactlyMatchedException(this.exceptions['exact'], errorMessage, feedback);
+        this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+        this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
+        this.throwBroadlyMatchedException(this.exceptions['broad'], errorCode, feedback);
         throw new errors.InvalidOrder(feedback);
     }
     /**
@@ -3324,17 +3337,19 @@ class weex extends weex$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         const isSpot = (marketType === 'spot');
         if (isSpot && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument for spot markets');
         }
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(paramsMarketType, 'fetchMyTrades', 'paginate', false);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate', false);
         const maxLimit = 100;
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, paramsPaginate, maxLimit);
+            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params, maxLimit);
         }
-        const request = {};
+        let request = {};
         if (symbol !== undefined) {
             request['symbol'] = this.safeString(market, 'id');
         }
@@ -3344,7 +3359,7 @@ class weex extends weex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsPaginate);
+        [request, params] = this.handleUntilOption('endTime', request, params);
         let response = undefined;
         if (isSpot) {
             //
@@ -3362,7 +3377,7 @@ class weex extends weex$1["default"] {
             //         }
             //     ]
             //
-            response = await this.privateGetApiV3MyTrades(this.extend(requestUntil, paramsUntil));
+            response = await this.privateGetApiV3MyTrades(this.extend(request, params));
         }
         else {
             //
@@ -3385,7 +3400,7 @@ class weex extends weex$1["default"] {
             //         }
             //     ]
             //
-            response = await this.contractPrivateGetCapiV3UserTrades(this.extend(requestUntil, paramsUntil));
+            response = await this.contractPrivateGetCapiV3UserTrades(this.extend(request, params));
         }
         let responseList = [];
         if (response !== undefined) {
@@ -3413,15 +3428,17 @@ class weex extends weex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchLedger', 'paginate', false);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate', false);
         const maxLimit = 100;
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, paramsPaginate, maxLimit);
+            return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params, maxLimit);
         }
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchLedger', undefined, paramsPaginate);
+        let accountType = undefined;
+        [accountType, params] = this.handleMarketTypeAndParams('fetchLedger', undefined, params);
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
-        const accountType = this.safeString(accountsByType, marketType, marketType);
-        const request = {};
+        accountType = this.safeString(accountsByType, accountType, accountType);
+        let request = {};
         let items = undefined;
         let currency = undefined;
         if (code !== undefined) {
@@ -3437,8 +3454,8 @@ class weex extends weex$1["default"] {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsMarketType);
-            const contractResponse = await this.contractPrivatePostCapiV3AccountIncome(this.extend(requestUntil, paramsUntil));
+            [request, params] = this.handleUntilOption('endTime', request, params);
+            const contractResponse = await this.contractPrivatePostCapiV3AccountIncome(this.extend(request, params));
             items = this.safeList(contractResponse, 'items', []);
         }
         else if (accountType === 'funding') {
@@ -3448,8 +3465,8 @@ class weex extends weex$1["default"] {
             if (limit !== undefined) {
                 request['pageSize'] = limit;
             }
-            const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsMarketType);
-            const fundingResponse = await this.privatePostApiV3AccountFundingBills(this.extend(requestUntil, paramsUntil));
+            [request, params] = this.handleUntilOption('endTime', request, params);
+            const fundingResponse = await this.privatePostApiV3AccountFundingBills(this.extend(request, params));
             items = this.safeList(fundingResponse, 'items', []);
         }
         else {
@@ -3459,8 +3476,8 @@ class weex extends weex$1["default"] {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const [requestUntil, paramsUntil] = this.handleUntilOption('before', request, paramsMarketType);
-            const billsResponse = await this.privatePostApiV3AccountBills(this.extend(requestUntil, paramsUntil));
+            [request, params] = this.handleUntilOption('before', request, params);
+            const billsResponse = await this.privatePostApiV3AccountBills(this.extend(request, params));
             items = this.toArray(billsResponse);
         }
         return this.parseLedger(items, currency, since, limit);
@@ -3510,7 +3527,7 @@ class weex extends weex$1["default"] {
         //
         const currencyId = this.safeString2(item, 'coinName', 'asset');
         const code = this.safeCurrencyCode(currencyId, currency);
-        const currencyResolved = this.safeCurrency(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const timestamp = this.safeInteger2(item, 'cTime', 'time');
         const amountRaw = this.safeString2(item, 'deltaAmount', 'income');
         const after = this.safeString2(item, 'afterAmount', 'balance');
@@ -3550,7 +3567,7 @@ class weex extends weex$1["default"] {
                 'currency': code,
                 'cost': this.safeNumber2(item, 'fees', 'fillFee'),
             },
-        }, currencyResolved);
+        }, currency);
     }
     parseLedgerType(type) {
         const types = {
@@ -3584,12 +3601,13 @@ class weex extends weex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingHistory', 'paginate', false);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchFundingHistory', symbol, since, limit, paramsPaginate, 100);
+            return await this.fetchPaginatedCallDynamic('fetchFundingHistory', symbol, since, limit, params, 100);
         }
         let market = undefined;
-        const request = {
+        let request = {
             'incomeType': 'position_funding', // deposit, withdraw, transfer_in, transfer_out, margin_move_in, margin_move_out, position_open_long, position_open_short, position_close_long, position_close_short, position_funding, order_fill_fee_income, order_liquidate_fee_income, start_liquidate, finish_liquidate, order_fix_margin_amount, tracking_follow_pay, tracking_system_pre_receive, tracking_follow_back, tracking_trader_income, tracking_third_party_share
         };
         if (symbol !== undefined) {
@@ -3605,17 +3623,17 @@ class weex extends weex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsPaginate);
+        [request, params] = this.handleUntilOption('endTime', request, params);
         // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
-        const hasSince = ('startTime' in requestUntil);
-        const hasUntil = ('endTime' in requestUntil);
+        const hasSince = ('startTime' in request);
+        const hasUntil = ('endTime' in request);
         if (hasSince && !hasUntil) {
-            requestUntil['endTime'] = this.milliseconds();
+            request['endTime'] = this.milliseconds();
         }
         else if (hasUntil && !hasSince) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingHistory() requires since to be set when until is used');
         }
-        const response = await this.contractPrivatePostCapiV3AccountIncome(this.extend(requestUntil, paramsUntil));
+        const response = await this.contractPrivatePostCapiV3AccountIncome(this.extend(request, params));
         //
         //     {
         //         "hasNextPage": false,
@@ -3679,7 +3697,7 @@ class weex extends weex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         let response = undefined;
         if (sandboxMode === true) {
@@ -3688,7 +3706,7 @@ class weex extends weex$1["default"] {
         else {
             response = await this.contractPrivateGetCapiV3AccountPositionAllPosition(params);
         }
-        return this.parsePositions(response, symbolsNormalized);
+        return this.parsePositions(response, symbols);
     }
     /**
      * @method
@@ -3799,7 +3817,7 @@ class weex extends weex$1["default"] {
             this.handleOrderOrPositionError(errorCode, errorMessage, position);
         }
         const marketId = this.fromSandboxMarketId(this.safeString2(position, 'symbol', 'coinId')); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
-        const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
+        market = this.safeMarket(marketId, market, undefined, 'contract');
         const timestamp = this.safeInteger(position, 'createdTime');
         const marginType = this.safeString2(position, 'marginType', 'marginMode');
         let marginMode = 'cross';
@@ -3818,7 +3836,7 @@ class weex extends weex$1["default"] {
         const size = this.safeString(position, 'size');
         const entryPrice = Precise["default"].stringDiv(notional, size);
         return this.safePosition({
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'id': this.safeString2(position, 'id', 'positionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -3991,9 +4009,9 @@ class weex extends weex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         const response = await this.contractPrivateGetCapiV3AccountSymbolConfig(params);
-        return this.parseMarginModes(this.toArray(response), symbolsNormalized, 'symbol', 'swap');
+        return this.parseMarginModes(this.toArray(response), symbols, 'symbol', 'swap');
     }
     parseMarginMode(marginMode, market = undefined) {
         const marketId = this.safeString(marginMode, 'symbol');
@@ -4080,9 +4098,9 @@ class weex extends weex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         const response = await this.contractPrivateGetCapiV3AccountSymbolConfig(params);
-        return this.parseLeverages(this.toArray(response), symbolsNormalized, 'symbol', 'swap');
+        return this.parseLeverages(this.toArray(response), symbols, 'symbol', 'swap');
     }
     parseLeverage(leverage, market = undefined) {
         const marketId = this.safeString(leverage, 'symbol');
@@ -4133,13 +4151,14 @@ class weex extends weex$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('setLeverage', params);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params);
         if (marginMode !== undefined) {
             request['marginType'] = this.encodeMarginMode(marginMode);
         }
-        const isolatedLongLeverage = this.safeNumber(paramsMarginMode, 'isolatedLongLeverage');
-        const isolatedShortLeverage = this.safeNumber(paramsMarginMode, 'isolatedShortLeverage');
-        const crossLeverage = this.safeNumber(paramsMarginMode, 'crossLeverage');
+        const isolatedLongLeverage = this.safeNumber(params, 'isolatedLongLeverage');
+        const isolatedShortLeverage = this.safeNumber(params, 'isolatedShortLeverage');
+        const crossLeverage = this.safeNumber(params, 'crossLeverage');
         if ((isolatedLongLeverage === undefined) && (isolatedShortLeverage === undefined) && (crossLeverage === undefined)) {
             if (marginMode === 'isolated') {
                 request['isolatedLongLeverage'] = leverage;
@@ -4149,7 +4168,7 @@ class weex extends weex$1["default"] {
                 request['crossLeverage'] = leverage;
             }
         }
-        return await this.contractPrivatePostCapiV3AccountLeverage(this.extend(request, paramsMarginMode));
+        return await this.contractPrivatePostCapiV3AccountLeverage(this.extend(request, params));
     }
     /**
      * @method
@@ -4195,20 +4214,18 @@ class weex extends weex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('setPositionMode', params);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('setPositionMode', params);
         if (marginMode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setPositionMode() also sets marginMode, so a marginMode parameter is required');
         }
-        let separatedType = 'COMBINED';
-        if (hedged) {
-            separatedType = 'SEPARATED';
-        }
+        const separatedType = hedged ? 'SEPARATED' : 'COMBINED';
         const request = {
             'symbol': market['id'],
             'marginType': this.encodeMarginMode(marginMode),
             'separatedType': separatedType,
         };
-        return await this.contractPrivatePostCapiV3AccountMarginType(this.extend(request, paramsMarginMode));
+        return await this.contractPrivatePostCapiV3AccountMarginType(this.extend(request, params));
     }
     async modifyMarginHelper(symbol, amount, type, params = {}) {
         if (this.markets === undefined) {
@@ -4218,18 +4235,15 @@ class weex extends weex$1["default"] {
         if (isolatedPositionId === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' modifyMarginHelper() requires a positionId parameter');
         }
-        const paramsOmitted = this.omit(params, ['positionId', 'id']);
+        params = this.omit(params, ['positionId', 'id']);
         const market = this.market(symbol);
         const request = {
             'isolatedPositionId': isolatedPositionId,
             'amount': this.costToPrecision(symbol, amount),
             'type': type,
         };
-        let parsedType = 'reduce';
-        if (type === 1) {
-            parsedType = 'add';
-        }
-        const response = await this.contractPrivatePostCapiV3AccountPositionMargin(this.extend(request, paramsOmitted));
+        const parsedType = (type === 1) ? 'add' : 'reduce';
+        const response = await this.contractPrivatePostCapiV3AccountPositionMargin(this.extend(request, params));
         return this.extend(this.parseMarginModification(response, market), {
             'amount': this.parseNumber(amount),
             'type': parsedType,
@@ -4244,10 +4258,7 @@ class weex extends weex$1["default"] {
         //     }
         //
         const msg = this.safeString(data, 'msg');
-        let status = 'failed';
-        if (msg === 'success') {
-            status = 'ok';
-        }
+        const status = (msg === 'success') ? 'ok' : 'failed';
         const timestamp = this.safeInteger(data, 'requestTime');
         return {
             'info': data,
@@ -4342,14 +4353,7 @@ class weex extends weex$1["default"] {
                 endpoint += '?' + this.urlencode(query);
             }
         }
-        const isPrivate = (api === 'private') || (api === 'contractPrivate');
-        const hasJsonBody = isPrivate && ((method === 'POST') || isBatch);
-        let requestBody = body;
-        if (hasJsonBody) {
-            requestBody = this.json(query);
-        }
-        let requestHeaders = undefined;
-        if (isPrivate) {
+        if ((api === 'private') || (api === 'contractPrivate')) {
             const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
             if ((sandboxMode === true) && (path.indexOf('capi/v3/sim/') !== 0)) {
                 // guard against accidental live private calls with sandbox mode enabled, the demo trading API only provides the capi/v3/sim/ endpoints
@@ -4358,32 +4362,28 @@ class weex extends weex$1["default"] {
             this.checkRequiredCredentials();
             const timestamp = this.numberToString(this.nonce());
             let payload = timestamp + method + '/' + endpoint;
-            if (hasJsonBody) {
-                payload += requestBody;
+            if ((method === 'POST') || isBatch) {
+                body = this.json(query);
+                payload += body;
             }
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
-            requestHeaders = {
+            headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-SIGN': signature,
                 'ACCESS-PASSPHRASE': this.password,
                 'ACCESS-TIMESTAMP': timestamp,
             };
             if ((method === 'POST') || (method === 'DELETE')) {
-                requestHeaders['Content-Type'] = 'application/json';
+                headers['Content-Type'] = 'application/json';
             }
         }
         else {
-            requestHeaders = {
+            headers = {
                 'User-Agent': 'ccxt',
             };
         }
-        const baseApiUrl = this.safeString(this.urls['api'], api);
-        if (baseApiUrl === undefined) {
-            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        const baseUrl = baseApiUrl;
-        const url = baseUrl + '/' + endpoint;
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        const url = this.urls['api'][api] + '/' + endpoint;
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //

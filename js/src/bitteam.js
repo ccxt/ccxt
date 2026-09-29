@@ -465,9 +465,6 @@ export default class bitteam extends Exchange {
         const quoteId = this.safeString(parts, 1);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         const active = this.safeBool(market, 'active');
         const timeStart = this.safeString(market, 'timeStart');
         const created = this.parse8601(timeStart);
@@ -1320,7 +1317,7 @@ export default class bitteam extends Exchange {
         //
         const id = this.safeString(order, 'id');
         const marketId = this.safeString(order, 'pair');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         const clientOrderId = this.safeString(order, 'orderCid');
         let timestamp = undefined;
         const createdAt = this.safeString(order, 'createdAt');
@@ -1357,7 +1354,7 @@ export default class bitteam extends Exchange {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'status': status,
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': 'GTC',
             'side': side,
@@ -1372,7 +1369,7 @@ export default class bitteam extends Exchange {
             'trades': undefined,
             'info': order,
             'postOnly': false,
-        }, marketResolved);
+        }, market);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -1746,7 +1743,7 @@ export default class bitteam extends Exchange {
         //         "lowest_price_24h": 37574.894999
         //     }
         const marketId = this.safeStringLower(ticker, 'trading_pairs');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         let bestBidPrice = undefined;
         let bestAskPrice = undefined;
         let bestBidVolume = undefined;
@@ -1772,7 +1769,7 @@ export default class bitteam extends Exchange {
         const close = this.safeString2(ticker, 'lastPrice', 'last_price');
         const changePcnt = this.safeString2(ticker, 'change24', 'price_change_percent_24h');
         return this.safeTicker({
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
             'open': undefined,
@@ -1791,7 +1788,7 @@ export default class bitteam extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -2054,8 +2051,8 @@ export default class bitteam extends Exchange {
         //     }
         //
         const marketId = this.safeString(trade, 'pair');
-        const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
         const id = this.safeString2(trade, 'id', 'trade_id');
         const price = this.safeString(trade, 'price');
         const amount = this.safeString2(trade, 'quantity', 'base_volume');
@@ -2104,7 +2101,7 @@ export default class bitteam extends Exchange {
             'cost': cost,
             'fee': fee,
             'info': trade,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -2412,18 +2409,12 @@ export default class bitteam extends Exchange {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.omit(params, this.extractParams(path));
         const endpoint = '/' + this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'], api);
-        if (apiUrl === undefined) {
-            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        let url = apiUrl + endpoint;
+        let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode(request);
-        let requestBody = undefined;
-        let requestHeaders = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials();
             if (method === 'POST') {
-                requestBody = this.json(request);
+                body = this.json(request);
             }
             else if (query.length !== 0) {
                 url += '?' + query;
@@ -2431,7 +2422,7 @@ export default class bitteam extends Exchange {
             const auth = this.apiKey + ':' + this.secret;
             const auth64 = this.stringToBase64(auth);
             const signature = 'Basic ' + auth64;
-            requestHeaders = {
+            headers = {
                 'Authorization': signature,
                 'Content-Type': 'application/json',
             };
@@ -2439,9 +2430,7 @@ export default class bitteam extends Exchange {
         else if (query.length !== 0) {
             url += '?' + query;
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
-        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

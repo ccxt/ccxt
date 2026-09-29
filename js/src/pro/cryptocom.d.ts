@@ -101,7 +101,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTradesForSymbols(symbols: string[], params?: Dict): Promise<any>;
+    unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
     handleTrades(client: Client, message: Dict): void;
     /**
      * @method
@@ -134,7 +134,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
+    unWatchTicker(symbol: string, params?: {}): Promise<any>;
     /**
      * @method
      * @name cryptocom#watchTickers
@@ -154,7 +154,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTickers(symbols?: Strings, params?: Dict): Promise<any>;
+    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     handleTicker(client: Client, message: Dict): void;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
@@ -168,7 +168,7 @@ export default class cryptocom extends cryptocomRest {
      */
     watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
     handleBidAsk(client: Client, message: Dict): void;
-    parseWsBidAsk(ticker: Dict, market?: Market): Ticker;
+    parseWsBidAsk(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name cryptocom#watchOHLCV
@@ -192,7 +192,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method
@@ -290,7 +290,7 @@ export default class cryptocom extends cryptocomRest {
     unWatchPublicMultiple(topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], topics: string[], params?: Dict, subExtend?: Dict): Promise<any>;
     watchPrivateRequest(nonce: number, params?: Dict): Promise<any>;
     watchPrivateSubscribe(messageHash: Str, params?: Dict): Promise<any>;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleSubscribe(client: Client, message: Dict): void;
     handleMessage(client: Client, message: Dict): void;
     authenticate(params?: Dict): Promise<any>;

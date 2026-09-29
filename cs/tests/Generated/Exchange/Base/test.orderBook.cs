@@ -37,8 +37,8 @@ public partial class testMainClass : BaseTest
             string? currentBidString = exchange.safeString(getValue(bids, i), 0);
             if (!(inOp(skippedProperties, "compareToNextItem")))
             {
-                Int64 nextI = add(i, 1);
-                if (bidsLength > nextI)
+                object nextI = add(i, 1);
+                if (isGreaterThan(bidsLength, nextI))
                 {
                     string? nextBidString = exchange.safeString(getValue(bids, nextI), 0);
                     assert(Precise.stringGt(currentBidString, nextBidString), (((("current bid should be > than the next one: " + currentBidString) + ">") + nextBidString) + (logText)));
@@ -58,8 +58,8 @@ public partial class testMainClass : BaseTest
             string? currentAskString = exchange.safeString(getValue(asks, i), 0);
             if (!(inOp(skippedProperties, "compareToNextItem")))
             {
-                Int64 nextI = add(i, 1);
-                if (asksLength > nextI)
+                object nextI = add(i, 1);
+                if (isGreaterThan(asksLength, nextI))
                 {
                     string? nextAskString = exchange.safeString(getValue(asks, nextI), 0);
                     assert(Precise.stringLt(currentAskString, nextAskString), (((("current ask should be < than the next one: " + currentAskString) + "<") + nextAskString) + (logText)));

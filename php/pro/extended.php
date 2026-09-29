@@ -71,15 +71,15 @@ class extended extends \ccxt\async\extended {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $messageHash = 'orderbook:' . $symbolValue;
+        $symbol = $market['symbol'];
+        $messageHash = 'orderbook:' . $symbol;
         $query = $this->urlencode($params);
-        $url = $this->safe_string($this->urls['api'], 'ws') . '/orderbooks/' . $market['id'];
+        $url = $this->urls['api']['ws'] . '/orderbooks/' . $market['id'];
         if (strlen($query) > 0) {
             $url .= '?' . $query;
         }
         $orderbook = Async\await($this->watch($url, $messageHash, null, $messageHash, array(
-            'symbol' => $symbolValue,
+            'symbol' => $symbol,
             'limit' => $limit,
         )));
         return $orderbook->limit();
@@ -158,7 +158,7 @@ class extended extends \ccxt\async\extended {
 
     private function do_watch_private(string $messageHash, ?array $subscription = null) {
         $this->check_required_credentials();
-        $url = $this->safe_string($this->urls['api'], 'ws') . '/account';
+        $url = $this->urls['api']['ws'] . '/account';
         if (($this->clients === null) || !(is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
             $defaultOptions = array(
                 'ws' => array(
@@ -203,21 +203,19 @@ class extended extends \ccxt\async\extended {
             Async\await($this->load_markets());
         }
         $messageHash = 'orders';
-        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $this->safe_string($market, 'symbol');
-            $messageHash .= ':' . $symbolResolved;
+            $symbol = $market['symbol'];
+            $messageHash .= ':' . $symbol;
         }
         $orders = Async\await($this->watch_private($messageHash, array(
-            'symbol' => $symbolResolved,
+            'symbol' => $symbol,
             'limit' => $limit,
         )));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $orders->getLimit($symbolResolved, $limit);
+            $limit = $orders->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function watch_balance($params = array()): PromiseInterface {
@@ -325,21 +323,19 @@ class extended extends \ccxt\async\extended {
             Async\await($this->load_markets());
         }
         $messageHash = 'myTrades';
-        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $this->safe_string($market, 'symbol');
-            $messageHash .= ':' . $symbolResolved;
+            $symbol = $market['symbol'];
+            $messageHash .= ':' . $symbol;
         }
         $trades = Async\await($this->watch_private($messageHash, array(
-            'symbol' => $symbolResolved,
+            'symbol' => $symbol,
             'limit' => $limit,
         )));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($symbolResolved, $limit);
+            $limit = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
     public function handle_my_trades(Client $client, array $message) {
@@ -421,19 +417,19 @@ class extended extends \ccxt\async\extended {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols);
         $messageHash = 'positions';
-        if ($symbolsNormalized !== null) {
-            $messageHash .= '::' . implode(',', $symbolsNormalized);
+        if ($symbols !== null) {
+            $messageHash .= '::' . implode(',', $symbols);
         }
         $positions = Async\await($this->watch_private($messageHash, array(
-            'symbols' => $symbolsNormalized,
+            'symbols' => $symbols,
             'limit' => $limit,
         )));
         if ($this->newUpdates) {
             return $positions;
         }
-        return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
     public function handle_positions(Client $client, array $message) {
@@ -577,15 +573,15 @@ class extended extends \ccxt\async\extended {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $messageHash = 'fundingRate:' . $symbolValue;
+        $symbol = $market['symbol'];
+        $messageHash = 'fundingRate:' . $symbol;
         $query = $this->urlencode($params);
-        $url = $this->safe_string($this->urls['api'], 'ws') . '/funding/' . $market['id'];
+        $url = $this->urls['api']['ws'] . '/funding/' . $market['id'];
         if (strlen($query) > 0) {
             $url .= '?' . $query;
         }
         return Async\await($this->watch($url, $messageHash, null, $messageHash, array(
-            'symbol' => $symbolValue,
+            'symbol' => $symbol,
             'messageHash' => $messageHash,
         )));
     }
@@ -612,12 +608,12 @@ class extended extends \ccxt\async\extended {
 
     public function parse_ws_funding_rate(array $fundingRate, ?array $market = null, ?array $message = null): array {
         $marketId = $this->safe_string($fundingRate, 'm');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($message, 'ts');
         $fundingTimestamp = $this->safe_integer($fundingRate, 'T');
         return array(
             'info' => $fundingRate,
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'markPrice' => null,
             'indexPrice' => null,
             'interestRate' => null,
@@ -655,16 +651,16 @@ class extended extends \ccxt\async\extended {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $messageHash = 'markPrice:' . $symbolValue;
+        $symbol = $market['symbol'];
+        $messageHash = 'markPrice:' . $symbol;
         $query = $this->urlencode($params);
-        $url = $this->safe_string($this->urls['api'], 'ws') . '/prices/mark/' . $market['id'];
+        $url = $this->urls['api']['ws'] . '/prices/mark/' . $market['id'];
         if (strlen($query) > 0) {
             $url .= '?' . $query;
         }
         return Async\await($this->watch($url, $messageHash, null, $messageHash, array(
             'name' => 'markPrice',
-            'symbol' => $symbolValue,
+            'symbol' => $symbol,
             'messageHash' => $messageHash,
         )));
     }
@@ -722,22 +718,21 @@ class extended extends \ccxt\async\extended {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $messageHash = 'trades:' . $symbolValue;
+        $symbol = $market['symbol'];
+        $messageHash = 'trades:' . $symbol;
         $query = $this->urlencode($params);
-        $url = $this->safe_string($this->urls['api'], 'ws') . '/publicTrades/' . $market['id'];
+        $url = $this->urls['api']['ws'] . '/publicTrades/' . $market['id'];
         if (strlen($query) > 0) {
             $url .= '?' . $query;
         }
         $trades = Async\await($this->watch($url, $messageHash, null, $messageHash, array(
-            'symbol' => $symbolValue,
+            'symbol' => $symbol,
             'limit' => $limit,
         )));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($symbolValue, $limit);
+            $limit = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function handle_trades(Client $client, array $message) {
@@ -811,7 +806,7 @@ class extended extends \ccxt\async\extended {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         $price = $this->safe_string($params, 'price');
         $candleType = $this->safe_string($params, 'candleType');
         if ($candleType === null) {
@@ -823,24 +818,23 @@ class extended extends \ccxt\async\extended {
                 $candleType = 'trades';
             }
         }
-        $paramsOmitted = $this->omit($params, array( 'candleType', 'price' ));
+        $params = $this->omit($params, array( 'candleType', 'price' ));
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $messageHash = 'ohlcv:' . $symbolValue . ':' . $timeframe . ':' . $candleType;
-        $query = $this->urlencode($this->extend(array( 'interval' => $interval ), $paramsOmitted));
-        $url = $this->safe_string($this->urls['api'], 'ws') . '/candles/' . $market['id'] . '/' . $candleType . '?' . $query;
+        $messageHash = 'ohlcv:' . $symbol . ':' . $timeframe . ':' . $candleType;
+        $query = $this->urlencode($this->extend(array( 'interval' => $interval ), $params));
+        $url = $this->urls['api']['ws'] . '/candles/' . $market['id'] . '/' . $candleType . '?' . $query;
         $ohlcv = Async\await($this->watch($url, $messageHash, null, $messageHash, array(
             'name' => 'ohlcv',
-            'symbol' => $symbolValue,
+            'symbol' => $symbol,
             'timeframe' => $timeframe,
             'candleType' => $candleType,
             'limit' => $limit,
             'messageHash' => $messageHash,
         )));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
+            $limit = $ohlcv->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function handle_ohlcv(Client $client, array $message) {
@@ -867,12 +861,7 @@ class extended extends \ccxt\async\extended {
         $symbol = $this->safe_string($subscription, 'symbol');
         $timeframe = $this->safe_string($subscription, 'timeframe');
         $candleType = $this->safe_string($subscription, 'candleType');
-        $cacheKey = null;
-        if ($candleType === 'trades') {
-            $cacheKey = $timeframe;
-        } else {
-            $cacheKey = $timeframe . ':' . $candleType;
-        }
+        $cacheKey = ($candleType === 'trades') ? $timeframe : $timeframe . ':' . $candleType;
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->ohlcvs[$symbol], $cacheKey);

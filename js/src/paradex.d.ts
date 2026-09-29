@@ -154,9 +154,13 @@ export default class paradex extends Exchange {
     hashMessage(message: any): string;
     signHash(hash: string, privateKey: string): string;
     signMessage(message: any, privateKey: string): string;
-    getSystemConfig(): Promise<Dict>;
+    getSystemConfig(): Promise<import("./base/types.js").Dictionary<any>>;
     prepareParadexDomain(l1?: boolean): Promise<Dict>;
-    retrieveAccount(): Promise<Dict>;
+    retrieveAccount(): Promise<import("./base/types.js").Dictionary<any> | {
+        privateKey: string;
+        publicKey: string;
+        address: string;
+    }>;
     onboarding(params?: Dict): Promise<Dict>;
     authenticateRest(params?: Dict): Promise<Str>;
     parseOrder(order: Dict, market?: Market): Order;
@@ -477,7 +481,7 @@ export default class paradex extends Exchange {
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseIncome(income: Dict, market?: Market): object;
+    parseIncome(income: any, market?: Market): object;
     /**
      * @method
      * @name paradex#fetchFundingRateHistory
@@ -491,6 +495,6 @@ export default class paradex extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

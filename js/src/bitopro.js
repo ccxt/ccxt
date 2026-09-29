@@ -437,7 +437,7 @@ export default class bitopro extends Exchange {
         return this.parseMarkets(markets);
     }
     parseMarket(market) {
-        const active = (!this.safeBool(market, 'maintain', false));
+        const active = (this.safeBool(market, 'maintain') !== true);
         const id = this.safeString(market, 'pair');
         if (id === undefined) {
             throw new ExchangeError(this.id + ' parseMarket() missing id');
@@ -447,9 +447,6 @@ export default class bitopro extends Exchange {
         const quoteId = this.safeString(market, 'quote');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         const symbol = base + '/' + quote;
         const limits = {
             'amount': {
@@ -516,8 +513,8 @@ export default class bitopro extends Exchange {
         //     }
         //
         const marketId = this.safeString(ticker, 'pair');
-        const marketResolved = this.safeMarket(marketId, market);
-        const symbol = this.safeString(marketResolved, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const symbol = this.safeString(market, 'symbol');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
@@ -539,7 +536,7 @@ export default class bitopro extends Exchange {
             'baseVolume': this.safeString(ticker, 'volume24hr'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -686,8 +683,8 @@ export default class bitopro extends Exchange {
             timestamp = this.safeInteger(trade, 'timestamp');
         }
         const marketId = this.safeString(trade, 'pair');
-        const marketResolved = this.safeMarket(marketId, market);
-        const symbol = this.safeString(marketResolved, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const symbol = this.safeString(market, 'symbol');
         const price = this.safeString(trade, 'price');
         const type = this.safeStringLower(trade, 'type');
         let side = this.safeStringLower(trade, 'action');
@@ -738,7 +735,7 @@ export default class bitopro extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -901,19 +898,23 @@ export default class bitopro extends Exchange {
             'resolution': resolution,
         };
         // we need to have a limit argument because "to" and "from" are required
-        // supports slightly more than 75k candles atm, but limit here to avoid errors
-        const limitResolved = (limit === undefined) ? 500 : Math.min(limit, 75000);
+        if (limit === undefined) {
+            limit = 500;
+        }
+        else {
+            limit = Math.min(limit, 75000); // supports slightly more than 75k candles atm, but limit here to avoid errors
+        }
         const timeframeInSeconds = this.parseTimeframe(timeframe);
         let alignedSince = undefined;
         if (since === undefined) {
             request['to'] = this.seconds();
-            request['from'] = request['to'] - (limitResolved * timeframeInSeconds);
+            request['from'] = request['to'] - (limit * timeframeInSeconds);
         }
         else {
             const timeframeInMilliseconds = timeframeInSeconds * 1000;
             alignedSince = Math.floor(since / timeframeInMilliseconds) * timeframeInMilliseconds;
             request['from'] = Math.floor(since / 1000);
-            request['to'] = this.sum(request['from'], limitResolved * timeframeInSeconds);
+            request['to'] = this.sum(request['from'], limit * timeframeInSeconds);
         }
         const response = await this.publicGetTradingHistoryPair(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
@@ -931,8 +932,8 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        const sparse = this.parseOHLCVs(data, market, timeframe, since, limitResolved);
-        return this.insertMissingCandles(sparse, timeframeInSeconds, alignedSince, limitResolved);
+        const sparse = this.parseOHLCVs(data, market, timeframe, since, limit);
+        return this.insertMissingCandles(sparse, timeframeInSeconds, alignedSince, limit);
     }
     insertMissingCandles(candles, distance, since, limit) {
         // the exchange doesn't send zero volume candles so we emulate them instead
@@ -989,7 +990,7 @@ export default class bitopro extends Exchange {
             'info': response,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict(response, i);
+            const balance = response[i];
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const amount = this.safeString(balance, 'amount');
@@ -1090,8 +1091,8 @@ export default class bitopro extends Exchange {
         const amount = this.safeString2(order, 'amount', 'originalAmount');
         const price = this.safeString(order, 'price');
         const marketId = this.safeString(order, 'pair');
-        const marketResolved = this.safeMarket(marketId, market, '_');
-        const symbol = this.safeString(marketResolved, 'symbol');
+        market = this.safeMarket(marketId, market, '_');
+        const symbol = this.safeString(market, 'symbol');
         const orderStatus = this.safeString(order, 'status');
         const status = this.parseOrderStatus(orderStatus);
         const type = this.safeStringLower(order, 'type');
@@ -1134,7 +1135,7 @@ export default class bitopro extends Exchange {
             'fee': fee,
             'trades': undefined,
             'info': order,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -1169,6 +1170,7 @@ export default class bitopro extends Exchange {
         if (orderType === 'STOP_LIMIT') {
             request['price'] = this.priceToPrecision(symbol, price);
             const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+            params = this.omit(params, ['triggerPrice', 'stopPrice']);
             if (triggerPrice === undefined) {
                 throw new InvalidOrder(this.id + ' createOrder() requires a triggerPrice parameter for ' + orderType + ' orders');
             }
@@ -1183,12 +1185,11 @@ export default class bitopro extends Exchange {
                 request['condition'] = condition;
             }
         }
-        const paramsOmitted = (orderType === 'STOP_LIMIT') ? this.omit(params, ['triggerPrice', 'stopPrice']) : params;
-        const postOnly = this.isPostOnly(orderType === 'MARKET', undefined, paramsOmitted);
+        const postOnly = this.isPostOnly(orderType === 'MARKET', undefined, params);
         if (postOnly) {
             request['timeInForce'] = 'POST_ONLY';
         }
-        const response = await this.privatePostOrdersPair(this.extend(request, paramsOmitted));
+        const response = await this.privatePostOrdersPair(this.extend(request, params));
         //
         //     {
         //         "orderId": "2220595581",
@@ -1784,7 +1785,7 @@ export default class bitopro extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1795,24 +1796,20 @@ export default class bitopro extends Exchange {
             'amount': this.numberToString(amount),
             'address': address,
         };
-        const hasNetwork = ('network' in paramsWithdrawTag);
-        let paramsOmitted = paramsWithdrawTag;
-        if (hasNetwork) {
-            paramsOmitted = this.omit(paramsWithdrawTag, ['network']);
-        }
-        if (hasNetwork) {
+        if ('network' in params) {
             const networks = this.safeDict(this.options, 'networks', {});
-            const requestedNetwork = this.safeStringUpper(paramsWithdrawTag, 'network');
+            const requestedNetwork = this.safeStringUpper(params, 'network');
+            params = this.omit(params, ['network']);
             const networkId = (requestedNetwork === undefined) ? undefined : this.safeString(networks, requestedNetwork);
             if (networkId === undefined) {
                 throw new ExchangeError(this.id + ' invalid network ' + requestedNetwork);
             }
             request['protocol'] = networkId;
         }
-        if (tagWithdrawTag !== undefined) {
-            request['message'] = tagWithdrawTag;
+        if (tag !== undefined) {
+            request['message'] = tag;
         }
-        const response = await this.privatePostWalletWithdrawCurrency(this.extend(request, paramsOmitted));
+        const response = await this.privatePostWalletWithdrawCurrency(this.extend(request, params));
         const result = this.safeDict(response, 'data', {});
         //
         //     {
@@ -1889,22 +1886,19 @@ export default class bitopro extends Exchange {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        const requestHeaders = (headers === undefined) ? {} : headers;
-        const isSignedBody = (api === 'private') && ((method === 'POST') || (method === 'PUT'));
-        const signedBody = this.json(params);
-        let requestBody = body;
-        if (isSignedBody) {
-            requestBody = signedBody;
+        if (headers === undefined) {
+            headers = {};
         }
-        requestHeaders['X-BITOPRO-API'] = 'ccxt';
+        headers['X-BITOPRO-API'] = 'ccxt';
         if (api === 'private') {
             this.checkRequiredCredentials();
             if (method === 'POST' || method === 'PUT') {
-                const payload = this.stringToBase64(signedBody);
+                body = this.json(params);
+                const payload = this.stringToBase64(body);
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
-                requestHeaders['X-BITOPRO-APIKEY'] = this.apiKey;
-                requestHeaders['X-BITOPRO-PAYLOAD'] = payload;
-                requestHeaders['X-BITOPRO-SIGNATURE'] = signature;
+                headers['X-BITOPRO-APIKEY'] = this.apiKey;
+                headers['X-BITOPRO-PAYLOAD'] = payload;
+                headers['X-BITOPRO-SIGNATURE'] = signature;
             }
             else if (method === 'GET' || method === 'DELETE') {
                 if (Object.keys(query).length > 0) {
@@ -1917,9 +1911,9 @@ export default class bitopro extends Exchange {
                 const data = this.json(rawData);
                 const payload = this.stringToBase64(data);
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
-                requestHeaders['X-BITOPRO-APIKEY'] = this.apiKey;
-                requestHeaders['X-BITOPRO-PAYLOAD'] = payload;
-                requestHeaders['X-BITOPRO-SIGNATURE'] = signature;
+                headers['X-BITOPRO-APIKEY'] = this.apiKey;
+                headers['X-BITOPRO-PAYLOAD'] = payload;
+                headers['X-BITOPRO-SIGNATURE'] = signature;
             }
         }
         else if (api === 'public' && method === 'GET') {
@@ -1927,12 +1921,8 @@ export default class bitopro extends Exchange {
                 url += '?' + this.urlencode(query);
             }
         }
-        const apiUrl = this.safeString(this.urls['api'], 'rest');
-        if (apiUrl === undefined) {
-            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        const fullUrl = apiUrl + url;
-        return { 'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        url = this.urls['api']['rest'] + url;
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

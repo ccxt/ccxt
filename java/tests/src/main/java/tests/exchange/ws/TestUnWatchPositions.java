@@ -7,7 +7,6 @@ import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -23,7 +22,7 @@ public class TestUnWatchPositions extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         (exchange.sleep(3000)).join();
-        ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "market", "buy", 0.001, (Object) null, new HashMap<String, Object>() {{}}})).join();
+        ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "market", "buy", 0.001})).join();
             return null;
         });
 
@@ -40,11 +39,11 @@ public class TestUnWatchPositions extends BaseTest {
         try
         {
             // First call uses snapshot
-            positionsSubscription = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{(List<String>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+            positionsSubscription = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{})).join();
             // trigger a position update
             exchange.spawn(() -> { try { this.createOrderAfterDelay( exchange).join(); } catch(Exception _e) { throw new RuntimeException(_e); } });
             // Second call uses subscription
-            positionsSubscription = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{(List<String>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+            positionsSubscription = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{})).join();
         } catch(Exception e)
         {
             if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
@@ -60,7 +59,7 @@ public class TestUnWatchPositions extends BaseTest {
         Object errorResponse = null;
         try
         {
-            errorResponse = (exchange.unWatchPositions(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}})).join();
+            errorResponse = (exchange.unWatchPositions(new ArrayList<Object>(Arrays.asList(symbol)))).join();
         } catch(Exception e)
         {
             errorResponse = e;
@@ -70,7 +69,7 @@ public class TestUnWatchPositions extends BaseTest {
         Object responseAll = null;
         try
         {
-            responseAll = (exchange.unWatchPositions((List<String>) null, new HashMap<String, Object>() {{}})).join();
+            responseAll = (exchange.unWatchPositions()).join();
         } catch(Exception e)
         {
             if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
@@ -85,9 +84,9 @@ public class TestUnWatchPositions extends BaseTest {
         Object resubscribeResponse = null;
         try
         {
-            resubscribeResponse = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{(List<String>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+            resubscribeResponse = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{})).join();
             exchange.spawn(() -> { try { this.createOrderAfterDelay( exchange).join(); } catch(Exception _e) { throw new RuntimeException(_e); } });
-            resubscribeResponse = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{(List<String>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+            resubscribeResponse = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{})).join();
         } catch(Exception e)
         {
             if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))

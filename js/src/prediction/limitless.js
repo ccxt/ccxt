@@ -305,10 +305,7 @@ export default class limitless extends Exchange {
         for (let i = 0; i < expandedRaw.length; i++) {
             const raw = expandedRaw[i];
             const groupId = this.safeStringN(raw, ['groupSlug', 'groupId'], this.safeString(raw, 'slug'));
-            let eventKey = undefined;
-            if (groupId !== undefined && groupId !== '') {
-                eventKey = this.shortenSlug(groupId);
-            }
+            const eventKey = (groupId !== undefined && groupId !== '') ? this.shortenSlug(groupId) : undefined;
             const m = this.parseMarket(raw);
             markets.push(m);
             if ((eventKey !== undefined) && (eventKey !== '')) {
@@ -833,10 +830,7 @@ export default class limitless extends Exchange {
         const endDate = this.safeString(event, 'deadline', this.safeString(event, 'expiresAt'));
         const title = this.safeString(event, 'title', groupId);
         const hasGroupId = (groupId !== undefined) && (groupId !== '');
-        let eventSlug = undefined;
-        if (hasGroupId) {
-            eventSlug = this.shortenSlug(groupId);
-        }
+        const eventSlug = hasGroupId ? this.shortenSlug(groupId) : undefined;
         const hasEndDate = (endDate !== undefined) && (endDate !== '');
         const endTimestamp = hasEndDate ? this.parse8601(endDate) : undefined;
         const markets = [];
@@ -1310,14 +1304,8 @@ export default class limitless extends Exchange {
         const rawBids = this.safeList(response, 'bids', []);
         const rawAsks = this.safeList(response, 'asks', []);
         // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
-        let bidsSource = rawAsks;
-        if (isYes) {
-            bidsSource = rawBids;
-        }
-        let asksSource = rawBids;
-        if (isYes) {
-            asksSource = rawAsks;
-        }
+        const bidsSource = (isYes) ? rawBids : rawAsks;
+        const asksSource = (isYes) ? rawAsks : rawBids;
         const bids = [];
         const asks = [];
         for (let bi = 0; bi < bidsSource.length; bi++) {
@@ -1437,7 +1425,7 @@ export default class limitless extends Exchange {
         // timeframe-aligned candles (single points would carry unaligned timestamps)
         const pseudoTrades = [];
         for (let i = 0; i < history.length; i++) {
-            const point = this.safeDict(history, i);
+            const point = history[i];
             const pointPrice = this.safeNumber(point, 'price');
             let pointTs = this.safeInteger(point, 'timestamp');
             if (pointTs === undefined) {
@@ -1461,7 +1449,7 @@ export default class limitless extends Exchange {
         const candles = {};
         const bucketOrder = [];
         for (let i = 0; i < sorted.length; i++) {
-            const point = this.safeDict(sorted, i);
+            const point = sorted[i];
             const pTs = this.safeInteger(point, 'timestamp');
             const pPrice = this.safeNumber(point, 'price');
             if (pTs === undefined) {
@@ -1556,10 +1544,10 @@ export default class limitless extends Exchange {
             throw new ArgumentsRequired(this.id + ' fetchOpenOrders requires an outcome argument');
         }
         await this.loadOutcome(outcome);
-        const paramsExtended = this.extend(params, {
+        params = this.extend(params, {
             'statuses': ['LIVE'],
         });
-        return await this.fetchOrders(outcome, since, limit, paramsExtended);
+        return await this.fetchOrders(outcome, since, limit, params);
     }
     /**
      * @method
@@ -1577,10 +1565,10 @@ export default class limitless extends Exchange {
             throw new ArgumentsRequired(this.id + ' fetchClosedOrders requires an outcome argument');
         }
         await this.loadOutcome(outcome);
-        const paramsExtended = this.extend(params, {
+        params = this.extend(params, {
             'statuses': ['MATCHED'],
         });
-        return await this.fetchOrders(outcome, since, limit, paramsExtended);
+        return await this.fetchOrders(outcome, since, limit, params);
     }
     /**
      * @method
@@ -1873,11 +1861,7 @@ export default class limitless extends Exchange {
         const rawSide = this.safeString(rawOrder, 'side');
         const side = this.parseOrderSide(rawSide);
         const price = this.safeString(rawOrder, 'price');
-        // todo check
-        let amountKey = 'makerAmount';
-        if (side === 'buy') {
-            amountKey = 'takerAmount';
-        }
+        const amountKey = (side === 'buy') ? 'takerAmount' : 'makerAmount'; // todo check
         const amount = this.safeString(rawOrder, amountKey);
         const remaining = this.safeString(rawOrder, 'remainingSize');
         const datetime = this.safeString(rawOrder, 'createdAt');
@@ -2046,19 +2030,9 @@ export default class limitless extends Exchange {
         // smartWallet field can stay populated after switching to eoa, so key off the option here
         const tradeWalletOption = this.safeString(accountInfo, 'tradeWalletOption');
         const usesSmartWallet = (tradeWalletOption === 'smartWallet');
-        let walletFromAccount = undefined;
-        if (usesSmartWallet) {
-            walletFromAccount = this.safeString(accountInfo, 'smartWallet');
-        }
-        else {
-            walletFromAccount = this.safeString(accountInfo, 'account');
-        }
-        let maker = walletFromAccount;
-        if (this.walletAddress !== '') {
-            maker = this.walletAddress;
-        }
-        let paramsValue = params;
-        [maker, paramsValue] = this.handleOptionAndParams(paramsValue, 'createOrder', 'maker', maker);
+        const walletFromAccount = (usesSmartWallet) ? this.safeString(accountInfo, 'smartWallet') : this.safeString(accountInfo, 'account');
+        let maker = (this.walletAddress !== '') ? this.walletAddress : walletFromAccount;
+        [maker, params] = this.handleOptionAndParams(params, 'createOrder', 'maker', maker);
         try {
             this.checkAddress(maker);
         }
@@ -2074,7 +2048,7 @@ export default class limitless extends Exchange {
         if (isSmartWallet) {
             signer = embeddedAddress;
         }
-        [signer, paramsValue] = this.handleOptionAndParams(paramsValue, 'createOrder', 'signer', signer);
+        [signer, params] = this.handleOptionAndParams(params, 'createOrder', 'signer', signer);
         try {
             this.checkAddress(signer);
         }
@@ -2082,7 +2056,7 @@ export default class limitless extends Exchange {
             throw new InvalidAddress(this.id + ' createOrder requires a valid signer address. Set the "signer" parameter to a valid address or set the "walletAddress" property in the constructor options.');
         }
         let taker = this.safeString(this.options, 'nullAddress', '0x0000000000000000000000000000000000000000');
-        [taker, paramsValue] = this.handleOptionAndParams(paramsValue, 'createOrder', 'taker', taker);
+        [taker, params] = this.handleOptionAndParams(params, 'createOrder', 'taker', taker);
         try {
             this.checkAddress(taker);
         }
@@ -2094,12 +2068,14 @@ export default class limitless extends Exchange {
             'buy': 0,
             'sell': 1,
         };
-        this.checkRequiredArgument('createOrder', side, 'side');
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const sideValue = this.safeInteger(sides, side.toLowerCase());
         const rank = this.safeDict(accountInfo, 'rank');
         // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
         let signatureType = isSmartWallet ? 2 : 0;
-        [signatureType, paramsValue] = this.handleOptionAndParams(paramsValue, 'createOrder', 'signatureType', signatureType);
+        [signatureType, params] = this.handleOptionAndParams(params, 'createOrder', 'signatureType', signatureType);
         const signRequest = {
             'salt': nonce,
             'maker': maker,
@@ -2112,9 +2088,9 @@ export default class limitless extends Exchange {
             'signatureType': signatureType,
         };
         // the contract expects expiration as a uint256; non-zero values are rejected by the API (GTC orders use 0)
-        const expirationInt = this.safeInteger(paramsValue, 'expiration');
+        const expirationInt = this.safeInteger(params, 'expiration');
         if (expirationInt !== undefined) {
-            paramsValue = this.omit(paramsValue, 'expiration');
+            params = this.omit(params, 'expiration');
             signRequest['expiration'] = this.numberToString(expirationInt);
         }
         else {
@@ -2126,18 +2102,18 @@ export default class limitless extends Exchange {
         let takerAmount = undefined;
         const isMarket = type === 'market';
         let postOnly = false;
-        [postOnly, paramsValue] = this.handlePostOnly(isMarket, false, paramsValue);
-        let timeInForce = this.safeString(paramsValue, 'timeInForce');
-        paramsValue = this.omit(paramsValue, 'timeInForce');
+        [postOnly, params] = this.handlePostOnly(isMarket, false, params);
+        let timeInForce = this.safeString(params, 'timeInForce');
+        params = this.omit(params, 'timeInForce');
         if (timeInForce === undefined) {
             timeInForce = isMarket ? 'FOK' : 'GTC';
         }
         const marketSymbol = this.safeString(outcomeObj, 'market');
         if (isMarket && (side === 'buy')) {
             let createMarketBuyOrderRequiresPrice = true;
-            [createMarketBuyOrderRequiresPrice, paramsValue] = this.handleOptionBoolAndParams(paramsValue, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            const cost = this.safeNumber(paramsValue, 'cost');
-            paramsValue = this.omit(paramsValue, 'cost');
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber(params, 'cost');
+            params = this.omit(params, 'cost');
             if (createMarketBuyOrderRequiresPrice) {
                 if ((price === undefined) && (cost === undefined)) {
                     throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
@@ -2185,7 +2161,7 @@ export default class limitless extends Exchange {
         if (postOnly) {
             request['postOnly'] = postOnly;
         }
-        const response = await this.limitlessPrivatePostOrders(this.extend(request, paramsValue));
+        const response = await this.limitlessPrivatePostOrders(this.extend(request, params));
         const parsedOrder = this.parsePredictionOrder(response, outcomeObj);
         // the create-order response omits a status field; a freshly accepted order is open
         if (parsedOrder['status'] === undefined) {
@@ -2418,16 +2394,15 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelAllOrders(outcome = undefined, params = {}) {
-        let paramsValue = params;
         if (outcome !== undefined) {
             let warn = true;
-            [warn, paramsValue] = this.handleOptionAndParams(paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn);
+            [warn, params] = this.handleOptionAndParams(params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn);
             if (warn) {
                 throw new BadRequest(this.id + ' cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.');
             }
         }
         const request = {};
-        const slug = this.safeString(paramsValue, 'slug');
+        const slug = this.safeString(params, 'slug');
         if (outcome !== undefined) {
             const outcomeObj = await this.loadOutcome(outcome);
             request['slug'] = this.safeString(outcomeObj['info'], 'slug');
@@ -2435,7 +2410,7 @@ export default class limitless extends Exchange {
         else if (slug === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelAllOrders requires either an outcome argument or a slug parameter');
         }
-        const response = await this.limitlessPrivateDeleteOrdersAllSlug(this.extend(request, paramsValue));
+        const response = await this.limitlessPrivateDeleteOrdersAllSlug(this.extend(request, params));
         //
         //     {
         //         "message": "Orders canceled successfully"
@@ -2463,17 +2438,16 @@ export default class limitless extends Exchange {
         }
         let paginate = false;
         const maxLimit = 100;
-        let paramsValue = params;
-        [paginate, paramsValue] = this.handleOptionAndParams(paramsValue, 'fetchMyTrades', 'paginate', paginate);
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate', paginate);
         if (paginate) {
-            paramsValue = this.omit(paramsValue, 'paginate');
-            return await this.fetchPaginatedCallCursor('fetchMyTrades', outcome, since, limit, paramsValue, 'nextCursor', 'cursor', undefined, maxLimit);
+            params = this.omit(params, 'paginate');
+            return await this.fetchPaginatedCallCursor('fetchMyTrades', outcome, since, limit, params, 'nextCursor', 'cursor', undefined, maxLimit);
         }
         const request = {};
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, maxLimit);
         }
-        const response = await this.limitlessPrivateGetPortfolioHistory(this.extend(request, paramsValue));
+        const response = await this.limitlessPrivateGetPortfolioHistory(this.extend(request, params));
         //
         //     {
         //         "data": [
@@ -2643,10 +2617,7 @@ export default class limitless extends Exchange {
             throw new ExchangeError(this.id + ' parsePredictionTrade() missing rawSide');
         }
         const sellIndex = rawSide.indexOf('sell');
-        let side = 'buy';
-        if (sellIndex >= 0) {
-            side = 'sell';
-        }
+        const side = (sellIndex >= 0) ? 'sell' : 'buy';
         let type = undefined;
         let takerOrMaker = undefined;
         if (rawSide === undefined) {
@@ -2666,10 +2637,7 @@ export default class limitless extends Exchange {
         const rawMarket = this.safeDict(trade, 'market', {});
         const slug = this.safeString(rawMarket, 'slug');
         const outcomeIndex = this.safeInteger(trade, 'outcomeIndex');
-        let label = 'no';
-        if (outcomeIndex === 0) {
-            label = 'yes';
-        }
+        const label = (outcomeIndex === 0) ? 'yes' : 'no';
         const outcome = this.getOutcomeBySlugAndLabel(slug, label, market);
         const tradeOutcome = this.safeString(outcome, 'outcome');
         return this.safePredictionTrade({
@@ -2977,10 +2945,7 @@ export default class limitless extends Exchange {
         for (let i = 0; i < rawMarketsLength; i++) {
             const raw = expandedMarkets[i];
             const groupId = this.safeStringN(raw, ['groupSlug', 'groupId'], this.safeString(raw, 'slug'));
-            let eventKey = undefined;
-            if (groupId !== undefined && groupId !== '') {
-                eventKey = this.shortenSlug(groupId);
-            }
+            const eventKey = (groupId !== undefined && groupId !== '') ? this.shortenSlug(groupId) : undefined;
             const m = this.parseMarket(raw);
             if (m === undefined) {
                 throw new ExchangeError(this.id + ' fetchEvents() missing m');
@@ -3088,7 +3053,7 @@ export default class limitless extends Exchange {
         const categoryIds = [];
         const categoriesLength = categories.length;
         for (let i = 0; i < categoriesLength; i++) {
-            const category = this.safeDict(categories, i);
+            const category = categories[i];
             const name = this.safeStringLower(category, 'name', '');
             const categoryId = this.safeString(category, 'id');
             let matched = false;
@@ -3154,18 +3119,16 @@ export default class limitless extends Exchange {
         if (method === 'GET' && (querystring !== '')) {
             url += '?' + querystring;
         }
-        let headersValue = headers;
-        let bodyValue = body;
         if (access === 'private') {
             let bodyString = '';
-            if (headersValue === undefined) {
-                headersValue = {};
+            if (headers === undefined) {
+                headers = {};
             }
             if (method === 'POST' && (querystring !== '')) {
                 bodyString = this.json(query);
-                bodyValue = bodyString;
-                const headerDefaults = (headersValue !== undefined) ? headersValue : {};
-                headersValue = this.extend({
+                body = bodyString;
+                const headerDefaults = (headers !== undefined) ? headers : {};
+                headers = this.extend({
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 }, headerDefaults);
@@ -3175,17 +3138,17 @@ export default class limitless extends Exchange {
             const newline = "\n"; // eslint-disable-line quotes
             const payload = timestamp + newline + method + newline + url + newline + bodyString;
             const signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256, 'base64');
-            headersValue = this.extend(headersValue, {
+            headers = this.extend(headers, {
                 'lmts-timestamp': timestamp,
                 'lmts-signature': signature,
             });
             const headerKey = 'lmts-api' + '-key'; // concatenating because of the php version
             const headersKey = {};
             headersKey[headerKey] = this.apiKey;
-            headersValue = this.extend(headersValue, headersKey);
+            headers = this.extend(headers, headersKey);
         }
         url = baseUrl + url;
-        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     /**
      * @ignore

@@ -4,7 +4,6 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
-import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -19,7 +18,7 @@ public class TestFetchTradingFee extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchTradingFee";
-        Object fee = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTradingFee", new Object[]{symbol, new HashMap<String, Object>() {{}}})).join();
+        Object fee = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTradingFee", new Object[]{symbol})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, fee, symbol);
         TestTradingFee.testTradingFee(exchange, skippedProperties, method, symbol, fee);
         return true;

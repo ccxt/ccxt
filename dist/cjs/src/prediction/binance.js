@@ -200,7 +200,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} raw market topic objects
      */
     async fetchRawTopics(maxTopics, rest = {}) {
-        const maxTopicsResolved = (maxTopics === undefined) ? this.safeInteger(this.options, 'maxFetchMarketsLimit', 200) : maxTopics;
+        if (maxTopics === undefined) {
+            maxTopics = this.safeInteger(this.options, 'maxFetchMarketsLimit', 200);
+        }
         let pageLimit = this.safeInteger(this.options, 'marketsPageLimit', 100);
         if (pageLimit > 100) {
             pageLimit = 100;
@@ -210,7 +212,7 @@ class binance extends binance$1["default"] {
         while (true) {
             let reqLimit = pageLimit;
             const collectedLength = collected.length;
-            const remaining = maxTopicsResolved - collectedLength;
+            const remaining = maxTopics - collectedLength;
             if (remaining < reqLimit) {
                 reqLimit = remaining;
             }
@@ -353,18 +355,16 @@ class binance extends binance$1["default"] {
             allQueries.push(tags[i]);
         }
         const allQueriesLength = allQueries.length;
-        const paramsOmitted = this.omit(params, ['query', 'queries']);
-        // keys dropped before the client-side pass; a server-side sort also drops its own keys
-        const postOmitKeys = ['tags', 'l1Category', 'l2Category'];
-        const userLimit = this.safeInteger(paramsOmitted, 'limit');
+        params = this.omit(params, ['query', 'queries']);
+        const userLimit = this.safeInteger(params, 'limit');
         let fetchCap = this.safeInteger(this.options, 'maxFetchEventsResults', 100);
         if (userLimit !== undefined) {
             fetchCap = userLimit;
         }
-        const rest = this.omit(paramsOmitted, ['status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'l1Category', 'l2Category']);
-        const eventId = this.safeString(paramsOmitted, 'eventId');
-        const l1Category = this.safeString(paramsOmitted, 'l1Category');
-        const l2Category = this.safeString(paramsOmitted, 'l2Category');
+        const rest = this.omit(params, ['status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'l1Category', 'l2Category']);
+        const eventId = this.safeString(params, 'eventId');
+        const l1Category = this.safeString(params, 'l1Category');
+        const l2Category = this.safeString(params, 'l2Category');
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary();
         }
@@ -384,7 +384,7 @@ class binance extends binance$1["default"] {
             if (l2Category !== undefined) {
                 listingRequest['l2Category'] = l2Category;
             }
-            let sortBy = this.safeStringUpper2(paramsOmitted, 'sortBy', 'sort');
+            let sortBy = this.safeStringUpper2(params, 'sortBy', 'sort');
             if (sortBy !== undefined) {
                 // map the unified sort values onto the server enum, one of RECOMMENDED,
                 // VOLUME, PARTICIPANTS, CREATED_TIME or END_DATE — 'liquidity' has no
@@ -398,8 +398,7 @@ class binance extends binance$1["default"] {
                 }
                 if (sortBy !== undefined) {
                     listingRequest['sortBy'] = sortBy;
-                    postOmitKeys.push('sort');
-                    postOmitKeys.push('sortBy');
+                    params = this.omit(params, ['sort', 'sortBy']);
                 }
             }
             const listed = await this.fetchRawTopics(fetchCap, this.extend(listingRequest, rest));
@@ -425,7 +424,7 @@ class binance extends binance$1["default"] {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // binance topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        const postParams = this.omit(paramsOmitted, postOmitKeys);
+        const postParams = this.omit(params, ['tags', 'l1Category', 'l2Category']);
         return this.applyEventFetchParams(result, postParams, []);
     }
     /**
@@ -443,18 +442,17 @@ class binance extends binance$1["default"] {
         const seen = {};
         const collected = [];
         const queriesLength = queries.length;
-        let limitResolved = limit;
         if (limit === undefined) {
-            limitResolved = 20;
+            limit = 20;
         }
         else if (limit > 50) {
-            limitResolved = 50;
+            limit = 50;
         }
         for (let qi = 0; qi < queriesLength; qi++) {
             const request = {
                 'query': queries[qi],
             };
-            request['topK'] = limitResolved;
+            request['topK'] = limit;
             const response = await this.sapiPrivateGetMarketSearch(this.extend(request, rest));
             //
             //     [
@@ -470,7 +468,7 @@ class binance extends binance$1["default"] {
             //
             const responseLength = response.length;
             for (let i = 0; i < responseLength; i++) {
-                const rawTopic = this.safeDict(response, i);
+                const rawTopic = response[i];
                 const topicId = this.safeString(rawTopic, 'marketTopicId');
                 if (topicId !== undefined) {
                     const already = this.safeString(seen, topicId);
@@ -483,8 +481,8 @@ class binance extends binance$1["default"] {
         }
         let capped = collected;
         const collectedLength = collected.length;
-        if ((limitResolved !== undefined) && (collectedLength > limitResolved)) {
-            capped = this.arraySlice(collected, 0, limitResolved);
+        if ((limit !== undefined) && (collectedLength > limit)) {
+            capped = this.arraySlice(collected, 0, limit);
         }
         return await this.completeRawTopics(capped);
     }
@@ -642,7 +640,7 @@ class binance extends binance$1["default"] {
         let resolvedOutcomeRaw = undefined;
         const rawOutcomesLength = rawOutcomes.length;
         for (let oi = 0; oi < rawOutcomesLength; oi++) {
-            const rawOutcome = this.safeDict(rawOutcomes, oi);
+            const rawOutcome = rawOutcomes[oi];
             const label = this.safeStringUpper(rawOutcome, 'name');
             const tokenId = this.safeString(rawOutcome, 'tokenId');
             const outcomeHandle = marketSymbol + ':' + label;
@@ -909,8 +907,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        const [type, paramsType] = this.handleOptionStringAndParams(params, 'fetchBalance', 'type', 'SPOT');
-        const response = await this.sapiPrivateGetBalancePaymentOptions(paramsType);
+        let type = undefined;
+        [type, params] = this.handleOptionAndParams(params, 'fetchBalance', 'type', 'SPOT');
+        const response = await this.sapiPrivateGetBalancePaymentOptions(params);
         //
         // {
         //     "items": [
@@ -927,7 +926,7 @@ class binance extends binance$1["default"] {
         };
         const balances = this.safeList(response, 'items', []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = this.safeDict(balances, i);
+            const balance = balances[i];
             const accountType = this.safeString(balance, 'accountType');
             if (accountType === type) {
                 const free = this.safeString(balance, 'availableBalanceDisplay');
@@ -976,8 +975,7 @@ class binance extends binance$1["default"] {
         // }
         //
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
-        let outcomeObjResolved = outcomeObj;
-        if (outcomeObjResolved === undefined) {
+        if (outcomeObj === undefined) {
             const marketId = this.safeString(order, 'marketId');
             const outcome = this.safeStringUpper(order, 'outcome');
             const market = this.safeMarket(marketId);
@@ -986,7 +984,7 @@ class binance extends binance$1["default"] {
                 outcomeName = marketId;
             }
             outcomeName += ':' + outcome;
-            outcomeObjResolved = this.safeOutcome(outcomeName);
+            outcomeObj = this.safeOutcome(outcomeName);
         }
         const side = this.safeStringLower(order, 'side');
         const timestamp = this.safeInteger(order, 'createTime');
@@ -998,10 +996,10 @@ class binance extends binance$1["default"] {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'status': status,
-            'outcome': this.safeString(outcomeObjResolved, 'outcome'),
-            'outcomeId': this.safeString(outcomeObjResolved, 'id'),
-            'label': this.safeString(outcomeObjResolved, 'label'),
-            'market': this.safeString(outcomeObjResolved, 'market'),
+            'outcome': this.safeString(outcomeObj, 'outcome'),
+            'outcomeId': this.safeString(outcomeObj, 'id'),
+            'label': this.safeString(outcomeObj, 'label'),
+            'market': this.safeString(outcomeObj, 'market'),
             'type': this.safeStringLower(order, 'orderType'),
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1016,7 +1014,7 @@ class binance extends binance$1["default"] {
             'remaining': undefined,
             'fee': undefined,
             'trades': [],
-        }, outcomeObjResolved);
+        }, outcomeObj);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -1053,16 +1051,16 @@ class binance extends binance$1["default"] {
      */
     async fetchOpenOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         let paginate = false;
-        let paramsPaginate = {};
-        [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOpenOrders', 'paginate', false);
-        const [maxEntriesPerRequest, paramsMaxEntriesPerRequest] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'paginate');
+        let maxEntriesPerRequest = undefined;
+        [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental('fetchOpenOrders', outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest);
+            return await this.fetchPaginatedCallIncremental('fetchOpenOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest);
         }
-        const page = this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1;
+        const page = this.safeInteger(params, pageKey, 1) - 1;
         const request = {};
-        const offSet = this.safeInteger(paramsMaxEntriesPerRequest, 'offset', page * maxEntriesPerRequest);
+        const offSet = this.safeInteger(params, 'offset', page * maxEntriesPerRequest);
         if (offSet > 0) {
             request['offset'] = offSet;
         }
@@ -1076,9 +1074,9 @@ class binance extends binance$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const wallet = await this.fetchWallet('fetchOpenOrders', paramsMaxEntriesPerRequest);
+        const wallet = await this.fetchWallet('fetchOpenOrders', params);
         request['walletAddress'] = wallet['walletAddress'];
-        const response = await this.sapiPrivateGetOrderList(this.extend(request, paramsMaxEntriesPerRequest));
+        const response = await this.sapiPrivateGetOrderList(this.extend(request, params));
         //
         // {
         //     "total": 2,
@@ -1135,16 +1133,16 @@ class binance extends binance$1["default"] {
      */
     async fetchOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         let paginate = false;
-        let paramsPaginate = {};
-        [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOrders', 'paginate', false);
-        const [maxEntriesPerRequest, paramsMaxEntriesPerRequest] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchOrders', 'maxEntriesPerRequest', 100);
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
+        let maxEntriesPerRequest = undefined;
+        [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental('fetchOrders', outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest);
+            return await this.fetchPaginatedCallIncremental('fetchOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest);
         }
-        const page = this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1;
+        const page = this.safeInteger(params, pageKey, 1) - 1;
         const request = {};
-        const offSet = this.safeInteger(paramsMaxEntriesPerRequest, 'offset', page * maxEntriesPerRequest);
+        const offSet = this.safeInteger(params, 'offset', page * maxEntriesPerRequest);
         if (offSet > 0) {
             request['offset'] = offSet;
         }
@@ -1159,14 +1157,14 @@ class binance extends binance$1["default"] {
         if (since !== undefined) {
             request['startDate'] = this.yyyymmdd(since);
         }
-        const until = this.safeInteger(paramsMaxEntriesPerRequest, 'until');
-        const paramsOmitted = this.omit(paramsMaxEntriesPerRequest, 'until');
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, 'until');
         if (until !== undefined) {
             request['endDate'] = this.yyyymmdd(until);
         }
-        const wallet = await this.fetchWallet('fetchOrders', paramsOmitted);
+        const wallet = await this.fetchWallet('fetchOrders', params);
         request['walletAddress'] = wallet['walletAddress'];
-        const response = await this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted));
+        const response = await this.sapiPrivateGetOrderHistory(this.extend(request, params));
         //
         // {
         //     "total": 15,
@@ -1335,8 +1333,7 @@ class binance extends binance$1["default"] {
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     parsePredictionPosition(position, outcomeObj = undefined) {
-        let outcomeObjResolved = outcomeObj;
-        if (outcomeObjResolved === undefined) {
+        if (outcomeObj === undefined) {
             const marketId = this.safeString(position, 'marketId');
             const outcome = this.safeStringUpper(position, 'outcomeName');
             const market = this.safeMarket(marketId);
@@ -1345,15 +1342,15 @@ class binance extends binance$1["default"] {
                 outcomeName = marketId;
             }
             outcomeName += ':' + outcome;
-            outcomeObjResolved = this.safeOutcome(outcomeName);
+            outcomeObj = this.safeOutcome(outcomeName);
         }
         const timestamp = this.safeInteger(position, 'createdTime');
         const totalCost = this.parseNumber(this.safeString(position, 'totalCost'));
         return this.safePredictionPosition({
             'id': this.safeInteger(position, 'positionId'),
-            'outcome': this.safeString(outcomeObjResolved, 'outcome'),
-            'outcomeId': this.safeString2(outcomeObjResolved, 'outcomeId', 'id'),
-            'market': this.safeString(outcomeObjResolved, 'market'),
+            'outcome': this.safeString(outcomeObj, 'outcome'),
+            'outcomeId': this.safeString2(outcomeObj, 'outcomeId', 'id'),
+            'market': this.safeString(outcomeObj, 'market'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'isolated': false,
@@ -1397,18 +1394,18 @@ class binance extends binance$1["default"] {
      */
     async fetchMyTrades(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         let paginate = false;
-        let paramsPaginate = {};
-        [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchMyTrades', 'paginate', false);
-        const [maxEntriesPerRequest, paramsMaxEntriesPerRequest] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        let maxEntriesPerRequest = undefined;
+        [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental('fetchMyTrades', outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest);
+            return await this.fetchPaginatedCallIncremental('fetchMyTrades', outcome, since, limit, params, pageKey, maxEntriesPerRequest);
         }
-        const page = this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1;
+        const page = this.safeInteger(params, pageKey, 1) - 1;
         const request = {
             'status': 'FILLED',
         };
-        const offSet = this.safeInteger(paramsMaxEntriesPerRequest, 'offset', page * maxEntriesPerRequest);
+        const offSet = this.safeInteger(params, 'offset', page * maxEntriesPerRequest);
         if (offSet > 0) {
             request['offset'] = offSet;
         }
@@ -1423,14 +1420,14 @@ class binance extends binance$1["default"] {
         if (since !== undefined) {
             request['startDate'] = this.yyyymmdd(since);
         }
-        const until = this.safeInteger(paramsMaxEntriesPerRequest, 'until');
-        const paramsOmitted = this.omit(paramsMaxEntriesPerRequest, 'until');
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, 'until');
         if (until !== undefined) {
             request['endDate'] = this.yyyymmdd(until);
         }
-        const wallet = await this.fetchWallet('fetchMyTrades', paramsOmitted);
+        const wallet = await this.fetchWallet('fetchMyTrades', params);
         request['walletAddress'] = wallet['walletAddress'];
-        const response = await this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted));
+        const response = await this.sapiPrivateGetOrderHistory(this.extend(request, params));
         //
         // {
         //     "total": 15,
@@ -1507,8 +1504,7 @@ class binance extends binance$1["default"] {
         //     "networkFee": "0.000001"
         // }
         //
-        let outcomeObjResolved = outcomeObj;
-        if (outcomeObjResolved === undefined) {
+        if (outcomeObj === undefined) {
             const marketId = this.safeString(trade, 'marketId');
             const outcome = this.safeStringUpper(trade, 'outcome');
             const market = this.safeMarket(marketId);
@@ -1517,7 +1513,7 @@ class binance extends binance$1["default"] {
                 outcomeName = marketId;
             }
             outcomeName += ':' + outcome;
-            outcomeObjResolved = this.safeOutcome(outcomeName);
+            outcomeObj = this.safeOutcome(outcomeName);
         }
         const timestamp = this.safeInteger(trade, 'createTime');
         const filled = this.safeString(trade, 'filledShareQty');
@@ -1539,19 +1535,21 @@ class binance extends binance$1["default"] {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'outcome': this.safeString(outcomeObjResolved, 'outcome'),
-            'outcomeId': this.safeString(outcomeObjResolved, 'id'),
-            'label': this.safeString(outcomeObjResolved, 'label'),
-            'market': this.safeString(outcomeObjResolved, 'market'),
+            'lastTradeTimestamp': this.safeInteger(trade, 'modifyTime'),
+            'outcome': this.safeString(outcomeObj, 'outcome'),
+            'outcomeId': this.safeString(outcomeObj, 'id'),
+            'label': this.safeString(outcomeObj, 'label'),
+            'market': this.safeString(outcomeObj, 'market'),
             'order': this.safeString(trade, 'orderId'),
             'type': orderType,
             'side': this.safeStringLower(trade, 'side'),
             'takerOrMaker': undefined,
             'price': price,
             'amount': this.safeString(trade, 'makerShareQty'),
+            'filled': filled,
             'cost': cost,
             'fee': fee,
-        }, outcomeObjResolved);
+        }, outcomeObj);
     }
     /**
      * @method
@@ -1567,7 +1565,8 @@ class binance extends binance$1["default"] {
         if (cachedWallet !== undefined) {
             return cachedWallet;
         }
-        const walletAddress = this.handleOptionStringAndParams(params, methodName, 'walletAddress', this.walletAddress)[0];
+        let walletAddress = undefined;
+        [walletAddress, params] = this.handleOptionAndParams(params, methodName, 'walletAddress', this.walletAddress);
         const response = await this.sapiPrivateGetWalletList();
         //
         // {
@@ -1740,13 +1739,13 @@ class binance extends binance$1["default"] {
         if (accountType === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createOrder requires accountType (SPOT, FUNDING)');
         }
-        const paramsOmitted = this.omit(params, ['timeInForce', 'accountType', 'cost']);
+        params = this.omit(params, ['timeInForce', 'accountType', 'cost']);
         const quoteRequest = this.extend(commonRequest, {
             'tokenId': outcomeObj['id'],
             'side': sideUpper,
             'amountIn': Precise["default"].stringMul(this.amountToPrecision(marketSymbol, amountStr), '1000000000000000000'),
         });
-        const quote = await this.fetchQuote(quoteRequest, paramsOmitted);
+        const quote = await this.fetchQuote(quoteRequest, params);
         const quoteId = this.safeString(quote, 'quoteId');
         const orderRequest = this.extend(commonRequest, {
             'walletId': wallet['walletId'],
@@ -1754,7 +1753,7 @@ class binance extends binance$1["default"] {
             'timeInForce': timeInForce,
             'accountType': accountType,
         });
-        const response = await this.sapiPrivatePostTradePlaceOrderBundle(this.extend(orderRequest, paramsOmitted));
+        const response = await this.sapiPrivatePostTradePlaceOrderBundle(this.extend(orderRequest, params));
         return this.safePredictionOrder({
             'id': this.safeString(response, 'orderId'),
             'clientOrderId': undefined,
@@ -1855,7 +1854,7 @@ class binance extends binance$1["default"] {
         if (failedOrdersLength > 0) {
             let failedDetails = '';
             for (let i = 0; i < failedOrdersLength; i++) {
-                const failedOrder = this.safeDict(failedOrders, i);
+                const failedOrder = failedOrders[i];
                 const failedOrderId = this.safeString(failedOrder, 'orderId');
                 const failedReason = this.safeString(failedOrder, 'reason');
                 if (i > 0) {
@@ -1931,18 +1930,17 @@ class binance extends binance$1["default"] {
         querystring = querystring.replaceAll('%5D', ']');
         const signature = this.hmac(this.encode(querystring), this.encode(this.secret), sha2_js.sha256);
         querystring = querystring + '&signature=' + signature;
-        const headersValue = {
+        headers = {
             'X-MBX-APIKEY': this.apiKey,
         };
-        let bodyValue = body;
         if ((method === 'GET') || (method === 'DELETE')) {
             url = url + '?' + querystring;
         }
         else {
-            bodyValue = querystring;
-            headersValue['Content-Type'] = 'application/x-www-form-urlencoded';
+            body = querystring;
+            headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }
-        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
 

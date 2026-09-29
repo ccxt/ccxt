@@ -85,7 +85,7 @@ export default class bitbank extends Exchange {
      */
     fetchBalance(params?: Dict): Promise<Balances>;
     parseOrderStatus(status: Str): Str;
-    parseOrder(order: NullableDict, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
      * @name bitbank#createOrder
@@ -171,6 +171,6 @@ export default class bitbank extends Exchange {
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

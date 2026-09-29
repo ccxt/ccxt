@@ -319,9 +319,6 @@ export default class btcturk extends Exchange {
         const quoteId = this.safeString(entry, 'denominator');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         const filters = this.safeList(entry, 'filters', []);
         let minPrice = undefined;
         let maxPrice = undefined;
@@ -329,7 +326,7 @@ export default class btcturk extends Exchange {
         let maxAmount = undefined;
         let minCost = undefined;
         for (let j = 0; j < filters.length; j++) {
-            const filter = this.safeDict(filters, j);
+            const filter = filters[j];
             const filterType = this.safeString(filter, 'filterType');
             if (filterType === 'PRICE_FILTER') {
                 minPrice = this.safeNumber(filter, 'minPrice');
@@ -398,7 +395,7 @@ export default class btcturk extends Exchange {
             'datetime': undefined,
         };
         for (let i = 0; i < data.length; i++) {
-            const entry = this.safeDict(data, i);
+            const entry = data[i];
             const currencyId = this.safeString(entry, 'asset');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -498,8 +495,8 @@ export default class btcturk extends Exchange {
         //   }
         //
         const marketId = this.safeString(ticker, 'pair');
-        const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.safeInteger(ticker, 'timestamp');
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open');
@@ -534,7 +531,7 @@ export default class btcturk extends Exchange {
             'baseVolume': this.safeString(ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -726,17 +723,16 @@ export default class btcturk extends Exchange {
         if (since !== undefined) {
             request['from'] = this.parseToInt(since / 1000);
         }
-        let limitDefaulted = limit;
-        if ((since === undefined) && (limit === undefined)) {
-            limitDefaulted = 100; // default value
+        else if (limit === undefined) { // since will also be undefined
+            limit = 100; // default value
         }
-        const limitResolved = (limitDefaulted !== undefined) ? Math.min(limitDefaulted, 11000) : undefined; // max 11000 candles diapason can be covered
-        if (limitResolved !== undefined) {
+        if (limit !== undefined) {
+            limit = Math.min(limit, 11000); // max 11000 candles diapason can be covered
             if (timeframe === '1y') { // difficult with leap years
                 throw new BadRequest(this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             const seconds = this.parseTimeframe(timeframe);
-            const limitSeconds = seconds * (limitResolved - 1);
+            const limitSeconds = seconds * (limit - 1);
             if (since !== undefined) {
                 const to = this.parseToInt(since / 1000) + limitSeconds;
                 request['to'] = Math.min(request['to'], to);
@@ -781,7 +777,7 @@ export default class btcturk extends Exchange {
         //        ]
         //    }
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limitResolved);
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
     parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined, tail = false) {
         const results = [];
@@ -1075,47 +1071,33 @@ export default class btcturk extends Exchange {
         if (this.id === 'btctrader') {
             throw new ExchangeError(this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
-        if (apiUrl === undefined) {
-            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        let url = apiUrl + '/' + path;
-        const isQueryMethod = (method === 'GET') || (method === 'DELETE');
-        if (isQueryMethod) {
+        let url = this.urls['api'][api] + '/' + path;
+        if ((method === 'GET') || (method === 'DELETE')) {
             if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
-        let requestBody = undefined;
-        if (isQueryMethod) {
-            requestBody = body;
-        }
         else {
-            requestBody = this.json(params);
+            body = this.json(params);
         }
-        let privateHeaders = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const secret = this.base64ToBinary(this.secret);
             const auth = this.apiKey + nonce;
-            privateHeaders = {
+            headers = {
                 'X-PCK': this.apiKey,
                 'X-Stamp': nonce,
                 'X-Signature': this.hmac(this.encode(auth), secret, sha256, 'base64'),
                 'Content-Type': 'application/json',
             };
         }
-        const requestHeaders = (privateHeaders !== undefined) ? privateHeaders : headers;
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString(response, 'code', '0');
         const message = this.safeString(response, 'message');
-        let output = message;
-        if (message === undefined) {
-            output = body;
-        }
+        const output = (message === undefined) ? body : message;
         this.throwExactlyMatchedException(this.exceptions['exact'], message, this.id + ' ' + output);
         if ((errorCode !== '0') && (errorCode !== 'SUCCESS')) {
             throw new ExchangeError(this.id + ' ' + output);

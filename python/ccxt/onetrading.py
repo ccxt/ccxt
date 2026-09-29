@@ -552,8 +552,6 @@ class onetrading(Exchange, ImplicitAPI):
         id = self.safe_string(market, 'id')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        if (base is None) or (quote is None):
-            return None
         state = self.safe_string(market, 'state')
         type = self.safe_string(market, 'type')
         isPerp = type == 'PERP'
@@ -622,14 +620,14 @@ class onetrading(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         method = self.safe_string(params, 'method')
-        paramsOmitted = self.omit(params, 'method')
+        params = self.omit(params, 'method')
         if method is None:
             options = self.safe_dict(self.options, 'fetchTradingFees', {})
             method = self.safe_string(options, 'method', 'fetchPrivateTradingFees')
         if method == 'fetchPrivateTradingFees':
-            return self.fetch_private_trading_fees(paramsOmitted)
+            return self.fetch_private_trading_fees(params)
         elif method == 'fetchPublicTradingFees':
-            return self.fetch_public_trading_fees(paramsOmitted)
+            return self.fetch_public_trading_fees(params)
         else:
             raise NotSupported(self.id + ' fetchTradingFees() does not support ' + method + ', fetchPrivateTradingFees and fetchPublicTradingFees are supported')
 
@@ -770,11 +768,11 @@ class onetrading(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_fee_tiers(self, feeTiers: list[dict], market: Market = None) -> dict:
+    def parse_fee_tiers(self, feeTiers: list[object], market: Market = None) -> dict:
         takerFees = []
         makerFees = []
         for i in range(0, len(feeTiers)):
-            tier = self.safe_dict(feeTiers, i)
+            tier = feeTiers[i]
             volume = self.safe_number(tier, 'volume')
             taker = self.safe_string(tier, 'taker_fee')
             maker = self.safe_string(tier, 'maker_fee')
@@ -888,7 +886,7 @@ class onetrading(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols)
         response = self.publicGetMarketTicker(params)
         #
         #     [
@@ -917,7 +915,7 @@ class onetrading(Exchange, ImplicitAPI):
             symbol = ticker['symbol']
             if symbol is not None:
                 result[symbol] = ticker
-        return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -1071,7 +1069,8 @@ class onetrading(Exchange, ImplicitAPI):
         period, unit = periodUnit.split('/')
         durationInSeconds = self.parse_timeframe(timeframe)
         duration = durationInSeconds * 1000
-        limitResolved = 1500 if (limit is None) else limit
+        if limit is None:
+            limit = 1500
         request = {
             'instrument_code': market['id'],
             # 'from': this.iso8601 (since),
@@ -1082,10 +1081,10 @@ class onetrading(Exchange, ImplicitAPI):
         if since is None:
             now = self.milliseconds()
             request['to'] = self.iso8601(now)
-            request['from'] = self.iso8601(now - limitResolved * duration)
+            request['from'] = self.iso8601(now - limit * duration)
         else:
             request['from'] = self.iso8601(since)
-            request['to'] = self.iso8601(self.sum(since, limitResolved * duration))
+            request['to'] = self.iso8601(self.sum(since, limit * duration))
         response = self.publicGetCandlesticksInstrumentCode(self.extend(request, params))
         #
         #     [
@@ -1095,7 +1094,7 @@ class onetrading(Exchange, ImplicitAPI):
         #     ]
         #
         ohlcv = self.safe_list(response, 'candlesticks')
-        return self.parse_ohlcvs(ohlcv, market, timeframe, since, limitResolved)
+        return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -1137,15 +1136,15 @@ class onetrading(Exchange, ImplicitAPI):
         #     }
         #
         feeInfo = self.safe_dict(trade, 'fee', {})
-        tradeValue = self.safe_dict(trade, 'trade', trade)
-        timestamp = self.safe_integer(tradeValue, 'trade_timestamp')
+        trade = self.safe_value(trade, 'trade', trade)
+        timestamp = self.safe_integer(trade, 'trade_timestamp')
         if timestamp is None:
-            timestamp = self.parse8601(self.safe_string(tradeValue, 'time'))
-        side = self.safe_string_lower_2(tradeValue, 'side', 'taker_side')
-        priceString = self.safe_string(tradeValue, 'price')
-        amountString = self.safe_string(tradeValue, 'amount')
-        costString = self.safe_string(tradeValue, 'volume')
-        marketId = self.safe_string(tradeValue, 'instrument_code')
+            timestamp = self.parse8601(self.safe_string(trade, 'time'))
+        side = self.safe_string_lower_2(trade, 'side', 'taker_side')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        costString = self.safe_string(trade, 'volume')
+        marketId = self.safe_string(trade, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
         feeCostString = self.safe_string(feeInfo, 'fee_amount')
         takerOrMaker = None
@@ -1161,8 +1160,8 @@ class onetrading(Exchange, ImplicitAPI):
             }
             takerOrMaker = self.safe_string_lower(feeInfo, 'fee_type')
         return self.safe_trade({
-            'id': self.safe_string_2(tradeValue, 'trade_id', 'sequence'),
-            'order': self.safe_string(tradeValue, 'order_id'),
+            'id': self.safe_string_2(trade, 'trade_id', 'sequence'),
+            'order': self.safe_string(trade, 'order_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
@@ -1173,14 +1172,14 @@ class onetrading(Exchange, ImplicitAPI):
             'cost': costString,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-            'info': tradeValue,
+            'info': trade,
         }, market)
 
     def parse_balance(self, response: object) -> Balances:
         balances = self.safe_list(response, 'balances', [])
         result = {'info': response}
         for i in range(0, len(balances)):
-            balance = self.safe_dict(balances, i)
+            balance = balances[i]
             currencyId = self.safe_string(balance, 'currency_code')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1303,7 +1302,7 @@ class onetrading(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        rawOrder = self.safe_dict(order, 'order', order)
+        rawOrder = self.safe_value(order, 'order', order)
         id = self.safe_string(rawOrder, 'order_id')
         clientOrderId = self.safe_string(rawOrder, 'client_id')
         timestamp = self.parse8601(self.safe_string(rawOrder, 'time'))
@@ -1371,7 +1370,8 @@ class onetrading(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         uppercaseType = type.upper()
-        self.check_required_argument('createOrder', side, 'side')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         request = {
             'instrument_code': market['id'],
             'type': uppercaseType,  # LIMIT, MARKET, STOP
@@ -1393,6 +1393,7 @@ class onetrading(Exchange, ImplicitAPI):
                 raise BadRequest(self.id + ' createOrder() cannot place stop market orders, only stop limit')
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
             request['type'] = 'STOP'
+            params = self.omit(params, ['triggerPrice', 'trigger_price', 'stopPrice'])
         elif uppercaseType == 'STOP':
             raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice param for ' + type + ' orders')
         if priceIsRequired:
@@ -1400,12 +1401,11 @@ class onetrading(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
-        triggerKeys = ['triggerPrice', 'trigger_price', 'stopPrice'] if (triggerPrice is not None) else []
-        clientOrderIdKeys = ['clientOrderId', 'client_id'] if (clientOrderId is not None) else []
-        paramsOmitted = self.omit(params, self.array_concat(self.array_concat(triggerKeys, clientOrderIdKeys), ['timeInForce']))
+            params = self.omit(params, ['clientOrderId', 'client_id'])
         timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force', 'GOOD_TILL_CANCELLED')
+        params = self.omit(params, 'timeInForce')
         request['time_in_force'] = timeInForce
-        response = self.privatePostAccountOrders(self.extend(request, paramsOmitted))
+        response = self.privatePostAccountOrders(self.extend(request, params))
         #
         #     {
         #         "order_id": "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
@@ -1438,7 +1438,7 @@ class onetrading(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
-        paramsOmitted = self.omit(params, ['clientOrderId', 'client_id'])
+        params = self.omit(params, ['clientOrderId', 'client_id'])
         method = 'privateDeleteAccountOrdersOrderId'
         request = {}
         if clientOrderId is not None:
@@ -1448,9 +1448,9 @@ class onetrading(Exchange, ImplicitAPI):
             request['order_id'] = id
         response = None
         if method == 'privateDeleteAccountOrdersOrderId':
-            response = self.privateDeleteAccountOrdersOrderId(self.extend(request, paramsOmitted))
+            response = self.privateDeleteAccountOrdersOrderId(self.extend(request, params))
         else:
-            response = self.privateDeleteAccountOrdersClientClientId(self.extend(request, paramsOmitted))
+            response = self.privateDeleteAccountOrdersClientClientId(self.extend(request, params))
         #
         # responds with an empty body
         #
@@ -1597,12 +1597,12 @@ class onetrading(Exchange, ImplicitAPI):
         if since is not None:
             request['from'] = self.iso8601(since)
         until = self.safe_integer(params, 'until')
-        paramsOmitted = self.omit(params, 'until') if (until is not None) else params
         if until is not None:
+            params = self.omit(params, 'until')
             request['to'] = self.iso8601(until)
         if limit is not None:
             request['max_page_size'] = limit
-        response = self.privateGetAccountOrders(self.extend(request, paramsOmitted))
+        response = self.privateGetAccountOrders(self.extend(request, params))
         #
         #     {
         #         "order_history": [
@@ -1791,12 +1791,12 @@ class onetrading(Exchange, ImplicitAPI):
         if since is not None:
             request['from'] = self.iso8601(since)
         until = self.safe_integer(params, 'until')
-        paramsOmitted = self.omit(params, 'until') if (until is not None) else params
         if until is not None:
+            params = self.omit(params, 'until')
             request['to'] = self.iso8601(until)
         if limit is not None:
             request['max_page_size'] = limit
-        response = self.privateGetAccountTrades(self.extend(request, paramsOmitted))
+        response = self.privateGetAccountTrades(self.extend(request, params))
         #
         #     {
         #         "trade_history": [
@@ -1830,28 +1830,24 @@ class onetrading(Exchange, ImplicitAPI):
         tradeHistory = self.safe_list(response, 'trade_history', [])
         return self.parse_trades(tradeHistory, market, since, limit)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
-        if apiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl + '/' + self.version + '/' + self.implode_params(path, params)
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
-            headersSigned = {
+            headers = {
                 'Accept': 'application/json',
                 'Authorization': 'Bearer ' + self.apiKey,
             }
-            bodyJson = self.json(query) if (method == 'POST') else body
             if method == 'POST':
-                headersSigned['Content-Type'] = 'application/json'
+                body = self.json(query)
+                headers['Content-Type'] = 'application/json'
             else:
                 if len(query) > 0:
                     url += '?' + self.urlencode(query)
-            return {'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

@@ -153,9 +153,9 @@ class onetrading(ccxt.async_support.onetrading):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbol = market['symbol']
         subscriptionHash = 'MARKET_TICKER'
-        messageHash = 'ticker.' + symbolValue
+        messageHash = 'ticker.' + symbol
         request = {
             'type': 'SUBSCRIBE',
             'channels': [
@@ -165,7 +165,7 @@ class onetrading(ccxt.async_support.onetrading):
                 },
             ],
         }
-        return await self.watch_many(messageHash, request, subscriptionHash, [symbolValue], params)
+        return await self.watch_many(messageHash, request, subscriptionHash, [symbol], params)
 
     async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -179,8 +179,9 @@ class onetrading(ccxt.async_support.onetrading):
         """
         if self.markets is None:
             await self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
-        symbolsList = [] if (symbolsNormalized is None) else symbolsNormalized
+        symbols = self.market_symbols(symbols)
+        if symbols is None:
+            symbols = []
         subscriptionHash = 'MARKET_TICKER'
         messageHash = 'tickers'
         request = {
@@ -192,8 +193,8 @@ class onetrading(ccxt.async_support.onetrading):
                 },
             ],
         }
-        tickers = await self.watch_many(messageHash, request, subscriptionHash, symbolsList, params)
-        return self.filter_by_array(tickers, 'symbol', symbolsList)
+        tickers = await self.watch_many(messageHash, request, subscriptionHash, symbols, params)
+        return self.filter_by_array(tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message: dict):
         #
@@ -276,11 +277,10 @@ class onetrading(ccxt.async_support.onetrading):
         if self.markets is None:
             await self.load_markets()
         messageHash = 'myTrades'
-        symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = self.safe_string(market, 'symbol')
-            messageHash += ':' + symbolResolved
+            symbol = market['symbol']
+            messageHash += ':' + symbol
         await self.authenticate(params)
         url = self.urls['api']['ws']
         subscribeHash = 'ACCOUNT_HISTORY'
@@ -296,13 +296,12 @@ class onetrading(ccxt.async_support.onetrading):
         }
         request = self.deep_extend(subscribe, params)
         trades = await self.watch(url, messageHash, request, subscribeHash, request)
-        limitResolved = limit
         if self.newUpdates:
-            limitResolved = trades.getLimit(symbolResolved, limit)
-        trades = self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved)
+            limit = trades.getLimit(symbol, limit)
+        trades = self.filter_by_symbol_since_limit(trades, symbol, since, limit)
         numTrades = len(trades)
         if numTrades == 0:
-            return await self.watch_my_trades(symbolResolved, since, limitResolved, params)
+            return await self.watch_my_trades(symbol, since, limit, params)
         return trades
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
@@ -319,8 +318,8 @@ class onetrading(ccxt.async_support.onetrading):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        messageHash = 'book:' + symbolValue
+        symbol = market['symbol']
+        messageHash = 'book:' + symbol
         subscriptionHash = 'ORDER_BOOK'
         depth = 0
         if limit is not None:
@@ -334,7 +333,7 @@ class onetrading(ccxt.async_support.onetrading):
                 },
             ],
         }
-        orderbook = await self.watch_many(messageHash, request, subscriptionHash, [symbolValue], params)
+        orderbook = await self.watch_many(messageHash, request, subscriptionHash, [symbol], params)
         return orderbook.limit()
 
     def handle_order_book(self, client: Client, message: dict):
@@ -380,7 +379,7 @@ class onetrading(ccxt.async_support.onetrading):
             orderbook.reset(snapshot)
         elif type == 'ORDER_BOOK_UPDATE':
             changes = self.safe_list(message, 'changes', [])
-            self.handle_book_deltas(orderbook, changes)
+            self.handle_deltas(orderbook, changes)
         else:
             raise NotSupported(self.id + ' watchOrderBook() did not recognize message type ' + type)
         orderbook['nonce'] = timestamp
@@ -389,7 +388,7 @@ class onetrading(ccxt.async_support.onetrading):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, channel)
 
-    def handle_book_delta(self, orderbook: object, delta: object):
+    def handle_delta(self, orderbook: object, delta: object):
         #
         #   [ 'BUY', "0.053595", "0" ]
         #
@@ -404,7 +403,7 @@ class onetrading(ccxt.async_support.onetrading):
         else:
             raise NotSupported(self.id + ' watchOrderBook () received unknown change type ' + self.json(delta))
 
-    def handle_book_deltas(self, orderbook: object, deltas: object):
+    def handle_deltas(self, orderbook: object, deltas: object):
         #
         #    [
         #       [ 'BUY', "0.053593", "0" ],
@@ -412,7 +411,7 @@ class onetrading(ccxt.async_support.onetrading):
         #    ]
         #
         for i in range(0, len(deltas)):
-            self.handle_book_delta(orderbook, deltas[i])
+            self.handle_delta(orderbook, deltas[i])
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -430,11 +429,10 @@ class onetrading(ccxt.async_support.onetrading):
         if self.markets is None:
             await self.load_markets()
         messageHash = 'orders'
-        symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = self.safe_string(market, 'symbol')
-            messageHash += ':' + symbolResolved
+            symbol = market['symbol']
+            messageHash += ':' + symbol
         await self.authenticate(params)
         url = self.urls['api']['ws']
         subscribeHash = self.safe_string(params, 'channel', 'ACCOUNT_HISTORY')
@@ -450,13 +448,12 @@ class onetrading(ccxt.async_support.onetrading):
         }
         request = self.deep_extend(subscribe, params)
         orders = await self.watch(url, messageHash, request, subscribeHash, request)
-        limitResolved = limit
         if self.newUpdates:
-            limitResolved = orders.getLimit(symbolResolved, limit)
-        orders = self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved)
+            limit = orders.getLimit(symbol, limit)
+        orders = self.filter_by_symbol_since_limit(orders, symbol, since, limit)
         numOrders = len(orders)
         if numOrders == 0:
-            return await self.watch_orders(symbolResolved, since, limitResolved, params)
+            return await self.watch_orders(symbol, since, limit, params)
         return orders
 
     def handle_trading(self, client: Client, message: dict):
@@ -955,7 +952,7 @@ class onetrading(ccxt.async_support.onetrading):
             datetime = self.safe_string_2(update, 'time', 'timestamp')
             previousOrderArray = self.filter_by_array(self.orders, 'id', orderId, False)
             previousOrder = self.safe_dict(previousOrderArray, 0, {})
-            symbol = self.safe_string(previousOrder, 'symbol')
+            symbol = previousOrder['symbol']
             filled = self.safe_string(update, 'filled_amount')
             status = self.parse_ws_order_status(updateType)
             if updateType == 'ORDER_CLOSED' and Precise.string_eq(filled, '0'):
@@ -977,7 +974,7 @@ class onetrading(ccxt.async_support.onetrading):
         # update balance
         balanceKeys = ['locked', 'unlocked', 'spent', 'spent_on_fees', 'credited', 'deducted']
         for i in range(0, len(balanceKeys)):
-            newBalance = self.safe_dict(update, balanceKeys[i])
+            newBalance = self.safe_value(update, balanceKeys[i])
             if newBalance is not None:
                 self.update_balance(newBalance)
         client.resolve(self.balance, 'balance')
@@ -1032,20 +1029,20 @@ class onetrading(ccxt.async_support.onetrading):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbol = market['symbol']
         marketId = market['id']
         url = self.urls['api']['ws']
         timeframes = self.safe_dict(self.options, 'timeframes', {})
         timeframeId = self.safe_dict(timeframes, timeframe)
         if timeframeId is None:
             raise NotSupported(self.id + ' self interval is not supported, please provide one of the supported timeframes')
-        messageHash = 'ohlcv.' + symbolValue + '.' + timeframe
+        messageHash = 'ohlcv.' + symbol + '.' + timeframe
         subscriptionHash = 'CANDLESTICKS'
         client = self.safe_value(self.clients, url)
         type = 'SUBSCRIBE'
         subscription = {}
         if client is not None:
-            subscription = self.safe_dict(client.subscriptions, subscriptionHash)
+            subscription = self.safe_value(client.subscriptions, subscriptionHash)
             if subscription is not None:
                 ohlcvMarket = self.safe_dict(subscription, marketId, {})
                 marketSubscribed = self.safe_bool(ohlcvMarket, timeframe, False)
@@ -1081,10 +1078,9 @@ class onetrading(ccxt.async_support.onetrading):
             ],
         }
         ohlcv = await self.watch(url, messageHash, self.deep_extend(request, params), subscriptionHash, subscription)
-        limitResolved = limit
         if self.newUpdates:
-            limitResolved = ohlcv.getLimit(symbolValue, limit)
-        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
+            limit = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message: dict):
         #
@@ -1146,14 +1142,15 @@ class onetrading(ccxt.async_support.onetrading):
             self.ohlcvs[symbol][timeframe] = stored
         client.resolve(stored, channel)
 
-    def find_timeframe(self, timeframe: object, timeframes: object = None) -> Str:
-        timeframesResolved = self.timeframes if (timeframes is None) else timeframes
-        if timeframesResolved is None:
+    def find_timeframe(self, timeframe: object, timeframes: object = None):
+        if timeframes is None:
+            timeframes = self.timeframes
+        if timeframes is None:
             raise ArgumentsRequired(self.id + ' findTimeframe() timeframes is required')
-        keys = list(timeframesResolved.keys())
+        keys = list(timeframes.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            if timeframesResolved[key]['unit'] == timeframe['unit'] and timeframesResolved[key]['period'] == timeframe['period']:
+            if timeframes[key]['unit'] == timeframe['unit'] and timeframes[key]['period'] == timeframe['period']:
                 return key
         return None
 
@@ -1278,7 +1275,7 @@ class onetrading(ccxt.async_support.onetrading):
         type = 'SUBSCRIBE'
         subscription = {}
         if client is not None:
-            subscription = self.safe_dict(client.subscriptions, subscriptionHash)
+            subscription = self.safe_value(client.subscriptions, subscriptionHash)
             if subscription is not None:
                 for i in range(0, len(marketIds)):
                     marketId = marketIds[i]

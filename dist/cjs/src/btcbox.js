@@ -321,9 +321,6 @@ class btcbox extends btcbox$1["default"] {
         const base = this.safeCurrencyCode(baseId);
         const quoteId = this.safeString(market, 'quote');
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         const symbol = base + '/' + quote;
         return this.safeMarketStructure({
             'id': this.safeString(market, 'symbol'),
@@ -508,7 +505,7 @@ class btcbox extends btcbox$1["default"] {
         //      }
         //
         const timestamp = this.safeTimestamp(trade, 'date');
-        const marketResolved = this.safeMarket(undefined, market);
+        market = this.safeMarket(undefined, market);
         const id = this.safeString(trade, 'tid');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'amount');
@@ -520,7 +517,7 @@ class btcbox extends btcbox$1["default"] {
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
@@ -528,7 +525,7 @@ class btcbox extends btcbox$1["default"] {
             'amount': amountString,
             'cost': undefined,
             'fee': undefined,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -613,8 +610,10 @@ class btcbox extends btcbox$1["default"] {
             await this.loadMarkets();
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        const symbolResolved = (symbol === undefined) ? 'BTC/JPY' : symbol;
-        const market = this.market(symbolResolved);
+        if (symbol === undefined) {
+            symbol = 'BTC/JPY';
+        }
+        const market = this.market(symbol);
         const request = {
             'id': id,
             'coin': market['baseId'],
@@ -656,7 +655,7 @@ class btcbox extends btcbox$1["default"] {
         const datetimeString = this.safeString(order, 'datetime');
         let timestamp = undefined;
         if (datetimeString !== undefined) {
-            timestamp = this.parse8601(datetimeString + '+09:00'); // Tokyo time
+            timestamp = this.parse8601(order['datetime'] + '+09:00'); // Tokyo time
         }
         const amount = this.safeString(order, 'amount_original');
         const remaining = this.safeString(order, 'amount_outstanding');
@@ -670,7 +669,7 @@ class btcbox extends btcbox$1["default"] {
             }
         }
         const trades = undefined; // todo: this.parseTrades (order['trades']);
-        const marketResolved = this.safeMarket(undefined, market);
+        market = this.safeMarket(undefined, market);
         const side = this.safeString(order, 'type');
         return this.safeOrder({
             'id': id,
@@ -686,7 +685,7 @@ class btcbox extends btcbox$1["default"] {
             'timeInForce': undefined,
             'postOnly': undefined,
             'status': status,
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'price': price,
             'triggerPrice': undefined,
             'cost': undefined,
@@ -694,7 +693,7 @@ class btcbox extends btcbox$1["default"] {
             'fee': undefined,
             'info': order,
             'average': undefined,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -711,8 +710,10 @@ class btcbox extends btcbox$1["default"] {
             await this.loadMarkets();
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        const symbolResolved = (symbol === undefined) ? 'BTC/JPY' : symbol;
-        const market = this.market(symbolResolved);
+        if (symbol === undefined) {
+            symbol = 'BTC/JPY';
+        }
+        const market = this.market(symbol);
         const request = this.extend({
             'id': id,
             'coin': market['baseId'],
@@ -737,8 +738,10 @@ class btcbox extends btcbox$1["default"] {
             await this.loadMarkets();
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        const symbolResolved = (symbol === undefined) ? 'BTC/JPY' : symbol;
-        const market = this.market(symbolResolved);
+        if (symbol === undefined) {
+            symbol = 'BTC/JPY';
+        }
+        const market = this.market(symbol);
         const request = {
             'type': type, // 'open' or 'all'
             'coin': market['baseId'],
@@ -798,11 +801,7 @@ class btcbox extends btcbox$1["default"] {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], 'rest');
-        if (apiUrl === undefined) {
-            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        let url = apiUrl + '/' + this.version + '/' + path;
+        let url = this.urls['api']['rest'] + '/' + this.version + '/' + path;
         if (api === 'public') {
             if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
@@ -821,11 +820,10 @@ class btcbox extends btcbox$1["default"] {
             const request = this.urlencode(query);
             const secret = this.hash(this.encode(this.secret), legacy_js.md5);
             query['signature'] = this.hmac(this.encode(request), this.encode(secret), sha2_js.sha256);
-            const signedBody = this.urlencode(query);
-            const signedHeaders = {
+            body = this.urlencode(query);
+            headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
-            return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

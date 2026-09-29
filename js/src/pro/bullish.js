@@ -90,11 +90,7 @@ export default class bullish extends bullishRest {
             'params': request,
             'id': id,
         };
-        const wsUrl = this.safeString(this.urls['api']['ws'], 'public');
-        if (wsUrl === undefined) {
-            throw new ExchangeError(this.id + ' watchPublic() has no public websocket url');
-        }
-        const fullUrl = wsUrl + url;
+        const fullUrl = this.urls['api']['ws']['public'] + url;
         return await this.watch(fullUrl, messageHash, this.deepExtend(message, params), messageHash);
     }
     async watchPrivate(messageHash, subscribeHash, request = {}, params = {}) {
@@ -138,11 +134,10 @@ export default class bullish extends bullishRest {
             'symbol': market['id'],
         };
         const trades = await this.watchPublic(url, messageHash, request, params);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(symbol, limit);
+            limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -202,13 +197,9 @@ export default class bullish extends bullishRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
-        const wsUrl = this.safeString(this.urls['api']['ws'], 'public');
-        if (wsUrl === undefined) {
-            throw new ExchangeError(this.id + ' watchTicker() has no public websocket url');
-        }
-        const url = wsUrl + '/trading-api/v1/market-data/tick/' + market['id'];
-        const messageHash = 'ticker::' + symbolValue;
+        symbol = market['symbol'];
+        const url = this.urls['api']['ws']['public'] + '/trading-api/v1/market-data/tick/' + market['id'];
+        const messageHash = 'ticker::' + symbol;
         return await this.watch(url, messageHash, params, messageHash); // no need to send a subscribe message, the server sends a ticker update on connect
     }
     handleTicker(client, message) {
@@ -377,25 +368,23 @@ export default class bullish extends bullishRest {
         }
         const subscribeHash = 'orders';
         let messageHash = subscribeHash;
-        let symbolResolved = undefined;
         if (symbol !== undefined) {
-            symbolResolved = this.symbol(symbol);
-            messageHash = messageHash + '::' + symbolResolved;
+            symbol = this.symbol(symbol);
+            messageHash = messageHash + '::' + symbol;
         }
         const request = {
             'topic': 'orders',
         };
         const tradingAccountId = this.safeString(params, 'tradingAccountId');
-        const paramsOmitted = (tradingAccountId !== undefined) ? this.omit(params, 'tradingAccountId') : params;
         if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
+            params = this.omit(params, 'tradingAccountId');
         }
-        const orders = await this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted);
-        let limitResolved = limit;
+        const orders = await this.watchPrivate(messageHash, subscribeHash, request, params);
         if (this.newUpdates) {
-            limitResolved = orders.getLimit(symbolResolved, limit);
+            limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrders(client, message) {
         // snapshot
@@ -496,25 +485,23 @@ export default class bullish extends bullishRest {
         }
         const subscribeHash = 'myTrades';
         let messageHash = subscribeHash;
-        let symbolResolved = undefined;
         if (symbol !== undefined) {
-            symbolResolved = this.symbol(symbol);
-            messageHash += '::' + symbolResolved;
+            symbol = this.symbol(symbol);
+            messageHash += '::' + symbol;
         }
         const request = {
             'topic': 'trades',
         };
         const tradingAccountId = this.safeString(params, 'tradingAccountId');
-        const paramsOmitted = (tradingAccountId !== undefined) ? this.omit(params, 'tradingAccountId') : params;
         if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
+            params = this.omit(params, 'tradingAccountId');
         }
-        const trades = await this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted);
-        let limitResolved = limit;
+        const trades = await this.watchPrivate(messageHash, subscribeHash, request, params);
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(symbolResolved, limit);
+            limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleMyTrades(client, message) {
         //
@@ -608,12 +595,12 @@ export default class bullish extends bullishRest {
         };
         let messageHash = 'balance';
         const tradingAccountId = this.safeString(params, 'tradingAccountId');
-        const paramsOmitted = (tradingAccountId !== undefined) ? this.omit(params, 'tradingAccountId') : params;
         if (tradingAccountId !== undefined) {
+            params = this.omit(params, 'tradingAccountId');
             request['tradingAccountId'] = tradingAccountId;
             messageHash += '::' + tradingAccountId;
         }
-        return await this.watchPrivate(messageHash, messageHash, request, paramsOmitted);
+        return await this.watchPrivate(messageHash, messageHash, request, params);
     }
     handleBalance(client, message) {
         //
@@ -710,13 +697,9 @@ export default class bullish extends bullishRest {
         }
         const subscribeHash = 'positions';
         let messageHash = subscribeHash;
-        const hasSymbols = (symbols !== undefined) && !this.isEmpty(symbols);
-        let symbolsNormalized = symbols;
-        if (hasSymbols) {
-            symbolsNormalized = this.marketSymbols(symbols);
-        }
-        if (hasSymbols && (symbolsNormalized !== undefined)) {
-            messageHash += '::' + symbolsNormalized.join(',');
+        if ((symbols !== undefined) && !this.isEmpty(symbols)) {
+            symbols = this.marketSymbols(symbols);
+            messageHash += '::' + symbols.join(',');
         }
         const request = {
             'topic': 'derivativesPositionsV2',
@@ -725,7 +708,7 @@ export default class bullish extends bullishRest {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit(positions, symbolsNormalized, since, limit, true);
+        return this.filterBySymbolsSinceLimit(positions, symbols, since, limit, true);
     }
     handlePositions(client, message) {
         // exchange does not return messages for sandbox mode

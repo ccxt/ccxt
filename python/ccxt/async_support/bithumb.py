@@ -436,10 +436,11 @@ class bithumb(Exchange, ImplicitAPI):
         """
         result = []
         request = {}
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchMarkets', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchMarkets', 'generation', 2)
         if generation == 2:
             request['isDetails'] = True
-            response = await self.publicGetV1MarketAll(self.extend(request, paramsGeneration))
+            response = await self.publicGetV1MarketAll(self.extend(request, params))
             #
             #     [
             #         {
@@ -521,7 +522,7 @@ class bithumb(Exchange, ImplicitAPI):
             promises = []
             for i in range(0, len(quotes)):
                 request['quoteId'] = quotes[i]
-                promises.append(self.publicGetPublicTickerALLQuoteId(self.extend(request, paramsGeneration)))
+                promises.append(self.publicGetPublicTickerALLQuoteId(self.extend(request, params)))
                 #
                 #    {
                 #        "status": "0000",
@@ -561,7 +562,7 @@ class bithumb(Exchange, ImplicitAPI):
             for i in range(0, len(quotes)):
                 quote = quotes[i]
                 quoteId = quote
-                response = self.safe_dict(results, i)
+                response = results[i]
                 data = self.safe_dict(response, 'data', {})
                 extension = self.safe_dict(quoteCurrencies, quote, {})
                 currencyIds = list(data.keys())
@@ -571,8 +572,6 @@ class bithumb(Exchange, ImplicitAPI):
                         continue
                     market = data[currencyId]
                     base = self.safe_currency_code(currencyId)
-                    if base is None:
-                        continue
                     active = True
                     if isinstance(market, list):
                         numElements = len(market)
@@ -668,7 +667,7 @@ class bithumb(Exchange, ImplicitAPI):
                 result[code] = account
         else:
             for i in range(0, len(response)):
-                entry = self.safe_dict(response, i)
+                entry = response[i]
                 account = self.account()
                 currencyId = self.safe_string(entry, 'currency')
                 code = self.safe_currency_code(currencyId)
@@ -692,10 +691,11 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchBalance', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchBalance', 'generation', 2)
         response = None
         if generation == 2:
-            response = await self.privateGetV1Accounts(paramsGeneration)
+            response = await self.privateGetV1Accounts(params)
             #
             #     [
             #         {
@@ -712,7 +712,7 @@ class bithumb(Exchange, ImplicitAPI):
             request = {
                 'currency': 'ALL',
             }
-            response = await self.privatePostInfoBalance(self.extend(request, paramsGeneration))
+            response = await self.privatePostInfoBalance(self.extend(request, params))
             #
             #     {
             #         "status": "0000",
@@ -740,7 +740,8 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchOrderBook', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchOrderBook', 'generation', 2)
         market = self.market(symbol)
         request = {}
         response = None
@@ -748,7 +749,7 @@ class bithumb(Exchange, ImplicitAPI):
         timestamp = None
         if generation == 2:
             request['markets'] = self.get_gen2_market_id(market)
-            response = await self.publicGetV1Orderbook(self.extend(request, paramsGeneration))
+            response = await self.publicGetV1Orderbook(self.extend(request, params))
             #
             #     [
             #         {
@@ -773,7 +774,7 @@ class bithumb(Exchange, ImplicitAPI):
             bids = []
             asks = []
             for i in range(0, len(orderBookUnits)):
-                entry = self.safe_dict(orderBookUnits, i)
+                entry = orderBookUnits[i]
                 bids.append({
                     'price': self.safe_string(entry, 'bid_price'),
                     'quantity': self.safe_string(entry, 'bid_size'),
@@ -791,7 +792,7 @@ class bithumb(Exchange, ImplicitAPI):
             request['quoteId'] = market['quoteId']
             if limit is not None:
                 request['count'] = limit  # default 30, max 30
-            response = await self.publicGetPublicOrderbookBaseIdQuoteId(self.extend(request, paramsGeneration))
+            response = await self.publicGetPublicOrderbookBaseIdQuoteId(self.extend(request, params))
             #
             #     {
             #         "status":"0000",
@@ -962,7 +963,8 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchTickers', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchTickers', 'generation', 2)
         request = {}
         result = {}
         if generation == 2:
@@ -982,7 +984,7 @@ class bithumb(Exchange, ImplicitAPI):
             if symbols is not None:
                 request['markets'] = ','.join(marketIds)
                 marketIdsChunks.append(marketIds)
-                promises.append(self.publicGetV1Ticker(self.extend(request, paramsGeneration)))
+                promises.append(self.publicGetV1Ticker(self.extend(request, params)))
             else:
                 maxMarketIdsPerRequest = self.safe_integer(self.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 300)
                 if (maxMarketIdsPerRequest is None) or (maxMarketIdsPerRequest < 1):
@@ -995,7 +997,7 @@ class bithumb(Exchange, ImplicitAPI):
                     if (marketIdsChunkLength >= maxMarketIdsPerRequest) or isLastMarketId:
                         marketIdsChunks.append(marketIdsChunk)
                         request['markets'] = ','.join(marketIdsChunk)
-                        promises.append(self.publicGetV1Ticker(self.extend(request, paramsGeneration)))
+                        promises.append(self.publicGetV1Ticker(self.extend(request, params)))
                         marketIdsChunk = []
             #
             #     [
@@ -1082,7 +1084,7 @@ class bithumb(Exchange, ImplicitAPI):
             promises = []
             for i in range(0, len(quotes)):
                 request['quoteId'] = quotes[i]
-                promises.append(self.publicGetPublicTickerALLQuoteId(self.extend(request, paramsGeneration)))
+                promises.append(self.publicGetPublicTickerALLQuoteId(self.extend(request, params)))
                 #
                 #     {
                 #         "status":"0000",
@@ -1107,7 +1109,7 @@ class bithumb(Exchange, ImplicitAPI):
             responses = await asyncio.gather(*promises)
             for i in range(0, len(quotes)):
                 quote = quotes[i]
-                response = self.safe_dict(responses, i)
+                response = responses[i]
                 data = self.safe_dict(response, 'data', {})
                 timestamp = self.safe_integer(data, 'date')
                 tickers = self.omit(data, 'date')
@@ -1116,8 +1118,6 @@ class bithumb(Exchange, ImplicitAPI):
                     currencyId = currencyIds[j]
                     ticker = data[currencyId]
                     base = self.safe_currency_code(currencyId)
-                    if (base is None) or (quote is None):
-                        continue
                     symbol = base + '/' + quote
                     market = self.safe_market(symbol)
                     ticker['date'] = timestamp
@@ -1138,14 +1138,15 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchTicker', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchTicker', 'generation', 2)
         market = self.market(symbol)
         request = {}
         response = None
         data = {}
         if generation == 2:
             request['markets'] = self.get_gen2_market_id(market)
-            response = await self.publicGetV1Ticker(self.extend(request, paramsGeneration))
+            response = await self.publicGetV1Ticker(self.extend(request, params))
             #
             #     [
             #         {
@@ -1182,7 +1183,7 @@ class bithumb(Exchange, ImplicitAPI):
         else:
             request['baseId'] = market['baseId']
             request['quoteId'] = market['quoteId']
-            response = await self.publicGetPublicTickerBaseIdQuoteId(self.extend(request, paramsGeneration))
+            response = await self.publicGetPublicTickerBaseIdQuoteId(self.extend(request, params))
             #
             #     {
             #         "status":"0000",
@@ -1268,7 +1269,8 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchOHLCV', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchOHLCV', 'generation', 2)
         market = self.market(symbol)
         request = {}
         response = None
@@ -1278,17 +1280,17 @@ class bithumb(Exchange, ImplicitAPI):
             if limit is not None:
                 request['count'] = limit
             if timeframe == '1d':
-                response = await self.publicGetV1CandlesDays(self.extend(request, paramsGeneration))
+                response = await self.publicGetV1CandlesDays(self.extend(request, params))
             elif timeframe == '1w':
-                response = await self.publicGetV1CandlesWeeks(self.extend(request, paramsGeneration))
+                response = await self.publicGetV1CandlesWeeks(self.extend(request, params))
             elif timeframe == '1M':
-                response = await self.publicGetV1CandlesMonths(self.extend(request, paramsGeneration))
+                response = await self.publicGetV1CandlesMonths(self.extend(request, params))
             else:
                 timeframeInteger = self.safe_integer(self.timeframes, timeframe)
                 if timeframeInteger is None:
                     raise BadRequest(self.id + ' fetchOHLCV() unsupported timeframe ' + timeframe)
                 request['unit'] = timeframeInteger
-                response = await self.publicGetV1CandlesMinutesUnit(self.extend(request, paramsGeneration))
+                response = await self.publicGetV1CandlesMinutesUnit(self.extend(request, params))
             #
             #     [
             #         {
@@ -1324,7 +1326,7 @@ class bithumb(Exchange, ImplicitAPI):
             request['interval'] = self.safe_string(legacyTimeframes, timeframe, timeframe)
             request['baseId'] = market['baseId']
             request['quoteId'] = market['quoteId']
-            response = await self.publicGetPublicCandlestickBaseIdQuoteIdInterval(self.extend(request, paramsGeneration))
+            response = await self.publicGetPublicCandlestickBaseIdQuoteIdInterval(self.extend(request, params))
             #
             #     {
             #         "status": "0000",
@@ -1435,7 +1437,7 @@ class bithumb(Exchange, ImplicitAPI):
             side = None
         id = self.safe_string_2(trade, 'cont_no', 'sequential_id')
         marketId = self.safe_string(trade, 'market')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         priceString = self.safe_string_2(trade, 'price', 'trade_price')
         amountString = self.safe_string(trade, 'trade_volume')
         if amountString is None:
@@ -1455,7 +1457,7 @@ class bithumb(Exchange, ImplicitAPI):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'order': None,
             'type': type,
             'side': side,
@@ -1464,7 +1466,7 @@ class bithumb(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, marketResolved)
+        }, market)
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -1482,7 +1484,8 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchTrades', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchTrades', 'generation', 2)
         market = self.market(symbol)
         request = {}
         if limit is not None:
@@ -1491,7 +1494,7 @@ class bithumb(Exchange, ImplicitAPI):
         data = []
         if generation == 2:
             request['market'] = self.get_gen2_market_id(market)
-            response = await self.publicGetV1TradesTicks(self.extend(request, paramsGeneration))
+            response = await self.publicGetV1TradesTicks(self.extend(request, params))
             #
             #     [
             #         {
@@ -1512,7 +1515,7 @@ class bithumb(Exchange, ImplicitAPI):
         else:
             request['baseId'] = market['baseId']
             request['quoteId'] = market['quoteId']
-            response = await self.publicGetPublicTransactionHistoryBaseIdQuoteId(self.extend(request, paramsGeneration))
+            response = await self.publicGetPublicTransactionHistoryBaseIdQuoteId(self.extend(request, params))
             #
             #     {
             #         "status":"0000",
@@ -1546,7 +1549,8 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'createOrders', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'createOrders', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' createOrders is only supported for the generation 2 API')
         ordersCount = len(orders)
@@ -1555,7 +1559,7 @@ class bithumb(Exchange, ImplicitAPI):
         ordersRequests = []
         orderSymbols = []
         for i in range(0, len(orders)):
-            rawOrder = self.safe_dict(orders, i)
+            rawOrder = orders[i]
             symbol = self.safe_string(rawOrder, 'symbol')
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' createOrders() requires each order to have a symbol')
@@ -1576,7 +1580,7 @@ class bithumb(Exchange, ImplicitAPI):
         request = {
             'batch_orders': ordersRequests,
         }
-        response = await self.privatePostV2OrdersBatch(self.extend(request, paramsGeneration))
+        response = await self.privatePostV2OrdersBatch(self.extend(request, params))
         #
         #     {
         #         "batch_orders_response": [
@@ -1618,16 +1622,16 @@ class bithumb(Exchange, ImplicitAPI):
         else:
             raise InvalidOrder(self.id + ' createOrder() invalid side ' + side)
         request['side'] = sideRequest
-        timeInForceRaw = self.safe_string_2(params, 'timeInForce', 'time_in_force')
-        timeInForce = 'GTC' if (timeInForceRaw is None) else timeInForceRaw
-        paramsTimeInForce = params if (timeInForceRaw is None) else self.omit(params, 'timeInForce')
-        postOnly, paramsPostOnly = self.handle_post_only(type == 'market', False, paramsTimeInForce)
-        isPostOnly = postOnly or (timeInForce == 'PO')
-        paramsOrder = paramsPostOnly
-        if isPostOnly:
-            paramsOrder = self.omit(paramsPostOnly, 'postOnly')
-        if isPostOnly:
+        timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force')
+        if timeInForce is None:
+            timeInForce = 'GTC'
+        else:
+            params = self.omit(params, 'timeInForce')
+        postOnly = False
+        postOnly, params = self.handle_post_only(type == 'market', False, params)
+        if postOnly or (timeInForce == 'PO'):
             request['time_in_force'] = 'post_only'
+            params = self.omit(params, 'postOnly')
         elif timeInForce == 'FOK':
             request['time_in_force'] = 'fok'
         elif timeInForce == 'IOC':
@@ -1641,9 +1645,10 @@ class bithumb(Exchange, ImplicitAPI):
             if side == 'buy':
                 typeRequest = 'price'
                 # for market buy it requires the amount of quote currency to spend
-                cost = self.safe_string(paramsOrder, 'cost')
-                createMarketBuyOrderRequiresPrice, paramsRequiresPrice = self.handle_option_bool_and_params(self.omit(paramsOrder, 'cost'), 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
-                paramsOrder = paramsRequiresPrice
+                cost = self.safe_string(params, 'cost')
+                params = self.omit(params, 'cost')
+                createMarketBuyOrderRequiresPrice = True
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 if createMarketBuyOrderRequiresPrice:
                     if (price is None) and (cost is None):
                         raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
@@ -1658,11 +1663,11 @@ class bithumb(Exchange, ImplicitAPI):
                 request['volume'] = self.amount_to_precision(symbol, amount)
                 typeRequest = 'market'
             request['order_type'] = typeRequest
-        clientOrderId = self.safe_string_2(paramsOrder, 'clientOrderId', 'client_order_id')
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
-        paramsRequest = self.omit(paramsOrder, 'clientOrderId') if (clientOrderId is not None) else paramsOrder
-        return self.extend(request, paramsRequest)
+            params = self.omit(params, 'clientOrderId')
+        return self.extend(request, params)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -1689,12 +1694,13 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'createOrder', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'createOrder', 'generation', 2)
         request = {}
         market = self.market(symbol)
         response = None
         if generation == 2:
-            request = self.create_order_request(symbol, type, side, amount, price, paramsGeneration)
+            request = self.create_order_request(symbol, type, side, amount, price, params)
             response = await self.privatePostV2Orders(request)
             #
             #     {
@@ -1718,11 +1724,11 @@ class bithumb(Exchange, ImplicitAPI):
                 else:
                     typeRequest = 'ask'
                 request['type'] = typeRequest
-                response = await self.privatePostTradePlace(self.extend(request, paramsGeneration))
+                response = await self.privatePostTradePlace(self.extend(request, params))
             elif side == 'buy':
-                response = await self.privatePostTradeMarketBuy(self.extend(request, paramsGeneration))
+                response = await self.privatePostTradeMarketBuy(self.extend(request, params))
             else:
-                response = await self.privatePostTradeMarketSell(self.extend(request, paramsGeneration))
+                response = await self.privatePostTradeMarketSell(self.extend(request, params))
             #
             #     {
             #         "status": "0000",
@@ -1754,11 +1760,12 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'createMarketBuyOrderWithCost', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'createMarketBuyOrderWithCost', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' createMarketBuyOrderWithCost() is only supported for the generation 2 API')
-        paramsGeneration['createMarketBuyOrderRequiresPrice'] = False
-        return await self.create_order(symbol, 'market', 'buy', cost, None, paramsGeneration)
+        params['createMarketBuyOrderRequiresPrice'] = False
+        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
     async def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params: dict = {}) -> Order:
         """
@@ -1778,7 +1785,8 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'createTwapOrder', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'createTwapOrder', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' createTwapOrder() is only supported for the generation 2 API')
         market = self.market(symbol)
@@ -1796,7 +1804,7 @@ class bithumb(Exchange, ImplicitAPI):
         else:
             sideRequest = 'ask'
         request['side'] = sideRequest
-        response = await self.privatePostV1Twap(self.extend(request, paramsGeneration))
+        response = await self.privatePostV1Twap(self.extend(request, params))
         #
         #     {
         #         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
@@ -1823,12 +1831,13 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchOrder', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchOrder', 'generation', 2)
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        twap = self.safe_bool(paramsGeneration, 'twap', False)
-        paramsOmitted = self.omit(paramsGeneration, 'twap')
+        twap = self.safe_bool(params, 'twap', False)
+        params = self.omit(params, 'twap')
         request = {}
         response = None
         data = None
@@ -1837,7 +1846,7 @@ class bithumb(Exchange, ImplicitAPI):
                 if market is not None:
                     request['market'] = self.get_gen2_market_id(market)
                 request['uuids'] = [id]
-                response = await self.privateGetV1Twap(self.extend(request, paramsOmitted))
+                response = await self.privateGetV1Twap(self.extend(request, params))
                 #
                 #     {
                 #         "has_next": false,
@@ -1865,13 +1874,13 @@ class bithumb(Exchange, ImplicitAPI):
                 orders = self.safe_list(response, 'orders', [])
                 data = self.safe_dict(orders, 0, {})
             else:
-                clientOrderId = self.safe_string_2(paramsOmitted, 'clientOrderId', 'client_order_id')
-                paramsClientOrderId = self.omit(paramsOmitted, ['clientOrderId']) if (clientOrderId is not None) else paramsOmitted
+                clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
                 if clientOrderId is not None:
                     request['client_order_id'] = clientOrderId
+                    params = self.omit(params, ['clientOrderId'])
                 else:
                     request['uuid'] = id
-                response = await self.privateGetV1Order(self.extend(request, paramsClientOrderId))
+                response = await self.privateGetV1Order(self.extend(request, params))
                 #
                 #     {
                 #         "uuid": "C0101000003152406454",
@@ -1906,7 +1915,7 @@ class bithumb(Exchange, ImplicitAPI):
             request['order_id'] = id
             request['order_currency'] = base
             request['payment_currency'] = quote
-            response = await self.privatePostInfoOrderDetail(self.extend(request, paramsOmitted))
+            response = await self.privatePostInfoOrderDetail(self.extend(request, params))
             #
             #     {
             #         "status": "0000",
@@ -2115,18 +2124,18 @@ class bithumb(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         if (base is not None) and (quote is not None):
             symbol = base + '/' + quote
-        marketId = self.safe_string(order, 'market')
-        marketResolved = self.safe_market(marketId, market) if (symbol is None) else market
         if symbol is None:
-            symbol = self.safe_string(marketResolved, 'symbol')
+            marketId = self.safe_string(order, 'market')
+            market = self.safe_market(marketId, market)
+            symbol = market['symbol']
         id = self.safe_string_n(order, ['order_id', 'uuid', 'algo_order_id'])
         rawTrades = self.safe_list_2(order, 'contract', 'trades', [])
         feeCost = self.safe_number(order, 'reserved_fee')
         fee = None
         if feeCost is not None:
             currency = None
-            if marketResolved is not None:
-                currency = self.safe_string(marketResolved, 'quote')
+            if market is not None:
+                currency = market['quote']
             fee = {
                 'currency': currency,
                 'cost': feeCost,
@@ -2159,7 +2168,7 @@ class bithumb(Exchange, ImplicitAPI):
             'status': status,
             'fee': fee,
             'trades': rawTrades,
-        }, marketResolved)
+        }, market)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -2180,18 +2189,18 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchOpenOrders', 'generation', 2)
-        limitResolved = 100 if (limit is None) else limit
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'generation', 2)
         request = {}
         market = None
         response = None
         if generation == 2:
-            twap = self.safe_bool(paramsGeneration, 'twap', False)
+            twap = self.safe_bool(params, 'twap', False)
             if twap:
-                paramsGeneration['state'] = 'progress'
+                params['state'] = 'progress'
             else:
-                paramsGeneration['state'] = 'wait'
-            orders = await self.fetch_orders(symbol, since, limit, paramsGeneration)
+                params['state'] = 'wait'
+            orders = await self.fetch_orders(symbol, since, limit, params)
             return self.filter_by_since_limit(orders, since, limit)
         else:
             if symbol is None:
@@ -2199,10 +2208,12 @@ class bithumb(Exchange, ImplicitAPI):
             market = self.market(symbol)
             if since is not None:
                 request['after'] = since
-            request['count'] = limitResolved
+            if limit is None:
+                limit = 100
+            request['count'] = limit
             request['order_currency'] = market['base']
             request['payment_currency'] = market['quote']
-            response = await self.privatePostInfoOrders(self.extend(request, paramsGeneration))
+            response = await self.privatePostInfoOrders(self.extend(request, params))
             #
             #     {
             #         "status": "0000",
@@ -2223,7 +2234,7 @@ class bithumb(Exchange, ImplicitAPI):
             #     }
             #
         data = self.safe_list(response, 'data', [])
-        return self.parse_orders(data, market, since, limitResolved)
+        return self.parse_orders(data, market, since, limit)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -2244,20 +2255,18 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchOrders', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchOrders', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' fetchOrders is only supported for the generation 2 API')
         request = {}
-        twap = self.safe_bool(paramsGeneration, 'twap', False)
-        paramsOmitted = self.omit(paramsGeneration, 'twap')
-        clientOrderIds = None
-        if twap:
-            clientOrderIds = None
-        else:
-            clientOrderIds = self.safe_list_2(paramsOmitted, 'client_order_ids', 'clientOrderIds')
-        paramsRequest = self.omit(paramsOmitted, ['clientOrderIds']) if (clientOrderIds is not None) else paramsOmitted
-        if clientOrderIds is not None:
-            request['client_order_ids'] = clientOrderIds
+        twap = self.safe_bool(params, 'twap', False)
+        params = self.omit(params, 'twap')
+        if not twap:
+            clientOrderIds = self.safe_list_2(params, 'client_order_ids', 'clientOrderIds')
+            if clientOrderIds is not None:
+                request['client_order_ids'] = clientOrderIds
+                params = self.omit(params, ['clientOrderIds'])
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2267,7 +2276,7 @@ class bithumb(Exchange, ImplicitAPI):
         response = None
         data = None
         if twap:
-            response = await self.privateGetV1Twap(self.extend(request, paramsRequest))
+            response = await self.privateGetV1Twap(self.extend(request, params))
             #
             #     {
             #         "has_next": false,
@@ -2294,7 +2303,7 @@ class bithumb(Exchange, ImplicitAPI):
             #
             data = self.safe_list(response, 'orders', [])
         else:
-            response = await self.privateGetV1Orders(self.extend(request, paramsRequest))
+            response = await self.privateGetV1Orders(self.extend(request, params))
             #
             #     [
             #         {
@@ -2379,36 +2388,34 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'cancelOrder', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'cancelOrder', 'generation', 2)
         market = None
         if symbol is not None:
             market = self.market(symbol)
         request = {}
         response = None
-        twap = self.safe_bool(paramsGeneration, 'twap', False)
-        paramsOmitted = self.omit(paramsGeneration, 'twap')
-        clientOrderId = self.safe_string_2(paramsOmitted, 'clientOrderId', 'client_order_id')
-        useClientOrderId = not twap and (generation == 2) and (clientOrderId is not None)
-        paramsRequest = paramsOmitted
-        if useClientOrderId:
-            paramsRequest = self.omit(paramsOmitted, ['clientOrderId'])
+        twap = self.safe_bool(params, 'twap', False)
+        params = self.omit(params, 'twap')
         if twap:
             request['algo_order_id'] = id
         else:
-            if useClientOrderId:
+            clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
+            if (generation == 2) and (clientOrderId is not None):
                 request['client_order_id'] = clientOrderId
+                params = self.omit(params, ['clientOrderId'])
             else:
                 request['order_id'] = id
         if generation == 2:
             if twap:
-                response = await self.privateDeleteV1Twap(self.extend(request, paramsRequest))
+                response = await self.privateDeleteV1Twap(self.extend(request, params))
                 #
                 #     {
                 #         "algo_order_id": "TWAP-A01B02C03D04E05F06"
                 #     }
                 #
             else:
-                response = await self.privateDeleteV2Order(self.extend(request, paramsRequest))
+                response = await self.privateDeleteV2Order(self.extend(request, params))
                 #
                 #     {
                 #         "order_id": "C0101000003152350309",
@@ -2423,20 +2430,20 @@ class bithumb(Exchange, ImplicitAPI):
             quote = self.safe_string(marketDefined, 'quote')
             if (base is None) or (quote is None):
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a market with defined base and quote')
-            side_in_params = ('side' in paramsRequest)
+            side_in_params = ('side' in params)
             if not side_in_params:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a `side` parameter (sell or buy)')
             side = None
-            if self.safe_string(paramsRequest, 'side') == 'buy':
+            if params['side'] == 'buy':
                 side = 'bid'
             else:
                 side = 'ask'
-            paramsSide = self.omit(paramsRequest, 'side')
+            params = self.omit(params, 'side')
             # https://github.com/ccxt/ccxt/issues/6771
             request['type'] = side
             request['order_currency'] = base
             request['payment_currency'] = quote
-            response = await self.privatePostTradeCancel(self.extend(request, paramsSide))
+            response = await self.privatePostTradeCancel(self.extend(request, params))
             #
             #     {
             #         "status": "0000"
@@ -2461,20 +2468,21 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'cancelOrders', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'cancelOrders', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' cancelOrders is only supported for the generation 2 API')
         market = None
         if symbol is not None:
             market = self.market(symbol)
         request = {}
-        clientOrderIds = self.safe_list_2(paramsGeneration, 'client_order_ids', 'clientOrderIds')
-        paramsRequest = self.omit(paramsGeneration, ['clientOrderIds']) if (clientOrderIds is not None) else paramsGeneration
+        clientOrderIds = self.safe_list_2(params, 'client_order_ids', 'clientOrderIds')
         if clientOrderIds is not None:
             request['client_order_ids'] = clientOrderIds
+            params = self.omit(params, ['clientOrderIds'])
         else:
             request['order_ids'] = ids
-        response = await self.privatePostV2OrdersCancel(self.extend(request, paramsRequest))
+        response = await self.privatePostV2OrdersCancel(self.extend(request, params))
         #
         #     {
         #         "success": [
@@ -2524,36 +2532,34 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'withdraw', 'generation', 2)
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, paramsGeneration)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'withdraw', 'generation', 2)
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        network = self.safe_string_2(paramsWithdrawTag, 'network', 'net_type')
-        paramsNetwork = self.omit(paramsWithdrawTag, 'network')
+        network = self.safe_string_2(params, 'network', 'net_type')
+        params = self.omit(params, 'network')
         currency = self.currency(code)
         request = {}
         response = None
         destinationRequest = None
-        requiresDestination = (code == 'XRP' or code == 'XMR' or code == 'EOS' or code == 'STEEM' or code == 'TON')
-        paramsDestination = paramsNetwork
-        if requiresDestination:
-            paramsDestination = self.omit(paramsNetwork, ['destination', 'secondary_address'])
-        if requiresDestination:
-            destination = self.safe_string_2(paramsNetwork, 'destination', 'secondary_address')
-            if (tagWithdrawTag is None) and (destination is None):
+        if code == 'XRP' or code == 'XMR' or code == 'EOS' or code == 'STEEM' or code == 'TON':
+            destination = self.safe_string_2(params, 'destination', 'secondary_address')
+            params = self.omit(params, ['destination', 'secondary_address'])
+            if (tag is None) and (destination is None):
                 raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param')
-            elif tagWithdrawTag is not None:
-                destinationRequest = tagWithdrawTag
+            elif tag is not None:
+                destinationRequest = tag
             else:
                 destinationRequest = destination
-        receiverType = self.safe_string_2(paramsDestination, 'receiver_type', 'cust_type_cd')
-        paramsReceiverType = self.omit(paramsDestination, ['receiver_type', 'cust_type_cd'])
+        receiverType = self.safe_string_2(params, 'receiver_type', 'cust_type_cd')
+        params = self.omit(params, ['receiver_type', 'cust_type_cd'])
         if generation == 2:
             if code == 'KRW':
-                twoFactorType = self.safe_string(paramsReceiverType, 'two_factor_type')
+                twoFactorType = self.safe_string(params, 'two_factor_type')
                 if twoFactorType is None:
                     raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a two_factor_type parameter for withdrawing KRW')
                 krwRequest = {'amount': self.number_to_string(amount)}  # KRW withdraw only accepts amount and two_factor_type parameters
-                response = await self.privatePostV1WithdrawsKrw(self.extend(krwRequest, paramsReceiverType))
+                response = await self.privatePostV1WithdrawsKrw(self.extend(krwRequest, params))
             else:
                 if network is None:
                     raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a network parameter')
@@ -2565,7 +2571,7 @@ class bithumb(Exchange, ImplicitAPI):
                     request['secondary_address'] = destinationRequest
                 if receiverType is not None:
                     request['receiver_type'] = receiverType
-                response = await self.privatePostV1WithdrawsCoin(self.extend(request, paramsReceiverType))
+                response = await self.privatePostV1WithdrawsCoin(self.extend(request, params))
             #
             #     {
             #         "type": "withdraw",
@@ -2597,7 +2603,7 @@ class bithumb(Exchange, ImplicitAPI):
                     request['cust_type_cd'] = 'Individual 01'
                 else:
                     request['cust_type_cd'] = receiverType
-            response = await self.privatePostTradeBtcWithdrawal(self.extend(request, paramsReceiverType))
+            response = await self.privatePostTradeBtcWithdrawal(self.extend(request, params))
             #
             #     {
             #         "status": "0000"
@@ -2630,7 +2636,7 @@ class bithumb(Exchange, ImplicitAPI):
         #
         type = self.safe_string(transaction, 'type')
         currencyId = self.safe_string(transaction, 'currency')
-        currencyResolved = self.safe_currency(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         datetime = self.safe_string(transaction, 'created_at')
         timestamp = self.parse8601(datetime)
         if (datetime is not None) and (datetime.find('+09:00') > -1):
@@ -2649,7 +2655,7 @@ class bithumb(Exchange, ImplicitAPI):
             'addressTo': None,
             'amount': self.safe_number(transaction, 'amount'),
             'type': type,
-            'currency': currencyResolved['code'],
+            'currency': currency['code'],
             'status': self.parse_transaction_status_by_type(self.safe_string(transaction, 'state'), type),
             'updated': None,
             'tagFrom': None,
@@ -2689,7 +2695,7 @@ class bithumb(Exchange, ImplicitAPI):
         statuses = self.safe_dict(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    async def fetch_withdrawal_whitelist(self, params: dict = {}) -> object:
+    async def fetch_withdrawal_whitelist(self, params={}) -> object:
         """
         fetch a list of allowed withdrawal addresses
 
@@ -2701,10 +2707,11 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchWithdrawalWhitelist', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchWithdrawalWhitelist', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' fetchWithdrawalWhitelist() is only supported for the generation 2 API')
-        response = await self.privateGetV1WithdrawsCoinAddresses(paramsGeneration)
+        response = await self.privateGetV1WithdrawsCoinAddresses(params)
         #
         #     [
         #         {
@@ -2736,7 +2743,8 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchWithdrawal', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchWithdrawal', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' fetchWithdrawal() is only supported for the generation 2 API')
         if code is None:
@@ -2747,7 +2755,7 @@ class bithumb(Exchange, ImplicitAPI):
         }
         if id is not None:
             request['uuid'] = id
-        response = await self.privateGetV1Withdraw(self.extend(request, paramsGeneration))
+        response = await self.privateGetV1Withdraw(self.extend(request, params))
         #
         #     {
         #         "type": "withdraw",
@@ -2786,7 +2794,8 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchWithdrawals', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' fetchWithdrawals() is only supported for the generation 2 API')
         request = {}
@@ -2796,12 +2805,12 @@ class bithumb(Exchange, ImplicitAPI):
         currency = None
         if code == 'KRW':
             currency = self.currency(code)
-            response = await self.privateGetV1WithdrawsKrw(self.extend(request, paramsGeneration))
+            response = await self.privateGetV1WithdrawsKrw(self.extend(request, params))
         else:
             if code is not None:
                 currency = self.currency(code)
                 request['currency'] = currency['id']
-            response = await self.privateGetV1Withdraws(self.extend(request, paramsGeneration))
+            response = await self.privateGetV1Withdraws(self.extend(request, params))
         #
         #     [
         #         {
@@ -2836,7 +2845,8 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchDeposit', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchDeposit', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' fetchDeposit() is only supported for the generation 2 API')
         if code is None:
@@ -2847,7 +2857,7 @@ class bithumb(Exchange, ImplicitAPI):
         }
         if id is not None:
             request['uuid'] = id
-        response = await self.privateGetV1Deposit(self.extend(request, paramsGeneration))
+        response = await self.privateGetV1Deposit(self.extend(request, params))
         #
         #     {
         #         "type": "deposit",
@@ -2886,7 +2896,8 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchDeposits', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchDeposits', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' fetchDeposits() is only supported for the generation 2 API')
         request = {}
@@ -2896,12 +2907,12 @@ class bithumb(Exchange, ImplicitAPI):
         currency = None
         if code == 'KRW':
             currency = self.currency(code)
-            response = await self.privateGetV1DepositsKrw(self.extend(request, paramsGeneration))
+            response = await self.privateGetV1DepositsKrw(self.extend(request, params))
         else:
             if code is not None:
                 currency = self.currency(code)
                 request['currency'] = currency['id']
-            response = await self.privateGetV1Deposits(self.extend(request, paramsGeneration))
+            response = await self.privateGetV1Deposits(self.extend(request, params))
         #
         #     [
         #         {
@@ -2935,19 +2946,20 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'createDepositAddress', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'createDepositAddress', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' createDepositAddress() is only supported for the generation 2 API')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
         }
-        network = self.safe_string_2(paramsGeneration, 'network', 'net_type')
-        paramsOmitted = self.omit(paramsGeneration, 'network')
+        network = self.safe_string_2(params, 'network', 'net_type')
+        params = self.omit(params, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' ' + code + ' createDepositAddress() requires a network parameter')
         request['net_type'] = network
-        response = await self.privatePostV1DepositsGenerateCoinAddress(self.extend(request, paramsOmitted))
+        response = await self.privatePostV1DepositsGenerateCoinAddress(self.extend(request, params))
         #
         #     {
         #         "currency": "BTC",
@@ -2972,19 +2984,20 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchDepositAddress', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchDepositAddress', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' fetchDepositAddress() is only supported for the generation 2 API')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
         }
-        network = self.safe_string_2(paramsGeneration, 'network', 'net_type')
-        paramsOmitted = self.omit(paramsGeneration, 'network')
+        network = self.safe_string_2(params, 'network', 'net_type')
+        params = self.omit(params, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' ' + code + ' fetchDepositAddress() requires a network parameter')
         request['net_type'] = network
-        response = await self.privateGetV1DepositsCoinAddress(self.extend(request, paramsOmitted))
+        response = await self.privateGetV1DepositsCoinAddress(self.extend(request, params))
         #
         #     {
         #         "currency": "BTC",
@@ -3008,10 +3021,11 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchDepositAddresses', 'generation', 2)
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchDepositAddresses', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' fetchDepositAddresses() is only supported for the generation 2 API')
-        response = await self.privateGetV1DepositsCoinAddresses(paramsGeneration)
+        response = await self.privateGetV1DepositsCoinAddresses(params)
         #
         #     [
         #         {
@@ -3024,7 +3038,7 @@ class bithumb(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_addresses(response, codes, False, {})
 
-    def parse_deposit_address(self, response: dict, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, response: object, currency: Currency = None) -> DepositAddress:
         #
         # generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
         #
@@ -3086,20 +3100,15 @@ class bithumb(Exchange, ImplicitAPI):
                 result += encodedKey + '=' + encodedValue
         return result
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = None
-        requestBody = None
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         endpoint = '/' + self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], api)
-        if apiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = self.implode_hostname(apiUrl) + endpoint
+        url = self.implode_hostname(self.urls['api'][api]) + endpoint
         query = self.omit(params, self.extract_params(path))
         queryKeys = list(query.keys())
         queryKeysLength = len(queryKeys)
         hasQuery = (queryKeysLength > 0)
         if api == 'public':
-            requestHeaders = {
+            headers = {
                 'OPEN-API-PARTNER': 'CCXT',
             }
             if hasQuery:
@@ -3108,7 +3117,7 @@ class bithumb(Exchange, ImplicitAPI):
             self.check_required_credentials()
             isVersionedApi = (endpoint.startswith('/v1/') or endpoint.startswith('/v2/'))
             if isVersionedApi:
-                requestHeaders = {
+                headers = {
                     'Accept': 'application/json',
                     'OPEN-API-PARTNER': 'CCXT',
                 }
@@ -3119,9 +3128,9 @@ class bithumb(Exchange, ImplicitAPI):
                 }
                 auth = None
                 if (method != 'GET') and (method != 'DELETE'):
-                    requestHeaders['Content-Type'] = 'application/json'
+                    headers['Content-Type'] = 'application/json'
                     if hasQuery:
-                        requestBody = self.json(query)
+                        body = self.json(query)
                         auth = self.urlencode_with_array_brackets(query)
                 elif hasQuery:
                     auth = self.urlencode_with_array_brackets(query)
@@ -3131,19 +3140,19 @@ class bithumb(Exchange, ImplicitAPI):
                     request['query_hash'] = self.hash(self.encode(authString), 'sha512')
                     request['query_hash_alg'] = 'SHA512'
                 token = self.jwt(request, self.encode(self.secret), 'sha256')
-                requestHeaders['Authorization'] = 'Bearer ' + token
+                headers['Authorization'] = 'Bearer ' + token
             else:
-                requestBody = self.urlencode(self.extend({
+                body = self.urlencode(self.extend({
                     'endpoint': endpoint,
                 }, query))
                 # bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                bodyParts = requestBody.split('%20')
-                requestBody = '+'.join(bodyParts)
+                bodyParts = body.split('%20')
+                body = '+'.join(bodyParts)
                 nonce = str(self.nonce())
-                auth = endpoint + "\0" + requestBody + "\0" + nonce  # eslint-disable-line quotes
+                auth = endpoint + "\0" + body + "\0" + nonce  # eslint-disable-line quotes
                 signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
                 signature64 = self.string_to_base64(signature)
-                requestHeaders = {
+                headers = {
                     'Accept': 'application/json',
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Api-Key': self.apiKey,
@@ -3151,9 +3160,7 @@ class bithumb(Exchange, ImplicitAPI):
                     'Api-Nonce': nonce,
                     'OPEN-API-PARTNER': 'CCXT',
                 }
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
-        bodyResult = requestBody if (requestBody is not None) else body
-        return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
