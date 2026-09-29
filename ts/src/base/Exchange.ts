@@ -3132,7 +3132,7 @@ export class BaseExchange {
             }
             return this.markets;
         }
-        let currencies = undefined;
+        let currencies: Currencies | undefined = undefined;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies ();
