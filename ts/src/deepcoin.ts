@@ -676,7 +676,6 @@ export default class deepcoin extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
         const price = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
         const bar = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'instId': market['id'],
