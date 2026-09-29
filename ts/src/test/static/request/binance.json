@@ -17,7 +17,7 @@
             {
                 "description": "cancel inverse swap conditional order by client order id",
                 "method": "cancelOrderWithClientOrderId",
-                "checkSkippedKeys": [
+                "forceCheckKeys": [
                     "clientAlgoId"
                 ],
                 "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder?timestamp=1782213044315&symbol=ETHUSD_PERP&clientAlgoId=Q2ayA6g41m6hGYhnZANh5E&recvWindow=10000&signature=175d59e6ede5d9d423a708f6c130a1b9a6dd50c252419644c6a6964fd5f3c289",
@@ -187,7 +187,7 @@
             {
                 "description": "Swap inverse market sell with stopLossPrice",
                 "method": "createOrder",
-                "checkSkippedKeys": [
+                "forceCheckKeys": [
                     "clientAlgoId"
                 ],
                 "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
@@ -207,7 +207,7 @@
             {
                 "description": "Swap inverse limit sell with takeProfitPrice (type 2)",
                 "method": "createOrder",
-                "checkSkippedKeys": [
+                "forceCheckKeys": [
                     "clientAlgoId"
                 ],
                 "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
@@ -488,7 +488,7 @@
             {
                 "description": "inverse swap trailingDelta order with activation price",
                 "method": "createOrder",
-                "checkSkippedKeys": [
+                "forceCheckKeys": [
                     "clientAlgoId"
                 ],
                 "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
@@ -509,7 +509,7 @@
             {
                 "description": "linear swap trailingPercent order with activation price",
                 "method": "createOrder",
-                "checkSkippedKeys": [
+                "forceCheckKeys": [
                     "clientAlgoId"
                 ],
                 "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
@@ -530,7 +530,7 @@
             {
                 "description": "linear future conditional createOrder",
                 "method": "createOrder",
-                "checkSkippedKeys": [
+                "forceCheckKeys": [
                     "clientAlgoId"
                 ],
                 "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
@@ -550,7 +550,7 @@
             {
                 "description": "inverse future conditional createOrder",
                 "method": "createOrder",
-                "checkSkippedKeys": [
+                "forceCheckKeys": [
                     "clientAlgoId"
                 ],
                 "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",

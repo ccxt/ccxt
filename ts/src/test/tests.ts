@@ -1659,14 +1659,14 @@ class testMainClass {
     }
 
     effectiveSkipKeys (exchange: Exchange, exchangeData: object, entry: object) {
-        // 'checkSkippedKeys' re-enables the full comparison (both presence and value)
+        // 'forceCheckKeys' re-enables the full comparison (both presence and value)
         // for the listed keys in this one entry, overriding the file-level 'skipKeys'
         const rawSkipKeys = exchange.safeList (exchangeData, 'skipKeys', []);
-        const checkSkippedKeys = exchange.safeList (entry, 'checkSkippedKeys', []);
+        const forceCheckKeys = exchange.safeList (entry, 'forceCheckKeys', []);
         const skipKeys = [];
         for (let i = 0; i < rawSkipKeys.length; i++) {
             const key = rawSkipKeys[i];
-            if (!(exchange.inArray (key, checkSkippedKeys))) {
+            if (!(exchange.inArray (key, forceCheckKeys))) {
                 skipKeys.push (key);
             }
         }
