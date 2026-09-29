@@ -1506,7 +1506,7 @@ export default class krakenfutures extends krakenfuturesRest {
                     this.balance['cash'][code] = newAccount;
                 }
             }
-            this.pruneStaleBalanceKeys (this.balance['cash'], holdingCodes);
+            this.balance['cash'] = this.pruneStaleBalanceKeys (this.balance['cash'], holdingCodes);
             this.balance['cash'] = this.safeBalance (this.balance['cash']);
             updatedBalance = this.balance['cash'];
         }
@@ -1533,7 +1533,7 @@ export default class krakenfutures extends krakenfuturesRest {
                     this.balance['margin'][symbol][code] = newAccount;
                 }
             }
-            this.pruneStaleBalanceKeys (this.balance['margin'], futuresSymbols);
+            this.balance['margin'] = this.pruneStaleBalanceKeys (this.balance['margin'], futuresSymbols);
             this.balance['margin'] = this.safeBalance (this.balance['margin']);
             client.resolve (this.balance['margin'], messageHash + ':futures');
             if (updatedBalance === undefined) {
@@ -1561,7 +1561,7 @@ export default class krakenfutures extends krakenfuturesRest {
                     this.balance['flex'][code] = newAccount;
                 }
             }
-            this.pruneStaleBalanceKeys (this.balance['flex'], flexCodes);
+            this.balance['flex'] = this.pruneStaleBalanceKeys (this.balance['flex'], flexCodes);
             this.balance['flex'] = this.safeBalance (this.balance['flex']);
             client.resolve (this.balance['flex'], messageHash + ':flex_futures');
             if (updatedBalance === undefined) {
@@ -1583,8 +1583,9 @@ export default class krakenfutures extends krakenfuturesRest {
      * @description removes currency/symbol keys that disappeared from a full-state balance message, keeping the cached object itself alive for consumers holding a reference to it
      * @param {object} balanceObject the cached per-account balance object, mutated in place
      * @param {object} seenKeys the currency codes / symbols present in the current message
+     * @returns {object} the pruned balance object (assign it back: php passes arrays by value)
      */
-    pruneStaleBalanceKeys (balanceObject: Dict, seenKeys: Dict) {
+    pruneStaleBalanceKeys (balanceObject: Dict, seenKeys: Dict): Dict {
         const reserved = [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total', 'debt' ];
         const keys = Object.keys (balanceObject);
         for (let i = 0; i < keys.length; i++) {
@@ -1593,6 +1594,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 delete balanceObject[key];
             }
         }
+        return balanceObject;
     }
 
     handleMyTrades (client: Client, message: Dict) {
