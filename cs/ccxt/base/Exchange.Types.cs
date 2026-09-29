@@ -12,37 +12,6 @@ namespace ccxt;
 
 class Helper
 {
-    // Source keys that map to no struct field (venue-only market keys such as
-    // baseName / priceScale / instIdCode). Kept on the struct so a round-trip
-    // through the typed path does not silently drop them.
-    public static Dictionary<string, object> GetExtra(object data2, HashSet<string> known)
-    {
-        var data = (IDictionary<string, object>)data2;
-        Dictionary<string, object> result = null;
-        foreach (var pair in data)
-        {
-            if (pair.Key == "info")
-            {
-                // GetInfo keeps a dict (and re-wraps a list); a scalar `info` (independentreserve
-                // stores the market id string) has nowhere else to go, so keep it here
-                if (pair.Value == null || pair.Value is IDictionary<string, object> || pair.Value is IList<object>)
-                {
-                    continue;
-                }
-            }
-            else if (known.Contains(pair.Key))
-            {
-                continue;
-            }
-            if (result == null)
-            {
-                result = new Dictionary<string, object>();
-            }
-            result[pair.Key] = pair.Value;
-        }
-        return result;
-    }
-
     // safeOrder() / safeTrade() always attach a `fees` list next to the single `fee`.
     // Return null when the key is absent so the field stays null rather than becoming
     // a spurious empty list.
@@ -64,27 +33,6 @@ class Helper
             result.Add(row is Fee ? (Fee)row : new Fee(row));
         }
         return result;
-    }
-
-    // Undeclared source keys go into a copy of `info` so the typed struct does not drop them.
-    // A key already present in the raw info keeps the raw venue value.
-    public static Dictionary<string, object> GetInfoWithExtra(object data2, HashSet<string> known)
-    {
-        var info = GetInfo(data2);
-        var extra = GetExtra(data2, known);
-        if (extra == null)
-        {
-            return info;
-        }
-        info = info == null ? new Dictionary<string, object>() : new Dictionary<string, object>(info);
-        foreach (var pair in extra)
-        {
-            if (!info.ContainsKey(pair.Key))
-            {
-                info[pair.Key] = pair.Value;
-            }
-        }
-        return info;
     }
 
     public static Dictionary<string, object> GetInfo(object data2)
@@ -357,14 +305,6 @@ public struct Trade
     // safeTrade() always sets a `fees` list alongside the single `fee`; without a
     // field for it the typed core would drop that data on the floor.
     public List<Fee>? fees;
-    // several venues (kraken, bybit, woo, hashkey, toobit, apex) put the raw venue order
-    // id on the trade as `orderId` next to the unified `order`.
-    public string? orderId;
-
-    private static readonly HashSet<string> TradeKeys = new HashSet<string> {
-        "amount", "price", "cost", "id", "order", "info", "timestamp", "datetime", "symbol", "type", "side", "takerOrMaker", "fee", "fees", "orderId",
-    };
-
     public Trade(object trade2)
     {
         var trade = (Dictionary<string, object>)trade2;
@@ -382,8 +322,7 @@ public struct Trade
         takerOrMaker = Exchange.SafeString(trade, "takerOrMaker");
         fee = trade.ContainsKey("fee") ? new Fee(trade["fee"]) : null;
         fees = Helper.GetFees(trade);
-        orderId = Exchange.SafeString(trade, "orderId");
-        info = Helper.GetInfoWithExtra(trade, TradeKeys);
+        info = Helper.GetInfo(trade);
     }
 }
 
@@ -421,22 +360,11 @@ public struct Order
     // safeOrder() always sets a `fees` list alongside the single `fee`; without a
     // field for it the typed core would drop that data on the floor.
     public List<Fee>? fees;
-    // keys several venues attach to the unified order that had no struct field, so a typed
-    // core dropped them: poloniex (hedged/leverage/marginMode), grvt (isMultiLeg/
-    // lastTradeTimeStamp), okx (trigger).
     public bool? hedged;
     public double? leverage;
     public string? marginMode;
-    public bool? isMultiLeg;
-    public Int64? lastTradeTimeStamp;
-    public bool? trigger;
     public IEnumerable<Trade>? trades;
     public Dictionary<string, object>? info;
-
-    private static readonly HashSet<string> OrderKeys = new HashSet<string> {
-        "id", "clientOrderId", "timestamp", "datetime", "lastTradeTimestamp", "lastUpdateTimestamp", "symbol", "type", "timeInForce", "side", "price", "cost", "average", "amount", "filled", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "remaining", "status", "reduceOnly", "postOnly", "fee", "fees", "hedged", "leverage", "marginMode", "isMultiLeg", "lastTradeTimeStamp", "trigger", "trades", "info",
-    };
-
     public Order(object order2)
     {
         var order = (Dictionary<string, object>)order2;
@@ -445,9 +373,6 @@ public struct Order
         hedged = Exchange.SafeValue(order, "hedged") != null ? (bool)Exchange.SafeValue(order, "hedged") : null;
         leverage = Exchange.SafeFloat(order, "leverage");
         marginMode = Exchange.SafeString(order, "marginMode");
-        isMultiLeg = Exchange.SafeValue(order, "isMultiLeg") != null ? (bool)Exchange.SafeValue(order, "isMultiLeg") : null;
-        lastTradeTimeStamp = Exchange.SafeInteger(order, "lastTradeTimeStamp");
-        trigger = Exchange.SafeValue(order, "trigger") != null ? (bool)Exchange.SafeValue(order, "trigger") : null;
         timestamp = Exchange.SafeInteger(order, "timestamp");
         datetime = Exchange.SafeString(order, "datetime");
         lastTradeTimestamp = Exchange.SafeInteger(order, "lastTradeTimestamp");
@@ -472,7 +397,7 @@ public struct Order
         reduceOnly = Exchange.SafeBool(order, "reduceOnly", false);
         postOnly = Exchange.SafeBool(order, "postOnly", false);
         fees = Helper.GetFees(order);
-        info = Helper.GetInfoWithExtra(order, OrderKeys);
+        info = Helper.GetInfo(order);
     }
 }
 
@@ -505,11 +430,6 @@ public struct Ticker
     public double? markPrice;
     public Dictionary<string, object> info;
 
-
-    private static readonly HashSet<string> TickerKeys = new HashSet<string> {
-        "symbol", "id", "timestamp", "datetime", "high", "low", "bid", "bidVolume", "ask", "askVolume", "vwap", "open", "close", "last", "previousClose", "change", "percentage", "average", "baseVolume", "quoteVolume", "indexPrice", "markPrice", "info",
-    };
-
     public Ticker(object ticker2)
     {
         var ticker = (Dictionary<string, object>)ticker2;
@@ -533,7 +453,7 @@ public struct Ticker
         average = Exchange.SafeFloat(ticker, "average");
         baseVolume = Exchange.SafeFloat(ticker, "baseVolume");
         quoteVolume = Exchange.SafeFloat(ticker, "quoteVolume");
-        info = Helper.GetInfoWithExtra(ticker, TickerKeys);
+        info = Helper.GetInfo(ticker);
         indexPrice = Exchange.SafeFloat(ticker, "indexPrice");
         markPrice = Exchange.SafeFloat(ticker, "markPrice");
     }
@@ -860,13 +780,8 @@ public struct OrderBook
     public Int64? timestamp;
     public string? datetime;
     public Int64? nonce;
-    // undeclared keys (and a dict `info`, if any) land here rather than being dropped
+    // the raw exchange response, when the parser kept one
     public Dictionary<string, object>? info;
-
-    private static readonly HashSet<string> OrderBookKeys = new HashSet<string> {
-        "bids", "asks", "symbol", "timestamp", "datetime", "nonce",
-    };
-
     public OrderBook(object orderbook2)
     {
         var orderbook = (IDictionary<string, object>)orderbook2;
@@ -876,7 +791,7 @@ public struct OrderBook
         timestamp = Exchange.SafeInteger(orderbook, "timestamp");
         datetime = Exchange.SafeString(orderbook, "datetime");
         nonce = Exchange.SafeInteger(orderbook, "nonce");
-        info = Helper.GetInfoWithExtra(orderbook, OrderBookKeys);
+        info = Helper.GetInfo(orderbook);
     }
 }
 
@@ -1092,14 +1007,6 @@ public struct DepositAddress
     public string address;
     public string? tag;
 
-
-    // venue-only source keys with no struct field; kept so the struct round-trips losslessly
-    public Dictionary<string, object>? extra;
-
-    private static readonly HashSet<string> DepositAddressKeys = new HashSet<string> {
-        "info", "currency", "network", "address", "tag",
-    };
-
     public DepositAddress(object depositAddress2)
     {
         var depositAddress = (Dictionary<string, object>)depositAddress2;
@@ -1108,7 +1015,6 @@ public struct DepositAddress
         network = Exchange.SafeString(depositAddress, "network");
         address = Exchange.SafeString(depositAddress, "address");
         tag = Exchange.SafeString(depositAddress, "tag");
-        extra = Helper.GetExtra(depositAddress, DepositAddressKeys);
     }
 }
 
@@ -2069,14 +1975,6 @@ public struct MarketInterface
     public bool? percentage;
     public bool? tierBased;
     public string? feeSide;
-
-    // venue-only source keys with no struct field; kept so the struct round-trips losslessly
-    public Dictionary<string, object>? extra;
-
-    private static readonly HashSet<string> MarketInterfaceKeys = new HashSet<string> {
-        "info", "id", "uppercaseId", "lowercaseId", "symbol", "base", "quote", "baseId", "quoteId", "active", "type", "spot", "margin", "swap", "future", "option", "contract", "settle", "settleId", "contractSize", "linear", "inverse", "quanto", "expiry", "expiryDatetime", "strike", "optionType", "taker", "maker", "limits", "created", "precision", "marginModes", "numericId", "subType", "index", "stock", "prediction", "percentage", "tierBased", "feeSide",
-    };
-
     public MarketInterface(object market)
     {
         info = Helper.GetInfo(market);
@@ -2121,7 +2019,6 @@ public struct MarketInterface
         percentage = Exchange.SafeValue(market, "percentage") != null ? (bool)Exchange.SafeValue(market, "percentage") : null;
         tierBased = Exchange.SafeValue(market, "tierBased") != null ? (bool)Exchange.SafeValue(market, "tierBased") : null;
         feeSide = Exchange.SafeString(market, "feeSide");
-        extra = Helper.GetExtra(market, MarketInterfaceKeys);
     }
 
 }
@@ -2159,14 +2056,6 @@ public struct Currency
     public CurrencyLimits? limits;
     public Dictionary<string, Network>? networks;
 
-
-    // venue-only source keys with no struct field; kept so the struct round-trips losslessly
-    public Dictionary<string, object>? extra;
-
-    private static readonly HashSet<string> CurrencyKeys = new HashSet<string> {
-        "info", "id", "code", "precision", "name", "fee", "active", "deposit", "withdraw", "numericId", "type", "margin", "limits", "networks",
-    };
-
     public Currency(object currency)
     {
 
@@ -2194,7 +2083,6 @@ public struct Currency
             }
         }
 
-        extra = Helper.GetExtra(currency, CurrencyKeys);
     }
 }
 

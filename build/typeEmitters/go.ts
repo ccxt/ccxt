@@ -459,7 +459,7 @@ function defaultExpr (goType: string, key: string, accessor: string, isInfo: boo
     }
     const constructor = 'New' + baseGoType (goType);
     if (helpers[constructor]) {
-        return constructor + '(SafeValue(' + accessor + ', "' + key + '", map[string]any{}).(map[string]any))';
+        return constructor + '(MapOrEmpty(SafeValue(' + accessor + ', "' + key + '", map[string]any{})))';
     }
     return undefined;
 }
@@ -799,7 +799,7 @@ function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
         const file = files[f];
         const plan = plans[file.path];
         const result: SpliceResult = spliceBlocks (file.text, plan.blocks, findBraceBlockEnd);
-        const contents = ensureGeneratedBanner (result.text, '//');
+        const contents = ensureGeneratedBanner (softenNestedMapCasts (result.text), '//');
         const changed = result.replaced.concat (result.appended);
         if (contents !== result.text) {
             changed.push ('banner');
@@ -807,6 +807,14 @@ function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
         outputs.push ({ 'path': file.path, 'contents': contents, 'changed': changed.concat (plan.notes) });
     }
     return outputs;
+}
+
+/** a nested dict may be nil or absent (market limits.leverage), so constructors never
+    hard-cast their argument: `NewX(expr.(map[string]any))` -> `NewX(MapOrEmpty(expr))`, and
+    `m := data.(map[string]any)` -> `m := MapOrEmpty(data)` */
+function softenNestedMapCasts (text: string): string {
+    text = text.replace (/^(\s*\w+ := )(data2?)\.\(map\[string\]any\)$/gm, '$1MapOrEmpty($2)');
+    return text.replace (/\b(New\w+)\(((?:[^()]|\([^()]*\))*?)\.\(map\[string\]any\)\)/g, '$1(MapOrEmpty($2))');
 }
 
 export default { 'id': 'go', 'emit': emit } as LanguageEmitter;

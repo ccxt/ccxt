@@ -2244,13 +2244,6 @@ public partial class BaseExchange
             }
             result["networks"] = networksTarget;
         }
-        if (typed.extra != null)
-        {
-            foreach (var pair in typed.extra)
-            {
-                result[pair.Key] = pair.Value;
-            }
-        }
         return result;
     }
 
@@ -2358,13 +2351,6 @@ public partial class BaseExchange
         if (typed.tag != null)
         {
             result["tag"] = typed.tag;
-        }
-        if (typed.extra != null)
-        {
-            foreach (var pair in typed.extra)
-            {
-                result[pair.Key] = pair.Value;
-            }
         }
         return result;
     }
@@ -2562,6 +2548,11 @@ public partial class BaseExchange
         return result;
     }
 
+    public static Dictionary<string, object> FromDepositWithdrawFeeNetworkEntry(DepositWithdrawFeeNetworkEntry value)
+    {
+        return (Dictionary<string, object>)FromDepositWithdrawFeeNetworkEntry((object)value);
+    }
+
     public static object FromDepositWithdrawFeeNetworkEntryList(object values)
     {
         if (!(values is List<DepositWithdrawFeeNetworkEntry>))
@@ -2575,6 +2566,11 @@ public partial class BaseExchange
             result.Add(FromDepositWithdrawFeeNetworkEntry(row));
         }
         return result;
+    }
+
+    public static List<object> FromDepositWithdrawFeeNetworkEntryList(List<DepositWithdrawFeeNetworkEntry> values)
+    {
+        return (List<object>)FromDepositWithdrawFeeNetworkEntryList((object)values);
     }
 
     public static object FromDepositWithdrawFees(object value)
@@ -4494,13 +4490,6 @@ public partial class BaseExchange
         {
             result["feeSide"] = typed.feeSide;
         }
-        if (typed.extra != null)
-        {
-            foreach (var pair in typed.extra)
-            {
-                result[pair.Key] = pair.Value;
-            }
-        }
         return result;
     }
 
@@ -5109,18 +5098,6 @@ public partial class BaseExchange
         {
             result["marginMode"] = typed.marginMode;
         }
-        if (typed.isMultiLeg != null)
-        {
-            result["isMultiLeg"] = typed.isMultiLeg;
-        }
-        if (typed.lastTradeTimeStamp != null)
-        {
-            result["lastTradeTimeStamp"] = typed.lastTradeTimeStamp;
-        }
-        if (typed.trigger != null)
-        {
-            result["trigger"] = typed.trigger;
-        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
@@ -5376,6 +5353,10 @@ public partial class BaseExchange
         else
         {
             result["nonce"] = null;
+        }
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
         }
         return result;
     }
@@ -5834,13 +5815,6 @@ public partial class BaseExchange
         {
             result["info"] = typed.info;
         }
-        if (typed.extra != null)
-        {
-            foreach (var pair in typed.extra)
-            {
-                result[pair.Key] = pair.Value;
-            }
-        }
         return result;
     }
 
@@ -6061,13 +6035,6 @@ public partial class BaseExchange
         if (typed.info != null)
         {
             result["info"] = typed.info;
-        }
-        if (typed.extra != null)
-        {
-            foreach (var pair in typed.extra)
-            {
-                result[pair.Key] = pair.Value;
-            }
         }
         return result;
     }
@@ -6543,13 +6510,6 @@ public partial class BaseExchange
         if (typed.info != null)
         {
             result["info"] = typed.info;
-        }
-        if (typed.extra != null)
-        {
-            foreach (var pair in typed.extra)
-            {
-                result[pair.Key] = pair.Value;
-            }
         }
         return result;
     }
@@ -7743,10 +7703,6 @@ public partial class BaseExchange
                 feesRows.Add(FromFee(item));
             }
             result["fees"] = feesRows;
-        }
-        if (typed.orderId != null)
-        {
-            result["orderId"] = typed.orderId;
         }
         if (typed.info != null)
         {
