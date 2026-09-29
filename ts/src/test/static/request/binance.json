@@ -1010,7 +1010,7 @@
                 "method": "editOrder",
                 "url": "https://testnet.binance.vision/api/v3/order/cancelReplace",
                 "input": [
-                    2163811,
+                    "2163811",
                     "LTC/USDT",
                     "limit",
                     "buy",
@@ -1024,7 +1024,7 @@
                 "method": "editOrder",
                 "url": "https://testnet.binancefuture.com/fapi/v1/order",
                 "input": [
-                    661753725,
+                    "661753725",
                     "LTC/USDT:USDT",
                     "limit",
                     "buy",
@@ -1068,7 +1068,7 @@
                 "method": "cancelOrder",
                 "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder?timestamp=1782212844546&symbol=ETHUSD_PERP&algoId=1000000114315066&recvWindow=10000&signature=8cacd463296502fd6f6aa77dedc90b13bc4b15329ad957344bfab96124630a08",
                 "input": [
-                    1000000114315066,
+                    "1000000114315066",
                     "ETH/USD:ETH",
                     {
                         "trigger": true
@@ -1081,7 +1081,7 @@
                 "method": "cancelOrder",
                 "url": "https://testnet.binancefuture.com/fapi/v1/order?timestamp=1699382897679&symbol=LTCUSDT&orderId=652509009&recvWindow=10000&signature=02d0287d26b9b0603902e299840941f6738f9fbb3f497390b29d7077c42c318b",
                 "input": [
-                    652509009,
+                    "652509009",
                     "LTC/USDT:USDT"
                 ]
             },
@@ -1090,7 +1090,7 @@
                 "method": "cancelOrder",
                 "url": "https://testnet.binance.vision/api/v3/order?timestamp=1699384031574&symbol=LTCUSDT&orderId=464950&recvWindow=10000&signature=548084e744d32adc2172c498ead0f621cd1920ac788ff7b4038fffa5dd139d42",
                 "input": [
-                    464950,
+                    "464950",
                     "LTC/USDT"
                 ]
             },
@@ -1099,7 +1099,7 @@
                 "method": "cancelOrder",
                 "url": "https://dapi.binance.com/dapi/v1/order?timestamp=1699382897679&symbol=BTCUSD_PERP&orderId=652509009&recvWindow=10000&signature=02d0287d26b9b0603902e299840941f6738f9fbb3f497390b29d7077c42c318b",
                 "input": [
-                    652509009,
+                    "652509009",
                     "BTC/USD:BTC"
                 ]
             },
@@ -1108,7 +1108,7 @@
                 "method": "cancelOrder",
                 "url": "https://eapi.binance.com/eapi/v1/order?timestamp=1699382897679&symbol=ETH-231229-800-C&orderId=652509009&recvWindow=10000&signature=02d0287d26b9b0603902e299840941f6738f9fbb3f497390b29d7077c42c318b",
                 "input": [
-                    652509009,
+                    "652509009",
                     "ETH/USDT:USDT-231229-800-C"
                 ]
             },
@@ -1129,7 +1129,7 @@
                 "method": "cancelOrder",
                 "url": "https://papi.binance.com/papi/v1/margin/order?timestamp=1707259954072&symbol=BTCUSDT&orderId=24711539682&recvWindow=10000&signature=a4d929126b279d07a6bf41075e0ee173da06b56414bd46826e146baeff2b1f95",
                 "input": [
-                    24711539682,
+                    "24711539682",
                     "BTC/USDT",
                     {
                         "portfolioMargin": true,
@@ -1154,7 +1154,7 @@
                 "method": "cancelOrder",
                 "url": "https://papi.binance.com/papi/v1/um/order?timestamp=1707269570829&symbol=BTCUSDT&orderId=259769934117&recvWindow=10000&signature=48600abd8db8aa5c9ab39e3a79879915f5a512d146ef389ae6c6d85ea351adba",
                 "input": [
-                    259769934117,
+                    "259769934117",
                     "BTC/USDT:USDT",
                     {
                         "portfolioMargin": true
@@ -1166,7 +1166,7 @@
                 "method": "cancelOrder",
                 "url": "https://papi.binance.com/papi/v1/cm/order?timestamp=1707269743580&symbol=ETHUSD_PERP&orderId=71378300965&recvWindow=10000&signature=69742329ab2104f69c56c0a1f9885512a3c8f54325511130e68ff92326bd61b3",
                 "input": [
-                    71378300965,
+                    "71378300965",
                     "ETH/USD:ETH",
                     {
                         "portfolioMargin": true
@@ -1178,7 +1178,7 @@
                 "method": "cancelOrder",
                 "url": "https://papi.binance.com/papi/v1/um/conditional/order?timestamp=1707269945072&symbol=BTCUSDT&strategyId=3733207&recvWindow=10000&signature=b5ec95255493898e91209894976c9883d22a3de188b62ea177bf1c23efcd0db5",
                 "input": [
-                    3733207,
+                    "3733207",
                     "BTC/USDT:USDT",
                     {
                         "portfolioMargin": true,
@@ -1191,7 +1191,7 @@
                 "method": "cancelOrder",
                 "url": "https://papi.binance.com/papi/v1/um/conditional/order?timestamp=1707269945072&symbol=BTCUSDT&strategyId=3733207&recvWindow=10000&signature=b5ec95255493898e91209894976c9883d22a3de188b62ea177bf1c23efcd0db5",
                 "input": [
-                    3733207,
+                    "3733207",
                     "BTC/USDT:USDT",
                     {
                         "portfolioMargin": true,
@@ -1204,7 +1204,7 @@
                 "method": "cancelOrder",
                 "url": "https://papi.binance.com/papi/v1/cm/conditional/order?timestamp=1707270382591&symbol=ETHUSD_PERP&strategyId=1423466&recvWindow=10000&signature=4c5d4d9522fef4c07eab511eb42359bbfd9b929b312c247b3d64fdd1b0684a3f",
                 "input": [
-                    1423466,
+                    "1423466",
                     "ETH/USD:ETH",
                     {
                         "portfolioMargin": true,
@@ -1217,7 +1217,7 @@
                 "method": "cancelOrder",
                 "url": "https://papi.binance.com/papi/v1/cm/conditional/order?timestamp=1707270382591&symbol=ETHUSD_PERP&strategyId=1423466&recvWindow=10000&signature=4c5d4d9522fef4c07eab511eb42359bbfd9b929b312c247b3d64fdd1b0684a3f",
                 "input": [
-                    1423466,
+                    "1423466",
                     "ETH/USD:ETH",
                     {
                         "portfolioMargin": true,
@@ -1759,7 +1759,7 @@
                 "method": "fetchOrder",
                 "url": "https://testnet.binance.vision/api/v3/order?timestamp=1699384269930&symbol=LTCUSDT&orderId=465138&recvWindow=10000&signature=3e56f68f7464d282deb93466f4a382886f216739cf0225e5ae32b13529bd7b84",
                 "input": [
-                    465138,
+                    "465138",
                     "LTC/USDT"
                 ]
             },
@@ -1768,7 +1768,7 @@
                 "method": "fetchOrder",
                 "url": "https://testnet.binancefuture.com/fapi/v1/order?timestamp=1699384317029&symbol=LTCUSDT&orderId=652124757&recvWindow=10000&signature=9f2120e58e884131b91f4193a94ea17a18ef4f3195b3e6f388d5f5e14e797414",
                 "input": [
-                    652124757,
+                    "652124757",
                     "LTC/USDT:USDT"
                 ]
             },
@@ -1777,7 +1777,7 @@
                 "method": "fetchOrder",
                 "url": "https://dapi.binance.com/dapi/v1/order?timestamp=1699384317029&symbol=BTCUSD_PERP&orderId=652124757&recvWindow=10000&signature=9f2120e58e884131b91f4193a94ea17a18ef4f3195b3e6f388d5f5e14e797414",
                 "input": [
-                    652124757,
+                    "652124757",
                     "BTC/USD:BTC"
                 ]
             },
@@ -1786,7 +1786,7 @@
                 "method": "fetchOrder",
                 "url": "https://eapi.binance.com/eapi/v1/order?timestamp=1699384317029&symbol=ETH-231229-800-C&orderId=652124757&recvWindow=10000&signature=9f2120e58e884131b91f4193a94ea17a18ef4f3195b3e6f388d5f5e14e797414",
                 "input": [
-                    652124757,
+                    "652124757",
                     "ETH/USDT:USDT-231229-800-C"
                 ]
             },
@@ -1795,7 +1795,7 @@
                 "method": "fetchOrder",
                 "url": "https://api.binance.com/sapi/v1/margin/order?timestamp=1703159386293&symbol=LTCUSDT&orderId=3103603561&recvWindow=10000&signature=dc62a3b4d2125eb456629bdbb70eee5cddfc1c2836b050e072dc5bec635bf5e8",
                 "input": [
-                    3103603561,
+                    "3103603561",
                     "LTC/USDT",
                     {
                         "marginMode": "cross"
@@ -1807,7 +1807,7 @@
                 "method": "fetchOrder",
                 "url": "https://api.binance.com/sapi/v1/margin/order?timestamp=1703159655585&symbol=LTCUSDT&isIsolated=true&orderId=3807830610&recvWindow=10000&signature=67f6cbaff42d879c7af414d5669b542c8ff536689d52ade8ca17a3406f665175",
                 "input": [
-                    3807830610,
+                    "3807830610",
                     "LTC/USDT",
                     {
                         "marginMode": "isolated"
@@ -1819,7 +1819,7 @@
                 "method": "fetchOrder",
                 "url": "https://papi.binance.com/papi/v1/um/order?timestamp=1707257405537&symbol=BTCUSDT&orderId=259696755816&recvWindow=10000&signature=d916df835ea5208731b4da01ebb6eaef2eca85205777d49ef71e1d791505c522",
                 "input": [
-                    259696755816,
+                    "259696755816",
                     "BTC/USDT:USDT",
                     {
                         "portfolioMargin": true
@@ -1831,7 +1831,7 @@
                 "method": "fetchOrder",
                 "url": "https://papi.binance.com/papi/v1/cm/order?timestamp=1707257668234&symbol=ETHUSD_PERP&orderId=71371262156&recvWindow=10000&signature=8fb58c60d328534f21486e533ffe0e7371f96050d815609a05662d640b91eba8",
                 "input": [
-                    71371262156,
+                    "71371262156",
                     "ETH/USD:ETH",
                     {
                         "portfolioMargin": true
@@ -1843,7 +1843,7 @@
                 "method": "fetchOrder",
                 "url": "https://papi.binance.com/papi/v1/margin/order?timestamp=1707257917946&symbol=BTCUSDT&orderId=24711539682&recvWindow=10000&signature=ecc58b10a3bb4c26814fb521facda9151b0e7caafacc65836557b89eca386e17",
                 "input": [
-                    24711539682,
+                    "24711539682",
                     "BTC/USDT",
                     {
                         "portfolioMargin": true,
@@ -2241,7 +2241,7 @@
                 "method": "fetchOrderTrades",
                 "url": "https://api.binance.com/api/v3/myTrades?timestamp=1706095069482&symbol=LTCUSDT&orderId=3010478906&recvWindow=10000&signature=69dfdb9c6162ba56efe69b3ae4b95800994ee7fd58d37b1a240440d35c4ebde0",
                 "input": [
-                    3010478906,
+                    "3010478906",
                     "LTC/USDT"
                 ]
             }

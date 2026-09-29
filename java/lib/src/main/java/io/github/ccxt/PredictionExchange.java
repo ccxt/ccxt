@@ -42,8 +42,8 @@ public class PredictionExchange extends BaseExchange implements PredictionTypedS
 
     // Venue-specific prediction methods (limitless.redeem) are absent from
     // PredictionExchange.ts; the tier-wide typed surface still needs an
-    // untyped core to dispatch to, so unsupported venues throw here.
-    public CompletableFuture<Object> redeem(Object... optionalArgs) {
+    // core to dispatch to, so unsupported venues throw here.
+    public CompletableFuture<Object> redeem(String outcome, Map<String, Object> params) {
         return supplyAsync(() -> {
             throw new NotSupported(Helpers.add(this.id, " redeem() is not supported yet"));
         });

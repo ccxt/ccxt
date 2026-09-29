@@ -24,7 +24,9 @@ public partial class BaseExchange
         return BaseUID().Substring(0, 22);
     }
 
-    public object strip(object str)
+    // ((string)str).Trim() is a string on every path (a non-string box throws inside the
+    // cast, exactly where the object signature threw it)
+    public string strip(object str)
     {
         return ((string)str).Trim(); //stub
     }

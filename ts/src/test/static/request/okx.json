@@ -1371,7 +1371,7 @@
                 "method": "fetchTransfer",
                 "url": "https://www.okx.com/api/v5/asset/transfer-state?transId=0",
                 "input": [
-                    0,
+                    "0",
                     "USDC"
                 ]
             }

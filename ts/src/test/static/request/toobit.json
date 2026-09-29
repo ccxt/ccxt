@@ -370,7 +370,9 @@
                 "method": "fetchBalance",
                 "url": "https://api.toobit.com/api/v1/account?recvWindow=5000&timestamp=1757584959171&signature=b554c9d862c7f28b50e518788d65dfc13c26f76a6d67feae27f514f75a3e4e92",
                 "input": [
-                    "{type:\\\"spot\\\"}"
+                    {
+                        "type": "spot"
+                    }
                 ],
                 "output": null
             },

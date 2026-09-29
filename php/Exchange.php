@@ -2969,6 +2969,21 @@ class BaseExchange {
         return $dict;
     }
 
+    public function check_option_string($methodName, $optionName, $value) {
+        // the statically typed ports throw on a present non-string value; here it passes through unchanged
+        return $value;
+    }
+
+    public function check_option_bool($methodName, $optionName, $value) {
+        // the statically typed ports throw on a present non-boolean value; here it passes through unchanged
+        return $value;
+    }
+
+    public function check_option_integer($methodName, $optionName, $value) {
+        // the statically typed ports throw on a present value that is not an integral number; here it passes through unchanged
+        return $value;
+    }
+
     public function rand_number($size) {
         $number = '';
         for ($i = 0; $i < $size; $i++) {

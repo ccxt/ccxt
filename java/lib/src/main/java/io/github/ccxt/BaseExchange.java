@@ -35,6 +35,7 @@ import io.github.ccxt.base.Time;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.base.Misc;
 import io.github.ccxt.base.Strings;
+import io.github.ccxt.base.Pair;
 import io.github.ccxt.errors.*;
 import java.util.Random;
 import java.lang.reflect.Constructor;
@@ -83,6 +84,10 @@ import io.github.ccxt.types.TradingFees;
 import io.github.ccxt.types.Transaction;
 import io.github.ccxt.types.TransferEntry;
 import java.util.stream.Collectors;
+import io.github.ccxt.types.MarketInterface;
+import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Ticker;
+import io.github.ccxt.types.Trade;
 
 
 public class BaseExchange {
@@ -187,7 +192,7 @@ public class BaseExchange {
 
     public volatile Map<String, Object> markets_by_id = null;
 
-    public volatile List<Object> symbols = new ArrayList<>();
+    public volatile List<String> symbols = new ArrayList<>();
     public volatile List<Object> codes = new ArrayList<>();
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public volatile List ids = new ArrayList<>();
@@ -226,8 +231,8 @@ public class BaseExchange {
     public double rateLimit;
     public double rollingWindowSize = 60000;
     public String rateLimiterAlgorithm = "leakyBucket";                        // 0.0 by default
-    public Object exceptions = new HashMap<String, Object>();
-    public Object urls = new HashMap<String, Object>();
+    public Map<String, Object> exceptions = new HashMap<String, Object>();
+    public Map<String, Object> urls = new HashMap<String, Object>();
     public Object precision = new HashMap<String, Object>();
 
     // Credentials
@@ -411,7 +416,7 @@ public class BaseExchange {
         // handle options — keep this.options as a ConcurrentHashMap so concurrent
         // watchTrades / loadMarkets calls don't race (see Exchange.options field
         // comment + SharedStateRaceTest).
-        var extendedOptions = this.safeDict(extendedProperties, "options");
+        var extendedOptions = this.safeDict(extendedProperties, "options", null);
         Map<String, Object> initialOptions;
         if (extendedOptions != null) {
             extendedOptions = this.deepExtend(this.getDefaultOptions(), extendedOptions);
@@ -840,8 +845,8 @@ public class BaseExchange {
         return Encode.binaryConcatArray(arrays2);
     }
 
-    public Object exceptionMessage(Object exc, Object... optionalArgs) {
-        boolean includeStack = optionalArgs.length > 0 && optionalArgs[0] != null ? (boolean) optionalArgs[0] : true;
+    public Object exceptionMessage(Object exc, Object includeStackArg) {
+        boolean includeStack = !Boolean.FALSE.equals(includeStackArg);
         if (exc instanceof Throwable t) {
             // Walk the cause chain and include each level's class+message. Without
             // this, reflection-driven failures show as bare "InvocationTargetException"
@@ -905,8 +910,17 @@ public class BaseExchange {
         return io.github.ccxt.base.Functions.omit(a, key);
     }
 
+    // a Map source always yields a fresh Map (or null); List/Object sources keep the Object overloads
     public java.util.Map<String, Object> omit(java.util.Map<String, Object> a, String key) {
-        return (java.util.Map<String, Object>) io.github.ccxt.base.Functions.omit(a, key);
+        return io.github.ccxt.base.Functions.omitMap(a, java.util.Collections.singletonList(key));
+    }
+
+    public java.util.Map<String, Object> omit(java.util.Map<String, Object> a, Object keys) {
+        return io.github.ccxt.base.Functions.omitMap(a, keys);
+    }
+
+    public java.util.Map<String, Object> omit(java.util.Map<String, Object> a, Object... keys) {
+        return io.github.ccxt.base.Functions.omitMap(a, java.util.Arrays.asList(keys));
     }
 
     public java.util.Map<String, Object> omitN(Object a, java.util.List<Object> keys) {
@@ -970,28 +984,28 @@ public class BaseExchange {
     // Generic
     // =======================
     // sortBy / sortBy2
-    public java.util.List<Object> sortBy(Object array, Object value1) {
+    public <T> java.util.List<T> sortBy(Object array, Object value1) {
         return io.github.ccxt.base.Generic.sortBy(array, value1, null, null);
     }
 
-    public java.util.List<Object> sortBy(Object array, Object value1, Object desc) {
+    public <T> java.util.List<T> sortBy(Object array, Object value1, Object desc) {
         return io.github.ccxt.base.Generic.sortBy(array, value1, desc, null);
     }
 
-    public java.util.List<Object> sortBy(Object array, Object value1, Object desc, Object defaultValue) {
+    public <T> java.util.List<T> sortBy(Object array, Object value1, Object desc, Object defaultValue) {
         return io.github.ccxt.base.Generic.sortBy(array, value1, desc, defaultValue);
     }
 
-    public java.util.List<Object> sortBy2(Object array, Object key1, Object key2, Object desc) {
+    public <T> java.util.List<T> sortBy2(Object array, Object key1, Object key2, Object desc) {
         return io.github.ccxt.base.Generic.sortBy2(array, key1, key2, desc);
     }
 
-    public java.util.List<Object> sortBy2(Object array, Object key1, Object key2) {
+    public <T> java.util.List<T> sortBy2(Object array, Object key1, Object key2) {
         return io.github.ccxt.base.Generic.sortBy2(array, key1, key2, null);
     }
 
     // filterBy
-    public java.util.List<Object> filterBy(Object aa, Object key, Object value) {
+    public <T> java.util.List<T> filterBy(Object aa, Object key, Object value) {
         return io.github.ccxt.base.Generic.filterBy(aa, key, value);
     }
 
@@ -1043,6 +1057,11 @@ public class BaseExchange {
     // omitZero
     public Object omitZero(Object value) {
         return io.github.ccxt.base.Generic.omitZero(value);
+    }
+
+    // a String input comes back unchanged or null
+    public String omitZero(String value) {
+        return (String) io.github.ccxt.base.Generic.omitZero(value);
     }
 
     // sum (both overloads)
@@ -1159,15 +1178,15 @@ public class BaseExchange {
         return SafeMethods.safeStringLowerN(obj, keys, defaultValue);
     }
 
-    public Object safeTimestamp(Object obj, Object key, Object... defaultValue) {
+    public Long safeTimestamp(Object obj, Object key, Object... defaultValue) {
         return SafeMethods.safeTimestamp(obj, key, defaultValue);
     }
 
-    public Object safeTimestamp2(Object obj, Object key1, Object key2, Object... defaultValue) {
+    public Long safeTimestamp2(Object obj, Object key1, Object key2, Object... defaultValue) {
         return SafeMethods.safeTimestamp2(obj, key1, key2, defaultValue);
     }
 
-    public Object safeTimestampN(Object obj, List<Object> keys, Object... defaultValue) {
+    public Long safeTimestampN(Object obj, List<Object> keys, Object... defaultValue) {
         return SafeMethods.safeTimestampN(obj, keys, defaultValue);
     }
 
@@ -1369,6 +1388,41 @@ public class BaseExchange {
 
     public Map<String, Object> convertToSafeDictionary(Object obj) {
         return (Map<String, Object>) obj; // to do safety checks
+    }
+
+    // a present option value of another type is a user error: throw instead of coercing
+    public String checkOptionString(Object methodName, Object optionName, Object value) {
+        if (value == null || value instanceof String) {
+            return value == null ? null : value.toString();
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a string");
+    }
+
+    public Boolean checkOptionBool(Object methodName, Object optionName, Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Boolean b) {
+            return b;
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a boolean");
+    }
+
+    // any JS number box (Integer, Long, Double) with an integral value reads as Long; fractions, strings and others throw
+    public Long checkOptionInteger(Object methodName, Object optionName, Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Long l) {
+            return l;
+        }
+        if (value instanceof Integer i) {
+            return i.longValue();
+        }
+        if (value instanceof Double d && Math.floor(d) == d && !Double.isInfinite(d)) {
+            return d.longValue();
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be an integer");
     }
 
     public boolean valueIsDefined(Object value) {
@@ -1628,7 +1682,7 @@ public class BaseExchange {
 
         if (!reload && this.markets != null) {
             if (this.markets_by_id == null) {
-                return java.util.concurrent.CompletableFuture.completedFuture(this.setMarkets(this.markets));
+                return java.util.concurrent.CompletableFuture.completedFuture(this.setMarkets(this.markets, null));
             }
             return java.util.concurrent.CompletableFuture.completedFuture(this.markets);
         }
@@ -1645,7 +1699,7 @@ public class BaseExchange {
 
         java.util.concurrent.CompletableFuture<Object> currenciesFuture;
         if (hasFetchCurrencies) {
-            currenciesFuture = this.fetchCurrencies();
+            currenciesFuture = this.fetchCurrencies(new java.util.HashMap<String, Object>());
         } else {
             currenciesFuture = java.util.concurrent.CompletableFuture.completedFuture(null);
         }
@@ -1654,7 +1708,7 @@ public class BaseExchange {
             if (currencies != null) {
                 this.options.put("cachedCurrencies", currencies);
             }
-            return this.fetchMarkets().thenApply(markets -> {
+            return this.fetchMarkets(new java.util.HashMap<String, Object>()).thenApply(markets -> {
                 this.options.remove("cachedCurrencies");
                 // Pass currencies through so setMarkets() can merge fetched currencies
                 // (including ones not appearing as a base/quote/settle in any market —
@@ -1679,9 +1733,10 @@ public class BaseExchange {
         this.lastNonceReentrantLock.unlock();
     }
 
-    public java.util.concurrent.CompletableFuture<Object> loadMarkets(Object... args) {
+    // TS `loadMarkets (reload = false, params = {})`; venues override it with this signature
+    public java.util.concurrent.CompletableFuture<Object> loadMarkets(Object reload2, Object params) {
 
-        var reload = (Boolean) Helpers.getArg(args, 0, false);
+        boolean reload = Boolean.TRUE.equals(reload2);
         if (this.marketsLoaded && !reload) {
             return this.marketsLoading;
         }
@@ -1723,11 +1778,11 @@ public class BaseExchange {
         }
     }
 
-    public CompletableFuture<Object> fetchCurrencies(Object... params) {
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> params) {
         return CompletableFuture.completedFuture(this.currencies);
     }
 
-    public CompletableFuture<Object> fetchMarkets(Object... params) {
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> params) {
         return CompletableFuture.completedFuture(new ArrayList<>(((Map<String, Object>)this.markets).values()));
     }
 
@@ -1827,7 +1882,9 @@ public class BaseExchange {
                 });
     }
 
-    public CompletableFuture<Object> watch(Object url, Object messageHash2, Object message, Object subscribeHash2, Object subscription) {
+    // T is the class the handlers resolve for messageHash (ArrayCache, WsOrderBook, ...), bound per call site
+    @SuppressWarnings("unchecked")
+    public <T> CompletableFuture<T> watch(Object url, Object messageHash2, Object message, Object subscribeHash2, Object subscription) {
         String messageHash = messageHash2.toString();
         String subscribeHash = subscribeHash2 != null ? subscribeHash2.toString() : messageHash;
         var client = this.client(url);
@@ -1855,13 +1912,13 @@ public class BaseExchange {
                 return null;
             });
         }
-        return future.getFuture();
+        return (CompletableFuture<T>) future.getFuture();
     }
 
     // Note: a single subscribe message is sent for all symbols, matching JS/C# design.
     // Exchange-specific code is responsible for building the message with all symbols.
     @SuppressWarnings("unchecked")
-    public CompletableFuture<Object> watchMultiple(Object url, Object messageHashes2, Object message, Object subscribeHashes2, Object subscription) {
+    public <T> CompletableFuture<T> watchMultiple(Object url, Object messageHashes2, Object message, Object subscribeHashes2, Object subscription) {
         var client = this.client(url);
 
         List<Object> messageHashes = (List<Object>) messageHashes2;
@@ -1908,7 +1965,7 @@ public class BaseExchange {
             });
         }
 
-        return raceFuture.getFuture();
+        return (CompletableFuture<T>) raceFuture.getFuture();
     }
 
     public void handleMessage(Client client, Object message) {
@@ -3443,8 +3500,8 @@ public class BaseExchange {
 
     public Object retrieveStarkAccount(Object signature, Object accountClassHash, Object accountProxyClassHash)
     {
-        // throw new RuntimeException("Not implemented");
-        return "";
+        // Starknet signing is not ported to Java; keep the base's account-map shape with no keys set
+        return new HashMap<String, Object>();
     }
 
     public void checkRequiredDependencies()
@@ -3856,6 +3913,115 @@ public class BaseExchange {
         }
         clientsMap.clear();
         return java.util.concurrent.CompletableFuture.completedFuture(null);
+    }
+
+    // handle*AndParams returning a typed [value, params] Pair (the option lookup of handleOptionAndParams on a Map params bag)
+    private Pair<Object, java.util.Map<String, Object>> optionAndParams(java.util.Map<String, Object> parameters, Object methodName, Object optionName, Object defaultValue) {
+        String defaultOptionName = ("default" + this.capitalize(optionName));
+        Object value = this.safeValue2(parameters, optionName, defaultOptionName);
+        if (value != null) {
+            return new Pair<>(value, this.omit(parameters, new ArrayList<Object>(Arrays.asList(optionName, defaultOptionName))));
+        }
+        // routed methods like "watchTrades > watchTradesForSymbols" (handleParamString of callerMethodName)
+        String callerMethodName = this.safeString(parameters, "callerMethodName", Helpers.toStringArg(methodName));
+        java.util.Map<String, Object> paramsCallerMethodName = (callerMethodName != null) ? this.omit(parameters, "callerMethodName") : parameters;
+        Object exchangeWideMethodOptions = this.safeValue(this.options, callerMethodName);
+        if (exchangeWideMethodOptions != null) {
+            value = this.safeValue2(exchangeWideMethodOptions, optionName, defaultOptionName);
+        }
+        if (value == null) {
+            value = this.safeValue2(this.options, optionName, defaultOptionName);
+        }
+        return new Pair<>((value != null) ? value : defaultValue, paramsCallerMethodName);
+    }
+
+    private Pair<Object, java.util.Map<String, Object>> optionAndParams2(java.util.Map<String, Object> parameters, Object methodName1, Object optionName1, Object optionName2, Object defaultValue) {
+        Pair<Object, java.util.Map<String, Object>> option1 = this.optionAndParams(parameters, methodName1, optionName1, null);
+        if (option1.first() != null) {
+            return new Pair<>(option1.first(), this.omit(option1.second(), optionName2));
+        }
+        return this.optionAndParams(option1.second(), methodName1, optionName2, defaultValue);
+    }
+
+    public Pair<String, java.util.Map<String, Object>> handleOptionStringAndParams(java.util.Map<String, Object> parameters, Object methodName, Object optionName, String defaultValue) {
+        Pair<Object, java.util.Map<String, Object>> option = this.optionAndParams(parameters, methodName, optionName, defaultValue);
+        return new Pair<>(this.checkOptionString(methodName, optionName, option.first()), option.second());
+    }
+
+    public Pair<String, java.util.Map<String, Object>> handleOptionStringAndParams2(java.util.Map<String, Object> parameters, Object methodName, Object optionName1, Object optionName2, String defaultValue) {
+        Pair<Object, java.util.Map<String, Object>> option = this.optionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
+        return new Pair<>(this.checkOptionString(methodName, optionName1, option.first()), option.second());
+    }
+
+    public Pair<Boolean, java.util.Map<String, Object>> handleOptionBoolAndParams(java.util.Map<String, Object> parameters, Object methodName, Object optionName, Object defaultValue) {
+        Pair<Object, java.util.Map<String, Object>> option = this.optionAndParams(parameters, methodName, optionName, defaultValue);
+        return new Pair<>(this.checkOptionBool(methodName, optionName, option.first()), option.second());
+    }
+
+    public Pair<Boolean, java.util.Map<String, Object>> handleOptionBoolAndParams2(java.util.Map<String, Object> parameters, Object methodName, Object optionName1, Object optionName2, Object defaultValue) {
+        Pair<Object, java.util.Map<String, Object>> option = this.optionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
+        return new Pair<>(this.checkOptionBool(methodName, optionName1, option.first()), option.second());
+    }
+
+    public Pair<String, java.util.Map<String, Object>> handleMarginModeAndParams(Object methodName, java.util.Map<String, Object> parameters, String defaultValue) {
+        return this.handleOptionStringAndParams(parameters, methodName, "marginMode", defaultValue);
+    }
+
+    public Pair<String, java.util.Map<String, Object>> handleMarketTypeAndParams(Object methodName, java.util.Map<String, Object> market, java.util.Map<String, Object> parameters, String defaultValue) {
+        // type from params, then market, then the caller's default, then options[methodName], then options
+        String type = this.safeString2(parameters, "defaultType", "type");
+        if (type != null) {
+            return new Pair<>(type, this.omit(parameters, new ArrayList<Object>(Arrays.asList("defaultType", "type"))));
+        }
+        if (market != null) {
+            return new Pair<>(this.safeString(market, "type"), parameters);
+        }
+        if (defaultValue != null) {
+            return new Pair<>(defaultValue, parameters);
+        }
+        Object methodOptions = this.safeDict(this.options, methodName, (Object) null);
+        if (methodOptions != null) {
+            if (methodOptions instanceof String methodType) {
+                return new Pair<>(methodType, parameters);
+            }
+            String typeFromMethod = this.safeString2(methodOptions, "defaultType", "type");
+            if (typeFromMethod != null) {
+                return new Pair<>(typeFromMethod, parameters);
+            }
+        }
+        return new Pair<>(this.safeString2(this.options, "defaultType", "type", "spot"), parameters);
+    }
+
+    // element 0 is an unchecked option value when neither params nor market name the sub type
+    public Pair<Object, java.util.Map<String, Object>> handleSubTypeAndParams(Object methodName, java.util.Map<String, Object> market, java.util.Map<String, Object> parameters, Object defaultValue) {
+        Object subType = null;
+        String subTypeInParams = this.safeString2(parameters, "subType", "defaultSubType");
+        if (subTypeInParams != null) {
+            if (subTypeInParams.equals("linear") || subTypeInParams.equals("inverse")) {
+                subType = subTypeInParams;
+            }
+            return new Pair<>(subType, this.omit(parameters, new ArrayList<Object>(Arrays.asList("subType", "defaultSubType"))));
+        }
+        if (market != null) {
+            if (java.util.Objects.equals(market.get("linear"), true)) {
+                subType = "linear";
+            } else if (java.util.Objects.equals(market.get("inverse"), true)) {
+                subType = "inverse";
+            }
+        }
+        if (subType == null) {
+            subType = this.optionAndParams(new HashMap<String, Object>(), methodName, "subType", defaultValue).first();
+        }
+        return new Pair<>(subType, parameters);
+    }
+
+    public Pair<java.util.Map<String, Object>, java.util.Map<String, Object>> handleUntilOption(Object key, java.util.Map<String, Object> request, java.util.Map<String, Object> parameters, Object multiplier) {
+        Long until = this.safeInteger2(parameters, "until", "till");
+        if (until != null) {
+            request.put((String) key, this.parseToInt(Helpers.multiply(until, java.util.Objects.requireNonNullElse(multiplier, 1))));
+            return new Pair<>(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))));
+        }
+        return new Pair<>(request, parameters);
     }
 
     // ------------------------------------------------------------------------

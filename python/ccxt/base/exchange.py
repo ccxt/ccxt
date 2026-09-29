@@ -2171,6 +2171,18 @@ class BaseExchange(object):
     def convert_to_safe_dictionary(self, dictionary):
         return dictionary
 
+    def check_option_string(self, methodName, optionName, value):
+        # the statically typed ports throw on a present non-string value; here it passes through unchanged
+        return value
+
+    def check_option_bool(self, methodName, optionName, value):
+        # the statically typed ports throw on a present non-boolean value; here it passes through unchanged
+        return value
+
+    def check_option_integer(self, methodName, optionName, value):
+        # the statically typed ports throw on a present value that is not an integral number; here it passes through unchanged
+        return value
+
     def rand_number(self, size):
         return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
 

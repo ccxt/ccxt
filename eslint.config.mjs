@@ -367,4 +367,11 @@ export default [
             ],
         },
     },
+    {
+        // exchange sources must not reassign parameters (write new values to fresh typed locals)
+        files: ['ts/src/*.ts', 'ts/src/pro/*.ts', 'ts/src/base/Exchange.ts', 'ts/src/base/PredictionExchange.ts'],
+        rules: {
+            'no-param-reassign': ['error', { 'props': false }],
+        },
+    },
 ];

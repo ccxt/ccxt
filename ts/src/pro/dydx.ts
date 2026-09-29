@@ -6,6 +6,7 @@ import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Trade, Dict, OrderBook, OHLCV , Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -58,11 +59,12 @@ export default class dydx extends dydxRest {
             'channel': 'v4_trades',
             'id': market['id'],
         };
-        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -74,7 +76,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -184,7 +186,7 @@ export default class dydx extends dydxRest {
             'channel': 'v4_orderbook',
             'id': market['id'],
         };
-        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const orderbook: Ob = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         return orderbook.limit ();
     }
 
@@ -197,7 +199,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -291,11 +293,12 @@ export default class dydx extends dydxRest {
             'channel': 'v4_candles',
             'id': market['id'] + '/' + resolution,
         };
-        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -309,7 +312,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe = '1m', params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -400,7 +403,7 @@ export default class dydx extends dydxRest {
         client.resolve (stored, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: any): boolean {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         // {
         //     "type": "error",
