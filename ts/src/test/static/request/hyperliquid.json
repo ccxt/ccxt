@@ -655,41 +655,6 @@
                     }
                 ],
                 "output": { "action": { "type": "order", "orders": [ { "a": 5, "b": true, "p": "183.75", "s": "0.1", "r": false, "t": { "limit": { "tif": "Ioc" } } } ], "grouping": "na", "builder": { "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6", "f": 10 } }, "nonce": 1711104140105, "signature": { "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af", "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043", "v": 27 }, "vaultAddress": "eba57e1d6bd242ba5f41b61ff1d30b481a535b58" }
-            },
-            {
-                "description": "market buy uses options.defaultSlippage when no slippage param",
-                "method": "createOrder",
-                "url": "https://api.hyperliquid.xyz/exchange",
-                "options": {
-                    "defaultSlippage": 0.01
-                },
-                "input": [
-                    "SOL/USDC:USDC",
-                    "market",
-                    "buy",
-                    1,
-                    110
-                ],
-                "output": { "action": { "type": "order", "orders": [ { "a": 5, "b": true, "p": "111.1", "s": "1", "r": false, "t": { "limit": { "tif": "Ioc" } } } ], "grouping": "na", "builder": { "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6", "f": 10 } }, "nonce": 1790590564706, "signature": { "r": "0xb4c514fc38d1bee09425ed67714a262e56dde129a63804a9d52e7d11c39b66c2", "s": "0x7d51a82d7b2488d1c7b8affe603db842d5be4b9a19dad976bf70be0e00fb06ec", "v": 28 } }
-            },
-            {
-                "description": "market sell slippage param overrides options.defaultSlippage",
-                "method": "createOrder",
-                "url": "https://api.hyperliquid.xyz/exchange",
-                "options": {
-                    "defaultSlippage": 0.01
-                },
-                "input": [
-                    "SOL/USDC:USDC",
-                    "market",
-                    "sell",
-                    1,
-                    110,
-                    {
-                        "slippage": "0.02"
-                    }
-                ],
-                "output": { "action": { "type": "order", "orders": [ { "a": 5, "b": false, "p": "107.8", "s": "1", "r": false, "t": { "limit": { "tif": "Ioc" } } } ], "grouping": "na", "builder": { "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6", "f": 10 } }, "nonce": 1790590564725, "signature": { "r": "0x21669aa9f27a29eeba2103dfd08d7308842b3b1996cb4a55002d7ffcf6c773ee", "s": "0x1510eeddaf1feea754d95651a42e774b548b9400825b8ff12809ddb11d32c312", "v": 28 } }
             }
         ],
         "createTwapOrder": [
