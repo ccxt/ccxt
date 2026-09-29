@@ -1,6 +1,7 @@
 import binanceRest from '../binance.js';
-import type { Balances, Dict, Int, Liquidation, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Liquidation, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 export default class binance extends binanceRest {
     describe(): any;
     describeData(): {
@@ -134,7 +135,7 @@ export default class binance extends binanceRest {
             };
             streamBySubscriptionsHash: {};
             streamIndex: number;
-            watchOrderBookRate: number;
+            watchOrderBookRate: string;
             liquidationsLimit: number;
             myLiquidationsLimit: number;
             tradesLimit: number;
@@ -193,10 +194,10 @@ export default class binance extends binanceRest {
             };
         };
     };
-    requestId(url: string): any;
+    requestId(url: string): number;
     isSpotUrl(client: Client): boolean;
     stream(type: Str, subscriptionHash: Str, numSubscriptions?: Int): Str;
-    getWsUrl(type: any, category: any): any;
+    getWsUrl(type: any, category: string): string;
     getFutureWsCategory(channel: Str): "market" | "public";
     getPrivateWsUrl(type: Str, listenKey: Str): string;
     getStockWsUrl(streamType?: Str): any;
@@ -240,7 +241,7 @@ export default class binance extends binanceRest {
      */
     watchLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
     handleLiquidation(client: Client, message: Dict): void;
-    parseWsLiquidation(liquidation: any, market?: Market): Liquidation;
+    parseWsLiquidation(liquidation: Dict, market?: Market): Liquidation;
     /**
      * @method
      * @name binance#watchMyLiquidations
@@ -267,7 +268,7 @@ export default class binance extends binanceRest {
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
     watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
-    handleMyLiquidation(client: Client, message: any): void;
+    handleMyLiquidation(client: Client, message: Dict): void;
     /**
      * @method
      * @name binance#watchOrderBook
@@ -317,7 +318,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
+    unWatchOrderBookForSymbols(symbols: string[], params?: Dict): Promise<any>;
     /**
      * @method
      * @name binance#unWatchOrderBook
@@ -349,10 +350,10 @@ export default class binance extends binanceRest {
     fetchOrderBookSnapshot(client: Client, message: any, subscription: any): Promise<void>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBookMessage(client: Client, message: Dict, orderbook: any): any;
+    handleOrderBookMessage(client: Client, message: Dict, orderbook: Ob): Ob;
     handleOrderBook(client: Client, message: any): void;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
-    handleSubscriptionStatus(client: Client, message: any): any;
+    handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleUnSubscription(client: Client, subscription: Dict): void;
     /**
      * @method
@@ -383,7 +384,7 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
+    unWatchTradesForSymbols(symbols: string[], params?: Dict): Promise<any>;
     /**
      * @method
      * @name binance#unWatchTrades
@@ -415,7 +416,7 @@ export default class binance extends binanceRest {
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseWsTrade(trade: Dict, market?: Market): Trade;
-    handleTrade(client: Client, message: any): void;
+    handleTrade(client: Client, message: Dict): void;
     /**
      * @method
      * @name binance#watchOHLCV
@@ -463,7 +464,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
+    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: Dict): Promise<any>;
     /**
      * @method
      * @name binance#unWatchOHLCV
@@ -579,7 +580,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchTickers(symbols?: Strings, params?: Dict): Promise<any>;
     /**
      * @method
      * @name binance#unWatchMarkPrices
@@ -589,7 +590,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchMarkPrices(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchMarkPrices(symbols?: Strings, params?: Dict): Promise<any>;
     /**
      * @method
      * @name binance#unWatchMarkPrice
@@ -610,7 +611,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchBidsAsks(symbols?: Strings, params?: Dict): Promise<any>;
     /**
      * @method
      * @name binance#unWatchTicker
@@ -640,13 +641,13 @@ export default class binance extends binanceRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    watchMultiTickerHelper(methodName: any, channelName: Str, symbols?: Strings, params?: Dict, isUnsubscribe?: boolean): Promise<any>;
+    watchMultiTickerHelper(methodName: string, channelName: Str, symbols?: Strings, params?: Dict, isUnsubscribe?: boolean): Promise<any>;
     parseWsTicker(message: any, marketType: any): Ticker;
     handleTickerWs(client: Client, message: Dict): void;
     handleBidsAsks(client: Client, message: any): void;
     handleTickers(client: Client, message: any): void;
     handleMarkPrices(client: Client, message: any): void;
-    handleTickersAndBidsAsks(client: Client, message: any, methodType: any): void;
+    handleTickersAndBidsAsks(client: Client, message: any, methodType: string): void;
     signParams(params?: Dict): any;
     /**
      * @name binance#ensureUserDataStreamWsSubscribeSignature
@@ -656,7 +657,7 @@ export default class binance extends binanceRest {
      * @returns Promise<number> The subscription ID for the user data stream
      */
     ensureUserDataStreamWsSubscribeSignature(marketType?: string): Promise<void>;
-    handleUserDataStreamSubscribe(client: Client, message: any): void;
+    handleUserDataStreamSubscribe(client: Client, message: Dict): void;
     /**
      * @name binance#ensureUserDataStreamWsSubscribeListenToken
      * @description subscribes to user data stream using listenToken (for margin)
@@ -672,8 +673,8 @@ export default class binance extends binanceRest {
     renewListenToken(params?: Dict): Promise<void>;
     authenticate(params?: Dict): Promise<void>;
     keepAliveListenKey(params?: Dict): Promise<void>;
-    setBalanceCache(client: Client, type: any, isPortfolioMargin?: boolean): void;
-    loadBalanceSnapshot(client: Client, messageHash: any, type: any, isPortfolioMargin: any): Promise<void>;
+    setBalanceCache(client: Client, type: string, isPortfolioMargin?: boolean): void;
+    loadBalanceSnapshot(client: Client, messageHash: string, type: string, isPortfolioMargin: boolean): Promise<void>;
     /**
      * @method
      * @name binance#fetchBalanceWs
@@ -882,10 +883,10 @@ export default class binance extends binanceRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
-    setPositionsCache(client: Client, type: any, symbols?: Strings, isPortfolioMargin?: boolean): void;
-    loadPositionsSnapshot(client: Client, messageHash: any, type: any, isPortfolioMargin: any): Promise<void>;
+    setPositionsCache(client: Client, type: string, symbols?: Strings, isPortfolioMargin?: boolean): void;
+    loadPositionsSnapshot(client: Client, messageHash: string, type: string, isPortfolioMargin: boolean): Promise<void>;
     handlePositions(client: Client, message: Dict): void;
-    parseWsPosition(position: any, market?: Market): Position;
+    parseWsPosition(position: NullableDict, market?: Market): Position;
     parseWsOptionsPosition(position: any, market?: any): Position;
     /**
      * @method
@@ -929,11 +930,11 @@ export default class binance extends binanceRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    handleMyTrade(client: Client, message: any): void;
-    handleOrder(client: Client, message: any): void;
+    handleMyTrade(client: Client, message: Dict): void;
+    handleOrder(client: Client, message: Dict): void;
     handleAcountUpdate(client: Client, message: any): void;
-    handleOptionsAccountUpdate(client: Client, message: any): void;
-    handleWsError(client: Client, message: any): void;
-    handleEventStreamTerminated(client: Client, message: any): void;
+    handleOptionsAccountUpdate(client: Client, message: Dict): void;
+    handleWsError(client: Client, message: Dict): void;
+    handleEventStreamTerminated(client: Client, message: Dict): void;
     handleMessage(client: Client, message: any): void;
 }

@@ -117,8 +117,9 @@ class bingx extends \ccxt\async\bingx {
         $marketType = null;
         $subType = null;
         $url = null;
-        list($marketType, $params) = $this->handle_market_type_and_params($methodName, $market, $params);
-        list($subType, $params) = $this->handle_sub_type_and_params($methodName, $market, $params, 'linear');
+        $query = null;
+        list($marketType, $query) = $this->handle_market_type_and_params($methodName, $market, $params);
+        list($subType, $query) = $this->handle_sub_type_and_params($methodName, $market, $query, 'linear');
         if ($marketType === 'swap') {
             $url = $this->safe_string($this->urls['api']['ws'], $subType);
         } else {
@@ -142,12 +143,12 @@ class bingx extends \ccxt\async\bingx {
             'symbols' => $symbols,
             'topic' => $topic,
         );
-        $symbolsAndTimeframes = $this->safe_list($params, 'symbolsAndTimeframes');
+        $symbolsAndTimeframes = $this->safe_list($query, 'symbolsAndTimeframes');
         if ($symbolsAndTimeframes !== null) {
             $subscription['symbolsAndTimeframes'] = $symbolsAndTimeframes;
-            $params = $this->omit($params, 'symbolsAndTimeframes');
+            $query = $this->omit($query, 'symbolsAndTimeframes');
         }
-        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $subscribeHash, $subscription));
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $query), $subscribeHash, $subscription));
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -170,18 +171,16 @@ class bingx extends \ccxt\async\bingx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $marketType = null;
-        $subType = null;
         $url = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('watchTicker', $market, $params);
-        list($subType, $params) = $this->handle_sub_type_and_params('watchTicker', $market, $params, 'linear');
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchTicker', $market, $params);
+        list($subType, $paramsSubType) = $this->handle_sub_type_and_params('watchTicker', $market, $paramsMarketType, 'linear');
         if ($marketType === 'swap') {
             $url = $this->safe_string($this->urls['api']['ws'], $subType);
         } else {
             $url = $this->safe_string($this->urls['api']['ws'], $marketType);
         }
         $dataType = $market['id'] . '@ticker';
-        $messageHash = $this->get_message_hash('ticker', $market['symbol']);
+        $messageHash = $this->get_message_hash('ticker', $this->safe_string($market, 'symbol'));
         $uuid = $this->uuid();
         $request = array(
             'id' => $uuid,
@@ -194,7 +193,7 @@ class bingx extends \ccxt\async\bingx {
             'unsubscribe' => false,
             'id' => $uuid,
         );
-        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $paramsSubType), $messageHash, $subscription));
     }
 
     public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -218,7 +217,7 @@ class bingx extends \ccxt\async\bingx {
         }
         $market = $this->market($symbol);
         $dataType = $market['id'] . '@ticker';
-        $subMessageHash = $this->get_message_hash('ticker', $market['symbol']);
+        $subMessageHash = $this->get_message_hash('ticker', $this->safe_string($market, 'symbol'));
         $messageHash = 'unsubscribe::' . $subMessageHash;
         $topic = 'ticker';
         $methodName = 'unWatchTicker';
@@ -284,7 +283,10 @@ class bingx extends \ccxt\async\bingx {
         $marketId = $this->safe_string($data, 's');
         // const marketId = messageHash.split('@')[0];
         $isSwap = mb_strpos($client->url, 'swap') !== false;
-        $marketType = $isSwap ? 'swap' : 'spot';
+        $marketType = 'spot';
+        if ($isSwap) {
+            $marketType = 'swap';
+        }
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
@@ -324,15 +326,20 @@ class bingx extends \ccxt\async\bingx {
         //
         $timestamp = $this->safe_integer($message, 'C');
         $marketId = $this->safe_string($message, 's');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $close = $this->safe_string($message, 'c');
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        $inverse = ($isInverse === null) ? ($market['inverse'] === true) : $isInverse;
+        $inverse = false;
+        if ($isInverse === null) {
+            $inverse = $marketResolved['inverse'] === true;
+        } else {
+            $inverse = $isInverse;
+        }
         $baseVolumeKey = $inverse ? 'm' : 'v';
         return $this->safe_ticker(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($message, 'h'),
@@ -352,23 +359,22 @@ class bingx extends \ccxt\async\bingx {
             'baseVolume' => $this->safe_string($message, $baseVolumeKey),
             'quoteVolume' => $this->safe_string($message, 'q'),
             'info' => $message,
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function get_order_book_limit_by_market_type(string $marketType, ?int $limit = null) {
+    public function get_order_book_limit_by_market_type(string $marketType, ?int $limit = null): float {
         if ($limit === null) {
-            $limit = 100;
-        } else {
-            if ($marketType === 'swap' || $marketType === 'future') {
-                $limit = $this->find_nearest_ceiling(array( 5, 10, 20, 50, 100 ), $limit);
-            } elseif ($marketType === 'spot') {
-                $limit = $this->find_nearest_ceiling(array( 20, 100 ), $limit);
-            }
+            return 100;
+        }
+        if ($marketType === 'swap' || $marketType === 'future') {
+            return $this->find_nearest_ceiling(array( 5, 10, 20, 50, 100 ), $limit);
+        } elseif ($marketType === 'spot') {
+            return $this->find_nearest_ceiling(array( 20, 100 ), $limit);
         }
         return $limit;
     }
 
-    public function get_message_hash(string $unifiedChannel, ?string $symbol = null, ?string $extra = null) {
+    public function get_message_hash(string $unifiedChannel, ?string $symbol = null, ?string $extra = null): string {
         $hash = $unifiedChannel;
         if ($symbol !== null) {
             $hash .= '::' . $symbol;
@@ -403,19 +409,17 @@ class bingx extends \ccxt\async\bingx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $marketType = null;
-        $subType = null;
+        $symbolValue = $market['symbol'];
         $url = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('watchTrades', $market, $params);
-        list($subType, $params) = $this->handle_sub_type_and_params('watchTrades', $market, $params, 'linear');
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchTrades', $market, $params);
+        list($subType, $paramsSubType) = $this->handle_sub_type_and_params('watchTrades', $market, $paramsMarketType, 'linear');
         if ($marketType === 'swap') {
             $url = $this->safe_string($this->urls['api']['ws'], $subType);
         } else {
             $url = $this->safe_string($this->urls['api']['ws'], $marketType);
         }
         $rawHash = $market['id'] . '@trade';
-        $messageHash = 'trade::' . $symbol;
+        $messageHash = 'trade::' . $symbolValue;
         $uuid = $this->uuid();
         $request = array(
             'id' => $uuid,
@@ -428,11 +432,12 @@ class bingx extends \ccxt\async\bingx {
             'unsubscribe' => false,
             'id' => $uuid,
         );
-        $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
+        $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $paramsSubType), $messageHash, $subscription));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        $result = $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        $result = $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
         if ($this->handle_option('watchTrades', 'ignoreDuplicates', true) === true) {
             $filtered = $this->remove_repeated_trades_from_array($result);
             $filtered = $this->sort_by($filtered, 'timestamp');
@@ -463,7 +468,7 @@ class bingx extends \ccxt\async\bingx {
         }
         $market = $this->market($symbol);
         $dataType = $market['id'] . '@trade';
-        $subMessageHash = $this->get_message_hash('trade', $market['symbol']);
+        $subMessageHash = $this->get_message_hash('trade', $this->safe_string($market, 'symbol'));
         $messageHash = 'unsubscribe::' . $subMessageHash;
         $topic = 'trades';
         $methodName = 'unWatchTrades';
@@ -556,7 +561,10 @@ class bingx extends \ccxt\async\bingx {
         $rawHash = $this->safe_string($message, 'dataType', '');
         $marketId = explode('@', $rawHash)[0];
         $isSwap = mb_strpos($client->url, 'swap') !== false;
-        $marketType = $isSwap ? 'swap' : 'spot';
+        $marketType = 'spot';
+        if ($isSwap) {
+            $marketType = 'swap';
+        }
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $messageHash = 'trade::' . $symbol;
@@ -598,11 +606,9 @@ class bingx extends \ccxt\async\bingx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $marketType = null;
-        $subType = null;
         $url = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('watchOrderBook', $market, $params);
-        list($subType, $params) = $this->handle_sub_type_and_params('watchOrderBook', $market, $params, 'linear');
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchOrderBook', $market, $params);
+        list($subType, $paramsSubType) = $this->handle_sub_type_and_params('watchOrderBook', $market, $paramsMarketType, 'linear');
         if ($marketType === 'swap') {
             $url = $this->safe_string($this->urls['api']['ws'], $subType);
         } else {
@@ -611,7 +617,7 @@ class bingx extends \ccxt\async\bingx {
         $options = $this->safe_dict($this->options, 'watchOrderBook', array());
         $depth = $this->safe_integer($options, 'depth', 100);
         $subscriptionHash = $market['id'] . '@' . 'depth' . $this->number_to_string($depth);
-        $messageHash = $this->get_message_hash('orderbook', $market['symbol']);
+        $messageHash = $this->get_message_hash('orderbook', $this->safe_string($market, 'symbol'));
         $uuid = $this->uuid();
         $request = array(
             'id' => $uuid,
@@ -626,17 +632,17 @@ class bingx extends \ccxt\async\bingx {
                 'id' => $uuid,
                 'unsubscribe' => false,
                 'count' => $limit,
-                'params' => $params,
+                'params' => $paramsSubType,
             );
         } else {
             $subscriptionArgs = array(
                 'id' => $uuid,
                 'unsubscribe' => false,
                 'level' => $limit,
-                'params' => $params,
+                'params' => $paramsSubType,
             );
         }
-        $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $subscriptionHash, $subscriptionArgs));
+        $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $paramsSubType), $subscriptionHash, $subscriptionArgs));
         return $orderbook->limit();
     }
 
@@ -750,14 +756,17 @@ class bingx extends \ccxt\async\bingx {
         $isAllEndpoint = ($firstPart === 'all');
         $marketId = $this->safe_string($data, 'symbol', $firstPart);
         $isSwap = mb_strpos($client->url, 'swap') !== false;
-        $marketType = $isSwap ? 'swap' : 'spot';
+        $marketType = 'spot';
+        if ($isSwap) {
+            $marketType = 'swap';
+        }
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
             // const limit = [ 5, 10, 20, 50, 100 ]
             $subscriptionHash = $dataType;
-            $subscription = $client->subscriptions[$subscriptionHash];
+            $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
             // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
             // default to a reasonable depth instead of throwing NPE in the Java port.
             $limit = $this->safe_integer($subscription, 'limit', 100);
@@ -797,10 +806,13 @@ class bingx extends \ccxt\async\bingx {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        $isSpot = ($this->safe_bool($market, 'spot') === true);
-        $isInverse = ($this->safe_bool($market, 'inverse') === true);
-        $timestamp = $isSpot ? 't' : 'T';
-        if ($this->safe_bool($market, 'swap') === true) {
+        $isSpot = $this->safe_bool($market, 'spot', false);
+        $isInverse = $this->safe_bool($market, 'inverse', false);
+        $timestamp = 'T';
+        if ($isSpot) {
+            $timestamp = 't';
+        }
+        if ($this->safe_bool($market, 'swap', false)) {
             $timestamp = $isInverse ? 't' : 'T';
         }
         return array(
@@ -884,7 +896,10 @@ class bingx extends \ccxt\async\bingx {
         $firstPart = $parts[0];
         $isAllEndpoint = ($firstPart === 'all');
         $marketId = $this->safe_string($message, 's', $firstPart);
-        $marketType = $isSwap ? 'swap' : 'spot';
+        $marketType = 'spot';
+        if ($isSwap) {
+            $marketType = 'swap';
+        }
         $market = $this->safe_market($marketId, null, null, $marketType);
         $candles = null;
         if ($isSwap) {
@@ -905,7 +920,7 @@ class bingx extends \ccxt\async\bingx {
         $unifiedTimeframe = $this->find_timeframe($rawTimeframe, $timeframes);
         if ($this->safe_value($this->ohlcvs[$symbol], $rawTimeframe) === null) {
             $subscriptionHash = $dataType;
-            $subscription = $client->subscriptions[$subscriptionHash];
+            $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
             // subscription.limit is only set when watchOHLCV registers the subscription;
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
@@ -951,11 +966,9 @@ class bingx extends \ccxt\async\bingx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $marketType = null;
-        $subType = null;
         $url = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('watchOHLCV', $market, $params);
-        list($subType, $params) = $this->handle_sub_type_and_params('watchOHLCV', $market, $params, 'linear');
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchOHLCV', $market, $params);
+        list($subType, $paramsSubType) = $this->handle_sub_type_and_params('watchOHLCV', $market, $paramsMarketType, 'linear');
         if ($marketType === 'swap') {
             $url = $this->safe_string($this->urls['api']['ws'], $subType);
         } else {
@@ -967,7 +980,7 @@ class bingx extends \ccxt\async\bingx {
         $options = $this->safe_dict($this->options, $marketType, array());
         $timeframes = $this->safe_dict($options, 'timeframes', array());
         $rawTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
-        $messageHash = $this->get_message_hash('ohlcv', $market['symbol'], $timeframe);
+        $messageHash = $this->get_message_hash('ohlcv', $this->safe_string($market, 'symbol'), $timeframe);
         $subscriptionHash = $market['id'] . '@kline_' . $rawTimeframe;
         $uuid = $this->uuid();
         $request = array(
@@ -981,14 +994,15 @@ class bingx extends \ccxt\async\bingx {
             'id' => $uuid,
             'unsubscribe' => false,
             'interval' => $rawTimeframe,
-            'params' => $params,
+            'params' => $paramsSubType,
         );
-        $result = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $subscriptionHash, $subscriptionArgs));
+        $result = Async\await($this->watch($url, $messageHash, $this->extend($request, $paramsSubType), $subscriptionHash, $subscriptionArgs));
         $ohlcv = $result[2];
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
@@ -1046,24 +1060,28 @@ class bingx extends \ccxt\async\bingx {
             Async\await($this->load_markets());
         }
         Async\await($this->authenticate());
-        $type = null;
-        $subType = null;
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
         }
-        list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
-        list($subType, $params) = $this->handle_sub_type_and_params('watchOrders', $market, $params, 'linear');
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchOrders', $market, $params);
+        $subType = $this->handle_sub_type_and_params('watchOrders', $market, $paramsMarketType, 'linear')[0];
         $isSpot = ($type === 'spot');
         $spotHash = 'spot:private';
         $swapHash = 'swap:private';
-        $subscriptionHash = $isSpot ? $spotHash : $swapHash;
+        $subscriptionHash = $swapHash;
+        if ($isSpot) {
+            $subscriptionHash = $spotHash;
+        }
         $spotMessageHash = 'spot:order';
         $swapMessageHash = 'swap:order';
-        $messageHash = $isSpot ? $spotMessageHash : $swapMessageHash;
+        $messageHash = $swapMessageHash;
+        if ($isSpot) {
+            $messageHash = $spotMessageHash;
+        }
         if ($market !== null) {
-            $messageHash .= ':' . $symbol;
+            $messageHash .= ':' . $symbolResolved;
         }
         $uuid = $this->uuid();
         $baseUrl = null;
@@ -1081,16 +1099,21 @@ class bingx extends \ccxt\async\bingx {
                 'dataType' => 'spot.executionReport',
             );
         }
-        $url = $baseUrl . '?listenKey=' . $this->options['listenKey'];
+        $userStreamKey = $this->safe_string($this->options, 'listenKey');
+        if ($baseUrl === null || $userStreamKey === null) {
+            throw new AuthenticationError($this->id . ' watchOrders() requires a websocket URL and a listen key');
+        }
+        $url = $baseUrl . '?listenKey=' . $userStreamKey;
         $subscription = array(
             'unsubscribe' => false,
             'id' => $uuid,
         );
         $orders = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $subscription));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1115,24 +1138,28 @@ class bingx extends \ccxt\async\bingx {
             Async\await($this->load_markets());
         }
         Async\await($this->authenticate());
-        $type = null;
-        $subType = null;
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
         }
-        list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
-        list($subType, $params) = $this->handle_sub_type_and_params('watchMyTrades', $market, $params, 'linear');
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
+        $subType = $this->handle_sub_type_and_params('watchMyTrades', $market, $paramsMarketType, 'linear')[0];
         $isSpot = ($type === 'spot');
         $spotHash = 'spot:private';
         $swapHash = 'swap:private';
-        $subscriptionHash = $isSpot ? $spotHash : $swapHash;
+        $subscriptionHash = $swapHash;
+        if ($isSpot) {
+            $subscriptionHash = $spotHash;
+        }
         $spotMessageHash = 'spot:mytrades';
         $swapMessageHash = 'swap:mytrades';
-        $messageHash = $isSpot ? $spotMessageHash : $swapMessageHash;
+        $messageHash = $swapMessageHash;
+        if ($isSpot) {
+            $messageHash = $spotMessageHash;
+        }
         if ($market !== null) {
-            $messageHash .= ':' . $symbol;
+            $messageHash .= ':' . $symbolResolved;
         }
         $uuid = $this->uuid();
         $baseUrl = null;
@@ -1150,16 +1177,21 @@ class bingx extends \ccxt\async\bingx {
                 'dataType' => 'spot.executionReport',
             );
         }
-        $url = $baseUrl . '?listenKey=' . $this->options['listenKey'];
+        $userStreamKey = $this->safe_string($this->options, 'listenKey');
+        if ($baseUrl === null || $userStreamKey === null) {
+            throw new AuthenticationError($this->id . ' watchMyTrades() requires a websocket URL and a listen key');
+        }
+        $url = $baseUrl . '?listenKey=' . $userStreamKey;
         $subscription = array(
             'unsubscribe' => false,
             'id' => $uuid,
         );
         $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $subscription));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function watch_balance($params = array()): PromiseInterface {
@@ -1181,17 +1213,21 @@ class bingx extends \ccxt\async\bingx {
             Async\await($this->load_markets());
         }
         Async\await($this->authenticate());
-        $type = null;
-        $subType = null;
-        list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
-        list($subType, $params) = $this->handle_sub_type_and_params('watchBalance', null, $params, 'linear');
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $params);
+        list($subType, $paramsSubType) = $this->handle_sub_type_and_params('watchBalance', null, $paramsMarketType, 'linear');
         $isSpot = ($type === 'spot');
         $spotSubHash = 'spot:balance';
         $swapSubHash = 'swap:private';
         $spotMessageHash = 'spot:balance';
         $swapMessageHash = 'swap:balance';
-        $messageHash = $isSpot ? $spotMessageHash : $swapMessageHash;
-        $subscriptionHash = $isSpot ? $spotSubHash : $swapSubHash;
+        $messageHash = $swapMessageHash;
+        if ($isSpot) {
+            $messageHash = $spotMessageHash;
+        }
+        $subscriptionHash = $swapSubHash;
+        if ($isSpot) {
+            $subscriptionHash = $spotSubHash;
+        }
         $request = null;
         $baseUrl = null;
         $uuid = $this->uuid();
@@ -1209,13 +1245,15 @@ class bingx extends \ccxt\async\bingx {
                 'dataType' => 'ACCOUNT_UPDATE',
             );
         }
-        $url = $baseUrl . '?listenKey=' . $this->options['listenKey'];
+        $userStreamKey = $this->safe_string($this->options, 'listenKey');
+        if ($baseUrl === null || $userStreamKey === null) {
+            throw new AuthenticationError($this->id . ' watchBalance() requires a websocket URL and a listen key');
+        }
+        $url = $baseUrl . '?listenKey=' . $userStreamKey;
         $client = $this->client($url);
-        $this->set_balance_cache($client, $type, $subType, $subscriptionHash, $params);
-        $fetchBalanceSnapshot = null;
-        $awaitBalanceSnapshot = null;
-        list($fetchBalanceSnapshot, $params) = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
-        list($awaitBalanceSnapshot, $params) = $this->handle_option_and_params($params, 'watchBalance', 'awaitBalanceSnapshot', false);
+        $this->set_balance_cache($client, $type, $subType, $subscriptionHash, $paramsSubType);
+        list($fetchBalanceSnapshot, $paramsFetchBalanceSnapshot) = $this->handle_option_bool_and_params($paramsSubType, 'watchBalance', 'fetchBalanceSnapshot', true);
+        $awaitBalanceSnapshot = $this->handle_option_bool_and_params($paramsFetchBalanceSnapshot, 'watchBalance', 'awaitBalanceSnapshot', false)[0];
         if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
             Async\await($client->future($type . ':fetchBalanceSnapshot'));
         }
@@ -1226,12 +1264,11 @@ class bingx extends \ccxt\async\bingx {
         return Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $subscription));
     }
 
-    public function set_balance_cache(Client $client, mixed $type, ?string $subType, string $subscriptionHash, array $params) {
+    public function set_balance_cache(Client $client, string $type, ?string $subType, string $subscriptionHash, array $params) {
         if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
             return;
         }
-        $fetchBalanceSnapshot = false;
-        list($fetchBalanceSnapshot, $params) = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        $fetchBalanceSnapshot = $this->handle_option_bool_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true)[0];
         if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
@@ -1243,11 +1280,11 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function load_balance_snapshot(Client $client, string $messageHash, mixed $type, ?string $subType) {
+    public function load_balance_snapshot(Client $client, string $messageHash, string $type, ?string $subType) {
         return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash, $type, $subType);
     }
 
-    private function do_load_balance_snapshot(Client $client, string $messageHash, mixed $type, ?string $subType) {
+    private function do_load_balance_snapshot(Client $client, string $messageHash, string $type, ?string $subType) {
         $response = Async\await($this->fetch_balance(array( 'type' => $type, 'subType' => $subType )));
         $this->balance[$type] = $this->extend($response, $this->safe_dict($this->balance, $type, array()));
         // don't remove the future from the .futures cache
@@ -1280,15 +1317,13 @@ class bingx extends \ccxt\async\bingx {
         Async\await($this->authenticate());
         $market = null;
         $messageHash = '';
-        $symbols = $this->market_symbols($symbols);
-        if (($symbols !== null) && !$this->is_empty($symbols)) {
-            $market = $this->get_market_from_symbols($symbols);
-            $messageHash = '::' . implode(',', $symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
+        if (($symbolsNormalized !== null) && !$this->is_empty($symbolsNormalized)) {
+            $market = $this->get_market_from_symbols($symbolsNormalized);
+            $messageHash = '::' . implode(',', $symbolsNormalized);
         }
-        $type = null;
-        $subType = null;
-        list($type, $params) = $this->handle_market_type_and_params('watchPositions', $market, $params, 'swap');
-        list($subType, $params) = $this->handle_sub_type_and_params('watchPositions', $market, $params, 'linear');
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchPositions', $market, $params, 'swap');
+        list($subType, $paramsSubType) = $this->handle_sub_type_and_params('watchPositions', $market, $paramsMarketType, 'linear');
         if ($type === 'spot') {
             throw new NotSupported($this->id . ' watchPositions is not supported for spot markets');
         }
@@ -1298,13 +1333,15 @@ class bingx extends \ccxt\async\bingx {
         $subscriptionHash = 'swap:private';
         $messageHash = 'swap:positions' . $messageHash;
         $baseUrl = $this->safe_string($this->urls['api']['ws'], $subType);
-        $url = $baseUrl . '?listenKey=' . $this->options['listenKey'];
+        $userStreamKey = $this->safe_string($this->options, 'listenKey');
+        if ($baseUrl === null || $userStreamKey === null) {
+            throw new AuthenticationError($this->id . ' watchPositions() requires a websocket URL and a listen key');
+        }
+        $url = $baseUrl . '?listenKey=' . $userStreamKey;
         $client = $this->client($url);
-        $this->set_positions_cache($client, $type, $symbols);
-        $fetchPositionsSnapshot = null;
-        $awaitPositionsSnapshot = null;
-        list($fetchPositionsSnapshot, $params) = $this->handle_option_and_params($params, 'watchPositions', 'fetchPositionsSnapshot', true);
-        list($awaitPositionsSnapshot, $params) = $this->handle_option_and_params($params, 'watchPositions', 'awaitPositionsSnapshot', false);
+        $this->set_positions_cache($client, $type, $symbolsNormalized);
+        list($fetchPositionsSnapshot, $paramsFetchPositionsSnapshot) = $this->handle_option_bool_and_params($paramsSubType, 'watchPositions', 'fetchPositionsSnapshot', true);
+        $awaitPositionsSnapshot = $this->handle_option_bool_and_params($paramsFetchPositionsSnapshot, 'watchPositions', 'awaitPositionsSnapshot', false)[0];
         $uuid = $this->uuid();
         $subscription = array(
             'unsubscribe' => false,
@@ -1312,13 +1349,13 @@ class bingx extends \ccxt\async\bingx {
         );
         if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
             $snapshot = Async\await($client->future($type . ':fetchPositionsSnapshot'));
-            return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
+            return $this->filter_by_symbols_since_limit($snapshot, $symbolsNormalized, $since, $limit, true);
         }
         $newPositions = Async\await($this->watch($url, $messageHash, null, $subscriptionHash, $subscription));
         if ($this->newUpdates) {
             return $newPositions;
         }
-        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
     }
 
     public function set_positions_cache(Client $client, ?string $type, ?array $symbols = null) {
@@ -1719,7 +1756,7 @@ class bingx extends \ccxt\async\bingx {
                     // Match both id and symbol: several cached orders can share a symbol.
                     for ($i = 0; $i < count($stored); $i++) {
                         $previousOrder = $stored[$i];
-                        if (($previousOrder['id'] === $orderId) && ($previousOrder['symbol'] === $parsedOrder['symbol'])) {
+                        if (($this->safe_string($previousOrder, 'id') === $orderId) && ($this->safe_string($previousOrder, 'symbol') === $this->safe_string($parsedOrder, 'symbol'))) {
                             $previousTimestamp = $this->safe_integer($previousOrder, 'lastUpdateTimestamp');
                             if (($previousTimestamp !== null) && ($updateTimestamp < $previousTimestamp)) {
                                 return;
@@ -1735,7 +1772,10 @@ class bingx extends \ccxt\async\bingx {
         $symbol = $parsedOrder['symbol'];
         $spotHash = 'spot:order';
         $swapHash = 'swap:order';
-        $messageHash = ($isSpot) ? $spotHash : $swapHash;
+        $messageHash = $swapHash;
+        if ($isSpot) {
+            $messageHash = $spotHash;
+        }
         $client->resolve($stored, $messageHash);
         $client->resolve($stored, $messageHash . ':' . $symbol);
     }
@@ -1805,14 +1845,20 @@ class bingx extends \ccxt\async\bingx {
             $cachedTrades = new ArrayCacheBySymbolById($limit);
             $this->myTrades = $cachedTrades;
         }
-        $type = $isSpot ? 'spot' : 'swap';
+        $type = 'swap';
+        if ($isSpot) {
+            $type = 'spot';
+        }
         $marketId = $this->safe_string($result, 's');
         $market = $this->safe_market($marketId, null, '-', $type);
         $parsed = $this->parse_trade($result, $market);
         $symbol = $parsed['symbol'];
         $spotHash = 'spot:mytrades';
         $swapHash = 'swap:mytrades';
-        $messageHash = $isSpot ? $spotHash : $swapHash;
+        $messageHash = $swapHash;
+        if ($isSpot) {
+            $messageHash = $spotHash;
+        }
         $cachedTrades->append($parsed);
         $client->resolve($cachedTrades, $messageHash);
         $client->resolve($cachedTrades, $messageHash . ':' . $symbol);
@@ -1860,7 +1906,10 @@ class bingx extends \ccxt\async\bingx {
         $timestamp = $this->safe_integer_2($message, 'T', 'E');
         $spotUrl = $this->safe_string($this->urls['api']['ws'], 'spot');
         $isSpot = ($spotUrl !== null) && (mb_strpos($client->url, $spotUrl) === 0);
-        $type = $isSpot ? 'spot' : 'swap';
+        $type = 'swap';
+        if ($isSpot) {
+            $type = 'spot';
+        }
         if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }
@@ -1875,7 +1924,7 @@ class bingx extends \ccxt\async\bingx {
             $account['info'] = $balance;
             $account['used'] = $this->safe_string($balance, 'lk');
             $account['free'] = $this->safe_string($balance, 'wb');
-            if (($type !== null) && ($code !== null)) {
+            if ($code !== null) {
                 $this->balance[$type][$code] = $account;
             }
         }
@@ -1884,11 +1933,18 @@ class bingx extends \ccxt\async\bingx {
     }
 
     public function handle_message(Client $client, mixed $message) {
+        // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
+        if (gettype($message) === 'string') {
+            if ($message === 'Ping') {
+                $this->spawn(array($this, 'pong'), $client, $message);
+            }
+            return;
+        }
         if (!$this->handle_error_message($client, $message)) {
             return;
         }
         // public subscriptions
-        if (($message === 'Ping') || (is_array($message) && array_key_exists('ping' ?? '', $message))) {
+        if (is_array($message) && array_key_exists('ping' ?? '', $message)) {
             $this->spawn(array($this, 'pong'), $client, $message);
             return;
         }

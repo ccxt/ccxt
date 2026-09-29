@@ -16,7 +16,7 @@ export default class coinsph extends Exchange {
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: any): any;
+    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
     /**
      * @method
      * @name coinsph#fetchStatus
@@ -292,9 +292,9 @@ export default class coinsph extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
     urlEncodeQuery(query?: Dict): string;
     parseArrayParam(array: any, key: string): string;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

@@ -41,7 +41,7 @@ public class BinanceDemoRestTest {
         exchange.enableDemoTrading(true);
         System.out.println("Demo trading enabled");
         System.out.println("Loading markets...\n");
-        exchange.loadMarkets().join();
+        exchange.loadMarkets(false, new java.util.HashMap<String, Object>()).join();
 
         // ── Public endpoints (no auth needed) ──
         section("PUBLIC ENDPOINTS");

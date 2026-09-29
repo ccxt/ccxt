@@ -3,7 +3,8 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import coinbaseinternationalRest from '../coinbaseinternational.js';
 import { AuthenticationError, ExchangeError, NotSupported, ArgumentsRequired } from '../base/errors.js';
-import { Ticker, Int, Str, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool } from '../base/types.js';
+import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool } from '../base/types.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
@@ -87,13 +88,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         let market: Market = undefined;
         let messageHash = name;
         let productIds: Strings = undefined;
-        if (symbols === undefined) {
-            symbols = this.getActiveSymbols ();
-        }
-        const symbolsLength = symbols.length;
+        const symbolsResolved: string[] = (symbols === undefined) ? this.getActiveSymbols () : symbols;
+        const symbolsLength = symbolsResolved.length;
         const messageHashes: string[] = [];
         if (symbolsLength > 1) {
-            const parsedSymbols = this.marketSymbols (symbols);
+            const parsedSymbols = this.marketSymbols (symbolsResolved);
             const marketIds = this.marketIds (parsedSymbols);
             productIds = marketIds;
             for (let i = 0; i < parsedSymbols.length; i++) {
@@ -101,11 +100,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             }
             // messageHash = messageHash + '::' + parsedSymbols.join (',');
         } else if (symbolsLength === 1) {
-            market = this.market (symbols[0]);
+            market = this.market (symbolsResolved[0]);
             messageHash = name + '::' + market['symbol'];
             productIds = [ (market['id'] as string) ];
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         if (url === undefined) {
             throw new NotSupported (this.id + ' is not supported in sandbox environment');
         }
@@ -145,20 +144,21 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             await this.loadMarkets ();
         }
         this.checkRequiredCredentials ();
+        let symbolsResolved: Strings = undefined;
         if (this.isEmpty (symbols)) {
-            symbols = this.symbols;
+            symbolsResolved = this.symbols;
         } else {
-            symbols = this.marketSymbols (symbols);
+            symbolsResolved = this.marketSymbols (symbols);
         }
         const messageHashes: string[] = [];
         const productIds: any[] = [];
-        for (let i = 0; i < (symbols as string[]).length; i++) {
-            const marketId = this.marketId ((symbols as string[])[i]);
+        for (let i = 0; i < (symbolsResolved as string[]).length; i++) {
+            const marketId = this.marketId ((symbolsResolved as string[])[i]);
             const symbol = this.symbol (marketId);
             productIds.push (marketId);
             messageHashes.push (name + '::' + symbol);
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         if (url === undefined) {
             throw new NotSupported (this.id + ' is not supported in sandbox environment');
         }
@@ -230,12 +230,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'LEVEL1');
-        return await this.subscribe ((channel as string), [ symbol ], params);
+        const [ channel, paramsChannel ] = this.handleOptionStringAndParams (params, 'watchTicker', 'channel', 'LEVEL1');
+        return await this.subscribe ((channel as string), [ symbol ], paramsChannel);
     }
 
-    getActiveSymbols () {
+    getActiveSymbols (): any[] {
         const symbols = this.symbols;
         const output: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -262,12 +261,14 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'LEVEL1');
-        const ticker = await this.subscribe (channel, symbols, params);
+        const [ channel, paramsChannel ] = this.handleOptionStringAndParams (params, 'watchTickers', 'channel', 'LEVEL1');
+        const ticker = await this.subscribe (channel, symbols, paramsChannel);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
@@ -302,10 +303,12 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const ticker = this.parseWsInstrument (message);
         const channel = this.safeString (message, 'channel');
         client.resolve (ticker, channel);
-        client.resolve (ticker, channel + '::' + ticker['symbol']);
+        if (channel !== undefined) {
+            client.resolve (ticker, channel + '::' + ticker['symbol']);
+        }
     }
 
-    parseWsInstrument (ticker: Dict, market: Market = undefined) {
+    parseWsInstrument (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "sequence": 1,
@@ -413,7 +416,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const ticker = this.parseWsTicker (message);
         const channel = this.safeString (message, 'channel');
         client.resolve (ticker, channel);
-        client.resolve (ticker, channel + '::' + ticker['symbol']);
+        if (channel !== undefined) {
+            client.resolve (ticker, channel + '::' + ticker['symbol']);
+        }
     }
 
     parseWsTicker (ticker: object, market: Market = undefined): Ticker {
@@ -473,14 +478,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const options = this.safeDict (this.options, 'timeframes', {});
         const interval = this.safeString (options, timeframe, timeframe);
-        const ohlcv = await this.subscribe (interval, [ symbol ], params);
+        const ohlcv = await this.subscribe (interval, [ symbolValue ], params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -513,13 +519,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
         }
         const stored = this.ohlcvs[symbol][(timeframe as string)];
-        const data = this.safeList (message, 'candles', []);
+        const data: Dict[] = this.safeList (message, 'candles', []);
         for (let i = 0; i < data.length; i++) {
-            const tick = data[i];
+            const tick = this.safeDict (data, i);
             const parsed = this.parseOHLCV (tick, market);
             stored.append (parsed);
         }
-        client.resolve (stored, messageHash + '::' + symbol);
+        if (messageHash !== undefined) {
+            client.resolve (stored, messageHash + '::' + symbol);
+        }
     }
 
     /**
@@ -551,14 +559,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        const trades = await this.subscribeMultiple ('MATCH', symbols, params);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, true);
+        const trades = await this.subscribeMultiple ('MATCH', symbolsNormalized, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrade (client: Client, message: Dict): Dict {
@@ -587,7 +596,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         tradesArray.append (trade);
         this.trades[(symbol as string)] = tradesArray;
         client.resolve (tradesArray, channel);
-        client.resolve (tradesArray, channel + '::' + trade['symbol']);
+        if (channel !== undefined) {
+            client.resolve (tradesArray, channel + '::' + trade['symbol']);
+        }
         return message;
     }
 
@@ -703,27 +714,32 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             orderbook['symbol'] = symbol;
         } else {
             const changes = this.safeList (message, 'changes', []);
-            this.handleDeltas (orderbook, changes);
+            this.handleBookDeltas (orderbook, changes);
         }
         orderbook['nonce'] = this.safeInteger (message, 'sequence');
         orderbook['datetime'] = datetime;
         orderbook['timestamp'] = this.parse8601 (datetime);
         this.orderbooks[symbol] = orderbook;
-        client.resolve (orderbook, channel + '::' + symbol);
+        if (channel !== undefined) {
+            client.resolve (orderbook, channel + '::' + symbol);
+        }
     }
 
-    override handleDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: Ob, delta: any) {
         const rawSide = this.safeStringLower (delta, 0);
-        const side = (rawSide === 'buy') ? 'bids' : 'asks';
+        let side: 'asks' | 'bids' = 'asks';
+        if (rawSide === 'buy') {
+            side = 'bids';
+        }
         const price = this.safeFloat (delta, 1);
         const amount = this.safeFloat (delta, 2);
         const bookside = orderbook[side];
         bookside.store (price, amount);
     }
 
-    override handleDeltas (orderbook: any, deltas: any) {
+    override handleBookDeltas (orderbook: Ob, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (orderbook, deltas[i]);
+            this.handleBookDelta (orderbook, deltas[i]);
         }
     }
 
@@ -755,7 +771,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return message;
     }
 
-    handleFundingRate (client: Client, message: any) {
+    handleFundingRate (client: Client, message: Dict) {
         //
         // snapshot
         //    {
@@ -781,7 +797,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const channel = this.safeString (message, 'channel');
         const fundingRate = this.parseFundingRate (message);
         this.fundingRates[fundingRate['symbol']] = fundingRate;
-        client.resolve (fundingRate, channel + '::' + fundingRate['symbol']);
+        if (channel !== undefined) {
+            client.resolve (fundingRate, channel + '::' + fundingRate['symbol']);
+        }
     }
 
     handleErrorMessage (client: Client, message: Dict): Bool {

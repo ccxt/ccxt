@@ -3,9 +3,10 @@
 
 import coincheckRest from '../coincheck.js';
 import { AuthenticationError } from '../base/errors.js';
-import type { Int, Market, OrderBook, Trade, Dict } from '../base/types.js';
+import type { Int, Market, OrderBook, Trade, Dict, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -68,7 +69,7 @@ export default class coincheck extends coincheckRest {
             'channel': market['id'] + '-orderbook',
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash);
+        const orderbook: Ob = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
     }
 
@@ -125,7 +126,7 @@ export default class coincheck extends coincheckRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const messageHash = 'trade:' + market['symbol'];
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -133,11 +134,12 @@ export default class coincheck extends coincheckRest {
             'channel': market['id'] + '-trades',
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: any[]) {
@@ -172,7 +174,7 @@ export default class coincheck extends coincheckRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseWsTrade (trade: List, market: Market = undefined): Trade {
         //
         //     [
         //         "1663318663", // transaction timestamp (unix time)

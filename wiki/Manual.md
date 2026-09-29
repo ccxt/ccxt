@@ -1412,7 +1412,7 @@ Console.WriteLine(formattedAmount + " " + formattedPrice);
 ```
 #### **Java**
 ```java
-exchange.loadMarkets();
+exchange.loadMarkets(false);
 String symbol = "BTC/USDT";
 double amount = 1.2345678;
 double price = 87654.321;
@@ -1618,7 +1618,7 @@ Console.WriteLine($"Symbols loaded: {binance2.symbols?.Count ?? 0}");
 #### **Java**
 ```java
 Exchange exchange1 = Exchange.dynamicallyCreateInstance("binance", null);
-exchange1.loadMarkets().join();
+exchange1.loadMarkets(false);
 
 Exchange exchange2 = Exchange.dynamicallyCreateInstance("binance", null);
 // share markets from exchange1 to exchange2
@@ -2447,7 +2447,7 @@ var result = await exchange.FetchOrderBook(symbol, length, parameters);
 #### **Java**
 ```java
 Map<String, Object> params = Map.of("foo", "bar");
-OrderBook ob = exchange.fetchOrderBook(symbol, limit, params);
+OrderBook ob = exchange.fetchOrderBook(symbol, limit, params).join();
 ```
 
 <!-- tabs:end -->
@@ -2643,7 +2643,7 @@ while (since < exchange.milliseconds())
 long since = System.currentTimeMillis() - 86400000; // -1 day
 List<Trade> allTrades = new ArrayList<>();
 while (since < System.currentTimeMillis()) {
-    List<Trade> trades = exchange.fetchTrades("BTC/USDT", since, 20L, null);
+    List<Trade> trades = exchange.fetchTrades("BTC/USDT", since, 20L);
     if (!trades.isEmpty()) {
         since = trades.get(trades.size() - 1).timestamp + 1;
         allTrades.addAll(trades);
@@ -2779,7 +2779,7 @@ String fromId = "abc123";
 List<Trade> allTrades = new ArrayList<>();
 while (true) {
     Map<String, Object> params = Map.of("from_id", fromId);
-    List<Trade> trades = exchange.fetchTrades("BTC/USDT", null, 20L, params);
+    List<Trade> trades = exchange.fetchTrades("BTC/USDT", null, 20L, params).join();
     if (!trades.isEmpty()) {
         fromId = trades.get(trades.size() - 1).id;
         allTrades.addAll(trades);
@@ -2926,7 +2926,7 @@ int page = 0;
 List<Trade> allTrades = new ArrayList<>();
 while (true) {
     Map<String, Object> params = Map.of("page", page);
-    List<Trade> trades = exchange.fetchTrades("BTC/USDT", null, 20L, params);
+    List<Trade> trades = exchange.fetchTrades("BTC/USDT", null, 20L, params).join();
     if (!trades.isEmpty()) {
         page++; // or extract cursor from response
         allTrades.addAll(trades);
@@ -3058,7 +3058,7 @@ foreach (string symbol in exchange.symbols)
 ```java
 Binance exchange = new Binance();
 exchange.loadMarkets(false);
-OrderBook ob = exchange.fetchOrderBook("BTC/USDT", 10L, null);
+OrderBook ob = exchange.fetchOrderBook("BTC/USDT", 10L);
 System.out.println("bids: " + ob.bids.size() + " asks: " + ob.asks.size());
 ```
 
@@ -3167,7 +3167,7 @@ Console.WriteLine("bids: " + orders.bids.Count + " asks: " + orders.asks.Count);
 
 #### **Java**
 ```java
-OrderBook ob = exchange.fetchOrderBook("BTC/USDT", 5L, null);
+OrderBook ob = exchange.fetchOrderBook("BTC/USDT", 5L);
 System.out.println("bids: " + ob.bids.size() + " asks: " + ob.asks.size());
 ```
 
@@ -3494,7 +3494,7 @@ Console.WriteLine(tickers.tickers.Count);
 ```
 #### **Java**
 ```java
-Tickers tickers = exchange.fetchTickers(List.of("ETH/BTC", "LTC/BTC"), null);
+Tickers tickers = exchange.fetchTickers(List.of("ETH/BTC", "LTC/BTC"));
 ```
 <!-- tabs:end -->
 
@@ -3580,7 +3580,7 @@ foreach (var c in candles)
 ```
 #### **Java**
 ```java
-List<OHLCV> candles = exchange.fetchOHLCV("BTC/USDT", "1h", null, 10L, null);
+List<OHLCV> candles = exchange.fetchOHLCV("BTC/USDT", "1h", null, 10L);
 for (OHLCV c : candles) {
     System.out.println(c.timestamp + " O=" + c.open + " H=" + c.high + " L=" + c.low + " C=" + c.close);
 }
@@ -3775,7 +3775,7 @@ Console.WriteLine(markKlines.Count + " " + indexKlines.Count);
 ```
 #### **Java**
 ```java
-List<OHLCV> markKlines = exchange.fetchOHLCV("ADA/USDT", "1h", null, null, Map.of("price", "mark"));
+List<OHLCV> markKlines = exchange.fetchOHLCV("ADA/USDT", "1h", null, null, Map.of("price", "mark")).join();
 ```
 <!-- tabs:end -->
 
@@ -3840,7 +3840,7 @@ foreach (var t in trades)
 ```
 #### **Java**
 ```java
-List<Trade> trades = exchange.fetchTrades("BTC/USDT", null, 20L, null);
+List<Trade> trades = exchange.fetchTrades("BTC/USDT", null, 20L);
 for (Trade t : trades) {
     System.out.println(t.datetime + " " + t.side + " " + t.amount + " @ " + t.price);
 }
@@ -5383,7 +5383,7 @@ if ((bool)exchange.has["fetchOrder"])
 ```
 #### **Java**
 ```java
-Order order = exchange.fetchOrder(orderId, "BTC/USDT", null);
+Order order = exchange.fetchOrder(orderId, "BTC/USDT");
 System.out.println("Order " + order.id + " status=" + order.status + " filled=" + order.filled);
 ```
 <!-- tabs:end -->
@@ -5827,7 +5827,7 @@ var order = await exchange.CreateOrder("ETH/USDT", "market", "buy", 0.1, 1500, p
 #### **Java**
 ```java
 Map<String, Object> params = Map.of("triggerPrice", 1700);
-Order order = exchange.createOrder("ETH/USDT", "market", "buy", 0.1, null, params);
+Order order = exchange.createOrder("ETH/USDT", "market", "buy", 0.1, null, params).join();
 ```
 <!-- tabs:end -->
 <a name="trigger-direction" id="trigger-direction"></a>
@@ -5944,7 +5944,7 @@ var order = await exchange.CreateOrder(symbol, type, side, amount, price, parame
 #### **Java**
 ```java
 Map<String, Object> params = Map.of("stopLossPrice", 55.45);
-Order order = exchange.createOrder(symbol, type, side, amount, price, params);
+Order order = exchange.createOrder(symbol, type, side, amount, price, params).join();
 ```
 <!-- tabs:end -->
 
@@ -6048,7 +6048,7 @@ var order = await exchange.CreateOrder(symbol, type, side, amount, price, parame
 #### **Java**
 ```java
 Map<String, Object> params = Map.of("takeProfitPrice", 120.45);
-Order order = exchange.createOrder(symbol, type, side, amount, price, params);
+Order order = exchange.createOrder(symbol, type, side, amount, price, params).join();
 ```
 <!-- tabs:end -->
 
@@ -6136,7 +6136,7 @@ Map<String, Object> params = Map.of(
     "stopLoss", Map.of("triggerPrice", 12.34, "price", 12.00),
     "takeProfit", Map.of("triggerPrice", 15.00, "price", 15.50)
 );
-Order order = exchange.createOrder("SOL/USDT", "limit", "buy", 0.5, 13.0, params);
+Order order = exchange.createOrder("SOL/USDT", "limit", "buy", 0.5, 13.0, params).join();
 ```
 <!-- tabs:end -->
 
@@ -6243,7 +6243,7 @@ var order = await exchange.CreateOrder(symbol, type, side, amount, null, paramet
 #### **Java**
 ```java
 Map<String, Object> params = Map.of("trailingPercent", 1.0);
-Order order = exchange.createOrder("BTC/USDT:USDT", "market", "sell", 1.0, null, params);
+Order order = exchange.createOrder("BTC/USDT:USDT", "market", "sell", 1.0, null, params).join();
 ```
 <!-- tabs:end -->
 
@@ -6283,7 +6283,7 @@ var order = await bitfinex.CreateLimitSellOrder("BTC/USD", 1, 10, new Dictionary
 ```
 #### **Java**
 ```java
-Order order = exchange.createOrder("BTC/USDT", "limit", "sell", 1.0, 10.0, Map.of("type", "trailing-stop"));
+Order order = exchange.createOrder("BTC/USDT", "limit", "sell", 1.0, 10.0, Map.of("type", "trailing-stop")).join();
 ```
 <!-- tabs:end -->
 
@@ -6331,7 +6331,7 @@ await exchange.CreateOrder(symbol, type, side, amount, price, new Dictionary<str
 #### **Java**
 ```java
 Order order = exchange.createOrder("BTC/USDT", "limit", "buy", 0.001, 50000.0,
-    Map.of("clientOrderId", "Hello"));
+    Map.of("clientOrderId", "Hello")).join();
 ```
 <!-- tabs:end -->
 
@@ -6601,7 +6601,7 @@ foreach (var t in myTrades)
 ```
 #### **Java**
 ```java
-List<Trade> myTrades = exchange.fetchMyTrades("BTC/USDT", null, 20L, null);
+List<Trade> myTrades = exchange.fetchMyTrades("BTC/USDT", null, 20L);
 for (Trade t : myTrades) {
     System.out.println(t.datetime + " " + t.side + " " + t.amount + " @ " + t.price);
 }
@@ -6694,7 +6694,7 @@ if ((bool)exchange.has["fetchOrderTrades"])
 ```
 #### **Java**
 ```java
-Object trades = exchange.fetchOrderTrades(orderId, symbol).join();
+List<Trade> trades = exchange.fetchOrderTrades(orderId, symbol);
 ```
 <!-- tabs:end -->
 
@@ -7109,7 +7109,7 @@ if ((bool)exchange.has["fetchDeposits"])
 ```
 #### **Java**
 ```java
-List<Transaction> deposits = exchange.fetchDeposits("BTC", null, null, null);
+List<Transaction> deposits = exchange.fetchDeposits("BTC", null, null, null).join();
 ```
 <!-- tabs:end -->
 
@@ -7166,7 +7166,7 @@ if ((bool)exchange.has["fetchWithdrawals"])
 ```
 #### **Java**
 ```java
-List<Transaction> withdrawals = exchange.fetchWithdrawals("BTC", null, null, null);
+List<Transaction> withdrawals = exchange.fetchWithdrawals("BTC", null, null, null).join();
 ```
 <!-- tabs:end -->
 
@@ -7223,7 +7223,7 @@ if ((bool)exchange.has["fetchTransactions"])
 ```
 #### **Java**
 ```java
-List<Transaction> transactions = exchange.fetchTransactions("BTC", null, null, null);
+List<Transaction> transactions = exchange.fetchTransactions("BTC", null, null, null).join();
 ```
 <!-- tabs:end -->
 
@@ -7882,7 +7882,7 @@ var order = await exchange.CreateOrder("ETH/USDT", "market", "buy", 0.1, 1500, p
 #### **Java**
 ```java
 Map<String, Object> params = Map.of("marginMode", "isolated");
-Order order = exchange.createOrder("ETH/USDT", "market", "buy", 0.1, null, params);
+Order order = exchange.createOrder("ETH/USDT", "market", "buy", 0.1, null, params).join();
 ```
 <!-- tabs:end -->
 
