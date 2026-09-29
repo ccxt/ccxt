@@ -986,6 +986,7 @@ export default class backpack extends Exchange {
         }
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const duration = this.parseTimeframe (timeframe);
         const request: Dict = {
             'symbol': market['id'],
             'interval': interval,
@@ -1000,13 +1001,18 @@ export default class backpack extends Exchange {
             limitResolved = defaultLimit;
         }
         if (since === undefined) {
-            const duration = this.parseTimeframe (timeframe);
             const endTime = (until !== undefined && until !== null && until !== 0) ? this.parseToInt (until / 1000) : this.seconds ();
             const windowLimit = (limit === undefined) ? defaultLimit : limit;
             const startTime = endTime - (windowLimit * duration);
             request['startTime'] = startTime;
         } else {
             request['startTime'] = this.parseToInt (since / 1000); // convert milliseconds to seconds
+        }
+        if (until === undefined) {
+            const currentMs = this.milliseconds (); // default to current time in seconds
+            const windowLimit = (limit === undefined) ? defaultLimit : limit;
+            const minTimestamp = Math.min (currentMs, request['startTime']  + (windowLimit * duration));
+            request['endTime'] = this.parseToInt (minTimestamp); // default to current time in seconds if until is not specified
         }
         const price = this.safeString (paramsUntil, 'price');
         const paramsOmitted: Dict = (price !== undefined) ? this.omit (paramsUntil, 'price') : paramsUntil;

@@ -360,23 +360,35 @@
         ],
         "fetchOHLCV": [
             {
-                "description": "fetch OHLCV with since and limit parameters",
+                "description": "spot +since +limit",
                 "method": "fetchOHLCV",
-                "url": "https://api.backpack.exchange/api/v1/klines?interval=1m&startTime=1757604778&symbol=ETH_USDC",
+                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1780003000&interval=1m&startTime=1780000000&symbol=BTC_USDC",
                 "input": [
-                    "ETH/USDC",
+                    "BTC/USDC",
                     "1m",
-                    1757604778000,
-                    1
+                    1780000000000,
+                    50
                 ],
                 "output": null
             },
             {
-                "description": "Fetch OHLCV",
+                "description": "spot +since",
                 "method": "fetchOHLCV",
-                "url": "https://api.backpack.exchange/api/v1/klines?interval=1m&startTime=1754912316&symbol=ETH_USDC",
+                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1780006000&interval=1m&startTime=1780000000&symbol=BTC_USDC",
                 "input": [
-                    "ETH/USDC"
+                    "BTC/USDC",
+                    "1m",
+                    1780000000000
+                ],
+                "output": null
+            },
+            {
+                "description": "spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1790680254&interval=1m&startTime=1790674254&symbol=BTC_USDC",
+                "input": [
+                    "BTC/USDC",
+                    "1m"
                 ],
                 "output": null
             }
