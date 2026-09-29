@@ -1259,7 +1259,7 @@ const CORE_ARG_SHADOW_CALLEES = [
     'safeSymbol', 'getValue', 'isEqual', 'isTrue', 'isGreaterThan', 'isLessThan',
     'isGreaterThanOrEqual', 'isLessThanOrEqual', 'mathMin', 'mathMax', 'subtract', 'multiply',
     'divide', 'sum', 'filterBySymbolSinceLimit', 'filterBySinceLimit', 'filterBySymbol',
-    'handleWithdrawTagAndParams', 'fetchPaginatedCallIncremental', 'fetchPaginatedCallCursor',
+    'fetchPaginatedCallIncremental', 'fetchPaginatedCallCursor',
     'fetchPaginatedCallDynamic', 'fetchPaginatedCallDeterministic', 'unWatchOHLCVForSymbols',
     'WatchOHLCVForSymbols', 'checkAddress', 'ToInt64Arg', 'ToDoubleArg', 'ToDoubleArgRequired',
     'ToOHLCVList', 'ToTradeList', 'ToOrderList', 'ToTransactionList', 'ToFundingRateHistoryList',

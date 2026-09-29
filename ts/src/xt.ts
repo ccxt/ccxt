@@ -4316,12 +4316,11 @@ export default class xt extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        this.checkAddress (address, code, tag, params);
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const networkIdsByCodes = this.safeDict (this.options, 'networks', {});

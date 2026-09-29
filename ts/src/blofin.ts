@@ -2048,7 +2048,6 @@ export default class blofin extends Exchange {
         //   with 152002 "Invalid parameter" - see options["networks"]
         // - 152002 responses omit the offending field name even though the
         //   error table documents the message as "Parameter {} error"
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
@@ -2060,7 +2059,7 @@ export default class blofin extends Exchange {
         request['dest'] = dest;
         params = this.omit (params, 'dest');
         if (dest === 'onchain') {
-            this.checkAddress (address);
+            this.checkAddress (address, code, tag, params);
             // the doc's Request Parameters table marks addrType "Required:
             // No", but the live venue rejects on-chain withdrawals without
             // it (152001 "Parameter addrType cannot be empty") - default to
