@@ -2795,6 +2795,46 @@ class testMainClass {
         const inverseConditionalClientOrderId = exchange.safeString (inverseConditionalBatchOrder, 'newClientOrderId');
         assert (inverseConditionalClientOrderId !== undefined, 'binance createOrders - inverse conditional order must send newClientOrderId');
         assert (inverseConditionalClientOrderId.startsWith (inverseSwapId) === true, 'binance createOrders - inverse conditional clientOrderId: ' + inverseConditionalClientOrderId + ' does not start with inverseSwapId' + inverseSwapId);
+        // quarterly futures use the prefix of their fapi/dapi side, not the inverse one
+        let linearFutureOrderRequest: Dict = {};
+        try {
+            await exchange.createOrder ('ETH/USDT:USDT-261225', 'limit', 'buy', 1, 2000);
+        } catch (e) {
+            linearFutureOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
+        const clientOrderIdLinearFuture = linearFutureOrderRequest['newClientOrderId'];
+        assert (clientOrderIdLinearFuture.startsWith (swapIdString) === true, 'binance - linear future clientOrderId: ' + clientOrderIdLinearFuture + ' does not start with swapId' + swapIdString);
+        let inverseFutureOrderRequest: Dict = {};
+        try {
+            await exchange.createOrder ('ETH/USD:ETH-261225', 'limit', 'buy', 1, 2000);
+        } catch (e) {
+            inverseFutureOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
+        const clientOrderIdInverseFuture = inverseFutureOrderRequest['newClientOrderId'];
+        assert (clientOrderIdInverseFuture.startsWith (inverseSwapId) === true, 'binance - inverse future clientOrderId: ' + clientOrderIdInverseFuture + ' does not start with inverseSwapId' + inverseSwapId);
+        // the implicit order endpoints inject the broker id of their api section
+        // skipped in the sync flavours: callExchangeMethodDynamically is async-only there
+        if (!isSync ()) {
+            let implicitDapiOrderRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'dapiPrivatePostOrder', [ { 'symbol': 'ETHUSD_PERP', 'side': 'SELL', 'type': 'LIMIT', 'quantity': '1', 'price': '4100', 'timeInForce': 'GTC' } ]);
+            } catch (e) {
+                implicitDapiOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const implicitDapiClientOrderId = implicitDapiOrderRequest['newClientOrderId'];
+            assert (implicitDapiClientOrderId.startsWith (inverseSwapId) === true, 'binance - implicit dapi clientOrderId: ' + implicitDapiClientOrderId + ' does not start with inverseSwapId' + inverseSwapId);
+            let implicitDapiBatchRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'dapiPrivatePostBatchOrders', [ { 'batchOrders': [ { 'symbol': 'ETHUSD_PERP', 'side': 'SELL', 'type': 'LIMIT', 'quantity': '1', 'price': '4100', 'timeInForce': 'GTC' } ] } ]);
+            } catch (e) {
+                implicitDapiBatchRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const implicitDapiBatchOrders = exchange.safeList (implicitDapiBatchRequest, 'batchOrders', []);
+            const implicitDapiBatchOrder = exchange.safeDict (implicitDapiBatchOrders, 0, {});
+            const implicitDapiBatchClientOrderId = exchange.safeString (implicitDapiBatchOrder, 'newClientOrderId');
+            assert (implicitDapiBatchClientOrderId !== undefined, 'binance - implicit dapi batch order must inject newClientOrderId');
+            assert (implicitDapiBatchClientOrderId.startsWith (inverseSwapId) === true, 'binance - implicit dapi batch clientOrderId: ' + implicitDapiBatchClientOrderId + ' does not start with inverseSwapId' + inverseSwapId);
+        }
         if (!isSync ()) {
             await close (exchange);
         }

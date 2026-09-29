@@ -5843,13 +5843,7 @@ export default class binance extends Exchange {
             }
         }
         if (clientOrderId === undefined) {
-            const broker = this.safeDict (this.options, 'broker');
-            if (broker !== undefined) {
-                const brokerId = this.safeString (broker, 'spot');
-                if (brokerId !== undefined) {
-                    request['newClientOrderId'] = brokerId + this.uuid22 ();
-                }
-            }
+            request['newClientOrderId'] = this.createBrokerId (market);
         } else {
             request['newClientOrderId'] = clientOrderId;
         }
@@ -7096,6 +7090,43 @@ export default class binance extends Exchange {
     /**
      * @method
      * @ignore
+     * @name binance#createBrokerId
+     * @description builds a fresh client order id carrying the broker prefix of the target market or implicit api section
+     * @param {object} [market] the market of the order, takes precedence over the api argument
+     * @param {string} [api] the implicit api section the order is sent to (private, sapi, fapiPrivate, dapiPrivate, eapiPrivate, ...)
+     * @returns {string} the broker prefix followed by 22 random characters
+     */
+    createBrokerId (market: Market = undefined, api: Str = undefined): string {
+        let idMarketType = 'spot';
+        if (market !== undefined) {
+            if (market['option'] === true) {
+                idMarketType = 'option';
+            } else if (market['linear'] === true) {
+                idMarketType = (market['swap'] === true) ? 'swap' : 'future';
+            } else if (market['inverse'] === true) {
+                idMarketType = (market['swap'] === true) ? 'inverse' : 'delivery';
+            }
+        } else if (api !== undefined) {
+            const isSpotOrMargin = (api.indexOf ('sapi') > -1 || api === 'private');
+            if (!isSpotOrMargin) {
+                if (api.indexOf ('dapi') > -1) {
+                    idMarketType = 'delivery';
+                } else if (api.indexOf ('eapi') > -1) {
+                    idMarketType = 'option';
+                } else {
+                    idMarketType = 'future';
+                }
+            }
+        }
+        const defaultId = (idMarketType === 'spot') ? 'x-TKT5PX2F' : 'x-xcKtGhcu';
+        const broker = this.safeDict (this.options, 'broker', {});
+        const brokerId = this.safeString (broker, idMarketType, defaultId);
+        return brokerId + this.uuid22 ();
+    }
+
+    /**
+     * @method
+     * @ignore
      * @name binance#isConditionalOrder
      * @description checks whether the order params describe a conditional (trigger, stop loss, take profit or trailing) order
      * @param {object} [params] the params passed to createOrder
@@ -7248,15 +7279,7 @@ export default class binance extends Exchange {
             clientOrderIdRequest = 'clientOrderId';
         }
         if (clientOrderId === undefined) {
-            const broker = this.safeDict (this.options, 'broker', {});
-            const defaultId = (market['contract'] === true) ? 'x-xcKtGhcu' : 'x-TKT5PX2F';
-            let idMarketType = 'spot';
-            if (market['contract'] === true) {
-                const isLinearSwap = (market['swap'] === true) && (market['linear'] === true);
-                idMarketType = isLinearSwap ? 'swap' : 'inverse';
-            }
-            const brokerId = this.safeString (broker, idMarketType, defaultId);
-            request[clientOrderIdRequest] = brokerId + this.uuid22 ();
+            request[clientOrderIdRequest] = this.createBrokerId (market);
         } else {
             request[clientOrderIdRequest] = clientOrderId;
         }
@@ -13169,12 +13192,7 @@ export default class binance extends Exchange {
                 // inject in implicit API calls
                 const newClientOrderId = this.safeString (params, 'newClientOrderId');
                 if (newClientOrderId === undefined) {
-                    const isSpotOrMargin = (api.indexOf ('sapi') > -1 || api === 'private');
-                    const marketType = isSpotOrMargin ? 'spot' : 'future';
-                    const defaultId = (!isSpotOrMargin) ? 'x-xcKtGhcu' : 'x-TKT5PX2F';
-                    const broker = this.safeDict (this.options, 'broker', {});
-                    const brokerId = this.safeString (broker, marketType, defaultId);
-                    params['newClientOrderId'] = brokerId + this.uuid22 ();
+                    params['newClientOrderId'] = this.createBrokerId (undefined, api);
                 }
             }
             let query: Str = undefined;
@@ -13182,18 +13200,14 @@ export default class binance extends Exchange {
             if ((path === 'batchOrders') && ((method === 'POST') || (method === 'PUT'))) {
                 const batchOrders = this.safeList (params, 'batchOrders', []);
                 let checkedBatchOrders = batchOrders;
-                if (method === 'POST' && api === 'fapiPrivate') {
-                    // check broker id if batchOrders are called with fapiPrivatePostBatchOrders
+                if (method === 'POST' && ((api === 'fapiPrivate') || (api === 'dapiPrivate'))) {
+                    // check broker id if batchOrders are called with fapiPrivatePostBatchOrders / dapiPrivatePostBatchOrders
                     checkedBatchOrders = [];
                     for (let i = 0; i < batchOrders.length; i++) {
                         const batchOrder = batchOrders[i];
-                        let newClientOrderId = this.safeString (batchOrder, 'newClientOrderId');
+                        const newClientOrderId = this.safeString (batchOrder, 'newClientOrderId');
                         if (newClientOrderId === undefined) {
-                            const defaultId = 'x-xcKtGhcu'; // batchOrders can not be spot or margin
-                            const broker = this.safeDict (this.options, 'broker', {});
-                            const brokerId = this.safeString (broker, 'future', defaultId);
-                            newClientOrderId = brokerId + this.uuid22 ();
-                            batchOrder['newClientOrderId'] = newClientOrderId;
+                            batchOrder['newClientOrderId'] = this.createBrokerId (undefined, api);
                         }
                         checkedBatchOrders.push (batchOrder);
                     }
