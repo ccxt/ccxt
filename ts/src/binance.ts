@@ -1714,14 +1714,14 @@ export default class binance extends Exchange {
                     },
                     'fetchOrder': {
                         'marginMode': false,
-                        'trigger': false,
+                        'trigger': true,
                         'trailing': false,
                         'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 500,
-                        'trigger': false,
+                        'trigger': true,
                         'trailing': false,
                         'symbolRequired': false,
                     },
@@ -1730,7 +1730,7 @@ export default class binance extends Exchange {
                         'limit': 1000,
                         'daysBack': 90,
                         'untilDays': 7,
-                        'trigger': false,
+                        'trigger': true,
                         'trailing': false,
                         'symbolRequired': true,
                     },
@@ -1740,7 +1740,7 @@ export default class binance extends Exchange {
                         'daysBack': 90,
                         'daysBackCanceled': 3,
                         'untilDays': 7,
-                        'trigger': false,
+                        'trigger': true,
                         'trailing': false,
                         'symbolRequired': true,
                     },
@@ -1751,6 +1751,9 @@ export default class binance extends Exchange {
                 'swap': {
                     'linear': {
                         'extends': 'forDerivatives',
+                        'fetchOrders': {
+                            'symbolRequired': false, // the linear allOrders endpoint accepts requests without a symbol since 2026-08-25
+                        },
                     },
                     'inverse': {
                         'extends': 'forDerivatives',
@@ -1759,6 +1762,9 @@ export default class binance extends Exchange {
                 'future': {
                     'linear': {
                         'extends': 'forDerivatives',
+                        'fetchOrders': {
+                            'symbolRequired': false, // the linear allOrders endpoint accepts requests without a symbol since 2026-08-25
+                        },
                     },
                     'inverse': {
                         'extends': 'forDerivatives',
