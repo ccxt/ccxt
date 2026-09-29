@@ -7,6 +7,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '..
 import { Precise } from '../base/Precise.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -102,7 +103,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        const orderbook = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, params);
+        const orderbook: Ob = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, params);
         return orderbook.limit ();
     }
 
@@ -126,14 +127,12 @@ export default class krakenfutures extends krakenfuturesRest {
         };
         const marketIds: Str[] = [];
         let messageHash = name;
-        if (symbols === undefined) {
-            symbols = [];
-        }
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        const symbolsValue: string[] = (symbols === undefined) ? [] : symbols;
+        for (let i = 0; i < symbolsValue.length; i++) {
+            const symbol = symbolsValue[i];
             marketIds.push (this.marketId (symbol));
         }
-        const length = symbols.length;
+        const length = symbolsValue.length;
         if (length === 1) {
             const market = this.market (marketIds[0]);
             messageHash = messageHash + ':' + market['symbol'];
@@ -182,9 +181,9 @@ export default class krakenfutures extends krakenfuturesRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
-        const tickers = await this.watchTickers ([ symbol ], params);
-        return tickers[symbol];
+        const symbolValue: string = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbolValue ], params);
+        return tickers[symbolValue];
     }
 
     /**
@@ -200,14 +199,17 @@ export default class krakenfutures extends krakenfuturesRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
-        const ticker = await this.watchMultiHelper ('ticker', 'ticker', symbols, undefined, params);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
+        const ticker = await this.watchMultiHelper ('ticker', 'ticker', symbolsNormalized, undefined, params);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -223,7 +225,10 @@ export default class krakenfutures extends krakenfuturesRest {
         const ticker = await this.watchMultiHelper ('bidask', 'ticker_lite', symbols, undefined, params);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
@@ -257,12 +262,13 @@ export default class krakenfutures extends krakenfuturesRest {
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const trades = await this.watchMultiHelper ('trade', 'trade', symbols, undefined, params);
+        const first = this.safeList (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            const first = this.safeList (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -295,16 +301,16 @@ export default class krakenfutures extends krakenfuturesRest {
             await this.loadMarkets ();
         }
         let messageHash = '';
-        symbols = this.marketSymbols (symbols);
-        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
-            messageHash = '::' + symbols.join (',');
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        if ((symbolsNormalized !== undefined) && !this.isEmpty (symbolsNormalized)) {
+            messageHash = '::' + symbolsNormalized.join (',');
         }
         messageHash = 'positions' + messageHash;
         const newPositions = await this.subscribePrivate ('open_positions', messageHash, params);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
     handlePositions (client: Client, message: Dict) {
@@ -340,7 +346,7 @@ export default class krakenfutures extends krakenfuturesRest {
             // https://github.com/ccxt/ccxt/issues/29709
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const rawPositions = this.safeList (message, 'positions');
         if (rawPositions === undefined) {
             // an open_positions frame without the positions key is malformed;
@@ -444,15 +450,14 @@ export default class krakenfutures extends krakenfuturesRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let verbose = false;
-        [ verbose, params ] = this.handleOptionAndParams (params, 'watchOrders', 'verbose', false);
+        const [ verbose, paramsVerbose ] = this.handleOptionBoolAndParams (params, 'watchOrders', 'verbose', false);
         let name = 'open_orders';
         let messageHash = 'orders';
         if (verbose) {
             name = 'open_orders_verbose';
             messageHash = 'orders:verbose';
         }
-        const feed = this.safeString (params, 'feed');
+        const feed = this.safeString (paramsVerbose, 'feed');
         if (feed !== undefined) {
             name = feed;
             messageHash = 'orders';
@@ -464,11 +469,12 @@ export default class krakenfutures extends krakenfuturesRest {
             const market = this.market (symbol);
             messageHash += ':' + market['symbol'];
         }
-        const orders = await this.subscribePrivate (name, messageHash, params);
+        const orders = await this.subscribePrivate (name, messageHash, paramsVerbose);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -493,10 +499,11 @@ export default class krakenfutures extends krakenfuturesRest {
             messageHash += ':' + market['symbol'];
         }
         const trades = await this.subscribePrivate (name, messageHash, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -514,15 +521,14 @@ export default class krakenfutures extends krakenfuturesRest {
         }
         const name = 'balances';
         let messageHash = name;
-        let account: Str = undefined;
-        [ account, params ] = this.handleOptionAndParams (params, 'watchBalance', 'account');
+        const [ account, paramsAccount ] = this.handleOptionStringAndParams (params, 'watchBalance', 'account');
         if (account !== undefined) {
             if (account !== 'futures' && account !== 'flex_futures') {
                 throw new ArgumentsRequired (this.id + ' watchBalance account must be either \'futures\' or \'flex_futures\'');
             }
             messageHash += ':' + account;
         }
-        return await this.subscribePrivate (name, messageHash, params);
+        return await this.subscribePrivate (name, messageHash, paramsAccount);
     }
 
     handleTrade (client: Client, message: Dict) {
@@ -574,7 +580,7 @@ export default class krakenfutures extends krakenfuturesRest {
             }
             const tradesArray = this.trades[symbol];
             if (channel === 'trade_snapshot') {
-                const trades = this.safeList (message, 'trades', []);
+                const trades: Dict[] = this.safeList (message, 'trades', []);
                 const length = trades.length;
                 for (let i = 0; i < length; i++) {
                     const index = length - 1 - i; // need reverse to correct chronology
@@ -620,12 +626,12 @@ export default class krakenfutures extends krakenfuturesRest {
         //     }
         //
         const marketId = this.safeString (trade, 'product_id');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'time');
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'uid'),
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'order': undefined,
@@ -640,7 +646,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 'cost': undefined,
                 'currency': undefined,
             },
-        }, market);
+        }, marketResolved);
     }
 
     override parseWsOrderTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1102,7 +1108,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "time": 1680811086487,
@@ -1153,7 +1159,6 @@ export default class krakenfutures extends krakenfuturesRest {
         //
         const marketId = this.safeString (ticker, 'product_id');
         const marketResolved = this.safeMarket (marketId, market);
-        market = marketResolved;
         const symbol = marketResolved['symbol'];
         const timestamp = this.parse8601 (this.safeString (ticker, 'lastTime'));
         const last = this.safeString (ticker, 'last');
@@ -1231,14 +1236,14 @@ export default class krakenfutures extends krakenfuturesRest {
             return;
         }
         for (let i = 0; i < bids.length; i++) {
-            const bid = bids[i];
+            const bid = this.safeDict (bids, i);
             const price = this.safeNumber (bid, 'price');
             const qty = this.safeNumber (bid, 'qty');
             const bidsSide = orderbook['bids'];
             bidsSide.store (price, qty);
         }
         for (let i = 0; i < asks.length; i++) {
-            const ask = asks[i];
+            const ask = this.safeDict (asks, i);
             const price = this.safeNumber (ask, 'price');
             const qty = this.safeNumber (ask, 'qty');
             const asksSide = orderbook['asks'];
@@ -1533,7 +1538,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //        ]
         //    }
         //
-        const trades = this.safeList (message, 'fills', []);
+        const trades: Dict[] = this.safeList (message, 'fills', []);
         let stored = this.myTrades;
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1579,7 +1584,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //
         const timestamp = this.safeInteger (trade, 'time');
         const marketId = this.safeString (trade, 'instrument');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const isBuy = this.safeBool (trade, 'buy');
         const feeCurrencyId = this.safeString (trade, 'fee_currency');
         return this.safeTrade ({
@@ -1587,7 +1592,7 @@ export default class krakenfutures extends krakenfuturesRest {
             'id': this.safeString (trade, 'fill_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'order': this.safeString (trade, 'order_id'),
             'type': this.safeString (trade, 'type'),
             'side': (isBuy === true) ? 'buy' : 'sell',
@@ -1609,13 +1614,13 @@ export default class krakenfutures extends krakenfuturesRest {
         }
         const url = this.urls['api']['ws'];
         // symbols are required
-        symbols = this.marketSymbols (symbols, undefined, false, true, false);
+        const symbolsNormalized: any = this.marketSymbols (symbols, undefined, false, true, false);
         const messageHashes: string[] = [];
         const rawSubs: Str[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const messageHash = this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i]));
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const messageHash = this.getMessageHash (unifiedName, undefined, this.symbol (symbolsNormalized[i]));
             messageHashes.push (messageHash);
-            const market = this.market (symbols[i]);
+            const market = this.market (symbolsNormalized[i]);
             if (!this.subscriptionExistsForHash (url, messageHash)) {
                 rawSubs.push (market['id']);
             }
@@ -1637,7 +1642,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return (hash in client.subscriptions);
     }
 
-    getMessageHash (unifiedElementName: string, subChannelName: Str = undefined, symbol: Str = undefined) {
+    getMessageHash (unifiedElementName: string, subChannelName: Str = undefined, symbol: Str = undefined): string {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         const withSymbol = symbol !== undefined;

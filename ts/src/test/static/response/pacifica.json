@@ -393,7 +393,7 @@
                 "description": "Edit limit order amount and price",
                 "method": "editOrder",
                 "input": [
-                    241146145,
+                    "241146145",
                     "BTC/USDC:USDC",
                     "null",
                     "null",

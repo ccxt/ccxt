@@ -1703,7 +1703,7 @@
                 "description": "fetch spot order with correct timestamp",
                 "method": "fetchOrder",
                 "input": [
-                    65902163453,
+                    "65902163453",
                     "LTC/USDT"
                 ],
                 "httpResponse": {

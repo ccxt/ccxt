@@ -838,7 +838,7 @@ class bit2c(Exchange, ImplicitAPI):
             responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
-    def remove_comma_from_value(self, str: object):
+    def remove_comma_from_value(self, str: str):
         newString = ''
         strParts = str.split(',')
         for i in range(0, len(strParts)):
@@ -886,17 +886,19 @@ class bit2c(Exchange, ImplicitAPI):
         fee = None
         side: str
         makerOrTaker = None
+        tradeMarket = None
         reference = self.safe_string(trade, 'reference')
         if reference is not None:
             id = reference
             timestamp = self.safe_timestamp(trade, 'ticks')
-            price = self.safe_string(trade, 'price')
-            price = self.remove_comma_from_value(price)
+            rawPrice = self.safe_string(trade, 'price')
+            if rawPrice is not None:
+                price = self.remove_comma_from_value(rawPrice)
             amount = self.safe_string(trade, 'firstAmount')
             reference_parts = reference.split('|')  # reference contains 'pair|orderId_by_taker|orderId_by_maker'
             marketId = self.safe_string(trade, 'pair')
-            market = self.safe_market(marketId, market)
-            market = self.safe_market(reference_parts[0], market)
+            marketByPair = self.safe_market(marketId, market)
+            tradeMarket = self.safe_market(reference_parts[0], marketByPair)
             isMaker = self.safe_bool(trade, 'isMaker')
             makerOrTaker = 'maker' if (isMaker is True) else 'taker'
             orderId = reference_parts[2] if (isMaker is True) else reference_parts[1]
@@ -916,19 +918,20 @@ class bit2c(Exchange, ImplicitAPI):
             id = self.safe_string(trade, 'tid')
             price = self.safe_string(trade, 'price')
             amount = self.safe_string(trade, 'amount')
+            tradeMarket = self.safe_market(None, market)
             side = self.safe_value(trade, 'isBid')
             if side is not None:
                 if (side is not None) and (side != ''):
                     side = 'buy'
                 else:
                     side = 'sell'
-        market = self.safe_market(None, market)
+        marketResolved = self.safe_market(None, tradeMarket)
         return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': orderId,
             'type': None,
             'side': side,
@@ -937,7 +940,7 @@ class bit2c(Exchange, ImplicitAPI):
             'amount': amount,
             'cost': None,
             'fee': fee,
-        }, market)
+        }, marketResolved)
 
     def is_fiat(self, code: Str) -> bool:
         return code == 'NIS'
@@ -969,7 +972,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -990,8 +993,13 @@ class bit2c(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + self.implode_params(path, params)
+        requestBody = None
+        requestHeaders = None
         if api == 'public':
             url += '.json'
         else:
@@ -1006,14 +1014,16 @@ class bit2c(Exchange, ImplicitAPI):
                 if len(query) > 0:
                     url += '?' + auth
             else:
-                body = auth
+                requestBody = auth
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512, 'base64')
-            headers = {
+            requestHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': self.apiKey,
                 'sign': signature,
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        bodyResult = body if (requestBody is None) else requestBody
+        headersResult = headers if (requestHeaders is None) else requestHeaders
+        return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

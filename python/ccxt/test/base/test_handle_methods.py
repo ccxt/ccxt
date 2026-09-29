@@ -88,6 +88,32 @@ def helper_test_handle_network_request():
     assert request1['chain_id'] == 'Xyz'
 
 
+def helper_test_handle_typed_options():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+        'options': {
+            'marginMode': 'isolated',
+            'fetchX': {
+                'uta': True,
+            },
+        },
+    })
+    [margin_mode, params1] = exchange.handle_margin_mode_and_params('fetchX', {}, 'cross')
+    assert margin_mode == 'isolated'
+    [uta, params2] = exchange.handle_option_bool_and_params({}, 'fetchX', 'uta', False)
+    assert uta
+    [absent, params3] = exchange.handle_option_string_and_params({}, 'fetchX', 'absentKey', 'fallback')
+    assert absent == 'fallback'
+    [from_params, params4] = exchange.handle_option_string_and_params({
+        'absentKey': 'p',
+    }, 'fetchX', 'absentKey', 'fallback')
+    assert from_params == 'p'
+    assert not ('absentKey' in params4)
+    # a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+    assert params1 is not None or params2 is not None or params3 is not None
+
+
 def test_handle_methods():
     helper_test_handle_market_type_and_params()
     helper_test_handle_network_request()
+    helper_test_handle_typed_options()

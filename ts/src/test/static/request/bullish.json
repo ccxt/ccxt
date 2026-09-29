@@ -115,7 +115,7 @@
                 "method": "editOrder",
                 "url": "https://api.exchange.bullish.com/trading-api/v2/command",
                 "input": [
-                    123,
+                    "123",
                     "USDT/USDC",
                     "limit",
                     "buy",

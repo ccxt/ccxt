@@ -6,7 +6,7 @@ export type Num = number | undefined;
 export type Bool = boolean | undefined;
 export type IndexType = number | string;
 export type NullableIndexType = IndexType | undefined;
-export type OrderSide = 'buy' | 'sell' | string | undefined;
+export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index' | 'prediction';
 export type SubType = 'linear' | 'inverse' | undefined;
@@ -188,6 +188,14 @@ export interface PredictionOutcome {
     winner?: Bool;
     settleFraction?: Num;
     precision?: Precision;
+}
+export interface PredictionOutcomeMarket extends MarketInterface {
+    outcome: string;
+    outcomeId: string;
+    label?: Str;
+    market?: Str;
+    marketId?: Str;
+    event?: Str;
 }
 export interface PredictionOrder {
     id: Str;

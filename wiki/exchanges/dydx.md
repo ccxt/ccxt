@@ -317,7 +317,7 @@ create a trade order
 | params.postOnly | <code>bool</code> | No | true or false whether the order is post-only |
 | params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
 | params.goodTillBlock | <code>float</code> | No | expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20 |
-| params.goodTillBlockTimeInSeconds | <code>float</code> | No | expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days |
+| params.goodTillBlockTimeInSeconds | <code>int</code> | No | expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days |
 
 
 ```javascript
@@ -344,7 +344,7 @@ cancels an open order
 | params.trigger | <code>boolean</code> | No | whether the order is a trigger/algo order |
 | params.orderFlags | <code>float</code> | No | default is 64, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32 |
 | params.goodTillBlock | <code>float</code> | No | expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20 |
-| params.goodTillBlockTimeInSeconds | <code>float</code> | No | expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days |
+| params.goodTillBlockTimeInSeconds | <code>int</code> | No | expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days |
 | params.subAccountId | <code>int</code> | No | sub account id, default is 0 |
 
 

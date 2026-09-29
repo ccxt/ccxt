@@ -91,8 +91,8 @@
                     "ADA/USDT",
                     "market",
                     "buy",
-                    "1",
-                    "5"
+                    1,
+                    5
                 ],
                 "output": { "client_order_id": "54b00006-02ea-4fec-950b-b947d5ca15c1", "product_id": "ADA-USDT", "side": "BUY", "order_configuration": { "market_market_ioc": { "quote_size": "5" } } }
             },
@@ -104,7 +104,7 @@
                     "ADA/USDT",
                     "market",
                     "sell",
-                    "10"
+                    10
                 ],
                 "output": { "client_order_id": "a0f970a2-05fa-4e1f-9517-f6702c33cfd1", "product_id": "ADA-USDT", "side": "SELL", "order_configuration": { "market_market_ioc": { "base_size": "10" } } }
             },
@@ -116,7 +116,7 @@
                     "ADA/USDT",
                     "limit",
                     "buy",
-                    "10",
+                    10,
                     0.25,
                     {
                         "triggerPrice": 0.2
@@ -132,7 +132,7 @@
                     "ADA/USDT",
                     "limit",
                     "buy",
-                    "10",
+                    10,
                     0.25,
                     {
                         "postOnly": true

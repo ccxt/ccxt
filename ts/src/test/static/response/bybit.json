@@ -3444,11 +3444,13 @@
     "fetchOrder": [
       {
         "description": "fetch spot buy closed order",
-        "disabled": true,
         "method": "fetchOrder",
         "input": [
           "1609602210852247040",
-          "BTC/USDT"
+          "BTC/USDT",
+          {
+            "acknowledged": true
+          }
         ],
         "httpResponse": {
           "retCode": "0",
@@ -3568,23 +3570,15 @@
           "triggerPrice": null,
           "takeProfitPrice": null,
           "stopLossPrice": null,
-          "amount": 50,
+          "amount": 0.001614,
           "cost": 49.97980168,
           "average": 30966.41,
           "filled": 0.001614,
           "remaining": 0,
           "status": "closed",
-          "fee": {
-            "cost": "0.000001614",
-            "currency": "BTC"
-          },
+          "fee": null,
           "trades": [],
-          "fees": [
-            {
-              "cost": 1.614e-06,
-              "currency": "BTC"
-            }
-          ]
+          "fees": []
         }
       },
       {
