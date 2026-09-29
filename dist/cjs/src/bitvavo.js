@@ -2705,7 +2705,7 @@ class bitvavo extends bitvavo$1["default"] {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }
-        return this.safeNumber(config, 'cost', 1);
+        return this.safeValue(config, 'cost', 1);
     }
 }
 
