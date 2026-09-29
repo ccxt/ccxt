@@ -251,8 +251,8 @@ export default class jupiter extends Exchange {
             'slippageBps': this.safeInteger (params, 'slippageBps', this.safeInteger (this.options, 'slippageBps')),
         };
         const swapParams = this.safeDict (params, 'swapParams', {});
-        params = this.omit (params, [ 'userPublicKey', 'slippageBps', 'swapParams' ]);
-        const quote = await this.publicGetSwapV1Quote (this.extend (quoteRequest, params));
+        const quoteParams = this.omit (params, [ 'userPublicKey', 'slippageBps', 'swapParams' ]);
+        const quote = await this.publicGetSwapV1Quote (this.extend (quoteRequest, quoteParams));
         const swapRequest: Dict = {
             'quoteResponse': quote,
             'userPublicKey': userPublicKey,
@@ -292,19 +292,20 @@ export default class jupiter extends Exchange {
 
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api']['rest'] + '/' + path;
-        headers = {};
+        const requestHeaders: Dict = {};
+        let requestBody: Str = undefined;
         if (this.apiKey !== undefined && this.apiKey !== '') {
-            headers['X-API-KEY'] = this.apiKey;
+            requestHeaders['X-API-KEY'] = this.apiKey;
         }
         if (method === 'GET') {
             if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {
-            body = this.json (params);
-            headers['Content-Type'] = 'application/json';
+            requestBody = this.json (params);
+            requestHeaders['Content-Type'] = 'application/json';
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
