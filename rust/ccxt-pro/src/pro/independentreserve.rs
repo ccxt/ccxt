@@ -288,10 +288,14 @@ impl IndependentreserveCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
-        symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("?subscribe=ticker-".into())), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)).into());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
+        let mut market: Value = self.market(symbol);
+        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut wsUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
+        if (wsUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchTrades() has no websocket url".into()))));
+        }
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl, Value::Str("?subscribe=ticker-".into())).into()), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)).into());
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbolValue).into());
         let mut trades: Value = self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
         return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
 
@@ -393,14 +397,16 @@ impl IndependentreserveCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
-        symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        if (limit == Value::Null) {
-            limit = Value::Int(100);
+        let mut market: Value = self.market(symbol);
+        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() });
+        let mut limitString: Value = self.number_to_string(limitResolved);
+        let mut wsUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
+        if (wsUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() has no websocket url".into()))));
         }
-        let mut limitString: Value = self.number_to_string(limit.clone());
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("/orderbook/".into())), limitString).into()), Value::Str("?subscribe=".into())).into()), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)).into());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()), Value::Str(":".into())).into()), limitString).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl, Value::Str("/orderbook/".into())).into()), limitString).into()), Value::Str("?subscribe=".into())).into()), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)).into());
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbolValue).into()), Value::Str(":".into())).into()), limitString).into());
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("receivedSnapshot".to_string(), Value::Bool(false));
@@ -448,6 +454,9 @@ impl IndependentreserveCore {
         let mut quoteId: Value = self.safe_string(parts, Value::Int(3), &[]);
         let mut base: Value = self.safe_currency_code(baseId, &[]);
         let mut quote: Value = self.safe_currency_code(quoteId, &[]);
+        if (base == Value::Null) || (quote == Value::Null) {
+            return;
+        }
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut orderBook: Value = (match message.get("Data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -487,7 +496,7 @@ impl IndependentreserveCore {
             add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         }
         let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
-        if (is_equal(&checksum, &Value::Bool(true))) && (receivedSnapshot.as_bool() == Some(true)) {
+        if (checksum.as_bool() == Some(true)) && (receivedSnapshot.as_bool() == Some(true)) {
             let mut storedAsks: Value = get_value(&orderbook, &Value::Str("asks".into()));
             let mut storedBids: Value = get_value(&orderbook, &Value::Str("bids".into()));
             let mut asksLength: Value = get_array_length(&storedAsks);
