@@ -1704,8 +1704,8 @@ export default class coinex extends Exchange {
         //                 "low": "66988.53",
         //                 "market": "BTCUSDT",
         //                 "open": "66988.53",
-        //                 "value": "0.1572393",
-        //                 "volume": "10533.2501364336"
+        //                 "value": "10533.2501364336",
+        //                 "volume": "0.1572393"
         //             },
         //         ],
         //         "message": "OK"
