@@ -683,7 +683,7 @@ export default class deepcoin extends Exchange {
             'bar': bar,
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, maxLimit);
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
