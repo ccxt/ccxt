@@ -4248,7 +4248,13 @@ class NewTranspiler {
             'Client client = (Client)this.$1(');
 
         // ── Pattern 9: int/long from Object ──
-        content = content.replace(/int (\w+) = (?![\d(])/gm, 'Object $1 = ');
+        // parseTimeframe is declared primitive int, so its local keeps `int`; any other reverted
+        // local may box an Integer, which a printer `((long) x)` cast would reject at runtime
+        const revertedInts = new Set<string>();
+        content = content.replace(/int (\w+) = (?![\d(]|this\.parseTimeframe\()/gm, (_m: string, n: string) => { revertedInts.add(n); return 'Object ' + n + ' = '; });
+        for (const n of revertedInts) {
+            content = content.replace(new RegExp('\\(\\(long\\) ' + n + '\\)', 'g'), '((Number) ' + n + ').longValue()');
+        }
         content = content.replace(/new ArrayCache\(this\.(safeInteger\([^)]+\))\)/gm,
             'new ArrayCache(((Number)this.$1).intValue())');
         content = content.replace(/new ArrayCache\(this\.(safeInteger\([^)]+\))\)/gm,

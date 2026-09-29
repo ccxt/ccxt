@@ -1291,7 +1291,9 @@ async function generateImplicitAPIs (exchanges: string[], shouldGenerateAll: boo
     log.bright.cyan ('Exporting TypeScript implicit api methods', subdir ? ('(' + subdir + ')') : '')
     populateImplicitMethods(exchanges); // common step for all languages
 
-    if (shouldGenerateAll || langKeys['--ts']) {
+    // typed ports (go/cs/java/rust) check their stubs against the TS abstract: emit it with them
+    const typedPort = langKeys['--go'] || langKeys['--csharp'] || langKeys['--java'] || langKeys['--rust'];
+    if (shouldGenerateAll || langKeys['--ts'] || typedPort) {
         createImplicitMethodsTs ()
         await editFiles (TS_PATH + subdir, storedTypeScriptMethods, '.ts');
         log.bright.cyan ('TypeScript implicit api methods completed!')
