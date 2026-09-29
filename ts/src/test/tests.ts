@@ -2834,6 +2834,25 @@ class testMainClass {
             const implicitDapiBatchClientOrderId = exchange.safeString (implicitDapiBatchOrder, 'newClientOrderId');
             assert (implicitDapiBatchClientOrderId !== undefined, 'binance - implicit dapi batch order must inject newClientOrderId');
             assert (implicitDapiBatchClientOrderId.startsWith (inverseSwapId) === true, 'binance - implicit dapi batch clientOrderId: ' + implicitDapiBatchClientOrderId + ' does not start with inverseSwapId' + inverseSwapId);
+            // the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
+            let implicitFapiAlgoOrderRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'fapiPrivatePostAlgoOrder', [ { 'symbol': 'ETHUSDT', 'side': 'SELL', 'type': 'STOP', 'algoType': 'CONDITIONAL', 'quantity': '1', 'price': '4100', 'triggerPrice': '4200', 'timeInForce': 'GTC' } ]);
+            } catch (e) {
+                implicitFapiAlgoOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const implicitFapiClientAlgoId = exchange.safeString (implicitFapiAlgoOrderRequest, 'clientAlgoId');
+            assert (implicitFapiClientAlgoId !== undefined, 'binance - implicit fapi algo order must inject clientAlgoId');
+            assert (implicitFapiClientAlgoId.startsWith (swapIdString) === true, 'binance - implicit fapi clientAlgoId: ' + implicitFapiClientAlgoId + ' does not start with swapId' + swapIdString);
+            let implicitDapiAlgoOrderRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'dapiPrivatePostAlgoOrder', [ { 'symbol': 'ETHUSD_PERP', 'side': 'SELL', 'type': 'STOP', 'algoType': 'CONDITIONAL', 'quantity': '1', 'price': '4100', 'triggerPrice': '4200', 'timeInForce': 'GTC' } ]);
+            } catch (e) {
+                implicitDapiAlgoOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const implicitDapiClientAlgoId = exchange.safeString (implicitDapiAlgoOrderRequest, 'clientAlgoId');
+            assert (implicitDapiClientAlgoId !== undefined, 'binance - implicit dapi algo order must inject clientAlgoId');
+            assert (implicitDapiClientAlgoId.startsWith (inverseSwapId) === true, 'binance - implicit dapi clientAlgoId: ' + implicitDapiClientAlgoId + ' does not start with inverseSwapId' + inverseSwapId);
         }
         if (!isSync ()) {
             await close (exchange);

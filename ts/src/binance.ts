@@ -13210,6 +13210,12 @@ export default class binance extends Exchange {
                 if (newClientOrderId === undefined) {
                     params['newClientOrderId'] = this.createBrokerId (undefined, api);
                 }
+            } else if (method === 'POST' && (path === 'algoOrder')) {
+                // the fapi/dapi algo order endpoints take clientAlgoId instead of newClientOrderId
+                const clientAlgoId = this.safeString (params, 'clientAlgoId');
+                if (clientAlgoId === undefined) {
+                    params['clientAlgoId'] = this.createBrokerId (undefined, api);
+                }
             }
             let query: Str = undefined;
             // handle batchOrders
