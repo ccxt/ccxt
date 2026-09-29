@@ -850,32 +850,30 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request: Dict = {
+        let request: Dict = {
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             'symbol': market['id'],
         };
-        const now = this.milliseconds ();
+        const maxLimit = 100;
         const duration = this.parseTimeframe (timeframe);
-        const until = this.safeInteger2 (params, 'until', 'till', now);
         const price = this.safeString (params, 'price');
         if (price !== undefined) {
             request['price_kind'] = price;
         }
+        request = this.handleUntilOption ('end_at', request, params);
+        const hasEnd = ('end_at' in request);
         const paramsOmitted: Dict = this.omit (params, [ 'until', 'till', 'price' ]);
+        const limitResolved = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         if (since !== undefined) {
             request['start_at'] = since;
-            if (limit !== undefined) {
-                request['end_at'] = since + duration * (limit + 1) * 1000 - 1;
-            } else {
-                request['end_at'] = until;
+            if (!hasEnd) {
+                request['end_at'] = since + duration * (limitResolved + 1) * 1000 - 1;
             }
         } else {
-            request['end_at'] = until;
-            if (limit !== undefined) {
-                request['start_at'] = until - duration * (limit + 1) * 1000 + 1;
-            } else {
-                request['start_at'] = until - duration * 101 * 1000 + 1;
+            if (!hasEnd) {
+                request['end_at'] = this.milliseconds ();
             }
+            request['start_at'] = request['end_at'] - duration * (limitResolved + 1) * 1000 + 1;
         }
         const response = await this.publicGetMarketsKlines (this.extend (request, paramsOmitted));
         //
