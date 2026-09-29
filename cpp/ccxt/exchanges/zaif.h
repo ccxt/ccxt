@@ -429,6 +429,10 @@ public:
     ccxt::any quoteId = ::getValue(baseIdquoteIdVariable, 1);
     ccxt::any base = this->safeCurrencyCode(baseId);
     ccxt::any quote = this->safeCurrencyCode(quoteId);
+    if (isTrue(isTrue((isEqual(base, ccxt::any{}))) ||
+               isTrue((isEqual(quote, ccxt::any{}))))) {
+      return ccxt::any{};
+    }
     ccxt::any symbol = add(add(base, std::string("/")), quote);
     return this->safeMarketStructure(ccxt::dict{
         {std::string("id"), id},
@@ -1013,6 +1017,14 @@ public:
                           ::setValue(request, std::string("currency_pair"),
                                      ::getValue(market, std::string("id")));
                         }
+                        if (isTrue(!isEqual(since, ccxt::any{}))) {
+                          ::setValue(request, std::string("since"),
+                                     this->parseToInt(divide(since, 1000)));
+                        }
+                        if (isTrue(!isEqual(limit, ccxt::any{}))) {
+                          ::setValue(request, std::string("count"),
+                                     mathMin(limit, 1000));
+                        }
                         ccxt::any response =
                             awaitValue(this->privatePostTradeHistory(
                                 this->extend(request, params)));
@@ -1045,10 +1057,12 @@ public:
     return std::async(
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
-                 ccxt::any tagparamsVariable =
+                 ccxt::any tagWithdrawTagparamsWithdrawTagVariable =
                      this->handleWithdrawTagAndParams(tag, params);
-                 tag = ::getValue(tagparamsVariable, 0);
-                 params = ::getValue(tagparamsVariable, 1);
+                 ccxt::any tagWithdrawTag =
+                     ::getValue(tagWithdrawTagparamsWithdrawTagVariable, 0);
+                 ccxt::any paramsWithdrawTag =
+                     ::getValue(tagWithdrawTagparamsWithdrawTagVariable, 1);
                  this->checkAddress(address);
                  if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
@@ -1067,11 +1081,11 @@ public:
                      {std::string("amount"), amount},
                      {std::string("address"), address},
                  };
-                 if (isTrue(!isEqual(tag, ccxt::any{}))) {
-                   ::setValue(request, std::string("message"), tag);
+                 if (isTrue(!isEqual(tagWithdrawTag, ccxt::any{}))) {
+                   ::setValue(request, std::string("message"), tagWithdrawTag);
                  }
-                 ccxt::any result = awaitValue(
-                     this->privatePostWithdraw(this->extend(request, params)));
+                 ccxt::any result = awaitValue(this->privatePostWithdraw(
+                     this->extend(request, paramsWithdrawTag)));
                  //
                  //     {
                  //         "success": 1,
@@ -1112,13 +1126,14 @@ public:
     //         }
     //     }
     //
-    currency = this->safeCurrency(ccxt::any{}, currency);
+    ccxt::any currencyResolved = this->safeCurrency(ccxt::any{}, currency);
     ccxt::any fee = ccxt::any{};
     ccxt::any feeCost = this->safeNumber(transaction, std::string("fee"));
     if (isTrue(!isEqual(feeCost, ccxt::any{}))) {
       fee = ccxt::dict{
           {std::string("cost"), feeCost},
-          {std::string("currency"), ::getValue(currency, std::string("code"))},
+          {std::string("currency"),
+           ::getValue(currencyResolved, std::string("code"))},
       };
     }
     return ccxt::dict{
@@ -1133,7 +1148,8 @@ public:
         {std::string("addressTo"), ccxt::any{}},
         {std::string("amount"), ccxt::any{}},
         {std::string("type"), ccxt::any{}},
-        {std::string("currency"), ::getValue(currency, std::string("code"))},
+        {std::string("currency"),
+         ::getValue(currencyResolved, std::string("code"))},
         {std::string("status"), ccxt::any{}},
         {std::string("updated"), ccxt::any{}},
         {std::string("tagFrom"), ccxt::any{}},
@@ -1157,9 +1173,14 @@ public:
                  ccxt::any params = ccxt::dict{},
                  ccxt::any headers = ccxt::any{},
                  ccxt::any body = ccxt::any{}) override {
-    ccxt::any url = add(::getValue(::getValue(this->urls, std::string("api")),
-                                   std::string("rest")),
-                        std::string("/"));
+    ccxt::any baseApiUrl = this->safeString(
+        ::getValue(this->urls, std::string("api")), std::string("rest"));
+    if (isTrue(isEqual(baseApiUrl, ccxt::any{}))) {
+      throw ExchangeError(toString(add(
+          this->id, std::string(" sign() has no API URL for this endpoint"))));
+    }
+    ccxt::any baseUrl = baseApiUrl;
+    ccxt::any url = add(baseUrl, std::string("/"));
     if (isTrue(isEqual(api, std::string("public")))) {
       url = add(url, add(add(add(std::string("api/"), this->version),
                              std::string("/")),
@@ -1178,18 +1199,24 @@ public:
         url = add(url, std::string("tapi"));
       }
       ccxt::any nonce = this->customNonce();
-      body = this->urlencode(this->extend(
+      ccxt::any bodyEncoded = this->urlencode(this->extend(
           ccxt::dict{
               {std::string("method"), path},
               {std::string("nonce"), nonce},
           },
           params));
-      headers = ccxt::dict{
+      ccxt::any headersSigned = ccxt::dict{
           {std::string("Content-Type"),
            std::string("application/x-www-form-urlencoded")},
           {std::string("Key"), this->apiKey},
-          {std::string("Sign"),
-           this->hmac(this->encode(body), this->encode(this->secret), sha512)},
+          {std::string("Sign"), this->hmac(this->encode(bodyEncoded),
+                                           this->encode(this->secret), sha512)},
+      };
+      return ccxt::dict{
+          {std::string("url"), url},
+          {std::string("method"), method},
+          {std::string("body"), bodyEncoded},
+          {std::string("headers"), headersSigned},
       };
     }
     return ccxt::dict{
@@ -1449,6 +1476,18 @@ public:
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDeltas") {
+      if (true) {
+        this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDelta") {
+      if (true) {
+        this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
         return ccxt::any{};
       }
     }

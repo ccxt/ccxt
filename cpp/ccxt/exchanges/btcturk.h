@@ -432,6 +432,10 @@ public:
     ccxt::any quoteId = this->safeString(entry, std::string("denominator"));
     ccxt::any base = this->safeCurrencyCode(baseId);
     ccxt::any quote = this->safeCurrencyCode(quoteId);
+    if (isTrue(isTrue((isEqual(base, ccxt::any{}))) ||
+               isTrue((isEqual(quote, ccxt::any{}))))) {
+      return ccxt::any{};
+    }
     ccxt::any filters =
         this->safeList(entry, std::string("filters"), ccxt::list{});
     ccxt::any minPrice = ccxt::any{};
@@ -441,7 +445,7 @@ public:
     ccxt::any minCost = ccxt::any{};
     for (ccxt::any j = 0; isLessThan(j, getArrayLength(filters));
          postFixIncrement(j)) {
-      ccxt::any filter = ::getValue(filters, j);
+      ccxt::any filter = this->safeDict(filters, j);
       ccxt::any filterType =
           this->safeString(filter, std::string("filterType"));
       if (isTrue(isEqual(filterType, std::string("PRICE_FILTER")))) {
@@ -524,7 +528,7 @@ public:
     };
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(data));
          postFixIncrement(i)) {
-      ccxt::any entry = ::getValue(data, i);
+      ccxt::any entry = this->safeDict(data, i);
       ccxt::any currencyId = this->safeString(entry, std::string("asset"));
       ccxt::any code = this->safeCurrencyCode(currencyId);
       ccxt::any account = this->account();
@@ -657,10 +661,25 @@ public:
     //   }
     //
     ccxt::any marketId = this->safeString(ticker, std::string("pair"));
-    market = this->safeMarket(marketId, market);
-    ccxt::any symbol = ::getValue(market, std::string("symbol"));
+    ccxt::any marketResolved = this->safeMarket(marketId, market);
+    ccxt::any symbol = ::getValue(marketResolved, std::string("symbol"));
     ccxt::any timestamp = this->safeInteger(ticker, std::string("timestamp"));
     ccxt::any last = this->safeString(ticker, std::string("last"));
+    ccxt::any open = this->safeString(ticker, std::string("open"));
+    ccxt::any change = this->safeString(ticker, std::string("daily"));
+    ccxt::any percentage =
+        this->safeString(ticker, std::string("dailyPercent"));
+    ccxt::any average = this->safeString(ticker, std::string("average"));
+    if (isTrue(isTrue(isTrue((!isEqual(open, ccxt::any{}))) &&
+                      isTrue((!isEqual(last, ccxt::any{})))) &&
+               !isTrue(ccxt::Precise::stringEq(open, std::string("0"))))) {
+      // The reported daily fields can disagree with last - open.
+      // Let safeTicker derive the unified change, percentage and average from
+      // these prices.
+      change = ccxt::any{};
+      percentage = ccxt::any{};
+      average = ccxt::any{};
+    }
     return this->safeTicker(
         ccxt::dict{
             {std::string("symbol"), symbol},
@@ -674,23 +693,19 @@ public:
             {std::string("ask"), this->safeString(ticker, std::string("ask"))},
             {std::string("askVolume"), ccxt::any{}},
             {std::string("vwap"), ccxt::any{}},
-            {std::string("open"),
-             this->safeString(ticker, std::string("open"))},
+            {std::string("open"), open},
             {std::string("close"), last},
             {std::string("last"), last},
             {std::string("previousClose"), ccxt::any{}},
-            {std::string("change"),
-             this->safeString(ticker, std::string("daily"))},
-            {std::string("percentage"),
-             this->safeString(ticker, std::string("dailyPercent"))},
-            {std::string("average"),
-             this->safeString(ticker, std::string("average"))},
+            {std::string("change"), change},
+            {std::string("percentage"), percentage},
+            {std::string("average"), average},
             {std::string("baseVolume"),
              this->safeString(ticker, std::string("volume"))},
             {std::string("quoteVolume"), ccxt::any{}},
             {std::string("info"), ticker},
         },
-        market);
+        marketResolved);
   }
 
   /**
@@ -744,7 +759,8 @@ public:
                         }
                         ccxt::any tickers = awaitValue(
                             this->fetchTickers(ccxt::list{symbol}, params));
-                        return this->safeDict(tickers, symbol);
+                        ccxt::any ticker = this->safeDict(tickers, symbol);
+                        return ticker;
                       })
         .share();
   }
@@ -941,13 +957,18 @@ public:
                  if (isTrue(!isEqual(since, ccxt::any{}))) {
                    ::setValue(request, std::string("from"),
                               this->parseToInt(divide(since, 1000)));
-                 } else if (isTrue(isEqual(limit, ccxt::any{}))) {
-                   limit = 100; // default value
                  }
-                 if (isTrue(!isEqual(limit, ccxt::any{}))) {
-                   limit = mathMin(
-                       limit,
-                       11000); // max 11000 candles diapason can be covered
+                 ccxt::any limitDefaulted = limit;
+                 if (isTrue(isTrue((isEqual(since, ccxt::any{}))) &&
+                            isTrue((isEqual(limit, ccxt::any{}))))) {
+                   limitDefaulted = 100; // default value
+                 }
+                 ccxt::any limitResolved =
+                     (isTrue((!isEqual(limitDefaulted, ccxt::any{})))
+                          ? ccxt::any(mathMin(limitDefaulted, 11000))
+                          : ccxt::any(ccxt::any{})); // max 11000 candles
+                                                     // diapason can be covered
+                 if (isTrue(!isEqual(limitResolved, ccxt::any{}))) {
                    if (isTrue(isEqual(timeframe, std::string("1y")))) {
                      throw BadRequest(toString(add(
                          this->id,
@@ -956,7 +977,7 @@ public:
                    }
                    ccxt::any seconds = this->parseTimeframe(timeframe);
                    ccxt::any limitSeconds =
-                       multiply(seconds, (subtract(limit, 1)));
+                       multiply(seconds, (subtract(limitResolved, 1)));
                    if (isTrue(!isEqual(since, ccxt::any{}))) {
                      ccxt::any to = add(this->parseToInt(divide(since, 1000)),
                                         limitSeconds);
@@ -1007,7 +1028,7 @@ public:
                  //    }
                  //
                  return this->parseOHLCVs(response, market, timeframe, since,
-                                          limit);
+                                          limitResolved);
                })
         .share();
   }
@@ -1400,24 +1421,33 @@ public:
           this->id,
           std::string(" is an abstract base API for BTCExchange, BTCTurk"))));
     }
-    ccxt::any url =
-        add(add(::getValue(::getValue(this->urls, std::string("api")), api),
-                std::string("/")),
-            path);
-    if (isTrue(isTrue((isEqual(method, std::string("GET")))) ||
-               isTrue((isEqual(method, std::string("DELETE")))))) {
+    ccxt::any apiUrl =
+        this->safeString(::getValue(this->urls, std::string("api")), api);
+    if (isTrue(isEqual(apiUrl, ccxt::any{}))) {
+      throw ExchangeError(toString(add(
+          this->id, std::string(" sign() has no API URL for this endpoint"))));
+    }
+    ccxt::any url = add(add(apiUrl, std::string("/")), path);
+    ccxt::any isQueryMethod = isTrue((isEqual(method, std::string("GET")))) ||
+                              isTrue((isEqual(method, std::string("DELETE"))));
+    if (isTrue(isQueryMethod)) {
       if (isTrue(isGreaterThan(getArrayLength(getObjectKeys(params)), 0))) {
         url = add(url, add(std::string("?"), this->urlencode(params)));
       }
-    } else {
-      body = this->json(params);
     }
+    ccxt::any requestBody = ccxt::any{};
+    if (isTrue(isQueryMethod)) {
+      requestBody = body;
+    } else {
+      requestBody = this->json(params);
+    }
+    ccxt::any privateHeaders = ccxt::any{};
     if (isTrue(isEqual(api, std::string("private")))) {
       this->checkRequiredCredentials();
       ccxt::any nonce = toString(this->nonce());
       ccxt::any secret = this->base64ToBinary(this->secret);
       ccxt::any auth = add(this->apiKey, nonce);
-      headers = ccxt::dict{
+      privateHeaders = ccxt::dict{
           {std::string("X-PCK"), this->apiKey},
           {std::string("X-Stamp"), nonce},
           {std::string("X-Signature"),
@@ -1426,11 +1456,14 @@ public:
           {std::string("Content-Type"), std::string("application/json")},
       };
     }
+    ccxt::any requestHeaders = (isTrue((!isEqual(privateHeaders, ccxt::any{})))
+                                    ? ccxt::any(privateHeaders)
+                                    : ccxt::any(headers));
     return ccxt::dict{
         {std::string("url"), url},
         {std::string("method"), method},
-        {std::string("body"), body},
-        {std::string("headers"), headers},
+        {std::string("body"), requestBody},
+        {std::string("headers"), requestHeaders},
     };
   }
 
@@ -1441,9 +1474,10 @@ public:
     ccxt::any errorCode =
         this->safeString(response, std::string("code"), std::string("0"));
     ccxt::any message = this->safeString(response, std::string("message"));
-    ccxt::any output =
-        (isTrue((isEqual(message, ccxt::any{}))) ? ccxt::any(body)
-                                                 : ccxt::any(message));
+    ccxt::any output = message;
+    if (isTrue(isEqual(message, ccxt::any{}))) {
+      output = body;
+    }
     this->throwExactlyMatchedException(
         ::getValue(this->exceptions, std::string("exact")), message,
         add(add(this->id, std::string(" ")), output));
@@ -1726,6 +1760,18 @@ public:
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDeltas") {
+      if (true) {
+        this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDelta") {
+      if (true) {
+        this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
         return ccxt::any{};
       }
     }

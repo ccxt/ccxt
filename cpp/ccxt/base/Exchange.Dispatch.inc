@@ -112,6 +112,18 @@ virtual ccxt::any callMethod(ccxt::any name, ccxt::any args) override {
       return ccxt::any{};
     }
   }
+  if (which == "handleBookDeltas") {
+    if (true) {
+      this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+      return ccxt::any{};
+    }
+  }
+  if (which == "handleBookDelta") {
+    if (true) {
+      this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
+      return ccxt::any{};
+    }
+  }
   if (which == "handleDeltasWithKeys") {
     if (count <= 2) {
       this->handleDeltasWithKeys(::getValue(args, 0), ::getValue(args, 1));
@@ -2148,6 +2160,63 @@ virtual ccxt::any callMethod(ccxt::any name, ccxt::any args) override {
           ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
           ::getValue(args, 3), ::getValue(args, 4));
   }
+  if (which == "handleOptionStringAndParams") {
+    if (count <= 3)
+      return this->handleOptionStringAndParams(
+          ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
+    if (count >= 4)
+      return this->handleOptionStringAndParams(
+          ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
+          ::getValue(args, 3));
+  }
+  if (which == "handleOptionStringAndParams2") {
+    if (count <= 4)
+      return this->handleOptionStringAndParams2(
+          ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
+          ::getValue(args, 3));
+    if (count >= 5)
+      return this->handleOptionStringAndParams2(
+          ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
+          ::getValue(args, 3), ::getValue(args, 4));
+  }
+  if (which == "handleOptionBoolAndParams") {
+    if (count <= 3)
+      return this->handleOptionBoolAndParams(
+          ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
+    if (count >= 4)
+      return this->handleOptionBoolAndParams(
+          ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
+          ::getValue(args, 3));
+  }
+  if (which == "handleOptionBoolAndParams2") {
+    if (count <= 4)
+      return this->handleOptionBoolAndParams2(
+          ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
+          ::getValue(args, 3));
+    if (count >= 5)
+      return this->handleOptionBoolAndParams2(
+          ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
+          ::getValue(args, 3), ::getValue(args, 4));
+  }
+  if (which == "handleOptionIntegerAndParams") {
+    if (count <= 3)
+      return this->handleOptionIntegerAndParams(
+          ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
+    if (count >= 4)
+      return this->handleOptionIntegerAndParams(
+          ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
+          ::getValue(args, 3));
+  }
+  if (which == "handleOptionIntegerAndParams2") {
+    if (count <= 4)
+      return this->handleOptionIntegerAndParams2(
+          ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
+          ::getValue(args, 3));
+    if (count >= 5)
+      return this->handleOptionIntegerAndParams2(
+          ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
+          ::getValue(args, 3), ::getValue(args, 4));
+  }
   if (which == "handleOption") {
     if (count <= 2)
       return this->handleOption(::getValue(args, 0), ::getValue(args, 1));
@@ -2722,10 +2791,6 @@ virtual ccxt::any callMethod(ccxt::any name, ccxt::any args) override {
     if (true)
       return this->isTickPrecision();
   }
-  if (which == "isDecimalPrecision") {
-    if (true)
-      return this->isDecimalPrecision();
-  }
   if (which == "isSignificantPrecision") {
     if (true)
       return this->isSignificantPrecision();
@@ -3228,25 +3293,17 @@ virtual ccxt::any callMethod(ccxt::any name, ccxt::any args) override {
     if (count <= 2)
       return this->filterByArrayPositions(::getValue(args, 0),
                                           ::getValue(args, 1));
-    if (count == 3)
+    if (count >= 3)
       return this->filterByArrayPositions(
           ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-    if (count >= 4)
-      return this->filterByArrayPositions(
-          ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-          ::getValue(args, 3));
   }
   if (which == "filterByArrayTickers") {
     if (count <= 2)
       return this->filterByArrayTickers(::getValue(args, 0),
                                         ::getValue(args, 1));
-    if (count == 3)
+    if (count >= 3)
       return this->filterByArrayTickers(
           ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-    if (count >= 4)
-      return this->filterByArrayTickers(
-          ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-          ::getValue(args, 3));
   }
   if (which == "filterByArrayADLRanks") {
     if (count <= 2)

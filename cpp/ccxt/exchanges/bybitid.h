@@ -39,6 +39,10 @@ public:
                       "https://help.bybit.com/hc/en-us/articles/360039261154")},
                  {std::string("referral"), ccxt::any{}},
              }},
+            {std::string("httpExceptions"),
+             ccxt::dict{
+                 {std::string("403"), std::string("PermissionDenied")},
+             }},
         });
   }
   // GENERATED dispatch table - see createDispatchTable in
@@ -84,6 +88,18 @@ public:
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDeltas") {
+      if (true) {
+        this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDelta") {
+      if (true) {
+        this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
         return ccxt::any{};
       }
     }

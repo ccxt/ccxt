@@ -732,7 +732,7 @@ public:
         for (ccxt::any j = 0; isLessThan(j, getArrayLength(currencyIds));
              postFixIncrement(j)) {
           ccxt::any currencyId = ::getValue(currencyIds, j);
-          ccxt::any balance = ::getValue(currencies, currencyId);
+          ccxt::any balance = this->safeDict(currencies, currencyId);
           ccxt::any code = this->safeCurrencyCode(currencyId);
           ccxt::any account = this->account();
           ::setValue(account, std::string("total"),
@@ -1228,12 +1228,8 @@ public:
                  if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 if (isTrue(isEqual(side, ccxt::any{}))) {
-                   throw ArgumentsRequired(toString(
-                       add(this->id,
-                           std::string(
-                               " createOrder() requires a side argument"))));
-                 }
+                 this->checkRequiredArgument(std::string("createOrder"), side,
+                                             std::string("side"));
                  ccxt::any sideUpper = toUpperCase(side);
                  if (isTrue(isEqual(type, std::string("market")))) {
                    throw ExchangeError(toString(
@@ -1298,17 +1294,18 @@ public:
                            std::string(" cancelOrder() requires a side "
                                        "parameter, \"buy\" or \"sell\""))));
                  }
-                 params = this->omit(params, std::string("side"));
+                 ccxt::any paramsOmitted =
+                     this->omit(params, std::string("side"));
                  ccxt::any request = ccxt::dict{
                      {std::string("id"), id},
                  };
                  ccxt::any response = ccxt::any{};
                  if (isTrue(isEqual(side, std::string("buy")))) {
                    response = awaitValue(this->privatePostMyBuyCancel(
-                       this->extend(request, params)));
+                       this->extend(request, paramsOmitted)));
                  } else {
                    response = awaitValue(this->privatePostMySellCancel(
-                       this->extend(request, params)));
+                       this->extend(request, paramsOmitted)));
                  }
                  //
                  // status - ok, error
@@ -1336,11 +1333,20 @@ public:
     return ccxt::any{};
   }
 
+  ccxt::any nonce() override {
+    // the venue accepts any strictly-increasing integer, so use milliseconds:
+    // with the second-resolution base nonce a burst of N calls would leave
+    // incrementingNonce N seconds ahead of the clock
+    return this->milliseconds();
+  }
+
   ccxt::any sign(ccxt::any path, ccxt::any api = std::string("public"),
                  ccxt::any method = std::string("GET"),
                  ccxt::any params = ccxt::dict{},
                  ccxt::any headers = ccxt::any{},
                  ccxt::any body = ccxt::any{}) override {
+    ccxt::any requestHeaders = headers;
+    ccxt::any requestBody = body;
     ccxt::any isVersionedApi = isArray(api);
     ccxt::any version = (isTrue(isVersionedApi) ? ccxt::any(::getValue(api, 0))
                                                 : ccxt::any(ccxt::any{}));
@@ -1349,33 +1355,38 @@ public:
                                 : ccxt::any(api));
     ccxt::any endpoint =
         add(std::string("/"), this->implodeParams(path, params));
-    ccxt::any fullPath =
-        (isTrue((!isEqual(version, ccxt::any{})))
-             ? ccxt::any(add(add(std::string("/"), version), endpoint))
-             : ccxt::any(endpoint));
-    ccxt::any url =
-        add(::getValue(::getValue(this->urls, std::string("api")), accessType),
-            fullPath);
+    ccxt::any fullPath = endpoint;
+    if (isTrue(!isEqual(version, ccxt::any{}))) {
+      fullPath = add(add(std::string("/"), version), endpoint);
+    }
+    ccxt::any apiUrl = this->safeString(
+        ::getValue(this->urls, std::string("api")), accessType);
+    if (isTrue(isEqual(apiUrl, ccxt::any{}))) {
+      throw ExchangeError(toString(add(
+          this->id, std::string(" sign() has no API URL for this endpoint"))));
+    }
+    ccxt::any url = add(apiUrl, fullPath);
     if (isTrue(isEqual(accessType, std::string("private")))) {
       this->checkRequiredCredentials();
-      ccxt::any nonce = this->nonce();
-      body = this->json(this->extend(
+      // coinspot requires an increasing nonce
+      ccxt::any nonce = this->incrementingNonce();
+      requestBody = this->json(this->extend(
           ccxt::dict{
               {std::string("nonce"), nonce},
           },
           params));
-      headers = ccxt::dict{
+      requestHeaders = ccxt::dict{
           {std::string("Content-Type"), std::string("application/json")},
           {std::string("key"), this->apiKey},
-          {std::string("sign"),
-           this->hmac(this->encode(body), this->encode(this->secret), sha512)},
+          {std::string("sign"), this->hmac(this->encode(requestBody),
+                                           this->encode(this->secret), sha512)},
       };
     }
     return ccxt::dict{
         {std::string("url"), url},
         {std::string("method"), method},
-        {std::string("body"), body},
-        {std::string("headers"), headers},
+        {std::string("body"), requestBody},
+        {std::string("headers"), requestHeaders},
     };
   }
   // GENERATED dispatch table - see createDispatchTable in
@@ -1502,6 +1513,10 @@ public:
             ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
             ::getValue(args, 6), ::getValue(args, 7), ::getValue(args, 8));
     }
+    if (which == "nonce") {
+      if (true)
+        return this->nonce();
+    }
     if (which == "sign") {
       if (count <= 1)
         return this->sign(::getValue(args, 0));
@@ -1550,6 +1565,18 @@ public:
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDeltas") {
+      if (true) {
+        this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDelta") {
+      if (true) {
+        this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
         return ccxt::any{};
       }
     }

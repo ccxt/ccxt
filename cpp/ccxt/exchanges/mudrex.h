@@ -470,7 +470,6 @@ public:
                  ccxt::any market = this->market(symbol);
                  ccxt::any priceType =
                      this->safeString(params, std::string("price"));
-                 params = this->omit(params, std::string("price"));
                  // the endpoint expects the pair in "BASE/QUOTE" format
                  // (comma-separated for multiple)
                  ccxt::any assetPair =
@@ -504,8 +503,10 @@ public:
                      add(startTime, multiply(duration, requestLimit));
                  ccxt::any until =
                      this->safeInteger(params, std::string("until"));
+                 ccxt::any paramsOmitted =
+                     this->omit(params, ccxt::list{std::string("price"),
+                                                   std::string("until")});
                  if (isTrue(!isEqual(until, ccxt::any{}))) {
-                   params = this->omit(params, std::string("until"));
                    endTime = this->parseToInt(divide(until, 1000));
                  } else if (isTrue(isGreaterThan(endTime, now))) {
                    endTime = now;
@@ -515,10 +516,10 @@ public:
                  ccxt::any response = ccxt::any{};
                  if (isTrue(isEqual(priceType, std::string("mark")))) {
                    response = awaitValue(this->marketGetPriceMarkKline(
-                       this->extend(request, params)));
+                       this->extend(request, paramsOmitted)));
                  } else {
                    response = awaitValue(this->marketGetPriceKline(
-                       this->extend(request, params)));
+                       this->extend(request, paramsOmitted)));
                  }
                  //
                  //     {
@@ -666,8 +667,8 @@ public:
   ccxt::any parseTicker(ccxt::any ticker,
                         ccxt::any market = ccxt::any{}) override {
     ccxt::any ms = this->safeString(ticker, std::string("symbol"));
-    market = this->safeMarket(ms, market);
-    ccxt::any symbol = ::getValue(market, std::string("symbol"));
+    ccxt::any marketResolved = this->safeMarket(ms, market);
+    ccxt::any symbol = ::getValue(marketResolved, std::string("symbol"));
     ccxt::any pct = this->safeNumber(ticker, std::string("change_perc"));
     return this->safeTicker(
         ccxt::dict{
@@ -696,7 +697,7 @@ public:
              this->safeNumber(ticker, std::string("volume"))},
             {std::string("info"), ticker},
         },
-        market);
+        marketResolved);
   }
 
   /**
@@ -735,8 +736,7 @@ public:
                      // hoisted - inline length reads within conditionals become
                      // strlen for php, fatal on arrays
                      ccxt::any itemsLength = getArrayLength(items);
-                     if (isTrue(isTrue((isEqual(itemsLength, ccxt::any{}))) ||
-                                isTrue((isEqual(itemsLength, 0))))) {
+                     if (isTrue(isEqual(itemsLength, 0))) {
                        items = this->safeList(data, std::string("results"),
                                               ccxt::list{});
                        itemsLength = getArrayLength(items);
@@ -749,8 +749,7 @@ public:
                      items = this->toArray(data);
                    }
                    ccxt::any numItems = getArrayLength(items);
-                   if (isTrue(isTrue((isEqual(numItems, ccxt::any{}))) ||
-                              isTrue((isEqual(numItems, 0))))) {
+                   if (isTrue(isEqual(numItems, 0))) {
                      paging = false;
                      break;
                    }
@@ -885,20 +884,21 @@ public:
                  if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 ccxt::any type = ccxt::any{};
-                 ccxt::any typeparamsVariable = this->handleMarketTypeAndParams(
-                     std::string("fetchBalance"), ccxt::any{}, params,
-                     std::string("swap"));
-                 type = ::getValue(typeparamsVariable, 0);
-                 params = ::getValue(typeparamsVariable, 1);
+                 ccxt::any typeparamsMarketTypeVariable =
+                     this->handleMarketTypeAndParams(
+                         std::string("fetchBalance"), ccxt::any{}, params,
+                         std::string("swap"));
+                 ccxt::any type = ::getValue(typeparamsMarketTypeVariable, 0);
+                 ccxt::any paramsMarketType =
+                     ::getValue(typeparamsMarketTypeVariable, 1);
                  ccxt::any requested = this->safeStringN(
-                     params, ccxt::list{std::string("trade_currency"),
-                                        std::string("tradeCurrency"),
-                                        std::string("currency")});
-                 params = this->omit(params,
-                                     ccxt::list{std::string("trade_currency"),
-                                                std::string("tradeCurrency"),
-                                                std::string("currency")});
+                     paramsMarketType, ccxt::list{std::string("trade_currency"),
+                                                  std::string("tradeCurrency"),
+                                                  std::string("currency")});
+                 ccxt::any paramsOmitted = this->omit(
+                     paramsMarketType, ccxt::list{std::string("trade_currency"),
+                                                  std::string("tradeCurrency"),
+                                                  std::string("currency")});
                  ccxt::any request = ccxt::dict{};
                  ccxt::any response = ccxt::any{};
                  if (isTrue(isEqual(type, std::string("spot")))) {
@@ -906,14 +906,14 @@ public:
                      ::setValue(request, std::string("currency"), requested);
                    }
                    response = awaitValue(this->privateGetWalletFunds(
-                       this->extend(request, params)));
+                       this->extend(request, paramsOmitted)));
                  } else {
                    if (isTrue(!isEqual(requested, ccxt::any{}))) {
                      ::setValue(request, std::string("trade_currency"),
                                 requested);
                    }
                    response = awaitValue(this->privateGetFuturesFunds(
-                       this->extend(request, params)));
+                       this->extend(request, paramsOmitted)));
                  }
                  ccxt::any currency = requested;
                  if (isTrue(isEqual(currency, ccxt::any{}))) {
@@ -1040,11 +1040,11 @@ public:
                      {std::string("margin_type"), marginType},
                      {std::string("leverage"), leverage},
                  };
-                 params =
+                 ccxt::any paramsOmitted =
                      this->omit(params, ccxt::list{std::string("marginType")});
                  ccxt::any response =
                      awaitValue(this->privatePostFuturesAssetIdLeverage(
-                         this->extend(request, params)));
+                         this->extend(request, paramsOmitted)));
                  return response;
                })
         .share();
@@ -1116,7 +1116,7 @@ public:
                                          "parameter to place a stopLossPrice "
                                          "or takeProfitPrice order"))));
                    }
-                   params = this->omit(
+                   ccxt::any paramsOmitted = this->omit(
                        params, ccxt::list{std::string("stopLossPrice"),
                                           std::string("takeProfitPrice"),
                                           std::string("positionId"),
@@ -1138,7 +1138,7 @@ public:
                    }
                    ccxt::any riskResponse = awaitValue(
                        this->privatePostFuturesPositionsPositionIdRiskorder(
-                           this->extend(riskRequest, params)));
+                           this->extend(riskRequest, paramsOmitted)));
                    ccxt::any riskData = this->safeDict(
                        riskResponse, std::string("data"), riskResponse);
                    return this->parseOrder(riskData, market);
@@ -1199,14 +1199,14 @@ public:
                                                     std::string("stopPrice"),
                                                     std::string("price")})));
                  }
-                 params =
+                 ccxt::any orderParams =
                      this->omit(params, ccxt::list{std::string("leverage"),
                                                    std::string("reduceOnly"),
                                                    std::string("takeProfit"),
                                                    std::string("stopLoss")});
                  ccxt::any response =
                      awaitValue(this->privatePostFuturesAssetIdOrder(
-                         this->extend(request, params)));
+                         this->extend(request, orderParams)));
                  ccxt::any data =
                      this->safeDict(response, std::string("data"), response);
                  // the create response omits the order/trigger type, so parse a
@@ -1299,7 +1299,7 @@ public:
   ccxt::any parseOrder(ccxt::any order,
                        ccxt::any market = ccxt::any{}) override {
     ccxt::any oms = this->safeString(order, std::string("symbol"));
-    market = this->safeMarket(oms, market);
+    ccxt::any marketResolved = this->safeMarket(oms, market);
     ccxt::any oid =
         this->safeString2(order, std::string("order_id"), std::string("id"));
     ccxt::any rawSide = this->safeStringUpper(order, std::string("order_type"));
@@ -1340,7 +1340,7 @@ public:
         this->parse8601(this->safeString(order, std::string("created_at")));
     ccxt::any status = this->parseOrderStatus(
         this->safeStringLower(order, std::string("status")));
-    ccxt::any sym = ::getValue(market, std::string("symbol"));
+    ccxt::any sym = ::getValue(marketResolved, std::string("symbol"));
     return this->safeOrder(
         ccxt::dict{
             {std::string("info"), order},
@@ -1377,7 +1377,7 @@ public:
             {std::string("reduceOnly"),
              this->safeBool(order, std::string("reduce_only"))},
         },
-        market);
+        marketResolved);
   }
 
   /**
@@ -1632,7 +1632,7 @@ public:
                    arrayPush(outPos, pos);
                  }
                  return this->filterByArrayPositions(
-                     outPos, std::string("symbol"), symbols, false);
+                     outPos, std::string("symbol"), symbols);
                })
         .share();
   }
@@ -1661,7 +1661,7 @@ public:
                  if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 symbols = this->marketSymbols(symbols);
+                 ccxt::any symbolsNormalized = this->marketSymbols(symbols);
                  ccxt::any request = ccxt::dict{};
                  if (isTrue(!isEqual(limit, ccxt::any{}))) {
                    ::setValue(request, std::string("limit"), limit);
@@ -1692,7 +1692,8 @@ public:
                  //
                  ccxt::any data = this->safeList(response, std::string("data"),
                                                  ccxt::list{});
-                 ccxt::any positions = this->parsePositions(data, symbols);
+                 ccxt::any positions =
+                     this->parsePositions(data, symbolsNormalized);
                  return this->filterBySinceLimit(positions, since, limit);
                })
         .share();
@@ -1700,9 +1701,9 @@ public:
 
   ccxt::any parsePosition(ccxt::any position,
                           ccxt::any market = ccxt::any{}) override {
-    market = this->safeMarket(ccxt::any{}, market);
+    ccxt::any marketResolved = this->safeMarket(ccxt::any{}, market);
     ccxt::any ms = this->safeString(position, std::string("symbol"));
-    ccxt::any symbol = this->safeSymbol(ms, market);
+    ccxt::any symbol = this->safeSymbol(ms, marketResolved);
     // open positions use "order_type", closed positions (history) use
     // "position_type"
     ccxt::any rawSide = this->safeStringUpper2(
@@ -1723,8 +1724,8 @@ public:
         this->safeString(position, std::string("quantity"));
     ccxt::any entryPriceString =
         this->safeString(position, std::string("entry_price"));
-    ccxt::any contractSizeString =
-        this->safeString(market, std::string("contractSize"), std::string("1"));
+    ccxt::any contractSizeString = this->safeString(
+        marketResolved, std::string("contractSize"), std::string("1"));
     ccxt::any notional = ccxt::any{};
     if (isTrue(isTrue((!isEqual(quantityString, ccxt::any{}))) &&
                isTrue((!isEqual(entryPriceString, ccxt::any{}))))) {
@@ -1746,7 +1747,7 @@ public:
         {std::string("contracts"),
          this->safeNumber(position, std::string("quantity"))},
         {std::string("contractSize"),
-         this->safeNumber(market, std::string("contractSize"))},
+         this->safeNumber(marketResolved, std::string("contractSize"))},
         {std::string("entryPrice"),
          this->safeNumber(position, std::string("entry_price"))},
         {std::string("markPrice"), ccxt::any{}},
@@ -1844,21 +1845,21 @@ public:
                            isTrue(!isEqual(lp, ccxt::any{})))) {
                      ::setValue(request, std::string("limit_price"), lp);
                    }
-                   params = this->omit(params,
-                                       ccxt::list{std::string("order_type"),
-                                                  std::string("limit_price"),
-                                                  std::string("amount"),
-                                                  std::string("position_id")});
+                   ccxt::any partialParams = this->omit(
+                       params, ccxt::list{std::string("order_type"),
+                                          std::string("limit_price"),
+                                          std::string("amount"),
+                                          std::string("position_id")});
                    ccxt::any partialResponse = awaitValue(
                        this->privatePostFuturesPositionsPositionIdClosePartial(
-                           this->extend(request, params)));
+                           this->extend(request, partialParams)));
                    return partialResponse;
                  }
-                 params =
+                 ccxt::any closeParams =
                      this->omit(params, ccxt::list{std::string("position_id")});
                  ccxt::any response = awaitValue(
                      this->privatePostFuturesPositionsPositionIdClose(
-                         this->extend(request, params)));
+                         this->extend(request, closeParams)));
                  return response;
                })
         .share();
@@ -1914,12 +1915,12 @@ public:
                      {std::string("margin"),
                       this->costToPrecision(symbol, amount)},
                  };
-                 params =
+                 ccxt::any paramsOmitted =
                      this->omit(params, ccxt::list{std::string("position_id")});
                  ccxt::any response = awaitValue(
                      this->privatePostFuturesPositionsPositionIdAddMargin(
-                         this->extend(request, params)));
-                 return response;
+                         this->extend(request, paramsOmitted)));
+                 return this->extend(response, ccxt::dict{});
                })
         .share();
   }
@@ -1985,12 +1986,14 @@ public:
                 if (isTrue(!isEqual(symbol, ccxt::any{}))) {
                   market = this->market(symbol);
                 }
-                ccxt::any maxCalls = ccxt::any{};
-                ccxt::any maxCallsparamsVariable = this->handleOptionAndParams(
-                    params, std::string("fetchMyTrades"),
-                    std::string("paginationCalls"), 10);
-                maxCalls = ::getValue(maxCallsparamsVariable, 0);
-                params = ::getValue(maxCallsparamsVariable, 1);
+                ccxt::any maxCallsparamsPaginationCallsVariable =
+                    this->handleOptionIntegerAndParams(
+                        params, std::string("fetchMyTrades"),
+                        std::string("paginationCalls"), 10);
+                ccxt::any maxCalls =
+                    ::getValue(maxCallsparamsPaginationCallsVariable, 0);
+                ccxt::any paramsPaginationCalls =
+                    ::getValue(maxCallsparamsPaginationCallsVariable, 1);
                 ccxt::any pageSize = 0;
                 if (isTrue(!isEqual(limit, ccxt::any{}))) {
                   // every fill produces a TRANSACTION row plus a REBATE row and
@@ -2011,7 +2014,7 @@ public:
                   }
                   ccxt::any response =
                       awaitValue(this->privateGetFuturesFeeHistory(
-                          this->extend(request, params)));
+                          this->extend(request, paramsPaginationCalls)));
                   ccxt::any data = this->safeList(response, std::string("data"),
                                                   ccxt::list{});
                   ccxt::any dataLength = getArrayLength(data);
@@ -2092,7 +2095,7 @@ public:
                        postFixIncrement(j)) {
                     if (isTrue(isEqual(::getValue(rebateKeys, j),
                                        ::getValue(transactionKeys, i)))) {
-                      rebate = ::getValue(rebateAmounts, j);
+                      rebate = this->safeString(rebateAmounts, j);
                       // blank the consumed key so the next equal fill matches
                       // the next rebate, never the same one twice
                       ::setValue(rebateKeys, j, ccxt::any{});
@@ -2133,8 +2136,8 @@ public:
     //     }
     //
     ccxt::any ms = this->safeString(trade, std::string("symbol"));
-    market = this->safeMarket(ms, market);
-    ccxt::any symbol = ::getValue(market, std::string("symbol"));
+    ccxt::any marketResolved = this->safeMarket(ms, market);
+    ccxt::any symbol = ::getValue(marketResolved, std::string("symbol"));
     ccxt::any ts =
         this->parse8601(this->safeString(trade, std::string("created_at")));
     // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing
@@ -2189,7 +2192,7 @@ public:
              this->safeString(trade, std::string("transaction_amount"))},
             {std::string("fee"), fee},
         },
-        market);
+        marketResolved);
   }
 
   /**
@@ -2655,6 +2658,18 @@ public:
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDeltas") {
+      if (true) {
+        this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDelta") {
+      if (true) {
+        this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
         return ccxt::any{};
       }
     }

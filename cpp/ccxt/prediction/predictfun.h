@@ -535,20 +535,23 @@ public:
                  }
                  ccxt::any queries = this->parseSearchQueries(params);
                  ccxt::any queriesLength = getArrayLength(queries);
-                 params =
+                 ccxt::any paramsValue =
                      this->omit(params, ccxt::list{std::string("query"),
                                                    std::string("queries")});
+                 // keys dropped before the client-side pass; the categories
+                 // listing also drops its limit
+                 ccxt::any postOmitKeys = ccxt::list{std::string("tags")};
                  ccxt::any userLimit =
-                     this->safeInteger(params, std::string("limit"));
+                     this->safeInteger(paramsValue, std::string("limit"));
                  ccxt::any fetchCap = this->safeInteger(
                      this->options, std::string("maxFetchEventsResults"), 100);
                  if (isTrue(!isEqual(userLimit, ccxt::any{}))) {
                    fetchCap = userLimit;
                  }
-                 ccxt::any slug = this->safeString2(params, std::string("slug"),
-                                                    std::string("eventId"));
+                 ccxt::any slug = this->safeString2(
+                     paramsValue, std::string("slug"), std::string("eventId"));
                  ccxt::any rest = this->omit(
-                     params,
+                     paramsValue,
                      ccxt::list{std::string("status"), std::string("limit"),
                                 std::string("sort"), std::string("eventId"),
                                 std::string("slug"), std::string("tags"),
@@ -573,19 +576,22 @@ public:
                    // paging it and matching client-side would both miss the
                    // venue's semantic matches and cost one request per page
                    rawTopics = awaitValue(
-                       this->fetchRawTopicsByQueries(queries, params));
+                       this->fetchRawTopicsByQueries(queries, paramsValue));
                  } else {
                    ccxt::any request = ccxt::dict{};
-                   ccxt::any tags = this->safeList(params, std::string("tags"),
-                                                   ccxt::list{});
+                   ccxt::any tags = this->safeList(
+                       paramsValue, std::string("tags"), ccxt::list{});
                    ccxt::any tagsLength = getArrayLength(tags);
                    if (isTrue(isGreaterThan(tagsLength, 0))) {
                      ccxt::any tagsString = join(tags, std::string(","));
                      ::setValue(request, std::string("tagIds"), tagsString);
                    }
-                   params = this->omit(params, ccxt::list{std::string("limit"),
+                   arrayPush(postOmitKeys, std::string("limit"));
+                   ccxt::any paramsCategories =
+                       this->omit(paramsValue, ccxt::list{std::string("limit"),
                                                           std::string("tags")});
-                   ccxt::any extendedRequest = this->extend(request, params);
+                   ccxt::any extendedRequest =
+                       this->extend(request, paramsCategories);
                    ccxt::any rawTopicsResponse = awaitValue(
                        this->predictfunGetV1Categories(extendedRequest));
                    //
@@ -893,14 +899,13 @@ public:
                  // an event-level tags field predictfun topics lack, and the
                  // query filter would drop semantic-search matches whose title
                  // uses different words than the query
-                 ccxt::any postParams =
-                     this->omit(params, ccxt::list{std::string("tags")});
+                 ccxt::any postParams = this->omit(paramsValue, postOmitKeys);
                  // status is documented as the venue enum ('OPEN' / 'RESOLVED')
                  // but the shared client-side pass speaks the unified
                  // vocabulary — translate so it doesn't discard every row it
                  // matched
                  ccxt::any rawStatus =
-                     this->safeString(params, std::string("status"));
+                     this->safeString(paramsValue, std::string("status"));
                  if (isTrue(isEqual(rawStatus, std::string("OPEN")))) {
                    postParams = this->extend(
                        postParams,
@@ -1057,7 +1062,7 @@ public:
                    ccxt::any categoriesLength = getArrayLength(categories);
                    for (ccxt::any ci = 0; isLessThan(ci, categoriesLength);
                         postFixIncrement(ci)) {
-                     ccxt::any category = ::getValue(categories, ci);
+                     ccxt::any category = this->safeDict(categories, ci);
                      ccxt::any categorySlug =
                          this->safeString(category, std::string("slug"));
                      if (isTrue(isEqual(categorySlug, ccxt::any{}))) {
@@ -1638,9 +1643,10 @@ public:
     // the same handle parseEvent () derives for the enclosing event - stamping
     // it here is what lets every outcome-addressed structure (order, ticker,
     // trade, position) report an event
-    ccxt::any eventHandle = (isTrue((!isEqual(topicSlug, ccxt::any{})))
-                                 ? ccxt::any(this->shortenSlug(topicSlug))
-                                 : ccxt::any(ccxt::any{}));
+    ccxt::any eventHandle = ccxt::any{};
+    if (isTrue(!isEqual(topicSlug, ccxt::any{}))) {
+      eventHandle = this->shortenSlug(topicSlug);
+    }
     ccxt::any title =
         this->safeString(rawMarket, std::string("title"), marketId);
     ccxt::any topicMarkets =
@@ -1724,9 +1730,10 @@ public:
     }
     ccxt::any resolvedOutcome = resolvedOutcomeRaw;
     ccxt::any collateral = std::string("USDT");
-    ccxt::any marketType = (isTrue((isGreaterThan(rawOutcomesLength, 2)))
-                                ? ccxt::any(std::string("categorical"))
-                                : ccxt::any(std::string("binary")));
+    ccxt::any marketType = std::string("binary");
+    if (isTrue(isGreaterThan(rawOutcomesLength, 2))) {
+      marketType = std::string("categorical");
+    }
     ccxt::any createdDatetime =
         this->safeString(rawMarket, std::string("createdAt"));
     return ccxt::dict{
@@ -1869,7 +1876,7 @@ public:
                    ccxt::any noAsks = ccxt::list{};
                    for (ccxt::any i = 0; isLessThan(i, getArrayLength(bids));
                         postFixIncrement(i)) {
-                     ccxt::any bid = ::getValue(bids, i);
+                     ccxt::any bid = this->safeList(bids, i);
                      ccxt::any bidPrice = this->safeString(bid, 0);
                      ccxt::any bidSize =
                          this->parseNumber(this->safeString(bid, 1));
@@ -1879,7 +1886,7 @@ public:
                    }
                    for (ccxt::any i = 0; isLessThan(i, getArrayLength(asks));
                         postFixIncrement(i)) {
-                     ccxt::any ask = ::getValue(asks, i);
+                     ccxt::any ask = this->safeList(asks, i);
                      ccxt::any askPrice = this->safeString(ask, 0);
                      ccxt::any askSize =
                          this->parseNumber(this->safeString(ask, 1));
@@ -2296,7 +2303,7 @@ public:
                  ccxt::any dataLength = getArrayLength(data);
                  for (ccxt::any i = 0; isLessThan(i, dataLength);
                       postFixIncrement(i)) {
-                   ccxt::any entry = ::getValue(data, i);
+                   ccxt::any entry = this->safeDict(data, i);
                    ccxt::any taker = this->safeDict(entry, std::string("taker"),
                                                     ccxt::dict{});
                    ccxt::any takerOutcome = this->safeDict(
@@ -2772,310 +2779,320 @@ public:
   createOrder(ccxt::any outcome, ccxt::any type, ccxt::any side,
               ccxt::any amount, ccxt::any price = ccxt::any{},
               ccxt::any params = ccxt::dict{}) override {
-    return std::async(
-               std::launch::deferred,
-               [=]() mutable -> ccxt::any {
-                 awaitValue(this->authenticate());
-                 awaitValue(this->loadOutcome(outcome));
-                 ccxt::any outcomeObj = this->outcome(outcome);
-                 ccxt::any tokenId =
-                     this->safeString(outcomeObj, std::string("outcomeId"));
-                 if (isTrue(isEqual(tokenId, ccxt::any{}))) {
-                   throw ArgumentsRequired(toString(
-                       add(add(this->id,
-                               std::string(" createOrder() could not resolve "
-                                           "the on chain token id of ")),
-                           outcome)));
-                 }
-                 ccxt::any strategy =
-                     (isTrue((isEqual(type, std::string("market"))))
-                          ? ccxt::any(std::string("MARKET"))
-                          : ccxt::any(std::string("LIMIT")));
-                 ccxt::any isMarket =
-                     (isEqual(strategy, std::string("MARKET")));
-                 if (isTrue(isTrue((!isTrue(isMarket))) &&
-                            isTrue((isEqual(price, ccxt::any{}))))) {
-                   throw ArgumentsRequired(toString(
-                       add(this->id,
-                           std::string(" createOrder() requires a \"price\" "
-                                       "argument for a limit order"))));
-                 }
-                 ccxt::any isBuy = (isEqual(side, std::string("buy")));
-                 // amounts cross the wire as collateral wei, the venue
-                 // truncates the price to three significant digits and the
-                 // quantity to five, so send what it will actually use the
-                 // venue sizes an order from both legs and refuses anything
-                 // else: a limitless style takerAmount sentinel of 1 is
-                 // rejected as create_order_min_order_value_not_met (the order
-                 // value is read off the taker leg) and signing at the maximum
-                 // price of 1 is rejected as create_order_price_out_of_range
-                 // (it wants 0 < price < 1)
-                 ccxt::any amountString = this->numberToString(amount);
-                 ccxt::any priceString = this->numberToString(price);
-                 ccxt::any priceToProvide = priceString;
-                 // read through the extractor rather than off the instance, so
-                 // one call can opt in without reconfiguring the exchange - and
-                 // so the key is taken out of params instead of riding along
-                 // into the request body
-                 ccxt::any warnOnMarketOrderWithoutPrice = true;
-                 ccxt::any warnOnMarketOrderWithoutPriceparamsVariable =
-                     this->handleOptionAndParams(
-                         params, std::string("createOrder"),
-                         std::string("warnOnMarketOrderWithoutPrice"), true);
-                 warnOnMarketOrderWithoutPrice =
-                     ::getValue(warnOnMarketOrderWithoutPriceparamsVariable, 0);
-                 params =
-                     ::getValue(warnOnMarketOrderWithoutPriceparamsVariable, 1);
-                 if (isTrue(isEqual(price, ccxt::any{}))) {
-                   // a priceless limit order already threw above, so this is a
-                   // market order
-                   if (isTrue(warnOnMarketOrderWithoutPrice)) {
-                     throw ArgumentsRequired(toString(
-                         add(this->id,
-                             std::string(
-                                 " createOrder() market orders require a "
-                                 "\"price\" argument. To use default values "
-                                 "turn \"warnOnMarketOrderWithoutPrice\" off "
-                                 "in options"))));
-                   }
-                   // it still has to name a price, so it takes the aggressive
-                   // end of the range the venue allows: 0.99 crosses any ask,
-                   // 0.01 is crossed by any bid. the fill happens at the book's
-                   // own prices, this is only the worst price the order accepts
-                   // - which is also the collateral the maker leg has to cover
-                   priceToProvide =
-                       (isTrue((isBuy))
-                            ? ccxt::any(this->numberToString(this->safeNumber(
-                                  this->options, std::string("marketBuyPrice"),
-                                  0.99)))
-                            : ccxt::any(this->numberToString(this->safeNumber(
-                                  this->options, std::string("marketSellPrice"),
-                                  0.01))));
-                 }
-                 ccxt::any quantityWei = ccxt::Precise::stringMul(
-                     amountString, std::string("1000000000000000000"));
-                 ccxt::any priceWei = ccxt::Precise::stringMul(
-                     priceToProvide, std::string("1000000000000000000"));
-                 // the collateral leg follows from the price and the size,
-                 // exactly as for a limit order - both legs have to agree or
-                 // the venue rejects the order
-                 ccxt::any costWei =
-                     ccxt::Precise::stringMul(priceToProvide, quantityWei);
-                 ccxt::any makerAmount = quantityWei;
-                 ccxt::any takerAmount = costWei;
-                 if (isTrue(isBuy)) {
-                   // a buy pays collateral for shares, a sell hands over shares
-                   // for collateral
-                   makerAmount = costWei;
-                   takerAmount = quantityWei;
-                 }
-                 ccxt::any slippageBps = this->safeString(
-                     params, std::string("slippageBps"), std::string("0"));
-                 if (isTrue(ccxt::Precise::stringGt(slippageBps,
-                                                    std::string("0")))) {
-                   if (isTrue(isBuy)) {
-                     // widen what the taker is willing to pay, capped at one
-                     // unit of collateral a share
-                     makerAmount = ccxt::Precise::stringMin(
-                         ccxt::Precise::stringDiv(
-                             ccxt::Precise::stringMul(
-                                 makerAmount,
-                                 ccxt::Precise::stringAdd(std::string("10000"),
-                                                          slippageBps)),
-                             std::string("10000")),
-                         quantityWei);
-                   } else {
-                     takerAmount = ccxt::Precise::stringMax(
-                         ccxt::Precise::stringDiv(
-                             ccxt::Precise::stringMul(
-                                 takerAmount,
-                                 ccxt::Precise::stringSub(std::string("10000"),
-                                                          slippageBps)),
-                             std::string("10000")),
-                         std::string("0"));
-                   }
-                 }
-                 // feeRateBps and the two exchange selectors live on the market
-                 // row, not on the outcome row - signing with the wrong pair
-                 // places the order under a different verifying contract and
-                 // the venue answers create_order_hash_mismatch
-                 ccxt::any marketSymbol =
-                     this->safeString(outcomeObj, std::string("market"));
-                 ccxt::any marketObj =
-                     this->safeDict(this->markets, marketSymbol, ccxt::dict{});
-                 ccxt::any marketRow = this->safeDict(
-                     marketObj, std::string("info"), ccxt::dict{});
-                 ccxt::any marketFeeRateBps = this->safeString(
-                     marketRow, std::string("feeRateBps"),
-                     std::string("200")); // should be at least 200
-                 ccxt::any feeRateBps = this->safeString(
-                     params, std::string("feeRateBps"), marketFeeRateBps);
-                 ccxt::any marketIsNegRisk =
-                     this->safeBool(marketRow, std::string("isNegRisk"), false);
-                 ccxt::any isNegRisk = this->safeBool(
-                     params, std::string("isNegRisk"), marketIsNegRisk);
-                 ccxt::any marketIsYieldBearing = this->safeBool(
-                     marketRow, std::string("isYieldBearing"), false);
-                 ccxt::any isYieldBearing =
-                     this->safeBool(params, std::string("isYieldBearing"),
-                                    marketIsYieldBearing);
-                 ccxt::any defaultExpiration = this->safeInteger(
-                     this->options, std::string("defaultExpiration"),
-                     3600); // 1 hour
-                 ccxt::any expirationDelta = defaultExpiration;
-                 ccxt::any expiration =
-                     this->safeInteger(params, std::string("expiration"));
-                 if (isTrue(isEqual(expiration, ccxt::any{}))) {
-                   if (isTrue(isMarket)) {
-                     expirationDelta = this->safeInteger(
-                         this->options, std::string("marketOrderExpiration"),
-                         defaultExpiration);
-                   }
-                   ccxt::any now = this->seconds();
-                   expiration = this->sum(now, expirationDelta);
-                 }
-                 ccxt::any nonce = this->incrementingNonce();
-                 ccxt::any salt = this->safeString(params, std::string("salt"),
-                                                   this->numberToString(nonce));
-                 ccxt::any taker =
-                     std::string("0x0000000000000000000000000000000000000000");
-                 ccxt::any takerparamsVariable = this->handleOptionAndParams(
-                     params, std::string("createOrder"), std::string("taker"),
-                     taker);
-                 taker = ::getValue(takerparamsVariable, 0);
-                 params = ::getValue(takerparamsVariable, 1);
-                 ccxt::any contractOrder = ccxt::dict{
-                     {std::string("salt"), salt},
-                     {std::string("maker"), this->walletAddress},
-                     {std::string("signer"), this->walletAddress},
-                     {std::string("taker"), taker},
-                     {std::string("tokenId"), tokenId},
-                     {std::string("makerAmount"),
-                      this->decimalToPrecision(makerAmount, TRUNCATE, 0,
-                                               DECIMAL_PLACES)},
-                     {std::string("takerAmount"),
-                      this->decimalToPrecision(takerAmount, TRUNCATE, 0,
-                                               DECIMAL_PLACES)},
-                     {std::string("expiration"), expiration},
-                     {std::string("nonce"),
-                      this->safeString(params, std::string("nonce"),
-                                       std::string("0"))},
-                     {std::string("feeRateBps"), feeRateBps},
-                     {std::string("side"),
-                      (isTrue(isBuy) ? ccxt::any(0) : ccxt::any(1))},
-                     {std::string("signatureType"), 0},
-                 };
-                 ccxt::any signedFlag = this->signPredictfunOrder(
-                     contractOrder, isNegRisk, isYieldBearing);
-                 ccxt::any orderPayload = this->extend(
-                     contractOrder,
-                     ccxt::dict{
-                         {std::string("hash"),
-                          this->safeString(signedFlag, std::string("hash"))},
-                         {std::string("signature"),
-                          this->safeString(signedFlag,
-                                           std::string("signature"))},
-                     });
-                 ccxt::any data = ccxt::dict{
-                     {std::string("order"), orderPayload},
-                     {std::string("pricePerShare"),
-                      this->decimalToPrecision(priceWei, TRUNCATE, 0,
-                                               DECIMAL_PLACES)},
-                     {std::string("strategy"), strategy},
-                 };
-                 ccxt::any postOnly =
-                     this->safeBool(params, std::string("isPostOnly"), false);
-                 ccxt::any postOnlyparamsVariable =
-                     this->handlePostOnly(isMarket, postOnly, params);
-                 postOnly = ::getValue(postOnlyparamsVariable, 0);
-                 params = ::getValue(postOnlyparamsVariable, 1);
-                 if (isTrue(postOnly)) {
-                   ::setValue(data, std::string("isPostOnly"), postOnly);
-                 }
-                 ccxt::any timeInForce =
-                     this->safeStringUpper(params, std::string("timeInForce"));
-                 if (isTrue(isEqual(timeInForce, std::string("FOK")))) {
-                   ::setValue(data, std::string("isFillOrKill"), true);
-                 }
-                 // documented, and the venue takes it inside data rather than
-                 // as a top level key
-                 ccxt::any selfTradePrevention = this->safeStringUpper(
-                     params, std::string("selfTradePrevention"));
-                 if (isTrue(!isEqual(selfTradePrevention, ccxt::any{}))) {
-                   ::setValue(data, std::string("selfTradePrevention"),
-                              selfTradePrevention);
-                 }
-                 // every param the method consumes itself has to come out,
-                 // otherwise it survives into the extend below and is posted as
-                 // a top level key next to 'data'
-                 params = this->omit(
-                     params,
-                     ccxt::list{
-                         std::string("isPostOnly"), std::string("timeInForce"),
-                         std::string("isFillOrKill"), std::string("feeRateBps"),
-                         std::string("isNegRisk"),
-                         std::string("isYieldBearing"),
-                         std::string("slippageBps"), std::string("salt"),
-                         std::string("nonce"), std::string("expiration"),
-                         std::string("selfTradePrevention"),
-                         std::string("taker")});
-                 // the JWT authorises the order, the api key only authorises
-                 // the request
-                 ccxt::any request = ccxt::dict{
-                     {std::string("data"), data},
-                 };
-                 ccxt::any response = awaitValue(this->predictfunPostV1Orders(
-                     this->extend(request, params)));
-                 //
-                 //     {
-                 //         "data": {
-                 //             "code": "OK",
-                 //             "orderHash":
-                 //             "0x5ae1a7893b1a804530151dec3866cd0bb8ffe4e4c3640aca1b3ab5ef26c57747",
-                 //             "orderId": "415535",
-                 //             "removalLockedUntil": null
-                 //         },
-                 //         "success ": true
-                 //     }
-                 //
-                 ccxt::any result = this->safeDict(
-                     response, std::string("data"), ccxt::dict{});
-                 // the venue answers with an id and a hash and nothing else -
-                 // no price, size, side or status - so the returned order is
-                 // built from what was requested and signedFlag, with only the
-                 // identifiers taken from the response
-                 return this->safePredictionOrder(ccxt::dict{
-                     {std::string("id"),
-                      this->safeString2(result, std::string("orderHash"),
-                                        std::string("hash"))},
-                     {std::string("clientOrderId"), ccxt::any{}},
-                     {std::string("info"), response},
-                     {std::string("timestamp"), ccxt::any{}},
-                     {std::string("datetime"), ccxt::any{}},
-                     {std::string("status"), ccxt::any{}},
-                     {std::string("outcome"),
-                      this->safeString(outcomeObj, std::string("outcome"),
-                                       outcome)},
-                     {std::string("outcomeId"),
-                      this->safeString(outcomeObj, std::string("outcomeId"))},
-                     {std::string("label"),
-                      this->safeString(outcomeObj, std::string("label"))},
-                     {std::string("market"),
-                      this->safeString(outcomeObj, std::string("market"))},
-                     {std::string("event"),
-                      this->safeString(outcomeObj, std::string("event"))},
-                     {std::string("type"), type},
-                     {std::string("side"), side},
-                     {std::string("price"), this->parseNumber(priceString)},
-                     {std::string("amount"), this->parseNumber(amountString)},
-                     {std::string("filled"), ccxt::any{}},
-                     {std::string("remaining"), ccxt::any{}},
-                     {std::string("cost"), ccxt::any{}},
-                     {std::string("fee"), ccxt::any{}},
-                     {std::string("trades"), ccxt::list{}},
-                 });
-               })
-        .share();
+    return std::
+        async(std::launch::deferred,
+              [=]() mutable -> ccxt::any {
+                awaitValue(this->authenticate());
+                awaitValue(this->loadOutcome(outcome));
+                ccxt::any outcomeObj = this->outcome(outcome);
+                ccxt::any tokenId =
+                    this->safeString(outcomeObj, std::string("outcomeId"));
+                if (isTrue(isEqual(tokenId, ccxt::any{}))) {
+                  throw ArgumentsRequired(toString(
+                      add(add(this->id,
+                              std::string(" createOrder() could not resolve "
+                                          "the on chain token id of ")),
+                          outcome)));
+                }
+                ccxt::any strategy = std::string("LIMIT");
+                if (isTrue(isEqual(type, std::string("market")))) {
+                  strategy = std::string("MARKET");
+                }
+                ccxt::any isMarket = (isEqual(strategy, std::string("MARKET")));
+                if (isTrue(isTrue((!isTrue(isMarket))) &&
+                           isTrue((isEqual(price, ccxt::any{}))))) {
+                  throw ArgumentsRequired(toString(
+                      add(this->id,
+                          std::string(" createOrder() requires a \"price\" "
+                                      "argument for a limit order"))));
+                }
+                ccxt::any isBuy = (isEqual(side, std::string("buy")));
+                // amounts cross the wire as collateral wei, the venue truncates
+                // the price to three significant digits and the quantity to
+                // five, so send what it will actually use the venue sizes an
+                // order from both legs and refuses anything else: a limitless
+                // style takerAmount sentinel of 1 is rejected as
+                // create_order_min_order_value_not_met (the order value is read
+                // off the taker leg) and signing at the maximum price of 1 is
+                // rejected as create_order_price_out_of_range (it wants 0 <
+                // price < 1)
+                ccxt::any amountString = this->numberToString(amount);
+                ccxt::any priceString = this->numberToString(price);
+                ccxt::any priceToProvide = priceString;
+                // read through the extractor rather than off the instance, so
+                // one call can opt in without reconfiguring the exchange - and
+                // so the key is taken out of params instead of riding along
+                // into the request body
+                ccxt::any
+                    warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable =
+                        this->handleOptionBoolAndParams(
+                            params, std::string("createOrder"),
+                            std::string("warnOnMarketOrderWithoutPrice"), true);
+                ccxt::any warnOnMarketOrderWithoutPrice = ::getValue(
+                    warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable,
+                    0);
+                ccxt::any paramsWarnOnMarketOrderWithoutPrice = ::getValue(
+                    warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable,
+                    1);
+                if (isTrue(isEqual(price, ccxt::any{}))) {
+                  // a priceless limit order already threw above, so this is a
+                  // market order
+                  if (isTrue(warnOnMarketOrderWithoutPrice)) {
+                    throw ArgumentsRequired(toString(add(
+                        this->id,
+                        std::string(" createOrder() market orders require a "
+                                    "\"price\" argument. To use default values "
+                                    "turn \"warnOnMarketOrderWithoutPrice\" "
+                                    "off in options"))));
+                  }
+                  // it still has to name a price, so it takes the aggressive
+                  // end of the range the venue allows: 0.99 crosses any ask,
+                  // 0.01 is crossed by any bid. the fill happens at the book's
+                  // own prices, this is only the worst price the order accepts
+                  // - which is also the collateral the maker leg has to cover
+                  priceToProvide =
+                      (isTrue((isBuy))
+                           ? ccxt::any(this->numberToString(this->safeNumber(
+                                 this->options, std::string("marketBuyPrice"),
+                                 0.99)))
+                           : ccxt::any(this->numberToString(this->safeNumber(
+                                 this->options, std::string("marketSellPrice"),
+                                 0.01))));
+                }
+                ccxt::any quantityWei = ccxt::Precise::stringMul(
+                    amountString, std::string("1000000000000000000"));
+                ccxt::any priceWei = ccxt::Precise::stringMul(
+                    priceToProvide, std::string("1000000000000000000"));
+                // the collateral leg follows from the price and the size,
+                // exactly as for a limit order - both legs have to agree or the
+                // venue rejects the order
+                ccxt::any costWei =
+                    ccxt::Precise::stringMul(priceToProvide, quantityWei);
+                ccxt::any makerAmount = quantityWei;
+                ccxt::any takerAmount = costWei;
+                if (isTrue(isBuy)) {
+                  // a buy pays collateral for shares, a sell hands over shares
+                  // for collateral
+                  makerAmount = costWei;
+                  takerAmount = quantityWei;
+                }
+                ccxt::any slippageBps = this->safeString(
+                    paramsWarnOnMarketOrderWithoutPrice,
+                    std::string("slippageBps"), std::string("0"));
+                if (isTrue(ccxt::Precise::stringGt(slippageBps,
+                                                   std::string("0")))) {
+                  if (isTrue(isBuy)) {
+                    // widen what the taker is willing to pay, capped at one
+                    // unit of collateral a share
+                    makerAmount = ccxt::Precise::stringMin(
+                        ccxt::Precise::stringDiv(
+                            ccxt::Precise::stringMul(
+                                makerAmount,
+                                ccxt::Precise::stringAdd(std::string("10000"),
+                                                         slippageBps)),
+                            std::string("10000")),
+                        quantityWei);
+                  } else {
+                    takerAmount = ccxt::Precise::stringMax(
+                        ccxt::Precise::stringDiv(
+                            ccxt::Precise::stringMul(
+                                takerAmount,
+                                ccxt::Precise::stringSub(std::string("10000"),
+                                                         slippageBps)),
+                            std::string("10000")),
+                        std::string("0"));
+                  }
+                }
+                // feeRateBps and the two exchange selectors live on the market
+                // row, not on the outcome row - signing with the wrong pair
+                // places the order under a different verifying contract and the
+                // venue answers create_order_hash_mismatch
+                ccxt::any marketSymbol =
+                    this->safeString(outcomeObj, std::string("market"));
+                ccxt::any marketObj =
+                    this->safeDict(this->markets, marketSymbol, ccxt::dict{});
+                ccxt::any marketRow = this->safeDict(
+                    marketObj, std::string("info"), ccxt::dict{});
+                ccxt::any marketFeeRateBps = this->safeString(
+                    marketRow, std::string("feeRateBps"),
+                    std::string("200")); // should be at least 200
+                ccxt::any feeRateBps = this->safeString(
+                    paramsWarnOnMarketOrderWithoutPrice,
+                    std::string("feeRateBps"), marketFeeRateBps);
+                ccxt::any marketIsNegRisk =
+                    this->safeBool(marketRow, std::string("isNegRisk"), false);
+                ccxt::any isNegRisk =
+                    this->safeBool(paramsWarnOnMarketOrderWithoutPrice,
+                                   std::string("isNegRisk"), marketIsNegRisk);
+                ccxt::any marketIsYieldBearing = this->safeBool(
+                    marketRow, std::string("isYieldBearing"), false);
+                ccxt::any isYieldBearing = this->safeBool(
+                    paramsWarnOnMarketOrderWithoutPrice,
+                    std::string("isYieldBearing"), marketIsYieldBearing);
+                ccxt::any defaultExpiration = this->safeInteger(
+                    this->options, std::string("defaultExpiration"),
+                    3600); // 1 hour
+                ccxt::any expirationDelta = defaultExpiration;
+                ccxt::any expiration =
+                    this->safeInteger(paramsWarnOnMarketOrderWithoutPrice,
+                                      std::string("expiration"));
+                if (isTrue(isEqual(expiration, ccxt::any{}))) {
+                  if (isTrue(isMarket)) {
+                    expirationDelta = this->safeInteger(
+                        this->options, std::string("marketOrderExpiration"),
+                        defaultExpiration);
+                  }
+                  ccxt::any now = this->seconds();
+                  expiration = this->sum(now, expirationDelta);
+                }
+                ccxt::any nonce = this->incrementingNonce();
+                ccxt::any salt = this->safeString(
+                    paramsWarnOnMarketOrderWithoutPrice, std::string("salt"),
+                    this->numberToString(nonce));
+                ccxt::any taker =
+                    std::string("0x0000000000000000000000000000000000000000");
+                ccxt::any takerOptionparamsTakerVariable =
+                    this->handleOptionAndParams(
+                        paramsWarnOnMarketOrderWithoutPrice,
+                        std::string("createOrder"), std::string("taker"),
+                        taker);
+                ccxt::any takerOption =
+                    ::getValue(takerOptionparamsTakerVariable, 0);
+                ccxt::any paramsTaker =
+                    ::getValue(takerOptionparamsTakerVariable, 1);
+                ccxt::any contractOrder = ccxt::dict{
+                    {std::string("salt"), salt},
+                    {std::string("maker"), this->walletAddress},
+                    {std::string("signer"), this->walletAddress},
+                    {std::string("taker"), takerOption},
+                    {std::string("tokenId"), tokenId},
+                    {std::string("makerAmount"),
+                     this->decimalToPrecision(makerAmount, TRUNCATE, 0,
+                                              DECIMAL_PLACES)},
+                    {std::string("takerAmount"),
+                     this->decimalToPrecision(takerAmount, TRUNCATE, 0,
+                                              DECIMAL_PLACES)},
+                    {std::string("expiration"), expiration},
+                    {std::string("nonce"),
+                     this->safeString(paramsTaker, std::string("nonce"),
+                                      std::string("0"))},
+                    {std::string("feeRateBps"), feeRateBps},
+                    {std::string("side"),
+                     (isTrue(isBuy) ? ccxt::any(0) : ccxt::any(1))},
+                    {std::string("signatureType"), 0},
+                };
+                ccxt::any signedFlag = this->signPredictfunOrder(
+                    contractOrder, isNegRisk, isYieldBearing);
+                ccxt::any orderPayload = this->extend(
+                    contractOrder,
+                    ccxt::dict{
+                        {std::string("hash"),
+                         this->safeString(signedFlag, std::string("hash"))},
+                        {std::string("signature"),
+                         this->safeString(signedFlag,
+                                          std::string("signature"))},
+                    });
+                ccxt::any data = ccxt::dict{
+                    {std::string("order"), orderPayload},
+                    {std::string("pricePerShare"),
+                     this->decimalToPrecision(priceWei, TRUNCATE, 0,
+                                              DECIMAL_PLACES)},
+                    {std::string("strategy"), strategy},
+                };
+                ccxt::any postOnly = this->safeBool(
+                    paramsTaker, std::string("isPostOnly"), false);
+                ccxt::any postOnlyOptionparamsPostOnlyVariable =
+                    this->handlePostOnly(isMarket, postOnly, paramsTaker);
+                ccxt::any postOnlyOption =
+                    ::getValue(postOnlyOptionparamsPostOnlyVariable, 0);
+                ccxt::any paramsPostOnly =
+                    ::getValue(postOnlyOptionparamsPostOnlyVariable, 1);
+                if (isTrue(postOnlyOption)) {
+                  ::setValue(data, std::string("isPostOnly"), postOnlyOption);
+                }
+                ccxt::any timeInForce = this->safeStringUpper(
+                    paramsPostOnly, std::string("timeInForce"));
+                if (isTrue(isEqual(timeInForce, std::string("FOK")))) {
+                  ::setValue(data, std::string("isFillOrKill"), true);
+                }
+                // documented, and the venue takes it inside data rather than as
+                // a top level key
+                ccxt::any selfTradePrevention = this->safeStringUpper(
+                    paramsPostOnly, std::string("selfTradePrevention"));
+                if (isTrue(!isEqual(selfTradePrevention, ccxt::any{}))) {
+                  ::setValue(data, std::string("selfTradePrevention"),
+                             selfTradePrevention);
+                }
+                // every param the method consumes itself has to come out,
+                // otherwise it survives into the extend below and is posted as
+                // a top level key next to 'data'
+                ccxt::any paramsOmitted = this->omit(
+                    paramsPostOnly,
+                    ccxt::list{
+                        std::string("isPostOnly"), std::string("timeInForce"),
+                        std::string("isFillOrKill"), std::string("feeRateBps"),
+                        std::string("isNegRisk"), std::string("isYieldBearing"),
+                        std::string("slippageBps"), std::string("salt"),
+                        std::string("nonce"), std::string("expiration"),
+                        std::string("selfTradePrevention"),
+                        std::string("taker")});
+                // the JWT authorises the order, the api key only authorises the
+                // request
+                ccxt::any request = ccxt::dict{
+                    {std::string("data"), data},
+                };
+                ccxt::any response = awaitValue(this->predictfunPostV1Orders(
+                    this->extend(request, paramsOmitted)));
+                //
+                //     {
+                //         "data": {
+                //             "code": "OK",
+                //             "orderHash":
+                //             "0x5ae1a7893b1a804530151dec3866cd0bb8ffe4e4c3640aca1b3ab5ef26c57747",
+                //             "orderId": "415535",
+                //             "removalLockedUntil": null
+                //         },
+                //         "success ": true
+                //     }
+                //
+                ccxt::any result =
+                    this->safeDict(response, std::string("data"), ccxt::dict{});
+                // the venue answers with an id and a hash and nothing else - no
+                // price, size, side or status - so the returned order is built
+                // from what was requested and signedFlag, with only the
+                // identifiers taken from the response
+                return this->safePredictionOrder(ccxt::dict{
+                    {std::string("id"),
+                     this->safeString2(result, std::string("orderHash"),
+                                       std::string("hash"))},
+                    {std::string("clientOrderId"), ccxt::any{}},
+                    {std::string("info"), response},
+                    {std::string("timestamp"), ccxt::any{}},
+                    {std::string("datetime"), ccxt::any{}},
+                    {std::string("status"), ccxt::any{}},
+                    {std::string("outcome"),
+                     this->safeString(outcomeObj, std::string("outcome"),
+                                      outcome)},
+                    {std::string("outcomeId"),
+                     this->safeString(outcomeObj, std::string("outcomeId"))},
+                    {std::string("label"),
+                     this->safeString(outcomeObj, std::string("label"))},
+                    {std::string("market"),
+                     this->safeString(outcomeObj, std::string("market"))},
+                    {std::string("event"),
+                     this->safeString(outcomeObj, std::string("event"))},
+                    {std::string("type"), type},
+                    {std::string("side"), side},
+                    {std::string("price"), this->parseNumber(priceString)},
+                    {std::string("amount"), this->parseNumber(amountString)},
+                    {std::string("filled"), ccxt::any{}},
+                    {std::string("remaining"), ccxt::any{}},
+                    {std::string("cost"), ccxt::any{}},
+                    {std::string("fee"), ccxt::any{}},
+                    {std::string("trades"), ccxt::list{}},
+                });
+              })
+            .share();
   }
 
   /**
@@ -4582,11 +4599,13 @@ public:
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
                  ccxt::any messageHash = std::string("orders");
-                 if (isTrue(!isEqual(outcome, ccxt::any{}))) {
-                   awaitValue(this->loadOutcome(outcome));
-                   ccxt::any outcomeObj = this->outcome(outcome);
-                   outcome = this->safeOutcomeSymbol(ccxt::any{}, outcomeObj);
-                   messageHash = add(std::string("orders::"), outcome);
+                 ccxt::any outcomeResolved = outcome;
+                 if (isTrue(!isEqual(outcomeResolved, ccxt::any{}))) {
+                   awaitValue(this->loadOutcome(outcomeResolved));
+                   ccxt::any outcomeObj = this->outcome(outcomeResolved);
+                   outcomeResolved =
+                       this->safeOutcomeSymbol(ccxt::any{}, outcomeObj);
+                   messageHash = add(std::string("orders::"), outcomeResolved);
                  } else {
                    // events arrive for whatever market the wallet traded, and
                    // the handler that resolves them is synchronous - so the
@@ -4599,11 +4618,13 @@ public:
                  }
                  ccxt::any orders =
                      awaitValue(this->watchWalletEvents(messageHash, params));
+                 ccxt::any limitResolved = limit;
                  if (isTrue(this->newUpdates)) {
-                   limit = ::wsGetLimit(orders, outcome, limit);
+                   limitResolved =
+                       ::wsGetLimit(orders, outcomeResolved, limitResolved);
                  }
-                 return this->filterByOutcomeSinceLimit(orders, outcome, since,
-                                                        limit, true);
+                 return this->filterByOutcomeSinceLimit(
+                     orders, outcomeResolved, since, limitResolved, true);
                })
         .share();
   }
@@ -4629,11 +4650,14 @@ public:
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
                  ccxt::any messageHash = std::string("myTrades");
-                 if (isTrue(!isEqual(outcome, ccxt::any{}))) {
-                   awaitValue(this->loadOutcome(outcome));
-                   ccxt::any outcomeObj = this->outcome(outcome);
-                   outcome = this->safeOutcomeSymbol(ccxt::any{}, outcomeObj);
-                   messageHash = add(std::string("myTrades::"), outcome);
+                 ccxt::any outcomeResolved = outcome;
+                 if (isTrue(!isEqual(outcomeResolved, ccxt::any{}))) {
+                   awaitValue(this->loadOutcome(outcomeResolved));
+                   ccxt::any outcomeObj = this->outcome(outcomeResolved);
+                   outcomeResolved =
+                       this->safeOutcomeSymbol(ccxt::any{}, outcomeObj);
+                   messageHash =
+                       add(std::string("myTrades::"), outcomeResolved);
                  } else {
                    // same as watchOrders (): the fills come from the one wallet
                    // topic and are resolved by a synchronous handler, so the
@@ -4642,11 +4666,13 @@ public:
                  }
                  ccxt::any trades =
                      awaitValue(this->watchWalletEvents(messageHash, params));
+                 ccxt::any limitResolved = limit;
                  if (isTrue(this->newUpdates)) {
-                   limit = ::wsGetLimit(trades, outcome, limit);
+                   limitResolved =
+                       ::wsGetLimit(trades, outcomeResolved, limitResolved);
                  }
-                 return this->filterByOutcomeSinceLimit(trades, outcome, since,
-                                                        limit, true);
+                 return this->filterByOutcomeSinceLimit(
+                     trades, outcomeResolved, since, limitResolved, true);
                })
         .share();
   }
@@ -5008,7 +5034,7 @@ public:
     ccxt::any noAsks = ccxt::list{};
     ccxt::any bidsLength = getArrayLength(rawBids);
     for (ccxt::any i = 0; isLessThan(i, bidsLength); postFixIncrement(i)) {
-      ccxt::any bid = ::getValue(rawBids, i);
+      ccxt::any bid = this->safeList(rawBids, i);
       ccxt::any bidPrice = this->safeString(bid, 0);
       ccxt::any bidSize = this->parseNumber(this->safeString(bid, 1));
       arrayPush(yesBids, ccxt::list{this->parseNumber(bidPrice), bidSize});
@@ -5019,7 +5045,7 @@ public:
     }
     ccxt::any asksLength = getArrayLength(rawAsks);
     for (ccxt::any i = 0; isLessThan(i, asksLength); postFixIncrement(i)) {
-      ccxt::any ask = ::getValue(rawAsks, i);
+      ccxt::any ask = this->safeList(rawAsks, i);
       ccxt::any askPrice = this->safeString(ask, 0);
       ccxt::any askSize = this->parseNumber(this->safeString(ask, 1));
       arrayPush(yesAsks, ccxt::list{this->parseNumber(askPrice), askSize});
@@ -5030,7 +5056,7 @@ public:
     ccxt::any outcomes = this->outcomesByMarketId(marketId);
     ccxt::any outcomesLength = getArrayLength(outcomes);
     for (ccxt::any i = 0; isLessThan(i, outcomesLength); postFixIncrement(i)) {
-      ccxt::any outcomeObj = ::getValue(outcomes, i);
+      ccxt::any outcomeObj = this->safeDict(outcomes, i);
       ccxt::any outcomeInfo =
           this->safeDict(outcomeObj, std::string("info"), ccxt::dict{});
       ccxt::any isYesOutcome =
@@ -5223,9 +5249,10 @@ public:
     // none at all
     ccxt::any topicSlug =
         this->safeString(details, std::string("categorySlug"));
-    ccxt::any eventHandle = (isTrue((!isEqual(topicSlug, ccxt::any{})))
-                                 ? ccxt::any(this->shortenSlug(topicSlug))
-                                 : ccxt::any(ccxt::any{}));
+    ccxt::any eventHandle = ccxt::any{};
+    if (isTrue(!isEqual(topicSlug, ccxt::any{}))) {
+      eventHandle = this->shortenSlug(topicSlug);
+    }
     ccxt::any label = this->stripPriceFormatting(
         this->safeStringUpper(details, std::string("outcomeName")));
     return ccxt::dict{
@@ -5593,7 +5620,7 @@ public:
     ccxt::any existingHeaders =
         (isTrue((!isEqual(headers, ccxt::any{}))) ? ccxt::any(headers)
                                                   : ccxt::any(ccxt::dict{}));
-    headers = existingHeaders;
+    ccxt::any headersValue = existingHeaders;
     ccxt::any authHeaders = ccxt::dict{};
     if (isTrue(isTrue((!isEqual(apiKey, ccxt::any{}))) &&
                isTrue((!isTrue(sandboxMode))))) {
@@ -5632,20 +5659,21 @@ public:
       ::setValue(authHeaders, std::string("Authorization"),
                  add(std::string("Bearer "), jwtToken));
     }
+    ccxt::any bodyValue = body;
     if (isTrue(!isEqual(method, std::string("GET")))) {
       if (!isTrue(sandboxMode)) {
         this->checkRequiredCredentials();
       }
       ::setValue(authHeaders, std::string("Content-Type"),
                  std::string("application/json"));
-      body = this->json(params);
+      bodyValue = this->json(params);
     }
-    headers = this->extend(headers, authHeaders);
+    ccxt::any headersExtended = this->extend(headersValue, authHeaders);
     return ccxt::dict{
         {std::string("url"), url},
         {std::string("method"), method},
-        {std::string("body"), body},
-        {std::string("headers"), headers},
+        {std::string("body"), bodyValue},
+        {std::string("headers"), headersExtended},
     };
   }
   // GENERATED dispatch table - see createDispatchTable in

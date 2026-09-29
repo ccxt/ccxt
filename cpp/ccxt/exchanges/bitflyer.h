@@ -382,6 +382,9 @@ public:
         {std::string("DEC"), std::string("12")},
     };
     ccxt::any month = this->safeString(months, monthName);
+    if (isTrue(isEqual(month, ccxt::any{}))) {
+      return ccxt::any{};
+    }
     return this->parse8601(
         add(add(add(add(add(year, std::string("-")), month), std::string("-")),
                 day),
@@ -501,12 +504,22 @@ public:
                        quoteId = slice(currencyIds, -3, ccxt::any{});
                        ccxt::any splitId = split(id, currencyIds);
                        ccxt::any expiryDate = this->safeString(splitId, 1);
+                       if (isTrue(isEqual(expiryDate, ccxt::any{}))) {
+                         continue;
+                       }
                        expiry = this->parseExpiryDate(expiryDate);
+                     }
+                     if (isTrue(isEqual(expiry, ccxt::any{}))) {
+                       continue;
                      }
                      type = std::string("future");
                    }
                    ccxt::any base = this->safeCurrencyCode(baseId);
                    ccxt::any quote = this->safeCurrencyCode(quoteId);
+                   if (isTrue(isTrue((isEqual(base, ccxt::any{}))) ||
+                              isTrue((isEqual(quote, ccxt::any{}))))) {
+                     continue;
+                   }
                    ccxt::any symbol = add(add(base, std::string("/")), quote);
                    ccxt::any taker = ::getValue(
                        ::getValue(this->fees, std::string("trading")),
@@ -600,7 +613,7 @@ public:
     };
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(response));
          postFixIncrement(i)) {
-      ccxt::any balance = ::getValue(response, i);
+      ccxt::any balance = this->safeDict(response, i);
       ccxt::any currencyId =
           this->safeString(balance, std::string("currency_code"));
       ccxt::any code = this->safeCurrencyCode(currencyId);
@@ -803,7 +816,7 @@ public:
     if (isTrue(!isEqual(side, ccxt::any{}))) {
       ccxt::any idInner = add(side, std::string("_child_order_acceptance_id"));
       if (isTrue(inOp(trade, idInner))) {
-        order = ::getValue(trade, idInner);
+        order = this->safeString(trade, idInner);
       }
     }
     if (isTrue(isEqual(order, ccxt::any{}))) {
@@ -814,14 +827,15 @@ public:
     ccxt::any priceString = this->safeString(trade, std::string("price"));
     ccxt::any amountString = this->safeString(trade, std::string("size"));
     ccxt::any id = this->safeString(trade, std::string("id"));
-    market = this->safeMarket(ccxt::any{}, market);
+    ccxt::any marketResolved = this->safeMarket(ccxt::any{}, market);
     return this->safeTrade(
         ccxt::dict{
             {std::string("id"), id},
             {std::string("info"), trade},
             {std::string("timestamp"), timestamp},
             {std::string("datetime"), this->iso8601(timestamp)},
-            {std::string("symbol"), ::getValue(market, std::string("symbol"))},
+            {std::string("symbol"),
+             ::getValue(marketResolved, std::string("symbol"))},
             {std::string("order"), order},
             {std::string("type"), ccxt::any{}},
             {std::string("side"), side},
@@ -831,7 +845,7 @@ public:
             {std::string("cost"), ccxt::any{}},
             {std::string("fee"), ccxt::any{}},
         },
-        market);
+        marketResolved);
   }
 
   /**
@@ -1228,7 +1242,8 @@ public:
                  ccxt::any ordersById =
                      this->indexBy(orders, std::string("id"));
                  if (isTrue(inOp(ordersById, id))) {
-                   return ::getValue(ordersById, id);
+                   ccxt::any found = this->safeDict(ordersById, id);
+                   return found;
                  }
                  throw OrderNotFound(toString(
                      add(add(this->id, std::string(" No order found with id ")),
@@ -1711,6 +1726,8 @@ public:
                  ccxt::any params = ccxt::dict{},
                  ccxt::any headers = ccxt::any{},
                  ccxt::any body = ccxt::any{}) override {
+    ccxt::any bodySigned = ccxt::any{};
+    ccxt::any headersSigned = ccxt::any{};
     ccxt::any request =
         add(add(std::string("/"), this->version), std::string("/"));
     if (isTrue(isEqual(api, std::string("private")))) {
@@ -1722,8 +1739,13 @@ public:
         request = add(request, add(std::string("?"), this->urlencode(params)));
       }
     }
-    ccxt::any baseUrl = this->implodeHostname(::getValue(
-        ::getValue(this->urls, std::string("api")), std::string("rest")));
+    ccxt::any apiUrl = this->safeString(
+        ::getValue(this->urls, std::string("api")), std::string("rest"));
+    if (isTrue(isEqual(apiUrl, ccxt::any{}))) {
+      throw ExchangeError(toString(add(
+          this->id, std::string(" sign() has no API URL for this endpoint"))));
+    }
+    ccxt::any baseUrl = this->implodeHostname(apiUrl);
     ccxt::any url = add(baseUrl, request);
     if (isTrue(isEqual(api, std::string("private")))) {
       this->checkRequiredCredentials();
@@ -1732,11 +1754,11 @@ public:
       ccxt::any auth = join(content, std::string(""));
       if (isTrue(isGreaterThan(getArrayLength(getObjectKeys(params)), 0))) {
         if (isTrue(!isEqual(method, std::string("GET")))) {
-          body = this->json(params);
-          auth = add(auth, body);
+          bodySigned = this->json(params);
+          auth = add(auth, bodySigned);
         }
       }
-      headers = ccxt::dict{
+      headersSigned = ccxt::dict{
           {std::string("ACCESS-KEY"), this->apiKey},
           {std::string("ACCESS-TIMESTAMP"), nonce},
           {std::string("ACCESS-SIGN"),
@@ -1744,11 +1766,17 @@ public:
           {std::string("Content-Type"), std::string("application/json")},
       };
     }
+    ccxt::any headersResolved = (isTrue((isEqual(headersSigned, ccxt::any{})))
+                                     ? ccxt::any(headers)
+                                     : ccxt::any(headersSigned));
+    ccxt::any bodyResolved =
+        (isTrue((isEqual(bodySigned, ccxt::any{}))) ? ccxt::any(body)
+                                                    : ccxt::any(bodySigned));
     return ccxt::dict{
         {std::string("url"), url},
         {std::string("method"), method},
-        {std::string("body"), body},
-        {std::string("headers"), headers},
+        {std::string("body"), bodyResolved},
+        {std::string("headers"), headersResolved},
     };
   }
 
@@ -2121,6 +2149,18 @@ public:
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDeltas") {
+      if (true) {
+        this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDelta") {
+      if (true) {
+        this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
         return ccxt::any{};
       }
     }

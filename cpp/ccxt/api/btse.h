@@ -46,7 +46,7 @@ public:
         return this->callEndpoint (std::string ("publicGetSpotApiV33Trades"), parameters);
     }
 
-    // Calls the publicGetSpotApiV33Time endpoint. Returns a JSON object or a JSON array.
+    // Calls the publicGetSpotApiV33Time endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicGetSpotApiV33Time (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetSpotApiV33Time"), parameters);
     }

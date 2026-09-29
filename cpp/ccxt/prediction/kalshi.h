@@ -588,12 +588,12 @@ public:
                          this->safeString(raw, std::string("event_ticker"));
                      ccxt::any eventTitle = this->safeString(
                          raw, std::string("title"), eventTicker);
-                     ccxt::any eventKey =
-                         (isTrue(
-                              (isTrue(!isEqual(eventTitle, ccxt::any{})) &&
-                               isTrue(!isEqual(eventTitle, std::string("")))))
-                              ? ccxt::any(this->shortenSlug(eventTitle))
-                              : ccxt::any(ccxt::any{}));
+                     ccxt::any eventKey = ccxt::any{};
+                     if (isTrue(
+                             isTrue(!isEqual(eventTitle, ccxt::any{})) &&
+                             isTrue(!isEqual(eventTitle, std::string(""))))) {
+                       eventKey = this->shortenSlug(eventTitle);
+                     }
                      for (ccxt::any j = 0;
                           isLessThan(j, getArrayLength(parsed));
                           postFixIncrement(j)) {
@@ -691,11 +691,11 @@ public:
                    ccxt::any suffix = slice(
                        outcomeSymbol, subtract(symbolLength, 3), ccxt::any{});
                    ccxt::any isNo = (isEqual(suffix, std::string("-NO")));
-                   ccxt::any baseTicker =
-                       (isTrue(isNo)
-                            ? ccxt::any(slice(outcomeSymbol, 0,
-                                              subtract(symbolLength, 3)))
-                            : ccxt::any(outcomeSymbol));
+                   ccxt::any baseTicker = outcomeSymbol;
+                   if (isTrue(isNo)) {
+                     baseTicker =
+                         slice(outcomeSymbol, 0, subtract(symbolLength, 3));
+                   }
                    ccxt::any response = ccxt::any{};
                    try {
                      response = awaitValue(
@@ -812,11 +812,11 @@ public:
                        this->parseToInt(getStringLength(outcomeSymbol));
                    ccxt::any suffix = slice(
                        outcomeSymbol, subtract(symbolLength, 3), ccxt::any{});
-                   ccxt::any baseTicker =
-                       (isTrue((isEqual(suffix, std::string("-NO"))))
-                            ? ccxt::any(slice(outcomeSymbol, 0,
-                                              subtract(symbolLength, 3)))
-                            : ccxt::any(outcomeSymbol));
+                   ccxt::any baseTicker = outcomeSymbol;
+                   if (isTrue(isEqual(suffix, std::string("-NO")))) {
+                     baseTicker =
+                         slice(outcomeSymbol, 0, subtract(symbolLength, 3));
+                   }
                    if (!isTrue((inOp(seen, baseTicker)))) {
                      ::setValue(seen, baseTicker, true);
                      arrayPush(tickers, baseTicker);
@@ -1024,9 +1024,10 @@ public:
       seriesTicker = join(seriesParts, std::string("-"));
     }
     // market symbol (no outcome suffix)
-    ccxt::any subtitleOrTicker =
-        (isTrue((!isEqual(subtitle, ccxt::any{}))) ? ccxt::any(subtitle)
-                                                   : ccxt::any(ticker));
+    ccxt::any subtitleOrTicker = ticker;
+    if (isTrue(!isEqual(subtitle, ccxt::any{}))) {
+      subtitleOrTicker = subtitle;
+    }
     ccxt::any marketSymbol =
         this->slugToMarketSymbol(eventTicker, subtitleOrTicker);
     // kalshi exposes the per-market price tick via price_ranges[].step (a
@@ -1487,16 +1488,18 @@ public:
     }
     // the book is quoted in the yes token, the no side mirrors with sizes
     // swapped
-    ccxt::any bidSizeString =
-        (isTrue((isNo))
-             ? ccxt::any(this->safeString(raw, std::string("yes_ask_size_fp")))
-             : ccxt::any(
-                   this->safeString(raw, std::string("yes_bid_size_fp"))));
-    ccxt::any askSizeString =
-        (isTrue((isNo))
-             ? ccxt::any(this->safeString(raw, std::string("yes_bid_size_fp")))
-             : ccxt::any(
-                   this->safeString(raw, std::string("yes_ask_size_fp"))));
+    ccxt::any bidSizeString = ccxt::any{};
+    if (isTrue(isNo)) {
+      bidSizeString = this->safeString(raw, std::string("yes_ask_size_fp"));
+    } else {
+      bidSizeString = this->safeString(raw, std::string("yes_bid_size_fp"));
+    }
+    ccxt::any askSizeString = ccxt::any{};
+    if (isTrue(isNo)) {
+      askSizeString = this->safeString(raw, std::string("yes_bid_size_fp"));
+    } else {
+      askSizeString = this->safeString(raw, std::string("yes_ask_size_fp"));
+    }
     // kalshi occasionally reports a negative size for settling/closed markets;
     // a size can't be negative, so drop it rather than emit an invalid volume
     ccxt::any bidVolume = ccxt::any{};
@@ -1813,12 +1816,12 @@ public:
   virtual ccxt::any sortedOrders(ccxt::any outcome, ccxt::any timestamp,
                                  ccxt::any bids, ccxt::any asks) {
     // Sort bids descending, asks ascending, match CCXT OrderBook shape
-    bids = this->sortBy(bids, 0, true);
-    asks = this->sortBy(asks, 0);
+    ccxt::any bidsValue = this->sortBy(bids, 0, true);
+    ccxt::any asksValue = this->sortBy(asks, 0);
     return ccxt::dict{
         {std::string("outcome"), outcome},
-        {std::string("bids"), bids},
-        {std::string("asks"), asks},
+        {std::string("bids"), bidsValue},
+        {std::string("asks"), asksValue},
         {std::string("timestamp"), timestamp},
         {std::string("datetime"), this->iso8601(timestamp)},
         {std::string("nonce"), ccxt::any{}},
@@ -2285,9 +2288,10 @@ public:
         this->parse8601(this->safeString(fill, std::string("created_time")));
     // action is the order side (buy/sell) of the held leg
     ccxt::any action = this->safeStringLower(fill, std::string("action"));
-    ccxt::any side = (isTrue((isEqual(action, std::string("sell"))))
-                          ? ccxt::any(std::string("sell"))
-                          : ccxt::any(std::string("buy")));
+    ccxt::any side = std::string("buy");
+    if (isTrue(isEqual(action, std::string("sell")))) {
+      side = std::string("sell");
+    }
     // price is the price of the leg held; kalshi reports dollars in V2, cents
     // otherwise
     ccxt::any price = ccxt::any{};
@@ -2316,9 +2320,10 @@ public:
       cost = multiply(price, amount);
     }
     ccxt::any isTaker = this->safeBool(fill, std::string("is_taker"), true);
-    ccxt::any takerOrMaker =
-        (isTrue((isEqual(isTaker, true))) ? ccxt::any(std::string("taker"))
-                                          : ccxt::any(std::string("maker")));
+    ccxt::any takerOrMaker = std::string("maker");
+    if (isTrue(isEqual(isTaker, true))) {
+      takerOrMaker = std::string("taker");
+    }
     ccxt::any feeCost = this->safeNumber(fill, std::string("fee_cost"));
     ccxt::any fee = ccxt::any{};
     if (isTrue(!isEqual(feeCost, ccxt::any{}))) {
@@ -2563,13 +2568,18 @@ public:
     ccxt::any noCount = this->safeNumber2(
         settlement, std::string("no_count_fp"), std::string("no_count"), 0);
     ccxt::any heldYes = (isGreaterThanOrEqual(yesCount, noCount));
-    ccxt::any heldLabel = (isTrue((heldYes)) ? ccxt::any(std::string("YES"))
-                                             : ccxt::any(std::string("NO")));
+    ccxt::any heldLabel = std::string("NO");
+    if (isTrue(heldYes)) {
+      heldLabel = std::string("YES");
+    }
     ccxt::any tickerMissing = (isEqual(ticker, ccxt::any{}));
     ccxt::any useHeldYesTicker = (isTrue(heldYes) || isTrue(tickerMissing));
-    ccxt::any heldTicker = (isTrue((useHeldYesTicker))
-                                ? ccxt::any(ticker)
-                                : ccxt::any((add(ticker, std::string("-NO")))));
+    ccxt::any heldTicker = ccxt::any{};
+    if (isTrue(useHeldYesTicker)) {
+      heldTicker = ticker;
+    } else {
+      heldTicker = (add(ticker, std::string("-NO")));
+    }
     ccxt::any mkt = this->safeOutcome(heldTicker, market);
     // which leg won; market_result is yes or no
     ccxt::any marketResult =
@@ -2585,12 +2595,14 @@ public:
         payout = divide(revenueCents, 100);
       }
     }
-    ccxt::any costKey =
-        (isTrue((heldYes)) ? ccxt::any(std::string("yes_total_cost"))
-                           : ccxt::any(std::string("no_total_cost")));
-    ccxt::any costDollarsKey =
-        (isTrue((heldYes)) ? ccxt::any(std::string("yes_total_cost_dollars"))
-                           : ccxt::any(std::string("no_total_cost_dollars")));
+    ccxt::any costKey = std::string("no_total_cost");
+    if (isTrue(heldYes)) {
+      costKey = std::string("yes_total_cost");
+    }
+    ccxt::any costDollarsKey = std::string("no_total_cost_dollars");
+    if (isTrue(heldYes)) {
+      costDollarsKey = std::string("yes_total_cost_dollars");
+    }
     ccxt::any cost = this->safeNumber(settlement, costDollarsKey);
     if (isTrue(isEqual(cost, ccxt::any{}))) {
       ccxt::any costCents = this->safeNumber(settlement, costKey);
@@ -2915,12 +2927,14 @@ public:
     // dollars), legacy returned yes_price/no_price in cents
     ccxt::any labelIsNo = (isEqual(
         this->safeStringUpper(mkt, std::string("label")), std::string("NO")));
-    ccxt::any dollarsKey =
-        (isTrue((labelIsNo)) ? ccxt::any(std::string("no_price_dollars"))
-                             : ccxt::any(std::string("yes_price_dollars")));
-    ccxt::any centsKey =
-        (isTrue((labelIsNo)) ? ccxt::any(std::string("no_price"))
-                             : ccxt::any(std::string("yes_price")));
+    ccxt::any dollarsKey = std::string("yes_price_dollars");
+    if (isTrue(labelIsNo)) {
+      dollarsKey = std::string("no_price_dollars");
+    }
+    ccxt::any centsKey = std::string("yes_price");
+    if (isTrue(labelIsNo)) {
+      centsKey = std::string("no_price");
+    }
     ccxt::any price = this->safeNumber(order, dollarsKey);
     if (isTrue(isEqual(price, ccxt::any{}))) {
       ccxt::any priceCents = this->safeNumber(order, centsKey);
@@ -3047,9 +3061,10 @@ public:
                  // only: side 'bid' = buy YES, 'ask' = sell YES, price in
                  // dollars. a NO order maps to the complementary YES order buy
                  // NO @ q == sell YES @ 1-q - flip the book side and the price
-                 ccxt::any bookSide =
-                     (isTrue((isBuy)) ? ccxt::any(std::string("bid"))
-                                      : ccxt::any(std::string("ask")));
+                 ccxt::any bookSide = std::string("ask");
+                 if (isTrue(isBuy)) {
+                   bookSide = std::string("bid");
+                 }
                  ccxt::any yesPrice = price;
                  if (isTrue(isNo)) {
                    bookSide = (isTrue((isBuy)) ? ccxt::any(std::string("ask"))
@@ -3065,11 +3080,12 @@ public:
                  // still overrides
                  ccxt::any unifiedTif =
                      this->safeStringUpper(params, std::string("timeInForce"));
-                 params = this->omit(params, std::string("timeInForce"));
-                 ccxt::any defaultTif =
-                     (isTrue((isMarket))
-                          ? ccxt::any(std::string("immediate_or_cancel"))
-                          : ccxt::any(std::string("good_till_canceled")));
+                 ccxt::any paramsOmitted =
+                     this->omit(params, std::string("timeInForce"));
+                 ccxt::any defaultTif = std::string("good_till_canceled");
+                 if (isTrue(isMarket)) {
+                   defaultTif = std::string("immediate_or_cancel");
+                 }
                  // kalshi has BOTH immediate_or_cancel (partial ok) and
                  // fill_or_kill (all-or-nothing); map the unified tokens to the
                  // matching primitive rather than collapsing FOK into IOC
@@ -3080,20 +3096,23 @@ public:
                  } else if (isTrue(isEqual(unifiedTif, std::string("GTC")))) {
                    defaultTif = std::string("good_till_canceled");
                  }
-                 ccxt::any timeInForce = ccxt::any{};
-                 ccxt::any timeInForceparamsVariable =
-                     this->handleOptionAndParams(
-                         params, std::string("createOrder"),
+                 ccxt::any timeInForceparamsTimeInForceVariable =
+                     this->handleOptionStringAndParams(
+                         paramsOmitted, std::string("createOrder"),
                          std::string("time_in_force"), defaultTif);
-                 timeInForce = ::getValue(timeInForceparamsVariable, 0);
-                 params = ::getValue(timeInForceparamsVariable, 1);
-                 ccxt::any stp = ccxt::any{};
-                 ccxt::any stpparamsVariable = this->handleOptionAndParams(
-                     params, std::string("createOrder"),
-                     std::string("self_trade_prevention_type"),
-                     std::string("taker_at_cross"));
-                 stp = ::getValue(stpparamsVariable, 0);
-                 params = ::getValue(stpparamsVariable, 1);
+                 ccxt::any timeInForce =
+                     ::getValue(timeInForceparamsTimeInForceVariable, 0);
+                 ccxt::any paramsTimeInForce =
+                     ::getValue(timeInForceparamsTimeInForceVariable, 1);
+                 ccxt::any stpparamsSelfTradePreventionTypeVariable =
+                     this->handleOptionStringAndParams(
+                         paramsTimeInForce, std::string("createOrder"),
+                         std::string("self_trade_prevention_type"),
+                         std::string("taker_at_cross"));
+                 ccxt::any stp =
+                     ::getValue(stpparamsSelfTradePreventionTypeVariable, 0);
+                 ccxt::any paramsSelfTradePreventionType =
+                     ::getValue(stpparamsSelfTradePreventionTypeVariable, 1);
                  ccxt::any request = ccxt::dict{
                      {std::string("ticker"), ticker},
                      {std::string("side"), bookSide},
@@ -3107,7 +3126,7 @@ public:
                  }
                  ccxt::any response =
                      awaitValue(this->kalshiPrivatePostPortfolioEventsOrders(
-                         this->extend(request, params)));
+                         this->extend(request, paramsSelfTradePreventionType)));
                  // the V2 create response is minimal (order_id, fill_count,
                  // remaining_count), so backfill the known order details and
                  // resolve the status from the remaining count
@@ -3363,11 +3382,11 @@ public:
                            std::string(" fetchEvents() missing queries"))));
                  }
                  ccxt::any queriesLength = getArrayLength(queries);
-                 params =
+                 ccxt::any paramsOmitted =
                      this->omit(params, ccxt::list{std::string("query"),
                                                    std::string("queries")});
                  ccxt::any userLimit =
-                     this->safeInteger(params, std::string("limit"));
+                     this->safeInteger(paramsOmitted, std::string("limit"));
                  // bound how many events are actually FETCHED (not just
                  // returned) so a broad scope like category='Crypto' (hundreds
                  // of series) doesn't page every one of them
@@ -3381,7 +3400,7 @@ public:
                  // (so resolved events ARE discoverable — previously they were
                  // silently rewritten to 'open'); 'all' sends no filter
                  ccxt::any requestedStatus = this->safeString(
-                     params, std::string("status"),
+                     paramsOmitted, std::string("status"),
                      this->safeString(this->options,
                                       std::string("defaultEventStatus"),
                                       std::string("open")));
@@ -3407,7 +3426,7 @@ public:
                  // anything beyond the unified keys is forwarded verbatim to
                  // the events endpoint (kalshi filters)
                  ccxt::any rest = this->omit(
-                     params,
+                     paramsOmitted,
                      ccxt::list{std::string("status"), std::string("limit"),
                                 std::string("maxPages"), std::string("sort"),
                                 std::string("searchIn"), std::string("eventId"),
@@ -3417,8 +3436,9 @@ public:
                  if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    this->markets = this->createSafeDictionary();
                  }
-                 ccxt::any eventId = this->safeString2(
-                     params, std::string("eventId"), std::string("slug"));
+                 ccxt::any eventId =
+                     this->safeString2(paramsOmitted, std::string("eventId"),
+                                       std::string("slug"));
                  ccxt::any rawEvents = ccxt::list{};
                  if (isTrue(isGreaterThan(queriesLength, 0))) {
                    // free-text search: ranked events from the search endpoint,
@@ -3434,12 +3454,12 @@ public:
                  } else {
                    // tags / category / series_ticker resolve to a set of
                    // series; fetch their events, capped
-                   ccxt::any seriesTickers =
-                       awaitValue(this->resolveEventSeriesTickers(params));
+                   ccxt::any seriesTickers = awaitValue(
+                       this->resolveEventSeriesTickers(paramsOmitted));
                    ccxt::any seriesTickersLength =
                        getArrayLength(seriesTickers);
                    if (isTrue(isEqual(seriesTickersLength, 0))) {
-                     this->requireEventQuery(params);
+                     this->requireEventQuery(paramsOmitted);
                    }
                    rawEvents = awaitValue(this->fetchSeriesEvents(
                        seriesTickers, status, fetchCap, rest));
@@ -3475,7 +3495,7 @@ public:
                  // lack, and its query filter would drop a "bitcoin"-searched
                  // event whose title only says "BTC"
                  ccxt::any postParams = this->omit(
-                     params,
+                     paramsOmitted,
                      ccxt::list{std::string("tags"), std::string("category"),
                                 std::string("series_ticker")});
                  return this->applyEventFetchParams(result, postParams,
@@ -3956,9 +3976,10 @@ public:
     ccxt::any title = this->safeString(rawEvent, std::string("title"));
     ccxt::any hasTitle = isTrue((!isEqual(title, ccxt::any{}))) &&
                          isTrue((!isEqual(title, std::string(""))));
-    ccxt::any eventSlug =
-        (isTrue(hasTitle) ? ccxt::any(this->shortenSlug(title))
-                          : ccxt::any(ccxt::any{}));
+    ccxt::any eventSlug = ccxt::any{};
+    if (isTrue(hasTitle)) {
+      eventSlug = this->shortenSlug(title);
+    }
     ccxt::any created = this->parse8601(
         this->safeString(rawEvent, std::string("created_date_iso")));
     if (isTrue(isEqual(created, ccxt::any{}))) {
@@ -4033,12 +4054,13 @@ public:
     ccxt::any existingHeaders =
         (isTrue((!isEqual(headers, ccxt::any{}))) ? ccxt::any(headers)
                                                   : ccxt::any(ccxt::dict{}));
-    headers = this->extend(
+    ccxt::any headersValue = this->extend(
         ccxt::dict{
             {std::string("Accept"), std::string("application/json")},
             {std::string("Content-Type"), std::string("application/json")},
         },
         existingHeaders);
+    ccxt::any bodyValue = body;
     if (isTrue(isEqual(access, std::string("private")))) {
       this->checkRequiredCredentials();
       ccxt::any timestamp = toString(this->milliseconds());
@@ -4056,24 +4078,24 @@ public:
       ccxt::any cleanPrivateKey = join(keyParts, std::string("\n"));
       ccxt::any signature =
           rsa(payload, cleanPrivateKey, sha256, std::string("pss"));
-      headers = this->extend(
-          headers, ccxt::dict{
-                       {std::string("KALSHI-ACCESS-KEY"), this->apiKey},
-                       {std::string("KALSHI-ACCESS-SIGNATURE"), signature},
-                       {std::string("KALSHI-ACCESS-TIMESTAMP"), timestamp},
-                   });
+      headersValue = this->extend(
+          headersValue, ccxt::dict{
+                            {std::string("KALSHI-ACCESS-KEY"), this->apiKey},
+                            {std::string("KALSHI-ACCESS-SIGNATURE"), signature},
+                            {std::string("KALSHI-ACCESS-TIMESTAMP"), timestamp},
+                        });
       if (isTrue(isTrue(!isEqual(method, std::string("GET"))) &&
                  isTrue((!isEqual(querystring, std::string("")))))) {
         // kalshi expects a JSON body; the signature covers only
         // timestamp+method+path
-        body = this->json(query);
+        bodyValue = this->json(query);
       }
     }
     return ccxt::dict{
         {std::string("url"), url},
         {std::string("method"), method},
-        {std::string("body"), body},
-        {std::string("headers"), headers},
+        {std::string("body"), bodyValue},
+        {std::string("headers"), headersValue},
     };
   }
   // GENERATED dispatch table - see createDispatchTable in

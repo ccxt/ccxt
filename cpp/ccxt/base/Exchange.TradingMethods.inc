@@ -229,15 +229,16 @@ fetchMarkPrice(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
                               false)))) {
                  awaitValue(this->loadMarkets());
                  ccxt::any market = this->market(symbol);
-                 symbol = ::getValue(market, std::string("symbol"));
+                 ccxt::any symbolResolved =
+                     ::getValue(market, std::string("symbol"));
                  ccxt::any tickers = awaitValue(
-                     this->fetchMarkPrices(ccxt::list{symbol}, params));
-                 ccxt::any ticker = this->safeDict(tickers, symbol);
+                     this->fetchMarkPrices(ccxt::list{symbolResolved}, params));
+                 ccxt::any ticker = this->safeDict(tickers, symbolResolved);
                  if (isTrue(isEqual(ticker, ccxt::any{}))) {
                    throw NullResponse(toString(
                        add(add(this->id, std::string(" fetchMarkPrices() could "
                                                      "not find a ticker for ")),
-                           symbol)));
+                           symbolResolved)));
                  } else {
                    return ticker;
                  }
@@ -583,7 +584,7 @@ virtual std::shared_future<ccxt::any> createOrderWithTakeProfitAndStopLossWs(
                 * @returns {object} an [order structure]{@link
                 * https://docs.ccxt.com/?id=order-structure}
                 */
-               params = this->setTakeProfitAndStopLossParams(
+               ccxt::any paramsValue = this->setTakeProfitAndStopLossParams(
                    symbol, type, side, amount, price, takeProfit, stopLoss,
                    params);
                if (isTrue(
@@ -599,8 +600,8 @@ virtual std::shared_future<ccxt::any> createOrderWithTakeProfitAndStopLossWs(
                                std::string(
                                    "createOrderWithTakeProfitAndStopLossWs")),
                            false)))) {
-                 return awaitValue(this->createOrderWs(symbol, type, side,
-                                                       amount, price, params));
+                 return awaitValue(this->createOrderWs(
+                     symbol, type, side, amount, price, paramsValue));
                }
                throw NotSupported(toString(add(
                    this->id, std::string(" createOrderWithTakeProfitAndStopLoss"
@@ -761,7 +762,7 @@ createStopLossOrderWs(ccxt::any symbol, ccxt::any type, ccxt::any side,
                      this->id, std::string(" createStopLossOrderWs() requires "
                                            "a stopLossPrice argument"))));
                }
-               params = this->extend(
+               ccxt::any paramsExtended = this->extend(
                    params, ccxt::dict{
                                {std::string("stopLossPrice"), stopLossPrice},
                            });
@@ -773,8 +774,8 @@ createStopLossOrderWs(ccxt::any symbol, ccxt::any type, ccxt::any side,
                               ::getValue(this->has,
                                          std::string("createStopLossOrderWs")),
                               false)))) {
-                 return awaitValue(this->createOrderWs(symbol, type, side,
-                                                       amount, price, params));
+                 return awaitValue(this->createOrderWs(
+                     symbol, type, side, amount, price, paramsExtended));
                }
                throw NotSupported(toString(
                    add(this->id,
@@ -886,7 +887,7 @@ createTakeProfitOrderWs(ccxt::any symbol, ccxt::any type, ccxt::any side,
                          std::string(" createTakeProfitOrderWs() requires a "
                                      "takeProfitPrice argument"))));
                }
-               params = this->extend(
+               ccxt::any paramsExtended = this->extend(
                    params,
                    ccxt::dict{
                        {std::string("takeProfitPrice"), takeProfitPrice},
@@ -900,8 +901,8 @@ createTakeProfitOrderWs(ccxt::any symbol, ccxt::any type, ccxt::any side,
                            ::getValue(this->has,
                                       std::string("createTakeProfitOrderWs")),
                            false)))) {
-                 return awaitValue(this->createOrderWs(symbol, type, side,
-                                                       amount, price, params));
+                 return awaitValue(this->createOrderWs(
+                     symbol, type, side, amount, price, paramsExtended));
                }
                throw NotSupported(toString(add(
                    this->id,
@@ -1072,7 +1073,7 @@ createTriggerOrderWs(ccxt::any symbol, ccxt::any type, ccxt::any side,
                      this->id, std::string(" createTriggerOrderWs() requires a "
                                            "triggerPrice argument"))));
                }
-               params = this->extend(
+               ccxt::any paramsExtended = this->extend(
                    params, ccxt::dict{
                                {std::string("triggerPrice"), triggerPrice},
                            });
@@ -1084,8 +1085,8 @@ createTriggerOrderWs(ccxt::any symbol, ccxt::any type, ccxt::any side,
                               ::getValue(this->has,
                                          std::string("createTriggerOrderWs")),
                               false)))) {
-                 return awaitValue(this->createOrderWs(symbol, type, side,
-                                                       amount, price, params));
+                 return awaitValue(this->createOrderWs(
+                     symbol, type, side, amount, price, paramsExtended));
                }
                throw NotSupported(toString(
                    add(this->id,
@@ -1261,16 +1262,17 @@ fetchTickerWs(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
                           false)))) {
                 awaitValue(this->loadMarkets());
                 ccxt::any market = this->market(symbol);
-                symbol = ::getValue(market, std::string("symbol"));
+                ccxt::any symbolResolved =
+                    ::getValue(market, std::string("symbol"));
                 ccxt::any tickers = awaitValue(
-                    this->fetchTickersWs(ccxt::list{symbol}, params));
-                ccxt::any ticker = this->safeDict(tickers, symbol);
+                    this->fetchTickersWs(ccxt::list{symbolResolved}, params));
+                ccxt::any ticker = this->safeDict(tickers, symbolResolved);
                 if (isTrue(isEqual(ticker, ccxt::any{}))) {
                   throw NullResponse(toString(add(
                       add(this->id,
                           std::string(
                               " fetchTickerWs() could not find a ticker for ")),
-                      symbol)));
+                      symbolResolved)));
                 } else {
                   return ticker;
                 }
@@ -1341,8 +1343,8 @@ loadOrderBook(ccxt::any client, ccxt::any messageHash, ccxt::any symbol,
                   ccxt::any index = this->getCacheIndex(orderBook, cache);
                   if (isTrue(isGreaterThanOrEqual(index, 0))) {
                     ::resetOrderBook(stored, orderBook);
-                    this->handleDeltas(stored,
-                                       slice(cache, index, ccxt::any{}));
+                    this->handleBookDeltas(stored,
+                                           slice(cache, index, ccxt::any{}));
                     getArrayLength(::getValue(stored, std::string("cache"))) =
                         0;
                     this->resolve(stored, messageHash);
@@ -1472,7 +1474,8 @@ fetchOpenInterest(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
                               false)))) {
                  ccxt::any openInterests = awaitValue(
                      this->fetchOpenInterests(ccxt::list{symbol}, params));
-                 return this->safeDict(openInterests, symbol);
+                 ccxt::any openInterest = this->safeDict(openInterests, symbol);
+                 return openInterest;
                } else {
                  throw NotSupported(toString(
                      add(this->id,
@@ -1643,16 +1646,17 @@ fetchTicker(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
                            false)))) {
                  awaitValue(this->loadMarkets());
                  ccxt::any market = this->market(symbol);
-                 symbol = ::getValue(market, std::string("symbol"));
-                 ccxt::any tickers =
-                     awaitValue(this->fetchTickers(ccxt::list{symbol}, params));
-                 ccxt::any ticker = this->safeDict(tickers, symbol);
+                 ccxt::any symbolResolved =
+                     ::getValue(market, std::string("symbol"));
+                 ccxt::any tickers = awaitValue(
+                     this->fetchTickers(ccxt::list{symbolResolved}, params));
+                 ccxt::any ticker = this->safeDict(tickers, symbolResolved);
                  if (isTrue(isEqual(ticker, ccxt::any{}))) {
                    throw NullResponse(toString(add(
                        add(this->id,
                            std::string(
                                " fetchTickers() could not find a ticker for ")),
-                       symbol)));
+                       symbolResolved)));
                  } else {
                    return ticker;
                  }
@@ -2114,7 +2118,7 @@ createTriggerOrder(ccxt::any symbol, ccxt::any type, ccxt::any side,
                      add(this->id, std::string(" createTriggerOrder() requires "
                                                "a triggerPrice argument"))));
                }
-               params = this->extend(
+               ccxt::any paramsExtended = this->extend(
                    params, ccxt::dict{
                                {std::string("triggerPrice"), triggerPrice},
                            });
@@ -2127,7 +2131,7 @@ createTriggerOrder(ccxt::any symbol, ccxt::any type, ccxt::any side,
                                          std::string("createTriggerOrder")),
                               false)))) {
                  return awaitValue(this->createOrder(symbol, type, side, amount,
-                                                     price, params));
+                                                     price, paramsExtended));
                }
                throw NotSupported(toString(add(
                    this->id,
@@ -2169,7 +2173,7 @@ createStopLossOrder(ccxt::any symbol, ccxt::any type, ccxt::any side,
                      this->id, std::string(" createStopLossOrder() requires a "
                                            "stopLossPrice argument"))));
                }
-               params = this->extend(
+               ccxt::any paramsExtended = this->extend(
                    params, ccxt::dict{
                                {std::string("stopLossPrice"), stopLossPrice},
                            });
@@ -2182,7 +2186,7 @@ createStopLossOrder(ccxt::any symbol, ccxt::any type, ccxt::any side,
                                          std::string("createStopLossOrder")),
                               false)))) {
                  return awaitValue(this->createOrder(symbol, type, side, amount,
-                                                     price, params));
+                                                     price, paramsExtended));
                }
                throw NotSupported(toString(
                    add(this->id,
@@ -2225,7 +2229,7 @@ createTakeProfitOrder(ccxt::any symbol, ccxt::any type, ccxt::any side,
                      this->id, std::string(" createTakeProfitOrder() requires "
                                            "a takeProfitPrice argument"))));
                }
-               params = this->extend(
+               ccxt::any paramsExtended = this->extend(
                    params,
                    ccxt::dict{
                        {std::string("takeProfitPrice"), takeProfitPrice},
@@ -2239,7 +2243,7 @@ createTakeProfitOrder(ccxt::any symbol, ccxt::any type, ccxt::any side,
                                          std::string("createTakeProfitOrder")),
                               false)))) {
                  return awaitValue(this->createOrder(symbol, type, side, amount,
-                                                     price, params));
+                                                     price, paramsExtended));
                }
                throw NotSupported(toString(
                    add(this->id,
@@ -2295,7 +2299,7 @@ virtual std::shared_future<ccxt::any> createOrderWithTakeProfitAndStopLoss(
                 * @returns {object} an [order structure]{@link
                 * https://docs.ccxt.com/?id=order-structure}
                 */
-               params = this->setTakeProfitAndStopLossParams(
+               ccxt::any paramsValue = this->setTakeProfitAndStopLossParams(
                    symbol, type, side, amount, price, takeProfit, stopLoss,
                    params);
                if (isTrue(isTrue(!isEqual(
@@ -2311,7 +2315,7 @@ virtual std::shared_future<ccxt::any> createOrderWithTakeProfitAndStopLoss(
                                       "createOrderWithTakeProfitAndStopLoss")),
                               false)))) {
                  return awaitValue(this->createOrder(symbol, type, side, amount,
-                                                     price, params));
+                                                     price, paramsValue));
                }
                throw NotSupported(toString(
                    add(this->id, std::string(" createOrderWithTakeProfitAndStop"
@@ -2848,7 +2852,8 @@ fetchTradingFee(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
                      std::string(" fetchTradingFee() is not supported yet"))));
                }
                ccxt::any fees = awaitValue(this->fetchTradingFees(params));
-               return this->safeDict(fees, symbol);
+               ccxt::any fee = this->safeDict(fees, symbol);
+               return fee;
              })
       .share();
 }

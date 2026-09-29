@@ -1323,20 +1323,24 @@ public:
     ccxt::any fee = ccxt::any{};
     ccxt::any side = ccxt::any{};
     ccxt::any makerOrTaker = ccxt::any{};
+    ccxt::any tradeMarket = ccxt::any{};
     ccxt::any reference = this->safeString(trade, std::string("reference"));
     if (isTrue(!isEqual(reference, ccxt::any{}))) {
       id = reference;
       timestamp = this->safeTimestamp(trade, std::string("ticks"));
-      price = this->safeString(trade, std::string("price"));
-      price = this->removeCommaFromValue(price);
+      ccxt::any rawPrice = this->safeString(trade, std::string("price"));
+      if (isTrue(!isEqual(rawPrice, ccxt::any{}))) {
+        price = this->removeCommaFromValue(rawPrice);
+      }
       amount = this->safeString(trade, std::string("firstAmount"));
       ccxt::any reference_parts =
           split(reference,
                 std::string("|")); // reference contains
                                    // 'pair|orderId_by_taker|orderId_by_maker'
       ccxt::any marketId = this->safeString(trade, std::string("pair"));
-      market = this->safeMarket(marketId, market);
-      market = this->safeMarket(::getValue(reference_parts, 0), market);
+      ccxt::any marketByPair = this->safeMarket(marketId, market);
+      tradeMarket =
+          this->safeMarket(::getValue(reference_parts, 0), marketByPair);
       ccxt::any isMaker = this->safeBool(trade, std::string("isMaker"));
       makerOrTaker =
           (isTrue((isEqual(isMaker, true))) ? ccxt::any(std::string("maker"))
@@ -1362,6 +1366,7 @@ public:
       id = this->safeString(trade, std::string("tid"));
       price = this->safeString(trade, std::string("price"));
       amount = this->safeString(trade, std::string("amount"));
+      tradeMarket = this->safeMarket(ccxt::any{}, market);
       side = this->safeValue(trade, std::string("isBid"));
       if (isTrue(!isEqual(side, ccxt::any{}))) {
         if (isTrue(isTrue((!isEqual(side, ccxt::any{}))) &&
@@ -1372,14 +1377,15 @@ public:
         }
       }
     }
-    market = this->safeMarket(ccxt::any{}, market);
+    ccxt::any marketResolved = this->safeMarket(ccxt::any{}, tradeMarket);
     return this->safeTrade(
         ccxt::dict{
             {std::string("info"), trade},
             {std::string("id"), id},
             {std::string("timestamp"), timestamp},
             {std::string("datetime"), this->iso8601(timestamp)},
-            {std::string("symbol"), ::getValue(market, std::string("symbol"))},
+            {std::string("symbol"),
+             ::getValue(marketResolved, std::string("symbol"))},
             {std::string("order"), orderId},
             {std::string("type"), ccxt::any{}},
             {std::string("side"), side},
@@ -1389,7 +1395,7 @@ public:
             {std::string("cost"), ccxt::any{}},
             {std::string("fee"), fee},
         },
-        market);
+        marketResolved);
   }
 
   virtual ccxt::any isFiat(ccxt::any code) {
@@ -1470,16 +1476,22 @@ public:
                  ccxt::any params = ccxt::dict{},
                  ccxt::any headers = ccxt::any{},
                  ccxt::any body = ccxt::any{}) override {
+    ccxt::any apiUrl = this->safeString(
+        ::getValue(this->urls, std::string("api")), std::string("rest"));
+    if (isTrue(isEqual(apiUrl, ccxt::any{}))) {
+      throw ExchangeError(toString(add(
+          this->id, std::string(" sign() has no API URL for this endpoint"))));
+    }
     ccxt::any url =
-        add(add(::getValue(::getValue(this->urls, std::string("api")),
-                           std::string("rest")),
-                std::string("/")),
-            this->implodeParams(path, params));
+        add(add(apiUrl, std::string("/")), this->implodeParams(path, params));
+    ccxt::any requestBody = ccxt::any{};
+    ccxt::any requestHeaders = ccxt::any{};
     if (isTrue(isEqual(api, std::string("public")))) {
       url = add(url, std::string(".json"));
     } else {
       this->checkRequiredCredentials();
-      ccxt::any nonce = this->nonce();
+      // bit2c requires an increasing nonce per key
+      ccxt::any nonce = this->incrementingNonce();
       ccxt::any query = this->extend(
           ccxt::dict{
               {std::string("nonce"), nonce},
@@ -1491,23 +1503,29 @@ public:
           url = add(url, add(std::string("?"), auth));
         }
       } else {
-        body = auth;
+        requestBody = auth;
       }
       ccxt::any signature =
           this->hmac(this->encode(auth), this->encode(this->secret), sha512,
                      std::string("base64"));
-      headers = ccxt::dict{
+      requestHeaders = ccxt::dict{
           {std::string("Content-Type"),
            std::string("application/x-www-form-urlencoded")},
           {std::string("key"), this->apiKey},
           {std::string("sign"), signature},
       };
     }
+    ccxt::any bodyResult =
+        (isTrue((isEqual(requestBody, ccxt::any{}))) ? ccxt::any(body)
+                                                     : ccxt::any(requestBody));
+    ccxt::any headersResult = (isTrue((isEqual(requestHeaders, ccxt::any{})))
+                                   ? ccxt::any(headers)
+                                   : ccxt::any(requestHeaders));
     return ccxt::dict{
         {std::string("url"), url},
         {std::string("method"), method},
-        {std::string("body"), body},
-        {std::string("headers"), headers},
+        {std::string("body"), bodyResult},
+        {std::string("headers"), headersResult},
     };
   }
 
@@ -1765,6 +1783,18 @@ public:
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDeltas") {
+      if (true) {
+        this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDelta") {
+      if (true) {
+        this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
         return ccxt::any{};
       }
     }

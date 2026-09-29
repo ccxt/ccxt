@@ -83,40 +83,95 @@ public:
                        ccxt::dict{
                            {std::string("get"),
                             ccxt::dict{
-                                {std::string("market"), 1},
-                                {std::string("market/{marketId}"), 1},
+                                {std::string("market"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("market/{marketId}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("market/categorical/{marketId}"),
-                                 1},
-                                {std::string("market/slug/{slug}"), 1},
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("market/slug/{slug}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("label"), 1},
-                                {std::string("token/latest-price"), 1},
-                                {std::string("token/orderbook"), 1},
-                                {std::string("token/price-history"), 1},
-                                {std::string("quoteToken"), 1},
+                                {std::string("token/latest-price"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("token/orderbook"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("token/price-history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("quoteToken"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                             }},
                        }},
                       {std::string("private"),
                        ccxt::dict{
                            {std::string("get"),
                             ccxt::dict{
-                                {std::string("order"), 1},
-                                {std::string("order/{orderId}"), 1},
+                                {std::string("order"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("order/{orderId}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("positions/user/{walletAddress}"),
-                                 1},
-                                {std::string("trade/user/{walletAddress}"), 1},
-                                {std::string("auth/api-key"), 1},
-                                {std::string("user/auth"), 1},
-                                {std::string("user/balance"), 1},
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("trade/user/{walletAddress}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("auth/api-key"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("user/auth"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("user/balance"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                             }},
                            {std::string("post"),
                             ccxt::dict{
-                                {std::string("auth/api-key"), 1},
-                                {std::string("order"), 1},
-                                {std::string("order/cancel"), 1},
+                                {std::string("auth/api-key"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("order"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("order/cancel"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                             }},
                            {std::string("delete"),
                             ccxt::dict{
-                                {std::string("auth/api-key"), 1},
+                                {std::string("auth/api-key"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                             }},
                        }},
                   }},
@@ -852,9 +907,12 @@ public:
     ccxt::any eventId = this->safeString(rawEvent, std::string("marketId"));
     ccxt::any slug = this->safeString(rawEvent, std::string("slug"));
     ccxt::any title = this->safeString(rawEvent, std::string("marketTitle"));
-    ccxt::any eventHandle = (isTrue((!isEqual(title, ccxt::any{})))
-                                 ? ccxt::any(this->shortenSlug(title))
-                                 : ccxt::any(this->shortenSlug(slug)));
+    ccxt::any eventHandle = ccxt::any{};
+    if (isTrue(!isEqual(title, ccxt::any{}))) {
+      eventHandle = this->shortenSlug(title);
+    } else {
+      eventHandle = this->shortenSlug(slug);
+    }
     ccxt::any rawChildren =
         this->safeList(rawEvent, std::string("childMarkets"), ccxt::list{});
     ccxt::any rawChildrenLength = getArrayLength(rawChildren);
@@ -1236,7 +1294,7 @@ public:
                  ccxt::any historyLength = getArrayLength(history);
                  for (ccxt::any i = 0; isLessThan(i, historyLength);
                       postFixIncrement(i)) {
-                   ccxt::any point = ::getValue(history, i);
+                   ccxt::any point = this->safeDict(history, i);
                    ccxt::any price = this->safeNumber(point, std::string("p"));
                    ccxt::any timestamp =
                        this->safeTimestamp(point, std::string("t"));
@@ -2173,7 +2231,7 @@ public:
         this->safeList(data, std::string("balances"), ccxt::list{});
     ccxt::any balancesLength = getArrayLength(balances);
     for (ccxt::any i = 0; isLessThan(i, balancesLength); postFixIncrement(i)) {
-      ccxt::any balance = ::getValue(balances, i);
+      ccxt::any balance = this->safeDict(balances, i);
       ccxt::any code =
           this->safeString(balance, std::string("symbol"), std::string("USDT"));
       ::setValue(
@@ -2625,7 +2683,8 @@ public:
     ccxt::any marketKeysLength = getArrayLength(marketKeys);
     for (ccxt::any i = 0; isLessThan(i, marketKeysLength);
          postFixIncrement(i)) {
-      ccxt::any market = ::getValue(this->markets, ::getValue(marketKeys, i));
+      ccxt::any market =
+          this->safeDict(this->markets, ::getValue(marketKeys, i));
       ccxt::any info =
           this->safeDict(market, std::string("info"), ccxt::dict{});
       if (isTrue(isEqual(this->safeInteger(info, std::string("marketId")),
@@ -3026,14 +3085,16 @@ public:
     // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1
     // buy / 2 sell per the docs and confirmed live
     ccxt::any sideInt = this->safeInteger(message, std::string("side"));
-    ccxt::any side =
-        (isTrue((isEqual(sideInt, 1))) ? ccxt::any(std::string("buy"))
-                                       : ccxt::any(std::string("sell")));
+    ccxt::any side = std::string("sell");
+    if (isTrue(isEqual(sideInt, 1))) {
+      side = std::string("buy");
+    }
     ccxt::any tradingMethod =
         this->safeInteger(message, std::string("tradingMethod"));
-    ccxt::any type =
-        (isTrue((isEqual(tradingMethod, 1))) ? ccxt::any(std::string("market"))
-                                             : ccxt::any(std::string("limit")));
+    ccxt::any type = std::string("limit");
+    if (isTrue(isEqual(tradingMethod, 1))) {
+      type = std::string("market");
+    }
     ccxt::any order = this->safePredictionOrder(
         ccxt::dict{
             {std::string("id"),
@@ -3252,7 +3313,7 @@ public:
     ccxt::any existingHeaders =
         (isTrue((!isEqual(headers, ccxt::any{}))) ? ccxt::any(headers)
                                                   : ccxt::any(ccxt::dict{}));
-    headers = this->extend(
+    ccxt::any headersExtended = this->extend(
         ccxt::dict{
             {std::string("Accept"), std::string("application/json")},
             {std::string("Content-Type"), std::string("application/json")},
@@ -3276,12 +3337,13 @@ public:
         ccxt::any action =
             this->safeString(actionByMethod, method, std::string("get"));
         ccxt::any timestamp = this->numberToString(this->seconds());
-        ::setValue(headers, std::string("OPINION_ADDRESS"),
+        ::setValue(headersExtended, std::string("OPINION_ADDRESS"),
                    this->walletAddress);
         ::setValue(
-            headers, std::string("OPINION_SIGNATURE"),
+            headersExtended, std::string("OPINION_SIGNATURE"),
             this->signApiKeyAuth(this->walletAddress, action, timestamp));
-        ::setValue(headers, std::string("OPINION_TIMESTAMP"), timestamp);
+        ::setValue(headersExtended, std::string("OPINION_TIMESTAMP"),
+                   timestamp);
       } else {
         // an empty this.apiKey counts as absent - deleteApiKey clears it to ''
         // (the strict base types the credential as string, undefined can not be
@@ -3297,21 +3359,22 @@ public:
                   std::string(" requires an apiKey - set it directly or call "
                               "createApiKey()/fetchApiKey() first"))));
         }
-        ::setValue(headers, std::string("apikey"), apiKey);
+        ::setValue(headersExtended, std::string("apikey"), apiKey);
       }
     }
+    ccxt::any bodyValue = body;
     if (isTrue(isEqual(method, std::string("GET")))) {
       if (isTrue(isGreaterThan(getArrayLength(getObjectKeys(query)), 0))) {
         url = add(url, add(std::string("?"), this->urlencode(query)));
       }
     } else {
-      body = this->json(query);
+      bodyValue = this->json(query);
     }
     return ccxt::dict{
         {std::string("url"), url},
         {std::string("method"), method},
-        {std::string("body"), body},
-        {std::string("headers"), headers},
+        {std::string("body"), bodyValue},
+        {std::string("headers"), headersExtended},
     };
   }
   // GENERATED dispatch table - see createDispatchTable in
