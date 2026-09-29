@@ -290,7 +290,7 @@ export default class jupiter extends Exchange {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported, use createOrder() quotes for executable prices');
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api']['rest'] + '/' + path;
         const requestHeaders: Dict = {};
         let requestBody: Str = undefined;
