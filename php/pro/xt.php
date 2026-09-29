@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\NotSupported;
 use React\Async;
@@ -1715,6 +1716,7 @@ class xt extends \ccxt\async\xt {
             $this->get_listen_key(true);
             return;
         }
-        $client->reject($message);
+        $error = new ExchangeError($this->id . ' ' . $this->json($message));
+        $client->reject($error);
     }
 }

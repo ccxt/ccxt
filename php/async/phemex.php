@@ -2626,6 +2626,10 @@ class phemex extends Exchange {
         $amount = $this->safe_number_2($order, 'orderQty', 'orderQtyRq');
         $filled = $this->safe_number_2($order, 'cumQty', 'cumQtyRq');
         $remaining = $this->safe_number_2($order, 'leavesQty', 'leavesQtyRq');
+        if ($this->safe_string($order, 'ordStatus') === 'Untriggered') {
+            // an untriggered order cannot fill, so leaves reads zero while the whole amount is outstanding
+            $remaining = null;
+        }
         $timestamp = $this->safe_integer_product($order, 'actionTimeNs', 0.000001);
         if ($timestamp === null) {
             $timestamp = $this->safe_integer($order, 'createdAt');
