@@ -1856,7 +1856,8 @@ export default class bitvavo extends bitvavoRest {
             client.reject (e, messageHash);
         }
         if (!rejected) {
-            client.reject (message, messageHash);
+            const feedback = new ExchangeError (this.id + ' ' + this.json (message));
+            client.reject (feedback, messageHash);
             return true;
         }
         return undefined;
