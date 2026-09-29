@@ -1,0 +1,667 @@
+{
+    "exchange": "hitbtc",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchOrderBook": [
+            {
+                "description": "partial orderbook, params.method orderbook/{depth}/{speed} with depth and speed",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    {
+                        "method": "orderbook/{depth}/{speed}",
+                        "depth": 5,
+                        "speed": 500
+                    }
+                ],
+                "url": "wss://api.hitbtc.com/api/3/ws/public",
+                "messages": [
+                    {
+                        "result": {
+                            "ch": "orderbook/D5/500ms",
+                            "subscriptions": [
+                                "BTCUSDT"
+                            ]
+                        },
+                        "id": 1790512892404
+                    },
+                    {
+                        "ch": "orderbook/D5/500ms",
+                        "data": {
+                            "BTCUSDT": {
+                                "t": 1790512892227,
+                                "s": 1520736,
+                                "a": [
+                                    [
+                                        "85026.18",
+                                        "0.00732"
+                                    ],
+                                    [
+                                        "85030.66",
+                                        "0.02919"
+                                    ],
+                                    [
+                                        "85034.91",
+                                        "0.17325"
+                                    ],
+                                    [
+                                        "85039.16",
+                                        "0.39367"
+                                    ],
+                                    [
+                                        "85043.18",
+                                        "1.96047"
+                                    ]
+                                ],
+                                "b": [
+                                    [
+                                        "84999.49",
+                                        "0.03493"
+                                    ],
+                                    [
+                                        "84995.24",
+                                        "0.16895"
+                                    ],
+                                    [
+                                        "84990.99",
+                                        "0.37438"
+                                    ],
+                                    [
+                                        "84984.50",
+                                        "0.17154"
+                                    ],
+                                    [
+                                        "84982.49",
+                                        "1.94866"
+                                    ]
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "ch": "orderbook/D5/500ms",
+                        "data": {
+                            "BTCUSDT": {
+                                "t": 1790512893729,
+                                "s": 1520737,
+                                "a": [
+                                    [
+                                        "85026.18",
+                                        "0.00732"
+                                    ],
+                                    [
+                                        "85034.91",
+                                        "0.17325"
+                                    ],
+                                    [
+                                        "85035.63",
+                                        "0.02919"
+                                    ],
+                                    [
+                                        "85039.16",
+                                        "0.39367"
+                                    ],
+                                    [
+                                        "85043.18",
+                                        "1.96047"
+                                    ]
+                                ],
+                                "b": [
+                                    [
+                                        "84999.49",
+                                        "0.03493"
+                                    ],
+                                    [
+                                        "84995.24",
+                                        "0.16895"
+                                    ],
+                                    [
+                                        "84990.99",
+                                        "0.37438"
+                                    ],
+                                    [
+                                        "84984.50",
+                                        "0.17154"
+                                    ],
+                                    [
+                                        "84982.49",
+                                        "1.94866"
+                                    ]
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "id": 1790512892404,
+                        "ch": "orderbook/D5/500ms",
+                        "params": {
+                            "symbols": [
+                                "BTCUSDT"
+                            ]
+                        }
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                84999.49,
+                                0.03493
+                            ],
+                            [
+                                84995.24,
+                                0.16895
+                            ],
+                            [
+                                84990.99,
+                                0.37438
+                            ],
+                            [
+                                84984.5,
+                                0.17154
+                            ],
+                            [
+                                84982.49,
+                                1.94866
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                85026.18,
+                                0.00732
+                            ],
+                            [
+                                85030.66,
+                                0.02919
+                            ],
+                            [
+                                85034.91,
+                                0.17325
+                            ],
+                            [
+                                85039.16,
+                                0.39367
+                            ],
+                            [
+                                85043.18,
+                                1.96047
+                            ]
+                        ],
+                        "timestamp": 1790512892227,
+                        "datetime": "2026-09-27T12:41:32.227Z",
+                        "nonce": 1520736,
+                        "symbol": "BTC/USDT"
+                    },
+                    {
+                        "bids": [
+                            [
+                                84999.49,
+                                0.03493
+                            ],
+                            [
+                                84995.24,
+                                0.16895
+                            ],
+                            [
+                                84990.99,
+                                0.37438
+                            ],
+                            [
+                                84984.5,
+                                0.17154
+                            ],
+                            [
+                                84982.49,
+                                1.94866
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                85026.18,
+                                0.00732
+                            ],
+                            [
+                                85034.91,
+                                0.17325
+                            ],
+                            [
+                                85035.63,
+                                0.02919
+                            ],
+                            [
+                                85039.16,
+                                0.39367
+                            ],
+                            [
+                                85043.18,
+                                1.96047
+                            ]
+                        ],
+                        "timestamp": 1790512893729,
+                        "datetime": "2026-09-27T12:41:33.729Z",
+                        "nonce": 1520737,
+                        "symbol": "BTC/USDT"
+                    }
+                ]
+            },
+            {
+                "description": "partial orderbook in batches, params.method orderbook/{depth}/{speed}/batch",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    {
+                        "method": "orderbook/{depth}/{speed}/batch",
+                        "depth": 5,
+                        "speed": 500
+                    }
+                ],
+                "url": "wss://api.hitbtc.com/api/3/ws/public",
+                "messages": [
+                    {
+                        "result": {
+                            "ch": "orderbook/D5/500ms/batch",
+                            "subscriptions": [
+                                "BTCUSDT"
+                            ]
+                        },
+                        "id": 1790512895070
+                    },
+                    {
+                        "ch": "orderbook/D5/500ms/batch",
+                        "data": {
+                            "BTCUSDT": {
+                                "t": 1790512893729,
+                                "s": 1520737,
+                                "a": [
+                                    [
+                                        "85026.18",
+                                        "0.00732"
+                                    ],
+                                    [
+                                        "85034.91",
+                                        "0.17325"
+                                    ],
+                                    [
+                                        "85035.63",
+                                        "0.02919"
+                                    ],
+                                    [
+                                        "85039.16",
+                                        "0.39367"
+                                    ],
+                                    [
+                                        "85043.18",
+                                        "1.96047"
+                                    ]
+                                ],
+                                "b": [
+                                    [
+                                        "84999.49",
+                                        "0.03493"
+                                    ],
+                                    [
+                                        "84995.24",
+                                        "0.16895"
+                                    ],
+                                    [
+                                        "84990.99",
+                                        "0.37438"
+                                    ],
+                                    [
+                                        "84984.50",
+                                        "0.17154"
+                                    ],
+                                    [
+                                        "84982.49",
+                                        "1.94866"
+                                    ]
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "id": 1790512895070,
+                        "ch": "orderbook/D5/500ms/batch",
+                        "params": {
+                            "symbols": [
+                                "BTCUSDT"
+                            ]
+                        }
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                84999.49,
+                                0.03493
+                            ],
+                            [
+                                84995.24,
+                                0.16895
+                            ],
+                            [
+                                84990.99,
+                                0.37438
+                            ],
+                            [
+                                84984.5,
+                                0.17154
+                            ],
+                            [
+                                84982.49,
+                                1.94866
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                85026.18,
+                                0.00732
+                            ],
+                            [
+                                85034.91,
+                                0.17325
+                            ],
+                            [
+                                85035.63,
+                                0.02919
+                            ],
+                            [
+                                85039.16,
+                                0.39367
+                            ],
+                            [
+                                85043.18,
+                                1.96047
+                            ]
+                        ],
+                        "timestamp": 1790512893729,
+                        "datetime": "2026-09-27T12:41:33.729Z",
+                        "nonce": 1520737,
+                        "symbol": "BTC/USDT"
+                    }
+                ]
+            }
+        ],
+        "watchTicker": [
+            {
+                "description": "ticker/price channel from options.watchTicker.method",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "options": {
+                    "watchTicker": {
+                        "method": "ticker/price/{speed}"
+                    }
+                },
+                "url": "wss://api.hitbtc.com/api/3/ws/public",
+                "messages": [
+                    {
+                        "result": {
+                            "ch": "ticker/price/1s",
+                            "subscriptions": [
+                                "BTCUSDT"
+                            ]
+                        },
+                        "id": 1790512903454
+                    },
+                    {
+                        "ch": "ticker/price/1s",
+                        "data": {
+                            "BTCUSDT": {
+                                "t": 1790512903472,
+                                "o": "84099.79",
+                                "c": "85015.31",
+                                "h": "85080.31",
+                                "l": "83855.37",
+                                "v": "315.51166",
+                                "q": "26638810.4490897"
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "id": 1790512903454,
+                        "ch": "ticker/price/1s",
+                        "params": {
+                            "symbols": [
+                                "BTCUSDT"
+                            ]
+                        }
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1790512903472,
+                        "datetime": "2026-09-27T12:41:43.472Z",
+                        "high": 85080.31,
+                        "low": 83855.37,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 84430.51026732166,
+                        "open": 84099.79,
+                        "close": 85015.31,
+                        "last": 85015.31,
+                        "previousClose": null,
+                        "change": 915.52,
+                        "percentage": 1.088611517341482,
+                        "average": 84557.55,
+                        "baseVolume": 315.51166,
+                        "quoteVolume": 26638810.4490897,
+                        "info": {
+                            "t": 1790512903472,
+                            "o": "84099.79",
+                            "c": "85015.31",
+                            "h": "85080.31",
+                            "l": "83855.37",
+                            "v": "315.51166",
+                            "q": "26638810.4490897"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            }
+        ],
+        "watchTickers": [
+            {
+                "description": "ticker/price channel from options.watchTickers.method",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ],
+                "options": {
+                    "watchTickers": {
+                        "method": "ticker/price/{speed}"
+                    }
+                },
+                "url": "wss://api.hitbtc.com/api/3/ws/public",
+                "messages": [
+                    {
+                        "result": {
+                            "ch": "ticker/price/1s",
+                            "subscriptions": [
+                                "BTCUSDT"
+                            ]
+                        },
+                        "id": 1790512903454
+                    },
+                    {
+                        "ch": "ticker/price/1s",
+                        "data": {
+                            "BTCUSDT": {
+                                "t": 1790512903472,
+                                "o": "84099.79",
+                                "c": "85015.31",
+                                "h": "85080.31",
+                                "l": "83855.37",
+                                "v": "315.51166",
+                                "q": "26638810.4490897"
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "id": 1790512903454,
+                        "ch": "ticker/price/1s",
+                        "params": {
+                            "symbols": [
+                                "BTCUSDT"
+                            ]
+                        }
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USDT": {
+                            "symbol": "BTC/USDT",
+                            "timestamp": 1790512903472,
+                            "datetime": "2026-09-27T12:41:43.472Z",
+                            "high": 85080.31,
+                            "low": 83855.37,
+                            "bid": null,
+                            "bidVolume": null,
+                            "ask": null,
+                            "askVolume": null,
+                            "vwap": 84430.51026732166,
+                            "open": 84099.79,
+                            "close": 85015.31,
+                            "last": 85015.31,
+                            "previousClose": null,
+                            "change": 915.52,
+                            "percentage": 1.088611517341482,
+                            "average": 84557.55,
+                            "baseVolume": 315.51166,
+                            "quoteVolume": 26638810.4490897,
+                            "info": {
+                                "t": 1790512903472,
+                                "o": "84099.79",
+                                "c": "85015.31",
+                                "h": "85080.31",
+                                "l": "83855.37",
+                                "v": "315.51166",
+                                "q": "26638810.4490897"
+                            },
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchBidsAsks": [
+            {
+                "description": "orderbook/top channel from params.defaultMethod with speed",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ],
+                    {
+                        "defaultMethod": "orderbook/top/{speed}",
+                        "speed": "500ms"
+                    }
+                ],
+                "url": "wss://api.hitbtc.com/api/3/ws/public",
+                "messages": [
+                    {
+                        "result": {
+                            "ch": "orderbook/top/500ms",
+                            "subscriptions": [
+                                "BTCUSDT"
+                            ]
+                        },
+                        "id": 1790512927907
+                    },
+                    {
+                        "ch": "orderbook/top/500ms",
+                        "data": {
+                            "BTCUSDT": {
+                                "t": 1790512925999,
+                                "a": "85025.34",
+                                "A": "0.00732",
+                                "b": "84999.49",
+                                "B": "0.00724"
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "id": 1790512927907,
+                        "ch": "orderbook/top/500ms",
+                        "params": {
+                            "symbols": [
+                                "BTCUSDT"
+                            ]
+                        }
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USDT": {
+                            "symbol": "BTC/USDT",
+                            "timestamp": 1790512925999,
+                            "datetime": "2026-09-27T12:42:05.999Z",
+                            "ask": 85025.34,
+                            "askVolume": 0.00732,
+                            "bid": 84999.49,
+                            "bidVolume": 0.00724,
+                            "info": {
+                                "t": 1790512925999,
+                                "a": "85025.34",
+                                "A": "0.00732",
+                                "b": "84999.49",
+                                "B": "0.00724"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

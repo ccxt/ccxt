@@ -1547,7 +1547,8 @@ impl CexCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         if !is_equal(&incrementalId, &add(&storedOrderBook.as_map().and_then(|__m| __m.get("nonce")).cloned().unwrap_or(Value::Null), &Value::Int(1))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
-            client.reject(&[Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() skipped a message".into())).into()), messageHash.clone()]);
+            let mut error = Value::from(crate::exchange_errors::invalid_nonce(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() skipped a message".into()))));
+            client.reject(&[Value::from(error), messageHash.clone()]);
             return;
         }
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "time", &[]);

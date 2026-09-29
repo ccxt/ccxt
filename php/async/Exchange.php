@@ -5132,10 +5132,6 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $this->precisionMode === TICK_SIZE;
     }
 
-    public function is_decimal_precision(): bool {
-        return $this->precisionMode === DECIMAL_PLACES;
-    }
-
     public function is_significant_precision(): bool {
         return $this->precisionMode === SIGNIFICANT_DIGITS;
     }

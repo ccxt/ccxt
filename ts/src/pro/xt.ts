@@ -4,7 +4,7 @@ import xtRest from '../xt.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Balances, Bool, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { AuthenticationError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
@@ -1674,6 +1674,7 @@ export default class xt extends xtRest {
             this.getListenKey (true);
             return;
         }
-        client.reject (message);
+        const error = new ExchangeError (this.id + ' ' + this.json (message));
+        client.reject (error);
     }
 }

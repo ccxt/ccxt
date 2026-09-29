@@ -3501,8 +3501,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         if (java.util.Objects.equals(subscriptionId, null))
         {
             ((Map<String,Object>)client.subscriptions).remove((String)accountType);
-            client.reject(message, accountType);
-            client.reject(message, messageHash);
+            var error = new ExchangeError(((this.id + " user data stream subscribe failed ") + this.json(message)));
+            client.reject(error, accountType);
+            client.reject(error, messageHash);
             return;
         }
         client.resolve(message, messageHash);
@@ -6951,13 +6952,15 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         if (!Boolean.TRUE.equals(rejected))
         {
-            client.reject(message, id);
+            var feedback = new ExchangeError(((this.id + " ") + this.json(message)));
+            client.reject(feedback, id);
         }
         // reset connection if 5xx error
         String codeString = this.safeString(error, "code");
         if ((!java.util.Objects.equals(codeString, null)) && (java.util.Objects.equals(Helpers.GetValue(codeString, 0), "5")))
         {
-            client.reset(message);
+            var resetError = new ExchangeError(((this.id + " ") + this.json(message)));
+            client.reset(resetError);
         }
     }
 
@@ -6976,7 +6979,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         if (java.util.Objects.equals(eventVar, "eventStreamTerminated"))
         {
             ((Map<String,Object>)client.subscriptions).remove((String)accountType);
-            client.reject(message, accountType);
+            var error = new ExchangeError(((this.id + " user data event stream terminated ") + this.json(message)));
+            client.reject(error, accountType);
         }
     }
 

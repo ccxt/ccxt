@@ -7570,10 +7570,6 @@ export class BaseExchange {
         return this.precisionMode === TICK_SIZE;
     }
 
-    isDecimalPrecision (): boolean {
-        return this.precisionMode === DECIMAL_PLACES;
-    }
-
     isSignificantPrecision (): boolean {
         return this.precisionMode === SIGNIFICANT_DIGITS;
     }

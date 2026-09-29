@@ -10704,11 +10704,6 @@ public Object describe()
         return Helpers.isEqual(this.precisionMode, TICK_SIZE);
     }
 
-    public Object isDecimalPrecision()
-    {
-        return Helpers.isEqual(this.precisionMode, DECIMAL_PLACES);
-    }
-
     public Object isSignificantPrecision()
     {
         return Helpers.isEqual(this.precisionMode, SIGNIFICANT_DIGITS);

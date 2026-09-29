@@ -8114,13 +8114,14 @@ export default class okx extends Exchange {
     /**
      * @method
      * @name okx#fetchOpenInterestHistory
-     * @description Retrieves the open interest history of a currency
-     * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
-     * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-options-open-interest-and-volume
-     * @param {string} symbol Unified CCXT currency code or unified symbol
+     * @description Retrieves the open interest history of a swap or future market, or of a currency when a currency code is given
+     * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-open-interest-history
+     * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contracts-open-interest-and-volume
+     * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-options-open-interest-and-volume
+     * @param {string} symbol unified symbol of a swap or future market for the history of that instrument, otherwise a unified currency code, or the symbol of a spot or option market, for the aggregate over all contracts of the currency
      * @param {string} timeframe "5m", "1h", or "1d" for option only "1d" or "8h"
      * @param {int} [since] The time in ms of the earliest record to retrieve as a unix timestamp
-     * @param {int} [limit] Not used by okx, but parsed internally by CCXT
+     * @param {int} [limit] the maximum number of records to retrieve, at most 100 for a swap or future market; not used by the currency aggregate
      * @param {object} [params] Exchange specific parameters
      * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
      * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -8151,6 +8152,31 @@ export default class okx extends Exchange {
         };
         let response: Dict;
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenInterestHistory', market, params);
+        if ((market !== undefined) && ((market['swap'] === true) || (market['future'] === true))) {
+            const instrumentRequest: Dict = {
+                'instId': market['id'],
+                'period': timeframeValue,
+            };
+            const [ instrumentRequestWindow, paramsWindow ] = this.handleTradingStatisticsWindow (instrumentRequest, timeframeValue, since, limit, paramsMarketType);
+            response = await this.publicGetRubikStatContractsOpenInterestHistory (this.extend (instrumentRequestWindow, paramsWindow));
+            //
+            //    {
+            //        "code": "0",
+            //        "data": [
+            //            [
+            //                "1790550000000",  // timestamp
+            //                "2800476.45",  // open interest (contracts)
+            //                "28006.5419",  // open interest (base currency)
+            //                "2360916466.88",  // open interest (USD)
+            //            ],
+            //            ...
+            //        ],
+            //        "msg": ""
+            //    }
+            //
+            const instrumentData = this.safeList (response, 'data', []) as List;
+            return this.parseOpenInterestsHistory (instrumentData, market, since, limit);
+        }
         if (type === 'option') {
             response = await this.publicGetRubikStatOptionOpenInterestVolume (this.extend (request, paramsMarketType));
         } else {
@@ -8182,6 +8208,59 @@ export default class okx extends Exchange {
         return this.parseOpenInterestsHistory (data, undefined, since, limit);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name okx#handleTradingStatisticsWindow
+     * @description sets begin, end and limit of a trading statistics history request: okx treats both bounds as exclusive and returns the latest entries first, while since and until are inclusive and since with a limit asks for the earliest entries from since on
+     * @param {object} request the request of the history endpoint
+     * @param {string} period the okx period of the request, e.g. 5m, 1H, 2D, 1M or 6Hutc
+     * @param {int} [since] the earliest time in ms of the entries to fetch
+     * @param {int} [limit] the maximum number of entries to fetch, at most 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms of the entries to fetch
+     * @returns {object[]} the request and the remaining params
+     */
+    handleTradingStatisticsWindow (request: Dict, period: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Dict[] {
+        const maxLimit = 100;
+        const effectiveLimit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+        if (limit !== undefined) {
+            request['limit'] = effectiveLimit;
+        }
+        if (since !== undefined) {
+            request['begin'] = since - 1;
+        }
+        const until = this.safeInteger (params, 'until');
+        const paramsOmitted: Dict = this.omit (params, 'until');
+        let end: Int = undefined;
+        if (until !== undefined) {
+            end = this.sum (until, 1);
+        }
+        if (since !== undefined) {
+            // end the window after limit periods, so that the earliest entries from since on come back
+            // okx periods are 5m, 1H, 2D, 1W, 1M, 3M and so on, optionally with a utc suffix that only moves the opening time
+            const unitPeriod = period.endsWith ('utc') ? period.slice (0, -3) : period;
+            const unit = unitPeriod.slice (-1);
+            let windowDuration: Int = undefined;
+            if (unit === 'M') {
+                // calendar months last 28 to 31 days: the window spans limit of the longest months, but no more than 100 of the shortest,
+                // all entries in it are requested and the caller keeps the earliest limit of them
+                const months = this.parseToInt (unitPeriod.slice (0, -1));
+                const day = 86400000;
+                windowDuration = Math.min (effectiveLimit * months * 31 * day, maxLimit * months * 28 * day);
+                request['limit'] = maxLimit;
+            } else {
+                windowDuration = effectiveLimit * this.parseTimeframe (unitPeriod.toLowerCase ()) * 1000;
+            }
+            const windowEnd = this.sum (since, windowDuration);
+            end = (end === undefined) ? windowEnd : Math.min (end, windowEnd);
+        }
+        if (end !== undefined) {
+            request['end'] = end;
+        }
+        return [ request, paramsOmitted ];
+    }
+
     override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         // fetchOpenInterestHistory
@@ -8190,6 +8269,15 @@ export default class okx extends Exchange {
         //        "1648221300000",  // timestamp
         //        "2183354317.945",  // open interest (USD) - (coin) for options
         //        "74285877.617",  // volume (USD) - (coin) for options
+        //    ]
+        //
+        // fetchOpenInterestHistory for a swap or future market
+        //
+        //    [
+        //        "1790550000000",  // timestamp
+        //        "2800476.45",  // open interest (contracts)
+        //        "28006.5419",  // open interest (base currency)
+        //        "2360916466.88",  // open interest (USD)
         //    ]
         //
         // fetchOpenInterest
@@ -8213,7 +8301,12 @@ export default class okx extends Exchange {
         let openInterestValue: Num = undefined;
         const type = this.safeString (this.options, 'defaultType');
         if (Array.isArray (interest)) {
-            if (type === 'option') {
+            const numFields = interest.length;
+            if (numFields > 3) {
+                openInterestAmount = this.safeNumber (interest, 1);
+                baseVolume = this.safeNumber (interest, 2);
+                openInterestValue = this.safeNumber (interest, 3);
+            } else if (type === 'option') {
                 openInterestAmount = this.safeNumber (interest, 1);
                 baseVolume = this.safeNumber (interest, 2);
             } else {
@@ -9537,21 +9630,13 @@ export default class okx extends Exchange {
         const request: Dict = {
             'instId': market['id'],
         };
-        const until = this.safeString2 (params, 'until', 'end');
-        const paramsOmitted: Dict = this.omit (params, 'until');
-        if (until !== undefined) {
-            request['end'] = until;
-        }
+        let period = '5m'; // the default period of the endpoint
         if (timeframe !== undefined) {
-            request['period'] = this.safeString (this.timeframes, timeframe, timeframe);
+            period = this.safeString (this.timeframes, timeframe, timeframe);
+            request['period'] = period;
         }
-        if (since !== undefined) {
-            request['begin'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.publicGetRubikStatContractsLongShortAccountRatioContract (this.extend (request, paramsOmitted));
+        const [ requestWindow, paramsWindow ] = this.handleTradingStatisticsWindow (request, period, since, limit, params);
+        const response = await this.publicGetRubikStatContractsLongShortAccountRatioContract (this.extend (requestWindow, paramsWindow));
         //
         //     {
         //         "code": "0",
@@ -9572,7 +9657,7 @@ export default class okx extends Exchange {
                 'longShortRatio': this.safeString (entry, 1),
             });
         }
-        return this.parseLongShortRatioHistory (result, market);
+        return this.parseLongShortRatioHistory (result, market, since, limit);
     }
 
     override parseLongShortRatio (info: Dict, market: Market = undefined): LongShortRatio {

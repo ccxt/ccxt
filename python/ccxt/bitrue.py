@@ -3224,4 +3224,4 @@ class bitrue(Exchange, ImplicitAPI):
                 entry = byLimit[i]
                 if limit <= entry[0]:
                     return entry[1]
-        return self.safe_number(config, 'cost', 1)
+        return self.safe_value(config, 'cost', 1)

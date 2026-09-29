@@ -3603,8 +3603,8 @@ public class Pacifica extends PacificaApi
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/request-withdrawal
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
-     * @param {string} tag
+     * @param {string} address validated but not sent, funds go to the account wallet
+     * @param {string} tag not used by withdraw ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
@@ -3623,7 +3623,7 @@ public class Pacifica extends PacificaApi
             }
             this.checkAddress(address);
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{
-                put( "amount", String.valueOf(amount) );
+                put( "amount", Pacifica.this.numberToString(amount) );
             }};
             Object request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow")));

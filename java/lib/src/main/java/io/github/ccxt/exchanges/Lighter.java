@@ -1200,7 +1200,7 @@ public class Lighter extends LighterApi
             // group order
             Helpers.addElementToObject(Helpers.GetValue(orders, 0), "client_order_index", 0); // client order index should be 0
             String triggerOrderSide = "";
-            if (java.util.Objects.equals(side, "BUY"))
+            if (java.util.Objects.equals(orderSide, "BUY"))
             {
                 triggerOrderSide = "sell";
             } else

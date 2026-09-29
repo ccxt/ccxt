@@ -3996,8 +3996,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/request-withdrawal
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
- * @param {string} address the address to withdraw to
- * @param {string} tag
+ * @param {string} address validated but not sent, funds go to the account wallet
+ * @param {string} tag not used by withdraw ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
@@ -4015,7 +4015,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.check_address(&[address]);
         let mut sigPayload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("amount".to_string(), to_string_val(&amount));
+                m.insert("amount".to_string(), self.number_to_string(amount));
             m
         });
         let mut request: Value = self.post_action_request(operationType, sigPayload, params.clone());

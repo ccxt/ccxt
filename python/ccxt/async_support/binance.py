@@ -12523,7 +12523,7 @@ class binance(Exchange, ImplicitAPI):
                 entry = byLimit[i]
                 if limit <= entry[0]:
                     return entry[1]
-        return self.safe_number(config, 'cost', 1)
+        return self.safe_value(config, 'cost', 1)
 
     async def request(self, path: object, api='public', method: object = 'GET', params: dict = {}, headers: object = None, body: object = None, config: object = {}):
         response = await self.fetch2(path, api, method, params, headers, body, config)

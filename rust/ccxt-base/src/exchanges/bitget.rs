@@ -4629,6 +4629,7 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("00001".to_string(), Value::Str("BadRequest".into()).clone());
         m.insert("1".to_string(), Value::Str("ExchangeError".into()).clone());
         m.insert("failure to get a peer from the ring-balancer".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
         m.insert("4010".to_string(), Value::Str("PermissionDenied".into()).clone());
@@ -5123,6 +5124,7 @@ impl BitgetCore {
         m.insert("invalid end time".to_string(), Value::Str("BadRequest".into()).clone());
         m.insert("20003".to_string(), Value::Str("ExchangeError".into()).clone());
         m.insert("01001".to_string(), Value::Str("ExchangeError".into()).clone());
+        m.insert("40085".to_string(), Value::Str("PermissionDenied".into()).clone());
         m.insert("40024".to_string(), Value::Str("RestrictedLocation".into()).clone());
         m.insert("41117".to_string(), Value::Str("InvalidOrder".into()).clone());
         m.insert("43111".to_string(), Value::Str("PermissionDenied".into()).clone());

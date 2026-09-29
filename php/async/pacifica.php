@@ -3029,8 +3029,8 @@ class pacifica extends Exchange {
          *
          * @param {string} $code unified currency $code
          * @param {float} $amount the $amount to withdraw
-         * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
+         * @param {string} $address validated but not sent, funds go to the account wallet
+         * @param {string} $tag not used by withdraw ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
@@ -3041,7 +3041,7 @@ class pacifica extends Exchange {
         }
         $this->check_address($address);
         $sigPayload = array(
-            'amount' => (string) $amount,
+            'amount' => $this->number_to_string($amount),
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
         $params = $this->omit($params, array( 'expiryWindow' ));

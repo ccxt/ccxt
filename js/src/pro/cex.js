@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import { sha256 } from '@noble/hashes/sha2.js';
 import cexRest from '../cex.js';
-import { ArgumentsRequired, ExchangeError, BadRequest } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError, BadRequest, InvalidNonce } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
@@ -1048,7 +1048,8 @@ export default class cex extends cexRest {
         const messageHash = 'orderbook:' + symbol;
         if (incrementalId !== storedOrderBook['nonce'] + 1) {
             delete client.subscriptions[messageHash];
-            client.reject(this.id + ' watchOrderBook() skipped a message', messageHash);
+            const error = new InvalidNonce(this.id + ' watchOrderBook() skipped a message');
+            client.reject(error, messageHash);
             return;
         }
         const timestamp = this.safeInteger(data, 'time');

@@ -2467,7 +2467,7 @@ public partial class BaseExchange
             var networksTarget = new Dictionary<string, object>();
             foreach (var entry in typed.networks)
             {
-                    networksTarget[entry.Key] = FromDepositWithdrawFeeNetwork(entry.Value);
+                    networksTarget[entry.Key] = FromDepositWithdrawFeeNetworkEntry(entry.Value);
             }
             result["networks"] = networksTarget;
         }
@@ -2541,6 +2541,40 @@ public partial class BaseExchange
     public static List<object> FromDepositWithdrawFeeNetworkList(List<DepositWithdrawFeeNetwork> values)
     {
         return (List<object>)FromDepositWithdrawFeeNetworkList((object)values);
+    }
+
+    public static object FromDepositWithdrawFeeNetworkEntry(object value)
+    {
+        if (!(value is DepositWithdrawFeeNetworkEntry))
+        {
+            return value;
+        }
+        var typed = (DepositWithdrawFeeNetworkEntry)value;
+        var result = new Dictionary<string, object>();
+        if (typed.deposit != null)
+        {
+            result["deposit"] = FromDepositWithdrawFeeNetwork(typed.deposit);
+        }
+        if (typed.withdraw != null)
+        {
+            result["withdraw"] = FromDepositWithdrawFeeNetwork(typed.withdraw);
+        }
+        return result;
+    }
+
+    public static object FromDepositWithdrawFeeNetworkEntryList(object values)
+    {
+        if (!(values is List<DepositWithdrawFeeNetworkEntry>))
+        {
+            return values;
+        }
+        var typed = (List<DepositWithdrawFeeNetworkEntry>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromDepositWithdrawFeeNetworkEntry(row));
+        }
+        return result;
     }
 
     public static object FromDepositWithdrawFees(object value)
@@ -8214,6 +8248,10 @@ public partial class BaseExchange
                 return FromDepositWithdrawFeeNetwork(value);
             case List<DepositWithdrawFeeNetwork> _:
                 return FromDepositWithdrawFeeNetworkList(value);
+            case DepositWithdrawFeeNetworkEntry _:
+                return FromDepositWithdrawFeeNetworkEntry(value);
+            case List<DepositWithdrawFeeNetworkEntry> _:
+                return FromDepositWithdrawFeeNetworkEntryList(value);
             case DepositWithdrawFees _:
                 return FromDepositWithdrawFees(value);
             case List<DepositWithdrawFees> _:

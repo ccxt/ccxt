@@ -6953,12 +6953,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn is_decimal_precision(&self) -> Value {
-        return Value::Bool(self.precisionMode.as_f64() == Value::Int(crate::runtime::DECIMAL_PLACES).as_f64());
-
-    Value::Null
-}
-
     fn is_significant_precision(&self) -> Value {
         return Value::Bool(self.precisionMode.as_f64() == Value::Int(crate::runtime::SIGNIFICANT_DIGITS).as_f64());
 
@@ -11690,7 +11684,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "incrementing_nonce" => self.incrementing_nonce(),
             "integer_precision_to_amount" => self.integer_precision_to_amount(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "invert_flat_string_dictionary" => self.invert_flat_string_dictionary(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "is_decimal_precision" => self.is_decimal_precision(),
             "is_empty_string" => self.is_empty_string(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_leveraged_currency" => self.is_leveraged_currency(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "is_post_only" => self.is_post_only(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),

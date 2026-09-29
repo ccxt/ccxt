@@ -2328,7 +2328,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
         if (!Boolean.TRUE.equals(rejected))
         {
-            client.reject(message, messageHash);
+            var feedback = new ExchangeError(((this.id + " ") + this.json(message)));
+            client.reject(feedback, messageHash);
             return true;
         }
         return null;

@@ -2711,6 +2711,7 @@ public class Bitget extends BitgetApi
             }} );
             put( "exceptions", new HashMap<String, Object>() {{
                 put( "exact", new HashMap<String, Object>() {{
+                    put( "00001", BadRequest.class );
                     put( "1", ExchangeError.class );
                     put( "failure to get a peer from the ring-balancer", ExchangeNotAvailable.class );
                     put( "4010", PermissionDenied.class );
@@ -3205,6 +3206,7 @@ public class Bitget extends BitgetApi
                     put( "invalid end time", BadRequest.class );
                     put( "20003", ExchangeError.class );
                     put( "01001", ExchangeError.class );
+                    put( "40085", PermissionDenied.class );
                     put( "40024", RestrictedLocation.class );
                     put( "41117", InvalidOrder.class );
                     put( "43111", PermissionDenied.class );

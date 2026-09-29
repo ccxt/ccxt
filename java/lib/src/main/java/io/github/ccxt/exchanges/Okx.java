@@ -10106,13 +10106,14 @@ public class Okx extends OkxApi
     /**
      * @method
      * @name okx#fetchOpenInterestHistory
-     * @description Retrieves the open interest history of a currency
-     * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
-     * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-options-open-interest-and-volume
-     * @param {string} symbol Unified CCXT currency code or unified symbol
+     * @description Retrieves the open interest history of a swap or future market, or of a currency when a currency code is given
+     * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-open-interest-history
+     * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contracts-open-interest-and-volume
+     * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-options-open-interest-and-volume
+     * @param {string} symbol unified symbol of a swap or future market for the history of that instrument, otherwise a unified currency code, or the symbol of a spot or option market, for the aggregate over all contracts of the currency
      * @param {string} timeframe "5m", "1h", or "1d" for option only "1d" or "8h"
      * @param {int} [since] The time in ms of the earliest record to retrieve as a unix timestamp
-     * @param {int} [limit] Not used by okx, but parsed internally by CCXT
+     * @param {int} [limit] the maximum number of records to retrieve, at most 100 for a swap or future market; not used by the currency aggregate
      * @param {object} [params] Exchange specific parameters
      * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
      * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -10160,6 +10161,35 @@ public class Okx extends OkxApi
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenInterestHistory", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
+            if ((!java.util.Objects.equals(market, null)) && ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))))
+            {
+                final Object finalMarket = market;
+                Object instrumentRequest = new HashMap<String, Object>() {{
+                    put( "instId", ((Map<String, Object>)finalMarket).get("id") );
+                    put( "period", finalTimeframe );
+                }};
+                List<Object> instrumentRequestparametersVariable = (List<Object>) this.handleTradingStatisticsWindow((Map<String, Object>) (instrumentRequest), timeframe, since, limit, parameters);
+                instrumentRequest = ((List<Object>) instrumentRequestparametersVariable).get(0);
+                parameters = ((List<Object>) instrumentRequestparametersVariable).get(1);
+                response = (this.publicGetRubikStatContractsOpenInterestHistory(this.extend(instrumentRequest, parameters))).join();
+                //
+                //    {
+                //        "code": "0",
+                //        "data": [
+                //            [
+                //                "1790550000000",  // timestamp
+                //                "2800476.45",  // open interest (contracts)
+                //                "28006.5419",  // open interest (base currency)
+                //                "2360916466.88",  // open interest (USD)
+                //            ],
+                //            ...
+                //        ],
+                //        "msg": ""
+                //    }
+                //
+                List<Object> instrumentData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                return this.parseOpenInterestsHistory(instrumentData, market, since, limit);
+            }
             if (java.util.Objects.equals(type, "option"))
             {
                 response = (this.publicGetRubikStatOptionOpenInterestVolume(this.extend(request, parameters))).join();
@@ -10197,6 +10227,70 @@ public class Okx extends OkxApi
 
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name okx#handleTradingStatisticsWindow
+     * @description sets begin, end and limit of a trading statistics history request: okx treats both bounds as exclusive and returns the latest entries first, while since and until are inclusive and since with a limit asks for the earliest entries from since on
+     * @param {object} request the request of the history endpoint
+     * @param {string} period the okx period of the request, e.g. 5m, 1H, 2D, 1M or 6Hutc
+     * @param {int} [since] the earliest time in ms of the entries to fetch
+     * @param {int} [limit] the maximum number of entries to fetch, at most 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms of the entries to fetch
+     * @returns {object[]} the request and the remaining params
+     */
+    public Object handleTradingStatisticsWindow(Map<String, Object> request, Object period, Object... optionalArgs)
+    {
+        Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+        Object maxLimit = 100;
+        Object effectiveLimit = (((java.util.Objects.equals(limit, null)))) ? maxLimit : Helpers.mathMin(limit, maxLimit);
+        if (!java.util.Objects.equals(limit, null))
+        {
+            ((Map<String, Object>)request).put("limit", effectiveLimit);
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            ((Map<String, Object>)request).put("begin", Helpers.subtract(since, 1));
+        }
+        Long until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
+        Object end = null;
+        if (!java.util.Objects.equals(until, null))
+        {
+            end = this.sum(until, 1);
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            // end the window after limit periods, so that the earliest entries from since on come back
+            // okx periods are 5m, 1H, 2D, 1W, 1M, 3M and so on, optionally with a utc suffix that only moves the opening time
+            Object unitPeriod = ((Helpers.isTrue(((String)period).endsWith(((String)"utc"))))) ? (period == null ? null : ((String)period).substring(0, Math.max(((String)period).length() - 3, 0))) : period;
+            Object unit = (unitPeriod == null ? null : ((String)unitPeriod).substring(Math.max(((String)unitPeriod).length() - 1, 0)));
+            Object windowDuration = null;
+            if (java.util.Objects.equals(unit, "M"))
+            {
+                // calendar months last 28 to 31 days: the window spans limit of the longest months, but no more than 100 of the shortest,
+                // all entries in it are requested and the caller keeps the earliest limit of them
+                Long months = this.parseToInt((unitPeriod == null ? null : ((String)unitPeriod).substring(0, Math.max(((String)unitPeriod).length() - 1, 0))));
+                Integer day = 86400000;
+                windowDuration = Helpers.mathMin(Helpers.multiply(Helpers.multiply(Helpers.multiply(effectiveLimit, months), 31), day), Helpers.multiply(Helpers.multiply(Helpers.multiply(maxLimit, months), 28), day));
+                ((Map<String, Object>)request).put("limit", maxLimit);
+            } else
+            {
+                windowDuration = Helpers.multiply(Helpers.multiply(effectiveLimit, this.parseTimeframe(((String)unitPeriod).toLowerCase())), 1000);
+            }
+            Object windowEnd = this.sum(since, windowDuration);
+            end = (((java.util.Objects.equals(end, null)))) ? windowEnd : Helpers.mathMin(end, windowEnd);
+        }
+        if (!java.util.Objects.equals(end, null))
+        {
+            ((Map<String, Object>)request).put("end", end);
+        }
+        return new ArrayList<Object>(Arrays.asList(request, parameters));
+    }
+
     public Object parseOpenInterest(Object interest, Object... optionalArgs)
     {
         //
@@ -10206,6 +10300,15 @@ public class Okx extends OkxApi
         //        "1648221300000",  // timestamp
         //        "2183354317.945",  // open interest (USD) - (coin) for options
         //        "74285877.617",  // volume (USD) - (coin) for options
+        //    ]
+        //
+        // fetchOpenInterestHistory for a swap or future market
+        //
+        //    [
+        //        "1790550000000",  // timestamp
+        //        "2800476.45",  // open interest (contracts)
+        //        "28006.5419",  // open interest (base currency)
+        //        "2360916466.88",  // open interest (USD)
         //    ]
         //
         // fetchOpenInterest
@@ -10231,7 +10334,13 @@ public class Okx extends OkxApi
         String type = this.safeString(this.options, "defaultType");
         if ((interest instanceof List))
         {
-            if (java.util.Objects.equals(type, "option"))
+            Object numFields = ((List<?>)interest).size();
+            if (Helpers.isGreaterThan(numFields, 3))
+            {
+                openInterestAmount = this.safeNumber(interest, 1);
+                baseVolume = this.safeNumber(interest, 2);
+                openInterestValue = this.safeNumber(interest, 3);
+            } else if (java.util.Objects.equals(type, "option"))
             {
                 openInterestAmount = this.safeNumber(interest, 1);
                 baseVolume = this.safeNumber(interest, 2);
@@ -11800,27 +11909,18 @@ public class Okx extends OkxApi
                 throw new ArgumentsRequired((this.id + " fetchLongShortRatioHistory() requires a symbol argument")) ;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
+            Object request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
-            String until = this.safeString2(parameters, "until", "end");
-            parameters = this.omit(parameters, "until");
-            if (!java.util.Objects.equals(until, null))
-            {
-                ((Map<String, Object>)request).put("end", until);
-            }
+            String period = "5m"; // the default period of the endpoint
             if (!java.util.Objects.equals(timeframe, null))
             {
-                ((Map<String, Object>)request).put("period", this.safeString(this.timeframes, timeframe, timeframe));
+                period = this.safeString(this.timeframes, timeframe, timeframe);
+                ((Map<String, Object>)request).put("period", period);
             }
-            if (!java.util.Objects.equals(since, null))
-            {
-                ((Map<String, Object>)request).put("begin", since);
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                ((Map<String, Object>)request).put("limit", limit);
-            }
+            List<Object> requestparametersVariable = (List<Object>) this.handleTradingStatisticsWindow((Map<String, Object>) (request), period, since, limit, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.publicGetRubikStatContractsLongShortAccountRatioContract(this.extend(request, parameters))).join();
             //
             //     {
@@ -11843,7 +11943,7 @@ public class Okx extends OkxApi
                     put( "longShortRatio", Okx.this.safeString(entry, 1) );
                 }});
             }
-            return this.parseLongShortRatioHistory(result, market);
+            return this.parseLongShortRatioHistory(result, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(LongShortRatio::new).collect(Collectors.toList()));
 
     }

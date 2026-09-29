@@ -3046,6 +3046,6 @@ public partial class bitvavo : Exchange
         {
             return getValue(config, "noMarket");
         }
-        return this.safeNumber(config, "cost", 1);
+        return this.safeValue(config, "cost", 1);
     }
 }

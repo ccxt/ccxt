@@ -16529,7 +16529,7 @@ final Object finalMarket = market;
                 }
             }
         }
-        return this.safeNumber(config, "cost", 1);
+        return this.safeValue(config, "cost", 1);
     }
 
     public CompletableFuture<Object> request(Object path, Object... optionalArgs)

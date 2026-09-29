@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -2975,8 +2976,9 @@ class binance extends \ccxt\async\binance {
         $subscriptionId = $this->safe_integer($result, 'subscriptionId');
         if ($subscriptionId === null) {
             unset($client->subscriptions[$accountType]);
-            $client->reject($message, $accountType);
-            $client->reject($message, $messageHash);
+            $error = new ExchangeError($this->id . ' user data stream subscribe failed ' . $this->json($message));
+            $client->reject($error, $accountType);
+            $client->reject($error, $messageHash);
             return;
         }
         $client->resolve($message, $messageHash);
@@ -5870,12 +5872,14 @@ class binance extends \ccxt\async\binance {
             }
         }
         if (!$rejected) {
-            $client->reject($message, $id);
+            $feedback = new ExchangeError($this->id . ' ' . $this->json($message));
+            $client->reject($feedback, $id);
         }
         // reset connection if 5xx error
         $codeString = $this->safe_string($error, 'code');
         if (($codeString !== null) && ($codeString[0] === '5')) {
-            $client->reset($message);
+            $resetError = new ExchangeError($this->id . ' ' . $this->json($message));
+            $client->reset($resetError);
         }
     }
 
@@ -5892,7 +5896,8 @@ class binance extends \ccxt\async\binance {
         $accountType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
         if ($event === 'eventStreamTerminated') {
             unset($client->subscriptions[$accountType]);
-            $client->reject($message, $accountType);
+            $error = new ExchangeError($this->id . ' user data event stream terminated ' . $this->json($message));
+            $client->reject($error, $accountType);
         }
     }
 

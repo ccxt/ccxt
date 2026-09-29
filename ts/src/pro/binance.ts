@@ -2903,8 +2903,9 @@ export default class binance extends binanceRest {
         const subscriptionId = this.safeInteger (result, 'subscriptionId');
         if (subscriptionId === undefined) {
             delete client.subscriptions[accountType];
-            client.reject (message, accountType);
-            client.reject (message, messageHash);
+            const error = new ExchangeError (this.id + ' user data stream subscribe failed ' + this.json (message));
+            client.reject (error, accountType);
+            client.reject (error, messageHash);
             return;
         }
         client.resolve (message, messageHash);
@@ -5740,12 +5741,14 @@ export default class binance extends binanceRest {
             }
         }
         if (!rejected) {
-            client.reject (message, id);
+            const feedback = new ExchangeError (this.id + ' ' + this.json (message));
+            client.reject (feedback, id);
         }
         // reset connection if 5xx error
         const codeString = this.safeString (error, 'code');
         if ((codeString !== undefined) && (codeString[0] === '5')) {
-            client.reset (message);
+            const resetError = new ExchangeError (this.id + ' ' + this.json (message));
+            client.reset (resetError);
         }
     }
 
@@ -5762,7 +5765,8 @@ export default class binance extends binanceRest {
         const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         if (event === 'eventStreamTerminated') {
             delete client.subscriptions[accountType];
-            client.reject (message, accountType);
+            const error = new ExchangeError (this.id + ' user data event stream terminated ' + this.json (message));
+            client.reject (error, accountType);
         }
     }
 

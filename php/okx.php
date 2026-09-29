@@ -8090,15 +8090,16 @@ class okx extends Exchange {
 
     public function fetch_open_interest_history(string $symbol, string $timeframe = '1d', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * Retrieves the open interest history of a $currency
+         * Retrieves the open interest history of a swap or future $market, or of a $currency when a $currency code is given
          *
-         * @see https://www.okx.com/docs-v5/en/#rest-api-trading-$data-get-contracts-open-interest-and-volume
-         * @see https://www.okx.com/docs-v5/en/#rest-api-trading-$data-get-$options-open-interest-and-volume
+         * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-open-interest-history
+         * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contracts-open-interest-and-volume
+         * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-$options-open-interest-and-volume
          *
-         * @param {string} $symbol Unified CCXT $currency code or unified $symbol
+         * @param {string} $symbol unified $symbol of a swap or future $market for the history of that instrument, otherwise a unified $currency code, or the $symbol of a spot or option $market, for the aggregate over all contracts of the $currency
          * @param {string} $timeframe "5m", "1h", or "1d" for option only "1d" or "8h"
          * @param {int} [$since] The time in ms of the earliest record to retrieve as a unix timestamp
-         * @param {int} [$limit] Not used by okx, but parsed internally by CCXT
+         * @param {int} [$limit] the maximum number of records to retrieve, at most 100 for a swap or future $market; not used by the $currency aggregate
          * @param {array} [$params] Exchange specific parameters
          * @param {int} [$params->until] The time in ms of the latest record to retrieve as a unix timestamp
          * @return An array of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structures~
@@ -8129,6 +8130,31 @@ class okx extends Exchange {
         $type = null;
         $response = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchOpenInterestHistory', $market, $params);
+        if (($market !== null) && (($market['swap'] === true) || ($market['future'] === true))) {
+            $instrumentRequest = array(
+                'instId' => $market['id'],
+                'period' => $timeframe,
+            );
+            list($instrumentRequest, $params) = $this->handle_trading_statistics_window($instrumentRequest, $timeframe, $since, $limit, $params);
+            $response = $this->publicGetRubikStatContractsOpenInterestHistory($this->extend($instrumentRequest, $params));
+            //
+            //    {
+            //        "code": "0",
+            //        "data": [
+            //            [
+            //                "1790550000000",  // timestamp
+            //                "2800476.45",  // open interest (contracts)
+            //                "28006.5419",  // open interest (base currency)
+            //                "2360916466.88",  // open interest (USD)
+            //            ],
+            //            ...
+            //        ],
+            //        "msg": ""
+            //    }
+            //
+            $instrumentData = $this->safe_list($response, 'data', array());
+            return $this->parse_open_interests_history($instrumentData, $market, $since, $limit);
+        }
         if ($type === 'option') {
             $response = $this->publicGetRubikStatOptionOpenInterestVolume($this->extend($request, $params));
         } else {
@@ -8160,6 +8186,57 @@ class okx extends Exchange {
         return $this->parse_open_interests_history($data, null, $since, $limit);
     }
 
+    public function handle_trading_statistics_window(array $request, string $period, ?int $since = null, ?int $limit = null, $params = array()): array {
+        /**
+         * @ignore
+         * sets begin, $end and $limit of a trading statistics history $request => okx treats both bounds as exclusive and returns the latest entries first, while $since and $until are inclusive and $since with a $limit asks for the earliest entries from $since on
+         * @param {array} $request the $request of the history endpoint
+         * @param {string} $period the okx $period of the $request, e.g. 5m, 1H, 2D, 1M or 6Hutc
+         * @param {int} [$since] the earliest time in ms of the entries to fetch
+         * @param {int} [$limit] the maximum number of entries to fetch, at most 100
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms of the entries to fetch
+         * @return {array[]} the $request and the remaining $params
+         */
+        $maxLimit = 100;
+        $effectiveLimit = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
+        if ($limit !== null) {
+            $request['limit'] = $effectiveLimit;
+        }
+        if ($since !== null) {
+            $request['begin'] = $since - 1;
+        }
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, 'until');
+        $end = null;
+        if ($until !== null) {
+            $end = $this->sum($until, 1);
+        }
+        if ($since !== null) {
+            // end the window after limit periods, so that the earliest entries from since on come back
+            // okx periods are 5m, 1H, 2D, 1W, 1M, 3M and so on, optionally with a utc suffix that only moves the opening time
+            $unitPeriod = str_ends_with($period, 'utc') ? mb_substr($period, 0, -3 - 0) : $period;
+            $unit = mb_substr($unitPeriod, -1);
+            $windowDuration = null;
+            if ($unit === 'M') {
+                // calendar months last 28 to 31 days: the window spans limit of the longest months, but no more than 100 of the shortest,
+                // all entries in it are requested and the caller keeps the earliest limit of them
+                $months = $this->parse_to_int(mb_substr($unitPeriod, 0, -1 - 0));
+                $day = 86400000;
+                $windowDuration = min($effectiveLimit * $months * 31 * $day, $maxLimit * $months * 28 * $day);
+                $request['limit'] = $maxLimit;
+            } else {
+                $windowDuration = $effectiveLimit * $this->parse_timeframe(strtolower($unitPeriod)) * 1000;
+            }
+            $windowEnd = $this->sum($since, $windowDuration);
+            $end = ($end === null) ? $windowEnd : min($end, $windowEnd);
+        }
+        if ($end !== null) {
+            $request['end'] = $end;
+        }
+        return array( $request, $params );
+    }
+
     public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         // fetchOpenInterestHistory
@@ -8168,6 +8245,15 @@ class okx extends Exchange {
         //        "1648221300000",  // timestamp
         //        "2183354317.945",  // open interest (USD) - (coin) for options
         //        "74285877.617",  // volume (USD) - (coin) for options
+        //    ]
+        //
+        // fetchOpenInterestHistory for a swap or future market
+        //
+        //    [
+        //        "1790550000000",  // timestamp
+        //        "2800476.45",  // open interest (contracts)
+        //        "28006.5419",  // open interest (base currency)
+        //        "2360916466.88",  // open interest (USD)
         //    ]
         //
         // fetchOpenInterest
@@ -8191,7 +8277,12 @@ class okx extends Exchange {
         $openInterestValue = null;
         $type = $this->safe_string($this->options, 'defaultType');
         if ((gettype($interest) === 'array' && array_keys($interest) === array_keys(array_keys($interest)))) {
-            if ($type === 'option') {
+            $numFields = count($interest);
+            if ($numFields > 3) {
+                $openInterestAmount = $this->safe_number($interest, 1);
+                $baseVolume = $this->safe_number($interest, 2);
+                $openInterestValue = $this->safe_number($interest, 3);
+            } elseif ($type === 'option') {
                 $openInterestAmount = $this->safe_number($interest, 1);
                 $baseVolume = $this->safe_number($interest, 2);
             } else {
@@ -9501,7 +9592,7 @@ class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-long-short-ratio
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the long short ratio for
-         * @param {string} [$timeframe] the period for the ratio
+         * @param {string} [$timeframe] the $period for the ratio
          * @param {int} [$since] the earliest time in ms to fetch ratios for
          * @param {int} [$limit] the maximum number of long short ratio structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -9518,20 +9609,12 @@ class okx extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
-        $until = $this->safe_string_2($params, 'until', 'end');
-        $params = $this->omit($params, 'until');
-        if ($until !== null) {
-            $request['end'] = $until;
-        }
+        $period = '5m'; // the default period of the endpoint
         if ($timeframe !== null) {
-            $request['period'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+            $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+            $request['period'] = $period;
         }
-        if ($since !== null) {
-            $request['begin'] = $since;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
+        list($request, $params) = $this->handle_trading_statistics_window($request, $period, $since, $limit, $params);
         $response = $this->publicGetRubikStatContractsLongShortAccountRatioContract($this->extend($request, $params));
         //
         //     {
@@ -9553,7 +9636,7 @@ class okx extends Exchange {
                 'longShortRatio' => $this->safe_string($entry, 1),
             );
         }
-        return $this->parse_long_short_ratio_history($result, $market);
+        return $this->parse_long_short_ratio_history($result, $market, $since, $limit);
     }
 
     public function parse_long_short_ratio(array $info, ?array $market = null): array {
