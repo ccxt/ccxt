@@ -1818,11 +1818,10 @@
                     "USDT",
                     4.34,
                     "TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6",
-                    null,
                     {
-                        "network": "TRC20"
+                      "network": "TRC20"
                     }
-                ],
+                  ],
                 "output": { "coin": "USDT", "amount": "4.34", "address": "TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6", "timestamp": 1758879504108, "accountType": "UTA", "chain": "TRX" }
             },
             {
@@ -1833,12 +1832,11 @@
                     "USDT",
                     4.34,
                     "TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6",
-                    null,
                     {
-                        "network": "TRC20",
-                        "accountType": "FUND"
+                      "network": "TRC20",
+                      "accountType": "FUND"
                     }
-                ],
+                  ],
                 "output": { "coin": "USDT", "amount": "4.34", "address": "TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6", "timestamp": 1758879459515, "accountType": "FUND", "chain": "TRX" }
             },
             {
@@ -1849,7 +1847,6 @@
                   "USDT",
                   10,
                   "TFC#SYyBLBnF1JWPAhTbGBEoXHtDX6rYT6",
-                  null,
                   {
                     "network": "TRC20"
                   }
@@ -1867,7 +1864,6 @@
                   "USDT",
                   5,
                   "TReSxAuV3YvKQPTZoUuCVSFXxJUC432LMz",
-                  null,
                   {
                     "network": "TRC20"
                   }

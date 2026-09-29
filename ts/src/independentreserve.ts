@@ -1048,15 +1048,17 @@ export default class independentreserve extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        this.checkAddress (address, code, tag, params);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        let tag: Str = undefined;
+        [ tag, params ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

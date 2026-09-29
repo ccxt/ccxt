@@ -6615,12 +6615,14 @@ export default class bybit extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        let tag: Str = undefined;
+        [ tag, params ] = this.handleParamString (params, 'tag');
         let accountType: Str = undefined;
         const accounts = await this.isUnifiedEnabled ();
         const isUta = accounts[1];
@@ -6631,7 +6633,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        this.checkAddress (address, code, tag, params);
+        this.checkAddress (address, code, tag);
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],

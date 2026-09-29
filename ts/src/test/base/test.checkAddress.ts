@@ -12,9 +12,9 @@ function testCheckAddress () {
     // currencies without a tag requirement pass with or without a tag
     assert (exchange.checkAddress (address) === address);
     assert (exchange.checkAddress (address, 'BTC') === address);
-    // tag-required currencies accept the tag argument or params['tag']
+    // tag-required currencies need a tag
     assert (exchange.checkAddress (address, 'XRP', '123456') === address);
-    assert (exchange.checkAddress (address, 'XLM', undefined, { 'tag': '123456' }) === address);
+    assert (exchange.checkAddress (address, 'ATOM', '123456') === address);
     let caught = false;
     try {
         exchange.checkAddress (address, 'XRP');
@@ -24,7 +24,7 @@ function testCheckAddress () {
     assert (caught, 'XRP without a tag should have thrown');
     caught = false;
     try {
-        exchange.checkAddress (address, 'XLM', undefined, {});
+        exchange.checkAddress (address, 'XLM', undefined);
     } catch (error) {
         caught = true;
     }

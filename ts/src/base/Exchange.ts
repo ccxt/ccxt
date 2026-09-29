@@ -3516,7 +3516,7 @@ export class BaseExchange {
         }
     }
 
-    checkAddress (address: Str = undefined, code: Str = undefined, tag: Str = undefined, params: Dict = {}): Str {
+    checkAddress (address: Str = undefined, code: Str = undefined, tag: Str = undefined): Str {
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' address is undefined');
         }
@@ -3529,9 +3529,8 @@ export class BaseExchange {
         if (code !== undefined) {
             const tagRequiredCurrencies = this.safeList (this.options, 'withdrawTagRequiredCurrencies', []);
             if (this.inArray (code, tagRequiredCurrencies)) {
-                const paramsTag = this.safeString (params, 'tag');
-                if (tag === undefined && paramsTag === undefined) {
-                    throw new ArgumentsRequired (this.id + ' withdraw() requires a tag argument or params["tag"] for ' + code);
+                if (tag === undefined) {
+                    throw new ArgumentsRequired (this.id + ' withdraw() requires params["tag"] for ' + code);
                 }
             }
         }
@@ -3934,7 +3933,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' transfer() is not supported yet');
     }
 
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         throw new NotSupported (this.id + ' withdraw() is not supported yet');
     }
 
@@ -4320,8 +4319,8 @@ export class BaseExchange {
                 'ARBONE': 'ARBITRUM',
                 'ARBNOVA': 'ARBITRUM_NOVA',
             },
-            // withdrawals of these currencies need a destination tag / memo
-            'withdrawTagRequiredCurrencies': [ 'XRP', 'XLM', 'EOS' ],
+            // native-chain withdrawals of these currencies may need a destination tag / memo
+            'withdrawTagRequiredCurrencies': [ 'XRP', 'XLM', 'EOS', 'ATOM', 'HBAR', 'TON', 'KAVA', 'STX', 'XEM', 'IOST', 'OSMO', 'WAXP' ],
         };
     }
 
@@ -9039,7 +9038,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' unWatchOHLCV () is not supported yet');
     }
 
-    async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    async withdrawWs (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         /**
          * @method
          * @name exchange#withdrawWs
@@ -9047,8 +9046,8 @@ export class BaseExchange {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string} tag
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+         * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
          */
         throw new NotSupported (this.id + ' withdrawWs () is not supported yet');

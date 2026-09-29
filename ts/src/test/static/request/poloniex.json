@@ -15,11 +15,10 @@
                     "USDT",
                     5,
                     "0x883b79D31EA07AA200A4a83c50d444470A212eEE",
-                    null,
                     {
-                        "network": "ERC20"
+                      "network": "ERC20"
                     }
-                ],
+                  ],
                 "output": { "coin": "USDT", "amount": "5", "address": "0x883b79D31EA07AA200A4a83c50d444470A212eEE", "network": "ETH" }
             },
             {
@@ -30,11 +29,10 @@
                     "USDT",
                     5,
                     "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD",
-                    null,
                     {
-                        "network": "TRC20"
+                      "network": "TRC20"
                     }
-                ],
+                  ],
                 "output": { "coin": "USDT", "amount": "5", "address": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD", "network": "TRX" }
             }
         ],

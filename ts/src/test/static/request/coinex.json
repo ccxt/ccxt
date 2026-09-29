@@ -1336,11 +1336,10 @@
                     "TRUMP",
                     1.863679444,
                     "Ec59AaXM8qMmZo2j5qaKytKMcvvixekypQ85ZF5ASR4A",
-                    null,
                     {
-                        "network": "SOL"
+                      "network": "SOL"
                     }
-                ],
+                  ],
                 "output": "{\"amount\":\"1.863679\",\"ccy\":\"TRUMP\",\"chain\":\"SOL\",\"to_address\":\"Ec59AaXM8qMmZo2j5qaKytKMcvvixekypQ85ZF5ASR4A\"}"
             },
         {
@@ -1351,7 +1350,6 @@
             "USDT",
             15,
             "TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
-            null,
             {
               "network": "TRC20"
             }

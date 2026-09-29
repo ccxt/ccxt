@@ -6900,15 +6900,15 @@ In some cases you can also use the withdrawal id to check withdrawal status late
 <!-- tabs:start -->
 #### **Javascript**
 ```javascript
-withdraw (code, amount, address, tag = undefined, params = {})
+withdraw (code, amount, address, params = {})
 ```
 #### **Python**
 ```python
-withdraw(code, amount, address, tag=None, params={})
+withdraw(code, amount, address, params={})
 ```
 #### **PHP**
 ```php
-withdraw ($code, $amount, $address, $tag = null, $params = array ())
+withdraw ($code, $amount, $address, $params = array ())
 ```
 #### **Go**
 ```go
@@ -6916,11 +6916,11 @@ func (this *Binance) Withdraw(code string, amount float64, address string, optio
 ```
 #### **C#**
 ```csharp
-public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
+public async Task<Transaction> Withdraw(string code, double amount, string address, Dictionary<string, object> parameters = null)
 ```
 #### **Java**
 ```java
-Transaction tx = exchange.withdraw("BTC", 0.5, "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2", null, null);
+Transaction tx = exchange.withdraw("BTC", 0.5, "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2", null);
 ```
 <!-- tabs:end -->
 
@@ -6929,8 +6929,7 @@ Parameters
 - **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
 - **amount** (Float) *required* The amount of currency to withdraw (e.g. `20`)
 - **address** (String) *required* The recipient address of the withdrawal (e.g. `"TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp"`)
-- **tag** (String) Required for some networks (e.g. `"52055"`)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX", "tag": "52055"}`); `tag` is required for the currencies in `options['withdrawTagRequiredCurrencies']`
 
 Returns
 
@@ -6971,7 +6970,7 @@ Returns
 
 ### Deposit And Withdrawal Networks
 
-It is also possible to pass the parameters as the fourth argument with or without a specified tag
+The tag (memo) and the network are passed in params
 <!-- tabs:start -->
 #### **Javascript**
 ```javascript
@@ -6987,15 +6986,15 @@ withdraw ($code, $amount, $address, array( 'tag' => tag, 'network' -> 'ETH' ));
 ```
 #### **Go**
 ```go
-exchange.Withdraw(code, amount, address, ccxt.WithWithdrawTag(tag), ccxt.WithWithdrawParams(map[string]interface{}{"network": "ETH"}))
+exchange.Withdraw(code, amount, address, ccxt.WithWithdrawParams(map[string]interface{}{"tag": tag, "network": "ETH"}))
 ```
 #### **C#**
 ```csharp
-await exchange.Withdraw(code, amount, address, tag, new Dictionary<string, object>() { { "network", "ETH" } });
+await exchange.Withdraw(code, amount, address, new Dictionary<string, object>() { { "tag", tag }, { "network", "ETH" } });
 ```
 #### **Java**
 ```java
-Transaction tx = exchange.withdraw("USDT", 100.0, "0x1234...", null, Map.of("network", "ETH"));
+Transaction tx = exchange.withdraw("USDT", 100.0, "0x1234...", Map.of("tag", tag, "network", "ETH"));
 ```
 <!-- tabs:end -->
 

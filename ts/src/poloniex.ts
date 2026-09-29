@@ -298,7 +298,7 @@ export default class poloniex extends Exchange {
                 'XAP': 'API Coin',
                 // this is not documented in the API docs for Poloniex
                 // https://github.com/ccxt/ccxt/issues/7084
-                // when the user calls withdraw ('USDT', amount, address, tag, params)
+                // when the user calls withdraw ('USDT', amount, address, params)
                 // with params = { 'currencyToWithdrawAs': 'USDTTRON' }
                 // or params = { 'currencyToWithdrawAs': 'USDTETH' }
                 // fetchWithdrawals ('USDT') returns the corresponding withdrawals
@@ -2859,12 +2859,14 @@ export default class poloniex extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        this.checkAddress (address, code, tag, params);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        let tag: Str = undefined;
+        [ tag, params ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tag);
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],

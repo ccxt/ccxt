@@ -928,12 +928,11 @@
                     "USDT",
                     0.1,
                     "to_someone@gmail.com",
-                    null,
                     {
-                        "internal": true,
-                        "toAccountType": "EMAIL"
+                      "internal": true,
+                      "toAccountType": "EMAIL"
                     }
-                ],
+                  ],
                 "output": null
             },
             {
@@ -944,7 +943,6 @@
                   "USDT",
                   5,
                   "THb2SXyLLBn81JWPNhTbGBEoXHtDX62eU7",
-                  null,
                   {
                     "network": "TRC20"
                   }
