@@ -5,6 +5,7 @@ import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -27,7 +28,7 @@ public class TestWatchPosition extends BaseTest {
             Boolean success = true;
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPosition", new Object[]{symbol})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPosition", new Object[]{Helpers.toStringArg(symbol), new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))

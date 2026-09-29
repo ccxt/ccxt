@@ -35,7 +35,7 @@ public class TestLedgerEntry extends BaseTest {
             put( "datetime", "2021-11-30T00:00:00.000Z" );
             put( "type", "deposit" );
         }};
-        List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("referenceId", "referenceAccount", "id"));
+        List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("referenceId", "referenceAccount", "id"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("currency"), requestedCode);
