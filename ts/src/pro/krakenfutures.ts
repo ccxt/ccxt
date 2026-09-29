@@ -959,7 +959,10 @@ export default class krakenfutures extends krakenfuturesRest {
                 const cachedId = cachedIds[j];
                 if (!(cachedId in snapshotIds)) {
                     const cachedOrder = this.safeDict (ordersById, cachedId, {});
-                    if (this.safeString (cachedOrder, 'status') === 'open') {
+                    const cachedStatus = this.safeString (cachedOrder, 'status');
+                    // parseWsOrder leaves status undefined for snapshot and
+                    // non-cancel updates, so undefined means open here
+                    if ((cachedStatus === undefined) || (cachedStatus === 'open')) {
                         cachedOrder['status'] = 'canceled';
                         // write the updated order back through append: the cache
                         // rows are copies in the value-type runtimes (php), and
