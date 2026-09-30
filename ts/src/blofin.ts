@@ -2308,11 +2308,16 @@ export default class blofin extends Exchange {
         }
         const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
-        const first = this.safeDict (data, 0);
-        if (first === undefined) {
-            throw new ExchangeError (this.id + ' fetchDeposit() could not find deposit ' + id);
+        // only accept a row that matches the requested id, in case the
+        // venue ignores the filter and returns the latest records instead
+        const dataLength = (data as List).length;
+        for (let i = 0; i < dataLength; i++) {
+            const entry = data[i];
+            if (this.safeString (entry, 'depositId') === id) {
+                return this.parseTransaction (entry, currency);
+            }
         }
-        return this.parseTransaction (first, currency);
+        throw new ExchangeError (this.id + ' fetchDeposit() could not find deposit ' + id);
     }
 
     /**
@@ -2327,6 +2332,10 @@ export default class blofin extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchWithdrawal (id: string, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
+        const clientId = this.safeString (params, 'clientId');
+        if ((id === undefined) && (clientId === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawal() requires an id argument or a params["clientId"]');
+        }
         await this.loadMarkets ();
         const request: Dict = {};
         if (id !== undefined) {
@@ -2339,11 +2348,23 @@ export default class blofin extends Exchange {
         }
         const response = await this.privateGetAssetWithdrawalHistory (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
-        const first = this.safeDict (data, 0);
-        if (first === undefined) {
-            throw new ExchangeError (this.id + ' fetchWithdrawal() could not find withdrawal ' + id);
+        // only accept a row that matches the requested id (or clientId), in
+        // case the venue ignores the filter and returns the latest records
+        const dataLength = (data as List).length;
+        for (let i = 0; i < dataLength; i++) {
+            const entry = data[i];
+            let matches = false;
+            if (id !== undefined) {
+                matches = (this.safeString (entry, 'withdrawId') === id);
+            } else {
+                matches = (this.safeString (entry, 'clientId') === clientId);
+            }
+            if (matches) {
+                return this.parseTransaction (entry, currency);
+            }
         }
-        return this.parseTransaction (first, currency);
+        const reference = (id !== undefined) ? id : clientId;
+        throw new ExchangeError (this.id + ' fetchWithdrawal() could not find withdrawal ' + reference);
     }
 
     /**
