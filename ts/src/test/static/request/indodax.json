@@ -272,6 +272,25 @@
                 }
             },
             {
+                "description": "TAPI v2 fiat withdraw preserves leading zeros in bank account fields",
+                "method": "withdraw",
+                "url": "https://api.indodax.com/api/v2/fiat/withdraw",
+                "input": [
+                    "IDR",
+                    150000,
+                    "001234567890",
+                    null,
+                    {
+                        "clientOrderId": "fiat-zeros",
+                        "bankCode": "014"
+                    }
+                ],
+                "output": "timestamp=1700000000000&recvWindow=5000&apiPaymentMethod=bank_transfer&currency=idr&amount=150000&accountInfo=%7B%22accountNumber%22%3A%22001234567890%22%2C%22bankCodeForPix%22%3A%22014%22%7D&clientRequestId=fiat-zeros",
+                "options": {
+                    "tapiVersion": "2"
+                }
+            },
+            {
                 "description": "TAPI v2 crypto withdraw sends the memo as addressTag",
                 "method": "withdraw",
                 "url": "https://api.indodax.com/api/v2/capital/withdraw/apply",

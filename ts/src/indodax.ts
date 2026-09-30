@@ -1277,7 +1277,7 @@ export default class indodax extends Exchange {
                 await this.loadMarkets ();
             }
             const orderRequest = this.v2OrderRequest (id, symbol, params);
-            const v2Market = orderRequest[0];
+            const v2Market = this.market (symbol);
             const v2Request = orderRequest[1];
             const paramsRest = orderRequest[2];
             const v2Response = await this.v2GetOrder (this.extend (v2Request, paramsRest));
@@ -1343,7 +1343,8 @@ export default class indodax extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketOrders = rawOrders[marketId];
-            market = this.marketFromV1Pair (marketId);
+            const pairMarketId = this.safeString (this.marketFromV1Pair (marketId), 'id', marketId);
+            market = this.safeMarket (pairMarketId, undefined, '_');
             const parsedOrders = this.parseOrders (marketOrders, market, since, limit);
             exchangeOrders = this.arrayConcat (exchangeOrders, parsedOrders);
         }
@@ -1534,7 +1535,7 @@ export default class indodax extends Exchange {
                 await this.loadMarkets ();
             }
             const orderRequest = this.v2OrderRequest (id, symbol, params);
-            const v2Market = orderRequest[0];
+            const v2Market = this.market (symbol);
             const v2Request = orderRequest[1];
             const paramsRest = orderRequest[2];
             const v2Response = await this.v2DeleteOrder (this.extend (v2Request, paramsRest));
@@ -2701,7 +2702,7 @@ export default class indodax extends Exchange {
      * @description fetch all withdrawals made from an account
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#get-withdraw-coin-information-history
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#get-withdrawdeposit-fiat-information-history
-     * @param {string} [code] unified currency code. Omitting code returns only BTC crypto withdrawals plus IDR fiat withdrawals, because TAPI v2 defaults coin to BTC. Not available when options.tapiVersion is "1"
+     * @param {string} [code] unified currency code. Omitting code returns only BTC crypto withdrawals plus IDR fiat withdrawals, because TAPI v2 defaults coin to BTC. Without params.paginate the crypto window is 90 days and the IDR window is the first 30 days, so paging by the newest row can skip IDR. Not available when options.tapiVersion is "1"
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2818,17 +2819,15 @@ export default class indodax extends Exchange {
             }
             const clientRequestId = this.safeString (paramsAfterTag, 'clientOrderId', this.milliseconds ().toString ());
             const paramsOmitted = this.omit (paramsAfterTag, [ 'bankCode', 'clientOrderId' ]);
-            const accountNumberJson = this.json (address);
-            const bankCodeJson = this.json (bankCode);
-            // hex braces: a '{...}' literal is rewritten to array() by the PHP transpiler
-            const openBrace = this.binaryToString (this.base16ToBinary ('7b'));
-            const closeBrace = this.binaryToString (this.base16ToBinary ('7d'));
-            const accountInfo = openBrace + '"accountNumber":' + accountNumberJson + ',"bankCodeForPix":' + bankCodeJson + closeBrace;
+            const accountInfo: Dict = {
+                'accountNumber': address,
+                'bankCodeForPix': bankCode,
+            };
             const fiatRequest: Dict = {
                 'apiPaymentMethod': 'bank_transfer',
                 'currency': 'idr',
                 'amount': this.parseToInt (amount),
-                'accountInfo': accountInfo,
+                'accountInfo': this.json (this.keysort (accountInfo)),
                 'clientRequestId': clientRequestId,
             };
             const fiatResponse = await this.v2PostFiatWithdraw (this.extend (fiatRequest, paramsOmitted));
