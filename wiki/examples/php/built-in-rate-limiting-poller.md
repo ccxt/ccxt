@@ -1,8 +1,5 @@
-- [Built In Rate Limiting Poller](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -20,5 +17,5 @@ while (true) {
     echo count($order_book['bids']) . " bids and " . count($order_book['asks']) . " asks\n";
     echo sprintf("bid: %.8f ask: %.8f", $order_book['bids'][0][0], $order_book['asks'][0][0]) . "\n";
 }
- 
+
 ```

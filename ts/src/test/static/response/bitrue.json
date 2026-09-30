@@ -2,6 +2,817 @@
     "exchange": "bitrue",
     "skipKeys": [],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "timezone": "CTT",
+                    "serverTime": "1779426636461",
+                    "rateLimits": [],
+                    "exchangeFilters": [],
+                    "symbols": [],
+                    "coins": [
+                        {
+                            "coin": "usdt",
+                            "coinFulName": "Tether USDt",
+                            "chains": [
+                                "OMNI",
+                                "AVAXC",
+                                "ETH",
+                                "TRX",
+                                "Polygon",
+                                "BSC",
+                                "SOL",
+                                "Arbitrum",
+                                "OPTIMISM",
+                                "NEAR",
+                                "TON",
+                                "SCROLL",
+                                "KAIA",
+                                "XPL",
+                                "MON",
+                                "Stable"
+                            ],
+                            "chainDetail": [
+                                {
+                                    "originCoin": "usdt",
+                                    "tagType": "",
+                                    "chain": "OMNI",
+                                    "enableWithdraw": false,
+                                    "enableDeposit": false,
+                                    "withdrawFee": "1.28",
+                                    "minWithdraw": "2.56",
+                                    "maxWithdraw": "1000.00"
+                                },
+                                {
+                                    "originCoin": "usdt_avax",
+                                    "tagType": "",
+                                    "chain": "AVAXC",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.00",
+                                    "minWithdraw": "2.00",
+                                    "maxWithdraw": "10000000000000.00"
+                                },
+                                {
+                                    "originCoin": "usdt_erc20",
+                                    "tagType": "",
+                                    "chain": "ETH",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.20",
+                                    "minWithdraw": "2.40",
+                                    "maxWithdraw": "2000000.00"
+                                },
+                                {
+                                    "originCoin": "usdt_trc20",
+                                    "tagType": "",
+                                    "chain": "TRX",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.00",
+                                    "minWithdraw": "2.00",
+                                    "maxWithdraw": "2000000.00"
+                                },
+                                {
+                                    "originCoin": "usdt_poly",
+                                    "tagType": "",
+                                    "chain": "Polygon",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.00",
+                                    "minWithdraw": "2.00",
+                                    "maxWithdraw": "10000000000000.00"
+                                },
+                                {
+                                    "originCoin": "usdt_bep20",
+                                    "tagType": "",
+                                    "chain": "BSC",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "0.11",
+                                    "minWithdraw": "0.22",
+                                    "maxWithdraw": "2000000.00"
+                                },
+                                {
+                                    "originCoin": "usdt_sol",
+                                    "tagType": "",
+                                    "chain": "SOL",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.00",
+                                    "minWithdraw": "2.00",
+                                    "maxWithdraw": "2000000.00"
+                                },
+                                {
+                                    "originCoin": "usdt_arb",
+                                    "tagType": "",
+                                    "chain": "Arbitrum",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "10000000000000.000000"
+                                },
+                                {
+                                    "originCoin": "usdt_op",
+                                    "tagType": "",
+                                    "chain": "OPTIMISM",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "1000000000000.000000"
+                                },
+                                {
+                                    "originCoin": "usdt_near",
+                                    "tagType": "",
+                                    "chain": "NEAR",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "10000000000000.000000"
+                                },
+                                {
+                                    "originCoin": "usdt_ton",
+                                    "tagType": "Tag",
+                                    "chain": "TON",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.0000",
+                                    "minWithdraw": "2.0000",
+                                    "maxWithdraw": "10000000000000.0000"
+                                },
+                                {
+                                    "originCoin": "usdt_scr",
+                                    "tagType": "",
+                                    "chain": "SCROLL",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.0000",
+                                    "minWithdraw": "2.0000",
+                                    "maxWithdraw": "10000000000000.0000"
+                                },
+                                {
+                                    "originCoin": "usdt_kaia",
+                                    "tagType": "",
+                                    "chain": "KAIA",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.00000",
+                                    "minWithdraw": "2.00000",
+                                    "maxWithdraw": "10000000000000.00000"
+                                },
+                                {
+                                    "originCoin": "usdt_xpl",
+                                    "tagType": "",
+                                    "chain": "XPL",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "10000000000000.000000"
+                                },
+                                {
+                                    "originCoin": "usdt_mon",
+                                    "tagType": "",
+                                    "chain": "MON",
+                                    "enableWithdraw": false,
+                                    "enableDeposit": false,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "100000000.000000"
+                                },
+                                {
+                                    "originCoin": "usdt_stabl",
+                                    "tagType": "",
+                                    "chain": "Stable",
+                                    "enableWithdraw": false,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "10000000000000.000000"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "coin": "usdt",
+                            "coinFulName": "Tether USDt",
+                            "chains": [
+                                "OMNI",
+                                "AVAXC",
+                                "ETH",
+                                "TRX",
+                                "Polygon",
+                                "BSC",
+                                "SOL",
+                                "Arbitrum",
+                                "OPTIMISM",
+                                "NEAR",
+                                "TON",
+                                "SCROLL",
+                                "KAIA",
+                                "XPL",
+                                "MON",
+                                "Stable"
+                            ],
+                            "chainDetail": [
+                                {
+                                    "originCoin": "usdt",
+                                    "tagType": "",
+                                    "chain": "OMNI",
+                                    "enableWithdraw": false,
+                                    "enableDeposit": false,
+                                    "withdrawFee": "1.28",
+                                    "minWithdraw": "2.56",
+                                    "maxWithdraw": "1000.00"
+                                },
+                                {
+                                    "originCoin": "usdt_avax",
+                                    "tagType": "",
+                                    "chain": "AVAXC",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.00",
+                                    "minWithdraw": "2.00",
+                                    "maxWithdraw": "10000000000000.00"
+                                },
+                                {
+                                    "originCoin": "usdt_erc20",
+                                    "tagType": "",
+                                    "chain": "ETH",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.20",
+                                    "minWithdraw": "2.40",
+                                    "maxWithdraw": "2000000.00"
+                                },
+                                {
+                                    "originCoin": "usdt_trc20",
+                                    "tagType": "",
+                                    "chain": "TRX",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.00",
+                                    "minWithdraw": "2.00",
+                                    "maxWithdraw": "2000000.00"
+                                },
+                                {
+                                    "originCoin": "usdt_poly",
+                                    "tagType": "",
+                                    "chain": "Polygon",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.00",
+                                    "minWithdraw": "2.00",
+                                    "maxWithdraw": "10000000000000.00"
+                                },
+                                {
+                                    "originCoin": "usdt_bep20",
+                                    "tagType": "",
+                                    "chain": "BSC",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "0.11",
+                                    "minWithdraw": "0.22",
+                                    "maxWithdraw": "2000000.00"
+                                },
+                                {
+                                    "originCoin": "usdt_sol",
+                                    "tagType": "",
+                                    "chain": "SOL",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.00",
+                                    "minWithdraw": "2.00",
+                                    "maxWithdraw": "2000000.00"
+                                },
+                                {
+                                    "originCoin": "usdt_arb",
+                                    "tagType": "",
+                                    "chain": "Arbitrum",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "10000000000000.000000"
+                                },
+                                {
+                                    "originCoin": "usdt_op",
+                                    "tagType": "",
+                                    "chain": "OPTIMISM",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "1000000000000.000000"
+                                },
+                                {
+                                    "originCoin": "usdt_near",
+                                    "tagType": "",
+                                    "chain": "NEAR",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "10000000000000.000000"
+                                },
+                                {
+                                    "originCoin": "usdt_ton",
+                                    "tagType": "Tag",
+                                    "chain": "TON",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.0000",
+                                    "minWithdraw": "2.0000",
+                                    "maxWithdraw": "10000000000000.0000"
+                                },
+                                {
+                                    "originCoin": "usdt_scr",
+                                    "tagType": "",
+                                    "chain": "SCROLL",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.0000",
+                                    "minWithdraw": "2.0000",
+                                    "maxWithdraw": "10000000000000.0000"
+                                },
+                                {
+                                    "originCoin": "usdt_kaia",
+                                    "tagType": "",
+                                    "chain": "KAIA",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.00000",
+                                    "minWithdraw": "2.00000",
+                                    "maxWithdraw": "10000000000000.00000"
+                                },
+                                {
+                                    "originCoin": "usdt_xpl",
+                                    "tagType": "",
+                                    "chain": "XPL",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "10000000000000.000000"
+                                },
+                                {
+                                    "originCoin": "usdt_mon",
+                                    "tagType": "",
+                                    "chain": "MON",
+                                    "enableWithdraw": false,
+                                    "enableDeposit": false,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "100000000.000000"
+                                },
+                                {
+                                    "originCoin": "usdt_stabl",
+                                    "tagType": "",
+                                    "chain": "Stable",
+                                    "enableWithdraw": false,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "10000000000000.000000"
+                                }
+                            ]
+                        },
+                        "id": "usdt",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "Tether USDt",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0.11,
+                        "fees": null,
+                        "networks": {
+                            "OMNI": {
+                                "info": {
+                                    "originCoin": "usdt",
+                                    "tagType": "",
+                                    "chain": "OMNI",
+                                    "enableWithdraw": false,
+                                    "enableDeposit": false,
+                                    "withdrawFee": "1.28",
+                                    "minWithdraw": "2.56",
+                                    "maxWithdraw": "1000.00"
+                                },
+                                "id": "OMNI",
+                                "network": "OMNI",
+                                "deposit": false,
+                                "withdraw": false,
+                                "active": null,
+                                "fee": 1.28,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2.56,
+                                        "max": 1000
+                                    }
+                                }
+                            },
+                            "AVAXC": {
+                                "info": {
+                                    "originCoin": "usdt_avax",
+                                    "tagType": "",
+                                    "chain": "AVAXC",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.00",
+                                    "minWithdraw": "2.00",
+                                    "maxWithdraw": "10000000000000.00"
+                                },
+                                "id": "AVAXC",
+                                "network": "AVAXC",
+                                "deposit": true,
+                                "withdraw": true,
+                                "active": null,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": 10000000000000
+                                    }
+                                }
+                            },
+                            "ERC20": {
+                                "info": {
+                                    "originCoin": "usdt_erc20",
+                                    "tagType": "",
+                                    "chain": "ETH",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.20",
+                                    "minWithdraw": "2.40",
+                                    "maxWithdraw": "2000000.00"
+                                },
+                                "id": "ETH",
+                                "network": "ERC20",
+                                "deposit": true,
+                                "withdraw": true,
+                                "active": null,
+                                "fee": 1.2,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2.4,
+                                        "max": 2000000
+                                    }
+                                }
+                            },
+                            "TRC20": {
+                                "info": {
+                                    "originCoin": "usdt_trc20",
+                                    "tagType": "",
+                                    "chain": "TRX",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.00",
+                                    "minWithdraw": "2.00",
+                                    "maxWithdraw": "2000000.00"
+                                },
+                                "id": "TRX",
+                                "network": "TRC20",
+                                "deposit": true,
+                                "withdraw": true,
+                                "active": null,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": 2000000
+                                    }
+                                }
+                            },
+                            "Polygon": {
+                                "info": {
+                                    "originCoin": "usdt_poly",
+                                    "tagType": "",
+                                    "chain": "Polygon",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.00",
+                                    "minWithdraw": "2.00",
+                                    "maxWithdraw": "10000000000000.00"
+                                },
+                                "id": "Polygon",
+                                "network": "Polygon",
+                                "deposit": true,
+                                "withdraw": true,
+                                "active": null,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": 10000000000000
+                                    }
+                                }
+                            },
+                            "BSC": {
+                                "info": {
+                                    "originCoin": "usdt_bep20",
+                                    "tagType": "",
+                                    "chain": "BSC",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "0.11",
+                                    "minWithdraw": "0.22",
+                                    "maxWithdraw": "2000000.00"
+                                },
+                                "id": "BSC",
+                                "network": "BSC",
+                                "deposit": true,
+                                "withdraw": true,
+                                "active": null,
+                                "fee": 0.11,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.22,
+                                        "max": 2000000
+                                    }
+                                }
+                            },
+                            "SOL": {
+                                "info": {
+                                    "originCoin": "usdt_sol",
+                                    "tagType": "",
+                                    "chain": "SOL",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.00",
+                                    "minWithdraw": "2.00",
+                                    "maxWithdraw": "2000000.00"
+                                },
+                                "id": "SOL",
+                                "network": "SOL",
+                                "deposit": true,
+                                "withdraw": true,
+                                "active": null,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": 2000000
+                                    }
+                                }
+                            },
+                            "Arbitrum": {
+                                "info": {
+                                    "originCoin": "usdt_arb",
+                                    "tagType": "",
+                                    "chain": "Arbitrum",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "10000000000000.000000"
+                                },
+                                "id": "Arbitrum",
+                                "network": "Arbitrum",
+                                "deposit": true,
+                                "withdraw": true,
+                                "active": null,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": 10000000000000
+                                    }
+                                }
+                            },
+                            "OPTIMISM": {
+                                "info": {
+                                    "originCoin": "usdt_op",
+                                    "tagType": "",
+                                    "chain": "OPTIMISM",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "1000000000000.000000"
+                                },
+                                "id": "OPTIMISM",
+                                "network": "OPTIMISM",
+                                "deposit": true,
+                                "withdraw": true,
+                                "active": null,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": 1000000000000
+                                    }
+                                }
+                            },
+                            "NEAR": {
+                                "info": {
+                                    "originCoin": "usdt_near",
+                                    "tagType": "",
+                                    "chain": "NEAR",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "10000000000000.000000"
+                                },
+                                "id": "NEAR",
+                                "network": "NEAR",
+                                "deposit": true,
+                                "withdraw": true,
+                                "active": null,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": 10000000000000
+                                    }
+                                }
+                            },
+                            "TON": {
+                                "info": {
+                                    "originCoin": "usdt_ton",
+                                    "tagType": "Tag",
+                                    "chain": "TON",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.0000",
+                                    "minWithdraw": "2.0000",
+                                    "maxWithdraw": "10000000000000.0000"
+                                },
+                                "id": "TON",
+                                "network": "TON",
+                                "deposit": true,
+                                "withdraw": true,
+                                "active": null,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": 10000000000000
+                                    }
+                                }
+                            },
+                            "SCROLL": {
+                                "info": {
+                                    "originCoin": "usdt_scr",
+                                    "tagType": "",
+                                    "chain": "SCROLL",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.0000",
+                                    "minWithdraw": "2.0000",
+                                    "maxWithdraw": "10000000000000.0000"
+                                },
+                                "id": "SCROLL",
+                                "network": "SCROLL",
+                                "deposit": true,
+                                "withdraw": true,
+                                "active": null,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": 10000000000000
+                                    }
+                                }
+                            },
+                            "KAIA": {
+                                "info": {
+                                    "originCoin": "usdt_kaia",
+                                    "tagType": "",
+                                    "chain": "KAIA",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.00000",
+                                    "minWithdraw": "2.00000",
+                                    "maxWithdraw": "10000000000000.00000"
+                                },
+                                "id": "KAIA",
+                                "network": "KAIA",
+                                "deposit": true,
+                                "withdraw": true,
+                                "active": null,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": 10000000000000
+                                    }
+                                }
+                            },
+                            "XPL": {
+                                "info": {
+                                    "originCoin": "usdt_xpl",
+                                    "tagType": "",
+                                    "chain": "XPL",
+                                    "enableWithdraw": true,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "10000000000000.000000"
+                                },
+                                "id": "XPL",
+                                "network": "XPL",
+                                "deposit": true,
+                                "withdraw": true,
+                                "active": null,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": 10000000000000
+                                    }
+                                }
+                            },
+                            "MON": {
+                                "info": {
+                                    "originCoin": "usdt_mon",
+                                    "tagType": "",
+                                    "chain": "MON",
+                                    "enableWithdraw": false,
+                                    "enableDeposit": false,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "100000000.000000"
+                                },
+                                "id": "MON",
+                                "network": "MON",
+                                "deposit": false,
+                                "withdraw": false,
+                                "active": null,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": 100000000
+                                    }
+                                }
+                            },
+                            "Stable": {
+                                "info": {
+                                    "originCoin": "usdt_stabl",
+                                    "tagType": "",
+                                    "chain": "Stable",
+                                    "enableWithdraw": false,
+                                    "enableDeposit": true,
+                                    "withdrawFee": "1.000000",
+                                    "minWithdraw": "2.000000",
+                                    "maxWithdraw": "10000000000000.000000"
+                                },
+                                "id": "Stable",
+                                "network": "Stable",
+                                "deposit": true,
+                                "withdraw": false,
+                                "active": null,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": 10000000000000
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "withdraw": {
+                                "min": 0.22,
+                                "max": 10000000000000
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",

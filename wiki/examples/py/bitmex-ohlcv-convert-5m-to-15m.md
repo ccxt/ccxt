@@ -1,8 +1,5 @@
-- [Bitmex Ohlcv Convert 5m To 15m](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -52,5 +49,5 @@ else:
 # do whatever you want with your 15m candles here...
 
 pprint(ohlcv15)
- 
+
 ```

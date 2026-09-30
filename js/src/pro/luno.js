@@ -6,6 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import lunoRest from '../luno.js';
+import { ExchangeError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class luno extends lunoRest {
@@ -18,7 +19,7 @@ export default class luno extends lunoRest {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchMyTrades': false,
-                'watchOrders': undefined,
+                'watchOrders': undefined, // is in beta
                 'watchOrderBook': true,
                 'watchOHLCV': false,
             },
@@ -47,23 +48,30 @@ export default class luno extends lunoRest {
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
-        const subscription = { 'symbol': symbol };
-        const url = this.urls['api']['ws'] + subscriptionHash;
-        const messageHash = 'trades:' + symbol;
+        const subscription = { 'symbol': symbolValue };
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError(this.id + ' watchTrades() has no websocket url');
+        }
+        const url = wsUrl + subscriptionHash;
+        const messageHash = 'trades:' + symbolValue;
         const subscribe = {
             'api_key_id': this.apiKey,
             'api_key_secret': this.secret,
         };
         const request = this.deepExtend(subscribe, params);
         const trades = await this.watch(url, messageHash, request, subscriptionHash, subscription);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message, subscription) {
         //
@@ -81,7 +89,7 @@ export default class luno extends lunoRest {
         //         "timestamp": 1660598775360
         //     }
         //
-        const rawTrades = this.safeValue(message, 'trade_updates', []);
+        const rawTrades = this.safeList(message, 'trade_updates', []);
         const length = rawTrades.length;
         if (length === 0) {
             return;
@@ -115,12 +123,19 @@ export default class luno extends lunoRest {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
+        let symbol = undefined;
+        if (market === undefined) {
+            symbol = undefined;
+        }
+        else {
+            symbol = market['symbol'];
+        }
         return this.safeTrade({
             'info': trade,
             'id': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': undefined,
             'type': undefined,
             'side': undefined,
@@ -136,21 +151,28 @@ export default class luno extends lunoRest {
      * @method
      * @name luno#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.luno.com/en/developers/api#tag/Streaming-API
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
-        const subscription = { 'symbol': symbol };
-        const url = this.urls['api']['ws'] + subscriptionHash;
-        const messageHash = 'orderbook:' + symbol;
+        const subscription = { 'symbol': symbolValue };
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError(this.id + ' watchOrderBook() has no websocket url');
+        }
+        const url = wsUrl + subscriptionHash;
+        const messageHash = 'orderbook:' + symbolValue;
         const subscribe = {
             'api_key_id': this.apiKey,
             'api_key_secret': this.secret,
@@ -198,14 +220,14 @@ export default class luno extends lunoRest {
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.indexedOrderBook({});
         }
-        const asks = this.safeValue(message, 'asks');
+        const asks = this.safeList(message, 'asks');
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
             this.orderbooks[symbol] = this.indexedOrderBook(snapshot);
         }
         else {
             const ob = this.orderbooks[symbol];
-            this.handleDelta(ob, message);
+            this.handleBookDelta(ob, message);
             ob['timestamp'] = timestamp;
             ob['datetime'] = this.iso8601(timestamp);
         }
@@ -215,8 +237,8 @@ export default class luno extends lunoRest {
         client.resolve(orderbook, messageHash);
     }
     customParseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 'price', amountKey = 'volume', countOrIdKey = 2) {
-        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
-        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
+        const bids = this.parseOrderBookBidsAsks(this.safeList(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseOrderBookBidsAsks(this.safeList(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy(bids, 0, true),
@@ -226,11 +248,11 @@ export default class luno extends lunoRest {
             'nonce': undefined,
         };
     }
-    parseBidsAsks(bidasks, priceKey = 'price', amountKey = 'volume', thirdKey = 2) {
-        bidasks = this.toArray(bidasks);
+    parseOrderBookBidsAsks(bidasks, priceKey = 'price', amountKey = 'volume', thirdKey = 2) {
+        const bidasksValue = this.toArray(bidasks);
         const result = [];
-        for (let i = 0; i < bidasks.length; i++) {
-            result.push(this.customParseBidAsk(bidasks[i], priceKey, amountKey, thirdKey));
+        for (let i = 0; i < bidasksValue.length; i++) {
+            result.push(this.customParseBidAsk(bidasksValue[i], priceKey, amountKey, thirdKey));
         }
         return result;
     }
@@ -244,7 +266,7 @@ export default class luno extends lunoRest {
         }
         return result;
     }
-    handleDelta(orderbook, message) {
+    handleBookDelta(orderbook, message) {
         //
         //  create
         //     {
@@ -288,7 +310,7 @@ export default class luno extends lunoRest {
         //         "timestamp": 1660598775360
         //     }
         //
-        const createUpdate = this.safeValue(message, 'create_update');
+        const createUpdate = this.safeDict(message, 'create_update');
         const asksOrderSide = orderbook['asks'];
         const bidsOrderSide = orderbook['bids'];
         if (createUpdate !== undefined) {
@@ -301,7 +323,7 @@ export default class luno extends lunoRest {
                 bidsOrderSide.storeArray(bidAskArray);
             }
         }
-        const deleteUpdate = this.safeValue(message, 'delete_update');
+        const deleteUpdate = this.safeDict(message, 'delete_update');
         if (deleteUpdate !== undefined) {
             const orderId = this.safeString(deleteUpdate, 'order_id');
             asksOrderSide.storeArray([0, 0, orderId]);

@@ -21,7 +21,7 @@ async def test_watch_my_trades(exchange, skipped_properties, symbol):
     ends = now + 15000
     while now < ends:
         success = True
-        response = None
+        response = []
         try:
             response = await exchange.watch_my_trades(symbol)
         except Exception as e:
@@ -34,6 +34,6 @@ async def test_watch_my_trades(exchange, skipped_properties, symbol):
             test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, response, symbol)
             now = exchange.milliseconds()
             for i in range(0, len(response)):
-                test_trade(exchange, skipped_properties, method, response[i], symbol, now)
+                test_trade(exchange, skipped_properties, method, response[i], symbol, now, False)
             test_shared_methods.assert_timestamp_order(exchange, method, symbol, response)
     return True

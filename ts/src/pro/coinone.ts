@@ -3,14 +3,15 @@
 
 import coinoneRest from '../coinone.js';
 import { AuthenticationError } from '../base/errors.js';
-import type { Int, Market, OrderBook, Ticker, Trade, Dict, Bool } from '../base/types.js';
+import type { Bool, Dict, Int, Market, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class coinone extends coinoneRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -58,10 +59,12 @@ export default class coinone extends coinoneRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'orderbook:' + market['symbol'];
         const url = this.urls['api']['ws'];
@@ -74,11 +77,11 @@ export default class coinone extends coinoneRest {
             },
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "response_type": "DATA",
@@ -103,11 +106,14 @@ export default class coinone extends coinoneRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const baseId = this.safeStringUpper (data, 'target_currency');
         const quoteId = this.safeStringUpper (data, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return;
+        }
         const symbol = this.symbol (base + '/' + quote);
         const timestamp = this.safeInteger (data, 'timestamp');
         let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -117,8 +123,8 @@ export default class coinone extends coinoneRest {
             orderbook.reset ();
         }
         orderbook['symbol'] = symbol;
-        const asks = this.safeValue (data, 'asks', []);
-        const bids = this.safeValue (data, 'bids', []);
+        const asks = this.safeList (data, 'asks', []);
+        const bids = this.safeList (data, 'bids', []);
         this.handleDeltas (orderbook['asks'], asks);
         this.handleDeltas (orderbook['bids'], bids);
         orderbook['timestamp'] = timestamp;
@@ -128,8 +134,8 @@ export default class coinone extends coinoneRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleDelta (bookside, delta) {
-        const bidAsk = this.parseBidAsk (delta, 'price', 'qty');
+    override handleDelta (bookside: any, delta: any) {
+        const bidAsk = this.parseOrderBookBidAsk (delta, 'price', 'qty');
         bookside.storeArray (bidAsk);
     }
 
@@ -142,8 +148,10 @@ export default class coinone extends coinoneRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'ticker:' + market['symbol'];
         const url = this.urls['api']['ws'];
@@ -159,7 +167,7 @@ export default class coinone extends coinoneRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "response_type": "DATA",
@@ -189,15 +197,18 @@ export default class coinone extends coinoneRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const ticker = this.parseWsTicker (data);
         const symbol = ticker['symbol'];
+        if (symbol === undefined) {
+            return;
+        }
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
         client.resolve (this.tickers[symbol], messageHash);
     }
 
-    parseWsTicker (ticker, market: Market = undefined): Ticker {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "quote_currency": "KRW",
@@ -229,7 +240,10 @@ export default class coinone extends coinoneRest {
         const quoteId = this.safeString (ticker, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = this.symbol (base + '/' + quote);
+        let symbol: Str = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = this.symbol (base + '/' + quote);
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -265,8 +279,10 @@ export default class coinone extends coinoneRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'trade:' + market['symbol'];
         const url = this.urls['api']['ws'];
@@ -279,14 +295,15 @@ export default class coinone extends coinoneRest {
             },
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (market['symbol'], limit);
+            limitResolved = trades.getLimit (market['symbol'], limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "response_type": "DATA",
@@ -302,21 +319,21 @@ export default class coinone extends coinoneRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const trade = this.parseWsTrade (data);
         const symbol = trade['symbol'];
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCache (limit);
-            this.trades[symbol] = stored;
+            this.trades[(symbol as string)] = stored;
         }
         stored.append (trade);
         const messageHash = 'trade:' + symbol;
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "quote_currency": "KRW",
@@ -332,13 +349,16 @@ export default class coinone extends coinoneRest {
         const quoteId = this.safeStringUpper (trade, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
+        let symbol: Str = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+        }
         const timestamp = this.safeInteger (trade, 'timestamp');
-        market = this.safeMarket (symbol, market);
-        const isSellerMaker = this.safeValue (trade, 'is_seller_maker');
-        let side = undefined;
+        const marketResolved: Market = this.safeMarket (symbol, market);
+        const isSellerMaker = this.safeBool (trade, 'is_seller_maker');
+        let side: Str = undefined;
         if (isSellerMaker !== undefined) {
-            side = isSellerMaker ? 'sell' : 'buy';
+            side = (isSellerMaker === true) ? 'sell' : 'buy';
         }
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
@@ -348,7 +368,7 @@ export default class coinone extends coinoneRest {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'order': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -356,10 +376,10 @@ export default class coinone extends coinoneRest {
             'amount': amountString,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //     {
         //         "response_type": "ERROR",
@@ -374,8 +394,8 @@ export default class coinone extends coinoneRest {
         return false;
     }
 
-    handleMessage (client: Client, message) {
-        if (this.handleErrorMessage (client, message)) {
+    override handleMessage (client: Client, message: Dict) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const type = this.safeString (message, 'response_type');
@@ -384,7 +404,7 @@ export default class coinone extends coinoneRest {
             return;
         }
         if (type === 'DATA') {
-            const topic = this.safeString (message, 'channel', '');
+            const topic = this.safeString (message, 'channel', '') as string;
             const methods: Dict = {
                 'ORDERBOOK': this.handleOrderBook,
                 'TICKER': this.handleTicker,
@@ -407,13 +427,13 @@ export default class coinone extends coinoneRest {
         }
     }
 
-    ping (client: Client) {
+    override ping (client: Client): Dict {
         return {
             'request_type': 'PING',
         };
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: Dict): Dict {
         //
         //     {
         //         "response_type":"PONG"

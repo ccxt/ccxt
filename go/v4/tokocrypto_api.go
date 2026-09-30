@@ -7,134 +7,177 @@
 
 package ccxt
 
-func (this *TokocryptoCore) BinanceGetPing(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetPing", args...)
+// BinanceGetPing returns a channel that yields a JSON object.
+func (this *Tokocrypto) BinanceGetPing(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ping", "binance", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) BinanceGetTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetTime", args...)
+// BinanceGetTime returns a channel that yields a JSON object.
+func (this *Tokocrypto) BinanceGetTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "time", "binance", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) BinanceGetDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetDepth", args...)
+// BinanceGetDepth returns a channel that yields a JSON object.
+func (this *Tokocrypto) BinanceGetDepth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "depth", "binance", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) BinanceGetTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetTrades", args...)
+// BinanceGetTrades returns a channel that yields a JSON array.
+func (this *Tokocrypto) BinanceGetTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "trades", "binance", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) BinanceGetAggTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetAggTrades", args...)
+// BinanceGetAggTrades returns a channel that yields a JSON array.
+func (this *Tokocrypto) BinanceGetAggTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "aggTrades", "binance", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) BinanceGetHistoricalTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetHistoricalTrades", args...)
+// BinanceGetHistoricalTrades returns a channel that yields a JSON array.
+func (this *Tokocrypto) BinanceGetHistoricalTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "historicalTrades", "binance", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-func (this *TokocryptoCore) BinanceGetKlines(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetKlines", args...)
+// BinanceGetKlines returns a channel that yields a JSON array.
+func (this *Tokocrypto) BinanceGetKlines(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "klines", "binance", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) BinanceGetTicker24hr(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetTicker24hr", args...)
+// BinanceGetTicker24hr returns a channel that yields a JSON object or a JSON array.
+func (this *Tokocrypto) BinanceGetTicker24hr(args ...any) <-chan AsyncResult[any] {
+	return this.Fetch2Async("ticker/24hr", "binance", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) BinanceGetTickerPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetTickerPrice", args...)
+// BinanceGetTickerPrice returns a channel that yields a JSON object.
+func (this *Tokocrypto) BinanceGetTickerPrice(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ticker/price", "binance", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) BinanceGetTickerBookTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetTickerBookTicker", args...)
+// BinanceGetTickerBookTicker returns a channel that yields a JSON array.
+func (this *Tokocrypto) BinanceGetTickerBookTicker(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "ticker/bookTicker", "binance", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) BinanceGetExchangeInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetExchangeInfo", args...)
+// BinanceGetExchangeInfo returns a channel that yields a JSON object.
+func (this *Tokocrypto) BinanceGetExchangeInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "exchangeInfo", "binance", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *TokocryptoCore) BinancePutUserDataStream(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binancePutUserDataStream", args...)
+// BinanceGetExecutionRules returns a channel that yields a JSON object.
+func (this *Tokocrypto) BinanceGetExecutionRules(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "executionRules", "binance", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *TokocryptoCore) BinancePostUserDataStream(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binancePostUserDataStream", args...)
+// BinancePutUserDataStream returns a channel that yields a JSON object.
+func (this *Tokocrypto) BinancePutUserDataStream(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "userDataStream", "binance", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) BinanceDeleteUserDataStream(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceDeleteUserDataStream", args...)
+// BinancePostUserDataStream returns a channel that yields a JSON object.
+func (this *Tokocrypto) BinancePostUserDataStream(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "userDataStream", "binance", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PublicGetOpenV1CommonTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenV1CommonTime", args...)
+// BinanceDeleteUserDataStream returns a channel that yields a JSON object.
+func (this *Tokocrypto) BinanceDeleteUserDataStream(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "userDataStream", "binance", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PublicGetOpenV1CommonSymbols(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenV1CommonSymbols", args...)
+// PublicGetOpenV1CommonTime returns a channel that yields a JSON object.
+func (this *Tokocrypto) PublicGetOpenV1CommonTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/common/time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PublicGetOpenV1MarketDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenV1MarketDepth", args...)
+// PublicGetOpenV1CommonSymbols returns a channel that yields a JSON object.
+func (this *Tokocrypto) PublicGetOpenV1CommonSymbols(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/common/symbols", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PublicGetOpenV1MarketTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenV1MarketTrades", args...)
+// PublicGetOpenV1MarketDepth returns a channel that yields a JSON object.
+func (this *Tokocrypto) PublicGetOpenV1MarketDepth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/market/depth", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PublicGetOpenV1MarketAggTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenV1MarketAggTrades", args...)
+// PublicGetOpenV1MarketTrades returns a channel that yields a JSON object.
+func (this *Tokocrypto) PublicGetOpenV1MarketTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/market/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PublicGetOpenV1MarketKlines(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenV1MarketKlines", args...)
+// PublicGetOpenV1MarketAggTrades returns a channel that yields a JSON object.
+func (this *Tokocrypto) PublicGetOpenV1MarketAggTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/market/agg-trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PrivateGetOpenV1OrdersDetail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenV1OrdersDetail", args...)
+// PublicGetOpenV1MarketKlines returns a channel that yields a JSON object.
+func (this *Tokocrypto) PublicGetOpenV1MarketKlines(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/market/klines", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PrivateGetOpenV1Orders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenV1Orders", args...)
+// PrivateGetOpenV1OrdersDetail returns a channel that yields a JSON object.
+func (this *Tokocrypto) PrivateGetOpenV1OrdersDetail(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/orders/detail", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PrivateGetOpenV1AccountSpot(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenV1AccountSpot", args...)
+// PrivateGetOpenV1Orders returns a channel that yields a JSON object.
+func (this *Tokocrypto) PrivateGetOpenV1Orders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PrivateGetOpenV1AccountSpotAsset(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenV1AccountSpotAsset", args...)
+// PrivateGetOpenV1AccountSpot returns a channel that yields a JSON object.
+func (this *Tokocrypto) PrivateGetOpenV1AccountSpot(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/account/spot", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PrivateGetOpenV1OrdersTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenV1OrdersTrades", args...)
+// PrivateGetOpenV1AccountSpotAsset returns a channel that yields a JSON object.
+func (this *Tokocrypto) PrivateGetOpenV1AccountSpotAsset(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/account/spot/asset", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PrivateGetOpenV1Withdraws(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenV1Withdraws", args...)
+// PrivateGetOpenV1OrdersTrades returns a channel that yields a JSON object.
+func (this *Tokocrypto) PrivateGetOpenV1OrdersTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/orders/trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PrivateGetOpenV1Deposits(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenV1Deposits", args...)
+// PrivateGetOpenV1Withdraws returns a channel that yields a JSON object.
+func (this *Tokocrypto) PrivateGetOpenV1Withdraws(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/withdraws", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PrivateGetOpenV1DepositsAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenV1DepositsAddress", args...)
+// PrivateGetOpenV1Deposits returns a channel that yields a JSON object.
+func (this *Tokocrypto) PrivateGetOpenV1Deposits(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/deposits", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PrivatePostOpenV1Orders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenV1Orders", args...)
+// PrivateGetOpenV1DepositsAddress returns a channel that yields a JSON object.
+func (this *Tokocrypto) PrivateGetOpenV1DepositsAddress(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/deposits/address", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PrivatePostOpenV1OrdersCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenV1OrdersCancel", args...)
+// PrivatePostOpenV1Orders returns a channel that yields a JSON object.
+func (this *Tokocrypto) PrivatePostOpenV1Orders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PrivatePostOpenV1OrdersOco(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenV1OrdersOco", args...)
+// PrivatePostOpenV1OrdersCancel returns a channel that yields a JSON object.
+func (this *Tokocrypto) PrivatePostOpenV1OrdersCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/orders/cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PrivatePostOpenV1Withdraws(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenV1Withdraws", args...)
+// PrivatePostOpenV1OrdersOco returns a channel that yields a JSON object.
+func (this *Tokocrypto) PrivatePostOpenV1OrdersOco(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/orders/oco", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *TokocryptoCore) PrivatePostOpenV1UserDataStream(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenV1UserDataStream", args...)
+// PrivatePostOpenV1Withdraws returns a channel that yields a JSON object.
+func (this *Tokocrypto) PrivatePostOpenV1Withdraws(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/withdraws", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostOpenV1UserDataStream returns a channel that yields a JSON object.
+func (this *Tokocrypto) PrivatePostOpenV1UserDataStream(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/user-data-stream", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostOpenV1UserListenToken returns a channel that yields a JSON object.
+func (this *Tokocrypto) PrivatePostOpenV1UserListenToken(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "open/v1/user-listen-token", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

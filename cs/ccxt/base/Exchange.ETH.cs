@@ -13,7 +13,7 @@ using Nethereum.Util;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Cryptography.ECDSA;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     // ethAbiEncode(types, args) {
@@ -41,7 +41,8 @@ public partial class Exchange
         return array;
     }
 
-    public object ethAbiEncode(object types2, object args2)
+    // Nethereum TupleType.Encode returns byte[]; the only return path hands it back unchanged
+    public byte[] ethAbiEncode(object types2, object args2)
     {
         //  ['(uint32,bool,uint64,uint64,bool,uint8,uint64)[]', 'uint8', 'address', 'uint256']
         //  [Array(1), 0, '0x0000000000000000000000000000000000000000', 1708007294587]
@@ -104,7 +105,10 @@ public partial class Exchange
         return encoded;
     }
 
-    public object ethEncodeStructuredData(object domain2, object messageTypes2, object messageData2)
+    // the only return path hands back Nethereum's Eip712TypedDataSigner.EncodeTypedDataRaw
+    // (vendored: cs/ccxt/static/.../Eip712TypedDataSigner.cs, `public byte[]`), so the declared
+    // type names the box the value already has
+    public byte[] ethEncodeStructuredData(object domain2, object messageTypes2, object messageData2)
     {
         // const domain =({"chainId":1337,"verifyingContract":"0x0000000000000000000000000000000000000000"})
         // const messageTypes = {"Agent":[{"name":"source","type":"uint256"},{"name":"connectionId","type":"bytes32"}]}
@@ -181,78 +185,130 @@ public partial class Exchange
         types["EIP712Domain"] = domainTypesDescription.ToArray();
         typeRaw.DomainRawValues = domainValuesArray.ToArray();
 
-        // fill in message types
+        // fill in message types (including referenced custom struct types)
+        var typeName = messageTypesKeys[0]; // primary type is the first key
         var messageTypesDict = new Dictionary<string, string>();
-        var typeName = messageTypesKeys[0];
-        var messageTypesContent = messageTypes[typeName] as IList<object>;
-        var messageTypesDescription = new List<MemberDescription> { };
-        for (var i = 0; i < messageTypesContent.Count; i++)
+        foreach (var messageTypeName in messageTypesKeys)
         {
-            var elem = messageTypesContent[i] as IDictionary<string, object>; // {\"name\":\"source\",\"type\":\"string\"}
-            var name = elem["name"] as string;
-            var type = elem["type"] as string;
-            messageTypesDict[name] = type;
-            // var key = messageTypesContent.Keys.ElementAt(i);
-            // var value = messageTypesContent.Values.ElementAt(i);
-            var member = new MemberDescription();
-            member.Name = name;
-            member.Type = type;
-            messageTypesDescription.Add(member);
+            var messageTypesContent = messageTypes[messageTypeName] as IList<object>;
+            var messageTypesDescription = new List<MemberDescription> { };
+            for (var i = 0; i < messageTypesContent.Count; i++)
+            {
+                var elem = messageTypesContent[i] as IDictionary<string, object>; // {\"name\":\"source\",\"type\":\"string\"}
+                var name = elem["name"] as string;
+                var type = elem["type"] as string;
+                if (messageTypeName == typeName)
+                {
+                    messageTypesDict[name] = type;
+                }
+                var member = new MemberDescription();
+                member.Name = name;
+                member.Type = type;
+                messageTypesDescription.Add(member);
+            }
+            types[messageTypeName] = messageTypesDescription.ToArray();
         }
-        types[typeName] = messageTypesDescription.ToArray();
+
+        // Helper function to check if a type is a custom struct type
+        bool IsCustomStructType(string typeName)
+        {
+            return types.ContainsKey(typeName) && typeName != "EIP712Domain";
+        }
+
+        // Helper function to recursively convert nested structures to MemberValue arrays
+        MemberValue[] ConvertToMemberValues(IDictionary<string, object> data, string structType)
+        {
+            if (!types.ContainsKey(structType))
+            {
+                return null;
+            }
+
+            var structMembers = types[structType];
+            var result = new List<MemberValue>();
+
+            foreach (var memberDesc in structMembers)
+            {
+                var memberName = memberDesc.Name;
+                var memberType = memberDesc.Type;
+                
+                if (!data.ContainsKey(memberName))
+                {
+                    continue;
+                }
+
+                var value = data[memberName];
+                var memberValue = new MemberValue();
+                memberValue.TypeName = memberType;
+
+                // Handle bytes32 type
+                if (memberType == "bytes32" && value is string)
+                {
+                    var hexString = value as string;
+                    if (hexString.StartsWith("0x"))
+                    {
+                        hexString = hexString.Substring(2);
+                    }
+                    byte[] byteArray = Enumerable.Range(0, hexString.Length)
+                                                 .Where(x => x % 2 == 0)
+                                                 .Select(x => Convert.ToByte(hexString.Substring(x, 2), 16))
+                                                 .ToArray();
+                    memberValue.Value = byteArray;
+                }
+                // Handle bytes32[] type
+                else if (memberType == "bytes32[]")
+                {
+                    var hexStrings = value as IList<object>;
+                    var byteArray = new List<byte[]>();
+                    foreach (var hex2 in hexStrings)
+                    {
+                        var hex = hex2 as string;
+                        if (hex.StartsWith("0x"))
+                        {
+                            hex = hex.Substring(2);
+                        }
+                        var byteArrayElem = Enumerable.Range(0, hex.Length)
+                                                     .Where(x => x % 2 == 0)
+                                                     .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+                                                     .ToArray();
+                        byteArray.Add(byteArrayElem);
+                    }
+                    memberValue.Value = byteArray.ToArray();
+                }
+                // Handle nested custom struct types
+                else if (IsCustomStructType(memberType) && value is IDictionary<string, object>)
+                {
+                    var nestedDict = value as IDictionary<string, object>;
+                    memberValue.Value = ConvertToMemberValues(nestedDict, memberType);
+                }
+                // Handle arrays of custom struct types
+                else if (memberType.Contains("[]") && IsCustomStructType(memberType.Replace("[]", "")))
+                {
+                    var elementType = memberType.Replace("[]", "");
+                    var arrayValues = value as IList<object>;
+                    var convertedArray = new List<MemberValue[]>();
+                    
+                    foreach (var item in arrayValues)
+                    {
+                        if (item is IDictionary<string, object>)
+                        {
+                            convertedArray.Add(ConvertToMemberValues(item as IDictionary<string, object>, elementType));
+                        }
+                    }
+                    memberValue.Value = convertedArray.ToArray();
+                }
+                else
+                {
+                    memberValue.Value = value;
+                }
+
+                result.Add(memberValue);
+            }
+
+            return result.ToArray();
+        }
 
         // fill in message values
-        var messageValues = new List<MemberValue> { };
-        for (var i = 0; i < messageData.Count; i++)
-        {
-
-            var key = messageData.Keys.ElementAt(i);// for instance source
-            var type = messageTypesDict[key];
-            var value = messageData.Values.ElementAt(i); // 1
-            var member = new MemberValue();
-            member.TypeName = type;
-            if (type == "bytes32" && value is string)
-            {
-                var hexString = value as string;
-                if (hexString.StartsWith("0x"))
-                {
-                    hexString = hexString.Substring(2);
-                }
-
-                // Convert the hex string to a byte array
-                byte[] byteArray = Enumerable.Range(0, hexString.Length)
-                                             .Where(x => x % 2 == 0)
-                                             .Select(x => Convert.ToByte(hexString.Substring(x, 2), 16))
-                                             .ToArray();
-                member.Value = byteArray;
-            }
-            else if (type == "bytes32[]")
-            {
-                var hexStrings = value as IList<object>;
-                var byteArray = new List<byte[]> { };
-                foreach (var hex2 in hexStrings)
-                {
-                    var hex = hex2 as string;
-                    if (hex.StartsWith("0x"))
-                    {
-                        hex = hex.Substring(2);
-                    }
-
-                    // Convert the hex string to a byte array
-                    var byteArrayElem = Enumerable.Range(0, hex.Length)
-                                                 .Where(x => x % 2 == 0)
-                                                 .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
-                                                 .ToArray();
-                    byteArray.Add(byteArrayElem);
-                }
-                member.Value = byteArray.ToArray();
-            }
-            else
-            {
-                member.Value = value;
-            }
-            messageValues.Add(member);
-        }
+        var messageValues = ConvertToMemberValues(messageData, typeName);
         typeRaw.Message = messageValues.ToArray();
         typeRaw.Types = types;
         typeRaw.PrimaryType = typeName;

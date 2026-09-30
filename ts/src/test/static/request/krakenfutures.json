@@ -3,6 +3,173 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "fetchPositionsHistory": [
+            {
+                "description": "opening events describe the new position, the exchange filters are not merged into the structures",
+                "method": "fetchPositionsHistory",
+                "url": "https://futures.kraken.com/api/history/v3/positions?closed=true&opened=true",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "opened": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "since maps to since with ascending sort and until maps to before",
+                "method": "fetchPositionsHistory",
+                "url": "https://futures.kraken.com/api/history/v3/positions?closed=true&since=1789000000000&sort=asc&before=1790000000000",
+                "input": [
+                    null,
+                    1789000000000,
+                    null,
+                    {
+                        "until": 1790000000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "a single symbol is filtered by the exchange and limit maps to count",
+                "method": "fetchPositionsHistory",
+                "url": "https://futures.kraken.com/api/history/v3/positions?closed=true&tradeable=PF_DOGEUSD&count=1",
+                "input": [
+                    [
+                        "DOGE/USD:USD"
+                    ],
+                    null,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "closed positions by default",
+                "method": "fetchPositionsHistory",
+                "url": "https://futures.kraken.com/api/history/v3/positions?closed=true",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "since maps to since with ascending sort and until maps to before",
+                "disabledGO": true,
+                "method": "fetchFundingHistory",
+                "url": "https://futures.kraken.com/api/history/v3/account-log?info=funding%20rate%20change&since=1789000000000&sort=asc&before=1790000000000",
+                "input": [
+                    null,
+                    1789000000000,
+                    null,
+                    {
+                        "until": 1790000000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "no count with a symbol, the contract filter runs on the client side after the page is fetched",
+                "disabledGO": true,
+                "method": "fetchFundingHistory",
+                "url": "https://futures.kraken.com/api/history/v3/account-log?info=funding%20rate%20change",
+                "input": [
+                    "DOGE/USD:USD",
+                    null,
+                    5
+                ],
+                "output": null
+            },
+            {
+                "description": "limit maps to count when no symbol filter is applied",
+                "disabledGO": true,
+                "method": "fetchFundingHistory",
+                "url": "https://futures.kraken.com/api/history/v3/account-log?info=funding%20rate%20change&count=5",
+                "input": [
+                    null,
+                    null,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchIndexOHLCV": [
+            {
+                "description": "index price candles map to the spot price type",
+                "method": "fetchIndexOHLCV",
+                "url": "https://futures.kraken.com/api/charts/v1/spot/PF_XBTUSD/1h?from=1650000000&to=1650010799",
+                "input": [
+                    "BTC/USD:USD",
+                    "1h",
+                    1650000000000,
+                    3
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "mark price candles",
+                "method": "fetchMarkOHLCV",
+                "url": "https://futures.kraken.com/api/charts/v1/mark/PF_XBTUSD/1h?from=1650000000&to=1650010799",
+                "input": [
+                    "BTC/USD:USD",
+                    "1h",
+                    1650000000000,
+                    3
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "trade price candles by default",
+                "method": "fetchOHLCV",
+                "url": "https://futures.kraken.com/api/charts/v1/trade/PF_XBTUSD/1h?from=1650000000&to=1650010799",
+                "input": [
+                    "BTC/USD:USD",
+                    "1h",
+                    1650000000000,
+                    3
+                ],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch a single ticker",
+                "method": "fetchTicker",
+                "url": "https://futures.kraken.com/derivatives/api/v3/tickers/PF_XBTUSD",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch ledger with since, limit and until",
+                "method": "fetchLedger",
+                "url": "https://futures.kraken.com/api/history/v3/account-log?since=1650000000000&sort=asc&count=10&before=1660000000000",
+                "input": [
+                    null,
+                    1650000000000,
+                    5,
+                    {
+                        "until": 1660000000000
+                    }
+                ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetch trading fees",
+                "method": "fetchTradingFees",
+                "url": "https://futures.kraken.com/derivatives/api/v3/feeschedules",
+                "input": []
+            }
+        ],
         "fetchCanceledOrders": [
             {
                 "description": "canceled trigger orders",
@@ -29,6 +196,33 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "limit order priced via the params.limitPrice escape hatch must not throw",
+                "method": "createOrder",
+                "url": "https://futures.kraken.com/derivatives/api/v3/sendorder?symbol=PF_DOGEUSD&side=buy&size=100&orderType=lmt&limitPrice=0.07",
+                "input": [
+                    "DOGE/USD:USD",
+                    "limit",
+                    "buy",
+                    100,
+                    null,
+                    {
+                        "limitPrice": 0.07
+                    }
+                ]
+            },
+            {
+                "description": "market order with a price argument must not send limitPrice",
+                "method": "createOrder",
+                "url": "https://futures.kraken.com/derivatives/api/v3/sendorder?symbol=PF_DOGEUSD&side=buy&size=100&orderType=mkt",
+                "input": [
+                    "DOGE/USD:USD",
+                    "market",
+                    "buy",
+                    100,
+                    0.07
+                ]
+            },
             {
                 "description": "Swap limit buy",
                 "method": "createOrder",

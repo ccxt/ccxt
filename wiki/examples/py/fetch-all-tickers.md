@@ -1,8 +1,5 @@
-- [Fetch All Tickers](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -18,7 +15,7 @@ def print_exchanges():
 def print_usage():
     print("Usage: python", sys.argv[0], 'id')
     print("python", sys.argv[0], 'kraken')
-    print("python", sys.argv[0], 'coinbasepro')
+    print("python", sys.argv[0], 'coinbaseexchange')
     print_exchanges()
 
 
@@ -72,5 +69,5 @@ except Exception as e:
 
     print(type(e).__name__, e.args, str(e))
     print_usage()
- 
+
 ```

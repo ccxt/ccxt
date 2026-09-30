@@ -11,7 +11,7 @@ namespace ccxt;
 
 function test_sign_in($exchange, $skipped_properties) {
     $method = 'signIn';
-    if ($exchange->has[$method]) {
+    if ($exchange->has[$method] !== null && $exchange->has[$method] !== false) {
         $exchange->sign_in();
     }
     return true;

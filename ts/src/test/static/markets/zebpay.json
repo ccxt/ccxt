@@ -21,8 +21,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0,
-        "maker": 0,
+        "taker": 0.06,
+        "maker": 0.02,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -35,7 +35,7 @@
         "limits": {
             "leverage": {
                 "min": 1,
-                "max": 8
+                "max": 75
             },
             "amount": {
                 "min": null,
@@ -75,10 +75,10 @@
             "timeInForce": [
                 "GTC"
             ],
-            "makerFee": "0",
-            "takerFee": "0",
+            "makerFee": "0.02",
+            "takerFee": "0.06",
             "minLeverage": "1",
-            "maxLeverage": "8"
+            "maxLeverage": "75"
         },
         "tierBased": null,
         "percentage": null
@@ -105,7 +105,7 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.5,
+        "taker": 0.45,
         "maker": 0.45,
         "contractSize": null,
         "expiry": null,
@@ -113,8 +113,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.000001,
-            "price": 0.000001
+            "amount": 0.0001,
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -144,17 +144,17 @@
             "status": "Open",
             "baseAsset": "ETH",
             "quoteAsset": "USDT",
-            "pricePrecision": "6",
-            "quantityPrecision": "6",
-            "tickSz": "0.000001",
-            "lotSz": "0.000001",
+            "pricePrecision": "2",
+            "quantityPrecision": "4",
+            "tickSz": "0.01",
+            "lotSz": "0.0001",
             "orderTypes": [
                 "LIMIT",
                 "STOP_LOSS_LIMIT"
             ],
             "timeInForce": [],
             "makerFee": "0.45",
-            "takerFee": "0.5"
+            "takerFee": "0.45"
         },
         "tierBased": null,
         "percentage": null
@@ -181,8 +181,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0,
-        "maker": 0,
+        "taker": 0.06,
+        "maker": 0.02,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -235,8 +235,8 @@
             "timeInForce": [
                 "GTC"
             ],
-            "makerFee": "0",
-            "takerFee": "0",
+            "makerFee": "0.02",
+            "takerFee": "0.06",
             "minLeverage": "1",
             "maxLeverage": "75"
         },
@@ -265,8 +265,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0,
-        "maker": 0,
+        "taker": 0.1,
+        "maker": 0.05,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -279,7 +279,7 @@
         "limits": {
             "leverage": {
                 "min": 1,
-                "max": 10
+                "max": 75
             },
             "amount": {
                 "min": null,
@@ -319,10 +319,10 @@
             "timeInForce": [
                 "GTC"
             ],
-            "makerFee": "0",
-            "takerFee": "0",
+            "makerFee": "0.05",
+            "takerFee": "0.1",
             "minLeverage": "1",
-            "maxLeverage": "10"
+            "maxLeverage": "75"
         },
         "tierBased": null,
         "percentage": null
@@ -349,7 +349,7 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.5,
+        "taker": 0.45,
         "maker": 0.45,
         "contractSize": null,
         "expiry": null,
@@ -399,7 +399,7 @@
             ],
             "timeInForce": [],
             "makerFee": "0.45",
-            "takerFee": "0.5"
+            "takerFee": "0.45"
         },
         "tierBased": null,
         "percentage": null
@@ -426,7 +426,7 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.5,
+        "taker": 0.45,
         "maker": 0.45,
         "contractSize": null,
         "expiry": null,
@@ -476,7 +476,7 @@
             ],
             "timeInForce": [],
             "makerFee": "0.45",
-            "takerFee": "0.5"
+            "takerFee": "0.45"
         },
         "tierBased": null,
         "percentage": null
@@ -503,7 +503,7 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.5,
+        "taker": 0.45,
         "maker": 0.45,
         "contractSize": null,
         "expiry": null,
@@ -511,8 +511,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 1e-8,
-            "price": 0.000001
+            "amount": 0.00001,
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -542,18 +542,17 @@
             "status": "Open",
             "baseAsset": "BTC",
             "quoteAsset": "USDT",
-            "pricePrecision": "6",
-            "quantityPrecision": "8",
-            "tickSz": "0.000001",
-            "lotSz": "0.00000001",
+            "pricePrecision": "2",
+            "quantityPrecision": "5",
+            "tickSz": "0.01",
+            "lotSz": "0.00001",
             "orderTypes": [
                 "LIMIT",
-                "STOP_LOSS_LIMIT",
-                "MARKET"
+                "STOP_LOSS_LIMIT"
             ],
             "timeInForce": [],
             "makerFee": "0.45",
-            "takerFee": "0.5"
+            "takerFee": "0.45"
         },
         "tierBased": null,
         "percentage": null

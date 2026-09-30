@@ -1,11 +1,13 @@
 import bybitRest from '../bybit.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Liquidation, Bool } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool, Market, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bybit extends bybitRest {
     describe(): any;
-    requestId(): any;
-    getUrlByMarketType(symbol?: Str, isPrivate?: boolean, method?: Str, params?: {}): Promise<any>;
-    cleanParams(params: any): any;
+    describeData(): any;
+    requestId(): number;
+    getUrlByMarketType(symbol?: Str, isPrivate?: Bool, method?: Str, params?: Dict): Promise<string>;
+    cleanParams(params: Dict): Dict;
     /**
      * @method
      * @name bybit#createOrderWs
@@ -25,7 +27,7 @@ export default class bybit extends bybitRest {
      * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
      * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
      * @param {string} [params.mmp] *option only* market maker protection
-     * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
+     * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
@@ -37,7 +39,7 @@ export default class bybit extends bybitRest {
      * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bybit#editOrderWs
@@ -63,7 +65,7 @@ export default class bybit extends bybitRest {
      * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bybit#cancelOrderWs
@@ -77,7 +79,7 @@ export default class bybit extends bybitRest {
      * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrderWs(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bybit#watchTicker
@@ -88,7 +90,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name bybit#watchTickers
@@ -99,7 +101,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name bybit#unWatchTickers
@@ -110,7 +112,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchTickers(symbols?: Strings, params?: Dict): Promise<any>;
     /**
      * @method
      * @name bybit#unWatchTicker
@@ -122,7 +124,7 @@ export default class bybit extends bybitRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
-    handleTicker(client: Client, message: any): void;
+    handleTicker(client: Client, message: Dict): void;
     /**
      * @method
      * @name bybit#watchBidsAsks
@@ -132,8 +134,8 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    parseWsBidAsk(orderbook: any, market?: any): Ticker;
+    watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    parseWsBidAsk(orderbook: WsOrderBook, market?: Market): Ticker;
     /**
      * @method
      * @name bybit#watchOHLCV
@@ -147,7 +149,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name bybit#watchOHLCVForSymbols
@@ -160,7 +162,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
+    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: Dict): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
     /**
      * @method
      * @name bybit#unWatchOHLCVForSymbols
@@ -171,7 +173,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
+    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: Dict): Promise<any>;
     /**
      * @method
      * @name bybit#unWatchOHLCV
@@ -183,9 +185,9 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
-    handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
+    handleOHLCV(client: Client, message: Dict): void;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
      * @name bybit#watchOrderBook
@@ -194,9 +196,9 @@ export default class bybit extends bybitRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name bybit#watchOrderBookForSymbols
@@ -205,9 +207,9 @@ export default class bybit extends bybitRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name bybit#unWatchOrderBookForSymbols
@@ -216,9 +218,9 @@ export default class bybit extends bybitRest {
      * @param {string[]} symbols unified symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
+    unWatchOrderBookForSymbols(symbols: string[], params?: Dict): Promise<any>;
     /**
      * @method
      * @name bybit#unWatchOrderBook
@@ -227,10 +229,10 @@ export default class bybit extends bybitRest {
      * @param {string} symbol symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
-    handleOrderBook(client: Client, message: any): void;
+    handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     /**
@@ -244,7 +246,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name bybit#watchTradesForSymbols
@@ -256,7 +258,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name bybit#unWatchTradesForSymbols
@@ -266,7 +268,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
+    unWatchTradesForSymbols(symbols: string[], params?: Dict): Promise<any>;
     /**
      * @method
      * @name bybit#unWatchTrades
@@ -277,9 +279,9 @@ export default class bybit extends bybitRest {
      * @returns {any} status of the unwatch request
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
-    getPrivateType(url: any): "spot" | "unified" | "usdc";
+    handleTrades(client: Client, message: Dict): void;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
+    getPrivateType(url: string): string;
     /**
      * @method
      * @name bybit#watchMyTrades
@@ -294,7 +296,7 @@ export default class bybit extends bybitRest {
      * @param {boolean} [params.executionFast] use fast execution
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name bybit#unWatchMyTrades
@@ -307,8 +309,8 @@ export default class bybit extends bybitRest {
      * @param {boolean} [params.executionFast] use fast execution
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
-    handleMyTrades(client: Client, message: any): void;
+    unWatchMyTrades(symbol?: Str, params?: Dict): Promise<any>;
+    handleMyTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name bybit#watchPositions
@@ -320,10 +322,10 @@ export default class bybit extends bybitRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     setPositionsCache(client: Client, symbols?: Strings): void;
-    loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
-    handlePositions(client: any, message: any): void;
+    loadPositionsSnapshot(client: Client, messageHash: string): Promise<void>;
+    handlePositions(client: Client, message: Dict): void;
     /**
      * @method
      * @name bybit#unWatchPositions
@@ -333,7 +335,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchPositions(symbols?: Strings, params?: Dict): Promise<any>;
     /**
      * @method
      * @name bybit#watchLiquidations
@@ -346,9 +348,9 @@ export default class bybit extends bybitRest {
      * @param {string} [params.method] exchange specific method, supported: liquidation, allLiquidation
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
-    handleLiquidation(client: Client, message: any): void;
-    parseWsLiquidation(liquidation: any, market?: any): Liquidation;
+    watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
+    handleLiquidation(client: Client, message: Dict): void;
+    parseWsLiquidation(liquidation: NullableDict, market?: Market): Liquidation;
     /**
      * @method
      * @name bybit#watchOrders
@@ -360,7 +362,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name bybit#unWatchOrders
@@ -371,9 +373,9 @@ export default class bybit extends bybitRest {
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
-    handleOrderWs(client: Client, message: any): void;
-    handleOrder(client: Client, message: any): void;
+    unWatchOrders(symbol?: Str, params?: Dict): Promise<any>;
+    handleOrderWs(client: Client, message: Dict): void;
+    handleOrder(client: Client, message: Dict): void;
     /**
      * @method
      * @name bybit#watchBalance
@@ -382,20 +384,17 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: Client, message: any): void;
-    parseWsBalance(balance: any, accountType?: any): void;
-    watchTopics(url: any, messageHashes: any, topics: any, params?: {}): Promise<any>;
-    unWatchTopics(url: string, topic: string, symbols: Strings, messageHashes: string[], subMessageHashes: string[], topics: any, params?: {}, subExtension?: {}): Promise<any>;
-    authenticate(url: any, params?: {}): Promise<any>;
-    handleErrorMessage(client: Client, message: any): Bool;
-    handleMessage(client: Client, message: any): void;
-    ping(client: Client): {
-        req_id: any;
-        op: string;
-    };
-    handlePong(client: Client, message: any): any;
-    handleAuthenticate(client: Client, message: any): any;
-    handleSubscriptionStatus(client: Client, message: any): any;
-    handleUnSubscribe(client: Client, message: any): any;
+    watchBalance(params?: Dict): Promise<Balances>;
+    handleBalance(client: Client, message: Dict): void;
+    parseWsBalance(balance: Dict, accountType?: Str): void;
+    watchTopics(url: string, messageHashes: string[], topics: any, params?: Dict): Promise<any>;
+    unWatchTopics(url: string, topic: string, symbols: Strings, messageHashes: string[], subMessageHashes: string[], topics: any, params?: Dict, subExtension?: Dict): Promise<any>;
+    authenticate(url: string, params?: Dict): Promise<any>;
+    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleMessage(client: Client, message: Dict): void;
+    ping(client: Client): Dict;
+    handlePong(client: Client, message: Dict): Dict;
+    handleAuthenticate(client: Client, message: Dict): Dict;
+    handleSubscriptionStatus(client: Client, message: Dict): Dict;
+    handleUnSubscribe(client: Client, message: Dict): Dict;
 }

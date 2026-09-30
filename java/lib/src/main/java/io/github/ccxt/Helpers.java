@@ -1,0 +1,1314 @@
+package io.github.ccxt;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+import java.util.regex.Pattern;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.ccxt.base.JsonHelper;
+
+@SuppressWarnings({"unchecked", "rawtypes"})
+public class Helpers {
+
+    /**
+     * Converts a raw List<Object> into a typed List<T>; used by the committed
+     * TypedSurface / PredictionTypedSurface default methods and by the exchange
+     * dumps the pipeline does not regenerate (java STATIC_RESPONSE/request tiers).
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> toTypedList(Object raw, java.util.function.Function<Object, T> ctor) {
+        return ((List<Object>) raw).stream().map(ctor).collect(java.util.stream.Collectors.toList());
+    }
+
+    private static final ObjectMapper mapper = new ObjectMapper();
+
+    /** Object literal `{ k1: v1, k2: v2 }` as a mutable map; args alternate key, value. */
+    public static HashMap<String, Object> newMap(Object... keysAndValues) {
+        HashMap<String, Object> map = new HashMap<>();
+        for (int i = 0; i + 1 < keysAndValues.length; i += 2) {
+            map.put((String) keysAndValues[i], keysAndValues[i + 1]);
+        }
+        return map;
+    }
+
+    // spawn tasks: the arguments are passed by value, so the call site captures no local
+    public interface Task1<A> { void run(A a) throws Exception; }
+    public interface Task2<A, B> { void run(A a, B b) throws Exception; }
+    public interface Task3<A, B, C> { void run(A a, B b, C c) throws Exception; }
+    public interface Task4<A, B, C, D> { void run(A a, B b, C c, D d) throws Exception; }
+    public interface Task5<A, B, C, D, E> { void run(A a, B b, C c, D d, E e) throws Exception; }
+    public interface Task6<A, B, C, D, E, F> { void run(A a, B b, C c, D d, E e, F f) throws Exception; }
+
+    private interface Body { void run() throws Exception; }
+
+    private static Runnable unchecked(Body body) {
+        return () -> {
+            try {
+                body.run();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    public static <A> Runnable task(Task1<A> f, A a) { return unchecked(() -> f.run(a)); }
+    public static <A, B> Runnable task(Task2<A, B> f, A a, B b) { return unchecked(() -> f.run(a, b)); }
+    public static <A, B, C> Runnable task(Task3<A, B, C> f, A a, B b, C c) { return unchecked(() -> f.run(a, b, c)); }
+    public static <A, B, C, D> Runnable task(Task4<A, B, C, D> f, A a, B b, C c, D d) { return unchecked(() -> f.run(a, b, c, d)); }
+    public static <A, B, C, D, E> Runnable task(Task5<A, B, C, D, E> f, A a, B b, C c, D d, E e) { return unchecked(() -> f.run(a, b, c, d, e)); }
+    public static <A, B, C, D, E, F> Runnable task(Task6<A, B, C, D, E, F> f, A a, B b, C c, D d, E e, F g) { return unchecked(() -> f.run(a, b, c, d, e, g)); }
+
+    /**
+     * Block on a CompletableFuture and rethrow any wrapped ccxt error directly.
+     *
+     * <p>{@code CompletableFuture.join()} always wraps thrown exceptions in
+     * {@link CompletionException}, which forces callers to catch the wrapper
+     * and unwrap via {@code .getCause()} to discover what actually went wrong.
+     * For ccxt's typed sync API we want idiomatic Java exception handling:
+     *
+     * <pre>{@code
+     * try {
+     *     Order order = binance.createOrder("BTC/USDT", "limit", "buy", 0.001, 50000.0);
+     * } catch (InsufficientFunds e)     { ... }
+     * catch (AuthenticationError e)     { ... }
+     * catch (RateLimitExceeded e)       { ... }
+     * catch (NetworkError e)            { ... }
+     * catch (ExchangeError e)           { ... }
+     * }</pre>
+     *
+     * <p>This helper unwraps the {@link CompletionException} once and rethrows
+     * the underlying cause. If a transpile-generated {@code spawn()} lambda
+     * wrapped the original ccxt error in a plain {@link RuntimeException} as
+     * a checked-exception bridge, this peels that bridge too so the user sees
+     * the original typed exception (preserving class, message, stack trace,
+     * and any subclass-specific fields).
+     */
+    public static <T> T joinUnwrapped(CompletableFuture<T> future) {
+        try {
+            return future.join();
+        } catch (CompletionException ce) {
+            Throwable t = ce.getCause();
+            // peel a transpile-bridge `new RuntimeException(_e)` wrapper that
+            // some spawn() lambdas use to bridge checked exceptions — only
+            // when it's the *raw* RuntimeException class (not a subclass).
+            while (t != null
+                    && t.getClass() == RuntimeException.class
+                    && t.getCause() instanceof io.github.ccxt.errors.BaseError) {
+                t = t.getCause();
+            }
+            if (t instanceof RuntimeException re) throw re;
+            if (t instanceof Error err) throw err;
+            throw ce;
+        }
+    }
+
+    /**
+     * Unwrap a {@link CompletionException} (and any transpile-bridge
+     * {@link RuntimeException} wrappers) to expose the underlying ccxt error.
+     *
+     * <p>Intended for async pipelines where the user receives a {@link Throwable}
+     * inside {@code .exceptionally(...)} or {@code .handle(...)} callbacks:
+     *
+     * <pre>{@code
+     * binance.createOrderAsync("BTC/USDT", "limit", "buy", 0.001, 50000.0)
+     *     .thenAccept(order -> log.info("Placed: {}", order.id()))
+     *     .exceptionally(throwable -> {
+     *         Throwable cause = Helpers.unwrap(throwable);
+     *         return switch (cause) {
+     *             case InsufficientFunds    e -> { notifyUser(e); yield null; }
+     *             case AuthenticationError  e -> { refreshCredentials(); yield null; }
+     *             case RateLimitExceeded    e -> { scheduleRetry(); yield null; }
+     *             case NetworkError         e -> { scheduleRetry(); yield null; }
+     *             case BaseError            e -> { log.error("ccxt error", e); yield null; }
+     *             default -> throw new java.util.concurrent.CompletionException(cause);
+     *         };
+     *     });
+     * }</pre>
+     */
+    public static Throwable unwrap(Throwable t) {
+        while (t instanceof CompletionException && t.getCause() != null) {
+            t = t.getCause();
+        }
+        // peel transpile-bridge RuntimeException wrappers
+        while (t != null
+                && t.getClass() == RuntimeException.class
+                && t.getCause() instanceof io.github.ccxt.errors.BaseError) {
+            t = t.getCause();
+        }
+        return t;
+    }
+
+    // tmp most of these methods are going to be re-implemented in the future to be more generic and efficient
+    public static Object normalizeIntIfNeeded(Object a) {
+        if (a == null) return null;
+        if (a instanceof Integer) {
+            return Long.valueOf(((Integer) a).longValue());
+        }
+        return a;
+    }
+
+    // In Java, wire up your preferred JSON lib and return Map/List accordingly.
+    public static Object parseJson(Object json) {
+        // placeholder: return the string itself (or plug in Jackson/Gson here)
+        return  JsonHelper.deserialize((String) json);
+    }
+
+    public static boolean isTrue(Object value) {
+        if (value == null) return false;
+
+        value = normalizeIntIfNeeded(value);
+
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        } else if (value instanceof Long) {
+            return ((Long) value) != 0L;
+        } else if (value instanceof Integer) {
+            return ((Integer) value) != 0;
+        } else if (value instanceof Double) {
+            return ((Double) value) != 0.0;
+        } else if (value instanceof String) {
+            return !((String) value).isEmpty();
+        } else if (value instanceof List) {
+            return !((List<?>) value).isEmpty();
+        } else if (value instanceof Map) {
+            // C# returned true for any IDictionary; we can mirror that or check emptiness.
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static boolean isNumber(Object number) {
+        if (number == null) return false;
+        try {
+            Double.parseDouble(String.valueOf(number));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Null-safe Array.isArray equivalent. ast-transpiler emits
+     * `(X instanceof List) || (X.getClass().isArray())` for `Array.isArray(X)`,
+     * which NPEs when X is null (e.g. test.sharedMethods entryKeyVal coming
+     * from safeValue() that returned undefined). JS Array.isArray(null) is
+     * false; mirror that here. Used as a post-transpile regex target so all
+     * 150+ call sites become null-safe in one place.
+     */
+    public static boolean isArrayJs(Object a) {
+        if (a == null) return false;
+        if (a instanceof List<?>) return true;
+        return a.getClass().isArray();
+    }
+
+    /**
+     * Direct emit target for ast-transpiler PR #48: `Array.isArray(x)` now
+     * emits `Helpers.isArray(x)`. Same behaviour as {@link #isArrayJs} —
+     * exposed under the contract name the transpiler emits.
+     */
+    public static boolean isArray(Object a) {
+        return isArrayJs(a);
+    }
+
+    public static boolean isEqual(Object a, Object b) {
+        try {
+            if (a == null && b == null) return true;
+            if (a == null || b == null) return false;
+
+            // If types differ and neither is numeric, they're not equal
+            if (!a.getClass().equals(b.getClass()) && !(isNumber(a) && isNumber(b))) {
+                return false;
+            }
+
+            if (IsInteger(a) && IsInteger(b)) {
+                return toLong(a).equals(toLong(b));
+            }
+            if ((a instanceof Long) && (b instanceof Long)) {
+                return ((Long) a).longValue() == ((Long) b).longValue();
+            }
+            if (a instanceof Double || b instanceof Double) {
+                return toDouble(a) == toDouble(b);
+            }
+            if (a instanceof Float || b instanceof Float) {
+                return toFloat(a) == toFloat(b);
+            }
+            if (a instanceof String && b instanceof String) {
+                return ((String) a).equals((String) b);
+            }
+            if (a instanceof Boolean && b instanceof Boolean) {
+                return ((Boolean) a).booleanValue() == ((Boolean) b).booleanValue();
+            }
+            // decimal cases mapped via BigDecimal compare
+            if (isNumber(a) && isNumber(b)) {
+                return new BigDecimal(String.valueOf(a)).compareTo(new BigDecimal(String.valueOf(b))) == 0;
+            }
+            return false;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    public static boolean isGreaterThan(Object a, Object b) {
+        if (a != null && b == null) return true;
+        if (a == null || b == null) return false;
+
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+
+        if (a instanceof Long && b instanceof Long) {
+            return ((Long) a) > ((Long) b);
+        } else if (a instanceof Integer && b instanceof Integer) {
+            return ((Integer) a) > ((Integer) b);
+        } else if (isNumber(a) || isNumber(b)) {
+            return toDouble(a) > toDouble(b);
+        } else if (a instanceof String && b instanceof String) {
+            return ((String) a).compareTo((String) b) > 0;
+        } else {
+            return false;
+        }
+    }
+
+    public static boolean isLessThan(Object a, Object b) {
+        return !isGreaterThan(a, b) && !isEqual(a, b);
+    }
+
+    public static boolean isGreaterThanOrEqual(Object a, Object b) {
+        return isGreaterThan(a, b) || isEqual(a, b);
+    }
+
+    public static boolean isLessThanOrEqual(Object a, Object b) {
+        return isLessThan(a, b) || isEqual(a, b);
+    }
+
+    public static Object mod(Object a, Object b) {
+        if (a == null || b == null) return null;
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+        if (a instanceof String || a instanceof Long || a instanceof Integer || a instanceof Double) {
+            return toDouble(a) % toDouble(b);
+        }
+        return null;
+    }
+
+    public static Object add(Object a, Object b) {
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+
+        if (a instanceof Long && b instanceof Long) {
+            return ((Long) a) + ((Long) b);
+        } else if (a instanceof Double || b instanceof Double) {
+            return toDouble(a) + toDouble(b);
+        } else if (a instanceof String && b instanceof String) {
+            return ((String) a) + ((String) b);
+        } else if (a instanceof String || b instanceof String) {
+            return String.valueOf(a) + String.valueOf(b);
+        }
+
+        return null;
+    }
+
+    public static String add(String a, String b) {
+        return a + b;
+    }
+
+    public static String add(String a, Object b) {
+        return a + String.valueOf(b);
+    }
+
+//     public static String add(Object... items) {
+//     StringBuilder sb = new StringBuilder();
+
+//     for (Object item : items) {
+//         if (item instanceof String) {
+//             sb.append((String) item);
+//         }
+//     }
+
+//     return sb.toString();
+// }
+
+    public static Object subtract(Object a, Object b) {
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+
+        if (a instanceof Long && b instanceof Long) {
+            return ((Long) a) - ((Long) b);
+        } else if (a instanceof Integer && b instanceof Integer) {
+            return ((Integer) a) - ((Integer) b);
+        } else if (a instanceof Double || b instanceof Double) {
+            return toDouble(a) - toDouble(b);
+        } else {
+            return null;
+        }
+    }
+
+    // public static int subtract(int a, int b) { return a - b; }
+
+    // public float subtract(float a, float b) { return a - b; }
+
+    public static Object divide(Object a, Object b) {
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+        if (a == null || b == null) return null;
+
+        if (a instanceof Long && b instanceof Long) {
+            return ((Long) a).doubleValue() / ((Long) b); // we want the reminder hence the cast
+        } else if (a instanceof Double && b instanceof Double) {
+            return ((Double) a) / ((Double) b);
+        } else {
+            return toDouble(a) / toDouble(b);
+        }
+    }
+
+    public static Object multiply(Object a, Object b) {
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+        if (a == null || b == null) return null;
+
+        if (a instanceof Long && b instanceof Long) {
+            return ((Long) a) * ((Long) b);
+        }
+        double res = toDouble(a) * toDouble(b);
+        if (IsInteger(res)) {
+            return (long) res;
+        } else {
+            return res;
+        }
+    }
+
+    public static int getArrayLength(Object value) {
+        if (value == null) return 0;
+
+        if (value instanceof List<?>) {
+            return ((List<?>) value).size();
+        } else if (value instanceof String) {
+            return ((String) value).length(); // fallback
+        } else if (value.getClass().isArray()) {
+            return java.lang.reflect.Array.getLength(value);
+        } else {
+            return 0;
+        }
+    }
+
+    public static boolean IsInteger(Object value) {
+        if (value == null) return false;
+
+        if (value instanceof Byte || value instanceof Short ||
+            value instanceof Integer || value instanceof Long ||
+            value instanceof java.util.concurrent.atomic.AtomicInteger ||
+            value instanceof java.util.concurrent.atomic.AtomicLong) {
+            return true;
+        }
+
+        if (value instanceof Float || value instanceof Double || value instanceof BigDecimal) {
+            BigDecimal d = new BigDecimal(String.valueOf(value));
+            return d.stripTrailingZeros().scale() <= 0;
+        }
+        return false;
+    }
+
+    public static Object mathMin(Object a, Object b) {
+        if (a == null || b == null) return null;
+        double first = toDouble(a);
+        double second = toDouble(b);
+        return (first < second) ? a : b;
+    }
+
+    public static double mathPow(Object base, Object exp) {
+        if (base instanceof Number && exp instanceof Number) {
+            double baseFloat = ((Number) base).doubleValue();
+            double expFloat = ((Number) exp).doubleValue();
+            return Math.pow(baseFloat, expFloat);
+        }
+        return 0;
+    }
+
+    public static Object mathMax(Object a, Object b) {
+        if (a == null || b == null) return null;
+        double first = toDouble(a);
+        double second = toDouble(b);
+        return (first > second) ? a : b;
+    }
+
+    public static int getIndexOf(Object str, Object target) {
+        if (str instanceof List<?>) {
+            return ((List<?>) str).indexOf(target);
+        } else if (str instanceof String && target instanceof String) {
+            return ((String) str).indexOf((String) target);
+        } else {
+            return -1;
+        }
+    }
+
+    public static Long parseInt(Object a) {
+        try {
+            return toLong(a);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    public static Double parseFloat(Object a) {
+        try {
+            return toDouble(a);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    // generic getValue to replace elementAccesses
+    public Object getValue(Object a, Object b) { return GetValue(a, b); }
+
+    public static Object GetValue(Object value2, Object key) {
+        if (value2 == null || key == null) return null;
+
+        // Strings: index access
+        if (value2 instanceof String) {
+            String str = (String) value2;
+            // check if key is int
+            if (!(key instanceof Long) && !(key instanceof Integer) && !(key instanceof Double)) {
+                return null;
+            }
+            int idx = toInt(key);
+            if (idx < 0 || idx >= str.length()) return null;
+            return String.valueOf(str.charAt(idx));
+        }
+
+        Object value = value2;
+        if (value2.getClass().isArray()) {
+            // Convert to List<Object>
+            int len = Array.getLength(value2);
+            List<Object> list = new ArrayList<>(len);
+            for (int i = 0; i < len; i++) list.add(Array.get(value2, i));
+            value = list;
+        }
+
+        if (value instanceof Map) {
+            Map<String, Object> m = (Map<String, Object>) value;
+            if (key instanceof String && m.containsKey(key)) {
+                return m.get(key);
+            }
+            return null;
+        } else if (value instanceof List) {
+            int idx = toInt(key);
+            List<?> list = (List<?>) value;
+            if (idx < 0 || idx >= list.size()) return null;
+            return list.get(idx);
+        } else if (key instanceof String) {
+            // Try Java field or getter
+            String name = (String) key;
+            try {
+                // Field
+                Field f = value.getClass().getField(name);
+                f.setAccessible(true);
+                return f.get(value2);
+            } catch (Exception ignored) {}
+            try {
+                // Getter
+                String mName = "get" + Character.toUpperCase(name.charAt(0)) + name.substring(1);
+                Method m = value.getClass().getMethod(mName);
+                return m.invoke(value2);
+            } catch (Exception ignored) {}
+            return null;
+        } else {
+            return null;
+        }
+    }
+
+    public static CompletableFuture<List<Object>> promiseAll(Object promisesObj) { return PromiseAll(promisesObj); }
+
+    public static CompletableFuture<List<Object>> PromiseAll(Object promisesObj) {
+        List<?> promises = (List<?>) promisesObj;
+        List<CompletableFuture<Object>> futures = new ArrayList<>();
+        for (Object p : promises) {
+            if (p instanceof CompletableFuture) {
+                futures.add((CompletableFuture<Object>) p);
+            }
+        }
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenApply(v -> {
+                    List<Object> out = new ArrayList<>(futures.size());
+                    for (CompletableFuture<Object> f : futures) {
+                        try {
+                            out.add(f.get());
+                        } catch (InterruptedException | ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    return out;
+                });
+    }
+
+    public static Object toStringOrNull(Object value) {
+        if (value == null) return null;
+        return value;
+    }
+
+    public static String toString(Object value) {
+        if (value == null) return null;
+//        return (String) value;
+        return value.toString();
+    }
+
+
+    // This function is the salient bit here
+    public Object newException(Object exception, Object message) {
+        return NewException((Class<?>) exception, (String) message);
+    }
+
+    public static Exception NewException(Class<?> exception, String message) {
+        try {
+            Constructor<?> ctor = exception.getConstructor(String.class);
+            return (Exception) ctor.newInstance(message);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Object toFixed(Object number, Object decimals) {
+        double n = toDouble(number);
+        int d = toInt(decimals);
+        BigDecimal bd = new BigDecimal(Double.toString(n)).setScale(d, RoundingMode.HALF_UP);
+        return bd.doubleValue();
+    }
+
+public static Object callDynamically(Object obj, Object methodName, Object[] args) {
+    if (args == null) args = new Object[]{};
+
+    String name = (String) methodName;
+    Method m = findMethod(obj.getClass(), name, args.length);
+
+    try {
+        m.setAccessible(true);
+
+        Object[] invokeArgs = m.isVarArgs() ? adaptForVarArgs(m, args) : padArgs(m, args);
+        coerceArgs(m, invokeArgs);
+
+        return m.invoke(obj, invokeArgs);
+
+    } catch (Exception e) {
+        throw new RuntimeException(e);
+    }
+}
+
+// omitted trailing arguments of a fixed-arity method: null (TS `undefined`), except a
+// params bag, which takes the TS default `{}`
+private static Object[] padArgs(Method m, Object[] args) {
+    int n = m.getParameterCount();
+    if (args.length == n) return args;
+    Object[] out = java.util.Arrays.copyOf(args, n);
+    Class<?>[] ptypes = m.getParameterTypes();
+    for (int i = args.length; i < n; i++) {
+        if (ptypes[i] == Map.class) out[i] = new HashMap<String, Object>();
+    }
+    return out;
+}
+
+/**
+ * Coerce arguments to match the method's parameter types.
+ * Handles common numeric type mismatches from JSON parsing
+ * (e.g., Integer→Long, Integer→Double, Long→Double).
+ */
+private static void coerceArgs(Method m, Object[] args) {
+    Class<?>[] ptypes = m.getParameterTypes();
+    int count = Math.min(args.length, ptypes.length);
+    for (int i = 0; i < count; i++) {
+        if (args[i] == null) continue;
+        Class<?> expected = ptypes[i];
+        if (expected == Object.class || expected == Object[].class) continue;
+        if (expected.isInstance(args[i])) continue;
+
+        // Numeric coercion
+        if (args[i] instanceof Number n) {
+            if (expected == Long.class || expected == long.class) {
+                args[i] = n.longValue();
+            } else if (expected == Double.class || expected == double.class) {
+                args[i] = n.doubleValue();
+            } else if (expected == Integer.class || expected == int.class) {
+                args[i] = n.intValue();
+            } else if (expected == Float.class || expected == float.class) {
+                args[i] = n.floatValue();
+            }
+        }
+        // String coercion for numeric strings
+        else if (args[i] instanceof String s && (expected == Long.class || expected == Double.class)) {
+            try {
+                if (expected == Long.class) args[i] = Long.parseLong(s);
+                else args[i] = Double.parseDouble(s);
+            } catch (NumberFormatException ignored) {}
+        }
+        // a String slot takes the value's string form (the getArgString conversion)
+        if (expected == String.class && !(args[i] instanceof String)) {
+            args[i] = toStringArg(args[i]);
+        }
+        // a symbol list given as an array
+        else if (expected == List.class && args[i] instanceof Object[] arr) {
+            args[i] = new ArrayList<>(java.util.Arrays.asList(arr));
+        }
+    }
+}
+
+private static Object[] adaptForVarArgs(Method m, Object[] args) {
+    if (!m.isVarArgs()) return args;
+
+    Class<?>[] ptypes = m.getParameterTypes();
+    int fixedCount = ptypes.length - 1;              // last is the vararg array param
+    Class<?> varArrayType = ptypes[ptypes.length - 1]; // e.g. Object[]
+    Class<?> componentType = varArrayType.getComponentType();
+
+    // Build the final invocation array with exactly ptypes.length slots
+    Object[] invokeArgs = new Object[ptypes.length];
+
+    // Copy fixed arguments (or null if missing)
+    for (int i = 0; i < fixedCount; i++) {
+        invokeArgs[i] = (i < args.length) ? args[i] : null;
+    }
+
+    // If caller already provided an array for the varargs slot AND argument count matches,
+    // keep it as-is (common case: args already has Object[]{..., new Object[]{price}})
+    if (args.length == ptypes.length && args[fixedCount] != null && args[fixedCount].getClass().isArray()) {
+        // (Optionally) you could also check assignability to varArrayType here.
+        invokeArgs[fixedCount] = args[fixedCount];
+        return invokeArgs;
+    }
+
+    // Otherwise, pack remaining args into the varargs array
+    int varCount = Math.max(0, args.length - fixedCount);
+    Object varArray = Array.newInstance(componentType, varCount);
+    for (int j = 0; j < varCount; j++) {
+        Array.set(varArray, j, args[fixedCount + j]);
+    }
+
+    invokeArgs[fixedCount] = varArray;
+    return invokeArgs;
+}
+
+    public static boolean inOp(Object obj, Object key) { return InOp(obj, key); }
+
+    public static boolean InOp(Object obj, Object key) {
+        if (obj == null || key == null) return false;
+
+        if (obj instanceof List<?>) {
+            return ((List<?>) obj).contains(key);
+        } else if (obj instanceof Map<?, ?>) {
+            if (key instanceof String) {
+                return ((Map<?, ?>) obj).containsKey(key);
+            } else return false;
+        } else {
+            return false;
+        }
+    }
+
+    public static String slice(Object str2, Object idx1, Object idx2) { return Slice(str2, idx1, idx2); }
+
+    // public String slice(Object str2, Object idx1, Object idx2) { return Slice(str2, idx1, idx2); }
+
+    public static String Slice(Object str2, Object idx1, Object idx2) {
+        if (str2 == null) return null;
+        String str = (String) str2;
+        int start = (idx1 != null) ? toInt(idx1) : -1;
+
+        if (idx2 == null) {
+            if (start < 0) {
+                int innerStart = str.length() + start;
+                innerStart = Math.max(innerStart, 0);
+                return str.substring(innerStart);
+            } else {
+                if (start > str.length()) return "";
+                return str.substring(start);
+            }
+        } else {
+            int end = toInt(idx2);
+            if (start < 0) start = str.length() + start;
+            if (end < 0) end = str.length() + end;
+            if (start < 0) start = 0;
+            if (end > str.length()) end = str.length();
+            if (start > end) start = end;
+            return str.substring(start, end);
+        }
+    }
+
+    public static Object concat(Object a, Object b) {
+        if (a == null && b == null) return null;
+        if (a == null) return b;
+        if (b == null) return a;
+
+        if (a instanceof List && b instanceof List) {
+            List result = new ArrayList((List) a);
+            result.addAll((List) b);
+            return result;
+        } else if (a instanceof List && !(b instanceof List)) {
+            List result = new ArrayList((List) a);
+            result.add(b);
+            return result;
+        } else if (!(a instanceof List) && b instanceof List) {
+            List result = new ArrayList();
+            result.add(a);
+            result.addAll((List) b);
+            return result;
+        } else {
+            throw new IllegalStateException("Unsupported types for concatenation.");
+        }
+    }
+
+    // --------- helpers ---------
+
+    // Every generated method has ONE signature: resolve by name, child class first. Among
+    // same-named methods (hand-written helpers, typed override bridges, surface defaults)
+    // prefer the fewest parameters that still take every argument, trailing ones padded.
+    private static Method findMethod(Class<?> cls, String name, int argCount) {
+        Method best = null;
+        for (Class<?> cur = cls; cur != null && best == null; cur = cur.getSuperclass()) {
+            for (Method m : cur.getDeclaredMethods()) {
+                if (!m.getName().equals(name) || m.isBridge() || m.isSynthetic()) continue;
+                int n = m.getParameterCount();
+                boolean fits = m.isVarArgs() ? argCount >= n - 1 : n >= argCount;
+                if (!fits) continue;
+                if (best == null || n < best.getParameterCount()
+                        || (n == best.getParameterCount() && isLooser(m, best))) {
+                    best = m;
+                }
+            }
+        }
+        if (best != null) return best;
+        // interface default methods and public inherited members
+        for (Method m : cls.getMethods()) {
+            if (m.getName().equals(name) && (m.isVarArgs() || m.getParameterCount() >= argCount)) return m;
+        }
+        throw new RuntimeException("Method not found: " + name + " with " + argCount + " args on " + cls.getName());
+    }
+
+    // of two same-arity overloads (a typed core and its override bridge), the one declaring
+    // more Object slots accepts every argument the other does
+    private static boolean isLooser(Method a, Method b) {
+        int objectsA = 0, objectsB = 0;
+        for (Class<?> t : a.getParameterTypes()) if (t == Object.class) objectsA++;
+        for (Class<?> t : b.getParameterTypes()) if (t == Object.class) objectsB++;
+        return objectsA > objectsB;
+    }
+
+    private static Long toLong(Object o) {
+        if (o instanceof Long) return (Long) o;
+        if (o instanceof Integer) return ((Integer) o).longValue();
+        if (o instanceof Double) return ((Double) o).longValue();
+        if (o instanceof Float) return ((Float) o).longValue();
+        if (o instanceof BigDecimal) return ((BigDecimal) o).longValue();
+        if (o instanceof String) return Long.parseLong((String) o);
+        return Long.parseLong(String.valueOf(o));
+    }
+
+    // Public primitive coercion used by the Java transpiler to make `for`-loop
+    // indices that start from an Object-typed local (e.g. a running offset
+    // reassigned from this.sum(...)) usable with `++`. Returns a primitive long.
+    public static long toInt64(Object o) {
+        return toLong(o);
+    }
+
+    private static int toInt(Object o) {
+        if (o instanceof Integer) return (Integer) o;
+        if (o instanceof Long) return ((Long) o).intValue();
+        if (o instanceof Double) return ((Double) o).intValue();
+        if (o instanceof Float) return ((Float) o).intValue();
+        if (o instanceof BigDecimal) return ((BigDecimal) o).intValue();
+        if (o instanceof String) return Integer.parseInt((String) o);
+        return Integer.parseInt(String.valueOf(o));
+    }
+
+    private static double toDouble(Object o) {
+        if (o instanceof Double) return (Double) o;
+        if (o instanceof Float) return ((Float) o).doubleValue();
+        if (o instanceof Long) return ((Long) o).doubleValue();
+        if (o instanceof Integer) return ((Integer) o).doubleValue();
+        if (o instanceof BigDecimal) return ((BigDecimal) o).doubleValue();
+        if (o instanceof String) {
+            try { return Double.parseDouble((String) o); } catch (NumberFormatException ex) { return 0.0; }
+        }
+        // Mirror TS's silent-NaN-or-default semantics: returning 0.0 instead of
+        // throwing keeps a single misuse (e.g. passing a Map to `sum`) from
+        // killing the whole WS connection. See Generic.toDouble for the same
+        // rationale and test coverage.
+        try { return Double.parseDouble(String.valueOf(o)); } catch (NumberFormatException ex) { return 0.0; }
+    }
+
+    private static float toFloat(Object o) {
+        if (o instanceof Float) return (Float) o;
+        if (o instanceof Double) return ((Double) o).floatValue();
+        if (o instanceof Long) return ((Long) o).floatValue();
+        if (o instanceof Integer) return ((Integer) o).floatValue();
+        if (o instanceof BigDecimal) return ((BigDecimal) o).floatValue();
+        if (o instanceof String) return Float.parseFloat((String) o);
+        return Float.parseFloat(String.valueOf(o));
+    }
+
+    public static String replace(Object baseString, Object search, Object replacement) {
+        if (baseString == null) {
+            return null;
+        }
+        String s     = String.valueOf(baseString);
+        String find  = (search == null) ? "" : String.valueOf(search);
+        String repl  = (replacement == null) ? "" : String.valueOf(replacement);
+        return s.replaceFirst(java.util.regex.Pattern.quote(find),  java.util.regex.Matcher.quoteReplacement(repl)); // literal (non-regex) replacement
+    }
+
+    public static String replaceAll(Object baseString, Object search, Object replacement) {
+        if (baseString == null) {
+            return null;
+        }
+        String s     = String.valueOf(baseString);
+        String find  = (search == null) ? "" : String.valueOf(search);
+        if (find.isEmpty()) {
+            // Avoid weird behavior of replacing "" (would insert between every char)
+            return s;
+        }
+        String repl  = (replacement == null) ? "" : String.valueOf(replacement);
+        return s.replace(find, repl); // literal (non-regex) replacement
+    }
+
+    public static Object getArg(Object[] v, int index, Object def) {
+        if (v == null || v.length <= index) {
+            return def;
+        }
+        return v[index];
+    }
+
+    // Slot readers for the generated `Object... optionalArgs` fronts: an omitted slot takes the
+    // default, an explicit null stays null, and any Number widens to Long.
+
+    /** the `Long` slot reader: omitted -> def, explicit null -> null, Number -> longValue() */
+    public static Long getArgLong(Object[] v, int index, Long def) {
+        if (v == null || v.length <= index) {
+            return def;
+        }
+        Object value = v[index];
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Long) {
+            return (Long) value;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        throw new ClassCastException("ccxt: expected a number for optional argument " + index
+                + ", got " + value.getClass().getName());
+    }
+
+    /** a write into a typed `Long` parameter: null stays null, any Number widens to Long */
+    public static Long toLongOrNull(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Long) {
+            return (Long) value;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        throw new ClassCastException("ccxt: expected a number, got " + value.getClass().getName());
+    }
+
+    /** a value passed to a typed `String` core parameter: the getArgString conversion */
+    public static String toStringArg(Object value) {
+        return value == null ? null : (value instanceof String ? (String) value : String.valueOf(value));
+    }
+
+    /** a value passed to a typed `Map` core parameter: the getArgMap check */
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> toMapArg(Object value) {
+        if (value == null || value instanceof Map) {
+            return (Map<String, Object>) value;
+        }
+        throw new ClassCastException("ccxt: expected a dictionary, got " + value.getClass().getName());
+    }
+
+    /** a value passed to a typed `List<String>` core parameter: the getArgStringList check */
+    @SuppressWarnings("unchecked")
+    public static List<String> toStringListArg(Object value) {
+        if (value == null || value instanceof List) {
+            return (List<String>) value;
+        }
+        throw new ClassCastException("ccxt: expected a list of strings, got " + value.getClass().getName());
+    }
+
+    /** the `List<String>` slot reader: omitted -> def, explicit null -> null */
+    public static List<String> getArgStringList(Object[] v, int index, List<String> def) {
+        if (v == null || v.length <= index) {
+            return def;
+        }
+        return toStringListArg(v[index]);
+    }
+
+    /** the `String` slot reader: omitted -> def, explicit null -> null, non-String -> its string form */
+    public static String getArgString(Object[] v, int index, String def) {
+        if (v == null || v.length <= index) {
+            return def;
+        }
+        Object value = v[index];
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof String) {
+            return (String) value;
+        }
+        return String.valueOf(value);
+    }
+
+    /** the `Map<String, Object>` slot reader: omitted -> def, explicit null -> null */
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> getArgMap(Object[] v, int index, Map<String, Object> def) {
+        if (v == null || v.length <= index) {
+            return def;
+        }
+        Object value = v[index];
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Map) {
+            return (Map<String, Object>) value;
+        }
+        throw new ClassCastException("ccxt: expected a dictionary for optional argument " + index
+                + ", got " + value.getClass().getName());
+    }
+
+
+    /**
+     * Snapshot-copy of a Map's keys under the map's intrinsic lock, so concurrent
+     * put/remove from a WS-handler thread doesn't IOOBE the iteration. Used by
+     * the transpile of `Object.keys(x)` — see post-process in build/javaTranspiler.ts.
+     * For non-Map targets returns an empty list (matches JS Object.keys on non-objects).
+     */
+    public static List<Object> objectKeys(Object target) {
+        if (target instanceof Map<?, ?> m) {
+            synchronized (m) {
+                return new ArrayList<>(m.keySet());
+            }
+        }
+        return new ArrayList<>();
+    }
+
+    /** Same as {@link #objectKeys} but for values — transpile of `Object.values(x)`. */
+    public static List<Object> objectValues(Object target) {
+        if (target instanceof Map<?, ?> m) {
+            synchronized (m) {
+                return new ArrayList<>(m.values());
+            }
+        }
+        return new ArrayList<>();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void addElementToObject(Object target, Object... args) {
+        if (target instanceof Map<?, ?> map) {
+            if (args.length != 2)
+                throw new IllegalArgumentException("Map requires (key, value)");
+            Map<Object, Object> m = (Map<Object, Object>) map;
+            // ConcurrentHashMap rejects null values. We use it for thread-safe
+            // shared state (Exchange.options); translate null put → remove
+            // there since TS `obj[key] = null` is semantically equivalent to
+            // "key is not set" (safeValue returns null either way).
+            // Other maps (request payloads, responses) keep explicit null
+            // entries — many static-request/response tests check for them.
+            // The synchronized block pairs with objectKeys() above: any reader
+            // taking the map's monitor sees a stable view of put/remove here.
+            synchronized (m) {
+                if (args[1] == null && m instanceof java.util.concurrent.ConcurrentHashMap) {
+                    m.remove(args[0]);
+                } else {
+                    m.put(args[0], args[1]);
+                }
+            }
+            return;
+        }
+
+        if (target instanceof List<?> list) {
+            List<Object> l = (List<Object>) list;
+            if (args.length == 1) {
+                l.add(args[0]); // append
+                return;
+            }
+            if (args.length == 2 && IsInteger(args[0])) {
+                int i = toInt(args[0]);
+                if (i < 0 || i > l.size()) {
+                    throw new IndexOutOfBoundsException("Index " + i + " out of bounds [0," + l.size() + "]");
+                }
+//                l.add(i, args[1]);
+                if (i == l.size()) {
+                    l.add(args[1]);          // append
+                } else {
+                    l.set(i, args[1]);       // overwrite existing
+                }
+                return;
+            }
+            throw new IllegalArgumentException(
+                "List requires (value) to append or (index(Integer), value) to insert");
+        }
+
+        // Fallback: set field via reflection for arbitrary objects (e.g., WsOrderBook).
+        // Sync on the target so a sequence of writes (e.g. timestamp + datetime updated
+        // together by an exchange's handler) appears atomic to readers that take the
+        // same monitor (see WsOrderBook.toMap, which synchronizes on `this`). Without
+        // it, apex/gate orderbooks showed datetime drift / null because the two writes
+        // weren't memory-visible together.
+        if (args.length == 2 && args[0] instanceof String fieldName) {
+            synchronized (target) {
+                try {
+                    java.lang.reflect.Field field = target.getClass().getField(fieldName);
+                    field.setAccessible(true);
+                    field.set(target, args[1]);
+                    return;
+                } catch (NoSuchFieldException e) {
+                    try {
+                        String setter = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+                        java.lang.reflect.Method method = target.getClass().getMethod(setter, Object.class);
+                        method.invoke(target, args[1]);
+                        return;
+                    } catch (Exception e2) { /* fall through */ }
+                } catch (Exception e) { /* fall through */ }
+            }
+        }
+        throw new IllegalArgumentException("Target is neither Map nor List: " + typeName(target));
+    }
+
+    private static String typeName(Object o) {
+        return (o == null) ? "null" : o.getClass().getName();
+    }
+
+    public static Object opNeg(Object value) {
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof Byte) {
+            byte v = (Byte) value;
+            return (byte) -v;
+        }
+        if (value instanceof Short v) {
+            return (short) -v;
+        }
+        if (value instanceof Integer v) {
+            return -v;
+        }
+        if (value instanceof Long v) {
+            return -v;
+        }
+        if (value instanceof Float v) {
+            return -v;
+        }
+        if (value instanceof Double v) {
+            return -v;
+        }
+
+        return null;
+    }
+
+    public static void throwDynamicException(Object exception, Object message) {
+        if (exception == null) {
+            throw new RuntimeException(String.valueOf(message));
+        }
+        if (!(exception instanceof Class<?>)) {
+            throw new IllegalArgumentException("exception must be a Class");
+        }
+
+        Class<?> exClass = (Class<?>) exception;
+        String msg = String.valueOf(message);
+
+        if (!Throwable.class.isAssignableFrom(exClass)) {
+            throw new RuntimeException("Not a Throwable: " + exClass.getName() + " :: " + msg);
+        }
+
+        try {
+            Throwable toThrow;
+            try {
+                var ctorWithMsg = exClass.getDeclaredConstructor(String.class);
+                ctorWithMsg.setAccessible(true);
+                toThrow = (Throwable) ctorWithMsg.newInstance(msg);
+            } catch (NoSuchMethodException innerNoStringCtor) {
+                var defaultCtor = exClass.getDeclaredConstructor();
+                defaultCtor.setAccessible(true);
+                toThrow = (Throwable) defaultCtor.newInstance();
+            }
+
+            // IMPORTANT: do not catch this with catch(Throwable)
+            throwUnchecked(toThrow);
+
+        } catch (ReflectiveOperationException | SecurityException reflectError) {
+            throw new RuntimeException(
+                "Failed to construct dynamic exception: " + exClass.getName() + " :: " + msg,
+                reflectError
+            );
+        }
+    }
+
+@SuppressWarnings("unchecked")
+private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
+    throw (T) t;
+}
+
+//     public static void throwDynamicException(Object exception, Object message) {
+//     if (exception == null) {
+//         throw new RuntimeException(String.valueOf(message));
+//     }
+//     if (!(exception instanceof Class<?>)) {
+//         throw new IllegalArgumentException("exception must be a Class");
+//     }
+//     Class<?> exClass = (Class<?>) exception;
+//     String msg = String.valueOf(message);
+//     try {
+//         Throwable toThrow;
+//         try {
+//             var ctorWithMsg = exClass.getDeclaredConstructor(String.class);
+//             ctorWithMsg.setAccessible(true);
+//             Object exObj = ctorWithMsg.newInstance(msg);
+//             if (exObj instanceof Throwable) {
+//                 toThrow = (Throwable) exObj;
+//             } else {
+//                 toThrow = new RuntimeException("Not a Throwable: " + exClass.getName() + " :: " + msg);
+//             }
+//         } catch (NoSuchMethodException innerNoStringCtor) {
+//             var defaultCtor = exClass.getDeclaredConstructor();
+//             defaultCtor.setAccessible(true);
+//             Object exObj = defaultCtor.newInstance();
+//             if (exObj instanceof Throwable) {
+//                 toThrow = (Throwable) exObj;
+//             } else {
+//                 toThrow = new RuntimeException("Not a Throwable: " + exClass.getName() + " :: " + msg);
+//             }
+//         }
+//         throw toThrow;
+//     } catch (Throwable reflectError) {
+//         throw new RuntimeException("Failed to throw dynamic exception: " + exClass.getName() + " :: " + msg, reflectError);
+//     }
+// }
+
+    public static String padEnd(Object input, Object length2, Object padStr) {
+        int length = toInt(length2);
+        String str = toString(input);
+        String pad = toString(padStr);
+
+        if (pad.isEmpty()) {
+            throw new IllegalArgumentException("padStr must not be empty");
+        }
+
+        while (str.length() < length) {
+            str += pad;
+        }
+
+        return str.substring(0, length);
+    }
+
+    public static String padStart(Object input, Object length2, Object padStr) {
+        int length = toInt(length2);
+        String str = toString(input);
+        String pad = toString(padStr);
+
+        if (pad.isEmpty()) {
+            throw new IllegalArgumentException("padStr must not be empty");
+        }
+
+        while (str.length() < length) {
+            str = pad + str;
+        }
+
+        return str.substring(str.length() - length);
+    }
+
+    public static String json(Object obj) {
+        try {
+            return mapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize JSON", e);
+        }
+    }
+
+    public static Object mathAbs(Object val) {
+        if (val == null) {
+            return null;
+        }
+
+        if (val instanceof Integer) {
+            return Math.abs((Integer) val);
+        }
+
+        if (val instanceof Long) {
+            return Math.abs((Long) val);
+        }
+
+        if (val instanceof Float) {
+            return Math.abs((Float) val);
+        }
+
+        if (val instanceof Double) {
+            return Math.abs((Double) val);
+        }
+
+        if (val instanceof BigDecimal) {
+            return ((BigDecimal) val).abs();
+        }
+
+        // if (val instanceof BigInteger) {
+        //     return ((BigInteger) val).abs();
+        // }
+
+        if (val instanceof Number) {
+            return Math.abs(((Number) val).doubleValue());
+        }
+
+        return null;
+    }
+
+    public static boolean isInstance(Object value, Object type) {
+        if (!(type instanceof Class<?> clazz)) {
+            return false;
+        }
+
+        Object target = unwrapIfThrowable(value);
+        return clazz.isInstance(target);
+    }
+
+    private static Object unwrapIfThrowable(Object value) {
+        if (!(value instanceof Throwable t)) {
+            return value; // normal object, no unwrap
+        }
+
+        // unwrap async wrappers
+        while (t instanceof CompletionException || t instanceof ExecutionException) {
+            if (t.getCause() == null) {
+                break;
+            }
+            t = t.getCause();
+        }
+        return t;
+    }
+
+//    public static Object split(Object str, Object splitter) {
+//        if (str == null || splitter == null) {
+//            return new String[0];
+//        }
+//
+//        String s = String.valueOf(str);
+//        String delim = String.valueOf(splitter);
+//
+//        return s.split(Pattern.quote(delim));
+//    }
+
+    public static Object split(Object str, Object splitter) {
+        if (str == null || splitter == null) {
+            return Collections.emptyList();
+        }
+
+        String s = String.valueOf(str);
+        String delim = String.valueOf(splitter);
+
+        return Arrays.asList(s.split(Pattern.quote(delim)));
+    }
+}

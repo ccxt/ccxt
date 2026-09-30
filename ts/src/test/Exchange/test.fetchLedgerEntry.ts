@@ -1,4 +1,4 @@
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testLedgerEntry from './base/test.ledgerEntry.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
@@ -10,9 +10,11 @@ async function testFetchLedgerEntry (exchange: Exchange, skippedProperties: obje
     if (length > 0) {
         const firstItem = items[0];
         const id = firstItem["id"];
-        const item = await exchange.fetchLedgerEntry (id);
-        const now = exchange.milliseconds ();
-        testLedgerEntry (exchange, skippedProperties, method, item, code, now);
+        if (id !== undefined) {
+            const item = await exchange.fetchLedgerEntry (id);
+            const now = exchange.milliseconds ();
+            testLedgerEntry (exchange, skippedProperties, method, item, code, now);
+        }
     }
     return true;
 }

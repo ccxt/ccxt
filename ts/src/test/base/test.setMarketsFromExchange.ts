@@ -1,7 +1,7 @@
 
 import assert from 'assert';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
-import ccxt, { Exchange } from "../../../ccxt.js";
+import ccxt from "../../../ccxt.js";
 
 async function testSetMarketsFromExchange () {
 
@@ -9,7 +9,7 @@ async function testSetMarketsFromExchange () {
         'id': 'sample0',
     });
 
-    assert ("GO_SKIP_START");
+    // @SKIP_START_GO
     const methodName = 'setMarketsFromExchange';
     const trueClause = emptyExchange.safeString (undefined, undefined) === undefined;
 
@@ -26,7 +26,7 @@ async function testSetMarketsFromExchange () {
         'id': 'primaryEx',
     });
 
-    assert (Object.keys (exchange1.markets).length > 0, 'Markets should be loaded in exchange1');
+    assert ((exchange1.markets !== undefined) && (Object.keys (exchange1.markets).length > 0), 'Markets should be loaded in exchange1');
 
     // Test error case: exchanges are different
     const differentExchange = new ccxt.Exchange ({
@@ -63,7 +63,6 @@ async function testSetMarketsFromExchange () {
     // exchange1.markets['ETH/USD'] = { 'id': 'EthUsd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'Eth', 'quoteId': 'Usd', 'type': 'spot', 'spot': true };
     // assert ('ETH/USD' in exchange2.markets, 'Modifying exchange1 markets should reflect in exchange2');
 
-
     // Test 2: loadMarkets on shared markets should not make API call and be very fast
     const startTime = emptyExchange.milliseconds ();
     await exchange2.loadMarkets ();
@@ -72,7 +71,9 @@ async function testSetMarketsFromExchange () {
     // Should be very fast since no API call is made
     const timeTaken = endTime - startTime;
     assert (timeTaken < 10, 'loadMarkets on shared markets should be fast');
-    assert ("GO_SKIP_END");
+    // @SKIP_END_GO
+
+    emptyExchange.describe (); // avoid unused var
 }
 
 export default testSetMarketsFromExchange;

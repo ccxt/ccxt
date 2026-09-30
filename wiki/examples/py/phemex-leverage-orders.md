@@ -1,8 +1,5 @@
-- [Phemex Leverage Orders](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -42,5 +39,5 @@ pprint(closingOrder)
 
 # Reset leverage to 1
 leverageResponse = exchange.set_leverage(1, symbol)
-print(leverageResponse) 
+print(leverageResponse)
 ```

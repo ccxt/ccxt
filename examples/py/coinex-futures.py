@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 from random import randint
 import sys
@@ -84,6 +87,6 @@ async def main():
     await example_1()
     await example_2()
 
-asyncio.run(main())
+run(main())
 
 

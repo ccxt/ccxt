@@ -1,8 +1,5 @@
-- [Source Ip Address](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -26,7 +23,7 @@ for prefix in ('http://', 'https://'):
     )
 
 
-exchange = ccxt.ftx({
+exchange = ccxt.okx({
     'session': session,
     # ... other config properties here if necessary ...
 })
@@ -37,5 +34,5 @@ exchange.verbose = True
 
 ticker = exchange.fetch_ticker('BTC/USD')
 pprint(ticker)
- 
+
 ```

@@ -7,90 +7,142 @@
 
 package ccxt
 
-func (this *HibachiCore) PublicGetMarketExchangeInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketExchangeInfo", args...)
+// PublicGetMarketExchangeInfo returns a channel that yields a JSON object.
+func (this *Hibachi) PublicGetMarketExchangeInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/exchange-info", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PublicGetMarketDataTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketDataTrades", args...)
+// PublicGetMarketInventory returns a channel that yields a JSON object.
+func (this *Hibachi) PublicGetMarketInventory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/inventory", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PublicGetMarketDataPrices(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketDataPrices", args...)
+// PublicGetMarketDataPrices returns a channel that yields a JSON object.
+func (this *Hibachi) PublicGetMarketDataPrices(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/data/prices", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PublicGetMarketDataStats(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketDataStats", args...)
+// PublicGetMarketDataStats returns a channel that yields a JSON object.
+func (this *Hibachi) PublicGetMarketDataStats(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/data/stats", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PublicGetMarketDataKlines(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketDataKlines", args...)
+// PublicGetMarketDataTrades returns a channel that yields a JSON object.
+func (this *Hibachi) PublicGetMarketDataTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/data/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PublicGetMarketDataOrderbook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketDataOrderbook", args...)
+// PublicGetMarketDataKlines returns a channel that yields a JSON object.
+func (this *Hibachi) PublicGetMarketDataKlines(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/data/klines", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PublicGetMarketDataOpenInterest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketDataOpenInterest", args...)
+// PublicGetMarketDataOpenInterest returns a channel that yields a JSON object.
+func (this *Hibachi) PublicGetMarketDataOpenInterest(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/data/open-interest", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PublicGetMarketDataFundingRates(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketDataFundingRates", args...)
+// PublicGetMarketDataOrderbook returns a channel that yields a JSON object.
+func (this *Hibachi) PublicGetMarketDataOrderbook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/data/orderbook", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PublicGetExchangeUtcTimestamp(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetExchangeUtcTimestamp", args...)
+// PublicGetMarketDataFundingRates returns a channel that yields a JSON object.
+func (this *Hibachi) PublicGetMarketDataFundingRates(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/data/funding-rates", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PrivateGetCapitalDepositInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetCapitalDepositInfo", args...)
+// PublicGetExchangeUtcTimestamp returns a channel that yields a JSON object.
+func (this *Hibachi) PublicGetExchangeUtcTimestamp(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "exchange/utc-timestamp", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PrivateGetCapitalHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetCapitalHistory", args...)
+// PrivateGetCapitalBalance returns a channel that yields a JSON object.
+func (this *Hibachi) PrivateGetCapitalBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capital/balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PrivateGetTradeAccountTradingHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeAccountTradingHistory", args...)
+// PrivateGetCapitalHistory returns a channel that yields a JSON object.
+func (this *Hibachi) PrivateGetCapitalHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capital/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PrivateGetTradeAccountInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeAccountInfo", args...)
+// PrivateGetCapitalDepositInfo returns a channel that yields a JSON object.
+func (this *Hibachi) PrivateGetCapitalDepositInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capital/deposit-info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PrivateGetTradeOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeOrder", args...)
+// PrivateGetTradeAccountInfo returns a channel that yields a JSON object.
+func (this *Hibachi) PrivateGetTradeAccountInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/account/info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PrivateGetTradeAccountTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeAccountTrades", args...)
+// PrivateGetTradeAccountTrades returns a channel that yields a JSON object.
+func (this *Hibachi) PrivateGetTradeAccountTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/account/trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PrivateGetTradeOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeOrders", args...)
+// PrivateGetTradeAccountTradingHistory returns a channel that yields a JSON object.
+func (this *Hibachi) PrivateGetTradeAccountTradingHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/account/trading_history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PrivatePutTradeOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePutTradeOrder", args...)
+// PrivateGetTradeAccountSettlementsHistory returns a channel that yields a JSON object.
+func (this *Hibachi) PrivateGetTradeAccountSettlementsHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/account/settlements_history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PrivateDeleteTradeOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeleteTradeOrder", args...)
+// PrivateGetTradeOrders returns a channel that yields a JSON array.
+func (this *Hibachi) PrivateGetTradeOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "trade/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PrivateDeleteTradeOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeleteTradeOrders", args...)
+// PrivateGetTradeOrder returns a channel that yields a JSON object.
+func (this *Hibachi) PrivateGetTradeOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PrivatePostTradeOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeOrder", args...)
+// PrivateGetTradeOrdersHistory returns a channel that yields a JSON object.
+func (this *Hibachi) PrivateGetTradeOrdersHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/orders/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PrivatePostTradeOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeOrders", args...)
+// PrivatePutTradeOrder returns a channel that yields a JSON object.
+func (this *Hibachi) PrivatePutTradeOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/order", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *HibachiCore) PrivatePostCapitalWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCapitalWithdraw", args...)
+// PrivateDeleteTradeOrder returns a channel that yields a JSON object.
+func (this *Hibachi) PrivateDeleteTradeOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/order", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateDeleteTradeOrders returns a channel that yields a JSON object.
+func (this *Hibachi) PrivateDeleteTradeOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/orders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostTradeOrder returns a channel that yields a JSON object.
+func (this *Hibachi) PrivatePostTradeOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostTradeOrders returns a channel that yields a JSON object.
+func (this *Hibachi) PrivatePostTradeOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostCapitalWithdraw returns a channel that yields a JSON object.
+func (this *Hibachi) PrivatePostCapitalWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capital/withdraw", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostCapitalTransfer returns a channel that yields a JSON object.
+func (this *Hibachi) PrivatePostCapitalTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capital/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostTradeAccountLeverage returns a channel that yields a JSON object.
+func (this *Hibachi) PrivatePostTradeAccountLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/account/leverage", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

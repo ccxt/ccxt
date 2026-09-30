@@ -5,9 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.aster import ImplicitAPI
-import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LastPrice, LastPrices, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -33,6 +31,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import BadResponse
+from ccxt.base.errors import NullResponse
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -40,7 +39,7 @@ from ccxt.base.precise import Precise
 
 class aster(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(aster, self).describe(), {
             'id': 'aster',
             'name': 'Aster',
@@ -49,12 +48,11 @@ class aster(Exchange, ImplicitAPI):
             # 150 req/s for subscribers: https://aster.markets/data
             # for brokers: https://aster.markets/docs/api-references/broker-api/#authentication-and-rate-limit
             'rateLimit': 333,
-            'hostname': 'aster.markets',
             'certified': False,
             'pro': True,
             'dex': True,
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609',
+                'logo': 'https://github.com/user-attachments/assets/5e5909d6-c4de-4435-992f-4339c80edbd7',
                 'www': 'https://www.asterdex.com/en',
                 'api': {
                     'fapiPublic': 'https://fapi.asterdex.com/fapi',
@@ -71,9 +69,9 @@ class aster(Exchange, ImplicitAPI):
             },
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
                 'addMargin': True,
@@ -94,7 +92,7 @@ class aster(Exchange, ImplicitAPI):
                 'createMarketSellOrder': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
-                'createOrders': False,
+                'createOrders': True,
                 'createOrderWithTakeProfitAndStopLoss': False,
                 'createPostOnlyOrder': False,
                 'createReduceOnlyOrder': False,
@@ -109,7 +107,7 @@ class aster(Exchange, ImplicitAPI):
                 'editOrders': False,
                 'fetchAccounts': None,
                 'fetchBalance': True,
-                'fetchBidsAsks': False,
+                'fetchBidsAsks': True,
                 'fetchBorrowInterest': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -143,7 +141,7 @@ class aster(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': 'emulated',
                 'fetchIsolatedBorrowRates': False,
                 'fetchL3OrderBook': False,
-                'fetchLastPrices': False,
+                'fetchLastPrices': True,
                 'fetchLedger': True,
                 'fetchLedgerEntry': False,
                 'fetchLeverage': 'emulated',
@@ -210,117 +208,233 @@ class aster(Exchange, ImplicitAPI):
                 'setMargin': False,
                 'setMarginMode': True,
                 'setPositionMode': True,
-                'signIn': False,
+                'signIn': True,
                 'transfer': True,
                 'withdraw': True,
             },
             'api': {
                 'fapiPublic': {
-                    'get': [
-                        'v1/ping',
-                        'v1/time',
-                        'v1/exchangeInfo',
-                        'v1/depth',
-                        'v1/trades',
-                        'v1/historicalTrades',
-                        'v1/aggTrades',
-                        'v1/klines',
-                        'v1/indexPriceKlines',
-                        'v1/markPriceKlines',
-                        'v1/premiumIndex',
-                        'v1/fundingRate',
-                        'v1/fundingInfo',
-                        'v1/ticker/24hr',
-                        'v1/ticker/price',
-                        'v1/ticker/bookTicker',
-                        'v1/adlQuantile',
-                        'v1/forceOrders',
-                    ],
+                    'get': {
+                        'v1/ping': {'cost': 1},
+                        'v3/ping': {'cost': 1},
+                        'v1/time': {'cost': 1},
+                        'v3/time': {'cost': 1},
+                        'v1/exchangeInfo': {'cost': 1},
+                        'v3/exchangeInfo': {'cost': 1},
+                        'v1/depth': {'cost': 1},
+                        'v3/depth': {'cost': 2},  # dynamic: 5, 10, 20, 50->2, 100->5, 500->10, 1000->20
+                        'v1/trades': {'cost': 1},
+                        'v3/trades': {'cost': 1},
+                        'v1/historicalTrades': {'cost': 1},
+                        'v3/historicalTrades': {'cost': 20},
+                        'v1/aggTrades': {'cost': 1},
+                        'v3/aggTrades': {'cost': 20},
+                        'v1/klines': {'cost': 1},
+                        'v3/klines': {'cost': 1},  # dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
+                        'v1/indexPriceKlines': {'cost': 1},
+                        'v3/indexPriceKlines': {'cost': 1},  # same as klines
+                        'v1/markPriceKlines': {'cost': 1},
+                        'v3/markPriceKlines': {'cost': 1},  # same as klines
+                        'v1/premiumIndex': {'cost': 1},
+                        'v3/premiumIndex': {'cost': 1},
+                        'v1/fundingRate': {'cost': 1},
+                        'v3/fundingRate': {'cost': 1},
+                        'v1/fundingInfo': {'cost': 1},
+                        'v3/fundingInfo': {'cost': 1},
+                        'v1/ticker/24hr': {'cost': 1},
+                        'v3/ticker/24hr': {'cost': 1},  # 1 single-symbol, otherwise 40
+                        'v1/ticker/price': {'cost': 1},
+                        'v3/ticker/price': {'cost': 1},  # 1 single-symbol, otherwise 2
+                        'v1/ticker/bookTicker': {'cost': 1},
+                        'v3/ticker/bookTicker': {'cost': 1},  # 1 single-symbol, otherwise 2
+                        # different endpoints
+                        'v1/adlQuantile': {'cost': 1},
+                        'v1/forceOrders': {'cost': 1},
+                        'v3/indexreferences': {'cost': 1},
+                    },
                 },
                 'fapiPrivate': {
-                    'get': [
-                        'v1/positionSide/dual',
-                        'v1/multiAssetsMargin',
-                        'v1/order',
-                        'v1/openOrder',
-                        'v1/openOrders',
-                        'v1/allOrders',
-                        'v2/balance',
-                        'v3/balance',
-                        'v3/account',
-                        'v4/account',
-                        'v1/positionMargin/history',
-                        'v2/positionRisk',
-                        'v3/positionRisk',
-                        'v1/userTrades',
-                        'v1/income',
-                        'v1/leverageBracket',
-                        'v1/commissionRate',
-                    ],
-                    'post': [
-                        'v1/positionSide/dual',
-                        'v1/multiAssetsMargin',
-                        'v1/order',
-                        'v1/order/test',
-                        'v1/batchOrders',
-                        'v1/asset/wallet/transfer',
-                        'v1/countdownCancelAll',
-                        'v1/leverage',
-                        'v1/marginType',
-                        'v1/positionMargin',
-                        'v1/listenKey',
-                    ],
-                    'put': [
-                        'v1/listenKey',
-                    ],
-                    'delete': [
-                        'v1/order',
-                        'v1/allOpenOrders',
-                        'v1/batchOrders',
-                        'v1/listenKey',
-                    ],
+                    'get': {
+                        'v1/positionSide/dual': {'cost': 1},
+                        'v3/positionSide/dual': {'cost': 30},
+                        'v1/multiAssetsMargin': {'cost': 1},
+                        'v3/multiAssetsMargin': {'cost': 1},
+                        'v1/order': {'cost': 1},
+                        'v3/order': {'cost': 1},
+                        'v1/openOrder': {'cost': 1},
+                        'v3/openOrder': {'cost': 1},
+                        'v1/openOrders': {'cost': 1},
+                        'v3/openOrders': {'cost': 1},
+                        'v1/allOrders': {'cost': 1},
+                        'v3/allOrders': {'cost': 1},
+                        'v2/balance': {'cost': 1},
+                        'v3/balance': {'cost': 1},
+                        'v3/account': {'cost': 1},
+                        'v1/positionMargin/history': {'cost': 1},
+                        'v3/positionMargin/history': {'cost': 1},
+                        'v2/positionRisk': {'cost': 1},
+                        'v3/positionRisk': {'cost': 1},
+                        'v1/userTrades': {'cost': 1},
+                        'v3/userTrades': {'cost': 5},
+                        'v1/income': {'cost': 1},
+                        'v3/income': {'cost': 1},
+                        'v1/leverageBracket': {'cost': 1},
+                        'v3/leverageBracket': {'cost': 1},
+                        'v1/commissionRate': {'cost': 1},
+                        'v3/commissionRate': {'cost': 1},
+                        # others
+                        'v3/adlQuantile': {'cost': 1},
+                        'v3/forceOrders': {'cost': 1},
+                        'v3/mmp': {'cost': 1},
+                        'v3/accountWithJoinMargin': {'cost': 1},
+                        'v4/account': {'cost': 1},
+                        # builder
+                        'v3/agent': {'cost': 1},
+                        'v3/builder': {'cost': 1},
+                        'v3/builder/userTrades': {'cost': 5},
+                        'v3/builder/approvedUserList': {'cost': 5},
+                        'v3/stpMode': {'cost': 30},
+                        'v3/asset/migrateUser/history': {'cost': 50},
+                        # strategy
+                        'v3/strategyOpenOrder': {'cost': 5},
+                        'v3/strategyHistoryOrder': {'cost': 5},
+                    },
+                    'post': {
+                        'v1/positionSide/dual': {'cost': 1},
+                        'v3/positionSide/dual': {'cost': 1},
+                        'v1/multiAssetsMargin': {'cost': 1},
+                        'v3/multiAssetsMargin': {'cost': 1},
+                        'v1/order': {'cost': 1},
+                        'v3/order': {'cost': 1},
+                        'v1/order/test': {'cost': 1},
+                        'v3/order/test': {'cost': 1},
+                        'v1/batchOrders': {'cost': 1},
+                        'v3/batchOrders': {'cost': 1},
+                        'v1/asset/wallet/transfer': {'cost': 1},
+                        'v3/asset/wallet/transfer': {'cost': 1},
+                        'v1/countdownCancelAll': {'cost': 1},
+                        'v3/countdownCancelAll': {'cost': 1},
+                        'v1/leverage': {'cost': 1},
+                        'v3/leverage': {'cost': 1},
+                        'v1/marginType': {'cost': 1},
+                        'v3/marginType': {'cost': 1},
+                        'v1/positionMargin': {'cost': 1},
+                        'v3/positionMargin': {'cost': 1},
+                        'v1/listenKey': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
+                        # others
+                        'v3/mmp': {'cost': 1},
+                        'v3/mmpReset': {'cost': 1},
+                        'v3/noop': {'cost': 1},
+                        # builder
+                        'v3/approveAgent': {'cost': 1},
+                        'v3/updateAgent': {'cost': 1},
+                        'v3/approveBuilder': {'cost': 1},
+                        'v3/updateBuilder': {'cost': 1},
+                        'v3/registerAndApproveAgent': {'cost': 50},
+                        'v3/asset/migrateUser': {'cost': 50},
+                        'v3/chase': {'cost': 1},
+                        'v3/stpMode': {'cost': 1},
+                        # strategy
+                        'v3/placeStrategyOrder': {'cost': 50},
+                        'v3/updateStrategyOrder': {'cost': 50},
+                    },
+                    'put': {
+                        'v1/listenKey': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
+                    },
+                    'delete': {
+                        'v1/order': {'cost': 1},
+                        'v3/order': {'cost': 1},
+                        'v1/allOpenOrders': {'cost': 1},
+                        'v3/allOpenOrders': {'cost': 1},
+                        'v1/batchOrders': {'cost': 1},
+                        'v3/batchOrders': {'cost': 1},
+                        'v3/guardedCancelOrder': {'cost': 1},
+                        'v3/guardedBatchOrders': {'cost': 1},
+                        'v3/mmp': {'cost': 1},
+                        'v1/listenKey': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
+                        # builder
+                        'v3/agent': {'cost': 1},
+                        'v3/builder': {'cost': 1},
+                    },
                 },
                 'sapiPublic': {
-                    'get': [
-                        'v1/ping',
-                        'v1/time',
-                        'v1/exchangeInfo',
-                        'v1/depth',
-                        'v1/trades',
-                        'v1/historicalTrades',
-                        'v1/aggTrades',
-                        'v1/klines',
-                        'v1/ticker/24hr',
-                        'v1/ticker/price',
-                        'v1/ticker/bookTicker',
-                        'v1/aster/withdraw/estimateFee',
-                    ],
+                    'get': {
+                        # v1
+                        'v1/ping': {'cost': 1},
+                        'v1/time': {'cost': 1},
+                        'v1/exchangeInfo': {'cost': 1},
+                        'v1/depth': {'cost': 1},
+                        'v1/trades': {'cost': 1},
+                        'v1/historicalTrades': {'cost': 1},
+                        'v1/aggTrades': {'cost': 1},
+                        'v1/klines': {'cost': 1},
+                        'v1/ticker/24hr': {'cost': 1},
+                        'v1/ticker/price': {'cost': 1},
+                        'v1/ticker/bookTicker': {'cost': 1},
+                        'v1/aster/withdraw/estimateFee': {'cost': 1},
+                        # v3
+                        'v3/ping': {'cost': 1},
+                        'v3/time': {'cost': 1},
+                        'v3/exchangeInfo': {'cost': 1},
+                        'v3/depth': {'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]]},
+                        'v3/trades': {'cost': 1},
+                        'v3/historicalTrades': {'cost': 20},
+                        'v3/aggTrades': {'cost': 20},
+                        'v3/klines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},  # todo: not specified in docs
+                        'v3/ticker/24hr': {'cost': 1, 'noSymbol': 40},
+                        'v3/ticker/price': {'cost': 1, 'noSymbol': 2},
+                        'v3/ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
+                        'v3/aster/withdraw/estimateFee': {'cost': 1},
+                    },
                 },
                 'sapiPrivate': {
-                    'get': [
-                        'v1/commissionRate',
-                        'v1/order',
-                        'v1/openOrders',
-                        'v1/allOrders',
-                        'v1/transactionHistory',
-                        'v1/account',
-                        'v1/userTrades',
-                    ],
-                    'post': [
-                        'v1/order',
-                        'v1/asset/wallet/transfer',
-                        'v1/asset/sendToAddress',
-                        'v1/aster/user-withdraw',
-                        'v1/listenKey',
-                    ],
-                    'put': [
-                        'v1/listenKey',
-                    ],
-                    'delete': [
-                        'v1/order',
-                        'v1/allOpenOrders',
-                        'v1/listenKey',
-                    ],
+                    'get': {
+                        # v1
+                        'v1/commissionRate': {'cost': 1},
+                        'v1/order': {'cost': 1},
+                        'v1/openOrders': {'cost': 1},
+                        'v1/allOrders': {'cost': 1},
+                        'v1/transactionHistory': {'cost': 1},
+                        'v1/account': {'cost': 1},
+                        'v1/userTrades': {'cost': 1},
+                        # v3
+                        'v3/commissionRate': {'cost': 1, 'noSymbol': 2},
+                        'v3/order': {'cost': 1},
+                        'v3/openOrders': {'cost': 1},  # with symbol 1, otherwise 40
+                        'v3/allOrders': {'cost': 5},
+                        'v3/account': {'cost': 5},
+                        'v3/userTrades': {'cost': 5},
+                        'v3/openOrder': {'cost': 1},
+                    },
+                    'post': {
+                        # v1
+                        'v1/order': {'cost': 1},
+                        'v1/asset/wallet/transfer': {'cost': 5},
+                        'v1/asset/sendToAddress': {'cost': 1},  # inexistent in v3
+                        'v1/listenKey': {'cost': 1},
+                        # v3
+                        'v3/order': {'cost': 1},
+                        'v3/asset/wallet/transfer': {'cost': 5},
+                        'v3/aster/user-withdraw': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
+                    },
+                    'put': {
+                        'v1/listenKey': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
+                    },
+                    'delete': {
+                        # v1
+                        'v1/order': {'cost': 1},
+                        'v1/allOpenOrders': {'cost': 1},
+                        'v1/listenKey': {'cost': 1},
+                        # v3
+                        'v3/allOpenOrders': {'cost': 1},
+                        'v3/order': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
+                    },
                 },
             },
             'timeframes': {
@@ -342,8 +456,9 @@ class aster(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
-                'apiKey': True,
-                'secret': True,
+                'apiKey': False,
+                'secret': False,
+                'privateKey': True,
             },
             'fees': {
                 'trading': {
@@ -353,33 +468,172 @@ class aster(Exchange, ImplicitAPI):
                     'taker': self.parse_number('0.00035'),
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': None,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 1500,
+                    },
+                },
+                'forDerivs': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': False,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': True,
+                        'trailing': True,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 1500,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': None,
+                },
+            },
             'options': {
                 'defaultType': 'spot',
                 'recvWindow': 10 * 1000,  # 10 sec
-                'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
-                'quoteOrderQty': True,  # whether market orders support amounts in quote currency
+                'v3ChainId': 1666,  # Aster chain ID used for EIP-712 v3 signing
+                'createOrder': {
+                    'timeInForce': 'GTC',  # 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                    'quoteOrderQty': True,  # whether market orders support amounts in quote currency
+                },
                 'accountsByType': {
                     'spot': 'SPOT',
+                    'swap': 'FUTURE',
                     'future': 'FUTURE',
                     'linear': 'FUTURE',
-                    'swap': 'FUTURE',
                 },
                 'networks': {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARB': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                 },
                 'networksToChainId': {
                     'ETH': 1,
                     'BSC': 56,
                     'Arbitrum': 42161,
                 },
+                'fetchOpenOrders': {
+                    'warnIfNoSymbol': True,  # set to false to suppress warning when calling fetchOpenOrders without symbol
+                },
+                'builderFee': True,
+                'builder': '0x1F5877C19e3777Cfd15F9d57253eA4aA5254Ec39',
+                'builderRate': '0.001',
             },
             'exceptions': {
                 'exact': {
                     # 10xx - General Server or Network issues
-                    '-1000': OperationFailed,  # UNKNOWN
+                    '-1000': OperationRejected,  # UNKNOWN
                     '-1001': NetworkError,  # DISCONNECTED
                     '-1002': AuthenticationError,  # UNAUTHORIZED
                     '-1003': RateLimitExceeded,  # TOO_MANY_REQUESTS
@@ -387,7 +641,7 @@ class aster(Exchange, ImplicitAPI):
                     '-1005': BadRequest,  # NO_SUCH_IP
                     '-1006': BadResponse,  # UNEXPECTED_RESP
                     '-1007': RequestTimeout,  # TIMEOUT
-                    '-1010': OperationFailed,  # ERROR_MSG_RECEIVED
+                    '-1010': OperationRejected,  # ERROR_MSG_RECEIVED
                     '-1011': PermissionDenied,  # NON_WHITE_LIST
                     '-1013': BadRequest,  # INVALID_MESSAGE
                     '-1014': OrderNotFillable,  # UNKNOWN_ORDER_COMPOSITION
@@ -542,6 +796,8 @@ class aster(Exchange, ImplicitAPI):
                     '-4184': InvalidOrder,  # PRICE_LOWER_THAN_STOP_MULTIPLIER_DOWN
                     '-5060': OperationRejected,  # {"code":-5060,"msg":"The limit order price does not meet the PERCENT_PRICE filter limit."}
                     '-5076': OperationRejected,  # {"code":-5076,"msg":"Total order value should be more than 5 USDT"}
+                    # occured errors:
+                    '-4168': OperationRejected,  # Unable to adjust to isolated-margin mode under the Multi-Assets mode.
                 },
                 'broad': {
                 },
@@ -560,320 +816,328 @@ class aster(Exchange, ImplicitAPI):
         else:
             return subType == 'linear'
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#trading-specification-information
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#exchange-information
+        https://asterdex.github.io/aster-api-website/spot-v3/market-data/#trading-specification-information
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        promises = [
-            self.sapiPublicGetV1ExchangeInfo(params),
-            self.fapiPublicGetV1ExchangeInfo(params),
-        ]
-        results = promises
-        sapiResult = self.safe_dict(results, 0, {})
+        sapiResult = self.sapiPublicGetV3ExchangeInfo(params)
         sapiRows = self.safe_list(sapiResult, 'assets', [])
-        fapiResult = self.safe_dict(results, 1, {})
-        fapiRows = self.safe_list(fapiResult, 'assets', [])
-        rows = self.array_concat(sapiRows, fapiRows)
         #
         #     [
         #         {
         #             "asset": "USDT",
-        #             "marginAvailable": True,
-        #             "autoAssetExchange": "-10000"
+        #             "marginAvailable": true,           // only in PERP
+        #             "autoAssetExchange": "-10000"      // only in PERP
         #         }
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(rows)):
-            currency = rows[i]
-            currencyId = self.safe_string(currency, 'asset')
-            code = self.safe_currency_code(currencyId)
-            result[code] = self.safe_currency_structure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': code,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': None,
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'networks': None,
-                'type': 'crypto',  # atm exchange api provides only cryptos
-            })
-        return result
+        return self.parse_currencies(sapiRows)
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+        currencyId = self.safe_string(rawCurrency, 'asset')
+        code = self.safe_currency_code(currencyId)
+        return self.safe_currency_structure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'name': code,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': None,
+            'margin': self.safe_bool(rawCurrency, 'marginAvailable'),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': None,
+            'type': 'crypto',  # atm exchange api provides only cryptos
+        })
+
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for bigone
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#trading-specification-information
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#exchange-information
+        https://asterdex.github.io/aster-api-website/spot-v3/market-data/#trading-specification-information
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         promises = [
-            self.sapiPublicGetV1ExchangeInfo(params),
-            self.fapiPublicGetV1ExchangeInfo(params),
+            self.sapiPublicGetV3ExchangeInfo(params),
+            self.fapiPublicGetV3ExchangeInfo(params),
         ]
+        promises.append(self.sign_in())
         results = promises
         sapiResult = self.safe_dict(results, 0, {})
         sapiRows = self.safe_list(sapiResult, 'symbols', [])
         fapiResult = self.safe_dict(results, 1, {})
         fapiRows = self.safe_list(fapiResult, 'symbols', [])
-        rows = self.array_concat(sapiRows, fapiRows)
+        #
+        # example:
         #
         #     [
-        #         {
-        #             "symbol": "BTCUSDT",
-        #             "pair": "BTCUSDT",
-        #             "contractType": "PERPETUAL",
-        #             "deliveryDate": 4133404800000,
-        #             "onboardDate": 1627628400000,
-        #             "status": "TRADING",
-        #             "maintMarginPercent": "2.5000",
-        #             "requiredMarginPercent": "5.0000",
-        #             "baseAsset": "BTC",
-        #             "quoteAsset": "USDT",
-        #             "marginAsset": "USDT",
-        #             "pricePrecision": 1,
-        #             "quantityPrecision": 3,
-        #             "baseAssetPrecision": 8,
-        #             "quotePrecision": 8,
-        #             "underlyingType": "COIN",
-        #             "underlyingSubType": [],
-        #             "settlePlan": 0,
-        #             "triggerProtect": "0.0200",
-        #             "liquidationFee": "0.025000",
-        #             "marketTakeBound": "0.02",
-        #             "filters": [
-        #                 {
-        #                     "minPrice": "1",
-        #                     "maxPrice": "1000000",
-        #                     "filterType": "PRICE_FILTER",
-        #                     "tickSize": "0.1"
-        #                 },
-        #                 {
-        #                     "stepSize": "0.001",
-        #                     "filterType": "LOT_SIZE",
-        #                     "maxQty": "100",
-        #                     "minQty": "0.001"
-        #                 },
-        #                 {
-        #                     "stepSize": "0.001",
-        #                     "filterType": "MARKET_LOT_SIZE",
-        #                     "maxQty": "10",
-        #                     "minQty": "0.001"
-        #                 },
-        #                 {
-        #                     "limit": 200,
-        #                     "filterType": "MAX_NUM_ORDERS"
-        #                 },
-        #                 {
-        #                     "limit": 10,
-        #                     "filterType": "MAX_NUM_ALGO_ORDERS"
-        #                 },
-        #                 {
-        #                     "notional": "5",
-        #                     "filterType": "MIN_NOTIONAL"
-        #                 },
-        #                 {
-        #                     "multiplierDown": "0.9800",
-        #                     "multiplierUp": "1.0200",
-        #                     "multiplierDecimal": "4",
-        #                     "filterType": "PERCENT_PRICE"
-        #                 }
-        #             ],
-        #             "orderTypes": [
-        #                 "LIMIT",
-        #                 "MARKET",
-        #                 "STOP",
-        #                 "STOP_MARKET",
-        #                 "TAKE_PROFIT",
-        #                 "TAKE_PROFIT_MARKET",
-        #                 "TRAILING_STOP_MARKET"
-        #             ],
-        #             "timeInForce": [
-        #                 "GTC",
-        #                 "IOC",
-        #                 "FOK",
-        #                 "GTX",
-        #                 "RPI"
-        #             ]
-        #         }
+        #       {
+        #         symbol: "TESTUSDT",
+        #         status: "TRADING",
+        #         baseAsset: "TEST",
+        #         quoteAsset: "USDT",
+        #         pricePrecision: "2",
+        #         quantityPrecision: "5",
+        #         baseAssetPrecision: "8",
+        #         quotePrecision: "8",
+        #         listingTime: "1756289680210",      // only in SPOT
+        #         baseAssetAddress: null,            // only in SPOT
+        #         ocoAllowed: false,                 // only in SPOT
+        #         pair: "ASTERUSDT",                 // only in PERP
+        #         contractType: "PERPETUAL",         // only in PERP
+        #         deliveryDate: "4133404800000",     // only in PERP
+        #         onboardDate: "1758178800000",      // only in PERP
+        #         maintMarginPercent: "12.5000",     // only in PERP
+        #         requiredMarginPercent: "25.0000",  // only in PERP
+        #         marginAsset: "USDT",               // only in PERP
+        #         underlyingType: "COIN",            // only in PERP
+        #         underlyingSubType: [ "Top", ],     // only in PERP
+        #         symbolType: "0",                   // only in PERP
+        #         tradingMode: "0",                  // only in PERP
+        #         name: "",                          // only in PERP
+        #         channel: "{}",                     // only in PERP
+        #         sequenceNo: "100",                 // only in PERP
+        #         twapMinNotional: "1000",           // only in PERP
+        #         imn: "4000.00",                    // only in PERP
+        #         tags: [],                          // only in PERP
+        #         settlePlan: "0",                   // only in PERP
+        #         triggerProtect: "0.1500",          // only in PERP
+        #         liquidationFee: "0.025000",        // only in PERP
+        #         marketTakeBound: "0.05",           // only in PERP
+        #         createTime: "1758215451058",       // only in PERP
+        #         filters: [
+        #           {
+        #             minPrice: "0.01",
+        #             maxPrice: "1000000",
+        #             filterType: "PRICE_FILTER",
+        #             tickSize: "0.01",
+        #           },
+        #           {
+        #             stepSize: "0.00001",
+        #             filterType: "LOT_SIZE",
+        #             maxQty: "9000",
+        #             minQty: "0.00001",
+        #           },
+        #           {
+        #             stepSize: "0.00001",
+        #             filterType: "MARKET_LOT_SIZE",
+        #             maxQty: "9000",
+        #             minQty: "0.00001",
+        #           },
+        #           {
+        #             limit: "200",
+        #             filterType: "MAX_NUM_ORDERS",
+        #           },
+        #           {
+        #             minNotional: "5",
+        #             filterType: "MIN_NOTIONAL",
+        #           },
+        #           {
+        #             minNotional: "5",
+        #             avgPriceMins: "5",
+        #             applyMinToMarket: true,
+        #             filterType: "NOTIONAL",            // only in SPOT
+        #             applyMaxToMarket: true,
+        #           },
+        #           {
+        #             multiplierDown: "0.2",
+        #             multiplierUp: "5",
+        #             multiplierDecimal: "1",
+        #             filterType: "PERCENT_PRICE",
+        #           },
+        #           {
+        #             bidMultiplierUp: "5",
+        #             askMultiplierUp: "5",
+        #             bidMultiplierDown: "0.2",
+        #             avgPriceMins: "5",
+        #             multiplierDecimal: "1",
+        #             filterType: "PERCENT_PRICE_BY_SIDE",  // only in SPOT
+        #             askMultiplierDown: "0.2",
+        #           },
+        #         ],
+        #         orderTypes: [ "LIMIT", "MARKET", "STOP", "STOP_MARKET", "TAKE_PROFIT", "TAKE_PROFIT_MARKET", "TRAILING_STOP_MARKET", ],
+        #         timeInForce: [ "GTC", "IOC", "FOK", "GTX", "HIDDEN", ],
+        #       }
         #     ]
         #
-        fees = self.fees
-        result = []
-        for i in range(0, len(rows)):
-            swap = False
-            market = rows[i]
-            id = self.safe_string(market, 'symbol')
-            baseId = self.safe_string(market, 'baseAsset')
-            quoteId = self.safe_string(market, 'quoteAsset')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            contractType = self.safe_string(market, 'contractType')
-            contract = contractType is not None
-            spot = True
-            if contractType == 'PERPETUAL':
-                swap = True
-                spot = False
-            contractSize = None
-            linear = None
-            inverse = None
-            symbol = base + '/' + quote
-            settle = None
-            settleId = None
-            if contract:
-                settleId = self.safe_string(market, 'marginAsset')
-                settle = self.safe_currency_code(settleId)
-                if swap:
-                    symbol = symbol + ':' + settle
-                linear = settle == quote
-                inverse = settle == base
-                contractSize = self.safe_number_2(market, 'contractSize', 'unit', self.parse_number('1'))
-            unifiedType = None
-            if spot:
-                unifiedType = 'spot'
-            elif swap:
-                unifiedType = 'swap'
-            status = self.safe_string(market, 'status')
-            active = status == 'TRADING'
-            filters = self.safe_list(market, 'filters', [])
-            filtersByType = self.index_by(filters, 'filterType')
-            entry = self.safe_market_structure({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': unifiedType,
-                'spot': spot,
-                'margin': False,
-                'swap': swap,
-                'future': False,
-                'option': False,
-                'active': active,
-                'contract': contract,
-                'linear': linear,
-                'inverse': inverse,
-                'taker': fees['trading']['taker'],
-                'maker': fees['trading']['maker'],
-                'contractSize': contractSize,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
-                    'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
-                    'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'created': self.safe_integer(market, 'onboardDate'),
-                'info': market,
-            })
-            if 'PRICE_FILTER' in filtersByType:
-                filter = self.safe_dict(filtersByType, 'PRICE_FILTER', {})
-                entry['limits']['price'] = {
-                    'min': self.safe_number(filter, 'minPrice'),
-                    'max': self.safe_number(filter, 'maxPrice'),
-                }
-                entry['precision']['price'] = self.safe_number(filter, 'tickSize')
-            if 'LOT_SIZE' in filtersByType:
-                filter = self.safe_dict(filtersByType, 'LOT_SIZE', {})
-                entry['precision']['amount'] = self.safe_number(filter, 'stepSize')
-                entry['limits']['amount'] = {
-                    'min': self.safe_number(filter, 'minQty'),
-                    'max': self.safe_number(filter, 'maxQty'),
-                }
-            if 'MARKET_LOT_SIZE' in filtersByType:
-                filter = self.safe_dict(filtersByType, 'MARKET_LOT_SIZE', {})
-                entry['limits']['market'] = {
-                    'min': self.safe_number(filter, 'minQty'),
-                    'max': self.safe_number(filter, 'maxQty'),
-                }
-            if ('MIN_NOTIONAL' in filtersByType) or ('NOTIONAL' in filtersByType):
-                filter = self.safe_dict_2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {})
-                entry['limits']['cost']['min'] = self.safe_number(filter, 'notional')
-            result.append(entry)
-        return result
+        #
+        fapiRowsFiltered = []
+        for i in range(0, len(fapiRows)):
+            market = fapiRows[i]
+            # tmp skip some markets with base = undefined
+            if self.safe_string(market, 'baseAsset') is not None:
+                fapiRowsFiltered.append(market)
+        rows = self.array_concat(sapiRows, fapiRowsFiltered)
+        return self.parse_markets(rows)
 
-    def fetch_time(self, params={}) -> Int:
+    def parse_market(self, market: dict) -> Market:
+        id = self.safe_string(market, 'symbol')
+        baseId = self.safe_string(market, 'baseAsset')
+        quoteId = self.safe_string(market, 'quoteAsset')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
+        active = self.safe_string(market, 'status') == 'TRADING'
+        spot = None
+        symbol = None
+        settle = None
+        settleId = None
+        swap = None
+        linear = None
+        inverse = None
+        contractSize = None
+        contractType = self.safe_string(market, 'contractType')
+        isContract = contractType is not None
+        if isContract:
+            # currently, there is only perpetuals, not futures
+            spot = False
+            swap = True
+            settleId = self.safe_string(market, 'marginAsset')
+            settle = self.safe_currency_code(settleId)
+            symbol = base + '/' + quote + ':' + settle
+            linear = settle == quote
+            inverse = settle == base
+            contractSize = self.safe_number_2(market, 'contractSize', 'unit', self.parse_number('1'))
+        else:
+            spot = True
+            swap = False
+            symbol = base + '/' + quote
+        # filters
+        filters = self.safe_list(market, 'filters', [])
+        filtersByType = self.index_by(filters, 'filterType')
+        filterNotional = self.safe_dict_2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL')
+        filterPrice = self.safe_dict(filtersByType, 'PRICE_FILTER')
+        filterLotSize = self.safe_dict(filtersByType, 'LOT_SIZE')
+        filterMarketLotSize = self.safe_dict(filtersByType, 'MARKET_LOT_SIZE', {})
+        pricePrecision = self.safe_number(filterPrice, 'tickSize')
+        if pricePrecision is None:
+            pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision')))
+        amountPrecision = self.safe_number(filterLotSize, 'stepSize') if (filterLotSize is not None) else self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision')))
+        return self.safe_market_structure({
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': 'swap' if isContract else 'spot',
+            'spot': spot,
+            'margin': False,
+            'swap': swap,
+            'future': False,
+            'option': False,
+            'active': active,
+            'contract': isContract,
+            'linear': linear,
+            'inverse': inverse,
+            'taker': self.fees['trading']['taker'],
+            'maker': self.fees['trading']['maker'],
+            'contractSize': contractSize,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': amountPrecision,
+                'price': pricePrecision,
+                'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
+                'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': self.safe_number(filterLotSize, 'minQty'),
+                    'max': self.safe_number(filterLotSize, 'maxQty'),
+                },
+                'price': {
+                    'min': self.safe_number(filterPrice, 'minPrice'),
+                    'max': self.safe_number(filterPrice, 'maxPrice'),
+                },
+                'cost': {
+                    'min': self.safe_number_2(filterNotional, 'notional', 'minNotional'),
+                    'max': None,
+                },
+                'market': {
+                    'min': self.safe_number(filterMarketLotSize, 'minQty'),
+                    'max': self.safe_number(filterMarketLotSize, 'maxQty'),
+                },
+            },
+            'created': self.safe_integer_2(market, 'listingTime', 'createTime'),
+            'info': market,
+        })
+
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#check-server-time
+        https://asterdex.github.io/aster-api-website/spot-v3/market-data/#get-server-time
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#check-server-time
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
-        response = self.fapiPublicGetV1Time(params)
+        marketType, paramsMarketType = self.handle_market_type_and_params('fetchTime', None, params)
+        response: dict
+        if marketType == 'swap':
+            response = self.fapiPublicGetV3Time(paramsMarketType)
+        else:
+            response = self.sapiPublicGetV3Time(paramsMarketType)
         #
-        #     {
-        #         "serverTime": 1499827319559
-        #     }
+        # both SPOT & PERP has same format
+        #
+        # {
+        #     "serverTime": 1499827319559
+        # }
         #
         return self.safe_integer(response, 'serverTime')
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
+        #
+        # spot:
         #
         #     [
-        #         1631158560000,
-        #         "208.1850",
-        #         "208.1850",
-        #         "208.1850",
-        #         "208.1850",
-        #         "11.84",
-        #         1631158619999,
-        #         "2464.910400",
-        #         1,
-        #         "11.84",
-        #         "2464.910400",
-        #         "0"
+        #         1499040000000, // Open time
+        #         "0.01634790", // Open
+        #         "0.80000000", // High
+        #         "0.01575800", // Low
+        #         "0.01577100", // Close
+        #         "148976.11427815", // Volume
+        #         1499644799999, // Close time
+        #         "2434.19055334", // Quote asset volume
+        #         308, // Number of trades
+        #         "1756.87402397", // Taker buy base asset volume
+        #         "28.46694368", // Taker buy quote asset volume
+        #         "0"  // ??
         #     ]
         #
         return [
@@ -885,12 +1149,14 @@ class aster(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-data
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-data
+        https://asterdex.github.io/aster-api-website/spot-v3/market-data/#k-line-data
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#klinecandlestick-data
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#index-price-klinecandlestick-data
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#mark-price-klinecandlestick-data
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -899,113 +1165,129 @@ class aster(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: the latest time in ms to fetch orders for
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {}
+        request = {}
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            if limit > 1500:
-                limit = 1500  # Default 500; max 1500.
-            request['limit'] = limit
-        request, params = self.handle_until_option('endTime', request, params)
-        request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
-        price = self.safe_string(params, 'price')
+            request['limit'] = min(limit, 1500)
+        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
+        requestUntil['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
+        price = self.safe_string(paramsUntil, 'price')
         isMark = (price == 'mark')
         isIndex = (price == 'index')
-        params = self.omit(params, 'price')
-        response = None
+        paramsOmitted = self.omit(paramsUntil, 'price')
+        response: dict | List
         if isMark:
-            request['symbol'] = market['id']
-            response = self.fapiPublicGetV1MarkPriceKlines(self.extend(request, params))
+            requestUntil['symbol'] = market['id']
+            response = self.fapiPublicGetV3MarkPriceKlines(self.extend(requestUntil, paramsOmitted))
         elif isIndex:
-            request['pair'] = market['id']
-            response = self.fapiPublicGetV1IndexPriceKlines(self.extend(request, params))
+            requestUntil['pair'] = market['id']
+            response = self.fapiPublicGetV3IndexPriceKlines(self.extend(requestUntil, paramsOmitted))
         else:
-            request['symbol'] = market['id']
-            if market['linear']:
-                response = self.fapiPublicGetV1Klines(self.extend(request, params))
+            requestUntil['symbol'] = market['id']
+            if market['linear'] is True:
+                response = self.fapiPublicGetV3Klines(self.extend(requestUntil, paramsOmitted))
             else:
-                response = self.sapiPublicGetV1Klines(self.extend(request, params))
-        #
-        #     [
-        #         [
-        #             1631158560000,
-        #             "208.1850",
-        #             "208.1850",
-        #             "208.1850",
-        #             "208.1850",
-        #             "11.84",
-        #             1631158619999,
-        #             "2464.910400",
-        #             1,
-        #             "11.84",
-        #             "2464.910400",
-        #             "0"
-        #         ]
-        #     ]
-        #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+                response = self.sapiPublicGetV3Klines(self.extend(requestUntil, paramsOmitted))
+            #
+            # both SPOT & PERP has same format
+            #
+            #  [
+            #     [
+            #         1499040000000, // Open time
+            #         "0.01634790", // Open
+            #         "0.80000000", // High
+            #         "0.01575800", // Low
+            #         "0.01577100", // Close
+            #         "148976.11427815", // Volume
+            #         1499644799999, // Close time
+            #         "2434.19055334", // Quote asset volume
+            #         308, // Number of trades
+            #         "1756.87402397", // Taker buy base asset volume
+            #         "28.46694368", // Taker buy quote asset volume,
+            #         "0"
+            #     ]
+            #  ]
+            #
+        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades
         #
+        #     recent trades:
+        #
         #     {
         #         "id": 3913206,
         #         "price": "644.100",
         #         "qty": "0.08",
-        #         "quoteQty": "51.528",
+        #         "quoteQty": "51.528",      // present in PERP
+        #         "baseQty": "4.95049505",   // present in SPOT
         #         "time": 1749784506633,
-        #         "isBuyerMaker": True
+        #         "isBuyerMaker": true
         #     }
+        #
+        #     aggrTrades
         #
         #     {
-        #         "id": 657,
-        #         "price": "1.01000000",
-        #         "qty": "5.00000000",
-        #         "baseQty": "4.95049505",
-        #         "time": 1755156533943,
-        #         "isBuyerMaker": False
+        #         "a": 26129, // Aggregate tradeId
+        #         "p": "0.01633102", // Price
+        #         "q": "4.70443515", // Quantity
+        #         "f": 27781, // First tradeId
+        #         "l": 27781, // Last tradeId
+        #         "T": 1498793709153, // Timestamp
+        #         "m": true, // Was the buyer the maker?
         #     }
         #
-        # fetchMyTrades
+        # fetchMyTrades  (SPOT & PERP have similar format)
         #
-        #     {
-        #         "buyer": False,
-        #         "commission": "-0.07819010",
-        #         "commissionAsset": "USDT",
-        #         "id": 698759,
-        #         "maker": False,
-        #         "orderId": 25851813,
-        #         "price": "7819.01",
-        #         "qty": "0.002",
-        #         "quoteQty": "15.63802",
-        #         "realizedPnl": "-0.91539999",
-        #         "side": "SELL",
-        #         "positionSide": "SHORT",
-        #         "symbol": "BTCUSDT",
-        #         "time": 1569514978020
-        #     }
+        # {
+        #     "symbol": "ETHUSDT",
+        #     "id": 2583152,
+        #     "orderId": 418588675,
+        #     "side": "SELL",
+        #     "price": "2330.04",
+        #     "qty": "0.0030",
+        #     "quoteQty": "6.99000000",
+        #     "commission": "0.00279605",
+        #     "commissionAsset": "USDT",
+        #     "time": 1776409179230,
+        #     "counterpartyId": 5143150,   // only in SPOT
+        #     "createUpdateId": null,      // only in SPOT
+        #     "maker": false,              // only in SPOT
+        #     "buyer": false,              // only in SPOT
+        #     "realizedPnl": "0.00029999", // only in PERP
+        #     "marginAsset": "USDT",       // only in PERP
+        #     "positionSide": "BOTH",      // only in PERP
+        # }
         #
-        id = self.safe_string(trade, 'id')
-        symbol = market['symbol']
-        currencyId = self.safe_string(trade, 'commissionAsset')
+        id = self.safe_string_2(trade, 'id', 'a')
+        marketId = self.safe_string(trade, 'symbol')
+        marketType = 'spot'
+        if 'positionSide' in trade:
+            marketType = 'swap'
+        marketResolved = self.safe_market(marketId, market, None, marketType)
+        currencyId = self.safe_string_2(trade, 'commissionAsset', 'marginAsset')
         currencyCode = self.safe_currency_code(currencyId)
-        amountString = self.safe_string(trade, 'qty')
-        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'qty', 'q')
+        priceString = self.safe_string_2(trade, 'price', 'p')
         costString = self.safe_string_2(trade, 'quoteQty', 'baseQty')
-        timestamp = self.safe_integer(trade, 'time')
+        timestamp = self.safe_integer_2(trade, 'time', 'T')
         side = self.safe_string_lower(trade, 'side')
         isMaker = self.safe_bool(trade, 'maker')
         takerOrMaker = None
         if isMaker is not None:
             takerOrMaker = 'maker' if isMaker else 'taker'
-        isBuyerMaker = self.safe_bool(trade, 'isBuyerMaker')
+            if side is None:
+                isBuyer = self.safe_bool(trade, 'buyer')
+                if isBuyer is not None:
+                    side = 'buy' if isBuyer else 'sell'
+        isBuyerMaker = self.safe_bool_2(trade, 'isBuyerMaker', 'm')
         if isBuyerMaker is not None:
             side = 'sell' if isBuyerMaker else 'buy'
         return self.safe_trade({
@@ -1013,7 +1295,7 @@ class aster(Exchange, ImplicitAPI):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': marketResolved['symbol'],
             'order': self.safe_string(trade, 'orderId'),
             'type': None,
             'side': side,
@@ -1025,154 +1307,172 @@ class aster(Exchange, ImplicitAPI):
                 'cost': self.parse_number(Precise.string_abs(self.safe_string(trade, 'commission'))),
                 'currency': currencyCode,
             },
-        }, market)
+        }, marketResolved)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#recent-trades-list
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#recent-trades-list
+        https://asterdex.github.io/aster-api-website/spot-v3/market-data/#recent-trades-list
+        https://asterdex.github.io/aster-api-website/spot-v3/market-data/#recent-trades-aggregated
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#recent-trades-list
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#compressedaggregate-trades-list
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchTrades() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
-            if limit > 1000:
-                limit = 1000  # Default 500; max 1000.
-            request['limit'] = limit
-        response = None
-        if market['swap']:
-            response = self.fapiPublicGetV1Trades(self.extend(request, params))
+            request['limit'] = min(limit, 1000)
+        response: List
+        sinceDefined = since is not None
+        untilDefined = ('until' in params)
+        if sinceDefined:
+            request['startTime'] = since
+        if untilDefined:
+            request = self.handle_until_option('endTime', request, params)
+        # use historical endpoint for targeted requests
+        if 'startTime' in request:
+            if market['swap'] is True:
+                response = self.fapiPublicGetV3AggTrades(self.extend(request, params))
+            else:
+                response = self.sapiPublicGetV3AggTrades(self.extend(request, params))
             #
-            #     [
-            #         {
-            #             "id": 3913206,
-            #             "price": "644.100",
-            #             "qty": "0.08",
-            #             "quoteQty": "51.528",
-            #             "time": 1749784506633,
-            #             "isBuyerMaker": True
-            #         }
-            #     ]
+            # both FAPI and SAPI have same response format
+            #
+            # [
+            #     {
+            #         "a": 26129, // Aggregate tradeId
+            #         "p": "0.01633102", // Price
+            #         "q": "4.70443515", // Quantity
+            #         "f": 27781, // First tradeId
+            #         "l": 27781, // Last tradeId
+            #         "T": 1498793709153, // Timestamp
+            #         "m": true, // Was the buyer the maker?
+            #     }
+            # ]
             #
         else:
-            response = self.sapiPublicGetV1Trades(self.extend(request, params))
-            #     [
-            #         {
-            #             "id": 657,
-            #             "price": "1.01000000",
-            #             "qty": "5.00000000",
-            #             "baseQty": "4.95049505",
-            #             "time": 1755156533943,
-            #             "isBuyerMaker": False
-            #         }
-            #     ]
+            if market['swap'] is True:
+                response = self.fapiPublicGetV3Trades(self.extend(request, params))
+            else:
+                response = self.sapiPublicGetV3Trades(self.extend(request, params))
+            #
+            # SAPI & FAPI have only one field difference
+            #
+            #    [
+            #        {
+            #            "id": "73620768",
+            #            "price": "2324.07",
+            #            "qty": "0.430",
+            #            "quoteQty": "999.35",      // only in PERP
+            #             "baseQty": "4.95049505",  // only in SPOT
+            #            "time": "1776407252900",
+            #            "isBuyerMaker": false
+            #        }, ...
+            #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#account-trade-history-user_data
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#account-trade-list-user_data
+        https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#account-trade-history-user_data
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#account-trade-list-user_data
 
         :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is None
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        self.load_markets()
-        market = self.market(symbol)
-        request: dict = {
-            'symbol': market['id'],
-        }
+        self.load_markets_and_sign_in()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        marketType, paramsMarketType = self.handle_market_type_and_params('fetchMyTrades', market, params)
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            if limit > 1000:
-                limit = 1000  # Default 500; max 1000.
-            request['limit'] = limit
-        request, params = self.handle_until_option('endTime', request, params)
-        response = None
-        if market['swap']:
-            response = self.fapiPrivateGetV1UserTrades(self.extend(request, params))
+            request['limit'] = min(limit, 1000)
+        requestUntil, paramsUntil = self.handle_until_option('endTime', request, paramsMarketType)
+        response: List
+        if marketType == 'swap':
+            response = self.fapiPrivateGetV3UserTrades(self.extend(requestUntil, paramsUntil))
         else:
-            response = self.sapiPrivateGetV1UserTrades(self.extend(request, params))
+            response = self.sapiPrivateGetV3UserTrades(self.extend(requestUntil, paramsUntil))
         #
-        #     [
-        #         {
-        #             "buyer": False,
-        #             "commission": "-0.07819010",
-        #             "commissionAsset": "USDT",
-        #             "id": 698759,
-        #             "maker": False,
-        #             "orderId": 25851813,
-        #             "price": "7819.01",
-        #             "qty": "0.002",
-        #             "quoteQty": "15.63802",
-        #             "realizedPnl": "-0.91539999",
-        #             "side": "SELL",
-        #             "positionSide": "SHORT",
-        #             "symbol": "BTCUSDT",
-        #             "time": 1569514978020
-        #         }
-        #     ]
+        # SPOT & PERP have similar format
         #
-        return self.parse_trades(response, market, since, limit, params)
+        # {
+        #     "symbol": "ETHUSDT",
+        #     "id": 2583152,
+        #     "orderId": 418588675,
+        #     "side": "SELL",
+        #     "price": "2330.04",
+        #     "qty": "0.0030",
+        #     "quoteQty": "6.99000000",
+        #     "commission": "0.00279605",
+        #     "commissionAsset": "USDT",
+        #     "time": 1776409179230,
+        #     "counterpartyId": 5143150,   // only in PERP
+        #     "createUpdateId": null,      // only in PERP
+        #     "maker": false,              // only in PERP
+        #     "buyer": false,              // only in PERP
+        #     "realizedPnl": "0.00029999", // only in SPOT
+        #     "marginAsset": "USDT",       // only in SPOT
+        #     "positionSide": "BOTH",      // only in SPOT
+        # }
+        #
+        return self.parse_trades(response, market, since, limit, paramsUntil)
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#depth-information
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#order-book
+        https://asterdex.github.io/aster-api-website/spot-v3/market-data/#depth-information
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#order-book
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
+        response: dict
         if limit is not None:
-            # limit: [5, 10, 20, 50, 100, 500, 1000]. Default: 500
-            if limit > 1000:
-                limit = 1000  # Default 500; max 1000.
-            request['limit'] = limit
-        response = None
-        if market['swap']:
-            response = self.fapiPublicGetV1Depth(self.extend(request, params))
+            request['limit'] = self.find_nearest_ceiling([5, 10, 20, 50, 100, 500, 1000], limit)
+        if market['swap'] is True:
+            response = self.fapiPublicGetV3Depth(self.extend(request, params))
         else:
-            response = self.sapiPublicGetV1Depth(self.extend(request, params))
+            response = self.sapiPublicGetV3Depth(self.extend(request, params))
+        #
+        # both SPOT & PERP has same format
         #
         #     {
         #         "lastUpdateId": 1027024,
-        #         "E": 1589436922972,  #     Message output time
-        #         "T": 1589436922959,  #     Transaction time
+        #         "E": 1589436922972, //     Message output time
+        #         "T": 1589436922959, //     Transaction time
         #         "bids": [
         #             [
-        #                 "4.00000000",  #     PRICE
-        #                 "431.00000000"  #     QTY
+        #                 "4.00000000", //     PRICE
+        #                 "431.00000000" //     QTY
         #             ]
         #         ],
         #         "asks": [
@@ -1186,121 +1486,67 @@ class aster(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'T')
         return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks')
 
-    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        """
-        fetches historical funding rate prices
-
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-funding-rate-history
-
-        :param str symbol: unified symbol of the market to fetch the funding rate history for
-        :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.until]: timestamp in ms of the latest funding rate
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
-        """
-        self.load_markets()
-        request: dict = {}
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-        if since is not None:
-            request['startTime'] = since
-        if limit is not None:
-            if limit > 1000:
-                limit = 1000  # Default 100; max 1000
-            request['limit'] = limit
-        request, params = self.handle_until_option('endTime', request, params)
-        response = self.fapiPublicGetV1FundingRate(self.extend(request, params))
-        #
-        #     [
-        #         {
-        #             "symbol": "BTCUSDT",
-        #             "fundingTime": 1747209600000,
-        #             "fundingRate": "0.00010000"
-        #         }
-        #     ]
-        #
-        rates = []
-        for i in range(0, len(response)):
-            entry = response[i]
-            timestamp = self.safe_integer(entry, 'fundingTime')
-            rates.append({
-                'info': entry,
-                'symbol': self.safe_symbol(self.safe_string(entry, 'symbol'), None, None, 'swap'),
-                'fundingRate': self.safe_number(entry, 'fundingRate'),
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-            })
-        sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
-
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
-        # spot
-        #     {
-        #         "symbol": "BTCUSDT",
-        #         "priceChange": "-2274.38",
-        #         "priceChangePercent": "-2.049",
-        #         "weightedAvgPrice": "109524.37084136",
-        #         "lastPrice": "108738.78",
-        #         "lastQty": "0.00034",
-        #         "openPrice": "111013.16",
-        #         "highPrice": "111975.81",
-        #         "lowPrice": "107459.25",
-        #         "volume": "28.67876",
-        #         "quoteVolume": "3141023.14551030",
-        #         "openTime": "1760578800000",
-        #         "closeTime": "1760665024749",
-        #         "firstId": "37447",
-        #         "lastId": "39698",
-        #         "count": "2252",
-        #         "baseAsset": "BTC",
-        #         "quoteAsset": "USDT",
-        #         "bidPrice": "108705.11",
-        #         "bidQty": "0.03351",
-        #         "askPrice": "108725.99",
-        #         "askQty": "0.08724"
-        #     }
-        # swap
-        #     {
-        #         "symbol": "BTCUSDT",
-        #         "priceChange": "1845.7",
-        #         "priceChangePercent": "1.755",
-        #         "weightedAvgPrice": "105515.5",
-        #         "lastPrice": "107037.7",
-        #         "lastQty": "0.004",
-        #         "openPrice": "105192.0",
-        #         "highPrice": "107223.5",
-        #         "lowPrice": "104431.6",
-        #         "volume": "8753.286",
-        #         "quoteVolume": "923607368.61",
-        #         "openTime": 1749976620000,
-        #         "closeTime": 1750063053754,
-        #         "firstId": 24195078,
-        #         "lastId": 24375783,
-        #         "count": 180706
-        #     }
+        # fetchTicker & fetchTickers: both SPOT & PERP has similar format
+        #
+        #    {
+        #        "symbol": "ETHUSDT",
+        #        "priceChange": "6.54",
+        #        "priceChangePercent": "0.279",
+        #        "weightedAvgPrice": "2330.70",
+        #        "lastPrice": "2350.00",
+        #        "lastQty": "4.437",
+        #        "openPrice": "2343.46",
+        #        "highPrice": "2363.20",
+        #        "lowPrice": "2283.86",
+        #        "volume": "267154.248",
+        #        "quoteVolume": "622657018.70",
+        #        "openTime": "1776329400000",
+        #        "closeTime": "1776415832593",
+        #        "firstId": "73520536",
+        #        "lastId": "73630176",
+        #        "count": "109640",
+        #        "baseAsset": "BTC",            // only in SPOT
+        #        "quoteAsset": "USDT",          // only in SPOT
+        #        "bidPrice": "71125.98",        // only in SPOT
+        #        "bidQty": "0.00737",           // only in SPOT
+        #        "askPrice": "71152.10",        // only in SPOT
+        #        "askQty": "0.32399"            // only in SPOT
+        #    }
+        #
+        #
+        # fetchBidsAsks: SPOT & PERP have only one field difference
+        #
+        #     [
+        #        {
+        #            "symbol": "BMTUSDT",
+        #            "bidPrice": "0.004000",
+        #            "bidQty": "1250.0",
+        #            "askPrice": "0.000000",
+        #            "askQty": "0.0",
+        #            "time": "1776411276072",
+        #            "lastUpdateId": "453174307613"   // only in PERP
+        #        }, ...
         #
         timestamp = self.safe_integer(ticker, 'closeTime')
-        marketType = None
-        if 'bidQty' in ticker:
-            marketType = 'spot'
-        else:
-            marketType = 'contract'
-        marketId = self.safe_string(ticker, 'symbol')
-        market = self.safe_market(marketId, market, None, marketType)
-        symbol = market['symbol']
         last = self.safe_string(ticker, 'lastPrice')
         open = self.safe_string(ticker, 'openPrice')
         percentage = self.safe_string(ticker, 'priceChangePercent')
-        percentage = Precise.string_mul(percentage, '100')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         baseVolume = self.safe_string(ticker, 'volume')
         high = self.safe_string(ticker, 'highPrice')
         low = self.safe_string(ticker, 'lowPrice')
+        isTickerResponse = ('priceChange' in ticker)
+        marketType = None
+        if isTickerResponse:
+            marketType = 'spot' if ('baseAsset' in ticker) else 'swap'
+        else:
+            marketType = 'swap' if ('lastUpdateId' in ticker) else 'spot'
+        marketId = self.safe_string(ticker, 'symbol')
+        marketResolved = self.safe_market(marketId, market, None, marketType)
         return self.safe_ticker({
-            'symbol': symbol,
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': high,
@@ -1322,104 +1568,83 @@ class aster(Exchange, ImplicitAPI):
             'markPrice': None,
             'indexPrice': None,
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#24h-price-change
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics
+        https://asterdex.github.io/aster-api-website/spot-v3/market-data/#24h-price-change
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchTicker() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
-        response = None
-        if market['swap']:
-            response = self.fapiPublicGetV1Ticker24hr(self.extend(request, params))
-            #
-            #     {
-            #         "symbol": "BTCUSDT",
-            #         "priceChange": "1845.7",
-            #         "priceChangePercent": "1.755",
-            #         "weightedAvgPrice": "105515.5",
-            #         "lastPrice": "107037.7",
-            #         "lastQty": "0.004",
-            #         "openPrice": "105192.0",
-            #         "highPrice": "107223.5",
-            #         "lowPrice": "104431.6",
-            #         "volume": "8753.286",
-            #         "quoteVolume": "923607368.61",
-            #         "openTime": 1749976620000,
-            #         "closeTime": 1750063053754,
-            #         "firstId": 24195078,
-            #         "lastId": 24375783,
-            #         "count": 180706
-            #     }
-            #
+        response: dict
+        if market['swap'] is True:
+            response = self.fapiPublicGetV3Ticker24hr(self.extend(request, params))
         else:
-            response = self.sapiPublicGetV1Ticker24hr(self.extend(request, params))
-            #     {
-            #         "symbol": "BTCUSDT",
-            #         "priceChange": "-2274.38",
-            #         "priceChangePercent": "-2.049",
-            #         "weightedAvgPrice": "109524.37084136",
-            #         "lastPrice": "108738.78",
-            #         "lastQty": "0.00034",
-            #         "openPrice": "111013.16",
-            #         "highPrice": "111975.81",
-            #         "lowPrice": "107459.25",
-            #         "volume": "28.67876",
-            #         "quoteVolume": "3141023.14551030",
-            #         "openTime": "1760578800000",
-            #         "closeTime": "1760665024749",
-            #         "firstId": "37447",
-            #         "lastId": "39698",
-            #         "count": "2252",
-            #         "baseAsset": "BTC",
-            #         "quoteAsset": "USDT",
-            #         "bidPrice": "108705.11",
-            #         "bidQty": "0.03351",
-            #         "askPrice": "108725.99",
-            #         "askQty": "0.08724"
-            #     }
+            response = self.sapiPublicGetV3Ticker24hr(self.extend(request, params))
+        #
+        # both SPOT & PERP has same format
+        #
+        #    {
+        #        "symbol": "ETHUSDT",
+        #        "priceChange": "6.54",
+        #        "priceChangePercent": "0.279",
+        #        "weightedAvgPrice": "2330.70",
+        #        "lastPrice": "2350.00",
+        #        "lastQty": "4.437",
+        #        "openPrice": "2343.46",
+        #        "highPrice": "2363.20",
+        #        "lowPrice": "2283.86",
+        #        "volume": "267154.248",
+        #        "quoteVolume": "622657018.70",
+        #        "openTime": "1776329400000",
+        #        "closeTime": "1776415832593",
+        #        "firstId": "73520536",
+        #        "lastId": "73630176",
+        #        "count": "109640",
+        #        "baseAsset": "BTC",            // only in SPOT
+        #        "quoteAsset": "USDT",          // only in SPOT
+        #        "bidPrice": "71125.98",        // only in SPOT
+        #        "bidQty": "0.00737",           // only in SPOT
+        #        "askPrice": "71152.10",        // only in SPOT
+        #        "askQty": "0.32399"            // only in SPOT
+        #    }
+        #
         return self.parse_ticker(response, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#24h-price-change
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics
+        https://asterdex.github.io/aster-api-website/spot-v3/market-data/#24h-price-change
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics
 
         :param str[] symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
         :param str [params.type]: 'spot', 'option', use params["subType"] for swap and future markets
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
-        symbols = self.market_symbols(symbols, None, True, True, True)
-        market = self.get_market_from_symbols(symbols)
-        type = None
-        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        subType = None
-        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
+        if self.markets is None:
+            self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
+        market = self.get_market_from_symbols(symbolsNormalized)
+        marketType, paramsMarketType = self.handle_market_type_and_params('fetchTickers', market, params)
         response = None
-        if self.is_linear(type, subType):
-            response = self.fapiPublicGetV1Ticker24hr(params)
-        elif type == 'spot':
-            response = self.sapiPublicGetV1Ticker24hr(params)
-        else:
-            raise NotSupported(self.id + ' fetchTickers() does not support ' + type + ' markets yet')
+        if marketType == 'swap':
+            response = self.fapiPublicGetV3Ticker24hr(paramsMarketType)
+        elif marketType == 'spot':
+            response = self.sapiPublicGetV3Ticker24hr(paramsMarketType)
         #
         #     [
         #         {
@@ -1438,13 +1663,125 @@ class aster(Exchange, ImplicitAPI):
         #             "closeTime": 1750063053754,
         #             "firstId": 24195078,
         #             "lastId": 24375783,
-        #             "count": 180706
+        #             "count": 180706,
+        #             "baseAsset": "BTC",              // only in SPOT
+        #             "quoteAsset": "USDT",            // only in SPOT
+        #             "bidPrice": "71125.98",          // only in SPOT
+        #             "bidQty": "0.00737",             // only in SPOT
+        #             "askPrice": "71152.10",          // only in SPOT
+        #             "askQty": "0.32399"              // only in SPOT
         #         }
         #     ]
         #
-        return self.parse_tickers(response, symbols)
+        return self.parse_tickers(response, symbolsNormalized)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def fetch_last_prices(self, symbols: Strings = None, params: dict = {}) -> LastPrices:
+        """
+        fetches the last price for multiple markets
+
+        https://asterdex.github.io/aster-api-website/spot-v3/market-data/#latest-price
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
+
+        :param str[]|None symbols: unified symbols of the markets to fetch the last prices
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: "linear" or "inverse"
+        :returns dict: a dictionary of lastprices structures
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
+        market = self.get_market_from_symbols(symbolsNormalized)
+        marketType, paramsMarketType = self.handle_market_type_and_params('fetchLastPrices', market, params)
+        response = None
+        if marketType == 'swap':
+            response = self.fapiPublicGetV3TickerPrice(paramsMarketType)
+        elif marketType == 'spot':
+            response = self.sapiPublicGetV3TickerPrice(paramsMarketType)
+        #
+        # both SPOT & SWAP has same format
+        #
+        #     [
+        #         {
+        #             "symbol": "LTCBTC",
+        #             "price": "4.00000200"
+        #             "time": "1649666690902"
+        #         },
+        #         ...
+        #     ]
+        #
+        if response is None:
+            raise NullResponse(self.id + ' fetchLastPrices() returned empty response')
+        rows = self.to_array(response)
+        results = []
+        for i in range(0, len(rows)):
+            marketId = self.safe_string(rows[i], 'symbol')
+            safeMarket = self.safe_market(marketId, None, None, marketType)
+            priceData = self.extend(self.parse_last_price(rows[i], safeMarket), paramsMarketType)
+            results.append(priceData)
+        symbolsNormalized2 = self.market_symbols(symbolsNormalized)
+        return self.filter_by_array(results, 'symbol', symbolsNormalized2)
+
+    def parse_last_price(self, entry: dict, market: Market = None) -> LastPrice:
+        #
+        # spot & swap
+        #
+        #     {
+        #         "symbol": "LTCBTC",
+        #         "price": "4.00000200"
+        #         "time": "1649666690902"
+        #     }
+        #
+        timestamp = self.safe_integer(entry, 'time')
+        return {
+            'symbol': self.safe_string(market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'price': self.safe_number_omit_zero(entry, 'price'),
+            'side': None,
+            'info': entry,
+        }
+
+    def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+        """
+        fetches the bid and ask price and volume for multiple markets
+
+        https://asterdex.github.io/aster-api-website/spot-v3/market-data/#current-best-order
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-order-book-ticker
+
+        :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: "linear" or "inverse"
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
+        market = self.get_market_from_symbols(symbolsNormalized)
+        marketType, paramsMarketType = self.handle_market_type_and_params('fetchBidsAsks', market, params)
+        response = None
+        if marketType == 'swap':
+            response = self.fapiPublicGetV3TickerBookTicker(paramsMarketType)
+        elif marketType == 'spot':
+            response = self.sapiPublicGetV3TickerBookTicker(paramsMarketType)
+        #
+        # SPOT & PERP have only one field difference
+        #
+        #     [
+        #        {
+        #            "symbol": "BMTUSDT",
+        #            "bidPrice": "0.004000",
+        #            "bidQty": "1250.0",
+        #            "askPrice": "0.000000",
+        #            "askQty": "0.0",
+        #            "time": "1776411276072",
+        #            "lastUpdateId": "453174307613"   // only in PERP
+        #        }, ...
+        #
+        return self.parse_tickers(response, symbolsNormalized)
+
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+        #
+        # fundingRate
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -1456,6 +1793,9 @@ class aster(Exchange, ImplicitAPI):
         #         "nextFundingTime": 1750147200000,
         #         "time": 1750146970000
         #     }
+        #
+        # funding interval
+        #
         #     {
         #         "symbol": "INJUSDT",
         #         "interestRate": "0.00010000",
@@ -1493,24 +1833,25 @@ class aster(Exchange, ImplicitAPI):
             'interval': intervalString,
         }
 
-    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRate() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
-        response = self.fapiPublicGetV1PremiumIndex(self.extend(request, params))
+        response = self.fapiPublicGetV3PremiumIndex(self.extend(request, params))
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -1525,19 +1866,20 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response, market)
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         fetch the current funding rate for multiple symbols
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
-        symbols = self.market_symbols(symbols)
-        response = self.fapiPublicGetV1PremiumIndex(self.extend(params))
+        if self.markets is None:
+            self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols)
+        response = self.fapiPublicGetV3PremiumIndex(self.extend(params))
         #
         #     [
         #         {
@@ -1552,22 +1894,22 @@ class aster(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_funding_rates(response, symbols)
+        return self.parse_funding_rates(response, symbolsNormalized)
 
-    def fetch_funding_intervals(self, symbols: Strings = None, params={}) -> FundingRates:
+    def fetch_funding_intervals(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         fetch the funding rate interval for multiple markets
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-funding-rate-config
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-config
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
-        if symbols is not None:
-            symbols = self.market_symbols(symbols)
-        response = self.fapiPublicGetV1FundingInfo(params)
+        if self.markets is None:
+            self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols)
+        response = self.fapiPublicGetV3FundingInfo(params)
         #
         #     [
         #         {
@@ -1580,64 +1922,96 @@ class aster(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_funding_rates(response, symbols)
+        return self.parse_funding_rates(response, symbolsNormalized)
 
-    def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
-        for i in range(0, len(response)):
-            balance = response[i]
-            currencyId = self.safe_string(balance, 'asset')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string_2(balance, 'free', 'maxWithdrawAmount')
-            account['used'] = self.safe_string(balance, 'locked')
-            account['total'] = self.safe_string(balance, 'walletBalance')
-            result[code] = account
-        return self.safe_balance(result)
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
+        """
+        fetches historical funding rate prices
 
-    def fetch_balance(self, params={}) -> Balances:
+        https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-history
+
+        :param str symbol: unified symbol of the market to fetch the funding rate history for
+        :param int [since]: timestamp in ms of the earliest funding rate to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = min(limit, 1000)
+        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
+        response = self.fapiPublicGetV3FundingRate(self.extend(requestUntil, paramsUntil))
+        #
+        #     [
+        #         {
+        #             "symbol": "BTCUSDT",
+        #             "fundingTime": 1747209600000,
+        #             "fundingRate": "0.00010000"
+        #         }
+        #     ]
+        #
+        return self.parse_funding_rate_histories(response, market)
+
+    def parse_funding_rate_history(self, contract: object, market: Market = None) -> FundingRateHistory:
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "fundingRate": "0.00063521",
+        #         "fundingTime": "1621267200000",
+        #     }
+        #
+        timestamp = self.safe_integer(contract, 'fundingTime')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(self.safe_string(contract, 'symbol'), None, None, 'swap'),
+            'fundingRate': self.safe_number(contract, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#account-information-v4-user_data
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#account-information-user_data
+        https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#account-information-user_data
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#futures-account-balance-v3-user_data
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
         :param str [params.type]: 'spot', 'option', use params["subType"] for swap and future markets
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        type = None
-        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        subType = None
-        subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
+        self.load_markets_and_sign_in()
+        marketType, paramsMarketType = self.handle_market_type_and_params('fetchBalance', None, params)
         response = None
         data = None
-        if self.is_linear(type, subType):
-            response = self.fapiPrivateGetV4Account(params)
-            data = self.safe_list(response, 'assets', [])
+        if marketType == 'swap':
+            data = self.fapiPrivateGetV3Balance(paramsMarketType)
             #
-            #     [
-            #         {
-            #             "asset": "USDT",  # asset name
-            #             "walletBalance": "23.72469206",  # wallet balance
-            #             "unrealizedProfit": "0.00000000",  # unrealized profit
-            #             "marginBalance": "23.72469206",  # margin balance
-            #             "maintMargin": "0.00000000",  # maintenance margin required
-            #             "initialMargin": "0.00000000",  # total initial margin required with current mark price
-            #             "positionInitialMargin": "0.00000000",  #initial margin required for positions with current mark price
-            #             "openOrderInitialMargin": "0.00000000",  # initial margin required for open orders with current mark price
-            #             "crossWalletBalance": "23.72469206",  # crossed wallet balance
-            #             "crossUnPnl": "0.00000000",  # unrealized profit of crossed positions
-            #             "availableBalance": "23.72469206",  # available balance
-            #             "maxWithdrawAmount": "23.72469206",  # maximum amount for transfer out
-            #             "marginAvailable": True,  # whether the asset can be used in Multi-Assets mode
-            #             "updateTime": 1625474304765  # last update time
-            #         }
-            #     ]
+            #    [
+            #        {
+            #            "accountAlias": "FzXquXsRFzXqAufW",
+            #            "asset": "CDL",
+            #            "balance": "0.00000000",
+            #            "crossWalletBalance": "0.00000000",
+            #            "crossUnPnl": "0.00000000",
+            #            "availableBalance": "878.90500233",
+            #            "maxWithdrawAmount": "0.00000000",
+            #            "marginAvailable": true,
+            #            "updateTime": "0"
+            #        }, ...
             #
-        elif type == 'spot':
-            response = self.sapiPrivateGetV1Account(params)
+        elif marketType == 'spot':
+            response = self.sapiPrivateGetV3Account(paramsMarketType)
             data = self.safe_list(response, 'balances', [])
             #
             #     [
@@ -1648,15 +2022,27 @@ class aster(Exchange, ImplicitAPI):
             #         }
             #     ]
             #
-        else:
-            raise NotSupported(self.id + ' fetchBalance() does not support ' + type + ' markets yet')
         return self.parse_balance(data)
 
-    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+    def parse_balance(self, response: object) -> Balances:
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = self.safe_dict(response, i)
+            currencyId = self.safe_string(balance, 'asset')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string_2(balance, 'free', 'availableBalance')
+            account['used'] = self.safe_string(balance, 'locked')
+            account['total'] = self.safe_string(balance, 'balance')
+            if code is not None:
+                result[code] = account
+        return self.safe_balance(result)
+
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params: dict = {}):
         """
         set margin mode to 'cross' or 'isolated'
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-margin-type-trade
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-margin-type-trade
 
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
@@ -1665,63 +2051,59 @@ class aster(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        marginMode = marginMode.upper()
-        if marginMode == 'CROSS':
-            marginMode = 'CROSSED'
-        if (marginMode != 'ISOLATED') and (marginMode != 'CROSSED'):
+        marginModeUpper = marginMode.upper()
+        marginModeValue = 'CROSSED' if (marginModeUpper == 'CROSS') else marginModeUpper
+        if (marginModeValue != 'ISOLATED') and (marginModeValue != 'CROSSED'):
             raise BadRequest(self.id + ' marginMode must be either isolated or cross')
-        self.load_markets()
+        self.load_markets_and_sign_in()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
-            'marginType': marginMode,
+            'marginType': marginModeValue,
         }
-        response = self.fapiPrivatePostV1MarginType(self.extend(request, params))
+        response = self.fapiPrivatePostV3MarginType(self.extend(request, params))
         #
-        #     {
-        #         "amount": 100.0,
-        #         "code": 200,
-        #         "msg": "Successfully modify position margin.",
-        #         "type": 1
-        #     }
+        #     { "code": 200,"msg": "success" }
         #
         return response
 
-    def fetch_position_mode(self, symbol: Str = None, params={}):
+    def fetch_position_mode(self, symbol: Str = None, params: dict = {}) -> PositionModeInfo:
         """
         fetchs the position mode, hedged or one way, hedged for aster is set identically for all linear markets or all inverse markets
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-current-position-modeuser_data
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-current-position-modeuser_data
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an object detailing whether the market is in hedged or one-way mode
         """
-        response = self.fapiPrivateGetV1PositionSideDual(params)
+        response = self.fapiPrivateGetV3PositionSideDual(params)
         #
         #     {
-        #         "dualSidePosition": True  # "true": Hedge Mode; "false": One-way Mode
+        #         "dualSidePosition": true // "true": Hedge Mode; "false": One-way Mode
         #     }
         #
-        dualSidePosition = self.safe_bool(response, 'dualSidePosition')
         return {
             'info': response,
-            'hedged': (dualSidePosition is True),
+            'hedged': self.safe_bool(response, 'dualSidePosition'),
         }
 
-    def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
         """
         set hedged to True or False for a market
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-position-modetrade
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade
 
         :param bool hedged: set to True to use dualSidePosition
-        :param str symbol: not used by bingx setPositionMode()
+        :param str symbol: not used by setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
-        request: dict = {
-            'dualSidePosition': hedged,
+        strValue = 'false'
+        if hedged:
+            strValue = 'true'
+        request = {
+            'dualSidePosition': strValue,
         }
         #
         #     {
@@ -1729,12 +2111,12 @@ class aster(Exchange, ImplicitAPI):
         #         "msg": "success"
         #     }
         #
-        return self.fapiPrivatePostV1PositionSideDual(self.extend(request, params))
+        return self.fapiPrivatePostV3PositionSideDual(self.extend(request, params))
 
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
         marketId = self.safe_string(fee, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = self.safe_symbol(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
+        symbol = self.safe_symbol(marketId, marketResolved)
         return {
             'info': fee,
             'symbol': symbol,
@@ -1744,27 +2126,29 @@ class aster(Exchange, ImplicitAPI):
             'tierBased': False,
         }
 
-    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#get-symbol-fees
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#user-commission-rate-user_data
+        https://asterdex.github.io/aster-api-website/spot-v3/market-data/#get-symbol-fees
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#user-commission-rate-user_data
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        self.load_markets_and_sign_in()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
-        response = None
-        if market['swap']:
-            response = self.fapiPrivateGetV1CommissionRate(self.extend(request, params))
+        response: dict
+        if market['swap'] is True:
+            response = self.fapiPrivateGetV3CommissionRate(self.extend(request, params))
         else:
-            response = self.sapiPrivateGetV1CommissionRate(self.extend(request, params))
+            response = self.sapiPrivateGetV3CommissionRate(self.extend(request, params))
+        #
+        # both SPOT & SWAP has same format
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -1775,7 +2159,7 @@ class aster(Exchange, ImplicitAPI):
         return self.parse_trading_fee(response, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
@@ -1786,7 +2170,7 @@ class aster(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, type: Str):
-        types: dict = {
+        types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
             'STOP': 'limit',
@@ -1809,12 +2193,12 @@ class aster(Exchange, ImplicitAPI):
         #         "origQty": "0.40",
         #         "origType": "TRAILING_STOP_MARKET",
         #         "price": "0",
-        #         "reduceOnly": False,
+        #         "reduceOnly": false,
         #         "side": "BUY",
         #         "positionSide": "SHORT",
         #         "status": "NEW",
         #         "stopPrice": "9300",
-        #         "closePosition": False,
+        #         "closePosition": false,
         #         "symbol": "BTCUSDT",
         #         "time": 1579276756075,
         #         "timeInForce": "GTC",
@@ -1823,34 +2207,42 @@ class aster(Exchange, ImplicitAPI):
         #         "priceRate": "0.3",
         #         "updateTime": 1579276756075,
         #         "workingType": "CONTRACT_PRICE",
-        #         "priceProtect": False
-        #     }
-        # spot
-        #     {
-        #         "orderId": 38,
-        #         "symbol": "ADA25SLP25",
-        #         "status": "FILLED",
-        #         "clientOrderId": "afMd4GBQyHkHpGWdiy34Li",
-        #         "price": "20",
-        #         "avgPrice": "12.0000000000000000",
-        #         "origQty": "10",
-        #         "executedQty": "10",
-        #         "cumQuote": "120",
-        #         "timeInForce": "GTC",
-        #         "type": "LIMIT",
-        #         "side": "BUY",
-        #         "stopPrice": "0",
-        #         "origType": "LIMIT",
-        #         "time": 1649913186270,
-        #         "updateTime": 1649913186297
+        #         "priceProtect": false
         #     }
         #
+        # spot
+        #
+        #   fetchOrders, fetchOpenOrders, fetchOpenOrder, fetchOrder, cancelOrder, createOrder
+        #
+        #        {
+        #            "orderId": "417594542",
+        #            "symbol": "ETHUSDT",
+        #            "status": "FILLED",
+        #            "clientOrderId": "web_qnvMAhOJsiVbSyu0BdKG",
+        #            "price": "0",                     // value set for unfilled
+        #            "avgPrice": "2351.580000",        // value zero for unfilled
+        #            "origQty": "0.0054",
+        #            "executedQty": "0.0054",          // value zero for unfilled
+        #            "cumQuote": "12.69853200",        // value zero for unfilled
+        #            "timeInForce": "GTC",
+        #            "type": "MARKET",
+        #            "side": "SELL",
+        #            "stopPrice": "0",
+        #            "origType": "MARKET",
+        #            "time": "1776274219582",
+        #            "updateTime": "1776274219609",
+        #            "orderListId": "-1"
+        #        }
+        #
         info = order
+        positionSide = self.safe_string(order, 'positionSide')
+        defaultType = 'spot'
+        if positionSide is not None:
+            defaultType = 'swap'
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market, None, defaultType)
         side = self.safe_string_lower(order, 'side')
         timestamp = self.safe_integer(order, 'time')
-        lastTradeTimestamp = self.safe_integer(order, 'updateTime')
         statusId = self.safe_string_upper(order, 'status')
         rawType = self.safe_string_upper(order, 'type')
         stopPriceString = self.safe_string(order, 'stopPrice')
@@ -1859,10 +2251,10 @@ class aster(Exchange, ImplicitAPI):
             'info': info,
             'id': self.safe_string(order, 'orderId'),
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
-            'symbol': self.safe_symbol(marketId, market),
+            'symbol': self.safe_symbol(marketId, marketResolved),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'lastUpdateTimestamp': self.safe_integer(order, 'updateTime'),
             'type': self.parse_order_type(rawType),
             'timeInForce': self.safe_string(order, 'timeInForce'),
@@ -1879,109 +2271,200 @@ class aster(Exchange, ImplicitAPI):
             'fee': None,
             'trades': None,
             'reduceOnly': self.safe_bool_2(order, 'reduceOnly', 'ro'),
-        }, market)
+        }, marketResolved)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#query-order-user_data
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#query-order-user_data
+        https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-order-user_data
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#query-order-user_data
 
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: a unique id for the order
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        self.load_markets()
+        self.load_markets_and_sign_in()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientOid')
-        params = self.omit(params, ['clientOrderId', 'clientOid'])
+        paramsOmitted = self.omit(params, ['clientOrderId', 'clientOid'])
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
         else:
             request['orderId'] = id
-        response = None
-        if market['swap']:
-            response = self.fapiPrivateGetV1Order(self.extend(request, params))
+        response: dict
+        if market['swap'] is True:
+            response = self.fapiPrivateGetV3Order(self.extend(request, paramsOmitted))
         else:
-            response = self.sapiPrivateGetV1Order(self.extend(request, params))
+            response = self.sapiPrivateGetV3Order(self.extend(request, paramsOmitted))
+        #
+        # SPOT & SWAP has similar formats
+        #
+        #    {
+        #        "orderId": "17338441758",
+        #        "symbol": "ETHUSDT",
+        #        "status": "FILLED",
+        #        "clientOrderId": "727Wt3TIUgkUCxXp20E543",
+        #        "price": "0",
+        #        "avgPrice": "2304.56000",
+        #        "origQty": "0.010",
+        #        "executedQty": "0.010",
+        #        "cumQuote": "23.04560",
+        #        "timeInForce": "GTC",
+        #        "type": "MARKET",
+        #        "side": "BUY",
+        #        "stopPrice": "0",
+        #        "origType": "MARKET",
+        #        "time": "1776800300736",
+        #        "updateTime": "1776800300700",
+        #        "orderListId": "-1"                                   // only in SPOT
+        #        "positionSide": "BOTH",                               // only in SWAP
+        #        "reduceOnly": false,                                  // only in SWAP
+        #        "closePosition": false,                               // only in SWAP
+        #        "workingType": "CONTRACT_PRICE",                      // only in SWAP
+        #        "priceProtect": false,                                // only in SWAP
+        #        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
+        #    }
+        #
         return self.parse_order(response, market)
 
-    def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_open_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetch an open order by the id
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#query-current-open-order-user_data
+        https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-current-open-order-user_data
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#query-current-open-order-user_data
 
         :param str id: order id
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrder() requires a symbol argument')
-        self.load_markets()
+        self.load_markets_and_sign_in()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientOid')
-        params = self.omit(params, ['clientOrderId', 'clientOid'])
+        paramsOmitted = self.omit(params, ['clientOrderId', 'clientOid'])
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
         else:
             request['orderId'] = id
-        response = self.fapiPrivateGetV1OpenOrder(self.extend(request, params))
+        response: dict
+        if market['spot'] is True:
+            response = self.sapiPrivateGetV3OpenOrder(self.extend(request, paramsOmitted))
+        else:
+            response = self.fapiPrivateGetV3OpenOrder(self.extend(request, paramsOmitted))
+        #
+        # SPOT & SWAP has similar formats
+        #
+        #    {
+        #        "orderId": "17338441758",
+        #        "symbol": "ETHUSDT",
+        #        "status": "FILLED",
+        #        "clientOrderId": "727Wt3TIUgkUCxXp20E543",
+        #        "price": "0",
+        #        "avgPrice": "2304.56000",
+        #        "origQty": "0.010",
+        #        "executedQty": "0.010",
+        #        "cumQuote": "23.04560",
+        #        "timeInForce": "GTC",
+        #        "type": "MARKET",
+        #        "side": "BUY",
+        #        "stopPrice": "0",
+        #        "origType": "MARKET",
+        #        "time": "1776800300736",
+        #        "updateTime": "1776800300700",
+        #        "orderListId": "-1"                                   // only in SPOT
+        #        "positionSide": "BOTH",                               // only in SWAP
+        #        "reduceOnly": false,                                  // only in SWAP
+        #        "closePosition": false,                               // only in SWAP
+        #        "workingType": "CONTRACT_PRICE",                      // only in SWAP
+        #        "priceProtect": false,                                // only in SWAP
+        #        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
+        #    }
+        #
         return self.parse_order(response, market)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#query-all-orders-user_data
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#all-orders-user_data
+        https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-all-orders-user_data
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#all-orders-user_data
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+        self.load_markets_and_sign_in()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
+        if limit is not None:
+            request['limit'] = min(limit, 1000)
         if since is not None:
             request['startTime'] = since
-        if limit is not None:
-            if limit > 1000:
-                limit = 1000  # Default 500; max 1000
-            request['limit'] = limit
-        request, params = self.handle_until_option('endTime', request, params)
-        response = None
-        if market['swap']:
-            response = self.fapiPrivateGetV1AllOrders(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
+        response: dict
+        if market['swap'] is True:
+            response = self.fapiPrivateGetV3AllOrders(self.extend(requestUntil, paramsUntil))
         else:
-            response = self.sapiPrivateGetV1AllOrders(self.extend(request, params))
+            response = self.sapiPrivateGetV3AllOrders(self.extend(requestUntil, paramsUntil))
+        #
+        # SPOT & SWAP has similar responses
+        #
+        #    [
+        #        {
+        #            "orderId": "417594542",
+        #            "symbol": "ETHUSDT",
+        #            "status": "FILLED",
+        #            "clientOrderId": "web_qnvMAhOJsiVbSyu0BdKG",
+        #            "price": "0",                     // value set for unfilled
+        #            "avgPrice": "2351.580000",        // value zero for unfilled
+        #            "origQty": "0.0054",
+        #            "executedQty": "0.0054",          // value zero for unfilled
+        #            "cumQuote": "12.69853200",        // value zero for unfilled
+        #            "timeInForce": "GTC",
+        #            "type": "MARKET",
+        #            "side": "SELL",
+        #            "stopPrice": "0",
+        #            "origType": "MARKET",
+        #            "time": "1776274219582",
+        #            "updateTime": "1776274219609",
+        #            "orderListId": "-1",                                     // only in SPOT
+        #            "reduceOnly": false,                                     // only in PERP
+        #            "closePosition": false,                                  // only in PERP
+        #            "positionSide": "BOTH",                                  // only in PERP
+        #            "workingType": "CONTRACT_PRICE",                         // only in PERP
+        #            "priceProtect": false,                                   // only in PERP
+        #            "newChainData": { "hash": "0xe17d3d5b...dbca8b01" }      // only in PERP
+        #        }, ...
+        #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#current-open-orders-user_data
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#current-all-open-orders-user_data
+        https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#current-open-orders-user_data
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#current-all-open-orders-user_data
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -1989,62 +2472,66 @@ class aster(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
         :param str [params.type]: 'spot', 'option', use params["subType"] for swap and future markets
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        self.load_markets_and_sign_in()
+        request = {}
         market = None
-        type = None
-        subType = None
-        subType, params = self.handle_sub_type_and_params('fetchOpenOrders', market, params)
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        type, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
-        response = None
-        if self.is_linear(type, subType):
-            response = self.fapiPrivateGetV1OpenOrders(self.extend(request, params))
-        elif type == 'spot':
-            response = self.sapiPrivateGetV1OpenOrders(self.extend(request, params))
+        if symbol is None:
+            if self.safe_bool(self.options['fetchOpenOrders'], 'warnIfNoSymbol', False):
+                raise ExchangeError(self.id + ' fetchOpenOrders(): WARNING - self method without providing "symbol" argument uses 40 times more rate-limit quota. If you acknowledge self warning, set ' + self.id + '.options["fetchOpenOrders"]["warnIfNoSymbol"] = False to suppress self warning message.')
         else:
-            raise NotSupported(self.id + ' fetchOpenOrders() does not support ' + type + ' markets yet')
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        marketType, paramsMarketType = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        subType, paramsSubType = self.handle_sub_type_and_params('fetchOpenOrders', market, paramsMarketType)
+        response = None
+        if self.is_linear(marketType, subType):
+            response = self.fapiPrivateGetV3OpenOrders(self.extend(request, paramsSubType))
+        elif marketType == 'spot':
+            response = self.sapiPrivateGetV3OpenOrders(self.extend(request, paramsSubType))
         #
-        #     [
-        #         {
-        #             "avgPrice": "0.00000",
-        #             "clientOrderId": "abc",
-        #             "cumQuote": "0",
-        #             "executedQty": "0",
-        #             "orderId": 1917641,
-        #             "origQty": "0.40",
-        #             "origType": "TRAILING_STOP_MARKET",
-        #             "price": "0",
-        #             "reduceOnly": False,
-        #             "side": "BUY",
-        #             "positionSide": "SHORT",
-        #             "status": "NEW",
-        #             "stopPrice": "9300",
-        #             "closePosition": False,
-        #             "symbol": "BTCUSDT",
-        #             "time": 1579276756075,
-        #             "timeInForce": "GTC",
-        #             "type": "TRAILING_STOP_MARKET",
-        #             "activatePrice": "9020",
-        #             "priceRate": "0.3",
-        #             "updateTime": 1579276756075,
-        #             "workingType": "CONTRACT_PRICE",
-        #             "priceProtect": False
-        #         }
-        #     ]
+        # SPOT & SWAP has similar responses
+        #
+        #    [
+        #        {
+        #            "orderId": "17338239315",
+        #            "symbol": "ETHUSDT",
+        #            "status": "NEW",
+        #            "clientOrderId": "web_AD_mbhgla7k15gptmwyr_x",
+        #            "price": "2216.62",
+        #            "avgPrice": "0",
+        #            "origQty": "0.012",
+        #            "executedQty": "0",
+        #            "cumQuote": "0",
+        #            "timeInForce": "GTC",
+        #            "type": "LIMIT",
+        #            "side": "BUY",
+        #            "stopPrice": "0",
+        #            "origType": "LIMIT",
+        #            "time": "1776798208476",
+        #            "updateTime": "1776798208450",
+        #            "orderListId": "-1"                                   // only in SPOT
+        #            "reduceOnly": false,                                  // only in PERP
+        #            "closePosition": false,                               // only in PERP
+        #            "positionSide": "BOTH",                               // only in PERP
+        #            "workingType": "CONTRACT_PRICE",                      // only in PERP
+        #            "priceProtect": false,                                // only in PERP
+        #            "newChainData": { "hash": "0xf8a496....a7fd5" }       // only in PERP
+        #        }
+        #    ]
         #
         return self.parse_orders(response, market, since, limit)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#place-order-trade
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#new-order--trade
+        https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#place-order-trade
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'STOP' or 'STOP_MARKET' or 'TAKE_PROFIT' or 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET'
@@ -2060,41 +2547,68 @@ class aster(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: the price that a trigger order is triggered at
         :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        self.load_markets_and_sign_in()
         market = self.market(symbol)
-        test = self.safe_bool(params, 'test', False)
-        params = self.omit(params, 'test')
         request = self.create_order_request(symbol, type, side, amount, price, params)
-        response = None
-        if market['swap']:
-            if test:
-                response = self.fapiPrivatePostV1OrderTest(request)
-            else:
-                response = self.fapiPrivatePostV1Order(request)
+        response: dict
+        if market['swap'] is True:
+            response = self.fapiPrivatePostV3Order(request)
         else:
-            response = self.sapiPrivatePostV1Order(request)
+            response = self.sapiPrivatePostV3Order(request)
+        #
+        # SPOT & SWAP has similar responses
+        #
+        #    {
+        #        "orderId": "17338441758",
+        #        "symbol": "ETHUSDT",
+        #        "status": "NEW",
+        #        "clientOrderId": "727Wt3TIUgkUCxXp20E543",
+        #        "price": "0",
+        #        "avgPrice": "0.00000",
+        #        "origQty": "0.010",
+        #        "executedQty": "0",
+        #        "cumQty": "0",
+        #        "cumQuote": "0",
+        #        "timeInForce": "GTC",
+        #        "type": "MARKET",
+        #        "side": "BUY",
+        #        "stopPrice": "0",
+        #        "origType": "MARKET",
+        #        "time": "1776800300700",
+        #        "updateTime": "1776800300700",
+        #        "orderListId": "-1",                              // only in SPOT
+        #        "workingType": "CONTRACT_PRICE",                  // only in PERP
+        #        "positionSide": "BOTH",                           // only in PERP
+        #        "reduceOnly": false,                              // only in PERP
+        #        "closePosition": false,                           // only in PERP
+        #        "priceProtect": false,                            // only in PERP
+        #        "newChainData": { "hash": "0x46ae....c8ba" }      // only in PERP
+        #    }
+        #
         return self.parse_order(response, market)
 
-    def create_orders(self, orders: List[OrderRequest], params={}):
+    def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         create a list of trade orders
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#place-multiple-orders--trade
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        self.load_markets_and_sign_in()
         ordersRequests = []
         orderSymbols = []
         if len(orders) > 5:
             raise InvalidOrder(self.id + ' createOrders() order list max 5 orders')
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
+            currentMarket = self.market(marketId)
+            orderSymbols.append(currentMarket['symbol'])
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
             amount = self.safe_value(rawOrder, 'amount')
@@ -2102,17 +2616,51 @@ class aster(Exchange, ImplicitAPI):
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
-        orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
-        market = self.market(orderSymbols[0])
-        if market['spot']:
+        orderSymbolsResolved = self.market_symbols(orderSymbols, None, False, True, True)
+        market = self.market(orderSymbolsResolved[0])
+        if market['spot'] is True:
             raise NotSupported(self.id + ' createOrders() does not support ' + market['type'] + ' orders')
-        request: dict = {
+        request = {
             'batchOrders': ordersRequests,
         }
-        response = self.fapiPrivatePostV1BatchOrders(self.extend(request, params))
+        response = self.fapiPrivatePostV3BatchOrders(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            "orderId": 17338699853,
+        #            "symbol": "ETHUSDT",
+        #            "status": "NEW",
+        #            "clientOrderId": "NxMWPvOEyiF6TWh5UB8BQf0",
+        #            "price": "0",
+        #            "avgPrice": "0.00000",
+        #            "origQty": "0.010",
+        #            "executedQty": "0",
+        #            "cumQty": "0",
+        #            "cumQuote": "0",
+        #            "timeInForce": "GTC",
+        #            "type": "MARKET",
+        #            "reduceOnly": false,
+        #            "closePosition": false,
+        #            "side": "BUY",
+        #            "positionSide": "BOTH",
+        #            "stopPrice": "0",
+        #            "workingType": "CONTRACT_PRICE",
+        #            "priceProtect": false,
+        #            "origType": "MARKET",
+        #            "updateTime": 1776802276050,
+        #            "newChainData": {
+        #                "hash": "0x5e569d9794cf726f72c2d000d401d20315e78e4df7b58023a489864624527dfe"
+        #            }
+        #        }
+        #    ]
+        #
         return self.parse_orders(response)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         """
  @ignore
         helper function to build the request
@@ -2128,7 +2676,7 @@ class aster(Exchange, ImplicitAPI):
         initialUppercaseType = type.upper()
         isMarketOrder = initialUppercaseType == 'MARKET'
         isLimitOrder = initialUppercaseType == 'LIMIT'
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'side': side.upper(),
         }
@@ -2147,7 +2695,7 @@ class aster(Exchange, ImplicitAPI):
         uppercaseType = initialUppercaseType
         stopPrice = None
         if isTrailingPercentOrder:
-            if market['swap']:
+            if market['swap'] is True:
                 uppercaseType = 'TRAILING_STOP_MARKET'
                 request['callbackRate'] = trailingPercent
                 if trailingTriggerPrice is not None:
@@ -2167,20 +2715,11 @@ class aster(Exchange, ImplicitAPI):
         postOnly = self.is_post_only(isMarketOrder, None, params)
         if postOnly:
             request['timeInForce'] = 'GTX'
-        #
-        # spot
-        # LIMIT timeInForce, quantity, price
-        # MARKET quantity or quoteOrderQty
-        # STOP and TAKE_PROFIT quantity, price, stopPrice
-        # STOP_MARKET and TAKE_PROFIT_MARKET quantity, stopPrice
-        # future
-        # LIMIT timeInForce, quantity, price
-        # MARKET quantity
-        # STOP/TAKE_PROFIT quantity, price, stopPrice
-        # STOP_MARKET/TAKE_PROFIT_MARKET stopPrice
-        # TRAILING_STOP_MARKET callbackRate
-        #
-        # additional required fields depending on the order type
+        # additional required fields per order type
+        # spot: LIMIT timeInForce, quantity, price; MARKET quantity or quoteOrderQty;
+        #       STOP/TAKE_PROFIT quantity, price, stopPrice; STOP_MARKET/TAKE_PROFIT_MARKET quantity, stopPrice
+        # future: LIMIT timeInForce, quantity, price; MARKET quantity; STOP/TAKE_PROFIT quantity, price, stopPrice;
+        #       STOP_MARKET/TAKE_PROFIT_MARKET stopPrice; TRAILING_STOP_MARKET callbackRate
         closePosition = self.safe_bool(params, 'closePosition', False)
         timeInForceIsRequired = False
         priceIsRequired = False
@@ -2188,9 +2727,9 @@ class aster(Exchange, ImplicitAPI):
         quantityIsRequired = False
         request['type'] = uppercaseType
         if uppercaseType == 'MARKET':
-            if market['spot']:
-                quoteOrderQty = self.safe_bool(self.options, 'quoteOrderQty', True)
-                if quoteOrderQty:
+            if market['spot'] is True:
+                quoteOrderQty = self.handle_option('createOrder', 'quoteOrderQty', True)
+                if quoteOrderQty is True:
                     quoteOrderQtyNew = self.safe_string_2(params, 'quoteOrderQty', 'cost')
                     precision = market['precision']['price']
                     if quoteOrderQtyNew is not None:
@@ -2215,7 +2754,7 @@ class aster(Exchange, ImplicitAPI):
             priceIsRequired = True
             triggerPriceIsRequired = True
         elif (uppercaseType == 'STOP_MARKET') or (uppercaseType == 'TAKE_PROFIT_MARKET'):
-            if not closePosition:
+            if closePosition is not True:
                 quantityIsRequired = True
             triggerPriceIsRequired = True
         elif uppercaseType == 'TRAILING_STOP_MARKET':
@@ -2243,34 +2782,45 @@ class aster(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
             if stopPrice is not None:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-        if timeInForceIsRequired and (self.safe_string(params, 'timeInForce') is None) and (self.safe_string(request, 'timeInForce') is None):
-            request['timeInForce'] = self.safe_string(self.options, 'defaultTimeInForce')  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-        requestParams = self.omit(params, ['newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice'])
+        tifOption, paramsTifOption = self.handle_option_string_and_params(params, 'createOrder', 'timeInForce')
+        tifIsMissing = timeInForceIsRequired and (self.safe_string(params, 'timeInForce') is None) and (self.safe_string(request, 'timeInForce') is None)
+        omitKeys = ['newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice']
+        requestParams = None
+        if tifIsMissing:
+            request['timeInForce'] = tifOption
+            requestParams = self.omit(paramsTifOption, omitKeys)
+        else:
+            requestParams = self.omit(params, omitKeys)
+        if (self.safe_bool(self.options, 'builderFee', False)) and (market['swap'] is True):
+            request['builder'] = self.safe_string(self.options, 'builder')
+            request['feeRate'] = self.safe_string(self.options, 'builderRate')
         return self.extend(request, requestParams)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders in a market
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#cancel-all-open-orders-trade
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-all-open-orders-trade
+        https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-all-open-orders-trade
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#current-all-open-orders-user_data
 
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
-        self.load_markets()
+        self.load_markets_and_sign_in()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
-        response = None
-        if market['swap']:
-            response = self.fapiPrivateDeleteV1AllOpenOrders(self.extend(request, params))
+        response: dict
+        if market['swap'] is True:
+            response = self.fapiPrivateDeleteV3AllOpenOrders(self.extend(request, params))
         else:
-            response = self.sapiPrivateDeleteV1AllOpenOrders(self.extend(request, params))
+            response = self.sapiPrivateDeleteV3AllOpenOrders(self.extend(request, params))
+        #
+        # SPOT & SWAP has same response
         #
         #     {
         #         "code": "200",
@@ -2283,43 +2833,44 @@ class aster(Exchange, ImplicitAPI):
             }),
         ]
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#cancel-order-trade
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-order-trade
+        https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-order-trade
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#cancel-order-trade
 
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        self.load_markets()
+        self.load_markets_and_sign_in()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
-        clientOrderId = self.safe_string_n(params, ['origClientOrderId', 'clientOrderId', 'newClientStrategyId'])
+        clientOrderId = self.safe_string_2(params, 'origClientOrderId', 'clientOrderId')
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
         else:
             request['orderId'] = id
-        params = self.omit(params, ['origClientOrderId', 'clientOrderId', 'newClientStrategyId'])
-        response = None
-        if market['swap']:
-            response = self.fapiPrivateDeleteV1Order(self.extend(request, params))
+        paramsOmitted = self.omit(params, ['origClientOrderId', 'clientOrderId'])
+        response: dict
+        if market['swap'] is True:
+            response = self.fapiPrivateDeleteV3Order(self.extend(request, paramsOmitted))
         else:
-            response = self.sapiPrivateDeleteV1Order(self.extend(request, params))
+            response = self.sapiPrivateDeleteV3Order(self.extend(request, paramsOmitted))
         return self.parse_order(response, market)
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-multiple-orders-trade
+        https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-all-open-orders-trade
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#cancel-multiple-orders-trade
 
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
@@ -2328,15 +2879,13 @@ class aster(Exchange, ImplicitAPI):
  EXCHANGE SPECIFIC PARAMETERS
         :param str[] [params.origClientOrderIdList]: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
         :param int[] [params.recvWindow]:
-        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
-        self.load_markets()
+        self.load_markets_and_sign_in()
         market = self.market(symbol)
-        if market['spot']:
-            raise NotSupported(self.id + ' cancelOrders() does not support ' + market['type'] + ' orders')
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         clientOrderIdList = self.safe_list(params, 'origClientOrderIdList')
@@ -2344,46 +2893,53 @@ class aster(Exchange, ImplicitAPI):
             request['origClientOrderIdList'] = clientOrderIdList
         else:
             request['orderIdList'] = ids
-        response = self.fapiPrivateDeleteV1BatchOrders(self.extend(request, params))
-        #
-        #    [
-        #        {
-        #            "clientOrderId": "myOrder1",
-        #            "cumQty": "0",
-        #            "cumQuote": "0",
-        #            "executedQty": "0",
-        #            "orderId": 283194212,
-        #            "origQty": "11",
-        #            "origType": "TRAILING_STOP_MARKET",
-        #            "price": "0",
-        #            "reduceOnly": False,
-        #            "side": "BUY",
-        #            "positionSide": "SHORT",
-        #            "status": "CANCELED",
-        #            "stopPrice": "9300",                  # please ignore when order type is TRAILING_STOP_MARKET
-        #            "closePosition": False,               # if Close-All
-        #            "symbol": "BTCUSDT",
-        #            "timeInForce": "GTC",
-        #            "type": "TRAILING_STOP_MARKET",
-        #            "activatePrice": "9020",              # activation price, only return with TRAILING_STOP_MARKET order
-        #            "priceRate": "0.3",                   # callback rate, only return with TRAILING_STOP_MARKET order
-        #            "updateTime": 1571110484038,
-        #            "workingType": "CONTRACT_PRICE",
-        #            "priceProtect": False,                # if conditional order trigger is protected
-        #        },
-        #        {
-        #            "code": -2011,
-        #            "msg": "Unknown order sent."
-        #        }
-        #    ]
-        #
+        response: dict
+        if market['swap'] is True:
+            response = self.fapiPrivateDeleteV3BatchOrders(self.extend(request, params))
+            #
+            #    [
+            #        {
+            #            "clientOrderId": "myOrder1",
+            #            "cumQty": "0",
+            #            "cumQuote": "0",
+            #            "executedQty": "0",
+            #            "orderId": 283194212,
+            #            "origQty": "11",
+            #            "origType": "TRAILING_STOP_MARKET",
+            #            "price": "0",
+            #            "reduceOnly": false,
+            #            "side": "BUY",
+            #            "positionSide": "SHORT",
+            #            "status": "CANCELED",
+            #            "stopPrice": "9300",                  // please ignore when order type is TRAILING_STOP_MARKET
+            #            "closePosition": false,               // if Close-All
+            #            "symbol": "BTCUSDT",
+            #            "timeInForce": "GTC",
+            #            "type": "TRAILING_STOP_MARKET",
+            #            "activatePrice": "9020",              // activation price, only return with TRAILING_STOP_MARKET order
+            #            "priceRate": "0.3",                   // callback rate, only return with TRAILING_STOP_MARKET order
+            #            "updateTime": 1571110484038,
+            #            "workingType": "CONTRACT_PRICE",
+            #            "priceProtect": false,                // if conditional order trigger is protected
+            #        },
+            #        {
+            #            "code": -2011,
+            #            "msg": "Unknown order sent."
+            #        }
+            #    ]
+            #
+        else:
+            response = self.sapiPrivateDeleteV3AllOpenOrders(self.extend(request, params))
+            #
+            #  {"code": 200,"msg": "The operation of cancel all open order is done."}
+            #
         return self.parse_orders(response, market)
 
-    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-initial-leverage-trade
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-initial-leverage-trade
 
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
@@ -2394,13 +2950,13 @@ class aster(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         if (leverage < 1) or (leverage > 125):
             raise BadRequest(self.id + ' leverage should be between 1 and 125')
-        self.load_markets()
+        self.load_markets_and_sign_in()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'leverage': leverage,
         }
-        response = self.fapiPrivatePostV1Leverage(self.extend(request, params))
+        response = self.fapiPrivatePostV3Leverage(self.extend(request, params))
         #
         #     {
         #         "leverage": 21,
@@ -2410,18 +2966,18 @@ class aster(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_leverages(self, symbols: Strings = None, params={}) -> Leverages:
+    def fetch_leverages(self, symbols: Strings = None, params: dict = {}) -> Leverages:
         """
         fetch the set leverage for all markets
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
 
         :param str[] [symbols]: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
+        :returns dict: a list of `leverage structures <https://docs.ccxt.com/?id=leverage-structure>`
         """
-        self.load_markets()
-        response = self.fapiPrivateGetV2PositionRisk(params)
+        self.load_markets_and_sign_in()
+        response = self.fapiPrivateGetV3PositionRisk(params)
         #
         #     [
         #         {
@@ -2443,7 +2999,7 @@ class aster(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_leverages(response, symbols, 'symbol')
+        return self.parse_leverages(self.to_array(response), symbols, 'symbol')
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         #
@@ -2486,18 +3042,18 @@ class aster(Exchange, ImplicitAPI):
             'shortLeverage': shortLeverage,
         }
 
-    def fetch_margin_modes(self, symbols: Strings = None, params={}) -> MarginModes:
+    def fetch_margin_modes(self, symbols: Strings = None, params: dict = {}) -> MarginModes:
         """
         fetches margin mode of the user
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
 
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `margin mode structures <https://docs.ccxt.com/#/?id=margin-mode-structure>`
+        :returns dict: a list of `margin mode structures <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
-        self.load_markets()
-        response = self.fapiPrivateGetV2PositionRisk(params)
+        self.load_markets_and_sign_in()
+        response = self.fapiPrivateGetV3PositionRisk(params)
         #
         #
         #     [
@@ -2521,9 +3077,9 @@ class aster(Exchange, ImplicitAPI):
         #     ]
         #
         #
-        return self.parse_margin_modes(response, symbols, 'symbol', 'swap')
+        return self.parse_margin_modes(self.to_array(response), symbols, 'symbol', 'swap')
 
-    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         #
         #     {
         #         "symbol": "INJUSDT",
@@ -2544,58 +3100,58 @@ class aster(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(marginMode, 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market, None, 'swap')
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(marketResolved, 'symbol'),
             'marginMode': self.safe_string_lower(marginMode, 'marginType'),
         }
 
-    def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params={}) -> List[MarginModification]:
+    def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params: dict = {}) -> list[MarginModification]:
         """
         fetches the history of margin added or reduced from contract isolated positions
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-position-margin-change-history-trade
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-position-margin-change-history-trade
 
         :param str symbol: unified market symbol
         :param str [type]: "add" or "reduce"
         :param int [since]: timestamp in ms of the earliest change to fetch
         :param int [limit]: the maximum amount of changes to fetch
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest change to fetch
-        :returns dict[]: a list of `margin structures <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        :returns dict[]: a list of `margin structures <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMarginAdjustmentHistory() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMarginAdjustmentHistory () requires a symbol argument')
+        self.load_markets_and_sign_in()
         market = self.market(symbol)
         until = self.safe_integer(params, 'until')
-        params = self.omit(params, 'until')
-        request: dict = {
+        paramsOmitted = self.omit(params, 'until')
+        request = {
             'symbol': market['id'],
         }
         if type is not None:
             request['type'] = 1 if (type == 'add') else 2
+        if limit is not None:
+            request['limit'] = min(limit, 1000)
         if since is not None:
             request['startTime'] = since
-        if limit is not None:
-            request['limit'] = limit
         if until is not None:
             request['endTime'] = until
-        response = self.fapiPrivateGetV1PositionMarginHistory(self.extend(request, params))
+        response = self.fapiPrivateGetV3PositionMarginHistory(self.extend(request, paramsOmitted))
         #
         #     [
         #         {
         #             "amount": "23.36332311",
         #             "asset": "USDT",
         #             "symbol": "BTCUSDT",
-        #             "time": 1578047897183,
+        #             "time": 1578047897182,
         #             "type": 1,
         #             "positionSide": "BOTH"
         #         }
         #     ]
         #
-        modifications = self.parse_margin_modifications(response)
+        modifications = self.parse_margin_modifications(self.to_array(response))
         return self.filter_by_symbol_since_limit(modifications, symbol, since, limit)
 
     def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
@@ -2620,12 +3176,12 @@ class aster(Exchange, ImplicitAPI):
         errorCode = self.safe_string(data, 'code')
         marketId = self.safe_string(data, 'symbol')
         timestamp = self.safe_integer(data, 'time')
-        market = self.safe_market(marketId, market, None, 'swap')
+        marketResolved = self.safe_market(marketId, market, None, 'swap')
         noErrorCode = errorCode is None
         success = errorCode == '200'
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': 'add' if (rawType == 1) else 'reduce',
             'marginMode': 'isolated',
             'amount': self.safe_number(data, 'amount'),
@@ -2636,17 +3192,17 @@ class aster(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def modify_margin_helper(self, symbol: str, amount, addOrReduce, params={}):
-        self.load_markets()
+    def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: float, params: dict = {}) -> MarginModification:
+        self.load_markets_and_sign_in()
         market = self.market(symbol)
-        amount = self.amount_to_precision(symbol, amount)
-        request: dict = {
+        amountValue = self.amount_to_precision(symbol, amount)
+        request = {
             'type': addOrReduce,
             'symbol': market['id'],
-            'amount': amount,
+            'amount': amountValue,
         }
         code = market['quote']
-        response = self.fapiPrivatePostV1PositionMargin(self.extend(request, params))
+        response = self.fapiPrivatePostV3PositionMargin(self.extend(request, params))
         #
         #     {
         #         "amount": 100.0,
@@ -2655,37 +3211,35 @@ class aster(Exchange, ImplicitAPI):
         #         "type": 1
         #     }
         #
-        return self.extend(self.parse_margin_modification(response, market), {
-            'code': code,
-        })
+        return self.extend(self.parse_margin_modification(response, market), {'code': code})
 
-    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         remove margin from a position
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#modify-isolated-position-margin-trade
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#modify-isolated-position-margin-trade
 
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 2, params)
 
-    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         add margin
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#modify-isolated-position-margin-trade
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#modify-isolated-position-margin-trade
 
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 1, params)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: dict, market: Market = None) -> object:
         #
         #     {
         #       "symbol": "ETHUSDT",
@@ -2711,11 +3265,11 @@ class aster(Exchange, ImplicitAPI):
             'amount': self.safe_number(income, 'income'),
         }
 
-    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-income-historyuser_data
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-income-historyuser_data
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
@@ -2724,22 +3278,22 @@ class aster(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest funding history entry
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch the funding history for a portfolio margin account
         :param str [params.subType]: "linear" or "inverse"
-        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
-        self.load_markets()
+        self.load_markets_and_sign_in()
         market = None
-        request: dict = {
+        request = {
             'incomeType': 'FUNDING_FEE',  # "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION", "INSURANCE_CLEAR", and "MARKET_MERCHANT_RETURN_REWARD"
         }
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        request, params = self.handle_until_option('endTime', request, params)
+        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
         if since is not None:
-            request['startTime'] = since
+            requestUntil['startTime'] = since
         if limit is not None:
-            request['limit'] = min(limit, 1000)  # max 1000
-        response = self.fapiPrivateGetV1Income(self.extend(request, params))
+            requestUntil['limit'] = min(limit, 1000)  # max 1000
+        response = self.fapiPrivateGetV3Income(self.extend(requestUntil, paramsUntil))
         return self.parse_incomes(response, market, since, limit)
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
@@ -2764,7 +3318,7 @@ class aster(Exchange, ImplicitAPI):
             direction = 'in'
         currencyId = self.safe_string(item, 'asset')
         code = self.safe_currency_code(currencyId, currency)
-        currency = self.safe_currency(currencyId, currency)
+        currencyResolved = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(item, 'time')
         type = self.safe_string(item, 'incomeType')
         return self.safe_ledger_entry({
@@ -2783,10 +3337,10 @@ class aster(Exchange, ImplicitAPI):
             'after': None,
             'status': None,
             'fee': None,
-        }, currency)
+        }, currencyResolved)
 
-    def parse_ledger_entry_type(self, type):
-        ledgerType: dict = {
+    def parse_ledger_entry_type(self, type: Str) -> Str:
+        ledgerType = {
             'TRANSFER': 'transfer',
             'WELCOME_BONUS': 'cashback',
             'REALIZED_PNL': 'trade',
@@ -2797,33 +3351,33 @@ class aster(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-income-historyuser_data
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-income-historyuser_data
 
         :param str [code]: unified currency code
         :param int [since]: timestamp in ms of the earliest ledger entry
         :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
         """
-        self.load_markets()
+        self.load_markets_and_sign_in()
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request: dict = {}
+        request = {}
         if since is not None:
             request['startTime'] = since
         if limit is not None:
             request['limit'] = min(limit, 1000)  # max 1000
         until = self.safe_integer(params, 'until')
+        paramsOmitted = self.omit(params, 'until') if (until is not None) else params
         if until is not None:
-            params = self.omit(params, 'until')
             request['endTime'] = until
-        response = self.fapiPrivateGetV1Income(self.extend(request, params))
+        response = self.fapiPrivateGetV3Income(self.extend(request, paramsOmitted))
         #
         #     [
         #         {
@@ -2840,7 +3394,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def parse_position_risk(self, position, market: Market = None):
+    def parse_position_risk(self, position: dict, market: Market = None) -> Position:
         #
         #     {
         #         "entryPrice": "6563.66500",
@@ -2859,8 +3413,8 @@ class aster(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(position, 'symbol')
-        market = self.safe_market(marketId, market, None, 'contract')
-        symbol = self.safe_string(market, 'symbol')
+        marketResolved = self.safe_market(marketId, market, None, 'contract')
+        symbol = self.safe_string(marketResolved, 'symbol')
         isolatedMarginString = self.safe_string(position, 'isolatedMargin')
         leverageBrackets = self.safe_dict(self.options, 'leverageBrackets', {})
         leverageBracket = self.safe_list(leverageBrackets, symbol, [])
@@ -2871,7 +3425,7 @@ class aster(Exchange, ImplicitAPI):
             bracket = leverageBracket[i]
             if Precise.string_lt(notionalStringAbs, bracket[0]):
                 break
-            maintenanceMarginPercentageString = bracket[1]
+            maintenanceMarginPercentageString = self.safe_string(bracket, 1)
         notional = self.parse_number(notionalStringAbs)
         contractsAbs = Precise.string_abs(self.safe_string(position, 'positionAmt'))
         contracts = self.parse_number(contractsAbs)
@@ -2890,13 +3444,13 @@ class aster(Exchange, ImplicitAPI):
             side = 'short'
         entryPriceString = self.safe_string(position, 'entryPrice')
         entryPrice = self.parse_number(entryPriceString)
-        contractSize = self.safe_value(market, 'contractSize')
+        contractSize = self.safe_number(marketResolved, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
-        # to notionalValue
+        # as oppose to notionalValue
         linear = ('notional' in position)
         if marginMode == 'cross':
             # calculate collateral
-            precision = self.safe_dict(market, 'precision', {})
+            precision = self.safe_dict(marketResolved, 'precision', {})
             basePrecisionValue = self.safe_string(precision, 'base')
             quotePrecisionValue = self.safe_string_2(precision, 'quote', 'price')
             precisionIsUndefined = (basePrecisionValue is None) and (quotePrecisionValue is None)
@@ -2913,8 +3467,7 @@ class aster(Exchange, ImplicitAPI):
                     inner = Precise.string_mul(liquidationPriceString, onePlusMaintenanceMarginPercentageString)
                     leftSide = Precise.string_add(inner, entryPriceSignString)
                     quotePrecision = self.precision_from_string(self.safe_string_2(precision, 'quote', 'price'))
-                    if quotePrecision is not None:
-                        collateralString = Precise.string_div(Precise.string_mul(leftSide, contractsAbs), '1', quotePrecision)
+                    collateralString = Precise.string_div(Precise.string_mul(leftSide, contractsAbs), '1', quotePrecision)
                 else:
                     # walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                     onePlusMaintenanceMarginPercentageString = None
@@ -2927,8 +3480,7 @@ class aster(Exchange, ImplicitAPI):
                     leftSide = Precise.string_mul(contractsAbs, contractSizeString)
                     rightSide = Precise.string_sub(Precise.string_div('1', entryPriceSignString), Precise.string_div(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
                     basePrecision = self.precision_from_string(self.safe_string(precision, 'base'))
-                    if basePrecision is not None:
-                        collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', basePrecision)
+                    collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', basePrecision)
         else:
             collateralString = self.safe_string(position, 'isolatedMargin')
         collateralString = '0' if (collateralString is None) else collateralString
@@ -2940,7 +3492,7 @@ class aster(Exchange, ImplicitAPI):
         maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
         maintenanceMarginString = Precise.string_mul(maintenanceMarginPercentageString, notionalStringAbs)
         if maintenanceMarginString is None:
-            # for a while, self new value was a backup to the existing calculations, but in future we might prioritize self
+            # for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
             maintenanceMarginString = self.safe_string(position, 'maintMargin')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
         initialMarginString = None
@@ -2993,11 +3545,11 @@ class aster(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_positions_risk(self, symbols: Strings = None, params={}):
+    def fetch_positions_risk(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch positions risk
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3006,10 +3558,10 @@ class aster(Exchange, ImplicitAPI):
         if symbols is not None:
             if not isinstance(symbols, list):
                 raise ArgumentsRequired(self.id + ' fetchPositionsRisk() requires an array argument for symbols')
-        self.load_markets()
+        self.load_markets_and_sign_in()
         self.load_leverage_brackets(False, params)
-        request: dict = {}
-        response = self.fapiPrivateGetV2PositionRisk(self.extend(request, params))
+        request = {}
+        response = self.fapiPrivateGetV3PositionRisk(self.extend(request, params))
         #
         #     [
         #         {
@@ -3022,35 +3574,36 @@ class aster(Exchange, ImplicitAPI):
         #             "markPrice": "6679.50671178",
         #             "maxNotionalValue": "20000000",
         #             "positionSide": "LONG",
-        #             "positionAmt": "20.000",  # negative value for 'SHORT'
+        #             "positionAmt": "20.000", // negative value for 'SHORT'
         #             "symbol": "BTCUSDT",
         #             "unRealizedProfit": "2316.83423560",
         #             "updateTime": 1625474304765
         #         }
         #     ]
         #
+        rawPositions = self.to_array(response)
         result = []
-        for i in range(0, len(response)):
-            rawPosition = response[i]
+        for i in range(0, len(rawPositions)):
+            rawPosition = rawPositions[i]
             entryPriceString = self.safe_string(rawPosition, 'entryPrice')
             if Precise.string_gt(entryPriceString, '0'):
-                result.append(self.parse_position_risk(response[i]))
-        symbols = self.market_symbols(symbols)
-        return self.filter_by_array_positions(result, 'symbol', symbols, False)
+                result.append(self.parse_position_risk(rawPosition))
+        symbolsNormalized = self.market_symbols(symbols)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: method name to call, "positionRisk", "account" or "option", default is "positionRisk"
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        defaultMethod = None
-        defaultMethod, params = self.handle_option_and_params(params, 'fetchPositions', 'method')
+        methodOption, paramsMethod = self.handle_option_string_and_params(params, 'fetchPositions', 'method')
+        defaultMethod = methodOption
         if defaultMethod is None:
             options = self.safe_dict(self.options, 'fetchPositions')
             if options is None:
@@ -3058,32 +3611,33 @@ class aster(Exchange, ImplicitAPI):
             else:
                 defaultMethod = 'positionRisk'
         if defaultMethod == 'positionRisk':
-            return self.fetch_positions_risk(symbols, params)
+            return self.fetch_positions_risk(symbols, paramsMethod)
         elif defaultMethod == 'account':
-            return self.fetch_account_positions(symbols, params)
+            return self.fetch_account_positions(symbols, paramsMethod)
         else:
             raise NotSupported(self.id + '.options["fetchPositions"]["method"] or params["method"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"')
 
-    def parse_account_positions(self, account, filterClosed=False):
-        positions = self.safe_list(account, 'positions')
+    def parse_account_positions(self, account: dict, filterClosed: bool = False) -> list[Position]:
+        positions = self.safe_list(account, 'positions', [])
         assets = self.safe_list(account, 'assets', [])
-        balances: dict = {}
+        balances = {}
         for i in range(0, len(assets)):
-            entry = assets[i]
+            entry = self.safe_dict(assets, i)
             currencyId = self.safe_string(entry, 'asset')
             code = self.safe_currency_code(currencyId)
             crossWalletBalance = self.safe_string(entry, 'crossWalletBalance')
             crossUnPnl = self.safe_string(entry, 'crossUnPnl')
-            balances[code] = {
-                'crossMargin': Precise.string_add(crossWalletBalance, crossUnPnl),
-                'crossWalletBalance': crossWalletBalance,
-            }
+            if code is not None:
+                balances[code] = {
+                    'crossMargin': Precise.string_add(crossWalletBalance, crossUnPnl),
+                    'crossWalletBalance': crossWalletBalance,
+                }
         result = []
         for i in range(0, len(positions)):
             position = positions[i]
             marketId = self.safe_string(position, 'symbol')
             market = self.safe_market(marketId, None, None, 'contract')
-            code = market['quote'] if market['linear'] else market['base']
+            code = market['quote'] if (market['linear'] is True) else market['base']
             maintenanceMargin = self.safe_string(position, 'maintMargin')
             # check for maintenance margin so empty positions are not returned
             isPositionOpen = (maintenanceMargin != '0') and (maintenanceMargin != '0.00000000')
@@ -3097,10 +3651,10 @@ class aster(Exchange, ImplicitAPI):
                     result.append(parsed)
         return result
 
-    def parse_account_position(self, position, market: Market = None):
+    def parse_account_position(self, position: dict, market: Market = None) -> Position:
         marketId = self.safe_string(position, 'symbol')
-        market = self.safe_market(marketId, market, None, 'contract')
-        symbol = self.safe_string(market, 'symbol')
+        marketResolved = self.safe_market(marketId, market, None, 'contract')
+        symbol = self.safe_string(marketResolved, 'symbol')
         leverageString = self.safe_string(position, 'leverage')
         leverage = int(leverageString) if (leverageString is not None) else None
         initialMarginString = self.safe_string(position, 'initialMargin')
@@ -3108,10 +3662,12 @@ class aster(Exchange, ImplicitAPI):
         initialMarginPercentageString = None
         if leverageString is not None:
             initialMarginPercentageString = Precise.string_div('1', leverageString, 8)
+            if leverage is None:
+                raise ExchangeError(self.id + ' parseAccountPosition() missing leverage')
             rational = self.is_round_number(1000 % leverage)
             if not rational:
                 initialMarginPercentageString = Precise.string_div(Precise.string_add(initialMarginPercentageString, '1e-8'), '1', 8)
-        # to notionalValue
+        # as oppose to notionalValue
         usdm = ('notional' in position)
         maintenanceMarginString = self.safe_string(position, 'maintMargin')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
@@ -3124,7 +3680,7 @@ class aster(Exchange, ImplicitAPI):
         contractsStringAbs = Precise.string_abs(contractsString)
         if contractsString is None:
             entryNotional = Precise.string_mul(Precise.string_mul(leverageString, initialMarginString), entryPriceString)
-            contractSizeNew = self.safe_string(market, 'contractSize')
+            contractSizeNew = self.safe_string(marketResolved, 'contractSize')
             contractsString = Precise.string_div(entryNotional, contractSizeNew)
             contractsStringAbs = Precise.string_div(Precise.string_add(contractsString, '0.5'), '1', 0)
         contracts = self.parse_number(contractsStringAbs)
@@ -3135,7 +3691,7 @@ class aster(Exchange, ImplicitAPI):
             bracket = leverageBracket[i]
             if Precise.string_lt(notionalStringAbs, bracket[0]):
                 break
-            maintenanceMarginPercentageString = bracket[1]
+            maintenanceMarginPercentageString = self.safe_string(bracket, 1)
         maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
         unrealizedPnlString = self.safe_string(position, 'unrealizedProfit')
         unrealizedPnl = self.parse_number(unrealizedPnlString)
@@ -3163,7 +3719,7 @@ class aster(Exchange, ImplicitAPI):
         percentage = None
         liquidationPriceStringRaw = None
         liquidationPrice = None
-        contractSize = self.safe_value(market, 'contractSize')
+        contractSize = self.safe_number(marketResolved, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
         if Precise.string_equals(notionalString, '0'):
             entryPrice = None
@@ -3205,7 +3761,7 @@ class aster(Exchange, ImplicitAPI):
                 leftSide = Precise.string_mul(size, onePlusMaintenanceMarginPercentageString)
                 rightSide = Precise.string_sub(Precise.string_mul(Precise.string_div('1', entryPriceSignString), size), walletBalance)
                 liquidationPriceStringRaw = Precise.string_div(leftSide, rightSide)
-            pricePrecision = self.precision_from_string(self.safe_string(market['precision'], 'price'))
+            pricePrecision = self.precision_from_string(self.safe_string(marketResolved['precision'], 'price'))
             pricePrecisionPlusOne = pricePrecision + 1
             pricePrecisionPlusOneString = str(pricePrecisionPlusOne)
             # round half up
@@ -3213,6 +3769,8 @@ class aster(Exchange, ImplicitAPI):
             rounderString = str(rounder)
             liquidationPriceRoundedString = Precise.string_add(rounderString, liquidationPriceStringRaw)
             truncatedLiquidationPrice = Precise.string_div(liquidationPriceRoundedString, '1', pricePrecision)
+            if truncatedLiquidationPrice is None:
+                raise ExchangeError(self.id + ' method() missing truncatedLiquidationPrice')
             if truncatedLiquidationPrice[0] == '-':
                 # user cannot be liquidated
                 # since he has more collateral than the size of the position
@@ -3246,12 +3804,12 @@ class aster(Exchange, ImplicitAPI):
             'percentage': percentage,
         }
 
-    def fetch_account_positions(self, symbols: Strings = None, params={}):
+    def fetch_account_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
  @ignore
         fetch account positions
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3260,53 +3818,75 @@ class aster(Exchange, ImplicitAPI):
         if symbols is not None:
             if not isinstance(symbols, list):
                 raise ArgumentsRequired(self.id + ' fetchPositions() requires an array argument for symbols')
-        self.load_markets()
+        self.load_markets_and_sign_in()
         self.load_leverage_brackets(False, params)
         response = self.fapiPrivateGetV4Account(params)
-        filterClosed = None
-        filterClosed, params = self.handle_option_and_params(params, 'fetchAccountPositions', 'filterClosed', False)
+        filterClosed = self.handle_option_bool_and_params(params, 'fetchAccountPositions', 'filterClosed', False)[0]
         result = self.parse_account_positions(response, filterClosed)
-        symbols = self.market_symbols(symbols)
-        return self.filter_by_array_positions(result, 'symbol', symbols, False)
+        symbolsNormalized = self.market_symbols(symbols)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
-    def load_leverage_brackets(self, reload=False, params={}):
-        self.load_markets()
+    def load_leverage_brackets(self, reload: bool = False, params: dict = {}) -> dict:
+        self.load_markets_and_sign_in()
         # by default cache the leverage bracket
         # it contains useful stuff like the maintenance margin and initial margin for positions
         leverageBrackets = self.safe_dict(self.options, 'leverageBrackets')
         if (leverageBrackets is None) or (reload):
-            response = self.fapiPrivateGetV1LeverageBracket(params)
+            response = self.fapiPrivateGetV3LeverageBracket(params)
+            #
+            #    [
+            #        {
+            #            "symbol": "TRUTHUSDT",
+            #            "brackets": [
+            #                {
+            #                    "bracket": "1",
+            #                    "initialLeverage": "50",
+            #                    "notionalCap": "5000",
+            #                    "notionalFloor": "0",
+            #                    "maintMarginRatio": "0.01",
+            #                    "cum": "0.0"
+            #                },
+            #                {
+            #                    "bracket": "2",
+            #                    "initialLeverage": "20",
+            #                    "notionalCap": "10000",
+            #                    "notionalFloor": "5000",
+            #                    "maintMarginRatio": "0.025",
+            #                    "cum": "75.0"
+            #                },
+            #                ...
+            #
             self.options['leverageBrackets'] = self.create_safe_dictionary()
-            for i in range(0, len(response)):
-                entry = response[i]
+            entries = self.to_array(response)
+            for i in range(0, len(entries)):
+                entry = self.safe_dict(entries, i)
                 marketId = self.safe_string(entry, 'symbol')
                 symbol = self.safe_symbol(marketId, None, None, 'contract')
                 brackets = self.safe_list(entry, 'brackets', [])
                 result = []
                 for j in range(0, len(brackets)):
-                    bracket = brackets[j]
+                    bracket = self.safe_dict(brackets, j)
                     floorValue = self.safe_string(bracket, 'notionalFloor')
                     maintenanceMarginPercentage = self.safe_string(bracket, 'maintMarginRatio')
                     result.append([floorValue, maintenanceMarginPercentage])
                 self.options['leverageBrackets'][symbol] = result
         return self.options['leverageBrackets']
 
-    def keccak_message(self, message):
+    def keccak_message(self, message: object):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_message(self, message, privateKey):
+    def sign_message(self, message: object, privateKey: str) -> str:
         return self.sign_hash(self.keccak_message(message), privateKey[-64:])
 
-    def sign_withdraw_payload(self, withdrawPayload, network) -> str:
-        zeroAddress = self.safe_string(self.options, 'zeroAddress')
+    def sign_withdraw_payload(self, withdrawPayload: object, network: object) -> str:
         chainId = self.safe_integer(withdrawPayload, 'chainId')
-        domain: dict = {
+        domain = {
             'chainId': chainId,
             'name': 'Aster',
-            'verifyingContract': zeroAddress,
+            'verifyingContract': self.safe_string(self.options, 'zeroAddress'),
             'version': '1',
         }
-        messageTypes: dict = {
+        messageTypes = {
             'Action': [
                 {'name': 'type', 'type': 'string'},
                 {'name': 'destination', 'type': 'address'},
@@ -3318,46 +3898,50 @@ class aster(Exchange, ImplicitAPI):
                 {'name': 'aster chain', 'type': 'string'},
             ],
         }
-        withdraw = {
+        request = {
             'type': 'Withdraw',
             'destination': self.safe_string(withdrawPayload, 'receiver'),
             'destination Chain': network,
             'token': self.safe_string(withdrawPayload, 'asset'),
             'amount': self.safe_string(withdrawPayload, 'amount'),
             'fee': self.safe_string(withdrawPayload, 'fee'),
-            'nonce': self.safe_integer(withdrawPayload, 'nonce'),
+            'nonce': self.safe_integer(withdrawPayload, 'userNonce'),
             'aster chain': 'Mainnet',
         }
-        msg = self.eth_encode_structured_data(domain, messageTypes, withdraw)
+        msg = self.eth_encode_structured_data(domain, messageTypes, request)
         signature = self.sign_message(msg, self.privateKey)
         return signature
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#withdraw-user_data
+        https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#withdraw-user_data
+        https://asterdex.github.io/aster-api-website/futures-v3/deposit%26withdrawal/#withdraw-by-fapiv3-evm-futures
+        https://asterdex.github.io/aster-api-website/futures-v3/deposit%26withdrawal/#withdraw-by-fapiv3-evm-spot
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        tagAndParams = self.handle_withdraw_tag_and_params(tag, params)
+        paramsWithdrawTag = tagAndParams[1]
         self.check_address(address)
-        self.load_markets()
+        self.load_markets_and_sign_in()
         currency = self.currency(code)
-        request: dict = {
+        nonce = self.milliseconds() * 1000
+        request = {
             'asset': currency['id'],
             'receiver': address,
-            'nonce': self.milliseconds() * 1000,
+            'userNonce': str(nonce),
         }
-        chainId = self.safe_integer(params, 'chainId')
+        chainId = self.safe_integer(paramsWithdrawTag, 'chainId')
         # TODO: check how ARBI signature would work
         networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')
+        network = self.safe_string_upper(paramsWithdrawTag, 'network')
         network = self.safe_string(networks, network, network)
         if (chainId is None) and (network is not None):
             chainIds = self.safe_dict(self.options, 'networksToChainId', {})
@@ -3365,30 +3949,39 @@ class aster(Exchange, ImplicitAPI):
         if chainId is None:
             raise ArgumentsRequired(self.id + ' withdraw require chainId or network parameter')
         request['chainId'] = chainId
-        fee = self.safe_string(params, 'fee')
+        fee = self.safe_string(paramsWithdrawTag, 'fee')
         if fee is None:
             raise ArgumentsRequired(self.id + ' withdraw require fee parameter')
         request['fee'] = fee
-        params = self.omit(params, ['chainId', 'network', 'fee'])
+        paramsOmitted = self.omit(paramsWithdrawTag, ['chainId', 'network', 'fee'])
         request['amount'] = self.currency_to_precision(code, amount, network)
         request['userSignature'] = self.sign_withdraw_payload(request, network)
-        response = self.sapiPrivatePostV1AsterUserWithdraw(self.extend(request, params))
+        response = self.sapiPrivatePostV3AsterUserWithdraw(self.extend(request, paramsOmitted))
+        #
+        #   {
+        #       "withdrawId": "1097219372504338432",
+        #       "hash": "0x9e6baa3eb75d92a1164eef51a0cc97b9591930518ba3e8e5ab40ce524ba4e463"
+        #   }
+        #
+        return self.parse_transaction(response, currency)
+
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         return {
-            'info': response,
-            'id': self.safe_string(response, 'withdrawId'),
-            'txid': self.safe_string(response, 'hash'),
+            'info': transaction,
+            'id': self.safe_string(transaction, 'withdrawId'),
+            'txid': self.safe_string(transaction, 'hash'),
             'timestamp': None,
             'datetime': None,
-            'network': network,
-            'address': address,
-            'addressTo': address,
+            'network': None,
+            'address': None,
+            'addressTo': None,
             'addressFrom': None,
-            'tag': tag,
-            'tagTo': tag,
+            'tag': None,
+            'tagTo': None,
             'tagFrom': None,
             'type': 'withdrawal',
-            'amount': amount,
-            'currency': code,
+            'amount': None,
+            'currency': None,
             'status': None,
             'updated': None,
             'internal': None,
@@ -3396,86 +3989,71 @@ class aster(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#transfer-asset-to-other-address-trade
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#transfer-between-futures-and-spot-user_data
+        https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#perp-spot-transfer-trade
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#transfer-between-futures-and-spot-transfer
 
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        self.load_markets_and_sign_in()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
         type = None
-        fromId = None
-        if fromAccount is not None:
-            fromId = self.convert_type_to_account(fromAccount).upper()
-        toId = None
-        if toAccount is not None:
-            toId = self.convert_type_to_account(toAccount).upper()
+        fromId = self.convert_type_to_account(fromAccount).upper()
+        toId = self.convert_type_to_account(toAccount).upper()
         if fromId == 'SPOT' and toId == 'FUTURE':
             type = 'SPOT_FUTURE'
         elif fromId == 'FUTURE' and toId == 'SPOT':
             type = 'FUTURE_SPOT'
-        response = None
-        if type is not None:
-            defaultClientTranId = self.number_to_string(self.milliseconds())
-            clientTranId = self.safe_string(params, 'clientTranId', defaultClientTranId)
-            request['kindType'] = type
-            request['clientTranId'] = clientTranId
-            response = self.fapiPrivatePostV1AssetWalletTransfer(self.extend(request, params))
-        else:
-            # transfer asset to other address
-            request['toAddress'] = toAccount
-            response = self.sapiPrivatePostV1AssetSendToAddress(self.extend(request, params))
-        #
-        #     {
-        #         "tranId":13526853623,
-        #         "status": "SUCCESS"
-        #     }
-        #
+        if type is None:
+            raise ArgumentsRequired(self.id + ' transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE')
+        defaultClientTranId = self.number_to_string(self.milliseconds())
+        clientTranId = self.safe_string(params, 'clientTranId', defaultClientTranId)
+        request['kindType'] = type
+        request['clientTranId'] = clientTranId
+        response = self.sapiPrivatePostV3AssetWalletTransfer(self.extend(request, params))
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
+        currencyId = self.safe_string(transfer, 'code')
         return {
-            'info': response,
-            'id': self.safe_string(response, 'tranId'),
-            'txid': None,
+            'info': transfer,
+            'id': self.safe_string(transfer, 'tranId'),
             'timestamp': None,
             'datetime': None,
-            'network': None,
-            'address': None,
-            'addressTo': fromAccount,
-            'addressFrom': toAccount,
-            'tag': None,
-            'tagTo': None,
-            'tagFrom': None,
-            'type': 'transfer',
-            'amount': amount,
-            'currency': code,
-            'status': None,
-            'updated': None,
-            'internal': None,
-            'comment': None,
-            'fee': None,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'status')),
         }
 
-    def hash_message(self, binaryMessage):
-        # binaryMessage = self.encode(message)
+    def parse_transfer_status(self, status: Str) -> Str:
+        statuses = {
+            'SUCCESS': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def hash_message(self, binaryMessage: object):
+        # const binaryMessage = this.encode (message);
         binaryMessageLength = self.binary_length(binaryMessage)
         x19 = self.base16_to_binary('19')
         newline = self.base16_to_binary('0a')
         prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode(self.number_to_string(binaryMessageLength)))
         return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: str, privateKey: str) -> str:
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
@@ -3483,73 +4061,174 @@ class aster(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.implode_hostname(self.urls['api'][api]) + '/' + path
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        baseApiUrl = self.safe_string(self.urls['api'], api)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = baseApiUrl + '/' + path
         if api == 'fapiPublic' or api == 'sapiPublic':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.rawencode(params)
         elif api == 'fapiPrivate' or api == 'sapiPrivate':
             self.check_required_credentials()
-            headers = {
-                'X-MBX-APIKEY': self.apiKey,
+            nonce = self.milliseconds() * 1000
+            # Sign using EIP-712 typed data per the AsterSignTransaction spec
+            zeroAddress = self.safe_string(self.options, 'zeroAddress', '0x0000000000000000000000000000000000000000')
+            v3ChainId = self.safe_integer(self.options, 'v3ChainId', 1666)
+            walletAddress = self.safe_string(self.options, 'cachedWalletAddress')
+            privateKeyHash = self.hash(self.encode(self.privateKey), 'keccak', 'hex')
+            cachedPrivateKeyHash = self.safe_string(self.options, 'privateKeyHashForCachedWalletAddress')
+            if (walletAddress is None) or (cachedPrivateKeyHash != privateKeyHash):
+                walletAddress = self.eth_get_address_from_private_key(self.privateKey)
+                self.options['cachedWalletAddress'] = walletAddress
+                self.options['privateKeyHashForCachedWalletAddress'] = privateKeyHash
+            signerAddress = self.safe_string(self.options, 'signerAddress', walletAddress)  # default to user's wallet
+            if signerAddress is None:
+                raise ArgumentsRequired(self.id + ' requires signerAddress in options when use v3 api')
+            domain = {
+                'name': 'AsterSignTransaction',
+                'version': '1',
+                'chainId': v3ChainId,
+                'verifyingContract': zeroAddress,
             }
-            timestamp = self.milliseconds()
-            # Nonce is in microseconds
-            nonce = self.microseconds()
-            defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
-            extendedParams = self.extend({
-                'timestamp': timestamp,
+            messageTypes = {
+                'Message': [
+                    {'name': 'msg', 'type': 'string'},
+                ],
+            }
+            # Build v3 params: original endpoint params + nonce (microseconds) + user + signer
+            # Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
+            finalParams = self.extend({
+                'nonce': str(nonce),
+                'user': walletAddress,
+                'signer': signerAddress,
             }, params)
-            if defaultRecvWindow is not None:
-                extendedParams['recvWindow'] = defaultRecvWindow
-            recvWindow = self.safe_integer(params, 'recvWindow')
-            if recvWindow is not None:
-                extendedParams['recvWindow'] = recvWindow
-            query = None
-            if (method == 'DELETE') and (path == 'v1/batchOrders'):
-                orderidlist = self.safe_list(extendedParams, 'orderIdList', [])
-                origclientorderidlist = self.safe_list(extendedParams, 'origClientOrderIdList', [])
-                extendedParams = self.omit(extendedParams, ['orderIdList', 'origClientOrderIdList'])
-                query = self.rawencode(extendedParams)
-                orderidlistLength = len(orderidlist)
-                origclientorderidlistLength = len(origclientorderidlist)
-                if orderidlistLength > 0:
-                    query = query + '&' + 'orderidlist=%5B' + '%2C'.join(orderidlist) + '%5D'
-                if origclientorderidlistLength > 0:
-                    query = query + '&' + 'origclientorderidlist=%5B' + '%2C'.join(origclientorderidlist) + '%5D'
+            paramString = None
+            paramsToEncode: dict
+            isApproveBuilder = (path.find('/approveBuilder') >= 0)
+            if isApproveBuilder:
+                # domain['name'] = 'Aster';
+                messageTypes = {
+                    'ApproveBuilder': [
+                        {'name': 'Builder', 'type': 'string'},
+                        {'name': 'MaxFeeRate', 'type': 'string'},
+                        {'name': 'BuilderName', 'type': 'string'},
+                        {'name': 'AsterChain', 'type': 'string'},
+                        {'name': 'User', 'type': 'string'},
+                        {'name': 'Nonce', 'type': 'uint256'},
+                    ],
+                }
+                del finalParams['signer']  # signer is not needed for approveBuilder endpoint
+                paramString = self.encode_values_with_json(finalParams)
+                paramsToEncode = self.capitalize_keys(finalParams)
             else:
-                query = self.rawencode(extendedParams)
-            signature = ''
-            if path.find('v3') >= 0:
-                signerAddress = self.options['signerAddress']
-                if signerAddress is None:
-                    raise ArgumentsRequired(self.id + ' requires signerAddress in options when use v3 api')
-                # the keys order matter
-                keys = list(extendedParams.keys())
-                sortedKeys = self.sort(keys)
-                signingPayload = {}
-                for i in range(0, len(sortedKeys)):
-                    key = sortedKeys[i]
-                    signingPayload[key] = str(extendedParams[key])
-                signingHash = self.hash_message(self.hash(self.eth_abi_encode([
-                    'string', 'address', 'address', 'uint256',
-                ], [self.json(signingPayload), self.walletAddress, signerAddress, nonce]), 'keccak', 'binary'))
-                signature = self.sign_hash(signingHash, self.privateKey)
-                extendedParams['user'] = self.walletAddress
-                extendedParams['signer'] = signerAddress
-                extendedParams['nonce'] = nonce
-                query = self.rawencode(extendedParams)
-            else:
-                signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
-            query += '&' + 'signature=' + signature
+                paramString = self.encode_values_with_json(finalParams)
+                paramsToEncode = {'msg': paramString}
+            encodedMessage = self.eth_encode_structured_data(domain, messageTypes, paramsToEncode)
+            signature = self.sign_message(encodedMessage, self.privateKey)
+            queryString = paramString + '&' + 'signature=' + signature
             if method == 'GET':
-                url += '?' + query
+                url += '?' + queryString
             else:
-                body = query
-                headers['Content-Type'] = 'application/x-www-form-urlencoded'
+                formHeaders = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+                return {'url': url, 'method': method, 'body': queryString, 'headers': formHeaders}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def encode_values_with_json(self, values: dict) -> str:
+        encodedString = ''
+        keys = list(values.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = values[key]
+            isObj = isinstance(value, list) or self.is_dictionary(value)
+            valueJsonified = self.json(value) if isObj else str(value)
+            encoded = self.encode_uri_component(valueJsonified)
+            encodedString += key + '=' + encoded + '&'
+        return encodedString[0:-1]
+
+    def capitalize_keys(self, dict: dict) -> dict:
+        capitalized = {}
+        keys = list(dict.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = dict[key]
+            capitalizedKey = self.capitalize(key)
+            capitalized[capitalizedKey] = value
+        return capitalized
+
+    def load_markets_and_sign_in(self):
+        [self.load_markets(), self.sign_in()]
+
+    def sign_in(self, params: dict = {}):
+        """
+        sign in, must be called prior to using other authenticated methods
+
+        https://asterdex.github.io/aster-api-website/asterCode/integration-flow/
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns: response from exchange
+        """
+        if self.is_empty_string(self.privateKey):
+            if not self.is_empty_string(self.apiKey) or not self.is_empty_string(self.secret):
+                raise NotSupported(self.id + 'after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.')
+            return False
+        if len(self.privateKey) > 66:
+            raise NotSupported(self.id + ' after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.')
+        self.initialize_client(params)
+        return True
+
+    def initialize_client(self, params: dict = {}) -> Bool:
+        builderFee = self.safe_bool(params, 'builderFee', self.safe_bool(self.options, 'builderFee', True))  # we shouldn't omit here
+        if builderFee is not True:
+            return False  # skip if builder fee is not enabled
+        approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
+        if approvedBuilderFee is True:
+            return True  # skip if builder fee is already approved
+        result = self.fapiPrivateGetV3Builder()
+        #
+        #    [
+        #        {
+        #            "userAddress": "0x35a5B33Be664B09F78b5089eb6185f71c8a7f11f",
+        #            "builderAddress": "0x1F5877C19e3777Cfd15F9d57253eA4aA5254Ec39",
+        #            "maxFeeRate": "0.001",
+        #            "builderName": "ccxt"
+        #        }
+        #    ]
+        #
+        approvedBuilders = result
+        length = len(approvedBuilders)
+        found = False
+        for i in range(0, length):
+            builderInfo = self.safe_dict(approvedBuilders, i, {})
+            builderAccountId = self.safe_string(builderInfo, 'builderAddress')
+            if builderAccountId == self.safe_string(self.options, 'builder'):
+                found = True
+                break
+        if not found:
+            self.options['approvedBuilderFee'] = True
+            try:
+                request = {
+                    'builder': self.safe_string(self.options, 'builder'),
+                    'builderName': self.safe_string(self.options, 'builderName', 'ccxt'),
+                    'maxFeeRate': self.safe_string(self.options, 'builderRate'),
+                    'signatureChainId': self.safe_integer(self.options, 'v3ChainId', 1666),
+                    'asterChain': 'Mainnet',
+                }
+                authResponse = self.fapiPrivatePostV3ApproveBuilder(self.extend(request, params))
+                #
+                # {"code": 200,"msg": "success"}
+                #
+                codeRes = self.safe_integer(authResponse, 'code')
+                if codeRes != 200:
+                    raise ExchangeError('Builder authorization failed, ' + self.json(authResponse))
+            except Exception as e:
+                self.options['approvedBuilderFee'] = False
+                self.options['builderFee'] = False  # disable if err
+        return None  # just c#
+
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         #

@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitopro$1 = require('../bitopro.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -48,7 +48,11 @@ class bitopro extends bitopro$1["default"] {
         });
     }
     async watchPublic(path, messageHash, marketId) {
-        const url = this.urls['ws']['public'] + '/' + path + '/' + marketId;
+        const wsUrl = this.safeString(this.urls['ws'], 'public');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' watchPublic() has no public websocket url');
+        }
+        const url = wsUrl + '/' + path + '/' + marketId;
         return await this.watch(url, messageHash, undefined, messageHash);
     }
     /**
@@ -59,7 +63,7 @@ class bitopro extends bitopro$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (limit !== undefined) {
@@ -67,10 +71,12 @@ class bitopro extends bitopro$1["default"] {
                 throw new errors.ExchangeError(this.id + ' watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000');
             }
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'ORDER_BOOK' + ':' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'ORDER_BOOK' + ':' + symbolValue;
         let endPart = undefined;
         if (limit === undefined) {
             endPart = market['id'];
@@ -107,7 +113,6 @@ class bitopro extends bitopro$1["default"] {
         const market = this.safeMarket(marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString(message, 'event');
-        const messageHash = event + ':' + symbol;
         let orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
             orderbook = this.orderBook({});
@@ -115,7 +120,10 @@ class bitopro extends bitopro$1["default"] {
         const timestamp = this.safeInteger(message, 'timestamp');
         const snapshot = this.parseOrderBook(message, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
         orderbook.reset(snapshot);
-        client.resolve(orderbook, messageHash);
+        if (event !== undefined) {
+            const messageHash = event + ':' + symbol;
+            client.resolve(orderbook, messageHash);
+        }
     }
     /**
      * @method
@@ -129,15 +137,18 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'TRADE' + ':' + symbol;
-        const trades = await this.watchPublic('trades', messageHash, market['id']);
-        if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        const market = this.market(symbol);
+        const symbolValue = market['symbol'];
+        const messageHash = 'TRADE' + ':' + symbolValue;
+        const trades = await this.watchPublic('trades', messageHash, market['id']);
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit(symbolValue, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrade(client, message) {
         //
@@ -163,8 +174,7 @@ class bitopro extends bitopro$1["default"] {
         const market = this.safeMarket(marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString(message, 'event');
-        const messageHash = event + ':' + symbol;
-        const rawData = this.safeValue(message, 'data', []);
+        const rawData = this.safeList(message, 'data', []);
         const trades = this.parseTrades(rawData, market);
         let tradesCache = this.safeValue(this.trades, symbol);
         if (tradesCache === undefined) {
@@ -175,7 +185,10 @@ class bitopro extends bitopro$1["default"] {
             tradesCache.append(trades[i]);
         }
         this.trades[symbol] = tradesCache;
-        client.resolve(tradesCache, messageHash);
+        if (event !== undefined) {
+            const messageHash = event + ':' + symbol;
+            client.resolve(tradesCache, messageHash);
+        }
     }
     /**
      * @method
@@ -190,19 +203,26 @@ class bitopro extends bitopro$1["default"] {
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'USER_TRADE';
         if (symbol !== undefined) {
             const market = this.market(symbol);
             messageHash = messageHash + ':' + market['symbol'];
         }
-        const url = this.urls['ws']['private'] + '/' + 'user-trades';
+        const wsUrl = this.safeString(this.urls['ws'], 'private');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' watchMyTrades() has no private websocket url');
+        }
+        const url = wsUrl + '/' + 'user-trades';
         this.authenticate(url);
         const trades = await this.watch(url, messageHash, undefined, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleMyTrade(client, message) {
         //
@@ -228,11 +248,14 @@ class bitopro extends bitopro$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(message, 'data', {});
+        const data = this.safeDict(message, 'data', {});
         const baseId = this.safeString(data, 'base');
         const quoteId = this.safeString(data, 'quote');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return;
+        }
         const symbol = this.symbol(base + '/' + quote);
         const messageHash = this.safeString(message, 'event');
         if (this.myTrades === undefined) {
@@ -243,7 +266,9 @@ class bitopro extends bitopro$1["default"] {
         const parsed = this.parseWsTrade(data);
         trades.append(parsed);
         client.resolve(trades, messageHash);
-        client.resolve(trades, messageHash + ':' + symbol);
+        if (messageHash !== undefined) {
+            client.resolve(trades, messageHash + ':' + symbol);
+        }
     }
     parseWsTrade(trade, market = undefined) {
         //
@@ -271,8 +296,11 @@ class bitopro extends bitopro$1["default"] {
         const quoteId = this.safeString(trade, 'quote');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const symbol = this.symbol(base + '/' + quote);
-        market = this.safeMarket(symbol, market);
+        let symbol = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = this.symbol(base + '/' + quote);
+        }
+        const marketResolved = this.safeMarket(symbol, market);
         const price = this.safeString(trade, 'price');
         const type = this.safeStringLower(trade, 'orderType');
         let side = this.safeString(trade, 'side');
@@ -295,10 +323,10 @@ class bitopro extends bitopro$1["default"] {
                 'rate': undefined,
             };
         }
-        const isMaker = this.safeValue(trade, 'isMaker');
+        const isMaker = this.safeBool(trade, 'isMaker');
         let takerOrMaker = undefined;
         if (isMaker !== undefined) {
-            if (isMaker) {
+            if (isMaker === true) {
                 takerOrMaker = 'maker';
             }
             else {
@@ -319,7 +347,7 @@ class bitopro extends bitopro$1["default"] {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -331,10 +359,12 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'TICKER' + ':' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'TICKER' + ':' + symbolValue;
         return await this.watchPublic('tickers', messageHash, market['id']);
     }
     handleTicker(client, message) {
@@ -356,19 +386,24 @@ class bitopro extends bitopro$1["default"] {
         //         "low24hr": "1179321"
         //     }
         //
-        const marketId = this.safeString(message, 'pair');
+        const marketId = this.safeStringLower(message, 'pair');
+        if (marketId === undefined) {
+            return; // some TICKER frames arrive without a pair - nothing to resolve them against
+        }
         // market-ids are lowercase in REST API and uppercase in WS API
-        const market = this.safeMarket(marketId.toLowerCase(), undefined, '_');
+        const market = this.safeMarket(marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString(message, 'event');
-        const messageHash = event + ':' + symbol;
         const result = this.parseTicker(message, market);
         result['symbol'] = this.safeString(market, 'symbol'); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         const timestamp = this.safeInteger(message, 'timestamp');
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601(timestamp); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         this.tickers[symbol] = result;
-        client.resolve(result, messageHash);
+        if (event !== undefined) {
+            const messageHash = event + ':' + symbol;
+            client.resolve(result, messageHash);
+        }
     }
     authenticate(url) {
         if ((this.clients !== undefined) && (url in this.clients)) {
@@ -381,7 +416,7 @@ class bitopro extends bitopro$1["default"] {
             'identity': this.login,
         });
         const payload = this.stringToBase64(rawData);
-        const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384);
+        const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha384);
         const defaultOptions = {
             'ws': {
                 'options': {
@@ -413,9 +448,15 @@ class bitopro extends bitopro$1["default"] {
      */
     async watchBalance(params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const messageHash = 'ACCOUNT_BALANCE';
-        const url = this.urls['ws']['private'] + '/' + 'account-balance';
+        const wsUrl = this.safeString(this.urls['ws'], 'private');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' watchBalance() has no private websocket url');
+        }
+        const url = wsUrl + '/' + 'account-balance';
         this.authenticate(url);
         return await this.watch(url, messageHash, undefined, messageHash);
     }
@@ -437,7 +478,7 @@ class bitopro extends bitopro$1["default"] {
         //     }
         //
         const event = this.safeString(message, 'event');
-        const data = this.safeValue(message, 'data');
+        const data = this.safeDict(message, 'data', {});
         const timestamp = this.safeInteger(message, 'timestamp');
         const datetime = this.safeString(message, 'datetime');
         const currencies = Object.keys(data);
@@ -448,13 +489,15 @@ class bitopro extends bitopro$1["default"] {
         };
         for (let i = 0; i < currencies.length; i++) {
             const currency = this.safeString(currencies, i);
-            const balance = this.safeValue(data, currency);
+            const balance = this.safeDict(data, currency, {});
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             account['free'] = this.safeString(balance, 'available');
             account['total'] = this.safeString(balance, 'amount');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         this.balance = this.safeBalance(result);
         client.resolve(this.balance, event);

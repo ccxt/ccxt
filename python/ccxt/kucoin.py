@@ -8,8 +8,7 @@ from ccxt.abstract.kucoin import ImplicitAPI
 import hashlib
 import math
 import json
-from ccxt.base.types import Account, Any, Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Account, ADL, Balances, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, DepositWithdrawFee, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -33,12 +32,12 @@ from ccxt.base.precise import Precise
 
 class kucoin(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(kucoin, self).describe(), {
             'id': 'kucoin',
             'name': 'KuCoin',
             'countries': ['SC'],
-            'rateLimit': 10,  # 100 requests per second =>( 1000ms / 100 ) = 10 ms between requests on average
+            'rateLimit': 7.5,  # 4000 requests per 30 seconds (VIP0 for spot)
             'version': 'v2',
             'certified': True,
             'pro': True,
@@ -48,25 +47,30 @@ class kucoin(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': True,
-                'swap': False,
-                'future': False,
+                'swap': True,
+                'future': True,
                 'option': False,
+                'addMargin': True,
                 'borrowCrossMargin': True,
                 'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'closeAllPositions': False,
-                'closePosition': False,
+                'closePosition': True,
                 'createDepositAddress': True,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': True,
                 'createMarketSellOrderWithCost': True,
                 'createOrder': True,
                 'createOrders': True,
+                'createOrderWithTakeProfitAndStopLoss': True,
                 'createPostOnlyOrder': True,
                 'createStopLimitOrder': True,
+                'createStopLossOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'createTakeProfitOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchAccounts': True,
@@ -75,7 +79,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchBorrowRateHistories': True,
                 'fetchBorrowRateHistory': True,
                 'fetchClosedOrders': True,
-                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRate': True,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -84,37 +88,44 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': True,
                 'fetchDepositWithdrawFees': True,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': True,
+                'fetchFundingInterval': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': False,
-                'fetchIndexOHLCV': False,
+                'fetchFundingRates': True,
+                'fetchIndexOHLCV': True,  # uta only
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
-                'fetchLeverageTiers': False,
+                'fetchLeverage': True,
+                'fetchLeverageTiers': True,
                 'fetchMarginAdjustmentHistory': False,
-                'fetchMarginMode': False,
-                'fetchMarketLeverageTiers': False,
+                'fetchMarginMode': True,
+                'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
-                'fetchMarkOHLCV': False,
+                'fetchMarkOHLCV': True,  # uta only
                 'fetchMarkPrice': True,
                 'fetchMarkPrices': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
-                'fetchOpenInterest': False,
-                'fetchOpenInterestHistory': False,
+                'fetchOpenInterest': True,
+                'fetchOpenInterestHistory': True,
+                'fetchOpenInterests': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
                 'fetchOrdersByStatus': True,
                 'fetchOrderTrades': True,
-                'fetchPositionHistory': False,
-                'fetchPositionMode': False,
-                'fetchPositionsHistory': False,
-                'fetchPremiumIndexOHLCV': False,
+                'fetchPosition': True,
+                'fetchPositionADLRank': True,
+                'fetchPositionHistory': True,
+                'fetchPositionMode': True,
+                'fetchPositions': True,
+                'fetchPositionsADLRank': True,
+                'fetchPositionsHistory': True,
+                'fetchPremiumIndexOHLCV': True,  # uta only
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -125,11 +136,12 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchTransactionFee': True,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
                 'repayCrossMargin': True,
                 'repayIsolatedMargin': True,
                 'setLeverage': True,
-                'setMarginMode': False,
-                'setPositionMode': False,
+                'setMarginMode': True,
+                'setPositionMode': True,
                 'signIn': False,
                 'transfer': True,
                 'withdraw': True,
@@ -146,6 +158,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'broker': 'https://api-broker.kucoin.com',
                     'earn': 'https://api.kucoin.com',
                     'uta': 'https://api.kucoin.com',
+                    'utaV2': 'https://api.kucoin.com',
                     'utaPrivate': 'https://api.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
@@ -160,401 +173,466 @@ class kucoin(Exchange, ImplicitAPI):
             },
             'api': {
                 # level VIP0
-                # Spot => 3000/30s => 100/s
-                # Weight = x => 100/(100/x) = x
-                # Futures Management Public => 2000/30s => 200/3/s
-                # Weight = x => 100/(200/3/x) = x*1.5
+                # Spot => 4000/30s
+                # Weight = x
+                # Pro, Futures, Management, Management, Earn, CopyTrading => 2000/30s
+                # Weight = x*2
                 'public': {
                     'get': {
                         # spot trading
-                        'currencies': 4.5,  # 3PW
-                        'currencies/{currency}': 4.5,  # 3PW
-                        'symbols': 6,  # 4PW
-                        'market/orderbook/level1': 3,  # 2PW
-                        'market/allTickers': 22.5,  # 15PW
-                        'market/stats': 22.5,  # 15PW
-                        'markets': 4.5,  # 3PW
-                        'market/orderbook/level{level}_{limit}': 6,  # 4PW
-                        'market/orderbook/level2_20': 3,  # 2PW
-                        'market/orderbook/level2_100': 6,  # 4PW
-                        'market/histories': 4.5,  # 3PW
-                        'market/candles': 4.5,  # 3PW
-                        'prices': 4.5,  # 3PW
-                        'timestamp': 4.5,  # 3PW
-                        'status': 4.5,  # 3PW
+                        'currencies': {'cost': 3},
+                        'currencies/{currency}': {'cost': 3},
+                        'symbols': {'cost': 4},
+                        'market/orderbook/level1': {'cost': 2},
+                        'market/allTickers': {'cost': 15},
+                        'market/stats': {'cost': 15},
+                        'markets': {'cost': 3},
+                        'market/orderbook/level{level}_{limit}': {'cost': 4},
+                        'market/orderbook/level2_20': {'cost': 2},
+                        'market/orderbook/level2_100': {'cost': 4},
+                        'market/histories': {'cost': 3},
+                        'market/candles': {'cost': 3},
+                        'prices': {'cost': 3},
+                        'timestamp': {'cost': 3},
+                        'status': {'cost': 3},
                         # margin trading
-                        'mark-price/{symbol}/current': 3,  # 2PW
-                        'mark-price/all-symbols': 3,
-                        'margin/config': 25,  # 25SW
-                        'announcements': 20,  # 20W
-                        'margin/collateralRatio': 10,
+                        'mark-price/{symbol}/current': {'cost': 2},
+                        'mark-price/all-symbols': {'cost': 10},
+                        'margin/config': {'cost': 25},
+                        'announcements': {'cost': 20},
+                        'margin/collateralRatio': {'cost': 10},
+                        'margin/available-inventory': {'cost': 10},
                         # convert
-                        'convert/symbol': 5,
-                        'convert/currencies': 5,
+                        'convert/symbol': {'cost': 5},
+                        'convert/currencies': {'cost': 5},
                     },
                     'post': {
                         # ws
-                        'bullet-public': 15,  # 10PW
+                        'bullet-public': {'cost': 10},
                     },
                 },
                 'private': {
                     'get': {
                         # account
-                        'user-info': 30,  # 20MW
-                        'user/api-key': 30,  # 20MW
-                        'accounts': 7.5,  # 5MW
-                        'accounts/{accountId}': 7.5,  # 5MW
-                        'accounts/ledgers': 3,  # 2MW
-                        'hf/accounts/ledgers': 2,  # 2SW
-                        'hf/margin/account/ledgers': 2,  # 2SW
-                        'transaction-history': 3,  # 2MW
-                        'sub/user': 30,  # 20MW
-                        'sub-accounts/{subUserId}': 22.5,  # 15MW
-                        'sub-accounts': 30,  # 20MW
-                        'sub/api-key': 30,  # 20MW
+                        'user-info': {'cost': 20},
+                        'user/api-key': {'cost': 20},
+                        'accounts': {'cost': 5},
+                        'accounts/{accountId}': {'cost': 5},
+                        'accounts/ledgers': {'cost': 2},
+                        'hf/accounts/ledgers': {'cost': 2},
+                        'hf/margin/account/ledgers': {'cost': 2},
+                        'transaction-history': {'cost': 2},
+                        'sub/user': {'cost': 20},
+                        'sub-accounts/{subUserId}': {'cost': 15},
+                        'sub-accounts': {'cost': 20},
+                        'sub/api-key': {'cost': 20},
                         # funding
-                        'margin/account': 40,  # 40SW
-                        'margin/accounts': 15,  # 15SW
-                        'isolated/accounts': 15,  # 15SW
-                        'deposit-addresses': 7.5,  # 5MW
-                        'deposits': 7.5,  # 5MW
-                        'hist-deposits': 7.5,  # 5MW
-                        'withdrawals': 30,  # 20MW
-                        'hist-withdrawals': 30,  # 20MW
-                        'withdrawals/quotas': 30,  # 20MW
-                        'accounts/transferable': 30,  # 20MW
-                        'transfer-list': 30,  # 20MW
-                        'base-fee': 3,  # 3SW
-                        'trade-fees': 3,  # 3SW
+                        'margin/account': {'cost': 40},
+                        'margin/accounts': {'cost': 15},
+                        'isolated/accounts': {'cost': 15},
+                        'deposit-addresses': {'cost': 5},
+                        'deposits': {'cost': 5},
+                        'hist-deposits': {'cost': 5},
+                        'withdrawals': {'cost': 20},
+                        'hist-withdrawals': {'cost': 20},
+                        'withdrawals/quotas': {'cost': 20},
+                        'accounts/transferable': {'cost': 20},
+                        'transfer-list': {'cost': 20},
+                        'base-fee': {'cost': 3},
+                        'trade-fees': {'cost': 3},
                         # spot trading
-                        'market/orderbook/level{level}': 3,  # 3SW
-                        'market/orderbook/level2': 3,  # 3SW
-                        'market/orderbook/level3': 3,  # 3SW
-                        'hf/accounts/opened': 2,  #
-                        'hf/orders/active': 2,  # 2SW
-                        'hf/orders/active/symbols': 2,  # 2SW
-                        'hf/margin/order/active/symbols': 2,  # 2SW
-                        'hf/orders/done': 2,  # 2SW
-                        'hf/orders/{orderId}': 2,  # 2SW
-                        'hf/orders/client-order/{clientOid}': 2,  # 2SW
-                        'hf/orders/dead-cancel-all/query': 2,  # 2SW
-                        'hf/fills': 2,  # 2SW
-                        'orders': 2,  # 2SW
-                        'limit/orders': 3,  # 3SW
-                        'orders/{orderId}': 2,  # 2SW
-                        'order/client-order/{clientOid}': 3,  # 3SW
-                        'fills': 10,  # 10SW
-                        'limit/fills': 20,  # 20SW
-                        'stop-order': 8,  # 8SW
-                        'stop-order/{orderId}': 3,  # 3SW
-                        'stop-order/queryOrderByClientOid': 3,  # 3SW
-                        'oco/order/{orderId}': 2,  # 2SW
-                        'oco/order/details/{orderId}': 2,  # 2SW
-                        'oco/client-order/{clientOid}': 2,  # 2SW
-                        'oco/orders': 2,  # 2SW
+                        'market/orderbook/level{level}': {'cost': 3},
+                        'market/orderbook/level2': {'cost': 3},
+                        'market/orderbook/level3': {'cost': 3},
+                        'hf/accounts/opened': {'cost': 2},
+                        'hf/orders/active': {'cost': 2},
+                        'hf/orders/active/symbols': {'cost': 2},
+                        'hf/margin/order/active/symbols': {'cost': 2},
+                        'hf/orders/done': {'cost': 2},
+                        'hf/orders/{orderId}': {'cost': 2},
+                        'hf/orders/client-order/{clientOid}': {'cost': 2},
+                        'hf/orders/dead-cancel-all/query': {'cost': 2},
+                        'hf/fills': {'cost': 2},
+                        'orders': {'cost': 2},
+                        'limit/orders': {'cost': 3},
+                        'orders/{orderId}': {'cost': 2},
+                        'order/client-order/{clientOid}': {'cost': 2},
+                        'fills': {'cost': 10},
+                        'limit/fills': {'cost': 20},
+                        'stop-order': {'cost': 8},
+                        'stop-order/{orderId}': {'cost': 3},
+                        'stop-order/queryOrderByClientOid': {'cost': 3},
+                        'oco/order/{orderId}': {'cost': 2},
+                        'oco/order/details/{orderId}': {'cost': 2},
+                        'oco/client-order/{clientOid}': {'cost': 2},
+                        'oco/orders': {'cost': 2},
                         # margin trading
-                        'hf/margin/orders/active': 4,  # 4SW
-                        'hf/margin/orders/done': 10,  # 10SW
-                        'hf/margin/orders/{orderId}': 4,  # 4SW
-                        'hf/margin/orders/client-order/{clientOid}': 5,  # 5SW
-                        'hf/margin/fills': 5,  # 5SW
-                        'etf/info': 25,  # 25SW
-                        'margin/currencies': 20,  # 20SW
-                        'risk/limit/strategy': 20,  # 20SW(Deprecate)
-                        'isolated/symbols': 20,  # 20SW
-                        'margin/symbols': 5,
-                        'isolated/account/{symbol}': 50,  # 50SW
-                        'margin/borrow': 15,  # 15SW
-                        'margin/repay': 15,  # 15SW
-                        'margin/interest': 20,  # 20SW
-                        'project/list': 10,  # 10SW
-                        'project/marketInterestRate': 7.5,  # 5PW
-                        'redeem/orders': 10,  # 10SW
-                        'purchase/orders': 10,  # 10SW
+                        'hf/margin/orders/active': {'cost': 4},
+                        'hf/margin/orders/done': {'cost': 10},
+                        'hf/margin/orders/{orderId}': {'cost': 4},
+                        'hf/margin/orders/client-order/{clientOid}': {'cost': 5},
+                        'hf/margin/fills': {'cost': 5},
+                        'hf/margin/stop-orders': {'cost': 8},
+                        'hf/margin/stop-order/orderId': {'cost': 3},
+                        'hf/margin/stop-order/clientOid': {'cost': 3},
+                        'hf/margin/oco-order/orderId': {'cost': 2},
+                        'hf/margin/oco-order/clientOid': {'cost': 2},
+                        'hf/margin/oco-order/detail/orderId': {'cost': 2},
+                        'hf/margin/oco-orders': {'cost': 2},
+                        'etf/info': {'cost': 25},
+                        'margin/currencies': {'cost': 20},
+                        'risk/limit/strategy': {'cost': 20},  # Deprecate
+                        'isolated/symbols': {'cost': 3},
+                        'margin/symbols': {'cost': 3},
+                        'isolated/account/{symbol}': {'cost': 50},
+                        'margin/borrow': {'cost': 15},
+                        'margin/repay': {'cost': 15},
+                        'margin/interest': {'cost': 20},
+                        'margin/borrowRate': {'cost': 20},
+                        'project/list': {'cost': 10},
+                        'project/marketInterestRate': {'cost': 5},
+                        'redeem/orders': {'cost': 10},
+                        'purchase/orders': {'cost': 10},
                         # broker
-                        'broker/api/rebase/download': 3,
-                        'broker/queryMyCommission': 3,
-                        'broker/queryUser': 3,
-                        'broker/queryDetailByUid': 3,
-                        'migrate/user/account/status': 3,
+                        'broker/api/rebase/download': {'cost': 3},
+                        'broker/queryMyCommission': {'cost': 3},
+                        'broker/queryUser': {'cost': 3},
+                        'broker/queryDetailByUid': {'cost': 3},
+                        'migrate/user/account/status': {'cost': 3},
                         # convert
-                        'convert/quote': 20,
-                        'convert/order/detail': 5,
-                        'convert/order/history': 5,
-                        'convert/limit/quote': 20,
-                        'convert/limit/order/detail': 5,
-                        'convert/limit/orders': 5,
+                        'convert/quote': {'cost': 20},
+                        'convert/order/detail': {'cost': 5},
+                        'convert/order/history': {'cost': 5},
+                        'convert/limit/quote': {'cost': 20},
+                        'convert/limit/order/detail': {'cost': 5},
+                        'convert/limit/orders': {'cost': 5},
                         # affiliate
-                        'affiliate/inviter/statistics': 30,
-                        # earn
-                        'earn/redeem-preview': 5,  # 5EW
+                        'affiliate/inviter/statistics': {'cost': 30},
+                        'affiliate/queryInvitees': {'cost': 30},
+                        'affiliate/queryMyCommission': {'cost': 30},
+                        'affiliate/queryTransactionByUid': {'cost': 30},
+                        'affiliate/queryTransactionByTime': {'cost': 30},
+                        'affiliate/queryKumining': {'cost': 30},
                     },
                     'post': {
                         # account
-                        'sub/user/created': 22.5,  # 15MW
-                        'sub/api-key': 30,  # 20MW
-                        'sub/api-key/update': 45,  # 30MW
+                        'sub/user/created': {'cost': 15},
+                        'sub/api-key': {'cost': 20},
+                        'sub/api-key/update': {'cost': 30},
                         # funding
-                        'deposit-addresses': 30,  # 20MW
-                        'withdrawals': 7.5,  # 5MW
-                        'accounts/universal-transfer': 6,  # 4MW
-                        'accounts/sub-transfer': 45,  # 30MW
-                        'accounts/inner-transfer': 15,  # 10MW
-                        'transfer-out': 30,  # 20MW
-                        'transfer-in': 30,  # 20MW
+                        'deposit-addresses': {'cost': 20},
+                        'withdrawals': {'cost': 5},
+                        'accounts/universal-transfer': {'cost': 4},
+                        'accounts/sub-transfer': {'cost': 30},
+                        'accounts/inner-transfer': {'cost': 15},
+                        'transfer-out': {'cost': 20},
+                        'transfer-in': {'cost': 20},
                         # spot trading
-                        'hf/orders': 1,  # 1SW
-                        'hf/orders/test': 1,  # 1SW
-                        'hf/orders/sync': 1,  # 1SW
-                        'hf/orders/multi': 1,  # 1SW
-                        'hf/orders/multi/sync': 1,  # 1SW
-                        'hf/orders/alter': 3,  # 3SW
-                        'hf/orders/dead-cancel-all': 2,  # 2SW
-                        'orders': 2,  # 2SW
-                        'orders/test': 2,  # 2SW
-                        'orders/multi': 3,  # 3SW
-                        'stop-order': 2,  # 2SW
-                        'oco/order': 2,  # 2SW
+                        'hf/orders': {'cost': 1},
+                        'hf/orders/test': {'cost': 1},
+                        'hf/orders/sync': {'cost': 1},
+                        'hf/orders/multi': {'cost': 1},
+                        'hf/orders/multi/sync': {'cost': 1},
+                        'hf/orders/alter': {'cost': 1},
+                        'hf/orders/dead-cancel-all': {'cost': 2},
+                        'orders': {'cost': 2},
+                        'orders/test': {'cost': 2},
+                        'orders/multi': {'cost': 3},
+                        'stop-order': {'cost': 2},
+                        'oco/order': {'cost': 2},
                         # margin trading
-                        'hf/margin/order': 5,  # 5SW
-                        'hf/margin/order/test': 5,  # 5SW
-                        'margin/order': 5,  # 5SW
-                        'margin/order/test': 5,  # 5SW
-                        'margin/borrow': 15,  # 15SW
-                        'margin/repay': 10,  # 10SW
-                        'purchase': 15,  # 15SW
-                        'redeem': 15,  # 15SW
-                        'lend/purchase/update': 10,  # 10SW
+                        'hf/margin/order': {'cost': 2},
+                        'hf/margin/order/test': {'cost': 2},
+                        'hf/margin/stop-order': {'cost': 3},
+                        'margin/order': {'cost': 5},
+                        'margin/order/test': {'cost': 5},
+                        'hf/margin/oco-order': {'cost': 2},
+                        'margin/borrow': {'cost': 15},
+                        'margin/repay': {'cost': 10},
+                        'purchase': {'cost': 15},
+                        'redeem': {'cost': 15},
+                        'lend/purchase/update': {'cost': 10},
                         # convert
-                        'convert/order': 20,
-                        'convert/limit/order': 20,
+                        'convert/order': {'cost': 20},
+                        'convert/limit/order': {'cost': 20},
                         # ws
-                        'bullet-private': 10,  # 10SW
-                        'position/update-user-leverage': 5,
-                        'deposit-address/create': 20,
+                        'bullet-private': {'cost': 10},
+                        'position/update-user-leverage': {'cost': 5},
+                        'deposit-address/create': {'cost': 20},
                     },
                     'delete': {
                         # account
-                        'sub/api-key': 45,  # 30MW
+                        'sub/api-key': {'cost': 30},
                         # funding
-                        'withdrawals/{withdrawalId}': 30,  # 20MW
+                        'withdrawals/{withdrawalId}': {'cost': 20},
                         # spot trading
-                        'hf/orders/{orderId}': 1,  # 1SW
-                        'hf/orders/sync/{orderId}': 1,  # 1SW
-                        'hf/orders/client-order/{clientOid}': 1,  # 1SW
-                        'hf/orders/sync/client-order/{clientOid}': 1,  # 1SW
-                        'hf/orders/cancel/{orderId}': 2,  # 2SW
-                        'hf/orders': 2,  # 2SW
-                        'hf/orders/cancelAll': 30,  # 30SW
-                        'orders/{orderId}': 3,  # 3SW
-                        'order/client-order/{clientOid}': 5,  # 5SW
-                        'orders': 20,  # 20SW
-                        'stop-order/{orderId}': 3,  # 3SW
-                        'stop-order/cancelOrderByClientOid': 5,  # 5SW
-                        'stop-order/cancel': 3,  # 3SW
-                        'oco/order/{orderId}': 3,  # 3SW
-                        'oco/client-order/{clientOid}': 3,  # 3SW
-                        'oco/orders': 3,  # 3SW
+                        'hf/orders/{orderId}': {'cost': 1},
+                        'hf/orders/sync/{orderId}': {'cost': 1},
+                        'hf/orders/client-order/{clientOid}': {'cost': 1},
+                        'hf/orders/sync/client-order/{clientOid}': {'cost': 1},
+                        'hf/orders/cancel/{orderId}': {'cost': 1},
+                        'hf/orders': {'cost': 2},
+                        'hf/orders/cancelAll': {'cost': 30},
+                        'orders/{orderId}': {'cost': 3},
+                        'order/client-order/{clientOid}': {'cost': 5},
+                        'orders': {'cost': 20},
+                        'stop-order/{orderId}': {'cost': 3},
+                        'stop-order/cancelOrderByClientOid': {'cost': 5},
+                        'stop-order/cancel': {'cost': 3},
+                        'oco/order/{orderId}': {'cost': 3},
+                        'oco/client-order/{clientOid}': {'cost': 3},
+                        'oco/orders': {'cost': 3},
                         # margin trading
-                        'hf/margin/orders/{orderId}': 5,  # 5SW
-                        'hf/margin/orders/client-order/{clientOid}': 5,  # 5SW
-                        'hf/margin/orders': 10,  # 10SW
+                        'hf/margin/orders/{orderId}': {'cost': 2},
+                        'hf/margin/orders/client-order/{clientOid}': {'cost': 2},
+                        'hf/margin/orders': {'cost': 5},
+                        'hf/margin/stop-order/cancel-by-id': {'cost': 3},
+                        'hf/margin/stop-order/cancel-by-clientOid': {'cost': 5},
+                        'hf/margin/stop-order/cancel': {'cost': 3},
+                        'hf/margin/oco-order/cancel-by-id': {'cost': 3},
+                        'hf/margin/oco-order/cancel-by-clientOid': {'cost': 3},
+                        'hf/margin/oco-order/cancel': {'cost': 3},
                         # convert
-                        'convert/limit/order/cancel': 5,
+                        'convert/limit/order/cancel': {'cost': 5},
                     },
                 },
                 'futuresPublic': {
                     'get': {
-                        'contracts/active': 4.5,  # 3PW
-                        'contracts/{symbol}': 4.5,  # 3PW
-                        'ticker': 3,  # 2PW
-                        'level2/snapshot': 4.5,  # 3PW
-                        'level2/depth20': 7.5,  # 5PW
-                        'level2/depth100': 15,  # 10PW
-                        'trade/history': 7.5,  # 5PW
-                        'kline/query': 4.5,  # 3PW
-                        'interest/query': 7.5,  # 5PW
-                        'index/query': 3,  # 2PW
-                        'mark-price/{symbol}/current': 4.5,  # 3PW
-                        'premium/query': 4.5,  # 3PW
-                        'trade-statistics': 4.5,  # 3PW
-                        'funding-rate/{symbol}/current': 3,  # 2PW
-                        'contract/funding-rates': 7.5,  # 5PW
-                        'timestamp': 3,  # 2PW
-                        'status': 6,  # 4PW
+                        'contracts/active': {'cost': 6},
+                        'contracts/{symbol}': {'cost': 6},  # 3PW
+                        'ticker': {'cost': 4},  # 2PW
+                        'allTickers': {'cost': 10},  # 5PW
+                        'level2/snapshot': {'cost': 6},  # 3PW
+                        'level2/depth20': {'cost': 10},  # 5PW
+                        'level2/depth100': {'cost': 20},  # 10PW
+                        'trade/history': {'cost': 10},  # 5PW
+                        'kline/query': {'cost': 6},  # 3PW
+                        'interest/query': {'cost': 10},  # 5PW
+                        'index/query': {'cost': 4},  # 2PW
+                        'mark-price/{symbol}/current': {'cost': 6},  # 3PW
+                        'premium/query': {'cost': 6},  # 3PW
+                        'trade-statistics': {'cost': 6},  # 3PW
+                        'funding-rate/{symbol}/current': {'cost': 4},  # 2PW
+                        'contract/funding-rates': {'cost': 10},  # 5PW
+                        'timestamp': {'cost': 4},  # 2PW
+                        'status': {'cost': 8},  # 4PW
                         # ?
-                        'level2/message/query': 1.3953,
+                        'level2/message/query': {'cost': 1.3953},
+                        'contracts/risk-limit/{symbol}': {'cost': 3},
+                        'level3/message/query': {'cost': 3},  # deprecated，level3/snapshot is suggested
+                        'level3/snapshot': {'cost': 3},  # v2
                     },
                     'post': {
                         # ws
-                        'bullet-public': 15,  # 10PW
+                        'bullet-public': {'cost': 20},  # 10PW
                     },
                 },
                 'futuresPrivate': {
                     'get': {
                         # account
-                        'transaction-history': 3,  # 2MW
+                        'transaction-history': {'cost': 4},  # 2MW
                         # funding
-                        'account-overview': 7.5,  # 5FW
-                        'account-overview-all': 9,  # 6FW
-                        'transfer-list': 30,  # 20MW
+                        'account-overview': {'cost': 10},  # 5FW
+                        'account-overview-all': {'cost': 12},  # 6FW
+                        'transfer-list': {'cost': 20},
                         # futures
-                        'orders': 3,  # 2FW
-                        'stopOrders': 9,  # 6FW
-                        'recentDoneOrders': 7.5,  # 5FW
-                        'orders/{orderId}': 7.5,  # 5FW
-                        'orders/byClientOid': 7.5,  # 5FW
-                        'fills': 7.5,  # 5FW
-                        'recentFills': 4.5,  # 3FW
-                        'openOrderStatistics': 15,  # 10FW
-                        'position': 3,  # 2FW
-                        'positions': 3,  # 2FW
-                        'margin/maxWithdrawMargin': 15,  # 10FW
-                        'contracts/risk-limit/{symbol}': 7.5,  # 5FW
-                        'funding-history': 7.5,  # 5FW
-                        'copy-trade/futures/get-max-open-size': 6,  # 4FW
-                        'copy-trade/futures/position/margin/max-withdraw-margin': 15,  # 10FW
+                        'orders': {'cost': 4},  # 2FW
+                        'stopOrders': {'cost': 12},  # 6FW
+                        'recentDoneOrders': {'cost': 10},  # 5FW
+                        'orders/{orderId}': {'cost': 10},  # 5FW
+                        'orders/byClientOid': {'cost': 10},  # 5FW
+                        'fills': {'cost': 10},  # 5FW
+                        'recentFills': {'cost': 6},  # 3FW
+                        'trade-fees': {'cost': 6},
+                        'openOrderStatistics': {'cost': 20},  # 10FW
+                        'position': {'cost': 4},  # 2FW
+                        'positions': {'cost': 4},  # 2FW
+                        'margin/maxWithdrawMargin': {'cost': 20},  # 10FW
+                        'contracts/risk-limit/{symbol}': {'cost': 10},  # 5FW
+                        'funding-history': {'cost': 10},  # 5FW
+                        'copy-trade/futures/get-max-open-size': {'cost': 8},  # 4FW
+                        'copy-trade/futures/position/margin/max-withdraw-margin': {'cost': 20},  # 10FW
+                        'history-positions': {'cost': 4},
+                        'position/getMarginMode': {'cost': 4},
+                        'position/getPositionMode': {'cost': 4},
+                        'deposit-address': {'cost': 4},
+                        'deposit-list': {'cost': 4},
+                        'withdrawals/quotas': {'cost': 4},
+                        'withdrawal-list': {'cost': 4},
+                        'sub/api-key': {'cost': 4},
+                        'trade-statistics': {'cost': 4},
+                        'getMaxOpenSize': {'cost': 4},
+                        'getCrossUserLeverage': {'cost': 4},
                     },
                     'post': {
                         # funding
-                        'transfer-out': 30,  # 20MW
-                        'transfer-in': 30,  # 20MW
+                        'transfer-out': {'cost': 20},
+                        'transfer-in': {'cost': 20},
                         # futures
-                        'orders': 3,  # 2FW
-                        'orders/test': 3,  # 2FW
-                        'orders/multi': 4.5,  # 3FW
-                        'position/margin/auto-deposit-status': 6,  # 4FW
-                        'margin/withdrawMargin': 15,  # 10FW
-                        'position/margin/deposit-margin': 6,  # 4FW
-                        'position/risk-limit-level/change': 6,  # 4FW
-                        'copy-trade/futures/orders': 3,  # 2FW
-                        'copy-trade/futures/orders/test': 3,  # 2FW
-                        'copy-trade/futures/st-orders': 3,  # 2FW
-                        'copy-trade/futures/position/margin/deposit-margin': 6,  # 4FW
-                        'copy-trade/futures/position/margin/withdraw-margin': 15,  # 10FW
-                        'copy-trade/futures/position/risk-limit-level/change': 3,  # 2FW
-                        'copy-trade/futures/position/margin/auto-deposit-status': 6,  # 4FW
-                        'copy-trade/futures/position/changeMarginMode': 3,  # 2FW
-                        'copy-trade/futures/position/changeCrossUserLeverage': 3,  # 2FW
-                        'copy-trade/getCrossModeMarginRequirement': 4.5,  # 3FW
-                        'copy-trade/position/switchPositionMode': 3,  # 2FW
+                        'orders': {'cost': 4},  # 2FW
+                        'st-orders': {'cost': 4},
+                        'orders/test': {'cost': 4},  # 2FW
+                        'orders/multi': {'cost': 6},  # 3FW
+                        'position/margin/auto-deposit-status': {'cost': 8},  # 4FW
+                        'margin/withdrawMargin': {'cost': 10},  # 10FW
+                        'position/margin/deposit-margin': {'cost': 8},  # 4FW
+                        'position/risk-limit-level/change': {'cost': 8},  # 4FW
+                        'copy-trade/futures/orders': {'cost': 4},  # 2FW
+                        'copy-trade/futures/orders/test': {'cost': 4},  # 2FW
+                        'copy-trade/futures/st-orders': {'cost': 4},  # 2FW
+                        'copy-trade/futures/position/margin/deposit-margin': {'cost': 8},  # 4FW
+                        'copy-trade/futures/position/margin/withdraw-margin': {'cost': 20},  # 10FW
+                        'copy-trade/futures/position/risk-limit-level/change': {'cost': 4},  # 2FW
+                        'copy-trade/futures/position/margin/auto-deposit-status': {'cost': 8},  # 4FW
+                        'copy-trade/futures/position/changeMarginMode': {'cost': 4},  # 2FW
+                        'copy-trade/futures/position/changeCrossUserLeverage': {'cost': 4},  # 2FW
+                        'copy-trade/getCrossModeMarginRequirement': {'cost': 6},  # 3FW
+                        'copy-trade/position/switchPositionMode': {'cost': 4},  # 2FW
+                        'changeCrossUserLeverage': {'cost': 4},
+                        'withdrawals': {'cost': 4},
+                        'sub/api-key': {'cost': 4},
+                        'sub/api-key/update': {'cost': 4},
+                        'position/changeMarginMode': {'cost': 4},
+                        'position/switchPositionMode': {'cost': 4},
                         # ws
-                        'bullet-private': 15,  # 10FW
+                        'bullet-private': {'cost': 20},  # 10FW
                     },
                     'delete': {
-                        'orders/{orderId}': 1.5,  # 1FW
-                        'orders/client-order/{clientOid}': 1.5,  # 1FW
-                        'orders': 45,  # 30FW
-                        'stopOrders': 22.5,  # 15FW
-                        'copy-trade/futures/orders': 1.5,  # 1FW
-                        'copy-trade/futures/orders/client-order': 1.5,  # 1FW
+                        'orders/{orderId}': {'cost': 2},  # 1FW
+                        'orders/client-order/{clientOid}': {'cost': 2},  # 1FW
+                        'orders': {'cost': 20},  # 10FW
+                        'stopOrders': {'cost': 30},  # 15FW
+                        'copy-trade/futures/orders': {'cost': 1.5},  # 1FW
+                        'copy-trade/futures/orders/client-order': {'cost': 1.5},  # 1FW
+                        'orders/multi-cancel': {'cost': 40},  # 20FW
+                        'withdrawals/{withdrawalId}': {'cost': 10},
+                        'cancel/transfer-out': {'cost': 10},
+                        'sub/api-key': {'cost': 10},
                     },
                 },
                 'webExchange': {
                     'get': {
-                        'currency/currency/chain-info': 1,  # self is temporary from webApi
+                        'currency/currency/chain-info': {'cost': 1},  # this is temporary from webApi
+                        'contract/{symbol}/funding-rates': {'cost': 2},
                     },
                 },
                 'broker': {
                     'get': {
-                        'broker/nd/info': 2,
-                        'broker/nd/account': 2,
-                        'broker/nd/account/apikey': 2,
-                        'broker/nd/rebase/download': 3,
-                        'asset/ndbroker/deposit/list': 1,
-                        'broker/nd/transfer/detail': 1,
-                        'broker/nd/deposit/detail': 1,
-                        'broker/nd/withdraw/detail': 1,
+                        'broker/nd/info': {'cost': 4},
+                        'broker/nd/account': {'cost': 4},
+                        'broker/nd/account/apikey': {'cost': 4},
+                        'broker/nd/rebase/download': {'cost': 4},
+                        'broker/nd/mark-up': {'cost': 4},
+                        'asset/ndbroker/deposit/list': {'cost': 2},
+                        'broker/nd/transfer/detail': {'cost': 2},
+                        'broker/nd/deposit/detail': {'cost': 2},
+                        'broker/nd/withdraw/detail': {'cost': 2},
                     },
                     'post': {
-                        'broker/nd/transfer': 1,
-                        'broker/nd/account': 3,
-                        'broker/nd/account/apikey': 3,
-                        'broker/nd/account/update-apikey': 3,
+                        'broker/nd/transfer': {'cost': 2},
+                        'broker/nd/account': {'cost': 6},
+                        'broker/nd/account/apikey': {'cost': 6},
+                        'broker/nd/account/update-apikey': {'cost': 6},
+                        'broker/nd/mark-up': {'cost': 6},
                     },
                     'delete': {
-                        'broker/nd/account/apikey': 3,
+                        'broker/nd/account/apikey': {'cost': 6},
                     },
                 },
                 'earn': {
                     'get': {
-                        'otc-loan/discount-rate-configs': 10,
-                        'otc-loan/loan': 1,
-                        'otc-loan/accounts': 1,
-                        'earn/redeem-preview': 7.5,  # 5EW
-                        'earn/saving/products': 7.5,  # 5EW
-                        'earn/hold-assets': 7.5,  # 5EW
-                        'earn/promotion/products': 7.5,  # 5EW
-                        'earn/kcs-staking/products': 7.5,  # 5EW
-                        'earn/staking/products': 7.5,  # 5EW
-                        'earn/eth-staking/products': 7.5,  # 5EW
-                        'struct-earn/dual/products': 4.5,
-                        'struct-earn/orders': 7.5,
+                        'otc-loan/discount-rate-configs': {'cost': 20},
+                        'otc-loan/loan': {'cost': 2},
+                        'otc-loan/accounts': {'cost': 2},
+                        'earn/redeem-preview': {'cost': 10},  # 5EW
+                        'earn/saving/products': {'cost': 10},  # 5EW
+                        'earn/hold-assets': {'cost': 10},  # 5EW
+                        'earn/promotion/products': {'cost': 10},  # 5EW
+                        'earn/kcs-staking/products': {'cost': 10},  # 5EW
+                        'earn/staking/products': {'cost': 10},  # 5EW
+                        'earn/eth-staking/products': {'cost': 10},  # 5EW
+                        'struct-earn/dual/products': {'cost': 6},
+                        'struct-earn/orders': {'cost': 10},
                     },
                     'post': {
-                        'earn/orders': 7.5,  # 5EW
-                        'struct-earn/orders': 7.5,
+                        'earn/orders': {'cost': 10},  # 5EW
+                        'struct-earn/orders': {'cost': 10},
                     },
                     'delete': {
-                        'earn/orders': 7.5,  # 5EW
+                        'earn/orders': {'cost': 10},  # 5EW
                     },
                 },
                 'uta': {
                     'get': {
-                        'market/announcement': 20,
-                        'market/currency': 3,
-                        'market/currencies': 3,
-                        'market/instrument': 4,
-                        'market/ticker': 15,
-                        'market/trade': 3,
-                        'market/kline': 3,
-                        'market/funding-rate': 2,
-                        'market/funding-rate-history': 5,
-                        'market/cross-config': 25,
-                        'market/collateral-discount-ratio': 10,
-                        'market/index-price': 20,
-                        'market/position-tiers': 20,
-                        'market/open-interest': 10,
-                        'server/status': 3,
+                        'market/announcement': {'cost': 40},
+                        'market/currency': {'cost': 6},
+                        'asset/currencies': {'cost': 6},
+                        'market/instrument': {'cost': 8},
+                        'market/ticker': {'cost': 30},
+                        'market/trade': {'cost': 6},
+                        'market/kline': {'cost': 6},
+                        'market/funding-rate': {'cost': 4},
+                        'market/funding-rate-history': {'cost': 10},
+                        'market/cross-config': {'cost': 50},
+                        'market/collateral-discount-ratio': {'cost': 20},
+                        'market/index-price': {'cost': 20},
+                        'market/position-tiers': {'cost': 40},
+                        'market/open-interest': {'cost': 20},
+                        'server/status': {'cost': 6},
+                        'market/borrowable-currency': {'cost': 30},
+                        'user/my-ip': {'cost': 20},
+                        'market/fiat-price': {'cost': 6},
+                    },
+                },
+                'utaV2': {
+                    'get': {
+                        'market/funding-rate': {'cost': 6},  # 3PW
                     },
                 },
                 'utaPrivate': {
                     'get': {
-                        'market/orderbook': 3,
-                        'account/balance': 5,
-                        'account/transfer-quota': 20,
-                        'account/mode': 30,
-                        'account/ledger': 2,
-                        'account/interest-history': 15,
-                        'account/deposit/address': 5,
-                        '{accountMode}/account/balance': 5,
-                        '{accountMode}/account/overview': 5,
-                        '{accountMode}/order/detail': 4,
-                        '{accountMode}/order/open-list': 4,
-                        '{accountMode}/order/history': 4,
-                        '{accountMode}/order/execution': 4,
-                        '{accountMode}/position/open-list': 3,
-                        '{accountMode}/position/history': 2,
-                        '{accountMode}/position/tiers': 20,
-                        'sub-account/balance': 5,
-                        'user/fee-rate': 3,
-                        'dcp/query': 2,
+                        'market/orderbook': {'cost': 6},
+                        'account/balance': {'cost': 10},
+                        'account/transfer-quota': {'cost': 40},
+                        'account/mode': {'cost': 60},
+                        'account/ledger': {'cost': 4},
+                        'account/interest-history': {'cost': 30},
+                        'asset/deposit/address': {'cost': 10},
+                        'account/deposit/address': {'cost': 5},
+                        '{accountMode}/account/balance': {'cost': 10},
+                        '{accountMode}/account/overview': {'cost': 10},
+                        '{accountMode}/order/detail': {'cost': 8},
+                        '{accountMode}/order/open-list': {'cost': 8},
+                        '{accountMode}/order/history': {'cost': 8},
+                        '{accountMode}/order/execution': {'cost': 8},
+                        '{accountMode}/position/open-list': {'cost': 6},
+                        '{accountMode}/position/history': {'cost': 4},
+                        'position/history': {'cost': 4},
+                        '{accountMode}/position/tiers': {'cost': 40},
+                        'sub-account/balance': {'cost': 10},
+                        'user/fee-rate': {'cost': 6},
+                        'dcp/query': {'cost': 4},
+                        'unified/account/leverage': {'cost': 20},  # returns {"code":"404","msg":"Not Found","retry":false,"success":false}
+                        'position/funding-history': {'cost': 30},
+                        'account/interest-limits': {'cost': 20},
                     },
                     'post': {
-                        'account/transfer': 4,
-                        'account/mode': 30,
-                        '{accountMode}/account/modify-leverage': 20,
-                        '{accountMode}/order/place': 1,
-                        '{accountMode}/order/place-batch': 4,
-                        '{accountMode}/order/cancel': 1,
-                        '{accountMode}/order/cancel-batch': 4,
-                        'sub-account/canTransferOut': 5,
-                        'dcp/set': 2,
+                        'account/transfer': {'cost': 8},
+                        'account/mode': {'cost': 60},
+                        '{accountMode}/account/modify-leverage': {'cost': 40},
+                        '{accountMode}/order/place': {'cost': 2},
+                        '{accountMode}/order/place-batch': {'cost': 8},
+                        '{accountMode}/order/cancel': {'cost': 2},
+                        '{accountMode}/order/cancel-batch': {'cost': 8},
+                        '{accountMode}/order/cancel-all': {'cost': 40},
+                        'sub-account/canTransferOut': {'cost': 10},
+                        'dcp/set': {'cost': 4},
+                        '{accountMode}/account/modify-leverage-margin-cross': {'cost': 40},
                     },
                 },
             },
             'timeframes': {
-                '1m': '1min',
+                '1m': '1min',  # spot and uta
                 '3m': '3min',
                 '5m': '5min',
                 '15m': '15min',
@@ -577,7 +655,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'order not exist': OrderNotFound,
                     'order not exist.': OrderNotFound,  # duplicated error temporarily
                     'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                    'order_not_exist_or_not_allow_to_cancel': InvalidOrder,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
+                    'order_not_exist_or_not_allow_to_cancel': OrderNotFound,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}, same condition as the spaced variant above, see https://github.com/ccxt/ccxt/issues/24154
                     'Order size below the minimum requirement.': InvalidOrder,  # {"code":"400100","msg":"Order size below the minimum requirement."}
                     'Order size increment invalid.': InvalidOrder,  # {"msg":"Order size increment invalid.","code":"600100"}
                     'The withdrawal amount is below the minimum requirement.': ExchangeError,  # {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
@@ -586,6 +664,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'The quantity is below the minimum requirement.': InvalidOrder,  # {"msg":"The quantity is below the minimum requirement.","code":"400100"}
                     'not in the given range!': BadRequest,  # {"msg":"price not in the given range!","code":"400100"}
                     'recAccountType not in the given range': BadRequest,  # {"msg":"recAccountType not in the given range","code":"400100"}
+                    'Unsupported trading pair.': BadSymbol,  # {"msg":"Unsupported trading pair.","code":"400100"}
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
@@ -597,6 +676,7 @@ class kucoin(Exchange, ImplicitAPI):
                     '503': ExchangeNotAvailable,
                     '101030': PermissionDenied,  # {"code":"101030","msg":"You haven't yet enabled the margin trading"}
                     '103000': InvalidOrder,  # {"code":"103000","msg":"Exceed the borrowing limit, the remaining borrowable amount is: 0USDT"}
+                    '112010': PermissionDenied,  # {"msg":"Invalid Unified Account user.","code":"112010"}
                     '130101': BadRequest,  # Parameter error
                     '130102': ExchangeError,  # Maximum subscription amount has been exceeded.
                     '130103': OrderNotFound,  # Subscription order does not exist.
@@ -636,7 +716,7 @@ class kucoin(Exchange, ImplicitAPI):
                     '126010': ExchangeError,  # Trading pair suspended order cancellation
                     '126011': ExchangeError,  # There are too many orders in the order
                     '126013': InsufficientFunds,  # Insufficient account balance
-                    '126015': ExchangeError,  # It is prohibited to place orders on self trading pair
+                    '126015': ExchangeError,  # It is prohibited to place orders on this trading pair
                     '126021': NotSupported,  # This digital asset does not support user participation in your region, thank you for your understanding!
                     '126022': InvalidOrder,  # The final transaction price of your order will trigger the price protection strategy. To protect the price from deviating too much, please place an order again.
                     '126027': InvalidOrder,  # Only limit orders are supported
@@ -646,8 +726,8 @@ class kucoin(Exchange, ImplicitAPI):
                     '126033': InvalidOrder,  # Duplicate order
                     '126034': InvalidOrder,  # Failed to create take profit and stop loss order
                     '126036': InvalidOrder,  # Failed to create margin order
-                    '126037': ExchangeError,  # Due to country and region restrictions, self function has been suspended!
-                    '126038': ExchangeError,  # Third-party service call failed(internal exception)
+                    '126037': ExchangeError,  # Due to country and region restrictions, this function has been suspended!
+                    '126038': ExchangeError,  # Third-party service call failed (internal exception)
                     '126039': ExchangeError,  # Third-party service call failed, reason: xxx
                     '126041': ExchangeError,  # clientTimestamp parameter error
                     '126042': ExchangeError,  # Exceeded maximum position limit
@@ -675,14 +755,14 @@ class kucoin(Exchange, ImplicitAPI):
                     '400006': AuthenticationError,
                     '400007': AuthenticationError,
                     '400008': NotSupported,
-                    '400100': InsufficientFunds,  # {"msg":"account.available.amount","code":"400100"} or {"msg":"Withdrawal amount is below the minimum requirement.","code":"400100"}
+                    '400100': BadRequest,  # {"msg":"account.available.amount","code":"400100"} or {"msg":"Withdrawal amount is below the minimum requirement.","code":"400100"} or  {"msg":"pageSize should not greater than 500","code":"400100"}
                     '400200': InvalidOrder,  # {"code":"400200","msg":"Forbidden to place an order"}
                     '400330': InvalidOrder,  # {"msg":"Order price can't deviate from NAV by 50%","code":"400330"}
                     '400350': InvalidOrder,  # {"code":"400350","msg":"Upper limit for holding: 10,000USDT, you can still buy 10,000USDT worth of coin."}
                     '400370': InvalidOrder,  # {"code":"400370","msg":"Max. price: 0.02500000000000000000"}
                     '400400': BadRequest,  # Parameter error
                     '400401': AuthenticationError,  # User is not logged in
-                    '400500': RestrictedLocation,  # {"code":"400500","msg":"Your located country/region is currently not supported for the trading of self token"}
+                    '400500': RestrictedLocation,  # {"code":"400500","msg":"Your located country/region is currently not supported for the trading of this token"}
                     '400600': BadSymbol,  # {"code":"400600","msg":"validation.createOrder.symbolNotAvailable"}
                     '400760': InvalidOrder,  # {"code":"400760","msg":"order price should be more than XX"}
                     '401000': BadRequest,  # {"code":"401000","msg":"The interface has been deprecated"}
@@ -691,14 +771,27 @@ class kucoin(Exchange, ImplicitAPI):
                     '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
                     '400303': PermissionDenied,  # {"msg":"To enjoy the full range of our products and services, we kindly request you complete the identity verification process.","code":"400303"}
                     '500000': ExchangeNotAvailable,  # {"code":"500000","msg":"Internal Server Error"}
-                    '260220': InvalidAddress,  # {"code": "260220", "msg": "deposit.address.not.exists"}
+                    '260220': InvalidAddress,  # { "code": "260220", "msg": "deposit.address.not.exists" }
                     '600100': InsufficientFunds,  # {"msg":"Funds below the minimum requirement.","code":"600100"}
                     '600101': InvalidOrder,  # {"msg":"The order funds should more then 0.1 USDT.","code":"600101"}
                     '900014': BadRequest,  # {"code":"900014","msg":"Invalid chainId"}
+                    # futures errors
+                    '330012': InvalidOrder,  # {"msg":"Your order is in One-Way Mode, while your account is set to Hedge Mode. Update your settings so they match and try again.","code":"330012"}
+                    '330005': InvalidOrder,  # {"msg":"The order's margin mode does not match the selected one. Please switch and try again.","code":"330005"}
+                    '100001': OrderNotFound,  # {"msg":"error.getOrder.orderNotExist","code":"100001"}
+                    '100004': BadRequest,  # {"code":"100004","msg":"Order is in not cancelable state"}
+                    '300003': InsufficientFunds,
+                    '300012': InvalidOrder,
+                    '404000': NotSupported,  # URL Not Found -- The requested resource could not be found
+                    '300009': InvalidOrder,  # {"msg":"No open positions to close.","code":"300009"}
+                    '330008': InsufficientFunds,  # {"msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008"}
                 },
                 'broad': {
+                    'pageSize should not greater than 500': BadRequest,
                     'Exceeded the access frequency': RateLimitExceeded,
                     'require more permission': PermissionDenied,
+                    # futures errors
+                    'Position does not exist': OrderNotFound,  # { "code":"200000", "msg":"Position does not exist" }
                 },
             },
             'fees': {
@@ -740,6 +833,82 @@ class kucoin(Exchange, ImplicitAPI):
                         ],
                     },
                 },
+                'spot': {
+                    'tierBased': True,
+                    'percentage': True,
+                    'taker': self.parse_number('0.001'),
+                    'maker': self.parse_number('0.001'),
+                    'tiers': {
+                        'taker': [
+                            [self.parse_number('0'), self.parse_number('0.001')],
+                            [self.parse_number('50'), self.parse_number('0.001')],
+                            [self.parse_number('200'), self.parse_number('0.0009')],
+                            [self.parse_number('500'), self.parse_number('0.0008')],
+                            [self.parse_number('1000'), self.parse_number('0.0007')],
+                            [self.parse_number('2000'), self.parse_number('0.0007')],
+                            [self.parse_number('4000'), self.parse_number('0.0006')],
+                            [self.parse_number('8000'), self.parse_number('0.0005')],
+                            [self.parse_number('15000'), self.parse_number('0.00045')],
+                            [self.parse_number('25000'), self.parse_number('0.0004')],
+                            [self.parse_number('40000'), self.parse_number('0.00035')],
+                            [self.parse_number('60000'), self.parse_number('0.0003')],
+                            [self.parse_number('80000'), self.parse_number('0.00025')],
+                        ],
+                        'maker': [
+                            [self.parse_number('0'), self.parse_number('0.001')],
+                            [self.parse_number('50'), self.parse_number('0.0009')],
+                            [self.parse_number('200'), self.parse_number('0.0007')],
+                            [self.parse_number('500'), self.parse_number('0.0005')],
+                            [self.parse_number('1000'), self.parse_number('0.0003')],
+                            [self.parse_number('2000'), self.parse_number('0')],
+                            [self.parse_number('4000'), self.parse_number('0')],
+                            [self.parse_number('8000'), self.parse_number('0')],
+                            [self.parse_number('15000'), self.parse_number('-0.00005')],
+                            [self.parse_number('25000'), self.parse_number('-0.00005')],
+                            [self.parse_number('40000'), self.parse_number('-0.00005')],
+                            [self.parse_number('60000'), self.parse_number('-0.00005')],
+                            [self.parse_number('80000'), self.parse_number('-0.00005')],
+                        ],
+                    },
+                },
+                'contract': {
+                    'tierBased': True,
+                    'percentage': True,
+                    'taker': self.parse_number('0.0006'),
+                    'maker': self.parse_number('0.0002'),
+                    'tiers': {
+                        'taker': [
+                            [self.parse_number('0'), self.parse_number('0.0006')],
+                            [self.parse_number('50'), self.parse_number('0.0006')],
+                            [self.parse_number('200'), self.parse_number('0.0006')],
+                            [self.parse_number('500'), self.parse_number('0.0005')],
+                            [self.parse_number('1000'), self.parse_number('0.0004')],
+                            [self.parse_number('2000'), self.parse_number('0.0004')],
+                            [self.parse_number('4000'), self.parse_number('0.00038')],
+                            [self.parse_number('8000'), self.parse_number('0.00035')],
+                            [self.parse_number('15000'), self.parse_number('0.00032')],
+                            [self.parse_number('25000'), self.parse_number('0.0003')],
+                            [self.parse_number('40000'), self.parse_number('0.0003')],
+                            [self.parse_number('60000'), self.parse_number('0.0003')],
+                            [self.parse_number('80000'), self.parse_number('0.0003')],
+                        ],
+                        'maker': [
+                            [self.parse_number('0'), self.parse_number('0.02')],
+                            [self.parse_number('50'), self.parse_number('0.015')],
+                            [self.parse_number('200'), self.parse_number('0.01')],
+                            [self.parse_number('500'), self.parse_number('0.01')],
+                            [self.parse_number('1000'), self.parse_number('0.01')],
+                            [self.parse_number('2000'), self.parse_number('0')],
+                            [self.parse_number('4000'), self.parse_number('0')],
+                            [self.parse_number('8000'), self.parse_number('0')],
+                            [self.parse_number('15000'), self.parse_number('-0.003')],
+                            [self.parse_number('25000'), self.parse_number('-0.006')],
+                            [self.parse_number('40000'), self.parse_number('-0.009')],
+                            [self.parse_number('60000'), self.parse_number('-0.012')],
+                            [self.parse_number('80000'), self.parse_number('-0.015')],
+                        ],
+                    },
+                },
                 'funding': {
                     'tierBased': False,
                     'percentage': False,
@@ -757,17 +926,17 @@ class kucoin(Exchange, ImplicitAPI):
             },
             'options': {
                 'hf': None,  # would be auto set to `true/false` after first load
+                'uta': None,
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
-                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'fetchCurrencies': {
-                    'webApiEnable': True,  # fetches from WEB
-                    'webApiRetries': 1,
-                    'webApiMuteFailure': True,
+                    'brokenCurrencies': ['00', 'OPEN_ERROR', 'HUF', 'BDT'],  # skip buggy entries: https://t.me/KuCoin_API/217798
                 },
                 'fetchMarkets': {
+                    'types': ['spot', 'swap', 'future', 'contract'],
                     'fetchTickersFees': True,
                 },
                 'withdraw': {
@@ -775,6 +944,36 @@ class kucoin(Exchange, ImplicitAPI):
                 },
                 'transfer': {
                     'fillResponseFromRequest': True,
+                },
+                'fetchBalance': {
+                    'code': 'USDT',  # for contract endpoint
+                },
+                'setLeverage': {
+                    'code': 'USDT',  # for uta margin endpoint
+                },
+                'timeInForce': {
+                    'IOC': 'IOC',
+                    'FOK': 'FOK',
+                    'PO': 'PO',
+                    'GTD': 'GTT',
+                    'RPI': 'RPI',
+                },
+                'timeframes': {
+                    'swap': {
+                        '1m': 1,
+                        '3m': None,
+                        '5m': 5,
+                        '15m': 15,
+                        '30m': 30,
+                        '1h': 60,
+                        '2h': 120,
+                        '4h': 240,
+                        '6h': None,
+                        '8h': 480,
+                        '12h': 720,
+                        '1d': 1440,
+                        '1w': 10080,
+                    },
                 },
                 # endpoint versions
                 'versions': {
@@ -786,6 +985,7 @@ class kucoin(Exchange, ImplicitAPI):
                             'symbols': 'v2',
                             'mark-price/all-symbols': 'v3',
                             'announcements': 'v3',
+                            'margin/available-inventory': 'v3',
                         },
                     },
                     'private': {
@@ -815,11 +1015,19 @@ class kucoin(Exchange, ImplicitAPI):
                             'hf/margin/orders/{orderId}': 'v3',
                             'hf/margin/orders/client-order/{clientOid}': 'v3',
                             'hf/margin/fills': 'v3',
+                            'hf/margin/stop-orders': 'v3',
+                            'hf/margin/stop-order/orderId': 'v3',
+                            'hf/margin/stop-order/clientOid': 'v3',
+                            'hf/margin/oco-order/orderId': 'v3',
+                            'hf/margin/oco-order/clientOid': 'v3',
+                            'hf/margin/oco-order/detail/orderId': 'v3',
+                            'hf/margin/oco-orders': 'v3',
                             'etf/info': 'v3',
                             'margin/currencies': 'v3',
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
                             'margin/interest': 'v3',
+                            'margin/borrowRate': 'v3',
                             'project/list': 'v3',
                             'project/marketInterestRate': 'v3',
                             'redeem/orders': 'v3',
@@ -827,6 +1035,11 @@ class kucoin(Exchange, ImplicitAPI):
                             'migrate/user/account/status': 'v3',
                             'margin/symbols': 'v3',
                             'affiliate/inviter/statistics': 'v2',
+                            'affiliate/queryInvitees': 'v2',
+                            'affiliate/queryMyCommission': 'v2',
+                            'affiliate/queryTransactionByUid': 'v2',
+                            'affiliate/queryTransactionByTime': 'v2',
+                            'affiliate/queryKumining': 'v2',
                             'asset/ndbroker/deposit/list': 'v1',
                         },
                         'POST': {
@@ -843,8 +1056,10 @@ class kucoin(Exchange, ImplicitAPI):
                             # margin trading
                             'hf/margin/order': 'v3',
                             'hf/margin/order/test': 'v3',
+                            'hf/margin/stop-order': 'v3',
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
+                            'hf/margin/oco-order': 'v3',
                             'purchase': 'v3',
                             'redeem': 'v3',
                             'lend/purchase/update': 'v3',
@@ -852,26 +1067,42 @@ class kucoin(Exchange, ImplicitAPI):
                             'withdrawals': 'v3',
                         },
                         'DELETE': {
-                            # account
-                            # funding
-                            # spot trading
                             'hf/margin/orders/{orderId}': 'v3',
                             'hf/margin/orders/client-order/{clientOid}': 'v3',
                             'hf/margin/orders': 'v3',
+                            'hf/margin/stop-order/cancel-by-id': 'v3',
+                            'hf/margin/stop-order/cancel-by-clientOid': 'v3',
+                            'hf/margin/stop-order/cancel': 'v3',
                             'oco/order/{orderId}': 'v3',
                             'oco/client-order/{clientOid}': 'v3',
                             'oco/orders': 'v3',
-                            # margin trading
+                            'hf/margin/oco-order/cancel-by-id': 'v3',
+                            'hf/margin/oco-order/cancel-by-clientOid': 'v3',
+                            'hf/margin/oco-order/cancel': 'v3',
                         },
                     },
                     'futuresPrivate': {
+                        'GET': {
+                            'getMaxOpenSize': 'v2',
+                            'getCrossUserLeverage': 'v2',
+                            'position/getMarginMode': 'v2',
+                            'position/getPositionMode': 'v2',
+                        },
                         'POST': {
-                            'transfer-out': 'v3',
+                            'transfer-out': 'v2',
+                            'changeCrossUserLeverage': 'v2',
+                            'position/changeMarginMode': 'v2',
+                            'position/switchPositionMode': 'v2',
+                        },
+                    },
+                    'futuresPublic': {
+                        'GET': {
+                            'level3/snapshot': 'v2',
                         },
                     },
                 },
                 'partner': {
-                    # the support for spot and future exchanges settings
+                    # the support for spot and future exchanges as separate settings
                     'spot': {
                         'id': 'ccxt',
                         'key': '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
@@ -888,6 +1119,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'spot': 'trade',
                     'margin': 'margin',
                     'cross': 'margin',
+                    'marginV2': 'margin',
                     'isolated': 'isolated',
                     'main': 'main',
                     'funding': 'main',
@@ -895,12 +1127,33 @@ class kucoin(Exchange, ImplicitAPI):
                     'swap': 'contract',
                     'mining': 'pool',
                     'hf': 'trade_hf',
+                    'contract': 'contract',
+                    'uta': 'unified',
+                    'unified': 'unified',
+                },
+                'utaAccountsByType': {
+                    'trade': 'SPOT',
+                    'spot': 'SPOT',
+                    'margin': 'CROSS',
+                    'cross': 'CROSS',
+                    'isolated': 'ISOLATED',
+                    'main': 'FUNDING',
+                    'funding': 'FUNDING',
+                    'future': 'FUTURES',
+                    'swap': 'FUTURES',
+                    'contract': 'FUTURES',
+                    'uta': 'unified',
+                    'unified': 'unified',
                 },
                 'networks': {
+                    'BTC': 'btc',
                     'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
+                    'ETH': 'eth',
                     'ERC20': 'eth',
+                    'TRX': 'trx',
                     'TRC20': 'trx',
+                    'HECO': 'heco',
                     'HRC20': 'heco',
                     'MATIC': 'matic',
                     'KCC': 'kcc',  # kucoin community chain
@@ -909,12 +1162,13 @@ class kucoin(Exchange, ImplicitAPI):
                     'EOS': 'eos',
                     'BEP20': 'bsc',
                     'BEP2': 'bnb',
-                    'ARBONE': 'arbitrum',
+                    'ARBITRUM': 'arbitrum',
                     'AVAXX': 'avax',
                     'AVAXC': 'avaxc',
                     'TLOS': 'tlos',  # tlosevm is different
                     'CFX': 'cfx',
                     'ACA': 'aca',
+                    'OP': 'optimism',
                     'OPTIMISM': 'optimism',
                     'ONT': 'ont',
                     'GLMR': 'glmr',
@@ -1006,11 +1260,11 @@ class kucoin(Exchange, ImplicitAPI):
                     'SDN': 'sdn',
                     'LTO': 'lto',
                     'WEMIX': 'wemix',
-                    # 'BOBA': 'boba',  # tbd
+                    # 'BOBA': 'boba', // tbd
                     'EVER': 'ever',
                     'BNC': 'bnc',
                     'BNCDOT': 'bncdot',
-                    # 'CMP': 'cmp',  # todo: after consensus
+                    # 'CMP': 'cmp', // todo: after consensus
                     'AION': 'aion',
                     'GRIN': 'grin',
                     'LOKI': 'loki',
@@ -1028,7 +1282,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'DIVI': 'divi',
                     'PURA': 'pura',
                     'DFI': 'dfi',
-                    # 'NEO': 'neo',  # tbd neo legacy
+                    # 'NEO': 'neo', // tbd neo legacy
                     'NEON3': 'neon3',
                     'DOCK': 'dock',
                     'TRUE': 'true',
@@ -1047,15 +1301,15 @@ class kucoin(Exchange, ImplicitAPI):
                     # 'BITCOINPRIVATE': 'btcp',
                     # 'EDGEWARE': 'edg',
                     # 'JUPITER': 'jup',
-                    # 'VELAS': 'vlx',  # vlxevm is different
-                    #  # 'terra' luna lunc TBD
+                    # 'VELAS': 'vlx', // vlxevm is different
+                    # // 'terra' luna lunc TBD
                     # 'DIGITALBITS': 'xdb',
-                    #  # fra is fra-emv on kucoin
+                    # // fra is fra-emv on kucoin
                     # 'PASTEL': 'psl',
-                    #  # sysevm
+                    # // sysevm
                     # 'CONCORDIUM': 'ccd',
                     # 'AURORA': 'aurora',
-                    # 'PHA': 'pha',  # a.k.a. khala
+                    # 'PHA': 'pha', // a.k.a. khala
                     # 'PAL': 'pal',
                     # 'RSK': 'rbtc',
                     # 'NIX': 'nix',
@@ -1065,7 +1319,7 @@ class kucoin(Exchange, ImplicitAPI):
                     # 'PIONEER': 'neer',
                     # 'PIXIE': 'pix',
                     # 'ALEPHZERO': 'azero',
-                    # 'ACHAIN': 'act',  # actevm is different
+                    # 'ACHAIN': 'act', // actevm is different
                     # 'BOSCOIN': 'bos',
                     # 'ELECTRONEUM': 'etn',
                     # 'GOCHAIN': 'go',
@@ -1075,23 +1329,23 @@ class kucoin(Exchange, ImplicitAPI):
                     # 'MATRIXAI': 'man',
                     # 'METADIUM': 'meta',
                     # 'METAHASH': 'mhc',
-                    #  # eosc --"eosforce" tbd
+                    # // eosc --"eosforce" tbd
                     # 'IOTCHAIN': 'itc',
                     # 'CONTENTOS': 'cos',
                     # 'CPCHAIN': 'cpc',
                     # 'INTCHAIN': 'int',
-                    #  # 'DASH': 'dash', tbd digita-cash
+                    # // 'DASH': 'dash', tbd digita-cash
                     # 'WALTONCHAIN': 'wtc',
                     # 'CONSTELLATION': 'dag',
                     # 'ONELEDGER': 'olt',
-                    # 'AIRDAO': 'amb',  # a.k.a. AMBROSUS
+                    # 'AIRDAO': 'amb', // a.k.a. AMBROSUS
                     # 'ENERGYWEB': 'ewt',
                     # 'WAVESENTERPRISE': 'west',
                     # 'HYPERCASH': 'hc',
                     # 'ENECUUM': 'enq',
                     # 'HAVEN': 'xhv',
                     # 'CHAINX': 'pcx',
-                    #  # 'FLUXOLD': 'zel',  # zel seems old chain(with uppercase FLUX in kucoin UI and with id 'zel')
+                    # // 'FLUXOLD': 'zel', // zel seems old chain (with uppercase FLUX in kucoin UI and with id 'zel')
                     # 'BUMO': 'bu',
                     # 'DEEPONION': 'onion',
                     # 'ULORD': 'ut',
@@ -1103,7 +1357,15 @@ class kucoin(Exchange, ImplicitAPI):
                     # 'EMONEY': 'ngm',
                     # 'AURORACHAIN': 'aoa',
                     # 'KLEVER': 'klv',
-                    # undetermined: xns(insolar), rhoc, luk(luniverse), kts(klimatas), bchn(bitcoin cash node), god(shallow entry), lit(litmus),
+                    # undetermined: xns(insolar), rhoc, luk (luniverse), kts (klimatas), bchn (bitcoin cash node), god (shallow entry), lit (litmus),
+                },
+                'networksById': {
+                    'btc': 'BTC',
+                    'trx': 'TRC20',
+                    'eth': 'ERC20',
+                    'heco': 'HRC20',
+                    'optimism': 'OP',
+                    'op': 'OP',
                 },
                 'marginModes': {
                     'cross': 'MARGIN_TRADE',
@@ -1118,7 +1380,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'marginMode': True,
                         'triggerPrice': True,
                         'triggerPriceType': None,
-                        'triggerDirection': False,
+                        'triggerDirection': False,  # true for uta
                         'stopLossPrice': True,
                         'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': None,  # not supported
@@ -1147,7 +1409,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'symbolRequired': True,
                     },
                     'fetchOrder': {
-                        'marginMode': False,
+                        'marginMode': True,
                         'trigger': True,
                         'trailing': False,
                         'symbolRequired': True,
@@ -1174,62 +1436,161 @@ class kucoin(Exchange, ImplicitAPI):
                         'limit': 1500,
                     },
                 },
+                'forDerivs': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': True,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': True,
+                                'mark': True,
+                                'index': True,
+                            },
+                            'price': True,
+                        },
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,  # true for uta
+                        'trailing': False,
+                        'leverage': True,  # todo implement
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': True,  # todo implement
+                        'iceberg': True,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': 7,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'trigger': True,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': True,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
                 'swap': {
-                    'linear': None,
-                    'inverse': None,
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivs',
+                    },
                 },
                 'future': {
-                    'linear': None,
-                    'inverse': None,
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivs',
+                    },
                 },
             },
+            'rollingWindowSize': 30000.0,  # https://www.kucoin.com/docs-new/rate-limit
         })
 
-    def nonce(self):
-        return self.milliseconds() - self.options['timeDifference']
+    def nonce(self) -> float:
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def fetch_time(self, params={}) -> Int:
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://docs.kucoin.com/#server-time
+        https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-server-time
+        https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-server-time
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
-        response = self.publicGetTimestamp(params)
-        #
-        #     {
-        #         "code":"200000",
-        #         "msg":"success",
-        #         "data":1546837113087
-        #     }
-        #
+        type, paramsMarketType = self.handle_market_type_and_params('fetchTime', None, params)
+        response: dict
+        if (type != 'spot') and (type != 'margin'):
+            #
+            #    {
+            #        "code": "200000",
+            #        "data": 1637385119302,
+            #    }
+            #
+            response = self.futuresPublicGetTimestamp(paramsMarketType)
+        else:
+            #
+            #     {
+            #         "code":"200000",
+            #         "msg":"success",
+            #         "data":1546837113087
+            #     }
+            #
+            response = self.publicGetTimestamp(paramsMarketType)
         return self.safe_integer(response, 'data')
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
-        https://docs.kucoin.com/#service-status
+        https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-service-status
+        https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-service-status
         https://www.kucoin.com/docs-new/rest/ua/get-service-status
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: spot or swap
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :param str [params.tradeType]: *uta only* set to SPOT or FUTURES
         :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
-        uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchStatus', 'uta', False)
-        response = None
-        if uta:
+        uta = False
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchStatus', 'uta', uta)
+        type, paramsMarketType = self.handle_market_type_and_params('fetchStatus', None, paramsUta)
+        response: dict
+        if utaOption:
             defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-            defaultTradeType = 'SPOT' if (defaultType == 'spot') else 'FUTURES'
-            tradeType = self.safe_string_upper(params, 'tradeType', defaultTradeType)
+            defaultTradeType = 'FUTURES'
+            if defaultType == 'spot':
+                defaultTradeType = 'SPOT'
+            tradeType = self.safe_string_upper(paramsMarketType, 'tradeType', defaultTradeType)
             request = {
                 'tradeType': tradeType,
             }
-            response = self.utaGetServerStatus(self.extend(request, params))
+            response = self.utaGetServerStatus(self.extend(request, paramsMarketType))
             #
             #     {
             #         "code": "200000",
@@ -1240,14 +1601,25 @@ class kucoin(Exchange, ImplicitAPI):
             #         }
             #     }
             #
+        elif (type != 'spot') and (type != 'margin'):
+            response = self.futuresPublicGetStatus(paramsMarketType)
+            #
+            #    {
+            #        "code": "200000",
+            #        "data": {
+            #            "status": "open", //open, close, cancelonly
+            #            "msg": "upgrade match engine" //remark for operation
+            #        }
+            #    }
+            #
         else:
-            response = self.publicGetStatus(params)
+            response = self.publicGetStatus(paramsMarketType)
             #
             #     {
             #         "code":"200000",
             #         "data":{
-            #             "status":"open",  #open, close, cancelonly
-            #             "msg":"upgrade match engine"  #remark for operation
+            #             "status":"open", //open, close, cancelonly
+            #             "msg":"upgrade match engine" //remark for operation
             #         }
             #     }
             #
@@ -1261,52 +1633,64 @@ class kucoin(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for kucoin
 
-        https://docs.kucoin.com/#get-symbols-list-deprecated
-        https://docs.kucoin.com/#get-all-tickers
+        https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-symbols
+        https://www.kucoin.com/docs-new/rest/ua/get-symbol
+        https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-symbols
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: an array of objects representing market data
         """
         fetchTickersFees = None
-        fetchTickersFees, params = self.handle_option_and_params(params, 'fetchMarkets', 'fetchTickersFees', True)
-        uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchMarkets', 'uta', False)
+        paramsRequest = None
+        fetchTickersFees, paramsRequest = self.handle_option_bool_and_params(params, 'fetchMarkets', 'fetchTickersFees', True)
+        uta = False
+        uta, paramsRequest = self.handle_option_bool_and_params(paramsRequest, 'fetchMarkets', 'uta', uta)
         if uta:
-            return self.fetch_uta_markets(params)
-        promises = []
-        promises.append(self.publicGetSymbols(params))
-        #
-        #     {
-        #         "code": "200000",
-        #         "data": [
-        #             {
-        #                 "symbol": "XLM-USDT",
-        #                 "name": "XLM-USDT",
-        #                 "baseCurrency": "XLM",
-        #                 "quoteCurrency": "USDT",
-        #                 "feeCurrency": "USDT",
-        #                 "market": "USDS",
-        #                 "baseMinSize": "0.1",
-        #                 "quoteMinSize": "0.01",
-        #                 "baseMaxSize": "10000000000",
-        #                 "quoteMaxSize": "99999999",
-        #                 "baseIncrement": "0.0001",
-        #                 "quoteIncrement": "0.000001",
-        #                 "priceIncrement": "0.000001",
-        #                 "priceLimitRate": "0.1",
-        #                 "isMarginEnabled": True,
-        #                 "enableTrading": True
-        #             },
-        #
+            return self.fetch_uta_markets(paramsRequest)
+        defaultTypes = ['spot', 'swap', 'future', 'contract']
+        fetchMarketsOptions = self.safe_dict(self.options, 'fetchMarkets')
+        types = self.safe_list(fetchMarketsOptions, 'types', defaultTypes)
         credentialsSet = self.check_required_credentials(False)
-        requestMarginables = credentialsSet and self.safe_bool(params, 'marginables', True)
-        if requestMarginables:
-            promises.append(self.privateGetMarginSymbols(params))  # cross margin symbols
+        requestMarginables = credentialsSet and self.safe_bool(paramsRequest, 'marginables', True)
+        paramsRequest = self.omit(paramsRequest, 'marginables')
+        fetchContractMarkets = False
+        if self.in_array('swap', types) or self.in_array('future', types) or self.in_array('contract', types):
+            fetchContractMarkets = True
+        fetchSpotMarkets = self.in_array('spot', types)
+        fetchTickersFees = fetchTickersFees and fetchSpotMarkets  # tickers and fees are only fetched for spot markets
+        promises = []
+        if fetchSpotMarkets:
+            promises.append(self.publicGetSymbols(paramsRequest))
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": [
+            #             {
+            #                 "symbol": "XLM-USDT",
+            #                 "name": "XLM-USDT",
+            #                 "baseCurrency": "XLM",
+            #                 "quoteCurrency": "USDT",
+            #                 "feeCurrency": "USDT",
+            #                 "market": "USDS",
+            #                 "baseMinSize": "0.1",
+            #                 "quoteMinSize": "0.01",
+            #                 "baseMaxSize": "10000000000",
+            #                 "quoteMaxSize": "99999999",
+            #                 "baseIncrement": "0.0001",
+            #                 "quoteIncrement": "0.000001",
+            #                 "priceIncrement": "0.000001",
+            #                 "priceLimitRate": "0.1",
+            #                 "isMarginEnabled": true,
+            #                 "enableTrading": true
+            #             },
+            #
+        if requestMarginables is True:
+            promises.append(self.privateGetMarginSymbols(paramsRequest))  # cross margin symbols
             #
             #    {
             #        "code": "200000",
@@ -1314,11 +1698,11 @@ class kucoin(Exchange, ImplicitAPI):
             #            "timestamp": 1719393213421,
             #            "items": [
             #                {
-            #                    # same object market, with one additional field:
+            #                    // same object as in market, with one additional field:
             #                    "minFunds": "0.1"
             #                },
             #
-            promises.append(self.privateGetIsolatedSymbols(params))  # isolated margin symbols
+            promises.append(self.privateGetIsolatedSymbols(paramsRequest))  # isolated margin symbols
             #
             #    {
             #        "code": "200000",
@@ -1330,18 +1714,17 @@ class kucoin(Exchange, ImplicitAPI):
             #                "quoteCurrency": "USDT",
             #                "maxLeverage": 5,
             #                "flDebtRatio": "0.97",
-            #                "tradeEnable": True,
+            #                "tradeEnable": true,
             #                "autoRenewMaxDebtRatio": "0.96",
-            #                "baseBorrowEnable": True,
-            #                "quoteBorrowEnable": True,
-            #                "baseTransferInEnable": True,
-            #                "quoteTransferInEnable": True,
+            #                "baseBorrowEnable": true,
+            #                "quoteBorrowEnable": true,
+            #                "baseTransferInEnable": true,
+            #                "quoteTransferInEnable": true,
             #                "baseBorrowCoefficient": "1",
             #                "quoteBorrowCoefficient": "1"
             #            },
             #
         if fetchTickersFees:
-            promises.append(self.publicGetMarketAllTickers(params))
             #
             #     {
             #         "code": "200000",
@@ -1349,47 +1732,69 @@ class kucoin(Exchange, ImplicitAPI):
             #             "time":1602832092060,
             #             "ticker":[
             #                 {
-            #                     "symbol": "BTC-USDT",   # symbol
-            #                     "symbolName":"BTC-USDT",  # Name of trading pairs, it would change after renaming
-            #                     "buy": "11328.9",   # bestAsk
-            #                     "sell": "11329",    # bestBid
-            #                     "changeRate": "-0.0055",    # 24h change rate
-            #                     "changePrice": "-63.6",  # 24h change price
-            #                     "high": "11610",    # 24h highest price
-            #                     "low": "11200",  # 24h lowest price
-            #                     "vol": "2282.70993217",  # 24h volume，the aggregated trading volume in BTC
-            #                     "volValue": "25984946.157790431",   # 24h total, the trading volume in quote currency of last 24 hours
-            #                     "last": "11328.9",  # last price
-            #                     "averagePrice": "11360.66065903",   # 24h average transaction price yesterday
-            #                     "takerFeeRate": "0.001",    # Basic Taker Fee
-            #                     "makerFeeRate": "0.001",    # Basic Maker Fee
-            #                     "takerCoefficient": "1",    # Taker Fee Coefficient
-            #                     "makerCoefficient": "1"  # Maker Fee Coefficient
+            #                     "symbol": "BTC-USDT",   // symbol
+            #                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
+            #                     "buy": "11328.9",   // bestAsk
+            #                     "sell": "11329",    // bestBid
+            #                     "changeRate": "-0.0055",    // 24h change rate
+            #                     "changePrice": "-63.6", // 24h change price
+            #                     "high": "11610",    // 24h highest price
+            #                     "low": "11200", // 24h lowest price
+            #                     "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+            #                     "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
+            #                     "last": "11328.9",  // last price
+            #                     "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
+            #                     "takerFeeRate": "0.001",    // Basic Taker Fee
+            #                     "makerFeeRate": "0.001",    // Basic Maker Fee
+            #                     "takerCoefficient": "1",    // Taker Fee Coefficient
+            #                     "makerCoefficient": "1" // Maker Fee Coefficient
             #                 }
             #
+            promises.append(self.publicGetMarketAllTickers(paramsRequest))
+        if fetchContractMarkets:
+            promises.append(self.fetch_contract_markets(paramsRequest))
         if credentialsSet:
             # load migration status for account
             promises.append(self.load_migration_status())
         responses = promises
-        symbolsData = self.safe_list(responses[0], 'data')
-        crossData = self.safe_dict(responses[1], 'data', {}) if requestMarginables else {}
+        symbolsData = self.safe_list(responses[0], 'data', []) if fetchSpotMarkets else []
+        crossIndex = 0
+        isolatedIndex = 0
+        tickersIndex = 0
+        contractIndex = 0
+        nextIndex = 0
+        if fetchSpotMarkets:
+            nextIndex = 1
+        if requestMarginables is True:
+            crossIndex = nextIndex
+            nextIndex = self.sum(nextIndex, 2)
+            isolatedIndex = self.sum(crossIndex, 1)
+        if fetchTickersFees:
+            tickersIndex = nextIndex
+            nextIndex = self.sum(nextIndex, 1)
+        if fetchContractMarkets:
+            contractIndex = nextIndex
+        crossData = self.safe_dict(responses[crossIndex], 'data', {}) if (requestMarginables is True) else {}
         crossItems = self.safe_list(crossData, 'items', [])
         crossById = self.index_by(crossItems, 'symbol')
-        isolatedData = responses[2] if requestMarginables else {}
+        isolatedData = responses[isolatedIndex] if (requestMarginables is True) else {}
         isolatedItems = self.safe_list(isolatedData, 'data', [])
         isolatedById = self.index_by(isolatedItems, 'symbol')
-        tickersIdx = 3 if requestMarginables else 1
-        tickersResponse = self.safe_dict(responses, tickersIdx, {})
+        tickersResponse = self.safe_dict(responses, tickersIndex, {}) if fetchTickersFees else {}
         tickerItems = self.safe_list(self.safe_dict(tickersResponse, 'data', {}), 'ticker', [])
         tickersById = self.index_by(tickerItems, 'symbol')
         result = []
         for i in range(0, len(symbolsData)):
             market = symbolsData[i]
             id = self.safe_string(market, 'symbol')
+            if id is None:
+                continue
             baseId, quoteId = id.split('-')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            # quoteIncrement = self.safe_number(market, 'quoteIncrement')
+            if (base is None) or (quote is None):
+                continue
+            # const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
             ticker = self.safe_dict(tickersById, id, {})
             makerFeeRate = self.safe_string(ticker, 'makerFeeRate')
             takerFeeRate = self.safe_string(ticker, 'takerFeeRate')
@@ -1453,11 +1858,168 @@ class kucoin(Exchange, ImplicitAPI):
                 'created': None,
                 'info': market,
             })
-        if self.options['adjustForTimeDifference']:
+        if fetchContractMarkets:
+            contractMarkets = self.safe_list(responses, contractIndex, [])
+            result = self.array_concat(result, contractMarkets)
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             self.load_time_difference()
         return result
 
-    def fetch_uta_markets(self, params={}) -> List[Market]:
+    def fetch_contract_markets(self, params: dict = {}) -> list[Market]:
+        response = self.futuresPublicGetContractsActive(params)
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "symbol": "ETHUSDTM",
+        #            "rootSymbol": "USDT",
+        #            "type": "FFWCSX",
+        #            "firstOpenDate": 1591086000000,
+        #            "expireDate": null,
+        #            "settleDate": null,
+        #            "baseCurrency": "ETH",
+        #            "quoteCurrency": "USDT",
+        #            "settleCurrency": "USDT",
+        #            "maxOrderQty": 1000000,
+        #            "maxPrice": 1000000.0000000000,
+        #            "lotSize": 1,
+        #            "tickSize": 0.05,
+        #            "indexPriceTickSize": 0.01,
+        #            "multiplier": 0.01,
+        #            "initialMargin": 0.01,
+        #            "maintainMargin": 0.005,
+        #            "maxRiskLimit": 1000000,
+        #            "minRiskLimit": 1000000,
+        #            "riskStep": 500000,
+        #            "makerFeeRate": 0.00020,
+        #            "takerFeeRate": 0.00060,
+        #            "takerFixFee": 0.0000000000,
+        #            "makerFixFee": 0.0000000000,
+        #            "settlementFee": null,
+        #            "isDeleverage": true,
+        #            "isQuanto": true,
+        #            "isInverse": false,
+        #            "markMethod": "FairPrice",
+        #            "fairMethod": "FundingRate",
+        #            "fundingBaseSymbol": ".ETHINT8H",
+        #            "fundingQuoteSymbol": ".USDTINT8H",
+        #            "fundingRateSymbol": ".ETHUSDTMFPI8H",
+        #            "indexSymbol": ".KETHUSDT",
+        #            "settlementSymbol": "",
+        #            "status": "Open",
+        #            "fundingFeeRate": 0.000535,
+        #            "predictedFundingFeeRate": 0.002197,
+        #            "openInterest": "8724443",
+        #            "turnoverOf24h": 341156641.03354263,
+        #            "volumeOf24h": 74833.54000000,
+        #            "markPrice": 4534.07,
+        #            "indexPrice":4531.92,
+        #            "lastTradePrice": 4545.4500000000,
+        #            "nextFundingRateTime": 25481884,
+        #            "maxLeverage": 100,
+        #            "sourceExchanges":  [ "huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc" ],
+        #            "premiumsSymbol1M": ".ETHUSDTMPI",
+        #            "premiumsSymbol8H": ".ETHUSDTMPI8H",
+        #            "fundingBaseSymbol1M": ".ETHINT",
+        #            "fundingQuoteSymbol1M": ".USDTINT",
+        #            "lowPrice": 4456.90,
+        #            "highPrice":  4674.25,
+        #            "priceChgPct": 0.0046,
+        #            "priceChg": 21.15
+        #        }
+        #    }
+        #
+        result = []
+        data = self.safe_list(response, 'data', [])
+        for i in range(0, len(data)):
+            market = data[i]
+            id = self.safe_string(market, 'symbol')
+            expiry = self.safe_integer(market, 'expireDate')
+            future = self.safe_string(market, 'nextFundingRateTime') is None
+            swap = not future
+            baseId = self.safe_string(market, 'baseCurrency')
+            quoteId = self.safe_string(market, 'quoteCurrency')
+            settleId = self.safe_string(market, 'settleCurrency')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
+            settle = self.safe_currency_code(settleId)
+            symbol = base + '/' + quote + ':' + settle
+            type = 'swap'
+            if future:
+                symbol = symbol + '-' + self.yymmdd(expiry, '')
+                type = 'future'
+            inverse = self.safe_bool(market, 'isInverse')
+            status = self.safe_string(market, 'status')
+            multiplier = self.safe_string(market, 'multiplier')
+            tickSize = self.safe_number(market, 'tickSize')
+            lotSize = self.safe_number(market, 'lotSize')
+            limitAmountMin = lotSize
+            if limitAmountMin is None:
+                limitAmountMin = self.safe_number(market, 'baseMinSize')
+            limitAmountMax = self.safe_number(market, 'maxOrderQty')
+            if limitAmountMax is None:
+                limitAmountMax = self.safe_number(market, 'baseMaxSize')
+            limitPriceMax = self.safe_number(market, 'maxPrice')
+            if limitPriceMax is None:
+                baseMinSizeString = self.safe_string(market, 'baseMinSize')
+                quoteMaxSizeString = self.safe_string(market, 'quoteMaxSize')
+                limitPriceMax = self.parse_number(Precise.string_div(quoteMaxSizeString, baseMinSizeString))
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': type,
+                'spot': False,
+                'margin': False,
+                'swap': swap,
+                'future': future,
+                'option': False,
+                'active': (status == 'Open'),
+                'contract': True,
+                'linear': (inverse is not True),
+                'inverse': inverse,
+                'taker': self.safe_number(market, 'takerFeeRate'),
+                'maker': self.safe_number(market, 'makerFeeRate'),
+                'contractSize': self.parse_number(Precise.string_abs(multiplier)),
+                'expiry': expiry,
+                'expiryDatetime': self.iso8601(expiry),
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': lotSize,
+                    'price': tickSize,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': self.parse_number('1'),
+                        'max': self.safe_number(market, 'maxLeverage'),
+                    },
+                    'amount': {
+                        'min': limitAmountMin,
+                        'max': limitAmountMax,
+                    },
+                    'price': {
+                        'min': tickSize,
+                        'max': limitPriceMax,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'quoteMinSize'),
+                        'max': self.safe_number(market, 'quoteMaxSize'),
+                    },
+                },
+                'created': self.safe_integer(market, 'firstOpenDate'),
+                'info': market,
+            })
+        return result
+
+    def fetch_uta_markets(self, params: dict = {}) -> list[Market]:
         promises = []
         promises.append(self.utaGetMarketInstrument(self.extend(params, {'tradeType': 'SPOT'})))
         #
@@ -1486,7 +2048,7 @@ class kucoin(Exchange, ImplicitAPI):
         #                     "feeCategory": 1,
         #                     "makerFeeCoefficient": "1.00",
         #                     "takerFeeCoefficient": "1.00",
-        #                     "st": False
+        #                     "st": false
         #                 },
         #             ]
         #         }
@@ -1508,7 +2070,7 @@ class kucoin(Exchange, ImplicitAPI):
         #                     "tradingStatus": "1",
         #                     "settlementCurrency": "USDT",
         #                     "contractType": "0",
-        #                     "isInverse": False,
+        #                     "isInverse": false,
         #                     "launchTime": 1585555200000,
         #                     "expiryTime": null,
         #                     "settlementTime": null,
@@ -1545,9 +2107,13 @@ class kucoin(Exchange, ImplicitAPI):
             settleId = self.safe_string(market, 'settlementCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settle = self.safe_currency_code(settleId)
             hasMargin = self.safe_string(market, 'marginMode')
-            isMarginable = True if (hasMargin == '1') else False
+            isMarginable = False
+            if hasMargin == '1':
+                isMarginable = True
             symbol = base + '/' + quote
             if settle is not None:
                 symbol += ':' + settle
@@ -1603,7 +2169,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_number(market, 'lotSize'),
+                    'amount': self.safe_number_2(market, 'lotSize', 'baseOrderStep'),
                     'price': self.safe_number(market, 'tickSize'),
                 },
                 'limits': {
@@ -1627,181 +2193,250 @@ class kucoin(Exchange, ImplicitAPI):
                 'created': self.safe_integer(market, 'launchTime'),
                 'info': market,
             })
-        if self.options['adjustForTimeDifference']:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             self.load_time_difference()
         return result
 
-    def load_migration_status(self, force: bool = False):
+    def load_migration_status(self, force: bool = False) -> bool:
         """
         :param boolean force: load account state for non hf
         loads the migration status for the account(hf or not)
 
-        https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+        https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-type-spot
 
         :returns any: ignore
         """
         if not ('hf' in self.options) or (self.options['hf'] is None) or force:
-            result: dict = self.privateGetHfAccountsOpened()
+            result = self.privateGetHfAccountsOpened()
             self.options['hf'] = self.safe_bool(result, 'data')
         return True
 
-    def handle_hf_and_params(self, params={}):
-        migrated: Bool = self.safe_bool(self.options, 'hf', False)
-        loadedHf: Bool = None
+    def handle_hf_and_params(self, params: dict = {}) -> list:
+        migrated = self.safe_bool(self.options, 'hf', False)
+        loadedHf = None
         if migrated is not None:
             if migrated:
                 loadedHf = True
             else:
                 loadedHf = False
-        hf: Bool = self.safe_bool(params, 'hf', loadedHf)
-        params = self.omit(params, 'hf')
-        return [hf, params]
+        hf = self.safe_bool(params, 'hf', loadedHf)
+        paramsOmitted = self.omit(params, 'hf')
+        return [hf, paramsOmitted]
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
-        https://docs.kucoin.com/#get-currencies
+        https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies
+        https://www.kucoin.com/docs-new/rest/ua/get-currencies
 
         :param dict params: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: an associative dictionary of currencies
         """
-        response = self.publicGetCurrencies(params)
-        #
-        #    {
-        #        "code":"200000",
-        #        "data":[
-        #           {
-        #              "currency":"CSP",
-        #              "name":"CSP",
-        #              "fullName":"Caspian",
-        #              "precision":8,
-        #              "confirms":null,
-        #              "contractAddress":null,
-        #              "isMarginEnabled":false,
-        #              "isDebitEnabled":false,
-        #              "chains":[
-        #                 {
-        #                    "chainName":"ERC20",
-        #                    "chainId": "eth"
-        #                    "withdrawalMinSize":"2999",
-        #                    "depositMinSize":null,
-        #                    "withdrawFeeRate":"0",
-        #                    "withdrawalMinFee":"2999",
-        #                    "isWithdrawEnabled":false,
-        #                    "isDepositEnabled":false,
-        #                    "confirms":12,
-        #                    "preConfirms":12,
-        #                    "withdrawPrecision": 8,
-        #                    "maxWithdraw": null,
-        #                    "maxDeposit": null,
-        #                    "needTag": False,
-        #                    "contractAddress":"0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
-        #                    "depositFeeRate": "0.001",  # present for some currencies/networks
-        #                 }
-        #              ]
-        #           },
-        #        ]
-        #    }
-        #
+        uta = False
+        if self.check_required_credentials(False):
+            uta = self.is_uta_enabled()
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchCurrencies', 'uta', uta)
+        response = None
+        if utaOption:
+            response = self.utaGetAssetCurrencies(paramsUta)
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": [
+            #             {
+            #                 "currency": "CSP",
+            #                 "name": "CSP",
+            #                 "fullName": "Caspian",
+            #                 "precision": 8,
+            #                 "isMarginEnabled": false,
+            #                 "isDebitEnabled": false,
+            #                 "items": [
+            #                     {
+            #                         "chainName": "ERC20",
+            #                         "minWithdrawSize": "2999",
+            #                         "minDepositSize": null,
+            #                         "withdrawFeeRate": "0",
+            #                         "minWithdrawFee": "2999",
+            #                         "isWithdrawEnabled": false,
+            #                         "isDepositEnabled": false,
+            #                         "confirms": 96,
+            #                         "preConfirms": 32,
+            #                         "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
+            #                         "withdrawPrecision": 8,
+            #                         "maxWithdrawSize": null,
+            #                         "maxDepositSize": null,
+            #                         "isMemoRequired": false,
+            #                         "chainId": "eth"
+            #                     }
+            #                 ]
+            #             }
+            #         ]
+            #     }
+            #
+        else:
+            #
+            #    {
+            #        "code":"200000",
+            #        "data":[
+            #           {
+            #              "currency":"CSP",
+            #              "name":"CSP",
+            #              "fullName":"Caspian",
+            #              "precision":8,
+            #              "confirms":null,
+            #              "contractAddress":null,
+            #              "isMarginEnabled":false,
+            #              "isDebitEnabled":false,
+            #              "chains":[
+            #                 {
+            #                    "chainName":"ERC20",
+            #                    "chainId": "eth"
+            #                    "withdrawalMinSize":"2999",
+            #                    "depositMinSize":null,
+            #                    "withdrawFeeRate":"0",
+            #                    "withdrawalMinFee":"2999",
+            #                    "isWithdrawEnabled":false,
+            #                    "isDepositEnabled":false,
+            #                    "confirms":12,
+            #                    "preConfirms":12,
+            #                    "withdrawPrecision": 8,
+            #                    "maxWithdraw": null,
+            #                    "maxDeposit": null,
+            #                    "needTag": false,
+            #                    "contractAddress":"0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
+            #                    "depositFeeRate": "0.001", // present for some currencies/networks
+            #                 }
+            #              ]
+            #           },
+            #        ]
+            #    }
+            #
+            response = self.publicGetCurrencies(paramsUta)
         currenciesData = self.safe_list(response, 'data', [])
-        brokenCurrencies = self.safe_list(self.options, 'brokenCurrencies', ['00', 'OPEN_ERROR', 'HUF', 'BDT'])
-        result: dict = {}
-        for i in range(0, len(currenciesData)):
-            entry = currenciesData[i]
-            id = self.safe_string(entry, 'currency')
-            if self.in_array(id, brokenCurrencies):
-                continue  # skip buggy entries: https://t.me/KuCoin_API/217798
-            code = self.safe_currency_code(id)
-            networks: dict = {}
-            chains = self.safe_list(entry, 'chains', [])
-            chainsLength = len(chains)
-            for j in range(0, chainsLength):
-                chain = chains[j]
-                chainId = self.safe_string(chain, 'chainId')
-                networkCode = self.network_id_to_code(chainId, code)
+        brokenCurrencies = self.handle_option('fetchCurrencies', 'brokenCurrencies', [])
+        filteredCurrencies = self.filter_out_by_array(currenciesData, 'currency', brokenCurrencies)  # remove broken entries
+        return self.parse_currencies(filteredCurrencies)
+
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
+        entry = currency
+        id = self.safe_string(entry, 'currency')
+        code = self.safe_currency_code(id)
+        networks = {}
+        chains = self.safe_list_2(entry, 'chains', 'items', [])
+        chainsLength = len(chains)
+        for j in range(0, chainsLength):
+            chain = self.safe_dict(chains, j)
+            chainId = self.safe_string(chain, 'chainId')
+            networkCode = self.network_id_to_code(chainId, code)
+            if networkCode is not None:
                 networks[networkCode] = {
                     'info': chain,
                     'id': chainId,
                     'name': self.safe_string(chain, 'chainName'),
                     'code': networkCode,
                     'active': None,
-                    'fee': self.safe_number(chain, 'withdrawalMinFee'),
+                    'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'minWithdrawFee'),
                     'deposit': self.safe_bool(chain, 'isDepositEnabled'),
                     'withdraw': self.safe_bool(chain, 'isWithdrawEnabled'),
                     'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawPrecision'))),
                     'limits': {
                         'withdraw': {
-                            'min': self.safe_number(chain, 'withdrawalMinSize'),
-                            'max': self.safe_number(chain, 'maxWithdraw'),
+                            'min': self.safe_number_2(chain, 'withdrawalMinSize', 'minWithdrawSize'),
+                            'max': self.safe_number_2(chain, 'maxWithdraw', 'maxWithdrawSize'),
                         },
                         'deposit': {
-                            'min': self.safe_number(chain, 'depositMinSize'),
-                            'max': self.safe_number(chain, 'maxDeposit'),
+                            'min': self.safe_number_2(chain, 'depositMinSize', 'minDepositSize'),
+                            'max': self.safe_number_2(chain, 'maxDeposit', 'maxDepositSize'),
                         },
                     },
                 }
-            # kucoin has determined 'fiat' currencies with below logic
-            rawPrecision = self.safe_string(entry, 'precision')
-            precision = self.parse_number(self.parse_precision(rawPrecision))
-            isFiat = chainsLength == 0
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'name': self.safe_string(entry, 'fullName'),
-                'code': code,
-                'type': 'fiat' if isFiat else 'crypto',
-                'precision': precision,
-                'info': entry,
-                'networks': networks,
-                'deposit': None,
-                'withdraw': None,
-                'active': None,
-                'fee': None,
-                'limits': None,
-            })
-        return result
+        # kucoin has determined 'fiat' currencies with below logic
+        rawPrecision = self.safe_string(entry, 'precision')
+        precision = self.parse_number(self.parse_precision(rawPrecision))
+        isFiat = chainsLength == 0
+        return self.safe_currency_structure({
+            'id': id,
+            'name': self.safe_string(entry, 'fullName'),
+            'code': code,
+            'type': 'fiat' if isFiat else 'crypto',
+            'precision': precision,
+            'info': entry,
+            'networks': networks,
+            'deposit': None,
+            'withdraw': None,
+            'active': None,
+            'fee': None,
+            'limits': None,
+        })
 
-    def fetch_accounts(self, params={}) -> List[Account]:
+    def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
-        https://docs.kucoin.com/#list-accounts
+        https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-list-spot
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
-        response = self.privateGetAccounts(params)
-        #
-        #     {
-        #         "code": "200000",
-        #         "data": [
-        #             {
-        #                 "balance": "0.00009788",
-        #                 "available": "0.00009788",
-        #                 "holds": "0",
-        #                 "currency": "BTC",
-        #                 "id": "5c6a4fd399a1d81c4f9cc4d0",
-        #                 "type": "trade"
-        #             },
-        #             {
-        #                 "balance": "0.00000001",
-        #                 "available": "0.00000001",
-        #                 "holds": "0",
-        #                 "currency": "ETH",
-        #                 "id": "5c6a49ec99a1d819392e8e9f",
-        #                 "type": "trade"
-        #             }
-        #         ]
-        #     }
-        #
-        data = self.safe_list(response, 'data', [])
+        uta = self.is_uta_enabled()
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchAccounts', 'uta', uta)
+        response: dict
+        data = []
+        if utaOption:
+            response = self.utaPrivateGetAccountModeAccountOverview(self.extend(paramsUta, {'accountMode': 'unified'}))
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": {
+            #             "accountType": "UNIFIED",
+            #             "riskRatio": "0.0000000000",
+            #             "equity": "30.0000000000",
+            #             "liability": "0.0000000000",
+            #             "availableMargin": "30.0000000000",
+            #             "adjustedEquity": "30.0000000000",
+            #             "im": "0.0000000000",
+            #             "mm": "0.0000000000"
+            #         }
+            #     }
+            #
+            dataDict = self.safe_dict(response, 'data', {})
+            data = [dataDict]
+        else:
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": [
+            #             {
+            #                 "balance": "0.00009788",
+            #                 "available": "0.00009788",
+            #                 "holds": "0",
+            #                 "currency": "BTC",
+            #                 "id": "5c6a4fd399a1d81c4f9cc4d0",
+            #                 "type": "trade"
+            #             },
+            #             {
+            #                 "balance": "0.00000001",
+            #                 "available": "0.00000001",
+            #                 "holds": "0",
+            #                 "currency": "ETH",
+            #                 "id": "5c6a49ec99a1d819392e8e9f",
+            #                 "type": "trade"
+            #             }
+            #         ]
+            #     }
+            #
+            response = self.privateGetAccounts(paramsUta)
+            data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             account = data[i]
             accountId = self.safe_string(account, 'id')
             currencyId = self.safe_string(account, 'currency')
             code = self.safe_currency_code(currencyId)
-            type = self.safe_string(account, 'type')  # main or trade
+            type = self.safe_string_lower_2(account, 'type', 'accountType')  # main or trade or unified
             result.append({
                 'id': accountId,
                 'type': type,
@@ -1811,28 +2446,30 @@ class kucoin(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_transaction_fee(self, code: str, params={}):
+    def fetch_transaction_fee(self, code: str, params: dict = {}):
         """
         *DEPRECATED* please use fetchDepositWithdrawFee instead
 
-        https://docs.kucoin.com/#get-withdrawal-quotas
+        https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas
 
         :param str code: unified currency code
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
         }
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
+        networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode).lower()
-        response = self.privateGetWithdrawalsQuotas(self.extend(request, params))
+            _netIdTmp = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
+            if _netIdTmp is not None:
+                request['chain'] = _netIdTmp.lower()
+        response = self.privateGetWithdrawalsQuotas(self.extend(request, paramsNetworkCode))
         data = self.safe_dict(response, 'data', {})
-        withdrawFees: dict = {}
+        withdrawFees = {}
         withdrawFees[code] = self.safe_number(data, 'withdrawMinFee')
         return {
             'info': response,
@@ -1840,27 +2477,29 @@ class kucoin(Exchange, ImplicitAPI):
             'deposit': {},
         }
 
-    def fetch_deposit_withdraw_fee(self, code: str, params={}):
+    def fetch_deposit_withdraw_fee(self, code: str, params: dict = {}) -> DepositWithdrawFee:
         """
         fetch the fee for deposits and withdrawals
 
-        https://docs.kucoin.com/#get-withdrawal-quotas
+        https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
         }
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
+        networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode).lower()
-        response = self.privateGetWithdrawalsQuotas(self.extend(request, params))
+            _netIdTmp = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
+            if _netIdTmp is not None:
+                request['chain'] = _netIdTmp.lower()
+        response = self.privateGetWithdrawalsQuotas(self.extend(request, paramsNetworkCode))
         #
         #    {
         #        "code": "200000",
@@ -1873,7 +2512,7 @@ class kucoin(Exchange, ImplicitAPI):
         #            "withdrawMinFee": "25",
         #            "innerWithdrawMinFee": "0",
         #            "withdrawMinSize": "50",
-        #            "isWithdrawEnabled": True,
+        #            "isWithdrawEnabled": true,
         #            "precision": 6,
         #            "chain": "ERC20"
         #        }
@@ -1882,7 +2521,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_deposit_withdraw_fee(data, currency)
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
         #
         #    {
         #        "currency": "USDT",
@@ -1893,14 +2532,14 @@ class kucoin(Exchange, ImplicitAPI):
         #        "withdrawMinFee": "25",
         #        "innerWithdrawMinFee": "0",
         #        "withdrawMinSize": "50",
-        #        "isWithdrawEnabled": True,
+        #        "isWithdrawEnabled": true,
         #        "precision": 6,
         #        "chain": "ERC20"
         #    }
         #
         if 'chains' in fee:
             # if data obtained through `currencies` endpoint
-            resultNew: dict = {
+            resultNew = {
                 'info': fee,
                 'withdraw': {
                     'fee': None,
@@ -1914,21 +2553,23 @@ class kucoin(Exchange, ImplicitAPI):
             }
             chains = self.safe_list(fee, 'chains', [])
             for i in range(0, len(chains)):
-                chain = chains[i]
-                networkCodeNew = self.network_id_to_code(self.safe_string(chain, 'chainId'), self.safe_string(currency, 'code'))
-                resultNew['networks'][networkCodeNew] = {
-                    'withdraw': {
-                        'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'withdrawMinFee'),
-                        'percentage': False,
-                    },
-                    'deposit': {
-                        'fee': None,
-                        'percentage': None,
-                    },
-                }
+                chain = self.safe_dict(chains, i)
+                chainId = self.safe_string(chain, 'chainId')
+                networkCodeNew = self.network_id_to_code(chainId, self.safe_string(currency, 'code'))
+                if networkCodeNew is not None:
+                    resultNew['networks'][networkCodeNew] = {
+                        'withdraw': {
+                            'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'withdrawMinFee'),
+                            'percentage': False,
+                        },
+                        'deposit': {
+                            'fee': None,
+                            'percentage': None,
+                        },
+                    }
             return resultNew
         minWithdrawFee = self.safe_number(fee, 'withdrawMinFee')
-        result: dict = {
+        result = {
             'info': fee,
             'withdraw': {
                 'fee': minWithdrawFee,
@@ -1941,61 +2582,63 @@ class kucoin(Exchange, ImplicitAPI):
             'networks': {},
         }
         networkId = self.safe_string(fee, 'chain')
-        networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
-        result['networks'][networkCode] = {
-            'withdraw': minWithdrawFee,
-            'deposit': {
-                'fee': None,
-                'percentage': None,
-            },
-        }
+        currencyId = self.safe_string(fee, 'currency')
+        currencyResolved = self.safe_currency(currencyId, currency)
+        networkCode = self.network_id_to_code(networkId, self.safe_string(currencyResolved, 'code'))
+        if networkCode is not None:
+            result['networks'][networkCode] = {
+                'withdraw': minWithdrawFee,
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+            }
         return result
 
-    def is_futures_method(self, methodName, params):
+    def is_futures_method(self, methodName: str, params: dict) -> bool:
         #
         # Helper
-        # @methodName(string): The name of the method
-        # @params(dict): The parameters passed into {methodName}
-        # @return: True if the method used is meant for futures trading, False otherwise
+        # @methodName (string): The name of the method
+        # @params (dict): The parameters passed into {methodName}
+        # @return: true if the method used is meant for futures trading, false otherwise
         #
         defaultType = self.safe_string_2(self.options, methodName, 'defaultType', 'trade')
         requestedType = self.safe_string(params, 'type', defaultType)
-        accountsByType = self.safe_dict(self.options, 'accountsByType')
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         type = self.safe_string(accountsByType, requestedType)
         if type is None:
             keys = list(accountsByType.keys())
             raise ExchangeError(self.id + ' isFuturesMethod() type must be one of ' + ', '.join(keys))
-        params = self.omit(params, 'type')
-        return(type == 'contract') or (type == 'future') or (type == 'futures')  # * (type == 'futures') deprecated, use(type == 'future')
+        return(type == 'contract') or (type == 'future') or (type == 'futures')  # * (type === 'futures') deprecated, use (type === 'future')
 
-    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+    def parse_spot_or_uta_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
-        #         "symbol": "BTC-USDT",   # symbol
-        #         "symbolName":"BTC-USDT",  # Name of trading pairs, it would change after renaming
-        #         "buy": "11328.9",   # bestAsk
-        #         "sell": "11329",    # bestBid
-        #         "changeRate": "-0.0055",    # 24h change rate
-        #         "changePrice": "-63.6",  # 24h change price
-        #         "high": "11610",    # 24h highest price
-        #         "low": "11200",  # 24h lowest price
-        #         "vol": "2282.70993217",  # 24h volume，the aggregated trading volume in BTC
-        #         "volValue": "25984946.157790431",   # 24h total, the trading volume in quote currency of last 24 hours
-        #         "last": "11328.9",  # last price
-        #         "averagePrice": "11360.66065903",   # 24h average transaction price yesterday
-        #         "takerFeeRate": "0.001",    # Basic Taker Fee
-        #         "makerFeeRate": "0.001",    # Basic Maker Fee
-        #         "takerCoefficient": "1",    # Taker Fee Coefficient
-        #         "makerCoefficient": "1"  # Maker Fee Coefficient
+        #         "symbol": "BTC-USDT",   // symbol
+        #         "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
+        #         "buy": "11328.9",   // bestAsk
+        #         "sell": "11329",    // bestBid
+        #         "changeRate": "-0.0055",    // 24h change rate
+        #         "changePrice": "-63.6", // 24h change price
+        #         "high": "11610",    // 24h highest price
+        #         "low": "11200", // 24h lowest price
+        #         "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+        #         "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
+        #         "last": "11328.9",  // last price
+        #         "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
+        #         "takerFeeRate": "0.001",    // Basic Taker Fee
+        #         "makerFeeRate": "0.001",    // Basic Maker Fee
+        #         "takerCoefficient": "1",    // Taker Fee Coefficient
+        #         "makerCoefficient": "1" // Maker Fee Coefficient
         #     }
         #
         #     {
-        #         "trading": True,
+        #         "trading": true,
         #         "symbol": "KCS-BTC",
         #         "buy": 0.00011,
         #         "sell": 0.00012,
         #         "sort": 100,
-        #         "volValue": 3.13851792584,   #total
+        #         "volValue": 3.13851792584,   //total
         #         "baseCurrency": "KCS",
         #         "market": "BTC",
         #         "quoteCurrency": "BTC",
@@ -2024,32 +2667,61 @@ class kucoin(Exchange, ImplicitAPI):
         #         "time": 1634641777363
         #     }
         #
-        # uta
-        #
+        # uta spot
         #     {
-        #         "symbol": "BTC-USDT",
-        #         "name": "BTC-USDT",
-        #         "bestBidSize": "0.69207954",
-        #         "bestBidPrice": "110417.5",
-        #         "bestAskSize": "0.08836606",
-        #         "bestAskPrice": "110417.6",
-        #         "lastPrice": "110417.5",
-        #         "size": "0.00016",
-        #         "open": "110105.1",
-        #         "high": "110838.9",
-        #         "low": "109705.5",
-        #         "baseVolume": "1882.10069442",
-        #         "quoteVolume": "207325626.822922498"
+        #         "symbol": "ETH-USDT",
+        #         "name": "ETH-USDT",
+        #         "bestBidSize": "2.8893176",
+        #         "bestBidPrice": "1566.24",
+        #         "bestAskSize": "2.4373857",
+        #         "bestAskPrice": "1566.25",
+        #         "lastPrice": "1565.87",
+        #         "size": "0.0384399",
+        #         "open": "1572.96",
+        #         "high": "1637.4",
+        #         "low": "1550.41",
+        #         "baseVolume": "101560.01156957747448132256",
+        #         "quoteVolume": "161467045.65271628672329459176",
+        #         "priceChange": "-7.09",
+        #         "priceChangePercent": "-0.0045"
         #     }
         #
-        percentage = self.safe_string(ticker, 'changeRate')
-        if percentage is not None:
-            percentage = Precise.string_mul(percentage, '100')
+        # uta swap
+        #
+        #     {
+        #         "symbol": "ETHUSDTM",
+        #         "bestBidSize": "4",
+        #         "bestBidPrice": "1573.45",
+        #         "bestAskSize": "43",
+        #         "bestAskPrice": "1573.46",
+        #         "lastPrice": "1573.63",
+        #         "size": "1",
+        #         "open": "1570.09",
+        #         "high": "1637.08",
+        #         "low": "1549.63",
+        #         "baseVolume": "282920.90",
+        #         "quoteVolume": "449940743.674",
+        #         "priceChange": "3.54",
+        #         "priceChangePercent": "0.2255",
+        #         "indexPrice": "1572.67",
+        #         "markPrice": "1572.68"
+        #     }
+        #
         last = self.safe_string_n(ticker, ['last', 'lastTradedPrice', 'lastPrice'])
         last = self.safe_string(ticker, 'price', last)
         marketId = self.safe_string(ticker, 'symbol')
-        market = self.safe_market(marketId, market, '-')
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market, '-')
+        symbol = marketResolved['symbol']
+        percentage = self.safe_string(ticker, 'changeRate')
+        if percentage is not None:
+            percentage = Precise.string_mul(percentage, '100')
+        else:
+            percentage = self.safe_string(ticker, 'priceChangePercent')
+            # uta spot sends a ratio under this name and uta swap sends a percentage.
+            # An unresolved market has no `spot` key at all, so read it the way okx
+            # does and leave the value alone rather than scaling on a guess.
+            if self.safe_bool(marketResolved, 'spot', False):
+                percentage = Precise.string_mul(percentage, '100')
         baseVolume = self.safe_string_2(ticker, 'vol', 'baseVolume')
         quoteVolume = self.safe_string_2(ticker, 'volValue', 'quoteVolume')
         timestamp = self.safe_integer_n(ticker, ['time', 'datetime', 'timePoint'])
@@ -2068,51 +2740,185 @@ class kucoin(Exchange, ImplicitAPI):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_string(ticker, 'changePrice'),
+            'change': self.safe_string_2(ticker, 'changePrice', 'priceChange'),
             'percentage': percentage,
             'average': self.safe_string(ticker, 'averagePrice'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
-            'markPrice': self.safe_string(ticker, 'value'),
+            'markPrice': self.safe_string_2(ticker, 'markPrice', 'value'),
+            'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        # wrapper for parseTickers
+        # parseTickers used only in methods for contract markets
+        return self.parse_contract_ticker(ticker, market)
+
+    def parse_contract_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        #     {
+        #         "symbol": "LTCUSDTM",
+        #         "granularity": 1000,
+        #         "timePoint": 1727967339000,
+        #         "value": 62.37, mark price
+        #         "indexPrice": 62.37
+        #      }
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "sequence":  1629930362547,
+        #             "symbol": "ETHUSDTM",
+        #             "side": "buy",
+        #             "size":  130,
+        #             "price": "4724.7",
+        #             "bestBidSize":  5,
+        #             "bestBidPrice": "4724.6",
+        #             "bestAskPrice": "4724.65",
+        #             "tradeId": "618d2a5a77a0c4431d2335f4",
+        #             "ts":  1636641371963227600,
+        #             "bestAskSize":  1789
+        #          }
+        #     }
+        #
+        # from fetchTickers
+        #
+        # {
+        #     symbol: "XBTUSDTM",
+        #     rootSymbol: "USDT",
+        #     type: "FFWCSX",
+        #     firstOpenDate: 1585555200000,
+        #     expireDate: null,
+        #     settleDate: null,
+        #     baseCurrency: "XBT",
+        #     quoteCurrency: "USDT",
+        #     settleCurrency: "USDT",
+        #     maxOrderQty: 1000000,
+        #     maxPrice: 1000000,
+        #     lotSize: 1,
+        #     tickSize: 0.1,
+        #     indexPriceTickSize: 0.01,
+        #     multiplier: 0.001,
+        #     initialMargin: 0.008,
+        #     maintainMargin: 0.004,
+        #     maxRiskLimit: 100000,
+        #     minRiskLimit: 100000,
+        #     riskStep: 50000,
+        #     makerFeeRate: 0.0002,
+        #     takerFeeRate: 0.0006,
+        #     takerFixFee: 0,
+        #     makerFixFee: 0,
+        #     settlementFee: null,
+        #     isDeleverage: true,
+        #     isQuanto: true,
+        #     isInverse: false,
+        #     markMethod: "FairPrice",
+        #     fairMethod: "FundingRate",
+        #     fundingBaseSymbol: ".XBTINT8H",
+        #     fundingQuoteSymbol: ".USDTINT8H",
+        #     fundingRateSymbol: ".XBTUSDTMFPI8H",
+        #     indexSymbol: ".KXBTUSDT",
+        #     settlementSymbol: "",
+        #     status: "Open",
+        #     fundingFeeRate: 0.000297,
+        #     predictedFundingFeeRate: 0.000327,
+        #     fundingRateGranularity: 28800000,
+        #     openInterest: "8033200",
+        #     turnoverOf24h: 659795309.2524643,
+        #     volumeOf24h: 9998.54,
+        #     markPrice: 67193.51,
+        #     indexPrice: 67184.81,
+        #     lastTradePrice: 67191.8,
+        #     nextFundingRateTime: 20022985,
+        #     maxLeverage: 125,
+        #     premiumsSymbol1M: ".XBTUSDTMPI",
+        #     premiumsSymbol8H: ".XBTUSDTMPI8H",
+        #     fundingBaseSymbol1M: ".XBTINT",
+        #     fundingQuoteSymbol1M: ".USDTINT",
+        #     lowPrice: 64041.6,
+        #     highPrice: 67737.3,
+        #     priceChgPct: 0.0447,
+        #     priceChg: 2878.7
+        # }
+        #
+        marketId = self.safe_string(ticker, 'symbol')
+        marketResolved = self.safe_market(marketId, market, '-')
+        last = self.safe_string_2(ticker, 'price', 'lastTradePrice')
+        timestamp = self.safe_integer_product(ticker, 'ts', 0.000001)
+        change = self.safe_string(ticker, 'priceChg')
+        percentage = None
+        if (last is None) or (change is None):
+            percentage = Precise.string_mul(self.safe_string(ticker, 'priceChgPct'), '100')
+        # Otherwise safeTicker derives percentage from last and change, since priceChgPct can be inconsistent.
+        return self.safe_ticker({
+            'symbol': marketResolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, 'highPrice'),
+            'low': self.safe_string(ticker, 'lowPrice'),
+            'bid': self.safe_string(ticker, 'bestBidPrice'),
+            'bidVolume': self.safe_string(ticker, 'bestBidSize'),
+            'ask': self.safe_string(ticker, 'bestAskPrice'),
+            'askVolume': self.safe_string(ticker, 'bestAskSize'),
+            'vwap': None,
+            'open': None,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': change,
+            'percentage': percentage,
+            'average': None,
+            'baseVolume': self.safe_string(ticker, 'volumeOf24h'),
+            'quoteVolume': self.safe_string(ticker, 'turnoverOf24h'),
+            'markPrice': self.safe_string_2(ticker, 'markPrice', 'value'),
+            'indexPrice': self.safe_string(ticker, 'indexPrice'),
+            'info': ticker,
+        }, marketResolved)
+
+    def type_to_trade_type(self, type: Str) -> Str:
+        tradeTypes = {
+            'spot': 'SPOT',
+            'margin': 'MARGIN',
+            'swap': 'FUTURES',
+        }
+        if type is None:
+            return None
+        return self.safe_string(tradeTypes, type, type)
+
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
-        https://docs.kucoin.com/#get-all-tickers
+        https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-tickers
+        https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-tickers
         https://www.kucoin.com/docs-new/rest/ua/get-ticker
 
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[]|None [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :param str [params.tradeType]: *uta only* set to SPOT or FUTURES
+        :param str [params.type]: spot or swap(default is spot)
+        :param str [params.method]: *swap only* the method to use, futuresPublicGetContractsActive or futuresPublicGetAllTickers(default is futuresPublicGetContractsActive)
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
-        request: dict = {}
-        symbols = self.market_symbols(symbols)
-        uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchTickers', 'uta', False)
-        response = None
-        if uta:
-            if symbols is not None:
-                symbol = self.safe_string(symbols, 0)
-                market = self.market(symbol)
-                type = None
-                type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-                if type == 'spot':
-                    request['tradeType'] = 'SPOT'
-                else:
-                    request['tradeType'] = 'FUTURES'
-            else:
-                tradeType = self.safe_string_upper(params, 'tradeType')
-                if tradeType is None:
-                    raise ArgumentsRequired(self.id + ' fetchTickers() requires a tradeType parameter for uta, either SPOT or FUTURES')
-                request['tradeType'] = tradeType
-                params = self.omit(params, 'tradeType')
-            response = self.utaGetMarketTicker(self.extend(request, params))
+        if self.markets is None:
+            self.load_markets()
+        request = {}
+        symbolsNormalized = self.market_symbols(symbols, None, True, True)
+        uta = False
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchTickers', 'uta', uta)
+        tradeType = self.safe_string(paramsUta, 'tradeType')
+        firstMarket = None
+        if symbolsNormalized is not None:
+            firstSymbol = self.safe_string(symbolsNormalized, 0)
+            if firstSymbol is not None:
+                firstMarket = self.market(firstSymbol)
+        type, paramsMarketType = self.handle_market_type_and_params('fetchTickers', firstMarket, paramsUta)
+        response: dict
+        if (tradeType is not None) or utaOption:
+            if tradeType is None:
+                request['tradeType'] = self.type_to_trade_type(type)
+            response = self.utaGetMarketTicker(self.extend(request, paramsMarketType))
             #
             #     {
             #         "code": "200000",
@@ -2139,8 +2945,10 @@ class kucoin(Exchange, ImplicitAPI):
             #         }
             #     }
             #
+        elif (type != 'spot') and (type != 'margin'):
+            return self.fetch_contract_tickers(symbolsNormalized, paramsMarketType)
         else:
-            response = self.publicGetMarketAllTickers(params)
+            response = self.publicGetMarketAllTickers(paramsMarketType)
             #
             #     {
             #         "code": "200000",
@@ -2148,22 +2956,22 @@ class kucoin(Exchange, ImplicitAPI):
             #             "time":1602832092060,
             #             "ticker":[
             #                 {
-            #                     "symbol": "BTC-USDT",   # symbol
-            #                     "symbolName":"BTC-USDT",  # Name of trading pairs, it would change after renaming
-            #                     "buy": "11328.9",   # bestAsk
-            #                     "sell": "11329",    # bestBid
-            #                     "changeRate": "-0.0055",    # 24h change rate
-            #                     "changePrice": "-63.6",  # 24h change price
-            #                     "high": "11610",    # 24h highest price
-            #                     "low": "11200",  # 24h lowest price
-            #                     "vol": "2282.70993217",  # 24h volume，the aggregated trading volume in BTC
-            #                     "volValue": "25984946.157790431",   # 24h total, the trading volume in quote currency of last 24 hours
-            #                     "last": "11328.9",  # last price
-            #                     "averagePrice": "11360.66065903",   # 24h average transaction price yesterday
-            #                     "takerFeeRate": "0.001",    # Basic Taker Fee
-            #                     "makerFeeRate": "0.001",    # Basic Maker Fee
-            #                     "takerCoefficient": "1",    # Taker Fee Coefficient
-            #                     "makerCoefficient": "1"  # Maker Fee Coefficient
+            #                     "symbol": "BTC-USDT",   // symbol
+            #                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
+            #                     "buy": "11328.9",   // bestAsk
+            #                     "sell": "11329",    // bestBid
+            #                     "changeRate": "-0.0055",    // 24h change rate
+            #                     "changePrice": "-63.6", // 24h change price
+            #                     "high": "11610",    // 24h highest price
+            #                     "low": "11200", // 24h lowest price
+            #                     "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+            #                     "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
+            #                     "last": "11328.9",  // last price
+            #                     "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
+            #                     "takerFeeRate": "0.001",    // Basic Taker Fee
+            #                     "makerFeeRate": "0.001",    // Basic Maker Fee
+            #                     "takerCoefficient": "1",    // Taker Fee Coefficient
+            #                     "makerCoefficient": "1" // Maker Fee Coefficient
             #                 }
             #             ]
             #         }
@@ -2172,36 +2980,111 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         tickers = self.safe_list_2(data, 'ticker', 'list', [])
         time = self.safe_integer_2(data, 'time', 'ts')
-        result: dict = {}
+        result = {}
         for i in range(0, len(tickers)):
             tickers[i]['time'] = time
-            ticker = self.parse_ticker(tickers[i])
+            ticker = self.parse_spot_or_uta_ticker(tickers[i])
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
-        return self.filter_by_array_tickers(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
-    def fetch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_contract_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+        method, paramsMethod = self.handle_option_string_and_params(params, 'fetchTickers', 'method', 'futuresPublicGetContractsActive')
+        response: dict
+        if method == 'futuresPublicGetAllTickers':
+            response = self.futuresPublicGetAllTickers(paramsMethod)
+        else:
+            response = self.futuresPublicGetContractsActive(paramsMethod)
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "symbol": "ETHUSDTM",
+        #            "rootSymbol": "USDT",
+        #            "type": "FFWCSX",
+        #            "firstOpenDate": 1591086000000,
+        #            "expireDate": null,
+        #            "settleDate": null,
+        #            "baseCurrency": "ETH",
+        #            "quoteCurrency": "USDT",
+        #            "settleCurrency": "USDT",
+        #            "maxOrderQty": 1000000,
+        #            "maxPrice": 1000000.0000000000,
+        #            "lotSize": 1,
+        #            "tickSize": 0.05,
+        #            "indexPriceTickSize": 0.01,
+        #            "multiplier": 0.01,
+        #            "initialMargin": 0.01,
+        #            "maintainMargin": 0.005,
+        #            "maxRiskLimit": 1000000,
+        #            "minRiskLimit": 1000000,
+        #            "riskStep": 500000,
+        #            "makerFeeRate": 0.00020,
+        #            "takerFeeRate": 0.00060,
+        #            "takerFixFee": 0.0000000000,
+        #            "makerFixFee": 0.0000000000,
+        #            "settlementFee": null,
+        #            "isDeleverage": true,
+        #            "isQuanto": true,
+        #            "isInverse": false,
+        #            "markMethod": "FairPrice",
+        #            "fairMethod": "FundingRate",
+        #            "fundingBaseSymbol": ".ETHINT8H",
+        #            "fundingQuoteSymbol": ".USDTINT8H",
+        #            "fundingRateSymbol": ".ETHUSDTMFPI8H",
+        #            "indexSymbol": ".KETHUSDT",
+        #            "settlementSymbol": "",
+        #            "status": "Open",
+        #            "fundingFeeRate": 0.000535,
+        #            "predictedFundingFeeRate": 0.002197,
+        #            "openInterest": "8724443",
+        #            "turnoverOf24h": 341156641.03354263,
+        #            "volumeOf24h": 74833.54000000,
+        #            "markPrice": 4534.07,
+        #            "indexPrice":4531.92,
+        #            "lastTradePrice": 4545.4500000000,
+        #            "nextFundingRateTime": 25481884,
+        #            "maxLeverage": 100,
+        #            "sourceExchanges":  [ "huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc" ],
+        #            "premiumsSymbol1M": ".ETHUSDTMPI",
+        #            "premiumsSymbol8H": ".ETHUSDTMPI8H",
+        #            "fundingBaseSymbol1M": ".ETHINT",
+        #            "fundingQuoteSymbol1M": ".USDTINT",
+        #            "lowPrice": 4456.90,
+        #            "highPrice":  4674.25,
+        #            "priceChgPct": 0.0046,
+        #            "priceChg": 21.15
+        #        }
+        #    }
+        #
+        data = self.safe_list(response, 'data')
+        tickers = self.parse_tickers(data, symbols)
+        return self.filter_by_array_tickers(tickers, 'symbol', symbols)
+
+    def fetch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches the mark price for multiple markets
 
-        https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-all-margin-trading-pairs-mark-prices
+        https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-list
 
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
-        symbols = self.market_symbols(symbols)
+        if self.markets is None:
+            self.load_markets()
+        self.market_symbols(symbols)
         response = self.publicGetMarkPriceAllSymbols(params)
         data = self.safe_list(response, 'data', [])
         return self.parse_tickers(data)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://docs.kucoin.com/#get-24hr-stats
+        https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-24hr-stats
+        https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-ticker
         https://www.kucoin.com/docs-new/rest/ua/get-ticker
 
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -2209,44 +3092,44 @@ class kucoin(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
-        uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchTicker', 'uta', False)
-        response = None
+        uta = False
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchTicker', 'uta', uta)
+        response: dict
         result = None
-        if uta:
-            type = None
-            type, params = self.handle_market_type_and_params('fetchTicker', market, params)
-            if type == 'spot':
-                request['tradeType'] = 'SPOT'
-            else:
-                request['tradeType'] = 'FUTURES'
-            response = self.utaGetMarketTicker(self.extend(request, params))
+        type, paramsMarketType = self.handle_market_type_and_params('fetchTicker', market, paramsUta)
+        if utaOption:
+            request['tradeType'] = self.type_to_trade_type(type)
+            response = self.utaGetMarketTicker(self.extend(request, paramsMarketType))
             #
             #     {
             #         "code": "200000",
             #         "data": {
-            #             "tradeType": "SPOT",
-            #             "ts": 1762061290067,
+            #             "tradeType": "FUTURES",
+            #             "ts": 1782828116206000000,
             #             "list": [
             #                 {
-            #                     "symbol": "BTC-USDT",
-            #                     "name": "BTC-USDT",
-            #                     "bestBidSize": "0.69207954",
-            #                     "bestBidPrice": "110417.5",
-            #                     "bestAskSize": "0.08836606",
-            #                     "bestAskPrice": "110417.6",
-            #                     "lastPrice": "110417.5",
-            #                     "size": "0.00016",
-            #                     "open": "110105.1",
-            #                     "high": "110838.9",
-            #                     "low": "109705.5",
-            #                     "baseVolume": "1882.10069442",
-            #                     "quoteVolume": "207325626.822922498"
+            #                     "symbol": "ETHUSDTM",
+            #                     "bestBidSize": "4",
+            #                     "bestBidPrice": "1573.45",
+            #                     "bestAskSize": "43",
+            #                     "bestAskPrice": "1573.46",
+            #                     "lastPrice": "1573.63",
+            #                     "size": "1",
+            #                     "open": "1570.09",
+            #                     "high": "1637.08",
+            #                     "low": "1549.63",
+            #                     "baseVolume": "282920.90",
+            #                     "quoteVolume": "449940743.674",
+            #                     "priceChange": "3.54",
+            #                     "priceChangePercent": "0.2255",
+            #                     "indexPrice": "1572.67",
+            #                     "markPrice": "1572.68"
             #                 }
             #             ]
             #         }
@@ -2255,80 +3138,123 @@ class kucoin(Exchange, ImplicitAPI):
             data = self.safe_dict(response, 'data', {})
             resultList = self.safe_list(data, 'list', [])
             result = self.safe_dict(resultList, 0, {})
+        elif market['contract'] is True:
+            response = self.futuresPublicGetTicker(self.extend(request, paramsMarketType))
+            #
+            #    {
+            #        "code": "200000",
+            #        "data": {
+            #            "sequence": 1638444978558,
+            #            "symbol": "ETHUSDTM",
+            #            "side": "sell",
+            #            "size": 4,
+            #            "price": "4229.35",
+            #            "bestBidSize": 2160,
+            #            "bestBidPrice": "4229.0",
+            #            "bestAskPrice": "4229.05",
+            #            "tradeId": "61aaa8b777a0c43055fe4851",
+            #            "ts": 1638574296209786785,
+            #            "bestAskSize": 36,
+            #        }
+            #    }
+            #
+            data = self.safe_dict(response, 'data', {})
+            return self.parse_ticker(data, market)
         else:
-            response = self.publicGetMarketStats(self.extend(request, params))
+            response = self.publicGetMarketStats(self.extend(request, paramsMarketType))
             #
             #     {
             #         "code": "200000",
             #         "data": {
-            #             "time": 1602832092060,  # time
-            #             "symbol": "BTC-USDT",   # symbol
-            #             "buy": "11328.9",   # bestAsk
-            #             "sell": "11329",    # bestBid
-            #             "changeRate": "-0.0055",    # 24h change rate
-            #             "changePrice": "-63.6",  # 24h change price
-            #             "high": "11610",    # 24h highest price
-            #             "low": "11200",  # 24h lowest price
-            #             "vol": "2282.70993217",  # 24h volume，the aggregated trading volume in BTC
-            #             "volValue": "25984946.157790431",   # 24h total, the trading volume in quote currency of last 24 hours
-            #             "last": "11328.9",  # last price
-            #             "averagePrice": "11360.66065903",   # 24h average transaction price yesterday
-            #             "takerFeeRate": "0.001",    # Basic Taker Fee
-            #             "makerFeeRate": "0.001",    # Basic Maker Fee
-            #             "takerCoefficient": "1",    # Taker Fee Coefficient
-            #             "makerCoefficient": "1"  # Maker Fee Coefficient
+            #             "time": 1602832092060,  // time
+            #             "symbol": "BTC-USDT",   // symbol
+            #             "buy": "11328.9",   // bestAsk
+            #             "sell": "11329",    // bestBid
+            #             "changeRate": "-0.0055",    // 24h change rate
+            #             "changePrice": "-63.6", // 24h change price
+            #             "high": "11610",    // 24h highest price
+            #             "low": "11200", // 24h lowest price
+            #             "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+            #             "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
+            #             "last": "11328.9",  // last price
+            #             "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
+            #             "takerFeeRate": "0.001",    // Basic Taker Fee
+            #             "makerFeeRate": "0.001",    // Basic Maker Fee
+            #             "takerCoefficient": "1",    // Taker Fee Coefficient
+            #             "makerCoefficient": "1" // Maker Fee Coefficient
             #         }
             #     }
             #
             result = self.safe_dict(response, 'data', {})
-        return self.parse_ticker(result, market)
+        return self.parse_spot_or_uta_ticker(result, market)
 
-    def fetch_mark_price(self, symbol: str, params={}) -> Ticker:
+    def fetch_mark_price(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches the mark price for a specific market
 
-        https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-mark-price
+        https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-detail
+        https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-mark-price
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
-        response = self.publicGetMarkPriceSymbolCurrent(self.extend(request, params))
-        #
-        data = self.safe_dict(response, 'data', {})
-        return self.parse_ticker(data, market)
+        response: dict
+        if market['contract'] is True:
+            response = self.futuresPublicGetMarkPriceSymbolCurrent(self.extend(request, params))
+            data = self.safe_dict(response, 'data', {})
+            return self.parse_ticker(data, market)
+        else:
+            response = self.publicGetMarkPriceSymbolCurrent(self.extend(request, params))
+            data = self.safe_dict(response, 'data', {})
+            return self.parse_spot_or_uta_ticker(data, market)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
-        #         "1545904980",             # Start time of the candle cycle
-        #         "0.058",                  # opening price
-        #         "0.049",                  # closing price
-        #         "0.058",                  # highest price
-        #         "0.049",                  # lowest price
-        #         "0.018",                  # base volume
-        #         "0.000945",               # quote volume
+        #         "1545904980",             // Start time of the candle cycle
+        #         "0.058",                  // opening price
+        #         "0.049",                  // closing price
+        #         "0.058",                  // highest price
+        #         "0.049",                  // lowest price
+        #         "0.018",                  // base volume
+        #         "0.000945",               // quote volume
         #     ]
         #
-        return [
-            self.safe_timestamp(ohlcv, 0),
-            self.safe_number(ohlcv, 1),
-            self.safe_number(ohlcv, 3),
-            self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, 2),
-            self.safe_number(ohlcv, 5),
-        ]
+        timestampString = self.safe_string(ohlcv, 0)
+        if timestampString is not None and len(timestampString) <= 10:
+            # kucoin spot and uta return seconds timestamps
+            return [
+                self.safe_timestamp(ohlcv, 0),
+                self.safe_number(ohlcv, 1),
+                self.safe_number(ohlcv, 3),
+                self.safe_number(ohlcv, 4),
+                self.safe_number(ohlcv, 2),
+                self.safe_number(ohlcv, 5),
+            ]
+        else:
+            # kucoin futures return milliseconds timestamps
+            return [
+                self.safe_integer(ohlcv, 0),
+                self.safe_number(ohlcv, 1),
+                self.safe_number(ohlcv, 2),
+                self.safe_number(ohlcv, 3),
+                self.safe_number(ohlcv, 4),
+                self.safe_number(ohlcv, 5),
+            ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://docs.kucoin.com/#get-klines
+        https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-klines
+        https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-klines
         https://www.kucoin.com/docs-new/rest/ua/get-klines
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -2338,82 +3264,220 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
-        if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1500)
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        marketId = market['id']
-        request: dict = {
-            'symbol': marketId,
+        uta = False
+        paramsRequest = None
+        uta, paramsRequest = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'uta', uta)
+        priceType = self.safe_string(paramsRequest, 'price')
+        if (priceType is not None) and (not uta):
+            uta = True  # mark, index, premiumIndex price types are only available for UTA
+        if uta:
+            return self.fetch_utaohlcv(symbol, timeframe, since, limit, paramsRequest)
+        elif market['contract'] is True:
+            return self.fetch_contract_ohlcv(symbol, timeframe, since, limit, paramsRequest)
+        else:
+            return self.fetch_spot_ohlcv(symbol, timeframe, since, limit, paramsRequest)
+
+    def fetch_utaohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
+        """
+ @ignore
+        helper method for fetchOHLCV
+
+        https://www.kucoin.com/docs-new/rest/ua/get-klines
+
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        if self.markets is None:
+            self.load_markets()
+        maxLimit = 1500
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchUTAOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe) * 1000
         endAt = self.milliseconds()  # required param
+        denominator = 1000
+        # For each query, the system would return at most 1500 pieces of data.
+        # To obtain more data, please page the data by time.
+        windowLimit = self.safe_integer(self.options, 'fetchOHLCVLimit', maxLimit) if (limit is None) else limit
+        limitResolved = windowLimit if (since is not None) else limit
+        sinceResolved = since
+        if (since is None) and (limit is not None):
+            sinceResolved = endAt - limit * duration
         if since is not None:
-            request['startAt'] = self.parse_to_int(int(math.floor(since / 1000)))
-            if limit is None:
-                # https://docs.kucoin.com/#get-klines
-                # https://docs.kucoin.com/#details
-                # For each query, the system would return at most 1500 pieces of data.
-                # To obtain more data, please page the data by time.
-                limit = self.safe_integer(self.options, 'fetchOHLCVLimit', 1500)
-            endAt = self.sum(since, limit * duration)
+            request['startAt'] = self.parse_to_int(int(math.floor(since / denominator)))
+            endAt = self.sum(since, windowLimit * duration)
         elif limit is not None:
-            since = endAt - limit * duration
-            request['startAt'] = self.parse_to_int(int(math.floor(since / 1000)))
-        request['endAt'] = self.parse_to_int(int(math.floor(endAt / 1000)))
-        uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchOHLCV', 'uta', False)
-        response = None
-        result = None
-        if uta:
-            type = None
-            type, params = self.handle_market_type_and_params('fetchOHLCV', market, params)
-            if type == 'spot':
-                request['tradeType'] = 'SPOT'
-            else:
-                request['tradeType'] = 'FUTURES'
-            request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
-            response = self.utaGetMarketKline(self.extend(request, params))
-            #
-            #     {
-            #         "code": "200000",
-            #         "data": {
-            #             "tradeType": "SPOT",
-            #             "symbol": "BTC-USDT",
-            #             "list": [
-            #                 ["1762240200","104581.4","104527.1","104620.1","104526.4","5.57665554","583263.661804122"],
-            #                 ["1762240140","104565.6","104581.3","104601.7","104511.3","6.48505114","677973.775916968"],
-            #                 ["1762240080","104621.5","104571.3","104704.7","104571.3","14.51713618","1519468.954060838"]
-            #             ]
-            #         }
-            #     }
-            #
-            data = self.safe_dict(response, 'data', {})
-            result = self.safe_list(data, 'list', [])
+            request['startAt'] = self.parse_to_int(int(math.floor((endAt - limit * duration)) / denominator))
+        request['endAt'] = self.parse_to_int(int(math.floor(endAt / denominator)))
+        type, paramsMarketType = self.handle_market_type_and_params('fetchOHLCV', market, paramsPaginate)
+        if (type == 'spot') or (type == 'margin'):
+            request['tradeType'] = 'SPOT'
         else:
-            request['type'] = self.safe_string(self.timeframes, timeframe, timeframe)
-            response = self.publicGetMarketCandles(self.extend(request, params))
-            #
-            #     {
-            #         "code":"200000",
-            #         "data":[
-            #             ["1591517700","0.025078","0.025069","0.025084","0.025064","18.9883256","0.4761861079404"],
-            #             ["1591516800","0.025089","0.025079","0.025089","0.02506","99.4716622","2.494143499081"],
-            #             ["1591515900","0.025079","0.02509","0.025091","0.025068","59.83701271","1.50060885172798"],
-            #         ]
-            #     }
-            #
-            result = self.safe_list(response, 'data', [])
-        return self.parse_ohlcvs(result, market, timeframe, since, limit)
+            request['tradeType'] = 'FUTURES'
+        priceType = None
+        priceTypePrice, paramsPrice = self.handle_option_string_and_params(paramsMarketType, 'fetchOHLCV', 'price', priceType)
+        if priceTypePrice is not None:
+            priceTypes = {
+                'mark': 'mark-price',
+                'index': 'index-price',
+                'premiumIndex': 'premium-index',
+            }
+            suffix = self.safe_string(priceTypes, priceTypePrice)
+            if suffix is None:
+                raise NotSupported(self.id + ' fetchOHLCV() price parameter must be one of "mark", "index", or "premiumIndex"')
+            request['symbol'] = market['id'] + '-' + suffix
+        response = self.utaGetMarketKline(self.extend(request, paramsPrice))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "tradeType": "SPOT",
+        #             "symbol": "BTC-USDT",
+        #             "list": [
+        #                 ["1762240200","104581.4","104527.1","104620.1","104526.4","5.57665554","583263.661804122"],
+        #                 ["1762240140","104565.6","104581.3","104601.7","104511.3","6.48505114","677973.775916968"],
+        #                 ["1762240080","104621.5","104571.3","104704.7","104571.3","14.51713618","1519468.954060838"]
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        result = self.safe_list(data, 'list', [])
+        return self.parse_ohlcvs(result, market, timeframe, sinceResolved, limitResolved)
 
-    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_spot_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
+        """
+ @ignore
+        helper method for fetchOHLCV
+
+        https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-klines
+
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        if self.markets is None:
+            self.load_markets()
+        maxLimit = 1500
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchSpotOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'type': self.safe_string(self.timeframes, timeframe, timeframe),
+        }
+        duration = self.parse_timeframe(timeframe) * 1000
+        endAt = self.milliseconds()  # required param
+        denominator = 1000
+        # For each query, the system would return at most 1500 pieces of data.
+        # To obtain more data, please page the data by time.
+        windowLimit = self.safe_integer(self.options, 'fetchOHLCVLimit', maxLimit) if (limit is None) else limit
+        limitResolved = windowLimit if (since is not None) else limit
+        sinceResolved = since
+        if (since is None) and (limit is not None):
+            sinceResolved = endAt - limit * duration
+        if since is not None:
+            request['startAt'] = self.parse_to_int(int(math.floor(since / denominator)))
+            endAt = self.sum(since, windowLimit * duration)
+        elif limit is not None:
+            request['startAt'] = self.parse_to_int(int(math.floor((endAt - limit * duration)) / denominator))
+        request['endAt'] = self.parse_to_int(int(math.floor(endAt / denominator)))
+        response = self.publicGetMarketCandles(self.extend(request, paramsPaginate))
+        #
+        #     {
+        #         "code":"200000",
+        #         "data":[
+        #             ["1591517700","0.025078","0.025069","0.025084","0.025064","18.9883256","0.4761861079404"],
+        #             ["1591516800","0.025089","0.025079","0.025089","0.02506","99.4716622","2.494143499081"],
+        #             ["1591515900","0.025079","0.02509","0.025091","0.025068","59.83701271","1.50060885172798"],
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, sinceResolved, limitResolved)
+
+    def fetch_contract_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
+        """
+ @ignore
+        helper method for fetchOHLCV
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-klines
+
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        if self.markets is None:
+            self.load_markets()
+        maxLimit = 200
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchContractOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        timeframeOptions = self.safe_dict(self.options, 'timeframes', {})
+        swapTimeframes = self.safe_dict(timeframeOptions, 'swap', {})
+        parsedTimeframe = self.safe_integer(swapTimeframes, timeframe)
+        if parsedTimeframe is not None:
+            request['granularity'] = parsedTimeframe
+        else:
+            request['granularity'] = timeframe
+        duration = self.parse_timeframe(timeframe) * 1000
+        endAt = self.milliseconds()  # required param
+        # For each query, the system would return at most 200 pieces of data.
+        # To obtain more data, please page the data by time.
+        windowLimit = self.safe_integer(self.options, 'fetchOHLCVLimit', maxLimit) if (limit is None) else limit
+        limitResolved = windowLimit if (since is not None) else limit
+        sinceResolved = since
+        if (since is None) and (limit is not None):
+            sinceResolved = endAt - limit * duration
+        if since is not None:
+            request['from'] = since
+            endAt = self.sum(since, windowLimit * duration)
+        elif limit is not None:
+            request['from'] = sinceResolved
+        request['to'] = endAt
+        response = self.futuresPublicGetKlineQuery(self.extend(request, paramsPaginate))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": [
+        #            [1636459200000, 4779.3, 4792.1, 4768.7, 4770.3, 78051],
+        #            [1636460100000, 4770.25, 4778.55, 4757.55, 4777.25, 80164],
+        #            [1636461000000, 4777.25, 4791.45, 4774.5, 4791.3, 51555]
+        #        ]
+        #    }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, sinceResolved, limitResolved)
+
+    def create_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
 
-        https://www.kucoin.com/docs/rest/funding/deposit/create-deposit-address-v3-
+        https://www.kucoin.com/docs-new/rest/account-info/deposit/add-deposit-address-v3
 
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -2421,16 +3485,16 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.network]: the blockchain network name
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
         }
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
+        networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode)  # docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
-        response = self.privatePostDepositAddressCreate(self.extend(request, params))
+            request['chain'] = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))  # docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
+        response = self.privatePostDepositAddressCreate(self.extend(request, paramsNetworkCode))
         # {"code":"260000","msg":"Deposit address already exists."}
         #
         #   {
@@ -2449,41 +3513,98 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
-        https://docs.kucoin.com/#get-deposit-addresses-v2
+        https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+        https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: the blockchain network name
+        :param str [params.accountType]: 'main', 'contract' or 'uta'(default is 'main')
+        :param boolean [params.uta]: set to True for the unified trading account(uta) endpoint, defaults to False
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
+        accountType = 'main'
+        paramsRequest: dict
+        accountType, paramsRequest = self.handle_option_string_and_params(params, 'fetchDepositAddress', 'accountType', accountType)
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
+        accountType = self.safe_string(accountsByType, accountType, accountType)
+        uta = self.is_uta_enabled()
+        uta, paramsRequest = self.handle_option_bool_and_params(paramsRequest, 'fetchDepositAddress', 'uta', uta)
+        if accountType == 'contract':
+            return self.fetch_contract_deposit_address(code, paramsRequest)
+        elif uta or (accountType == 'uta') or (accountType == 'unified'):
+            return super(kucoin, self).fetch_deposit_address(code, self.extend(paramsRequest, {'uta': True}))
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             # for USDT - OMNI, ERC20, TRC20, default is ERC20
             # for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
-            # 'chain': 'ERC20',  # optional
+            # 'chain': 'ERC20', // optional
         }
         networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
+        networkCode, paramsRequest = self.handle_network_code_and_params(paramsRequest)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode).lower()
+            _netIdTmp = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
+            if _netIdTmp is not None:
+                request['chain'] = _netIdTmp.lower()
         version = self.options['versions']['private']['GET']['deposit-addresses']
         self.options['versions']['private']['GET']['deposit-addresses'] = 'v1'
-        response = self.privateGetDepositAddresses(self.extend(request, params))
+        response = self.privateGetDepositAddresses(self.extend(request, paramsRequest))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         self.options['versions']['private']['GET']['deposit-addresses'] = version
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         if data is None:
             raise ExchangeError(self.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again')
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def fetch_contract_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
+        """
+        fetch the deposit address for a currency associated with self account
+
+        https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address
+
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        currency = self.currency(code)
+        currencyId = currency['id']
+        request = {
+            'currency': currencyId,  # Currency,including XBT,USDT
+        }
+        response = self.futuresPrivateGetDepositAddress(self.extend(request, params))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "address": "0x78d3ad1c0aa1bf068e19c94a2d7b16c9c0fcd8b1",//Deposit address
+        #            "memo": null//Address tag. If the returned value is null, it means that the requested token has no memo. If you are to transfer funds from another platform to KuCoin Futures and if the token to be //transferred has memo(tag), you need to fill in the memo to ensure the transferred funds will be sent //to the address you specified.
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'data', {})
+        address = self.safe_string(data, 'address')
+        if currencyId != 'NIM':
+            # contains spaces
+            self.check_address(address)
+        return {
+            'info': response,
+            'currency': currencyId,
+            'network': self.safe_string(data, 'chain'),
+            'address': address,
+            'tag': self.safe_string(data, 'memo'),
+        }
+
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositAddress, 'address')
         # BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
         if address is not None:
@@ -2494,88 +3615,127 @@ class kucoin(Exchange, ImplicitAPI):
             if code != 'NIM':
                 # contains spaces
                 self.check_address(address)
+        chainId = self.safe_string(depositAddress, 'chainId')
         return {
             'info': depositAddress,
             'currency': code,
-            'network': self.network_id_to_code(self.safe_string(depositAddress, 'chainId')),
+            'network': self.network_id_to_code(chainId, code),
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
         }
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
+    def fetch_deposit_addresses_by_network(self, code: str, params: dict = {}) -> DepositAddresses:
         """
 
-        https://docs.kucoin.com/#get-deposit-addresses-v2
+        https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+        https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
 
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an array of `address structures <https://docs.ccxt.com/?id=address-structure>`
+        :param boolean [params.uta]: set to True for the unified trading account(uta) endpoint, defaults to False
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/?id=address-structure>` indexed by the network
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
         }
-        version = self.options['versions']['private']['GET']['deposit-addresses']
-        self.options['versions']['private']['GET']['deposit-addresses'] = 'v2'
-        response = self.privateGetDepositAddresses(self.extend(request, params))
-        #
-        #     {
-        #         "code": "200000",
-        #         "data": [
-        #             {
-        #                 "address": "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
-        #                 "memo": "",
-        #                 "chain": "BTC-Segwit",
-        #                 "contractAddress": ""
-        #             },
-        #             {"address":"37icNMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn","memo":"","chain":"BTC","contractAddress":""},
-        #             {"address":"Deposit temporarily blocked","memo":"","chain":"TRC20","contractAddress":""}
-        #         ]
-        #     }
-        #
-        self.options['versions']['private']['GET']['deposit-addresses'] = version
+        uta = self.is_uta_enabled()
+        paramsRequest: dict
+        uta, paramsRequest = self.handle_option_bool_and_params(params, 'fetchDepositAddressesByNetwork', 'uta', uta)
+        response: dict
+        if uta:
+            networkCode = None
+            networkCode, paramsRequest = self.handle_network_code_and_params(paramsRequest)
+            if networkCode is not None:
+                _netIdTmp = self.network_code_to_id(networkCode, code)
+                if _netIdTmp is not None:
+                    request['chain'] = _netIdTmp.lower()
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": [
+            #             {
+            #                 "address": "0xf30a9b6968183668dbce515bd6449438ab3252b3",
+            #                 "memo": "",
+            #                 "remark": "",
+            #                 "chainId": "eth",
+            #                 "to": "FUNDING",
+            #                 "expirationDate": 0,
+            #                 "currency": "USDT",
+            #                 "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+            #                 "chainName": "ERC20"
+            #             }
+            #         ]
+            #     }
+            #
+            response = self.utaPrivateGetAssetDepositAddress(self.extend(request, paramsRequest))
+        else:
+            version = self.options['versions']['private']['GET']['deposit-addresses']
+            self.options['versions']['private']['GET']['deposit-addresses'] = 'v2'
+            response = self.privateGetDepositAddresses(self.extend(request, paramsRequest))
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": [
+            #             {
+            #                 "address": "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
+            #                 "memo": "",
+            #                 "chain": "BTC-Segwit",
+            #                 "contractAddress": ""
+            #             },
+            #             {"address":"37icNMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn","memo":"","chain":"BTC","contractAddress":""},
+            #             {"address":"Deposit temporarily blocked","memo":"","chain":"TRC20","contractAddress":""}
+            #         ]
+            #     }
+            #
+            self.options['versions']['private']['GET']['deposit-addresses'] = version
         chains = self.safe_list(response, 'data', [])
         parsed = self.parse_deposit_addresses(chains, [currency['code']], False, {
             'currency': currency['code'],
         })
         return self.index_by(parsed, 'network')
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://www.kucoin.com/docs/rest/spot-trading/market-data/get-part-order-book-aggregated-
-        https://www.kucoin.com/docs/rest/spot-trading/market-data/get-full-order-book-aggregated-
+        https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-orderbook
+        https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-orderbook
+        https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-orderbook
         https://www.kucoin.com/docs-new/rest/ua/get-orderbook
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         level = self.safe_integer(params, 'level', 2)
-        request: dict = {'symbol': market['id']}
+        request = {'symbol': market['id']}
         isAuthenticated = self.check_required_credentials(False)
-        uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchOrderBook', 'uta', False)
-        response = None
-        if uta:
-            if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a limit argument for uta, either 20, 50, 100 or FULL')
-            request['limit'] = limit
+        uta = False
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchOrderBook', 'uta', uta)
+        response: dict
+        type, paramsMarketType = self.handle_market_type_and_params('fetchOrderBook', market, paramsUta)
+        if utaOption:
+            limitString = '20'
+            if (limit is None) or (limit >= 100):
+                limitString = 'FULL'
+            elif limit > 20:
+                limitString = '100'
+            request['limit'] = limitString
             request['symbol'] = market['id']
-            type = None
-            type, params = self.handle_market_type_and_params('fetchOrderBook', market, params)
-            if type == 'spot':
+            if (type == 'spot') or (type == 'margin'):
                 request['tradeType'] = 'SPOT'
             else:
                 request['tradeType'] = 'FUTURES'
-            response = self.utaPrivateGetMarketOrderbook(self.extend(request, params))
+            response = self.utaPrivateGetMarketOrderbook(self.extend(request, paramsMarketType))
             #
             #     {
             #         "code": "200000",
@@ -2594,6 +3754,38 @@ class kucoin(Exchange, ImplicitAPI):
             #         }
             #     }
             #
+        elif (type != 'spot') and (type != 'margin'):
+            if level != 2 and level is not None:
+                raise BadRequest(self.id + ' fetchOrderBook() can only return level 2')
+            if limit is None:
+                # full L2 snapshot - required for correct ws diff-sync: the futures delta
+                # stream covers the whole book while depth20/depth100 truncate the snapshot,
+                # see https://github.com/ccxt/ccxt/issues/22063
+                response = self.futuresPublicGetLevel2Snapshot(self.extend(request, paramsMarketType))
+            elif limit == 20:
+                #
+                #     {
+                #         "code": "200000",
+                #         "data": {
+                #           "symbol": "XBTUSDM",      //Symbol
+                #           "sequence": 100,          //Ticker sequence number
+                #           "asks": [
+                #                 ["5000.0", 1000],   //Price, quantity
+                #                 ["6000.0", 1983]    //Price, quantity
+                #           ],
+                #           "bids": [
+                #                 ["3200.0", 800],    //Price, quantity
+                #                 ["3100.0", 100]     //Price, quantity
+                #           ],
+                #           "ts": 1604643655040584408  // timestamp
+                #         }
+                #     }
+                #
+                response = self.futuresPublicGetLevel2Depth20(self.extend(request, paramsMarketType))
+            elif limit == 100:
+                response = self.futuresPublicGetLevel2Depth100(self.extend(request, paramsMarketType))
+            else:
+                raise BadRequest(self.id + ' fetchOrderBook() limit argument must be 20 or 100')
         elif not isAuthenticated or limit is not None:
             if level == 2:
                 request['level'] = level
@@ -2602,12 +3794,12 @@ class kucoin(Exchange, ImplicitAPI):
                         request['limit'] = limit
                     else:
                         raise ExchangeError(self.id + ' fetchOrderBook() limit argument must be 20 or 100')
-                request['limit'] = limit if limit else 100
-            response = self.publicGetMarketOrderbookLevelLevelLimit(self.extend(request, params))
+                request['limit'] = limit if (limit is not None) else 100
+            response = self.publicGetMarketOrderbookLevelLevelLimit(self.extend(request, paramsMarketType))
         else:
-            response = self.privateGetMarketOrderbookLevel2(self.extend(request, params))
+            response = self.privateGetMarketOrderbookLevel2(self.extend(request, paramsMarketType))
         #
-        # public(v1) market/orderbook/level2_20 and market/orderbook/level2_100
+        # public (v1) market/orderbook/level2_20 and market/orderbook/level2_100
         #
         #     {
         #         "sequence": "3262786978",
@@ -2622,7 +3814,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        # private(v3) market/orderbook/level2
+        # private (v3) market/orderbook/level2
         #
         #     {
         #         "sequence": "3262786978",
@@ -2639,31 +3831,75 @@ class kucoin(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         timestamp = self.safe_integer(data, 'time')
+        if timestamp is None:
+            nanoseconds = self.safe_integer(data, 'ts')
+            if nanoseconds is not None:
+                timestamp = self.parse_to_int(nanoseconds / 1000000)
         orderbook = self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', level - 2, level - 1)
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
-    def handle_trigger_prices(self, params):
-        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
-        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+    def handle_trigger_prices(self, params: dict) -> list:
+        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_number(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
         isStopLoss = stopLossPrice is not None
         isTakeProfit = takeProfitPrice is not None
-        if (isStopLoss and isTakeProfit) or (triggerPrice and stopLossPrice) or (triggerPrice and isTakeProfit):
+        if (isStopLoss and isTakeProfit) or ((triggerPrice is not None) and (stopLossPrice is not None)) or ((triggerPrice is not None) and isTakeProfit):
             raise ExchangeError(self.id + ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice')
         return [triggerPrice, stopLossPrice, takeProfitPrice]
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         Create an order on the exchange
 
-        https://docs.kucoin.com/spot#place-a-new-order
-        https://docs.kucoin.com/spot#place-a-new-order-2
-        https://docs.kucoin.com/spot#place-a-margin-order
-        https://docs.kucoin.com/spot-hf/#place-hf-order
-        https://www.kucoin.com/docs/rest/spot-trading/orders/place-order-test
-        https://www.kucoin.com/docs/rest/margin-trading/orders/place-margin-order-test
-        https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-hf-order
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-sync
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-test
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-stop-order
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order-test
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-stop-order
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
+        https://www.kucoin.com/docs-new/rest/ua/place-order
+
+        :param str symbol: Unified CCXT market symbol
+        :param str type: 'limit' or 'market'
+        :param str side: 'buy' or 'sell'
+        :param float amount: the amount of currency to trade
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]:  extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta) endpoint, defaults to False
+ Check createSpotOrder(), createContractOrder() and createUtaOrder() for more details on the extra parameters that can be used in params
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        uta = self.is_uta_enabled()
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'createOrder', 'uta', uta)
+        if utaOption:
+            return self.create_uta_order(symbol, type, side, amount, price, paramsUta)
+        elif market['spot'] is True:
+            return self.create_spot_order(symbol, type, side, amount, price, paramsUta)
+        elif market['contract'] is True:
+            return self.create_contract_order(symbol, type, side, amount, price, paramsUta)
+        else:
+            raise NotSupported(self.id + ' createOrder() does not support market ' + market['type'])
+
+    def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
+        """
+        helper method for creating spot orders
+
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-sync
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-test
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-stop-order
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order-test
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-stop-order
 
         :param str symbol: Unified CCXT market symbol
         :param str type: 'limit' or 'market'
@@ -2672,14 +3908,14 @@ class kucoin(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]:  extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
-        :param str [params.marginMode]: 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
+        :param str [params.marginMode]: 'cross',  # cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
         :param str [params.timeInForce]: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-        :param str [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
+        :param bool [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.clientOid]: client order id, defaults to uuid if not passed
         :param str [params.remark]: remark for the order, length cannot exceed 100 utf8 characters
-        :param str [params.tradeType]: 'TRADE',  # TRADE, MARGIN_TRADE  # not used with margin orders
+        :param str [params.tradeType]: 'TRADE',  # TRADE, MARGIN_TRADE // not used with margin orders
  limit orders ---------------------------------------------------
         :param float [params.cancelAfter]: long,  # cancel after n seconds, requires timeInForce to be GTT
         :param bool [params.hidden]: False,  # Order will not be displayed in the order book
@@ -2693,45 +3929,49 @@ class kucoin(Exchange, ImplicitAPI):
         :param float [params.leverage]: Leverage size of the order
         :param str [params.stp]: '',  # self trade prevention, CN, CO, CB or DC
         :param bool [params.autoBorrow]: False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
-        :param bool [params.hf]: False,  # True for hf order
+        :param bool [params.hf]: False,  # true for hf order
         :param bool [params.test]: set to True to test an order, no order will be created but the request will be validated
         :param bool [params.sync]: set to True to use the hf sync call
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         testOrder = self.safe_bool(params, 'test', False)
-        params = self.omit(params, 'test')
-        hf = None
-        hf, params = self.handle_hf_and_params(params)
-        useSync = False
-        useSync, params = self.handle_option_and_params(params, 'createOrder', 'sync', False)
-        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
-        tradeType = self.safe_string(params, 'tradeType')  # keep it for backward compatibility
-        isTriggerOrder = (triggerPrice or stopLossPrice or takeProfitPrice)
-        marginResult = self.handle_margin_mode_and_params('createOrder', params)
-        marginMode = self.safe_string(marginResult, 0)
+        paramsOmitted = self.omit(params, 'test')
+        hf, paramsHf = self.handle_hf_and_params(paramsOmitted)
+        useSync, paramsSync = self.handle_option_bool_and_params(paramsHf, 'createOrder', 'sync', False)
+        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(paramsSync)
+        tradeType = self.safe_string(paramsSync, 'tradeType')  # keep it for backward compatibility
+        isTriggerOrder = (triggerPrice is not None) or (stopLossPrice is not None) or (takeProfitPrice is not None)
+        marginMode = self.handle_margin_mode_and_params('createOrder', paramsSync)[0]
         isMarginOrder = tradeType == 'MARGIN_TRADE' or marginMode is not None
         # don't omit anything before calling createOrderRequest
-        orderRequest = self.create_order_request(symbol, type, side, amount, price, params)
-        response = None
-        if testOrder:
+        orderRequest = self.create_spot_order_request(symbol, type, side, amount, price, paramsSync)
+        response: dict
+        if testOrder is True:
             if isMarginOrder:
-                response = self.privatePostMarginOrderTest(orderRequest)
-            elif hf:
+                if hf is True:
+                    response = self.privatePostHfMarginOrderTest(orderRequest)
+                else:
+                    response = self.privatePostMarginOrderTest(orderRequest)
+            elif hf is True:
                 response = self.privatePostHfOrdersTest(orderRequest)
             else:
                 response = self.privatePostOrdersTest(orderRequest)
         elif isTriggerOrder:
-            response = self.privatePostStopOrder(orderRequest)
+            if isMarginOrder:
+                response = self.privatePostHfMarginStopOrder(orderRequest)
+            else:
+                response = self.privatePostStopOrder(orderRequest)
         elif isMarginOrder:
-            if hf:
+            if hf is True:
                 response = self.privatePostHfMarginOrder(orderRequest)
             else:
                 response = self.privatePostMarginOrder(orderRequest)
         elif useSync:
             response = self.privatePostHfOrdersSync(orderRequest)
-        elif hf:
+        elif hf is True:
             response = self.privatePostHfOrders(orderRequest)
         else:
             response = self.privatePostOrders(orderRequest)
@@ -2746,11 +3986,450 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
+    def create_spot_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
+        market = self.market(symbol)
+        # required param, cannot be used twice
+        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
+        paramsOmitted = self.omit(params, ['clientOid', 'clientOrderId'])
+        request = {
+            'clientOid': clientOrderId,
+            'side': side,
+            'symbol': market['id'],
+            'type': type,  # limit or market
+        }
+        quoteAmount = self.safe_number_2(paramsOmitted, 'cost', 'funds')
+        amountString = None
+        costString = None
+        marginMode = None
+        marginMode, paramsOmitted = self.handle_margin_mode_and_params('createOrder', paramsOmitted)
+        if type == 'market':
+            if quoteAmount is not None:
+                paramsOmitted = self.omit(paramsOmitted, ['cost', 'funds'])
+                # kucoin uses base precision even for quote values
+                costString = self.market_order_amount_to_precision(symbol, quoteAmount)
+                request['funds'] = costString
+            else:
+                amountString = self.amount_to_precision(symbol, amount)
+                request['size'] = self.amount_to_precision(symbol, amount)
+        else:
+            amountString = self.amount_to_precision(symbol, amount)
+            request['size'] = amountString
+            request['price'] = self.price_to_precision(symbol, price)
+        tradeType = self.safe_string(paramsOmitted, 'tradeType')  # keep it for backward compatibility
+        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(paramsOmitted)
+        isTriggerOrder = (triggerPrice is not None) or (stopLossPrice is not None) or (takeProfitPrice is not None)
+        isMarginOrder = tradeType == 'MARGIN_TRADE' or marginMode is not None
+        paramsOmitted = self.omit(paramsOmitted, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice'])
+        if isTriggerOrder:
+            if triggerPrice is not None:
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
+            elif (stopLossPrice is not None) or (takeProfitPrice is not None):
+                if stopLossPrice is not None:
+                    request['stop'] = 'entry' if (side == 'buy') else 'loss'
+                    request['stopPrice'] = self.price_to_precision(symbol, stopLossPrice)
+                else:
+                    request['stop'] = 'loss' if (side == 'buy') else 'entry'
+                    request['stopPrice'] = self.price_to_precision(symbol, takeProfitPrice)
+            if marginMode == 'isolated':
+                raise BadRequest(self.id + ' createOrder does not support isolated margin for stop orders')
+            elif marginMode == 'cross':
+                request['tradeType'] = self.options['marginModes'][marginMode]
+        elif isMarginOrder:
+            if marginMode == 'isolated':
+                request['marginModel'] = 'isolated'
+        postOnly = None
+        postOnly, paramsOmitted = self.handle_post_only(type == 'market', False, paramsOmitted)
+        if postOnly is True:
+            request['postOnly'] = True
+        return self.extend(request, paramsOmitted)
+
+    def market_order_amount_to_precision(self, symbol: Str, amount: object):
+        market = self.market(symbol)
+        result = self.decimal_to_precision(amount, TRUNCATE, market['info']['quoteIncrement'], self.precisionMode, self.paddingMode)
+        if result == '0':
+            raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
+        return result
+
+    def create_contract_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
+        """
+        helper method for creating contract orders
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
+
+        :param str symbol: Unified CCXT market symbol
+        :param str type: 'limit' or 'market'
+        :param str side: 'buy' or 'sell'
+        :param float amount: the amount of currency to trade
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]:  extra parameters specific to the exchange API endpoint
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
+        :param float [params.triggerPrice]: The price a trigger order is triggered at
+        :param float [params.stopLossPrice]: price to trigger stop-loss orders
+        :param float [params.takeProfitPrice]: price to trigger take-profit orders
+        :param bool [params.reduceOnly]: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
+        :param str [params.timeInForce]: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+        :param bool [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
+        :param float [params.cost]: the cost of the order in units of USDT
+        :param str [params.marginMode]: 'cross' or 'isolated', default is 'isolated'
+        :param bool [params.hedged]: *swap and future only* True for hedged mode, False for one way mode, default is False
+ ----------------- Exchange Specific Parameters -----------------
+        :param float [params.leverage]: Leverage size of the order(mandatory param in request, default is 1)
+        :param str [params.clientOid]: client order id, defaults to uuid if not passed
+        :param str [params.remark]: remark for the order, length cannot exceed 100 utf8 characters
+        :param str [params.stop]: 'up' or 'down', the direction the triggerPrice is triggered from, requires triggerPrice. down: Triggers when the price reaches or goes below the triggerPrice. up: Triggers when the price reaches or goes above the triggerPrice.
+        :param str [params.triggerPriceType]: "last", "mark", "index" - defaults to "mark"
+        :param str [params.stopPriceType]: exchange-specific alternative for triggerPriceType: TP, IP or MP
+        :param bool [params.closeOrder]: set to True to close position
+        :param bool [params.test]: set to True to use the test order endpoint(does not submit order, use to validate params)
+        :param bool [params.forceHold]: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.\
+        :param str [params.positionSide]: *swap and future only* hedged two-way position side, LONG or SHORT
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        testOrder = self.safe_bool(params, 'test', False)
+        paramsOmitted = self.omit(params, 'test')
+        hasTpOrSlOrder = (self.safe_value(paramsOmitted, 'stopLoss') is not None) or (self.safe_value(paramsOmitted, 'takeProfit') is not None)
+        orderRequest = self.create_contract_order_request(symbol, type, side, amount, price, paramsOmitted)
+        response: dict
+        if testOrder is True:
+            response = self.futuresPrivatePostOrdersTest(orderRequest)
+        else:
+            if hasTpOrSlOrder:
+                response = self.futuresPrivatePostStOrders(orderRequest)
+            else:
+                response = self.futuresPrivatePostOrders(orderRequest)
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "orderId": "619717484f1d010001510cde",
+        #        },
+        #    }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_order(data, market)
+
+    def create_contract_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
+        market = self.market(symbol)
+        # required param, cannot be used twice
+        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
+        paramsOmitted2 = self.omit(params, ['clientOid', 'clientOrderId'])
+        request = {
+            'clientOid': clientOrderId,
+            'side': side,
+            'symbol': market['id'],
+            'type': type,  # limit or market
+            'leverage': 1,
+        }
+        marginModeUpper = self.safe_string_upper(paramsOmitted2, 'marginMode')
+        paramsOmitted = self.omit(paramsOmitted2, 'marginMode') if (marginModeUpper is not None) else paramsOmitted2
+        if marginModeUpper is not None:
+            request['marginMode'] = marginModeUpper
+        cost = self.safe_string(paramsOmitted, 'cost')
+        paramsOmitted = self.omit(paramsOmitted, 'cost')
+        if cost is not None:
+            request['valueQty'] = self.cost_to_precision(symbol, cost)
+        else:
+            if amount is None:
+                raise ArgumentsRequired(self.id + ' requires an amount argument')
+            if amount < 1:
+                raise InvalidOrder(self.id + ' createOrder() minimum contract order amount is 1')
+            sizeString = self.amount_to_precision(symbol, amount)
+            if sizeString is not None:
+                request['size'] = int(sizeString)
+        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(paramsOmitted)
+        stopLoss = self.safe_dict(paramsOmitted, 'stopLoss')
+        takeProfit = self.safe_dict(paramsOmitted, 'takeProfit')
+        hasStopLoss = stopLoss is not None
+        hasTakeProfit = takeProfit is not None
+        # const isTpAndSl = stopLossPrice && takeProfitPrice;
+        triggerPriceTypes = {
+            'mark': 'MP',
+            'last': 'TP',
+            'index': 'IP',
+        }
+        triggerPriceType = self.safe_string(paramsOmitted, 'triggerPriceType', 'mark')
+        triggerPriceTypeValue = self.safe_string(triggerPriceTypes, triggerPriceType, triggerPriceType)
+        paramsOmitted = self.omit(paramsOmitted, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice', 'takeProfit', 'stopLoss'])
+        if triggerPrice is not None:
+            request['stop'] = 'up' if (side == 'buy') else 'down'
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
+            request['stopPriceType'] = triggerPriceTypeValue
+        elif hasStopLoss or hasTakeProfit:
+            priceType = triggerPriceTypeValue
+            if hasStopLoss:
+                slPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice')
+                request['triggerStopDownPrice'] = self.price_to_precision(symbol, slPrice)
+                priceType = self.safe_string(stopLoss, 'triggerPriceType', 'mark')
+                priceType = self.safe_string(triggerPriceTypes, priceType, priceType)
+            if hasTakeProfit:
+                tpPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'takeProfitPrice')
+                request['triggerStopUpPrice'] = self.price_to_precision(symbol, tpPrice)
+                priceType = self.safe_string(takeProfit, 'triggerPriceType', 'mark')
+                priceType = self.safe_string(triggerPriceTypes, priceType, priceType)
+            request['stopPriceType'] = priceType
+        elif (stopLossPrice is not None) or (takeProfitPrice is not None):
+            if stopLossPrice is not None:
+                request['stop'] = 'up' if (side == 'buy') else 'down'
+                request['stopPrice'] = self.price_to_precision(symbol, stopLossPrice)
+            else:
+                request['stop'] = 'down' if (side == 'buy') else 'up'
+                request['stopPrice'] = self.price_to_precision(symbol, takeProfitPrice)
+            request['reduceOnly'] = True
+            request['stopPriceType'] = triggerPriceTypeValue
+        uppercaseType = type.upper()
+        timeInForce = self.safe_string_upper(paramsOmitted, 'timeInForce')
+        if uppercaseType == 'LIMIT':
+            if price is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for limit orders')
+            else:
+                request['price'] = self.price_to_precision(symbol, price)
+            if timeInForce is not None:
+                request['timeInForce'] = timeInForce
+        postOnly = None
+        postOnly, paramsOmitted = self.handle_post_only(type == 'market', False, paramsOmitted)
+        if postOnly is True:
+            request['postOnly'] = True
+        hidden = self.safe_value(paramsOmitted, 'hidden')
+        if (postOnly is True) and (hidden is not None):
+            raise BadRequest(self.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter')
+        iceberg = self.safe_value(paramsOmitted, 'iceberg')
+        if (iceberg is not None) and (iceberg is not False):
+            visibleSize = self.safe_string(paramsOmitted, 'visibleSize')
+            if visibleSize is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a visibleSize parameter for iceberg orders')
+        reduceOnly = self.safe_bool(paramsOmitted, 'reduceOnly', False)
+        hedged = None
+        hedged, paramsOmitted = self.handle_param_bool(paramsOmitted, 'hedged', False)
+        if reduceOnly is True:
+            request['reduceOnly'] = reduceOnly
+            if hedged is True:
+                reduceOnlyPosSide = 'SHORT'
+                if side == 'sell':
+                    reduceOnlyPosSide = 'LONG'
+                request['positionSide'] = reduceOnlyPosSide
+        else:
+            if hedged is True:
+                posSide = 'SHORT'
+                if side == 'buy':
+                    posSide = 'LONG'
+                request['positionSide'] = posSide
+        paramsOmitted = self.omit(paramsOmitted, ['timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged'])  # Time in force only valid for limit orders, exchange error when gtc for market orders
+        return self.extend(request, paramsOmitted)
+
+    def create_uta_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
+        """
+        helper method for creating uta orders
+
+        https://www.kucoin.com/docs-new/rest/ua/place-order
+
+        :param str symbol: Unified CCXT market symbol
+        :param str type: 'limit' or 'market'
+        :param str side: 'buy' or 'sell'
+        :param float amount: the amount of currency to trade
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]:  extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: client order id, defaults to uuid if not passed
+        :param float [params.cost]: the cost of the order in units of quote currency
+        :param str [params.timeInForce]: GTC, GTD, IOC, FOK or PO
+        :param bool [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK(default is False)
+        :param bool [params.reduceOnly]: *contract markets only* A mark to reduce the position size only. Set to False by default
+        :param float [params.triggerPrice]: The price a trigger order is triggered at
+        :param str [params.triggerDirection]: 'ascending' or 'descending', the direction the triggerPrice is triggered from, requires triggerPrice
+        :param str [params.triggerPriceType]: *contract markets only* "last", "mark", "index" - defaults to "mark"
+        :param float [params.stopLossPrice]: price to trigger stop-loss orders
+        :param float [params.takeProfitPrice]: price to trigger take-profit orders
+        :param str [params.marginMode]: 'cross' or 'isolated',(default is 'cross' for margin orders, default is 'isolated' for contract orders)
+
+ Exchange-specific parameters -------------------------------------------------
+        :param str [params.accountMode]: 'unified' or 'classic', default is 'unified'
+        :param str [params.stp]: '',  # self trade prevention, CN, CO, CB or DC
+        :param int [params.cancelAfter]: - Cancel After N Seconds(Calculated from the time of entering the matching engine), only effective when timeInForce is GTD
+        :param str [params.sizeUnit]: *contracts only* 'BASECCY'(amount of base currency) or 'UNIT'(number of contracts), default is 'UNIT'
+
+ Classic account parameters
+        :param bool [params.autoBorrow]: *classic margin orders only*
+        :param bool [params.autoRepay]: *classic margin orders only*
+        :param str [params.hedged]: *classic contract orders only* True for hedged mode, False for one way mode, default is False
+        :param int [params.leverage]: *classic contract orders with isolated marginMode only* Leverage size of the order
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = self.create_uta_order_request(symbol, type, side, amount, price, params)
+        response = self.utaPrivatePostAccountModeOrderPlace(request)
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "orderId": "426319129738321920",
+        #             "tradeType": "SPOT",
+        #             "ts": 1774455603216000000,
+        #             "clientOid": "b896c118-a674-4863-baf4-a9ea3cd696c5"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_order(data, market)
+
+    def create_uta_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> dict:
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        market = self.market(symbol)
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        isSpot = market['spot']
+        isContract = market['contract']
+        accountMode = 'unified'
+        paramsRequest = None
+        accountMode, paramsRequest = self.handle_option_string_and_params(params, 'createOrder', 'accountMode', accountMode)
+        isUnified = (accountMode == 'unified')
+        marginMode = None
+        marginMode, paramsRequest = self.handle_margin_mode_and_params('createOrder', paramsRequest)
+        tradeType = self.handle_trade_type(isContract, marginMode, isUnified, paramsRequest)
+        clientOrderId = self.safe_string_2(paramsRequest, 'clientOid', 'clientOrderId', self.uuid())
+        paramsRequest = self.omit(paramsRequest, ['clientOid', 'clientOrderId'])
+        request = {
+            'accountMode': accountMode,  # 'unified' or 'classic',
+            'tradeType': tradeType,  # 'SPOT', 'FUTURES', 'MARGIN', 'ISOLATED' or 'CROSS'
+            'clientOid': clientOrderId,
+            'symbol': market['id'],
+            # 'triggerDirection'- 'UP' or 'DOWN (required for trigger orders, supported for classic-FUTURES and unified-SPOT and unified-FUTURES)
+            # 'triggerPriceType' - 'TP', 'IP', 'MP' (required for trigger orders, supported for classic-FUTURES and unified-SPOT and unified-FUTURES)
+            # 'triggerPrice' (required for trigger orders)
+            'side': side.upper(),
+            'orderType': type.upper(),
+            # 'size'
+            # 'sizeUnit' - 'BASECCY', 'QUOTECCY' (for market SPOT) or 'UNIT' (for unified-FUTURES)
+            # 'price'
+            # 'timeInForce' - 'GTC', 'IOC', 'FOK', 'GTT' or 'RPI' (GTT is not supported for FUTURES)
+            # 'postOnly'
+            # 'reduceOnly' (only for FUTURES)
+            # 'stp' - 'CN', 'CO', 'CB' or 'DC' (DC is not supported for FUTURES)
+            # 'cancelAfter' - time in seconds (only valid when timeInForce is GTT, not supported for FUTURES)
+            # 'tags'
+            # 'autoBorrow' (only for classic-CROSS and classic-ISOLATED)
+            # 'autoRepay' (only for classic-CROSS and classic-ISOLATED)
+            # 'positionSide' - 'BOTH', 'LONG' or 'SHORT' (only for classic-FUTURES)
+            # 'marginMode' - 'ISOLATED' or 'CROSS' (only for classic-FUTURES, default is 'ISOLATED')
+            # 'leverage' (only for classic-FUTURES-ISOLATED, required)
+            # 'tpTriggerPriceType' - 'TP', 'IP', 'MP' (only for unified-FUTURES and classic-FUTURES)
+            # 'tpTriggerPrice' (only for unified-FUTURES and classic-FUTURES)
+            # 'slTriggerPriceType' - 'TP', 'IP', 'MP' (only for unified-FUTURES and classic-FUTURES)
+            # 'slTriggerPrice' (only for unified-FUTURES and classic-FUTURES)
+        }
+        if tradeType is not None:
+            request['tradeType'] = tradeType
+        request['clientOid'] = clientOrderId
+        isMarketOrder = (type == 'market')
+        cost = self.safe_string(paramsRequest, 'cost')
+        if cost is not None:
+            paramsRequest = self.omit(paramsRequest, 'cost')
+            if (isSpot is True) and isMarketOrder:
+                request['sizeUnit'] = 'QUOTECCY'
+                request['size'] = self.market_order_amount_to_precision(symbol, cost)
+            else:
+                raise NotSupported(self.id + ' createOrder() with cost is supported for spot market orders only')
+        else:
+            sizeUnit = 'BASECCY'
+            if isContract is True:
+                sizeUnit, paramsRequest = self.handle_option_string_and_params(paramsRequest, 'createOrder', 'sizeUnit', 'UNIT')
+            request['sizeUnit'] = sizeUnit
+            request['size'] = self.amount_to_precision(symbol, amount)
+        if not isMarketOrder:
+            request['price'] = self.price_to_precision(symbol, price)
+        postOnly = None
+        postOnly, paramsRequest = self.handle_post_only(isMarketOrder, False, paramsRequest)
+        timeInForce = self.handle_time_in_force(paramsRequest)
+        paramsOmitted = self.omit(paramsRequest, 'timeInForce') if (timeInForce is not None) else paramsRequest
+        if (timeInForce is not None):
+            request['timeInForce'] = timeInForce
+        if postOnly is True:
+            request['postOnly'] = True
+        if isContract is True:
+            if not isUnified:
+                if marginMode is not None:
+                    request['marginMode'] = marginMode.upper()
+                    if marginMode == 'isolated':
+                        leverage = self.safe_integer(paramsOmitted, 'leverage')
+                        if leverage is None:
+                            request['leverage'] = 1
+                reduceOnly = self.safe_bool(paramsOmitted, 'reduceOnly', False)
+                hedged = False
+                hedged, paramsOmitted = self.handle_param_bool(paramsOmitted, 'hedged', hedged)
+                if hedged is True:
+                    positionSide = 'SHORT'
+                    if side == 'buy':
+                        positionSide = 'LONG'
+                    if reduceOnly is True:
+                        positionSide = 'SHORT' if (positionSide == 'LONG') else 'LONG'
+                    request['positionSide'] = positionSide
+        # handling with conditional orders
+        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(paramsOmitted)
+        stopLoss = self.safe_dict(paramsOmitted, 'stopLoss')
+        takeProfit = self.safe_dict(paramsOmitted, 'takeProfit')
+        hasStopLoss = stopLoss is not None
+        hasTakeProfit = takeProfit is not None
+        triggerPriceTypes = {
+            'mark': 'MP',
+            'last': 'TP',
+            'index': 'IP',
+        }
+        if triggerPrice is not None:
+            triggerDirection = self.safe_string(paramsOmitted, 'triggerDirection')
+            if triggerDirection is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice')
+            request['triggerDirection'] = 'UP' if (triggerDirection == 'ascending') else 'DOWN'
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+        elif hasStopLoss or hasTakeProfit:
+            if isContract is not True:
+                raise NotSupported(self.id + ' createOrder() stopLoss and takeProfit parameters are only supported for contract orders')
+            if hasStopLoss:
+                slTriggerPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice')
+                slTriggerPriceType = self.safe_string(stopLoss, 'triggerPriceType', 'mark')
+                request['slTriggerPrice'] = self.price_to_precision(symbol, slTriggerPrice)
+                request['slTriggerPriceType'] = self.safe_string(triggerPriceTypes, slTriggerPriceType, slTriggerPriceType)
+            if hasTakeProfit:
+                tpTriggerPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'takeProfitPrice')
+                tpTriggerPriceType = self.safe_string(takeProfit, 'triggerPriceType', 'mark')
+                request['tpTriggerPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
+                request['tpTriggerPriceType'] = self.safe_string(triggerPriceTypes, tpTriggerPriceType, tpTriggerPriceType)
+        elif (stopLossPrice is not None) or (takeProfitPrice is not None):
+            if stopLossPrice is not None:
+                request['triggerDirection'] = 'UP' if (side == 'buy') else 'DOWN'
+                request['triggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
+                if isContract is True:
+                    stopLossPriceType = self.safe_string_2(paramsOmitted, 'stopLossPriceType', 'triggerPriceType', 'mark')
+                    request['triggerPriceType'] = self.safe_string(triggerPriceTypes, stopLossPriceType, stopLossPriceType)
+            else:
+                request['triggerDirection'] = 'DOWN' if (side == 'buy') else 'UP'
+                request['triggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
+                if isContract is True:
+                    takeProfitPriceType = self.safe_string_2(paramsOmitted, 'takeProfitPriceType', 'triggerPriceType', 'mark')
+                    request['triggerPriceType'] = self.safe_string(triggerPriceTypes, takeProfitPriceType, takeProfitPriceType)
+        paramsOmitted = self.omit(paramsOmitted, ['triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPriceType', 'stopLossPriceType', 'takeProfitPriceType', 'triggerPriceType', 'triggerDirection', 'stopLoss', 'takeProfit', 'hedged'])
+        return self.extend(request, paramsOmitted)
+
+    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params: dict = {}) -> Order:
         """
         create a market order by providing the symbol, side and cost
 
-        https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str side: 'buy' or 'sell'
@@ -2758,60 +4437,103 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         req = {
             'cost': cost,
         }
         return self.create_order(symbol, 'market', side, cost, None, self.extend(req, params))
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market buy order by providing the symbol and cost
 
-        https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         return self.create_market_order_with_cost(symbol, 'buy', cost, params)
 
-    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
+    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market sell order by providing the symbol and cost
 
-        https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         return self.create_market_order_with_cost(symbol, 'sell', cost, params)
 
-    def create_orders(self, orders: List[OrderRequest], params={}):
+    def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         create a list of trade orders
 
-        https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders
-        https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders
-        https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-multiple-hf-orders
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders-sync
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]:  extra parameters specific to the exchange API endpoint
-        :param bool [params.hf]: False,  # True for hf orders
-        :param bool [params.sync]: False,  # True to use the hf sync call
+ Check createSpotOrders() and createContractOrders() for more details on the extra parameters that can be used in params
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
+        isSpot = False
+        isContract = False
+        for i in range(0, len(orders)):
+            order = self.safe_dict(orders, i)
+            symbol = self.safe_string(order, 'symbol')
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' createOrders() requires a symbol for each order')
+            market = self.market(symbol)
+            if market['spot'] is True:
+                isSpot = True
+            elif market['contract'] is True:
+                isContract = True
+        if isSpot and isContract:
+            raise BadRequest(self.id + ' createOrders() requires all orders to be either spot or contract')
+        elif isSpot:
+            return self.create_spot_orders(orders, params)
+        elif isContract:
+            return self.create_contract_orders(orders, params)
+        else:
+            raise NotSupported(self.id + ' createOrders() does not support the markets of the orders provided')
+
+    def create_spot_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
+        """
+        helper method for creating spot orders in batch
+
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders-sync
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/batch-add-orders
+
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]:  extra parameters specific to the exchange API endpoint
+        :param bool [params.hf]: False,  # true for hf orders
+        :param bool [params.sync]: False,  # true to use the hf sync call
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
         ordersRequests = []
         symbol = None
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
+            if marketId is None:
+                raise ArgumentsRequired(self.id + ' createOrders() requires a symbol for each order')
             if symbol is None:
                 symbol = marketId
             else:
@@ -2823,25 +4545,25 @@ class kucoin(Exchange, ImplicitAPI):
             side = self.safe_string(rawOrder, 'side')
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
-            orderParams = self.safe_value(rawOrder, 'params', {})
-            orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
+            orderParams = self.safe_dict(rawOrder, 'params', {})
+            orderRequest = self.create_spot_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' createOrders() requires at least one order with a symbol')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'orderList': ordersRequests,
         }
-        hf = None
-        hf, params = self.handle_hf_and_params(params)
-        useSync = False
-        useSync, params = self.handle_option_and_params(params, 'createOrders', 'sync', False)
-        response = None
+        hf, paramsHf = self.handle_hf_and_params(params)
+        useSync, paramsSync = self.handle_option_bool_and_params(paramsHf, 'createOrders', 'sync', False)
+        response: dict
         if useSync:
-            response = self.privatePostHfOrdersMultiSync(self.extend(request, params))
-        elif hf:
-            response = self.privatePostHfOrdersMulti(self.extend(request, params))
+            response = self.privatePostHfOrdersMultiSync(self.extend(request, paramsSync))
+        elif hf is True:
+            response = self.privatePostHfOrdersMulti(self.extend(request, paramsSync))
         else:
-            response = self.privatePostOrdersMulti(self.extend(request, params))
+            response = self.privatePostOrdersMulti(self.extend(request, paramsSync))
         #
         # {
         #     "code": "200000",
@@ -2859,10 +4581,10 @@ class kucoin(Exchange, ImplicitAPI):
         #              "stopPrice": null,
         #              "timeInForce": "GTC",
         #              "cancelAfter": 0,
-        #              "postOnly": False,
-        #              "hidden": False,
-        #              "iceberge": False,
-        #              "iceberg": False,
+        #              "postOnly": false,
+        #              "hidden": false,
+        #              "iceberge": false,
+        #              "iceberg": false,
         #              "visibleSize": null,
         #              "channel": "API",
         #              "id": "6539148443fcf500079d15e5",
@@ -2876,75 +4598,61 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(data, 'data', [])
         return self.parse_orders(data)
 
-    def market_order_amount_to_precision(self, symbol: str, amount):
-        market = self.market(symbol)
-        result = self.decimal_to_precision(amount, TRUNCATE, market['info']['quoteIncrement'], self.precisionMode, self.paddingMode)
-        if result == '0':
-            raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
-        return result
+    def create_contract_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
+        """
+        helper method for creating contract orders in batch
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
-        market = self.market(symbol)
-        # required param, cannot be used twice
-        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
-        params = self.omit(params, ['clientOid', 'clientOrderId'])
-        request: dict = {
-            'clientOid': clientOrderId,
-            'side': side,
-            'symbol': market['id'],
-            'type': type,  # limit or market
-        }
-        quoteAmount = self.safe_number_2(params, 'cost', 'funds')
-        amountString = None
-        costString = None
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
-        if type == 'market':
-            if quoteAmount is not None:
-                params = self.omit(params, ['cost', 'funds'])
-                # kucoin uses base precision even for quote values
-                costString = self.market_order_amount_to_precision(symbol, quoteAmount)
-                request['funds'] = costString
-            else:
-                amountString = self.amount_to_precision(symbol, amount)
-                request['size'] = self.amount_to_precision(symbol, amount)
-        else:
-            amountString = self.amount_to_precision(symbol, amount)
-            request['size'] = amountString
-            request['price'] = self.price_to_precision(symbol, price)
-        tradeType = self.safe_string(params, 'tradeType')  # keep it for backward compatibility
-        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
-        isTriggerOrder = (triggerPrice or stopLossPrice or takeProfitPrice)
-        isMarginOrder = tradeType == 'MARGIN_TRADE' or marginMode is not None
-        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice'])
-        if isTriggerOrder:
-            if triggerPrice:
-                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
-            elif stopLossPrice or takeProfitPrice:
-                if stopLossPrice:
-                    request['stop'] = 'entry' if (side == 'buy') else 'loss'
-                    request['stopPrice'] = self.price_to_precision(symbol, stopLossPrice)
-                else:
-                    request['stop'] = 'loss' if (side == 'buy') else 'entry'
-                    request['stopPrice'] = self.price_to_precision(symbol, takeProfitPrice)
-            if marginMode == 'isolated':
-                raise BadRequest(self.id + ' createOrder does not support isolated margin for stop orders')
-            elif marginMode == 'cross':
-                request['tradeType'] = self.options['marginModes'][marginMode]
-        elif isMarginOrder:
-            if marginMode == 'isolated':
-                request['marginModel'] = 'isolated'
-        postOnly = None
-        postOnly, params = self.handle_post_only(type == 'market', False, params)
-        if postOnly:
-            request['postOnly'] = True
-        return self.extend(request, params)
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/batch-add-orders
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]:  extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        ordersRequests = []
+        for i in range(0, len(orders)):
+            rawOrder = self.safe_dict(orders, i)
+            symbol = self.safe_string(rawOrder, 'symbol')
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' createOrders() requires a symbol for each order')
+            type = self.safe_string(rawOrder, 'type', '')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_dict(rawOrder, 'params', {})
+            orderRequest = self.create_contract_order_request(symbol, type, side, amount, price, orderParams)
+            ordersRequests.append(orderRequest)
+        response = self.futuresPrivatePostOrdersMulti(ordersRequests)
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": [
+        #             {
+        #                 "orderId": "135241412609331200",
+        #                 "clientOid": "3d8fcc13-0b13-447f-ad30-4b3441e05213",
+        #                 "symbol": "LTCUSDTM",
+        #                 "code": "200000",
+        #                 "msg": "success"
+        #             },
+        #             {
+        #                 "orderId": "135241412747743234",
+        #                 "clientOid": "b878c7ee-ae3e-4d63-a20b-038acbb7306f",
+        #                 "symbol": "LTCUSDTM",
+        #                 "code": "200000",
+        #                 "msg": "success"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_orders(data)
+
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit an order, kucoin currently only supports the modification of HF orders
 
-        https://docs.kucoin.com/spot-hf/#modify-order
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/modify-order
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -2956,9 +4664,10 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: client order id, defaults to id if not passed
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
@@ -2982,66 +4691,119 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
-        https://docs.kucoin.com/spot#cancel-an-order
-        https://docs.kucoin.com/spot#cancel-an-order-2
-        https://docs.kucoin.com/spot#cancel-single-order-by-clientoid
-        https://docs.kucoin.com/spot#cancel-single-order-by-clientoid-2
-        https://docs.kucoin.com/spot-hf/#cancel-orders-by-orderid
-        https://docs.kucoin.com/spot-hf/#cancel-order-by-clientoid
-        https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-orderid
-        https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld-sync
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/ua/cancel-order
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'spot' or 'swap', used if symbol is not provided(default is 'spot')
+        :param str [params.marginMode]: *spot only* 'cross' or 'isolated'
+        :param boolean [params.uta]: True for cancelling order with unified account endpoint(default is False)
+ Check cancelSpotOrder() and cancelContractOrder() for more details on the extra parameters that can be used in params
+        :returns: Response from the exchange
+        """
+        if self.markets is None:
+            self.load_markets()
+        uta = self.is_uta_enabled()
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'cancelOrder', 'uta', uta)
+        if utaOption:
+            return self.cancel_uta_order(id, symbol, paramsUta)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        marketType, paramsMarketType = self.handle_market_type_and_params('cancelOrder', market, paramsUta)
+        if (marketType == 'spot') or (marketType == 'margin'):
+            return self.cancel_spot_order(id, symbol, paramsMarketType)
+        else:
+            return self.cancel_contract_order(id, symbol, paramsMarketType)
+
+    def cancel_spot_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
+        """
+        helper method for cancelling spot orders
+
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld-sync
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
 
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: True if cancelling a stop order
-        :param bool [params.hf]: False,  # True for hf order
-        :param bool [params.sync]: False,  # True to use the hf sync call
-        :param str [params.marginMode]: 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
+        :param bool [params.hf]: False,  # true for hf order
+        :param bool [params.sync]: False,  # true to use the hf sync call
+        :param str [params.marginMode]: 'cross' or 'isolated'
         :returns: Response from the exchange
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        hf = None
-        hf, params = self.handle_hf_and_params(params)
-        useSync = False
-        useSync, params = self.handle_option_and_params(params, 'cancelOrder', 'sync', False)
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
-        tradeType = self.safe_string(params, 'tradeType')  # keep it for backward compatibility
+        hf, paramsHf = self.handle_hf_and_params(params)
+        useSync, paramsSync = self.handle_option_bool_and_params(paramsHf, 'cancelOrder', 'sync', False)
+        marginMode, paramsMarginMode = self.handle_margin_mode_and_params('cancelOrder', paramsSync)
+        tradeType = self.safe_string(paramsMarginMode, 'tradeType')  # keep it for backward compatibility
         isMarginOrder = tradeType == 'MARGIN_TRADE' or marginMode is not None
-        if hf or useSync or isMarginOrder:
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol parameter for hf orders')
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+        if (hf is True) or useSync or isMarginOrder:
+            if trigger is not True:
+                if symbol is None:
+                    raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol parameter for hf orders')
+                market = self.market(symbol)
+                request['symbol'] = market['id']
         response = None
-        params = self.omit(params, ['clientOid', 'clientOrderId', 'stop', 'trigger', 'tradeType'])
+        paramsOmitted = self.omit(paramsMarginMode, ['clientOid', 'clientOrderId', 'stop', 'trigger', 'tradeType'])
         if clientOrderId is not None:
             request['clientOid'] = clientOrderId
-            if trigger:
-                response = self.privateDeleteStopOrderCancelOrderByClientOid(self.extend(request, params))
-                #
-                #    {
-                #        code: '200000',
-                #        data: {
-                #          cancelledOrderId: 'vs8lgpiuao41iaft003khbbk',
-                #          clientOid: '123456'
-                #        }
-                #    }
-                #
+            if trigger is True:
+                if isMarginOrder:
+                    response = self.privateDeleteHfMarginStopOrderCancelByClientOid(self.extend(request, paramsOmitted))
+                    data = self.safe_dict(response, 'data')
+                    orderIds = self.safe_list(data, 'cancelledOrderIds', [])
+                    orderId = self.safe_string(orderIds, 0)
+                    return self.safe_order({
+                        'info': data,
+                        'id': orderId,
+                    })
+                else:
+                    #
+                    #    {
+                    #        code: '200000',
+                    #        data: {
+                    #          cancelledOrderId: 'vs8lgpiuao41iaft003khbbk',
+                    #          clientOid: '123456'
+                    #        }
+                    #    }
+                    #
+                    response = self.privateDeleteStopOrderCancelOrderByClientOid(self.extend(request, paramsOmitted))
             elif isMarginOrder:
-                response = self.privateDeleteHfMarginOrdersClientOrderClientOid(self.extend(request, params))
+                response = self.privateDeleteHfMarginOrdersClientOrderClientOid(self.extend(request, paramsOmitted))
             elif useSync:
-                response = self.privateDeleteHfOrdersSyncClientOrderClientOid(self.extend(request, params))
-            elif hf:
-                response = self.privateDeleteHfOrdersClientOrderClientOid(self.extend(request, params))
+                response = self.privateDeleteHfOrdersSyncClientOrderClientOid(self.extend(request, paramsOmitted))
+            elif hf is True:
+                response = self.privateDeleteHfOrdersClientOrderClientOid(self.extend(request, paramsOmitted))
                 #
                 #    {
                 #        "code": "200000",
@@ -3051,7 +4813,7 @@ class kucoin(Exchange, ImplicitAPI):
                 #    }
                 #
             else:
-                response = self.privateDeleteOrderClientOrderClientOid(self.extend(request, params))
+                response = self.privateDeleteOrderClientOrderClientOid(self.extend(request, paramsOmitted))
                 #
                 #    {
                 #        code: '200000',
@@ -3066,20 +4828,23 @@ class kucoin(Exchange, ImplicitAPI):
             return self.parse_order(response)
         else:
             request['orderId'] = id
-            if trigger:
-                response = self.privateDeleteStopOrderOrderId(self.extend(request, params))
-                #
-                #    {
-                #        code: '200000',
-                #        data: {cancelledOrderIds: ['vs8lgpiuaco91qk8003vebu9']}
-                #    }
-                #
+            if trigger is True:
+                if isMarginOrder:
+                    response = self.privateDeleteHfMarginStopOrderCancelById(self.extend(request, paramsOmitted))
+                else:
+                    #
+                    #    {
+                    #        code: '200000',
+                    #        data: { cancelledOrderIds: [ 'vs8lgpiuaco91qk8003vebu9' ] }
+                    #    }
+                    #
+                    response = self.privateDeleteStopOrderOrderId(self.extend(request, paramsOmitted))
             elif isMarginOrder:
-                response = self.privateDeleteHfMarginOrdersOrderId(self.extend(request, params))
+                response = self.privateDeleteHfMarginOrdersOrderId(self.extend(request, paramsOmitted))
             elif useSync:
-                response = self.privateDeleteHfOrdersSyncOrderId(self.extend(request, params))
-            elif hf:
-                response = self.privateDeleteHfOrdersOrderId(self.extend(request, params))
+                response = self.privateDeleteHfOrdersSyncOrderId(self.extend(request, paramsOmitted))
+            elif hf is True:
+                response = self.privateDeleteHfOrdersOrderId(self.extend(request, paramsOmitted))
                 #
                 #    {
                 #        "code": "200000",
@@ -3088,57 +4853,199 @@ class kucoin(Exchange, ImplicitAPI):
                 #        }
                 #    }
                 #
-                response = self.safe_dict(response, 'data')
+                response = self.safe_dict(response, 'data', {})
                 return self.parse_order(response)
             else:
-                response = self.privateDeleteOrdersOrderId(self.extend(request, params))
+                response = self.privateDeleteOrdersOrderId(self.extend(request, paramsOmitted))
                 #
                 #    {
                 #        code: '200000',
-                #        data: {cancelledOrderIds: ['665e4fbe28051a0007245c41']}
+                #        data: { cancelledOrderIds: [ '665e4fbe28051a0007245c41' ] }
                 #    }
                 #
             data = self.safe_dict(response, 'data')
+            orderId = self.safe_string(data, 'orderId')
             orderIds = self.safe_list(data, 'cancelledOrderIds', [])
-            orderId = self.safe_string(orderIds, 0)
+            orderId = self.safe_string(orderIds, 0, orderId)
             return self.safe_order({
                 'info': data,
                 'id': orderId,
             })
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_contract_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
+        """
+        helper method for cancelling contract orders
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: cancel order by client order id
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
+        paramsOmitted = self.omit(params, ['clientOrderId'])
+        request = {}
+        response: dict
+        if clientOrderId is not None:
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument when cancelling by clientOrderId')
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+            request['clientOid'] = clientOrderId
+            response = self.futuresPrivateDeleteOrdersClientOrderClientOid(self.extend(request, paramsOmitted))
+        else:
+            request['orderId'] = id
+            response = self.futuresPrivateDeleteOrdersOrderId(self.extend(request, paramsOmitted))
+        #
+        #   {
+        #       "code": "200000",
+        #       "data": {
+        #           "cancelledOrderIds": [
+        #                "619714b8b6353000014c505a",
+        #           ],
+        #       },
+        #   }
+        #
+        return self.safe_order({'info': response})
+
+    def cancel_uta_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
+        """
+        helper method for cancelling uta orders
+
+        https://www.kucoin.com/docs-new/rest/ua/cancel-order
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountMode]: 'unified' or 'classic'(default is 'unified')
+        :param str [params.clientOrderId]: client order id, required if id is not provided
+        :param str [params.marginMode]: 'cross' or 'isolated', required if fetching a margin order(unified accountMode supports only cross margin)
+        :returns: Response from the exchange
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument for uta endpoint')
+        if self.markets is None:
+            self.load_markets()
+        request = {}
+        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
+        paramsOmitted = self.omit(params, ['clientOid', 'clientOrderId']) if (clientOrderId is not None) else params
+        if clientOrderId is not None:
+            request['clientOid'] = clientOrderId
+        else:
+            if id is None:
+                raise ArgumentsRequired(self.id + ' fetchOrder() requires an id argument or clientOrderId parameter')
+            request['orderId'] = id
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request['symbol'] = market['id']
+        accountMode = 'unified'
+        accountMode, paramsOmitted = self.handle_option_string_and_params(paramsOmitted, 'cancelOrder', 'accountMode', accountMode)
+        request['accountMode'] = accountMode
+        marginMode = None
+        marginMode, paramsOmitted = self.handle_margin_mode_and_params('cancelOrder', paramsOmitted)
+        isUnified = (accountMode == 'unified')
+        tradeType = self.handle_trade_type(market['contract'], marginMode, isUnified, paramsOmitted)
+        request['tradeType'] = tradeType
+        response = self.utaPrivatePostAccountModeOrderCancel(self.extend(request, paramsOmitted))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "orderId": "426319129738321920",
+        #             "tradeType": "SPOT",
+        #             "ts": 1774457628105000000,
+        #             "clientOid": "b896c118-a674-4863-baf4-a9ea3cd696c5"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_order(data, market)
+
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
 
-        https://docs.kucoin.com/spot#cancel-all-orders
-        https://docs.kucoin.com/spot#cancel-orders
-        https://docs.kucoin.com/spot-hf/#cancel-all-hf-orders-by-symbol
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-all-orders-by-symbol
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
+        https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
+
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'spot' or 'swap', used if symbol is not provided(default is 'spot')
+        :param str [params.marginMode]: *spot only* 'cross' or 'isolated'
+        :param boolean [params.uta]: True for cancelling orders with unified account endpoint(default is False)
+ Check cancelAllSpotOrders(), cancelAllContractOrders() and cancelAllUtaOrders() for more details on the extra parameters that can be used in params
+        :returns: Response from the exchange
+        """
+        if self.markets is None:
+            self.load_markets()
+        uta = self.is_uta_enabled()
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'cancelAllOrders', 'uta', uta)
+        if utaOption:
+            return self.cancel_all_uta_orders(symbol, paramsUta)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        marketType, paramsMarketType = self.handle_market_type_and_params('cancelAllOrders', market, paramsUta)
+        if (marketType == 'spot') or (marketType == 'margin'):
+            return self.cancel_all_spot_orders(symbol, paramsMarketType)
+        else:
+            return self.cancel_all_contract_orders(symbol, paramsMarketType)
+
+    def cancel_all_spot_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
+        """
+        helper method for cancelling all spot orders
+
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-all-orders-by-symbol
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
 
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: *invalid for isolated margin* True if cancelling all stop orders
         :param str [params.marginMode]: 'cross' or 'isolated'
         :param str [params.orderIds]: *stop orders only* Comma separated order IDs
-        :param bool [params.hf]: False,  # True for hf order
+        :param bool [params.hf]: False,  # true for hf order
         :returns: Response from the exchange
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         trigger = self.safe_bool_2(params, 'trigger', 'stop', False)
-        hf = None
-        hf, params = self.handle_hf_and_params(params)
-        params = self.omit(params, 'stop')
-        marginMode, query = self.handle_margin_mode_and_params('cancelAllOrders', params)
+        hf, paramsHf = self.handle_hf_and_params(params)
+        paramsOmitted = self.omit(paramsHf, ['stop', 'trigger'])
+        marginMode, query = self.handle_margin_mode_and_params('cancelAllOrders', paramsOmitted)
+        isMarginOrders = marginMode is not None
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
-        if marginMode is not None:
+        elif (trigger is not True) and isMarginOrders:
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument for margin non-trigger orders')
+        if isMarginOrders:
             request['tradeType'] = self.options['marginModes'][marginMode]
-            if marginMode == 'isolated' and trigger:
+            if marginMode == 'isolated' and (trigger is True):
                 raise BadRequest(self.id + ' cancelAllOrders does not support isolated margin for stop orders')
         response = None
-        if trigger:
-            response = self.privateDeleteStopOrderCancel(self.extend(request, query))
-        elif hf:
+        if trigger is True:
+            if isMarginOrders:
+                response = self.privateDeleteHfMarginStopOrderCancel(self.extend(request, query))
+            else:
+                response = self.privateDeleteStopOrderCancel(self.extend(request, query))
+        elif isMarginOrders:
+            response = self.privateDeleteHfMarginOrders(self.extend(request, query))
+        elif hf is True:
             if symbol is None:
                 response = self.privateDeleteHfOrdersCancelAll(self.extend(request, query))
             else:
@@ -3147,14 +5054,159 @@ class kucoin(Exchange, ImplicitAPI):
             response = self.privateDeleteOrders(self.extend(request, query))
         return [self.safe_order({'info': response})]
 
-    def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def cancel_all_contract_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
-        fetch a list of orders
+        helper method for cancelling all contract orders
 
-        https://docs.kucoin.com/spot#list-orders
-        https://docs.kucoin.com/spot#list-stop-orders
-        https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders
-        https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
+
+        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.trigger]: When True, all the trigger orders will be cancelled
+        :returns: Response from the exchange
+        """
+        if self.markets is None:
+            self.load_markets()
+        request = {}
+        if symbol is not None:
+            request['symbol'] = self.market_id(symbol)
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
+        paramsOmitted = self.omit(params, ['stop', 'trigger'])
+        response: dict
+        if (trigger is not None) and (trigger is not False):
+            response = self.futuresPrivateDeleteStopOrders(self.extend(request, paramsOmitted))
+        else:
+            response = self.futuresPrivateDeleteOrders(self.extend(request, paramsOmitted))
+        #
+        #   {
+        #       "code": "200000",
+        #       "data": {
+        #           "cancelledOrderIds": [
+        #                "619714b8b6353000014c505a",
+        #           ],
+        #       },
+        #   }
+        #
+        data = self.safe_dict(response, 'data')
+        return [self.safe_order({'info': data})]
+
+    def cancel_all_uta_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
+        """
+        helper method for cancelling all uta orders
+
+        https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
+
+        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.trigger]: True if cancelling all stop orders
+        :param str [params.marginMode]: 'CROSS' or 'ISOLATED'
+        :returns: Response from the exchange
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument for uta endpoint')
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        isContract = market['contract']
+        tradeType = 'SPOT'
+        if isContract is True:
+            tradeType = 'FUTURES'
+        trigger = False
+        triggerOption, paramsTrigger = self.handle_param_bool(params, 'trigger', trigger)
+        orderFilter = 'NORMAL'
+        if triggerOption is True:
+            orderFilter = 'ADVANCED'
+        request = {
+            'accountMode': 'unified',  # only unified account is supported for batch cancelling orders
+            'symbol': market['id'],
+            'tradeType': tradeType,
+            'orderFilter': orderFilter,
+        }
+        response = self.utaPrivatePostAccountModeOrderCancelAll(self.extend(request, paramsTrigger))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "tradeType": "SPOT",
+        #             "ts": 1774458644140000000,
+        #             "items": [
+        #                 {
+        #                     "orderId": "426328635071352832"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        orders = self.safe_list(data, 'items', [])
+        return self.parse_orders(orders, market, None, None, {'status': 'canceled'})
+
+    def fetch_orders_by_status(self, status: Str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+        """
+        fetches a list of orders placed on the exchange
+
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+        https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+        https://www.kucoin.com/docs-new/rest/ua/get-order-history
+
+        :param str status: 'active' or 'closed', only 'active' is valid for stop orders
+        :param str symbol: unified symbol for the market to retrieve orders from
+        :param int [since]: timestamp in ms of the earliest order to retrieve
+        :param int [limit]: The maximum number of orders to retrieve
+        :param dict [params]: exchange specific parameters
+        :param boolean [params.uta]: True for fetch orders with uta endpoint(default is False)
+ Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
+        :returns: An `array of order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        uta = self.is_uta_enabled()
+        paramsRequest = None
+        uta, paramsRequest = self.handle_option_bool_and_params(params, 'fetchOrdersByStatus', 'uta', uta)
+        marketType = None
+        if symbol is None:
+            type = self.safe_string(paramsRequest, 'type')  # exchange has specific param for order type
+            # todo check for better way to determine market type without symbol
+            if type == 'spot' or type == 'margin' or type == 'swap' or type == 'future' or type == 'contract':
+                marketType = type
+                paramsRequest = self.omit(paramsRequest, 'type')
+            else:
+                methodOptions = self.safe_dict(self.options, 'fetchOrdersByStatus', {})
+                methodDefaultType = self.safe_string_2(methodOptions, 'defaultType', 'type')
+                if methodDefaultType is None:
+                    marketType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
+                else:
+                    marketType = methodDefaultType
+        else:
+            market = self.market(symbol)
+            marketType = market['type']
+        if uta:
+            paramsRequest = self.omit(paramsRequest, 'uta')
+            paramsRequest = self.extend(paramsRequest, {'marketType': marketType})
+            return self.fetch_uta_orders_by_status(status, symbol, since, limit, paramsRequest)
+        elif (marketType == 'spot') or (marketType == 'margin'):
+            return self.fetch_spot_orders_by_status(status, symbol, since, limit, paramsRequest)
+        else:
+            return self.fetch_contract_orders_by_status(status, symbol, since, limit, paramsRequest)
+
+    def fetch_spot_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+        """
+        fetch a list of spot orders
+
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
 
         :param str status: *not used for stop orders* 'open' or 'closed'
         :param str symbol: unified market symbol
@@ -3164,94 +5216,105 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [params.until]: end time in ms
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, market, limit_stop or market_stop
-        :param str [params.tradeType]: TRADE for spot trading, MARGIN_TRADE for Margin Trading
+        :param str [params.tradeType]: TRADE for spot trading, MARGIN_TRADE or MARGIN_ISOLATED_TRADE for Margin Trading
         :param int [params.currentPage]: *trigger orders only* current page
         :param str [params.orderIds]: *trigger orders only* comma separated order ID list
         :param bool [params.trigger]: True if fetching a trigger order
-        :param bool [params.hf]: False,  # True for hf order
+        :param bool [params.hf]: False,  # true for hf order
+        :param str [params.marginMode]: 'cross' or 'isolated', only for margin orders
         :returns: An `array of order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         lowercaseStatus = status.lower()
         until = self.safe_integer(params, 'until')
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        hf = None
-        hf, params = self.handle_hf_and_params(params)
-        if hf and (symbol is None):
+        hf, paramsHf = self.handle_hf_and_params(params)
+        if (hf is True) and (symbol is None):
             raise ArgumentsRequired(self.id + ' fetchOrdersByStatus() requires a symbol parameter for hf orders')
-        params = self.omit(params, ['stop', 'trigger', 'till', 'until'])
-        marginMode, query = self.handle_margin_mode_and_params('fetchOrdersByStatus', params)
+        paramsOmitted = self.omit(paramsHf, ['stop', 'trigger', 'till', 'until'])
+        marginMode, query = self.handle_margin_mode_and_params('fetchOrdersByStatus', paramsOmitted)
+        isMarginOrder = marginMode is not None
         if lowercaseStatus == 'open':
             lowercaseStatus = 'active'
         elif lowercaseStatus == 'closed':
             lowercaseStatus = 'done'
-        request: dict = {
-            'status': lowercaseStatus,
-        }
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        if since is not None:
-            request['startAt'] = since
-        if limit is not None:
-            request['pageSize'] = limit
-        if until:
-            request['endAt'] = until
         request['tradeType'] = self.safe_string(self.options['marginModes'], marginMode, 'TRADE')
         response = None
-        if trigger:
-            response = self.privateGetStopOrder(self.extend(request, query))
-        elif hf:
-            if lowercaseStatus == 'active':
-                response = self.privateGetHfOrdersActive(self.extend(request, query))
-            elif lowercaseStatus == 'done':
-                response = self.privateGetHfOrdersDone(self.extend(request, query))
+        if isMarginOrder and lowercaseStatus == 'active' and (trigger is not True):
+            # hf margin open non-trigger orders require only symbol and tradeType params
+            response = self.privateGetHfMarginOrdersActive(self.extend(request, query))
         else:
-            response = self.privateGetOrders(self.extend(request, query))
-        #
-        #     {
-        #         "code": "200000",
-        #         "data": {
-        #             "currentPage": 1,
-        #             "pageSize": 1,
-        #             "totalNum": 153408,
-        #             "totalPage": 153408,
-        #             "items": [
-        #                 {
-        #                     "id": "5c35c02703aa673ceec2a168",   #orderid
-        #                     "symbol": "BTC-USDT",   #symbol
-        #                     "opType": "DEAL",      # operation type,deal is pending order,cancel is cancel order
-        #                     "type": "limit",       # order type,e.g. limit,markrt,stop_limit.
-        #                     "side": "buy",         # transaction direction,include buy and sell
-        #                     "price": "10",         # order price
-        #                     "size": "2",           # order quantity
-        #                     "funds": "0",          # order funds
-        #                     "dealFunds": "0.166",  # deal funds
-        #                     "dealSize": "2",       # deal quantity
-        #                     "fee": "0",            # fee
-        #                     "feeCurrency": "USDT",  # charge fee currency
-        #                     "stp": "",             # self trade prevention,include CN,CO,DC,CB
-        #                     "stop": "",            # stop type
-        #                     "stopTriggered": False,  # stop order is triggered
-        #                     "stopPrice": "0",      # stop price
-        #                     "timeInForce": "GTC",  # time InForce,include GTC,GTT,IOC,FOK
-        #                     "postOnly": False,     # postOnly
-        #                     "hidden": False,       # hidden order
-        #                     "iceberg": False,      # iceberg order
-        #                     "visibleSize": "0",    # display quantity for iceberg order
-        #                     "cancelAfter": 0,      # cancel orders time，requires timeInForce to be GTT
-        #                     "channel": "IOS",      # order source
-        #                     "clientOid": "",       # user-entered order unique mark
-        #                     "remark": "",          # remark
-        #                     "tags": "",            # tag order source
-        #                     "isActive": False,     # status before unfilled or uncancelled
-        #                     "cancelExist": False,   # order cancellation transaction record
-        #                     "createdAt": 1547026471000  # time
-        #                 },
-        #             ]
-        #         }
-        #    }
+            if not isMarginOrder:
+                request['status'] = lowercaseStatus
+            if since is not None:
+                request['startAt'] = since
+            if limit is not None:
+                request['pageSize'] = limit
+            if (until is not None) and (until != 0):
+                request['endAt'] = until
+            if trigger is True:
+                if isMarginOrder:
+                    response = self.privateGetHfMarginStopOrders(self.extend(request, query))
+                else:
+                    response = self.privateGetStopOrder(self.extend(request, query))
+            elif isMarginOrder:
+                response = self.privateGetHfMarginOrdersDone(self.extend(request, query))
+            elif hf is True:
+                if lowercaseStatus == 'active':
+                    response = self.privateGetHfOrdersActive(self.extend(request, query))
+                elif lowercaseStatus == 'done':
+                    response = self.privateGetHfOrdersDone(self.extend(request, query))
+            else:
+                response = self.privateGetOrders(self.extend(request, query))
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": {
+            #             "currentPage": 1,
+            #             "pageSize": 1,
+            #             "totalNum": 153408,
+            #             "totalPage": 153408,
+            #             "items": [
+            #                 {
+            #                     "id": "5c35c02703aa673ceec2a168",   //orderid
+            #                     "symbol": "BTC-USDT",   //symbol
+            #                     "opType": "DEAL",      // operation type,deal is pending order,cancel is cancel order
+            #                     "type": "limit",       // order type,e.g. limit,markrt,stop_limit.
+            #                     "side": "buy",         // transaction direction,include buy and sell
+            #                     "price": "10",         // order price
+            #                     "size": "2",           // order quantity
+            #                     "funds": "0",          // order funds
+            #                     "dealFunds": "0.166",  // deal funds
+            #                     "dealSize": "2",       // deal quantity
+            #                     "fee": "0",            // fee
+            #                     "feeCurrency": "USDT", // charge fee currency
+            #                     "stp": "",             // self trade prevention,include CN,CO,DC,CB
+            #                     "stop": "",            // stop type
+            #                     "stopTriggered": false,  // stop order is triggered
+            #                     "stopPrice": "0",      // stop price
+            #                     "timeInForce": "GTC",  // time InForce,include GTC,GTT,IOC,FOK
+            #                     "postOnly": false,     // postOnly
+            #                     "hidden": false,       // hidden order
+            #                     "iceberg": false,      // iceberg order
+            #                     "visibleSize": "0",    // display quantity for iceberg order
+            #                     "cancelAfter": 0,      // cancel orders time，requires timeInForce to be GTT
+            #                     "channel": "IOS",      // order source
+            #                     "clientOid": "",       // user-entered order unique mark
+            #                     "remark": "",          // remark
+            #                     "tags": "",            // tag order source
+            #                     "isActive": false,     // status before unfilled or uncancelled
+            #                     "cancelExist": false,   // order cancellation transaction record
+            #                     "createdAt": 1547026471000  // time
+            #                 },
+            #             ]
+            #         }
+            #    }
         listData = self.safe_list(response, 'data')
         if listData is not None:
             return self.parse_orders(listData, market, since, limit)
@@ -3259,14 +5322,235 @@ class kucoin(Exchange, ImplicitAPI):
         orders = self.safe_list(responseData, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_contract_orders_by_status(self, status: Str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+        """
+        fetches a list of contract orders placed on the exchange
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+
+        :param str status: 'active' or 'closed', only 'active' is valid for stop orders
+        :param str symbol: unified symbol for the market to retrieve orders from
+        :param int [since]: timestamp in ms of the earliest order to retrieve
+        :param int [limit]: The maximum number of orders to retrieve
+        :param dict [params]: exchange specific parameters
+        :param bool [params.trigger]: set to True to retrieve untriggered stop orders
+        :param int [params.until]: End time in ms
+        :param str [params.side]: buy or sell
+        :param str [params.type]: limit or market
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns: An `array of order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrdersByStatus', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchOrdersByStatus', symbol, since, limit, paramsPaginate)
+        trigger = self.safe_bool_2(paramsPaginate, 'stop', 'trigger')
+        until = self.safe_integer(paramsPaginate, 'until')
+        paramsOmitted = self.omit(paramsPaginate, ['stop', 'until', 'trigger'])
+        statuses = {
+            'closed': 'done',
+            'open': 'active',
+        }
+        statusRequest = self.safe_string(statuses, status, status)
+        request = {}
+        if trigger is not True:
+            request['status'] = statusRequest
+        elif statusRequest != 'active':
+            raise BadRequest(self.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders')
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startAt'] = since
+        if until is not None:
+            request['endAt'] = until
+        response: dict
+        if trigger is True:
+            response = self.futuresPrivateGetStopOrders(self.extend(request, paramsOmitted))
+        else:
+            response = self.futuresPrivateGetOrders(self.extend(request, paramsOmitted))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "currentPage": 1,
+        #             "pageSize": 50,
+        #             "totalNum": 4,
+        #             "totalPage": 1,
+        #             "items": [
+        #                 {
+        #                     "id": "64507d02921f1c0001ff6892",
+        #                     "symbol": "XBTUSDTM",
+        #                     "type": "market",
+        #                     "side": "buy",
+        #                     "price": null,
+        #                     "size": 1,
+        #                     "value": "27.992",
+        #                     "dealValue": "27.992",
+        #                     "dealSize": 1,
+        #                     "stp": "",
+        #                     "stop": "",
+        #                     "stopPriceType": "",
+        #                     "stopTriggered": false,
+        #                     "stopPrice": null,
+        #                     "timeInForce": "GTC",
+        #                     "postOnly": false,
+        #                     "hidden": false,
+        #                     "iceberg": false,
+        #                     "leverage": "17",
+        #                     "forceHold": false,
+        #                     "closeOrder": false,
+        #                     "visibleSize": null,
+        #                     "clientOid": null,
+        #                     "remark": null,
+        #                     "tags": null,
+        #                     "isActive": false,
+        #                     "cancelExist": false,
+        #                     "createdAt": 1682996482000,
+        #                     "updatedAt": 1682996483062,
+        #                     "endAt": 1682996483062,
+        #                     "orderTime": 1682996482953900677,
+        #                     "settleCurrency": "USDT",
+        #                     "status": "done",
+        #                     "filledValue": "27.992",
+        #                     "filledSize": 1,
+        #                     "reduceOnly": false
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        responseData = self.safe_dict(response, 'data', {})
+        orders = self.safe_list(responseData, 'items', [])
+        return self.parse_orders(orders, market, since, limit)
+
+    def fetch_uta_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+        """
+        helper method for fetching orders by status with uta endpoint
+
+        https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+        https://www.kucoin.com/docs-new/rest/ua/get-order-history
+
+        :param str status: 'active' or 'closed', only 'active' is valid for stop orders
+        :param str symbol: unified symbol for the market to retrieve orders from
+        :param int [since]: timestamp in ms of the earliest order to retrieve
+        :param int [limit]: The maximum number of orders to retrieve
+        :param dict [params]: exchange specific parameters
+        :param int [params.until]: End time in ms
+        :param str [params.side]: *closed orders only* 'BUY' or 'SELL'
+        :param str [params.accountMode]: 'unified' or 'classic'(default is unified)
+        :param str [params.marginMode]: 'cross' or 'isolated', only for margin orders(unified accountMode supports only cross margin)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns: An `array of order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        maxLimit = 200
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrdersByStatus', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchOrdersByStatus', symbol, since, limit, paramsPaginate, maxLimit)
+        accountMode = 'unified'
+        accountModeOption, paramsAccountMode = self.handle_option_string_and_params(paramsPaginate, 'fetchUtaOrdersByStatus', 'accountMode', accountMode)
+        request = {
+            'accountMode': accountModeOption,
+        }
+        marketType = None
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            marketType = self.safe_string(market, 'type')
+            request['symbol'] = market['id']
+        else:
+            marketType = self.safe_string(paramsAccountMode, 'marketType')
+        paramsOmitted = self.omit(paramsAccountMode, 'marketType')
+        isContract = (marketType != 'spot') and (marketType != 'margin')
+        if not isContract and (symbol is None):
+            raise ArgumentsRequired(self.id + ' fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint')
+        marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchOrdersByStatus', paramsOmitted)
+        isUnified = (accountModeOption == 'unified')
+        tradeType = self.handle_trade_type(isContract, marginMode, isUnified, paramsMarginMode)
+        paramsMarginMode['tradeType'] = tradeType
+        if since is not None:
+            request['startAt'] = since
+        requestUntil, paramsUntil = self.handle_until_option('endAt', request, paramsMarginMode)
+        if limit is not None:
+            requestUntil['pageSize'] = limit
+        lowercaseStatus = status.lower()
+        if lowercaseStatus == 'open':
+            lowercaseStatus = 'active'
+        elif lowercaseStatus == 'closed':
+            lowercaseStatus = 'done'
+        response: dict
+        if lowercaseStatus == 'active':
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": {
+            #             "pageNumber": 1,
+            #             "pageSize": 50,
+            #             "totalNum": 1,
+            #             "totalPage": 1,
+            #             "items": [
+            #                 {
+            #                     "orderId": "426328635071352832",
+            #                     "symbol": "ETH-USDT",
+            #                     "orderType": "LIMIT",
+            #                     "side": "BUY",
+            #                     "size": "0.001",
+            #                     "price": "1000",
+            #                     "timeInForce": "GTC",
+            #                     "tags": "partner:ccxt",
+            #                     "orderTime": 1774457869404794617,
+            #                     "stp": "",
+            #                     "cancelAfter": null,
+            #                     "postOnly": false,
+            #                     "reduceOnly": false,
+            #                     "triggerDirection": "",
+            #                     "triggerPrice": "",
+            #                     "triggerPriceType": "",
+            #                     "tpTriggerPrice": "",
+            #                     "tpTriggerPriceType": "",
+            #                     "slTriggerPrice": "",
+            #                     "slTriggerPriceType": "",
+            #                     "filledSize": "0",
+            #                     "avgPrice": "0",
+            #                     "fee": "0",
+            #                     "feeCurrency": "USDT",
+            #                     "tax": "0",
+            #                     "updatedTime": 1774457869469028819,
+            #                     "triggerOrderId": "",
+            #                     "cancelReason": "",
+            #                     "cancelSize": "0",
+            #                     "clientOid": "708987d5-c346-487a-a70c-ea267377b0ca",
+            #                     "sizeUnit": "BASECCY",
+            #                     "status": 2
+            #                 }
+            #             ],
+            #             "tradeType": "SPOT"
+            #         }
+            #     }
+            #
+            response = self.utaPrivateGetAccountModeOrderOpenList(self.extend(requestUntil, paramsUntil))
+        else:
+            response = self.utaPrivateGetAccountModeOrderHistory(self.extend(requestUntil, paramsUntil))
+        data = self.safe_dict(response, 'data', {})
+        orders = self.safe_list(data, 'items', [])
+        return self.parse_orders(orders, market, since, limit)
+
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
-        https://docs.kucoin.com/spot#list-orders
-        https://docs.kucoin.com/spot#list-stop-orders
-        https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders
-        https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+        https://www.kucoin.com/docs-new/rest/ua/get-order-history
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -3277,25 +5561,29 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.type]: limit, market, limit_stop or market_stop
         :param str [params.tradeType]: TRADE for spot trading, MARGIN_TRADE for Margin Trading
         :param bool [params.trigger]: True if fetching a trigger order
-        :param bool [params.hf]: False,  # True for hf order
+        :param bool [params.hf]: False,  # true for hf order
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
+        if self.markets is None:
+            self.load_markets()
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
-        return self.fetch_orders_by_status('done', symbol, since, limit, params)
+            return self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, paramsPaginate)
+        return self.fetch_orders_by_status('done', symbol, since, limit, paramsPaginate)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
-        https://docs.kucoin.com/spot#list-orders
-        https://docs.kucoin.com/spot#list-stop-orders
-        https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders
-        https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
+        https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -3308,80 +5596,457 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.tradeType]: TRADE for spot trading, MARGIN_TRADE for Margin Trading
         :param int [params.currentPage]: *trigger orders only* current page
         :param str [params.orderIds]: *trigger orders only* comma separated order ID list
-        :param bool [params.hf]: False,  # True for hf order
+        :param bool [params.hf]: False,  # true for hf order
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
+        if self.markets is None:
+            self.load_markets()
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOpenOrders', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params)
-        return self.fetch_orders_by_status('active', symbol, since, limit, params)
+            return self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, paramsPaginate)
+        return self.fetch_orders_by_status('active', symbol, since, limit, paramsPaginate)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
-        fetch an order
+        fetches information on an order made by the user
 
-        https://docs.kucoin.com/spot#get-an-order
-        https://docs.kucoin.com/spot#get-single-active-order-by-clientoid
-        https://docs.kucoin.com/spot#get-single-order-info
-        https://docs.kucoin.com/spot#get-single-order-by-clientoid
-        https://docs.kucoin.com/spot-hf/#details-of-a-single-hf-order
-        https://docs.kucoin.com/spot-hf/#obtain-details-of-a-single-hf-order-using-clientoid
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/spot-trading/get-stop-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/ua/get-order-details
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'spot' or 'swap', used if symbol is not provided(default is 'spot')
+        :param bool [params.uta]: True if fetching an order with uta endpoint(default is False)
+ Check fetchSpotOrder(), fetchContractOrder() and fetchUtaOrder() for more details on the extra parameters that can be used in params
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        if id is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires an id argument')
+        uta = self.is_uta_enabled()
+        paramsRequest = None
+        uta, paramsRequest = self.handle_option_bool_and_params(params, 'fetchOrder', 'uta', uta)
+        paramsOmitted = paramsRequest
+        if uta:
+            paramsOmitted = self.omit(paramsRequest, 'uta')
+        if uta:
+            return self.fetch_uta_order(id, symbol, paramsOmitted)
+        marketType = None
+        if symbol is None:
+            marketType, paramsOmitted = self.handle_market_type_and_params('fetchOrder', None, paramsOmitted)
+        else:
+            market = self.market(symbol)
+            marketType = self.safe_string(market, 'type')
+        if (marketType == 'spot') or (marketType == 'margin'):
+            return self.fetch_spot_order(id, symbol, paramsOmitted)
+        else:
+            return self.fetch_contract_order(id, symbol, paramsOmitted)
+
+    def fetch_spot_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
+        """
+        fetch a spot order
+
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/spot-trading/get-stop-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-clientoid
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
 
         :param str id: Order id
         :param str symbol: not sent to exchange except for trigger orders with clientOid, but used internally by CCXT to filter
         :param dict [params]: exchange specific parameters
         :param bool [params.trigger]: True if fetching a trigger order
-        :param bool [params.hf]: False,  # True for hf order
+        :param bool [params.hf]: False,  # true for hf order
         :param bool [params.clientOid]: unique order id created by users to identify their orders
+        :param dict [params.marginMode]: 'cross' or 'isolated'
         :returns: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        hf = None
-        hf, params = self.handle_hf_and_params(params)
+        hf, paramsHf = self.handle_hf_and_params(params)
+        marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchOrder', paramsHf)
+        isMarginOrder = marginMode is not None
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        if hf:
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol parameter for hf orders')
-            request['symbol'] = market['id']
-        params = self.omit(params, ['stop', 'clientOid', 'clientOrderId', 'trigger'])
-        response = None
+        if (hf is True) or isMarginOrder:
+            if trigger is not True:
+                if symbol is None:
+                    raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol parameter for hf and margin orders')
+                request['symbol'] = self.safe_string(market, 'id')
+        paramsOmitted = self.omit(paramsMarginMode, ['stop', 'clientOid', 'clientOrderId', 'trigger'])
+        response: dict
         if clientOrderId is not None:
             request['clientOid'] = clientOrderId
-            if trigger:
-                if symbol is not None:
-                    request['symbol'] = market['id']
-                response = self.privateGetStopOrderQueryOrderByClientOid(self.extend(request, params))
-            elif hf:
-                response = self.privateGetHfOrdersClientOrderClientOid(self.extend(request, params))
+            if trigger is True:
+                if isMarginOrder:
+                    response = self.privateGetHfMarginStopOrderClientOid(self.extend(request, paramsOmitted))
+                else:
+                    if symbol is not None:
+                        request['symbol'] = self.safe_string(market, 'id')
+                    response = self.privateGetStopOrderQueryOrderByClientOid(self.extend(request, paramsOmitted))
+            elif isMarginOrder:
+                response = self.privateGetHfMarginOrdersClientOrderClientOid(self.extend(request, paramsOmitted))
+            elif hf is True:
+                response = self.privateGetHfOrdersClientOrderClientOid(self.extend(request, paramsOmitted))
             else:
-                response = self.privateGetOrderClientOrderClientOid(self.extend(request, params))
+                response = self.privateGetOrderClientOrderClientOid(self.extend(request, paramsOmitted))
         else:
-            # a special case for None ids
+            # a special case for undefined ids
             # otherwise a wrong endpoint for all orders will be triggered
             # https://github.com/ccxt/ccxt/issues/7234
             if id is None:
                 raise InvalidOrder(self.id + ' fetchOrder() requires an order id')
             request['orderId'] = id
-            if trigger:
-                response = self.privateGetStopOrderOrderId(self.extend(request, params))
-            elif hf:
-                response = self.privateGetHfOrdersOrderId(self.extend(request, params))
+            if trigger is True:
+                if isMarginOrder:
+                    response = self.privateGetHfMarginStopOrderOrderId(self.extend(request, paramsOmitted))
+                else:
+                    response = self.privateGetStopOrderOrderId(self.extend(request, paramsOmitted))
+            elif isMarginOrder:
+                response = self.privateGetHfMarginOrdersOrderId(self.extend(request, paramsOmitted))
+            elif hf is True:
+                response = self.privateGetHfOrdersOrderId(self.extend(request, paramsOmitted))
             else:
-                response = self.privateGetOrdersOrderId(self.extend(request, params))
+                response = self.privateGetOrdersOrderId(self.extend(request, paramsOmitted))
         responseData = self.safe_dict(response, 'data', {})
         if isinstance(responseData, list):
             responseData = self.safe_value(responseData, 0)
         return self.parse_order(responseData, market)
 
+    def fetch_contract_order(self, id: Str, symbol: Str = None, params: dict = {}) -> Order:
+        """
+        fetc contract order
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld
+        https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        request = {}
+        response: dict
+        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
+        if clientOrderId is not None:
+            request['clientOid'] = clientOrderId
+            response = self.futuresPrivateGetOrdersByClientOid(self.extend(request, self.omit(params, ['clientOid', 'clientOrderId'])))
+        else:
+            if id is None:
+                raise ArgumentsRequired(self.id + ' fetchOrder() requires an order id argument or clientOrderId in params')
+            request['orderId'] = id
+            response = self.futuresPrivateGetOrdersOrderId(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "id": "64507d02921f1c0001ff6892",
+        #             "symbol": "XBTUSDTM",
+        #             "type": "market",
+        #             "side": "buy",
+        #             "price": null,
+        #             "size": 1,
+        #             "value": "27.992",
+        #             "dealValue": "27.992",
+        #             "dealSize": 1,
+        #             "stp": "",
+        #             "stop": "",
+        #             "stopPriceType": "",
+        #             "stopTriggered": false,
+        #             "stopPrice": null,
+        #             "timeInForce": "GTC",
+        #             "postOnly": false,
+        #             "hidden": false,
+        #             "iceberg": false,
+        #             "leverage": "17",
+        #             "forceHold": false,
+        #             "closeOrder": false,
+        #             "visibleSize": null,
+        #             "clientOid": null,
+        #             "remark": null,
+        #             "tags": null,
+        #             "isActive": false,
+        #             "cancelExist": false,
+        #             "createdAt": 1682996482000,
+        #             "updatedAt": 1682996483000,
+        #             "endAt": 1682996483000,
+        #             "orderTime": 1682996482953900677,
+        #             "settleCurrency": "USDT",
+        #             "status": "done",
+        #             "filledSize": 1,
+        #             "filledValue": "27.992",
+        #             "reduceOnly": false
+        #         }
+        #     }
+        #
+        market = self.market(symbol) if (symbol is not None) else None
+        responseData = self.safe_dict(response, 'data', {})
+        return self.parse_order(responseData, market)
+
+    def fetch_uta_order(self, id: Str, symbol: Str = None, params: dict = {}) -> Order:
+        """
+        fetch uta order
+
+        https://www.kucoin.com/docs-new/rest/ua/get-order-details
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountMode]: 'unified' or 'classic'(default is 'unified')
+        :param str [params.clientOrderId]: client order id, required if id is not provided
+        :param str [params.marginMode]: 'cross' or 'isolated', required if fetching a margin order(unified accountMode supports only cross margin)
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument for uta orders')
+        request = {}
+        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
+        paramsOmitted = self.omit(params, ['clientOid', 'clientOrderId']) if (clientOrderId is not None) else params
+        if clientOrderId is not None:
+            request['clientOid'] = clientOrderId
+        else:
+            if id is None:
+                raise ArgumentsRequired(self.id + ' fetchOrder() requires an id argument or clientOrderId parameter')
+            request['orderId'] = id
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request['symbol'] = market['id']
+        accountMode = 'unified'
+        accountMode, paramsOmitted = self.handle_option_string_and_params(paramsOmitted, 'fetchOrder', 'accountMode', accountMode)
+        request['accountMode'] = accountMode
+        marginMode = None
+        marginMode, paramsOmitted = self.handle_margin_mode_and_params('fetchOrder', paramsOmitted)
+        isUnified = (accountMode == 'unified')
+        tradeType = self.handle_trade_type(market['contract'], marginMode, isUnified, paramsOmitted)
+        request['tradeType'] = tradeType
+        response = self.utaPrivateGetAccountModeOrderDetail(self.extend(request, paramsOmitted))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "orderId": "426319129738321920",
+        #             "symbol": "ETH-USDT",
+        #             "orderType": "LIMIT",
+        #             "side": "BUY",
+        #             "size": "0.001",
+        #             "price": "1000",
+        #             "timeInForce": "GTC",
+        #             "tags": "partner:ccxt",
+        #             "orderTime": 1774455603156417582,
+        #             "stp": "",
+        #             "cancelAfter": null,
+        #             "postOnly": false,
+        #             "reduceOnly": false,
+        #             "triggerDirection": "",
+        #             "triggerPrice": "",
+        #             "triggerPriceType": "",
+        #             "tpTriggerPrice": "",
+        #             "tpTriggerPriceType": "",
+        #             "slTriggerPrice": "",
+        #             "slTriggerPriceType": "",
+        #             "filledSize": "0",
+        #             "avgPrice": "0",
+        #             "fee": "0",
+        #             "feeCurrency": "USDT",
+        #             "tax": "0",
+        #             "updatedTime": 1774455603371523690,
+        #             "triggerOrderId": "",
+        #             "cancelReason": "",
+        #             "cancelSize": "0",
+        #             "clientOid": "b896c118-a674-4863-baf4-a9ea3cd696c5",
+        #             "sizeUnit": "BASECCY",
+        #             "tradeType": "SPOT",
+        #             "tradeId": "",
+        #             "status": 2
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_order(data, market)
+
+    def handle_trade_type(self, isContractMarket: bool = False, marginMode: Str = None, isUnified: bool = False, params: dict = {}) -> Str:
+        tradeType = self.safe_string(params, 'tradeType')
+        if tradeType is None:
+            if isContractMarket:
+                tradeType = 'FUTURES'
+            elif marginMode is not None:
+                tradeType = marginMode.upper()
+                if isUnified:
+                    if tradeType == 'ISOLATED':
+                        raise NotSupported(self.id + ' spot isolated margin is not supported for unified accountMode')
+                    else:
+                        tradeType = 'MARGIN'
+            else:
+                tradeType = 'SPOT'
+        return tradeType
+
     def parse_order(self, order: dict, market: Market = None) -> Order:
+        tradeType = self.safe_string(order, 'tradeType')
+        utaTradeTypes = ['SPOT', 'CROSS', 'ISOLATED', 'FUTURES']  # tradeType specific for uta endpoint
+        isUtaOrder = self.in_array(tradeType, utaTradeTypes)
+        if 'sizeUnit' in order:  # property specific for uta endpoint
+            isUtaOrder = True
+        if isUtaOrder:
+            return self.parse_uta_order(order, market)
+        marketId = self.safe_string(order, 'symbol')
+        marketResolved = self.safe_market(marketId, market)
+        if (marketResolved is not None) and (marketResolved['contract'] is True):
+            return self.parse_contract_order(order, marketResolved)
+        else:
+            return self.parse_spot_order(order, marketResolved)
+
+    def parse_contract_order(self, order: dict, market: Market = None) -> Order:
+        #
+        # fetchOrder, fetchOrdersByStatus
+        #
+        #     {
+        #         "id": "64507d02921f1c0001ff6892",
+        #         "symbol": "XBTUSDTM",
+        #         "type": "market",
+        #         "side": "buy",
+        #         "price": null,
+        #         "size": 1,
+        #         "value": "27.992",
+        #         "dealValue": "27.992",
+        #         "dealSize": 1,
+        #         "stp": "",
+        #         "stop": "",
+        #         "stopPriceType": "",
+        #         "stopTriggered": false,
+        #         "stopPrice": null,
+        #         "timeInForce": "GTC",
+        #         "postOnly": false,
+        #         "hidden": false,
+        #         "iceberg": false,
+        #         "leverage": "17",
+        #         "forceHold": false,
+        #         "closeOrder": false,
+        #         "visibleSize": null,
+        #         "clientOid": null,
+        #         "remark": null,
+        #         "tags": null,
+        #         "isActive": false,
+        #         "cancelExist": false,
+        #         "createdAt": 1682996482000,
+        #         "updatedAt": 1682996483062,
+        #         "endAt": 1682996483062,
+        #         "orderTime": 1682996482953900677,
+        #         "settleCurrency": "USDT",
+        #         "status": "done",
+        #         "filledValue": "27.992",
+        #         "filledSize": 1,
+        #         "reduceOnly": false
+        #     }
+        #
+        # createOrder
+        #
+        #     {
+        #         "orderId": "619717484f1d010001510cde"
+        #     }
+        #
+        # createOrders
+        #
+        #     {
+        #         "orderId": "80465574458560512",
+        #         "clientOid": "5c52e11203aa677f33e491",
+        #         "symbol": "ETHUSDTM",
+        #         "code": "200000",
+        #         "msg": "success"
+        #     }
+        #
+        marketId = self.safe_string(order, 'symbol')
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
+        orderId = self.safe_string_2(order, 'id', 'orderId')
+        type = self.safe_string(order, 'type')
+        timestamp = self.safe_integer(order, 'createdAt')
+        datetime = self.iso8601(timestamp)
+        price = self.safe_string(order, 'price')
+        # price is zero for market order
+        # omitZero is called in safeOrder2
+        side = self.safe_string(order, 'side')
+        feeCurrencyId = self.safe_string(order, 'feeCurrency')
+        feeCurrency = self.safe_currency_code(feeCurrencyId)
+        feeCost = self.safe_number(order, 'fee')
+        amount = self.safe_string(order, 'size')
+        filled = self.safe_string(order, 'filledSize')
+        cost = self.safe_string(order, 'filledValue')
+        average = self.safe_string(order, 'avgDealPrice')
+        if (average is None) and Precise.string_gt(filled, '0'):
+            contractSize = self.safe_string(marketResolved, 'contractSize')
+            if marketResolved['linear'] is True:
+                average = Precise.string_div(cost, Precise.string_mul(contractSize, filled))
+            else:
+                average = Precise.string_div(Precise.string_mul(contractSize, filled), cost)
+        # precision reported by their api is 8 d.p.
+        # const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
+        # bool
+        isActive = self.safe_bool(order, 'isActive')
+        cancelExist = self.safe_bool(order, 'cancelExist', False)
+        status = None
+        if isActive is not None:
+            status = 'open' if (isActive is True) else 'closed'
+        status = 'canceled' if (cancelExist is True) else status
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'currency': feeCurrency,
+                'cost': feeCost,
+            }
+        clientOrderId = self.safe_string(order, 'clientOid')
+        timeInForce = self.safe_string(order, 'timeInForce')
+        postOnly = self.safe_bool(order, 'postOnly')
+        reduceOnly = self.safe_bool(order, 'reduceOnly')
+        lastUpdateTimestamp = self.safe_integer(order, 'updatedAt')
+        return self.safe_order({
+            'id': orderId,
+            'clientOrderId': clientOrderId,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
+            'side': side,
+            'amount': amount,
+            'price': price,
+            'triggerPrice': self.safe_number(order, 'stopPrice'),
+            'cost': cost,
+            'filled': filled,
+            'remaining': None,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'fee': fee,
+            'status': status,
+            'info': order,
+            'lastTradeTimestamp': None,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'average': average,
+            'trades': None,
+        }, marketResolved)
+
+    def parse_spot_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -3392,7 +6057,7 @@ class kucoin(Exchange, ImplicitAPI):
         # cancelOrder
         #
         #    {
-        #        "cancelledOrderIds": ["63c97e47d686c5000159a656"]
+        #        "cancelledOrderIds": [ "63c97e47d686c5000159a656" ]
         #    }
         #
         # fetchOpenOrders, fetchClosedOrders
@@ -3412,25 +6077,25 @@ class kucoin(Exchange, ImplicitAPI):
         #        "feeCurrency": "USDT",
         #        "stp": "",
         #        "stop": "",
-        #        "stopTriggered": False,
+        #        "stopTriggered": false,
         #        "stopPrice": "0",
         #        "timeInForce": "GTC",
-        #        "postOnly": False,
-        #        "hidden": False,
-        #        "iceberg": False,
+        #        "postOnly": false,
+        #        "hidden": false,
+        #        "iceberg": false,
         #        "visibleSize": "0",
         #        "cancelAfter": 0,
         #        "channel": "API",
         #        "clientOid": "d602d73f-5424-4751-bef0-8debce8f0a82",
         #        "remark": null,
         #        "tags": "partner:ccxt",
-        #        "isActive": True,
-        #        "cancelExist": False,
+        #        "isActive": true,
+        #        "cancelExist": false,
         #        "createdAt": 1674149096927,
         #        "tradeType": "TRADE"
         #    }
         #
-        # stop orders(fetchOpenOrders, fetchClosedOrders)
+        # stop orders (fetchOpenOrders, fetchClosedOrders)
         #
         #    {
         #        "id": "vs9f6ou9e864rgq8000t4qnm",
@@ -3445,9 +6110,9 @@ class kucoin(Exchange, ImplicitAPI):
         #        "stp": null,
         #        "timeInForce": "GTC",
         #        "cancelAfter": -1,
-        #        "postOnly": False,
-        #        "hidden": False,
-        #        "iceberg": False,
+        #        "postOnly": false,
+        #        "hidden": false,
+        #        "iceberg": false,
         #        "visibleSize": null,
         #        "channel": "API",
         #        "clientOid": "5d3fd727-6456-438d-9550-40d9d85eee0b",
@@ -3521,9 +6186,9 @@ class kucoin(Exchange, ImplicitAPI):
         if trigger:
             if responseStatus == 'NEW':
                 status = 'open'
-            elif not isActive and not stopTriggered:
+            elif (isActive is not True) and (stopTriggered is not True):
                 status = 'cancelled'
-        if cancelExist:
+        if cancelExist is True:
             status = 'canceled'
         if responseStatus == 'fail':
             status = 'rejected'
@@ -3554,79 +6219,254 @@ class kucoin(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def parse_uta_order(self, order: dict, market: Market = None) -> Order:
+        #
+        # createOrder
+        #     {
+        #         "orderId": "426319129738321920",
+        #         "tradeType": "SPOT",
+        #         "ts": 1774455603216000000,
+        #         "clientOid": "b896c118-a674-4863-baf4-a9ea3cd696c5"
+        #     }
+        #
+        # fetchOrder
+        #     {
+        #         "orderId": "426319129738321920",
+        #         "symbol": "ETH-USDT",
+        #         "orderType": "LIMIT",
+        #         "side": "BUY",
+        #         "size": "0.001",
+        #         "price": "1000",
+        #         "timeInForce": "GTC",
+        #         "tags": "partner:ccxt",
+        #         "orderTime": 1774455603156417582,
+        #         "stp": "",
+        #         "cancelAfter": null,
+        #         "postOnly": false,
+        #         "reduceOnly": false,
+        #         "triggerDirection": "",
+        #         "triggerPrice": "",
+        #         "triggerPriceType": "",
+        #         "tpTriggerPrice": "",
+        #         "tpTriggerPriceType": "",
+        #         "slTriggerPrice": "",
+        #         "slTriggerPriceType": "",
+        #         "filledSize": "0",
+        #         "avgPrice": "0",
+        #         "fee": "0",
+        #         "feeCurrency": "USDT",
+        #         "tax": "0",
+        #         "updatedTime": 1774455603371523690,
+        #         "triggerOrderId": "",
+        #         "cancelReason": "",
+        #         "cancelSize": "0",
+        #         "clientOid": "b896c118-a674-4863-baf4-a9ea3cd696c5",
+        #         "sizeUnit": "BASECCY",
+        #         "tradeType": "SPOT",
+        #         "tradeId": "",
+        #         "status": 2
+        #     }
+        #
+        marketId = self.safe_string(order, 'symbol')
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
+        timestamp = self.safe_integer_product_2(order, 'orderTime', 'ts', 0.000001)
+        lastUpdateTimestamp = self.safe_integer_product(order, 'updatedTime', 0.000001)
+        rawTimeInForce = self.safe_string(order, 'timeInForce')
+        amount = None
+        cost = None
+        sizeUnit = self.safe_string(order, 'sizeUnit')
+        size = self.safe_string(order, 'size')
+        rawStatus = self.safe_string(order, 'status')
+        average = self.safe_string(order, 'avgPrice')
+        filled = self.safe_string(order, 'filledSize')  # might be in base or quote, need to check sizeUnit
+        if (sizeUnit == 'BASECCY') or (sizeUnit == 'UNIT'):
+            amount = size
+        else:
+            cost = filled
+            filled = Precise.string_div(filled, average)
+            filled = self.amount_to_precision(symbol, filled)
+        fee = {
+            'currency': self.safe_currency_code(self.safe_string(order, 'feeCurrency')),
+            'cost': self.safe_string(order, 'fee'),
+        }
+        return self.safe_order({
+            'id': self.safe_string(order, 'orderId'),
+            'clientOrderId': self.safe_string(order, 'clientOid'),
+            'symbol': symbol,
+            'type': self.safe_string_lower(order, 'orderType'),
+            'timeInForce': self.parse_order_time_in_force(rawTimeInForce),
+            'postOnly': self.safe_bool(order, 'postOnly'),
+            'reduceOnly': self.safe_bool(order, 'reduceOnly'),
+            'side': self.safe_string_lower(order, 'side'),
+            'amount': amount,
+            'price': self.safe_string(order, 'price'),
+            'triggerPrice': self.safe_string_2(order, 'stopPrice', 'triggerPrice'),
+            'cost': cost,
+            'filled': filled,  # todo check if filledSize is in base or quote
+            'remaining': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': fee,
+            'status': self.parse_order_status(rawStatus),
+            'lastTradeTimestamp': None,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'average': average,
+            'trades': None,
+            'stopLossPrice': self.safe_string(order, 'slTriggerPrice'),
+            'takeProfitPrice': self.safe_string(order, 'tpTriggerPrice'),
+            'info': order,
+        }, marketResolved)
+
+    def parse_order_time_in_force(self, timeInForce: Str) -> Str:
+        timeInForces = {
+            'GTC': 'GTC',
+            'IOC': 'IOC',
+            'FOK': 'FOK',
+            'GTT': 'GTD',
+        }
+        if timeInForce is None:
+            return None
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
+
+    def parse_order_status(self, status: Str) -> Str:
+        statuses = {
+            '0': 'open',  # notTriggered
+            '1': 'open',  # triggered
+            '2': 'open',  # live
+            '3': 'closed',  # filled
+            '4': 'open',  # partial filled
+            '5': 'canceled',  # canceled
+            '6': 'closed',  # partial canceled
+        }
+        if status is None:
+            return None
+        return self.safe_string(statuses, status, status)
+
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
-        https://docs.kucoin.com/#list-fills
-        https://docs.kucoin.com/spot-hf/#transaction-details
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+        https://www.kucoin.com/docs-new/rest/ua/get-trade-history
 
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'spot' or 'swap', used if symbol is not provided(default is 'spot')
+        :param boolean [params.uta]: set to True if fetching trades from uta endpoint, default is False.
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        request: dict = {
+        request = {
             'orderId': id,
         }
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
-        https://docs.kucoin.com/#list-fills
-        https://docs.kucoin.com/spot-hf/#transaction-details
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+        https://www.kucoin.com/docs-new/rest/ua/get-trade-history
 
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.type]: 'spot' or 'swap', used if symbol is not provided(default is 'spot')
+ Check fetchMySpotTrades() and fetchMyContractTrades() for more details on the extra parameters that can be used in params
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        marketType = None
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        paramsRequest = None
+        marketType, paramsRequest = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        uta = self.is_uta_enabled()
+        uta, paramsRequest = self.handle_option_bool_and_params(paramsRequest, 'fetchMyTrades', 'uta', uta)
+        if uta:
+            paramsRequest = self.extend(paramsRequest, {'marketType': marketType})
+            return self.fetch_my_uta_trades(symbol, since, limit, paramsRequest)
+        if (marketType == 'spot') or (marketType == 'margin'):
+            return self.fetch_my_spot_trades(symbol, since, limit, paramsRequest)
+        else:
+            return self.fetch_my_contract_trades(symbol, since, limit, paramsRequest)
+
+    def fetch_my_spot_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+        """
+
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
+        https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+
+        fetch all spot trades made by the user
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :param bool [params.hf]: False,  # True for hf order
+        :param bool [params.hf]: False,  # true for hf order
+        :param str [params.marginMode]: 'cross' or 'isolated', only for margin trades
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paramsRequest = None
+        paginate, paramsRequest = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
-        request: dict = {}
+            return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsRequest)
+        request = {}
         hf = None
-        hf, params = self.handle_hf_and_params(params)
-        if hf and symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol parameter for hf orders')
+        hf, paramsRequest = self.handle_hf_and_params(paramsRequest)
+        marginMode = None
+        marginMode, paramsRequest = self.handle_margin_mode_and_params('fetchMyTrades', paramsRequest)
+        isMargin = marginMode is not None
+        if isMargin:
+            hf = True
+            request['tradeType'] = None if (marginMode is None) else self.safe_string(self.options['marginModes'], marginMode, marginMode)
+        if (hf is True) and symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol parameter for hf or margin orders')
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        method = self.options['fetchMyTradesMethod']
+        method = self.safe_string(self.options, 'fetchMyTradesMethod')
         parseResponseData = False
         response = None
-        request, params = self.handle_until_option('endAt', request, params)
-        if hf:
+        request, paramsRequest = self.handle_until_option('endAt', request, paramsRequest)
+        if hf is True:
             # does not return trades earlier than 2019-02-18T00:00:00Z
             if limit is not None:
                 request['limit'] = limit
             if since is not None:
                 # only returns trades up to one week after the since param
                 request['startAt'] = since
-            response = self.privateGetHfFills(self.extend(request, params))
+            if isMargin:
+                response = self.privateGetHfMarginFills(self.extend(request, paramsRequest))
+            else:
+                response = self.privateGetHfFills(self.extend(request, paramsRequest))
         elif method == 'private_get_fills':
             # does not return trades earlier than 2019-02-18T00:00:00Z
             if since is not None:
                 # only returns trades up to one week after the since param
                 request['startAt'] = since
-            response = self.privateGetFills(self.extend(request, params))
+            response = self.privateGetFills(self.extend(request, paramsRequest))
         elif method == 'private_get_limit_fills':
             # does not return trades earlier than 2019-02-18T00:00:00Z
             # takes no params
-            # only returns first 1000 trades(not only "in the last 24 hours" in the docs)
+            # only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
             parseResponseData = True
-            response = self.privateGetLimitFills(self.extend(request, params))
+            response = self.privateGetLimitFills(self.extend(request, paramsRequest))
         else:
             raise ExchangeError(self.id + ' fetchMyTradesMethod() invalid method')
         #
@@ -3637,25 +6477,25 @@ class kucoin(Exchange, ImplicitAPI):
         #         "totalPage": 1,
         #         "items": [
         #             {
-        #                 "symbol":"BTC-USDT",       # symbol
-        #                 "tradeId":"5c35c02709e4f67d5266954e",        # trade id
-        #                 "orderId":"5c35c02703aa673ceec2a168",        # order id
-        #                 "counterOrderId":"5c1ab46003aa676e487fa8e3",  # counter order id
-        #                 "side":"buy",              # transaction direction,include buy and sell
-        #                 "liquidity":"taker",       # include taker and maker
-        #                 "forceTaker":true,         # forced to become taker
-        #                 "price":"0.083",           # order price
-        #                 "size":"0.8424304",        # order quantity
-        #                 "funds":"0.0699217232",    # order funds
-        #                 "fee":"0",                 # fee
-        #                 "feeRate":"0",             # fee rate
-        #                 "feeCurrency":"USDT",      # charge fee currency
-        #                 "stop":"",                 # stop type
-        #                 "type":"limit",            # order type, e.g. limit, market, stop_limit.
-        #                 "createdAt":1547026472000  # time
+        #                 "symbol":"BTC-USDT",       // symbol
+        #                 "tradeId":"5c35c02709e4f67d5266954e",        // trade id
+        #                 "orderId":"5c35c02703aa673ceec2a168",        // order id
+        #                 "counterOrderId":"5c1ab46003aa676e487fa8e3", // counter order id
+        #                 "side":"buy",              // transaction direction,include buy and sell
+        #                 "liquidity":"taker",       // include taker and maker
+        #                 "forceTaker":true,         // forced to become taker
+        #                 "price":"0.083",           // order price
+        #                 "size":"0.8424304",        // order quantity
+        #                 "funds":"0.0699217232",    // order funds
+        #                 "fee":"0",                 // fee
+        #                 "feeRate":"0",             // fee rate
+        #                 "feeCurrency":"USDT",      // charge fee currency
+        #                 "stop":"",                 // stop type
+        #                 "type":"limit",            // order type, e.g. limit, market, stop_limit.
+        #                 "createdAt":1547026472000  // time
         #             },
-        #             #------------------------------------------------------
-        #             # v1(historical) trade response structure
+        #             //------------------------------------------------------
+        #             // v1 (historical) trade response structure
         #             {
         #                 "symbol": "SNOV-ETH",
         #                 "dealPrice": "0.0000246",
@@ -3670,19 +6510,185 @@ class kucoin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
+        # v1 (historical) returns the trade list directly under 'data', v2 nests it under 'items'
         trades = None
         if parseResponseData:
             trades = data
         else:
             trades = self.safe_list(data, 'items', [])
-        return self.parse_trades(trades, market, since, limit)
+        # v1 may put a bare list or dict under data; normalize once for parseTrades
+        tradesList = []
+        if trades is not None:
+            tradesList = self.to_array(trades)
+        return self.parse_trades(tradesList, market, since, limit)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_my_contract_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+        """
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
+
+        fetch all contract trades made by the user
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: End time in ms
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsPaginate)
+        request = {
+            # orderId (String) [optional] Fills for a specific order (other parameters can be ignored if specified)
+            # symbol (String) [optional] Symbol of the contract
+            # side (String) [optional] buy or sell
+            # type (String) [optional] limit, market, limit_stop or market_stop
+            # startAt (long) [optional] Start time (millisecond)
+            # endAt (long) [optional] End time (millisecond)
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startAt'] = since
+        if limit is not None:
+            request['pageSize'] = min(1000, limit)
+        requestUntil, paramsUntil = self.handle_until_option('endAt', request, paramsPaginate)
+        response = self.futuresPrivateGetFills(self.extend(requestUntil, paramsUntil))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #          "currentPage": 1,
+        #          "pageSize": 1,
+        #          "totalNum": 251915,
+        #          "totalPage": 251915,
+        #          "items": [
+        #              {
+        #                  "symbol": "XBTUSDM",  // Ticker symbol of the contract
+        #                  "tradeId": "5ce24c1f0c19fc3c58edc47c",  // Trade ID
+        #                  "orderId": "5ce24c16b210233c36ee321d",  // Order ID
+        #                  "side": "sell",  // Transaction side
+        #                  "liquidity": "taker",  // Liquidity- taker or maker
+        #                  "price": "8302",  // Filled price
+        #                  "size": 10,  // Filled amount
+        #                  "value": "0.001204529",  // Order value
+        #                  "feeRate": "0.0005",  // Floating fees
+        #                  "fixFee": "0.00000006",  // Fixed fees
+        #                  "feeCurrency": "XBT",  // Charging currency
+        #                  "stop": "",  // A mark to the stop order type
+        #                  "fee": "0.0000012022",  // Transaction fee
+        #                  "orderType": "limit",  // Order type
+        #                  "tradeType": "trade",  // Trade type (trade, liquidation, ADL or settlement)
+        #                  "createdAt": 1558334496000,  // Time the order created
+        #                  "settleCurrency": "XBT", // settlement currency
+        #                  "tradeTime": 1558334496000000000 // trade time in nanosecond
+        #              }
+        #            ]
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'data', {})
+        trades = self.safe_list(data, 'items', [])
+        tradesList = []
+        if trades is not None:
+            tradesList = trades
+        return self.parse_trades(tradesList, market, since, limit)
+
+    def fetch_my_uta_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+        """
+
+        https://www.kucoin.com/docs-new/rest/ua/get-trade-history
+
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve(default is 50, max is 200)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :param str [params.accountMode]: 'unified' or 'classic', defaults to 'unified'
+        :param str [params.marginMode]: 'cross' or 'isolated', only for margin trades(unified accountMode support only cross margin)
+        :param str [params.side]: 'BUY' or 'SELL'(both if not provided)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        paginate, paramsRequest = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsRequest)
+        marketType = self.safe_string(paramsRequest, 'marketType')
+        paramsOmitted = self.omit(paramsRequest, 'marketType') if (marketType is not None) else paramsRequest
+        request = {}
+        isContract = False
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+            isContract = market['contract']
+        elif (marketType == 'spot') or (marketType == 'margin'):
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol parameter for uta spot or margin trades')
+        else:
+            isContract = True
+        accountMode = 'unified'
+        accountMode, paramsOmitted = self.handle_option_string_and_params(paramsOmitted, 'fetchMyTrades', 'accountMode', accountMode)
+        request['accountMode'] = accountMode
+        marginMode = None
+        marginMode, paramsOmitted = self.handle_margin_mode_and_params('fetchMyTrades', paramsOmitted)
+        isUnified = (accountMode == 'unified')
+        tradeType = self.handle_trade_type(isContract, marginMode, isUnified, paramsOmitted)
+        request['tradeType'] = tradeType
+        if since is not None:
+            request['startAt'] = since
+        if limit is not None:
+            request['pageSize'] = limit
+        request, paramsOmitted = self.handle_until_option('endAt', request, paramsOmitted)
+        response = self.utaPrivateGetAccountModeOrderExecution(self.extend(request, paramsOmitted))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "tradeType": "FUTURES",
+        #             "lastId": 30000000000531982,
+        #             "items": [
+        #                 {
+        #                     "orderId": "426373228194254848",
+        #                     "symbol": "DOGEUSDTM",
+        #                     "orderType": "MARKET",
+        #                     "side": "BUY",
+        #                     "tradeId": "1711108516570",
+        #                     "size": "1",
+        #                     "price": "0.09641",
+        #                     "value": "9.641",
+        #                     "executionTime": 1774468501294000000,
+        #                     "fee": "0.0057846",
+        #                     "feeCurrency": "USDT",
+        #                     "tax": "",
+        #                     "liquidityRole": "TAKER",
+        #                     "fillType": "NORMAL"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        trades = self.safe_list(data, 'items', [])
+        tradesList = []
+        if trades is not None:
+            tradesList = trades
+        return self.parse_trades(tradesList, market, since, limit)
+
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
-        https://www.kucoin.com/docs/rest/spot-trading/market-data/get-trade-histories
+        https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-trade-history
         https://www.kucoin.com/docs-new/rest/ua/get-trades
+        https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-trade-history
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -3691,30 +6697,30 @@ class kucoin(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         # pagination is not supported on the exchange side anymore
-        # if since is not None:
-        #     request['startAt'] = int(math.floor(since / 1000))
+        # if (since !== undefined) {
+        #     request['startAt'] = Math.floor (since / 1000);
         # }
-        # if limit is not None:
-        #     request['pageSize'] = limit
+        # if (limit !== undefined) {
+        #     request['pageSize'] = limit;
         # }
-        uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchTrades', 'uta', False)
-        response = None
+        uta = False
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchTrades', 'uta', uta)
+        response: dict
         trades = None
-        if uta:
-            type = None
-            type, params = self.handle_market_type_and_params('fetchTrades', market, params)
-            if type == 'spot':
+        type, paramsMarketType = self.handle_market_type_and_params('fetchTrades', market, paramsUta)
+        if utaOption:
+            if (type == 'spot') or (type == 'margin'):
                 request['tradeType'] = 'SPOT'
             else:
                 request['tradeType'] = 'FUTURES'
-            response = self.utaGetMarketTrade(self.extend(request, params))
+            response = self.utaGetMarketTrade(self.extend(request, paramsMarketType))
             #
             #     {
             #         "code": "200000",
@@ -3735,8 +6741,8 @@ class kucoin(Exchange, ImplicitAPI):
             #
             data = self.safe_dict(response, 'data', {})
             trades = self.safe_list(data, 'list', [])
-        else:
-            response = self.publicGetMarketHistories(self.extend(request, params))
+        elif (type == 'spot') or (type == 'margin'):
+            response = self.publicGetMarketHistories(self.extend(request, paramsMarketType))
             #
             #     {
             #         "code": "200000",
@@ -3752,11 +6758,44 @@ class kucoin(Exchange, ImplicitAPI):
             #     }
             #
             trades = self.safe_list(response, 'data', [])
-        return self.parse_trades(trades, market, since, limit)
+        else:
+            response = self.futuresPublicGetTradeHistory(self.extend(request, paramsMarketType))
+            #
+            #      {
+            #          "code": "200000",
+            #          "data": [
+            #              {
+            #                  "sequence": 32114961,
+            #                  "side": "buy",
+            #                  "size": 39,
+            #                  "price": "4001.6500000000",
+            #                  "takerOrderId": "61c20742f172110001e0ebe4",
+            #                  "makerOrderId": "61c2073fcfc88100010fcb5d",
+            #                  "tradeId": "61c2074277a0c473e69029b8",
+            #                  "ts": 1640105794099993896   // filled time
+            #              }
+            #          ]
+            #      }
+            #
+            trades = self.safe_list(response, 'data', [])
+        tradesList = []
+        if trades is not None:
+            tradesList = trades
+        return self.parse_trades(tradesList, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
+        if 'liquidityRole' in trade:  # property specific to myTrades from uta endpoint
+            return self.parse_my_uta_trade(trade, market)
+        marketId = self.safe_string(trade, 'symbol')
+        marketResolved = self.safe_market(marketId, market)
+        if (marketResolved is None) or (marketResolved['spot'] is True):
+            return self.parse_spot_or_uta_trade(trade, marketResolved)
+        else:
+            return self.parse_contract_trade(trade, marketResolved)
+
+    def parse_spot_or_uta_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "sequence": "1548764654235",
@@ -3779,7 +6818,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         "tradeId": "5e356c4aeefabd62c62a1ece"
         #     }
         #
-        # fetchMyTrades(private) v2
+        # fetchMyTrades (private) v2
         #
         #     {
         #         "symbol":"BTC-USDT",
@@ -3804,7 +6843,7 @@ class kucoin(Exchange, ImplicitAPI):
         #
         #     {
         #         "symbol": "OPEN-BTC",
-        #         "forceTaker":  False,
+        #         "forceTaker":  false,
         #         "orderId": "5ce36420054b4663b1fff2c9",
         #         "fee": "0",
         #         "feeCurrency": "",
@@ -3818,7 +6857,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         "tradeId": "5ce390cf6e0db23b861c6e80"
         #     }
         #
-        # fetchMyTrades(private) v1(historical)
+        # fetchMyTrades (private) v1 (historical)
         #
         #     {
         #         "symbol": "SNOV-ETH",
@@ -3843,7 +6882,7 @@ class kucoin(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(trade, 'symbol')
-        market = self.safe_market(marketId, market, '-')
+        marketResolved = self.safe_market(marketId, market, '-')
         id = self.safe_string_2(trade, 'tradeId', 'id')
         orderId = self.safe_string(trade, 'orderId')
         takerOrMaker = self.safe_string(trade, 'liquidity')
@@ -3864,7 +6903,7 @@ class kucoin(Exchange, ImplicitAPI):
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
             feeCurrency = self.safe_currency_code(feeCurrencyId)
             if feeCurrency is None:
-                feeCurrency = market['quote'] if (side == 'sell') else market['base']
+                feeCurrency = marketResolved['quote'] if (side == 'sell') else marketResolved['base']
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrency,
@@ -3880,7 +6919,7 @@ class kucoin(Exchange, ImplicitAPI):
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
@@ -3888,53 +6927,271 @@ class kucoin(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market)
+        }, marketResolved)
 
-    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    def parse_contract_trade(self, trade: dict, market: Market = None) -> Trade:
+        #
+        # fetchTrades (public)
+        #
+        #     {
+        #         "sequence": 32114961,
+        #         "side": "buy",
+        #         "size": 39,
+        #         "price": "4001.6500000000",
+        #         "takerOrderId": "61c20742f172110001e0ebe4",
+        #         "makerOrderId": "61c2073fcfc88100010fcb5d",
+        #         "tradeId": "61c2074277a0c473e69029b8",
+        #         "ts": 1640105794099993896   // filled time
+        #     }
+        #
+        # fetchMyTrades (private) v2
+        #
+        #     {
+        #         "symbol":"BTC-USDT",
+        #         "tradeId":"5c35c02709e4f67d5266954e",
+        #         "orderId":"5c35c02703aa673ceec2a168",
+        #         "counterOrderId":"5c1ab46003aa676e487fa8e3",
+        #         "side":"buy",
+        #         "liquidity":"taker",
+        #         "forceTaker":true,
+        #         "price":"0.083",
+        #         "size":"0.8424304",
+        #         "funds":"0.0699217232",
+        #         "fee":"0",
+        #         "feeRate":"0",
+        #         "feeCurrency":"USDT",
+        #         "stop":"",
+        #         "type":"limit",
+        #         "createdAt":1547026472000
+        #     }
+        #
+        # fetchMyTrades (private) v1
+        #
+        #    {
+        #        "symbol":"DOGEUSDTM",
+        #        "tradeId":"620ec41a96bab27b5f4ced56",
+        #        "orderId":"620ec41a0d1d8a0001560bd0",
+        #        "side":"sell",
+        #        "liquidity":"taker",
+        #        "forceTaker":true,
+        #        "price":"0.13969",
+        #        "size":1,
+        #        "value":"13.969",
+        #        "feeRate":"0.0006",
+        #        "fixFee":"0",
+        #        "feeCurrency":"USDT",
+        #        "stop":"",
+        #        "tradeTime":1645134874858018058,
+        #        "fee":"0.0083814",
+        #        "settleCurrency":"USDT",
+        #        "orderType":"market",
+        #        "tradeType":"trade",
+        #        "createdAt":1645134874858
+        #    }
+        #
+        # watchTrades
+        #
+        #    {
+        #        "makerUserId": "62286a4d720edf0001e81961",
+        #        "symbol": "ADAUSDTM",
+        #        "sequence": 41320766,
+        #        "side": "sell",
+        #        "size": 2,
+        #        "price": 0.35904,
+        #        "takerOrderId": "636dd9da9857ba00010cfa44",
+        #        "makerOrderId": "636dd9c8df149d0001e62bc8",
+        #        "takerUserId": "6180be22b6ab210001fa3371",
+        #        "tradeId": "636dd9da0000d400d477eca7",
+        #        "ts": 1668143578987357700
+        #    }
+        #
+        marketId = self.safe_string(trade, 'symbol')
+        marketResolved = self.safe_market(marketId, market, '-')
+        id = self.safe_string_2(trade, 'tradeId', 'id')
+        orderId = self.safe_string(trade, 'orderId')
+        takerOrMaker = self.safe_string(trade, 'liquidity')
+        timestamp = self.safe_integer(trade, 'ts')
+        if timestamp is not None:
+            timestamp = self.parse_to_int(timestamp / 1000000)
+        else:
+            timestamp = self.safe_integer(trade, 'createdAt')
+            # if it's a historical v1 trade, the exchange returns timestamp in seconds
+            if ('dealValue' in trade) and (timestamp is not None):
+                timestamp = timestamp * 1000
+        priceString = self.safe_string_2(trade, 'price', 'dealPrice')
+        amountString = self.safe_string_2(trade, 'size', 'amount')
+        side = self.safe_string(trade, 'side')
+        fee = None
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is not None:
+            feeCurrencyId = self.safe_string(trade, 'feeCurrency')
+            feeCurrency = self.safe_currency_code(feeCurrencyId)
+            if feeCurrency is None:
+                feeCurrency = marketResolved['quote'] if (side == 'sell') else marketResolved['base']
+            fee = {
+                'cost': feeCostString,
+                'currency': feeCurrency,
+                'rate': self.safe_string(trade, 'feeRate'),
+            }
+        type = self.safe_string_2(trade, 'type', 'orderType')
+        if type == 'match':
+            type = None
+        costString = self.safe_string_2(trade, 'funds', 'value')
+        if costString is None:
+            contractSize = self.safe_string(marketResolved, 'contractSize')
+            contractCost = Precise.string_mul(priceString, amountString)
+            costString = Precise.string_mul(contractCost, contractSize)
+        return self.safe_trade({
+            'info': trade,
+            'id': id,
+            'order': orderId,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': marketResolved['symbol'],
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
+            'fee': fee,
+        }, marketResolved)
+
+    def parse_my_uta_trade(self, trade: dict, market: Market = None) -> Trade:
+        #
+        #     {
+        #         "orderId": "426373228194254848",
+        #         "symbol": "DOGEUSDTM",
+        #         "orderType": "MARKET",
+        #         "side": "BUY",
+        #         "tradeId": "1711108516570",
+        #         "size": "1",
+        #         "price": "0.09641",
+        #         "value": "9.641",
+        #         "executionTime": 1774468501294000000,
+        #         "fee": "0.0057846",
+        #         "feeCurrency": "USDT",
+        #         "tax": "",
+        #         "liquidityRole": "TAKER",
+        #         "fillType": "NORMAL"
+        #     }
+        #
+        marketId = self.safe_string(trade, 'symbol')
+        marketResolved = self.safe_market(marketId, market)
+        timestamp = self.safe_integer_product(trade, 'executionTime', 0.000001)
+        fee = {
+            'cost': self.safe_string(trade, 'fee'),
+            'currency': self.safe_currency_code(self.safe_string(trade, 'feeCurrency')),
+        }
+        return self.safe_trade({
+            'info': trade,
+            'id': self.safe_string(trade, 'tradeId'),
+            'order': self.safe_string(trade, 'orderId'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': marketResolved['symbol'],
+            'type': self.safe_string_lower(trade, 'orderType'),
+            'takerOrMaker': self.safe_string_lower(trade, 'liquidityRole'),
+            'side': self.safe_string_lower(trade, 'side'),
+            'price': self.safe_string(trade, 'price'),
+            'amount': self.safe_string(trade, 'size'),
+            'cost': self.safe_string(trade, 'value'),
+            'fee': fee,
+        }, marketResolved)
+
+    def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
-        https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-spot-margin-trade_hf
+        https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-spot-margin
+        https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-futures
+        https://www.kucoin.com/docs-new/rest/ua/get-actual-fee
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta) endpoint, defaults to False
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
-            'symbols': market['id'],
-        }
-        response = self.privateGetTradeFees(self.extend(request, params))
-        #
-        #     {
-        #         "code": "200000",
-        #         "data": [
-        #           {
-        #             "symbol": "BTC-USDT",
-        #             "takerFeeRate": "0.001",
-        #             "makerFeeRate": "0.001"
-        #           }
-        #         ]
-        #     }
-        #
-        data = self.safe_list(response, 'data', [])
-        first = self.safe_dict(data, 0)
-        marketId = self.safe_string(first, 'symbol')
+        uta = self.is_uta_enabled()
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchTradingFee', 'uta', uta)
+        request = {}
+        response: dict
+        entry = None
+        if utaOption:
+            if market['spot'] is True:
+                request['tradeType'] = 'SPOT'
+            else:
+                request['tradeType'] = 'FUTURES'
+            request['symbol'] = market['id']
+            response = self.utaPrivateGetUserFeeRate(self.extend(request, paramsUta))
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": {
+            #             "tradeType": "SPOT",
+            #             "list": [
+            #                 {
+            #                     "symbol": "ETH-USDT",
+            #                     "takerFeeRate": "0.001",
+            #                     "makerFeeRate": "0.001"
+            #                 }
+            #             ]
+            #         }
+            #     }
+            #
+            data = self.safe_dict(response, 'data', {})
+            dataList = self.safe_list(data, 'list', [])
+            entry = self.safe_dict(dataList, 0)
+        elif market['spot'] is True:
+            request['symbols'] = market['id']
+            response = self.privateGetTradeFees(self.extend(request, paramsUta))
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": [
+            #           {
+            #             "symbol": "BTC-USDT",
+            #             "takerFeeRate": "0.001",
+            #             "makerFeeRate": "0.001"
+            #           }
+            #         ]
+            #     }
+            #
+            data = self.safe_list(response, 'data', [])
+            entry = self.safe_dict(data, 0)
+        else:
+            request['symbol'] = market['id']
+            response = self.futuresPrivateGetTradeFees(self.extend(request, paramsUta))
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": {
+            #             "symbol": "ETHUSDTM",
+            #             "takerFeeRate": "0.0006",
+            #             "makerFeeRate": "0.0002",
+            #             "feeTaxRate": "0"
+            #         }
+            #     }
+            #
+            entry = self.safe_dict(response, 'data')
+        marketId = self.safe_string(entry, 'symbol')
         return {
             'info': response,
             'symbol': self.safe_symbol(marketId, market),
-            'maker': self.safe_number(first, 'makerFeeRate'),
-            'taker': self.safe_number(first, 'takerFeeRate'),
+            'maker': self.safe_number(entry, 'makerFeeRate'),
+            'taker': self.safe_number(entry, 'takerFeeRate'),
             'percentage': True,
             'tierBased': True,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
-        https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw-v3-
+        https://www.kucoin.com/docs-new/rest/account-info/withdrawals/withdraw-v3
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -3943,31 +7200,34 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.load_markets()
+        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        if self.markets is None:
+            self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'toAddress': address,
             'withdrawType': 'ADDRESS',
             # 'memo': tag,
-            # 'isInner': False,  # internal transfer or external withdrawal
+            # 'isInner': false, // internal transfer or external withdrawal
             # 'remark': 'optional',
-            # 'chain': 'OMNI',  # 'ERC20', 'TRC20', default is ERC20, This only apply for multi-chain currency, and there is no need for single chain currency.
+            # 'chain': 'OMNI', // 'ERC20', 'TRC20', default is ERC20, This only apply for multi-chain currency, and there is no need for single chain currency.
         }
-        if tag is not None:
-            request['memo'] = tag
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
+        if tagWithdrawTag is not None:
+            request['memo'] = tagWithdrawTag
+        networkCode, paramsNetworkCode = self.handle_network_code_and_params(paramsWithdrawTag)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode).lower()
-        request['amount'] = float(self.currency_to_precision(code, amount, networkCode))
-        includeFee = None
-        includeFee, params = self.handle_option_and_params(params, 'withdraw', 'includeFee', False)
+            _netIdTmp = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
+            if _netIdTmp is not None:
+                request['chain'] = _netIdTmp.lower()
+        amountString = self.currency_to_precision(code, amount, networkCode)
+        if amountString is not None:
+            request['amount'] = float(amountString)
+        includeFee, paramsIncludeFee = self.handle_option_bool_and_params(paramsNetworkCode, 'withdraw', 'includeFee', False)
         if includeFee:
             request['feeDeductType'] = 'INTERNAL'
-        response = self.privatePostWithdrawals(self.extend(request, params))
+        response = self.privatePostWithdrawals(self.extend(request, paramsIncludeFee))
         #
         # the id is inside "data"
         #
@@ -3982,12 +7242,14 @@ class kucoin(Exchange, ImplicitAPI):
         return self.parse_transaction(data, currency)
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'SUCCESS': 'ok',
             'PROCESSING': 'pending',
             'WALLET_PROCESSING': 'pending',
             'FAILURE': 'failed',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -4001,7 +7263,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         "fee": 0.0001,
         #         "currency": "KCS",
         #         "chain": "",
-        #         "isInner": False,
+        #         "isInner": false,
         #         "walletTxId": "5bbb57386d99522d9f954c5a@test004",
         #         "status": "SUCCESS",
         #         "createdAt": 1544178843000,
@@ -4020,7 +7282,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         "amount": 1.0000000,
         #         "fee": 0.0100000,
         #         "walletTxId": "3e2414d82acce78d38be7fe9",
-        #         "isInner": False,
+        #         "isInner": false,
         #         "status": "FAILURE",
         #         "createdAt": 1546503758000,
         #         "updatedAt": 1546504603000
@@ -4046,7 +7308,9 @@ class kucoin(Exchange, ImplicitAPI):
                     if len(txidParts[1]) > 1:
                         address = txidParts[1]
             txid = txidParts[0]
-        type = 'withdrawal' if (txid is None) else 'deposit'
+        type = 'deposit'
+        if txid is None:
+            type = 'withdrawal'
         rawStatus = self.safe_string(transaction, 'status')
         fee = None
         feeCost = self.safe_string(transaction, 'fee')
@@ -4071,12 +7335,13 @@ class kucoin(Exchange, ImplicitAPI):
                 updated = updated * 1000
         internal = self.safe_bool(transaction, 'isInner')
         tag = self.safe_string(transaction, 'memo')
+        chainId = self.safe_string(transaction, 'chain')
         return {
             'info': transaction,
             'id': self.safe_string_2(transaction, 'id', 'withdrawalId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(self.safe_string(transaction, 'chain')),
+            'network': self.network_id_to_code(chainId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -4094,43 +7359,52 @@ class kucoin(Exchange, ImplicitAPI):
             'updated': updated,
         }
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
-        https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list
-        https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list
+        https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-history
+        https://www.kucoin.com/docs-new/abandoned-endpoints/account-funding/get-deposit-history-old
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: *main account only* default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.accountType]: 'main' or 'contract'(default is 'main')
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
+        accountType = 'main'
+        paramsRequest = None
+        accountType, paramsRequest = self.handle_option_string_and_params(params, 'fetchDeposits', 'accountType', accountType)
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
+        accountType = self.safe_string(accountsByType, accountType, accountType)
+        if accountType == 'contract':
+            return self.fetch_contract_deposits(code, since, limit, paramsRequest)
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
+        paginate, paramsRequest = self.handle_option_bool_and_params(paramsRequest, 'fetchDeposits', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchDeposits', code, since, limit, params)
-        request: dict = {}
+            return self.fetch_paginated_call_dynamic('fetchDeposits', code, since, limit, paramsRequest)
+        request = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
         if limit is not None:
             request['pageSize'] = limit
-        request, params = self.handle_until_option('endAt', request, params)
+        request, paramsRequest = self.handle_until_option('endAt', request, paramsRequest)
         response = None
         if since is not None and since < 1550448000000:
             # if since is earlier than 2019-02-18T00:00:00Z
             request['startAt'] = self.parse_to_int(since / 1000)
-            response = self.privateGetHistDeposits(self.extend(request, params))
+            response = self.privateGetHistDeposits(self.extend(request, paramsRequest))
         else:
             if since is not None:
                 request['startAt'] = since
-            response = self.privateGetDeposits(self.extend(request, params))
+            response = self.privateGetDeposits(self.extend(request, paramsRequest))
         #
         #     {
         #         "code": "200000",
@@ -4140,29 +7414,29 @@ class kucoin(Exchange, ImplicitAPI):
         #             "totalNum": 2,
         #             "totalPage": 1,
         #             "items": [
-        #                 #--------------------------------------------------
-        #                 # version 2 deposit response structure
+        #                 //--------------------------------------------------
+        #                 // version 2 deposit response structure
         #                 {
         #                     "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
         #                     "memo": "5c247c8a03aa677cea2a251d",
         #                     "amount": 1,
         #                     "fee": 0.0001,
         #                     "currency": "KCS",
-        #                     "isInner": False,
+        #                     "isInner": false,
         #                     "walletTxId": "5bbb57386d99522d9f954c5a@test004",
         #                     "status": "SUCCESS",
         #                     "createdAt": 1544178843000,
         #                     "updatedAt": 1544178891000
         #                     "remark":"foobar"
         #                 },
-        #                 #--------------------------------------------------
-        #                 # version 1(historical) deposit response structure
+        #                 //--------------------------------------------------
+        #                 // version 1 (historical) deposit response structure
         #                 {
         #                     "currency": "BTC",
         #                     "createAt": 1528536998,
         #                     "amount": "0.03266638",
         #                     "walletTxId": "55c643bc2c68d6f17266383ac1be9e454038864b929ae7cee0bc408cc5c869e8@12ffGWmMMD1zA1WbFm7Ho3JZ1w6NYXjpFk@234",
-        #                     "isInner": False,
+        #                     "isInner": false,
         #                     "status": "SUCCESS",
         #                 }
         #             ]
@@ -4173,43 +7447,27 @@ class kucoin(Exchange, ImplicitAPI):
         items = self.safe_list(data, 'items', [])
         return self.parse_transactions(items, currency, since, limit, {'type': 'deposit'})
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_contract_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
-        fetch all withdrawals made from an account
-
-        https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list
-        https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list
-
+        helper method for fetching deposits for futures accounts
         :param str code: unified currency code
-        :param int [since]: the earliest time in ms to fetch withdrawals for
-        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.until]: the latest time in ms to fetch entries for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
-        if paginate:
-            return self.fetch_paginated_call_dynamic('fetchWithdrawals', code, since, limit, params)
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
         if limit is not None:
             request['pageSize'] = limit
-        request, params = self.handle_until_option('endAt', request, params)
-        response = None
-        if since is not None and since < 1550448000000:
-            # if since is earlier than 2019-02-18T00:00:00Z
-            request['startAt'] = self.parse_to_int(since / 1000)
-            response = self.privateGetHistWithdrawals(self.extend(request, params))
-        else:
-            if since is not None:
-                request['startAt'] = since
-            response = self.privateGetWithdrawals(self.extend(request, params))
+        if since is not None:
+            request['startAt'] = since
+        response = self.futuresPrivateGetDepositList(self.extend(request, params))
         #
         #     {
         #         "code": "200000",
@@ -4219,8 +7477,86 @@ class kucoin(Exchange, ImplicitAPI):
         #             "totalNum": 2,
         #             "totalPage": 1,
         #             "items": [
-        #                 #--------------------------------------------------
-        #                 # version 2 withdrawal response structure
+        #                 {
+        #                     "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
+        #                     "memo": "5c247c8a03aa677cea2a251d",
+        #                     "amount": 1,
+        #                     "fee": 0.0001,
+        #                     "currency": "KCS",
+        #                     "isInner": false,
+        #                     "walletTxId": "5bbb57386d99522d9f954c5a@test004",
+        #                     "status": "SUCCESS",
+        #                     "createdAt": 1544178843000,
+        #                     "updatedAt": 1544178891000
+        #                     "remark":"foobar"
+        #                 },
+        #                 ...
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        responseData = self.safe_list(data, 'items', [])
+        return self.parse_transactions(responseData, currency, since, limit, {'type': 'deposit'})
+
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
+        """
+        fetch all withdrawals made from an account
+
+        https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-history
+        https://www.kucoin.com/docs-new/abandoned-endpoints/account-funding/get-withdrawal-history-old
+
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :param boolean [params.paginate]: *main account only* default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.accountType]: 'main' or 'contract'(default is 'main')
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        accountType = 'main'
+        paramsRequest = None
+        accountType, paramsRequest = self.handle_option_string_and_params(params, 'fetchWithdrawals', 'accountType', accountType)
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
+        accountType = self.safe_string(accountsByType, accountType, accountType)
+        if accountType == 'contract':
+            return self.fetch_contract_withdrawals(code, since, limit, paramsRequest)
+        maxLimit = 500
+        paginate = False
+        paginate, paramsRequest = self.handle_option_bool_and_params(paramsRequest, 'fetchWithdrawals', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchWithdrawals', code, since, limit, paramsRequest, maxLimit)
+        request = {}
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if limit is not None:
+            request['pageSize'] = limit
+        request, paramsRequest = self.handle_until_option('endAt', request, paramsRequest)
+        response = None
+        if since is not None and since < 1550448000000:
+            # if since is earlier than 2019-02-18T00:00:00Z
+            request['startAt'] = self.parse_to_int(since / 1000)
+            response = self.privateGetHistWithdrawals(self.extend(request, paramsRequest))
+        else:
+            if since is not None:
+                request['startAt'] = since
+            response = self.privateGetWithdrawals(self.extend(request, paramsRequest))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "currentPage": 1,
+        #             "pageSize": 5,
+        #             "totalNum": 2,
+        #             "totalPage": 1,
+        #             "items": [
+        #                 //--------------------------------------------------
+        #                 // version 2 withdrawal response structure
         #                 {
         #                     "id": "5c2dc64e03aa675aa263f1ac",
         #                     "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
@@ -4229,20 +7565,20 @@ class kucoin(Exchange, ImplicitAPI):
         #                     "amount": 1.0000000,
         #                     "fee": 0.0100000,
         #                     "walletTxId": "3e2414d82acce78d38be7fe9",
-        #                     "isInner": False,
+        #                     "isInner": false,
         #                     "status": "FAILURE",
         #                     "createdAt": 1546503758000,
         #                     "updatedAt": 1546504603000
         #                 },
-        #                 #--------------------------------------------------
-        #                 # version 1(historical) withdrawal response structure
+        #                 //--------------------------------------------------
+        #                 // version 1 (historical) withdrawal response structure
         #                 {
         #                     "currency": "BTC",
         #                     "createAt": 1526723468,
         #                     "amount": "0.534",
         #                     "address": "33xW37ZSW4tQvg443Pc7NLCAs167Yc2XUV",
         #                     "walletTxId": "aeacea864c020acf58e51606169240e96774838dcd4f7ce48acf38e3651323f4",
-        #                     "isInner": False,
+        #                     "isInner": false,
         #                     "status": "SUCCESS"
         #                 }
         #             ]
@@ -4253,7 +7589,59 @@ class kucoin(Exchange, ImplicitAPI):
         items = self.safe_list(data, 'items', [])
         return self.parse_transactions(items, currency, since, limit, {'type': 'withdrawal'})
 
-    def parse_balance_helper(self, entry):
+    def fetch_contract_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
+        """
+        helper method for fetching withdrawals for futures accounts
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        request = {}
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if limit is not None:
+            request['pageSize'] = limit
+        if since is not None:
+            request['startAt'] = since
+        response = self.futuresPrivateGetWithdrawalList(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "currentPage": 1,
+        #             "pageSize": 5,
+        #             "totalNum": 2,
+        #             "totalPage": 1,
+        #             "items": [
+        #                 {
+        #                     "id": "5c2dc64e03aa675aa263f1ac",
+        #                     "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
+        #                     "memo": "",
+        #                     "currency": "ETH",
+        #                     "amount": 1.0000000,
+        #                     "fee": 0.0100000,
+        #                     "walletTxId": "3e2414d82acce78d38be7fe9",
+        #                     "isInner": false,
+        #                     "status": "FAILURE",
+        #                     "createdAt": 1546503758000,
+        #                     "updatedAt": 1546504603000
+        #                 },
+        #                 ...
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        responseData = self.safe_list(data, 'items', [])
+        return self.parse_transactions(responseData, currency, since, limit, {'type': 'withdrawal'})
+
+    def parse_balance_helper(self, entry: dict):
         account = self.account()
         account['used'] = self.safe_string_2(entry, 'holdBalance', 'hold')
         account['free'] = self.safe_string_2(entry, 'availableBalance', 'available')
@@ -4263,50 +7651,59 @@ class kucoin(Exchange, ImplicitAPI):
         account['debt'] = Precise.string_add(debt, interest)
         return account
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf
-        https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-margin
-        https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-isolated-margin
+        https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-detail-spot
+        https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin
+        https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
+        https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures
+        https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+        https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.marginMode]: 'cross' or 'isolated', margin type for fetching margin balance
         :param dict [params.type]: extra parameters specific to the exchange API endpoint
         :param dict [params.hf]: *default if False* if True, the result includes the balance of the high frequency account
+        :param boolean [params.uta]: set to True for the unified trading account(uta) endpoint, defaults to False
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
-        code = self.safe_string(params, 'code')
+        if self.markets is None:
+            self.load_markets()
+        uta = self.is_uta_enabled()
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchBalance', 'uta', uta)
+        if utaOption:
+            return self.fetch_uta_balance(paramsUta)
+        response = None
+        request = {}
+        code = self.safe_string(paramsUta, 'code')
         currency = None
         if code is not None:
             currency = self.currency(code)
-        defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
-        requestedType = self.safe_string(params, 'type', defaultType)
-        accountsByType = self.safe_dict(self.options, 'accountsByType')
+        requestedType, paramsMarketType = self.handle_market_type_and_params('fetchBalance', None, paramsUta)
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         type = self.safe_string(accountsByType, requestedType, requestedType)
-        params = self.omit(params, 'type')
-        hf = None
-        hf, params = self.handle_hf_and_params(params)
-        if hf and (type != 'main'):
+        paramsOmitted = self.omit(paramsMarketType, 'type')
+        if type == 'contract':
+            return self.fetch_contract_balance(paramsOmitted)
+        hf, paramsHf = self.handle_hf_and_params(paramsOmitted)
+        if (hf is True) and (type != 'main'):
             type = 'trade_hf'
-        marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
-        response = None
-        request: dict = {}
+        marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchBalance', paramsHf)
         isolated = (marginMode == 'isolated') or (type == 'isolated')
         cross = (marginMode == 'cross') or (type == 'margin')
         if isolated:
             if currency is not None:
                 request['balanceCurrency'] = currency['id']
-            response = self.privateGetIsolatedAccounts(self.extend(request, query))
+            response = self.privateGetIsolatedAccounts(self.extend(request, paramsMarginMode))
         elif cross:
-            response = self.privateGetMarginAccount(self.extend(request, query))
+            response = self.privateGetMarginAccount(self.extend(request, paramsMarginMode))
         else:
             if currency is not None:
                 request['currency'] = currency['id']
             request['type'] = type
-            response = self.privateGetAccounts(self.extend(request, query))
+            response = self.privateGetAccounts(self.extend(request, paramsMarginMode))
         #
         # Spot
         #
@@ -4358,8 +7755,8 @@ class kucoin(Exchange, ImplicitAPI):
         #                    "debtRatio": "0",
         #                    "baseAsset": {
         #                        "currency": "MANA",
-        #                        "borrowEnabled": True,
-        #                        "transferInEnabled": True,
+        #                        "borrowEnabled": true,
+        #                        "transferInEnabled": true,
         #                        "total": "0",
         #                        "hold": "0",
         #                        "available": "0",
@@ -4369,8 +7766,8 @@ class kucoin(Exchange, ImplicitAPI):
         #                    },
         #                    "quoteAsset": {
         #                        "currency": "USDT",
-        #                        "borrowEnabled": True,
-        #                        "transferInEnabled": True,
+        #                        "borrowEnabled": true,
+        #                        "transferInEnabled": true,
         #                        "total": "0",
         #                        "hold": "0",
         #                        "available": "0",
@@ -4384,8 +7781,7 @@ class kucoin(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = None
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -4394,17 +7790,15 @@ class kucoin(Exchange, ImplicitAPI):
             data = self.safe_dict(response, 'data', {})
             assets = self.safe_value(data, 'assets', data)
             for i in range(0, len(assets)):
-                entry = assets[i]
-                marketId = self.safe_string(entry, 'symbol')
-                symbol = self.safe_symbol(marketId, None, '_')
+                entry = self.safe_dict(assets, i)
                 base = self.safe_dict(entry, 'baseAsset', {})
                 quote = self.safe_dict(entry, 'quoteAsset', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
-                subResult: dict = {}
-                subResult[baseCode] = self.parse_balance_helper(base)
-                subResult[quoteCode] = self.parse_balance_helper(quote)
-                result[symbol] = self.safe_balance(subResult)
+                if baseCode is not None:
+                    result = self.merge_balance_account(result, baseCode, self.parse_balance_helper(base))
+                if quoteCode is not None:
+                    result = self.merge_balance_account(result, quoteCode, self.parse_balance_helper(quote))
         elif cross:
             data = self.safe_dict(response, 'data', {})
             accounts = self.safe_list(data, 'accounts', [])
@@ -4412,11 +7806,12 @@ class kucoin(Exchange, ImplicitAPI):
                 balance = accounts[i]
                 currencyId = self.safe_string(balance, 'currency')
                 codeInner = self.safe_currency_code(currencyId)
-                result[codeInner] = self.parse_balance_helper(balance)
+                if codeInner is not None:
+                    result[codeInner] = self.parse_balance_helper(balance)
         else:
             data = self.safe_list(response, 'data', [])
             for i in range(0, len(data)):
-                balance = data[i]
+                balance = self.safe_dict(data, i)
                 balanceType = self.safe_string(balance, 'type')
                 if balanceType == type:
                     currencyId = self.safe_string(balance, 'currency')
@@ -4425,15 +7820,297 @@ class kucoin(Exchange, ImplicitAPI):
                     account['total'] = self.safe_string(balance, 'balance')
                     account['free'] = self.safe_string(balance, 'available')
                     account['used'] = self.safe_string(balance, 'holds')
-                    result[codeInner2] = account
-        returnType = result
-        if not isolated:
-            returnType = self.safe_balance(result)
-        return returnType
+                    if codeInner2 is not None:
+                        result[codeInner2] = account
+        return self.safe_balance(result)
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    def fetch_contract_balance(self, params: dict = {}) -> Balances:
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+
+        https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.code]: the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        # only fetches one balance at a time
+        defaultCode = self.safe_string(self.options, 'code')
+        fetchBalanceOptions = self.safe_dict(self.options, 'fetchBalance', {})
+        defaultCode = self.safe_string(fetchBalanceOptions, 'code', defaultCode)
+        code = self.safe_string(params, 'code', defaultCode)
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchContractBalance() requires a code parameter')
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.futuresPrivateGetAccountOverview(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "accountEquity": 0.00005,
+        #             "unrealisedPNL": 0,
+        #             "marginBalance": 0.00005,
+        #             "positionMargin": 0,
+        #             "orderMargin": 0,
+        #             "frozenFunds": 0,
+        #             "availableBalance": 0.00005,
+        #             "currency": "XBT"
+        #         }
+        #     }
+        #
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        data = self.safe_dict(response, 'data')
+        currencyId = self.safe_string(data, 'currency')
+        currencyCode = self.safe_currency_code(currencyId, currency)
+        account = self.account()
+        account['free'] = self.safe_string(data, 'availableBalance')
+        account['total'] = self.safe_string(data, 'accountEquity')
+        if currencyCode is not None:
+            result[currencyCode] = account
+        return self.safe_balance(result)
+
+    def fetch_uta_balance(self, params: dict = {}) -> Balances:
+        """
+        helper method for fetching balance with unified trading account(uta) endpoint
+
+        https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+        https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'unified', 'spot', 'funding', 'cross', 'isolated' or 'swap'(default is 'unified')
+        :param str [params.marginMode]: 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin(default is cross)
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        requestedType = 'unified'
+        paramsRequest: dict
+        requestedType, paramsRequest = self.handle_market_type_and_params('fetchUtaBalance', None, params, requestedType)
+        if requestedType == 'margin':
+            # assume cross margin if margin is specified but marginMode is not specified
+            marginMode = 'cross'
+            marginMode, paramsRequest = self.handle_option_string_and_params(paramsRequest, 'fetchUtaBalance', 'marginMode', marginMode)
+            requestedType = marginMode
+        utaAccountsByType = self.safe_dict(self.options, 'utaAccountsByType', {})
+        type = None
+        type = self.safe_string(utaAccountsByType, requestedType, requestedType)
+        isIsolated = (type == 'ISOLATED')
+        request = {}
+        response: dict
+        if type == 'unified':
+            request['accountMode'] = type
+            # uta
+            #     {
+            #         "code": "200000",
+            #         "data": {
+            #             "accountType": "UNIFIED",
+            #             "ts": 1764731696945,
+            #             "accounts": [
+            #                 {
+            #                     "currencies": [
+            #                         {
+            #                             "currency": "USDT",
+            #                             "equity": "97.9936711985",
+            #                             "hold": "0.0000000000",
+            #                             "balance": "97.9936711985",
+            #                             "available": "97.9936711985",
+            #                             "liability": "0.0000000000"
+            #                         },
+            #                         {
+            #                             "currency": "BTC",
+            #                             "equity": "0.0000216000",
+            #                             "hold": "0.0000000000",
+            #                             "balance": "0.0000216000",
+            #                             "available": "0.0000216000",
+            #                             "liability": "0.0000000000"
+            #                         }
+            #                     ]
+            #                 }
+            #             ]
+            #         }
+            #     }
+            #
+            response = self.utaPrivateGetAccountModeAccountBalance(self.extend(request, paramsRequest))
+        else:
+            request['accountType'] = type
+            #
+            # isolated
+            #     {
+            #         "code": "200000",
+            #         "data": {
+            #             "accountType": "ISOLATED",
+            #             "ts": 1774244660519,
+            #             "accounts": [
+            #                 {
+            #                     "accountSubtype": "LTC-USDT",
+            #                     "riskRatio": "0",
+            #                     "currencies": [
+            #                         {
+            #                             "currency": "LTC",
+            #                             "hold": "0",
+            #                             "available": "0",
+            #                             "liability": "0",
+            #                             "balance": "0",
+            #                             "equity": "0"},{
+            #                             "currency": "USDT",
+            #                             "hold": "0",
+            #                             "available": "6",
+            #                             "liability": "0",
+            #                             "balance": "6",
+            #                             "equity": "6"
+            #                         }
+            #                     ]
+            #                 }
+            #             ]
+            #         }
+            #     }
+            #
+            response = self.utaPrivateGetAccountBalance(self.extend(request, paramsRequest))
+        data = self.safe_dict(response, 'data', {})
+        timestamp = self.safe_integer(data, 'ts')
+        result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+        accounts = self.safe_list(data, 'accounts', [])
+        if isIsolated:
+            for i in range(0, len(accounts)):
+                entry = self.safe_dict(accounts, i)
+                currencies = self.safe_list(entry, 'currencies', [])
+                for j in range(0, len(currencies)):
+                    currencyEntry = self.safe_dict(currencies, j, {})
+                    currencyId = self.safe_string(currencyEntry, 'currency')
+                    currencyCode = self.safe_currency_code(currencyId)
+                    if currencyCode is not None:
+                        result = self.merge_balance_account(result, currencyCode, self.parse_balance_helper(currencyEntry))
+        else:
+            firstAccount = self.safe_dict(accounts, 0, {})
+            currencies = self.safe_list(firstAccount, 'currencies', [])
+            for i in range(0, len(currencies)):
+                currencyEntry = self.safe_dict(currencies, i, {})
+                currencyId = self.safe_string(currencyEntry, 'currency')
+                currencyCode = self.safe_currency_code(currencyId)
+                if currencyCode is not None:
+                    result[currencyCode] = self.parse_balance_helper(currencyEntry)
+        return self.safe_balance(result)
+
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
+
+        https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
+        https://www.kucoin.com/docs-new/rest/ua/flex-transfer
+
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta) endpoint, defaults to False
+ Check transferClassic() and transferUta() for more details on params
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        uta = self.is_uta_enabled()
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'transfer', 'uta', uta)
+        if utaOption:
+            return self.transfer_uta(code, amount, fromAccount, toAccount, paramsUta)
+        return self.transfer_classic(code, amount, fromAccount, toAccount, paramsUta)
+
+    def transfer_uta(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
+        """
+        transfer currency internally between wallets on the same account with uta endpoint
+
+        https://www.kucoin.com/docs-new/rest/ua/flex-transfer
+
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.transferType]: INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT, SUB_TO_SUB(default is INTERNAL)
+        :param str [params.fromUserId]: required if transferType is SUB_TO_PARENT or SUB_TO_SUB
+        :param str [params.toUserId]: required if transferType is PARENT_TO_SUB or SUB_TO_SUB
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        currency = self.currency(code)
+        requestedAmount = self.currency_to_precision(code, amount)
+        request = {
+            'currency': currency['id'],
+            'amount': requestedAmount,
+        }
+        transferType = 'INTERNAL'
+        transferTypeOption, paramsTransferType = self.handle_param_string_2(params, 'transferType', 'type', transferType)
+        fromUserId = None
+        fromUserIdOption, paramsFromUserId = self.handle_param_string_2(paramsTransferType, 'fromUserId', 'fromUid', fromUserId)
+        toUserId = None
+        toUserIdOption, paramsToUserId = self.handle_param_string_2(paramsFromUserId, 'toUserId', 'toUid', toUserId)
+        if transferTypeOption == 'PARENT_TO_SUB' or transferTypeOption == 'SUB_TO_SUB':
+            if toUserIdOption is None:
+                raise ExchangeError(self.id + ' transfer() requires a toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers')
+            else:
+                request['toUid'] = toUserIdOption
+        elif transferTypeOption == 'SUB_TO_PARENT' or transferTypeOption == 'SUB_TO_SUB':
+            if fromUserIdOption is None:
+                raise ExchangeError(self.id + ' transfer() requires a fromUserId param for SUB_TO_PARENT or SUB_TO_SUB transfers')
+            else:
+                request['fromUid'] = fromUserIdOption
+        clientOid = self.uuid()
+        clientOidOption, paramsClientOid = self.handle_param_string_2(paramsToUserId, 'clientOid', 'clientOrderId', clientOid)
+        request['clientOid'] = clientOidOption
+        fromId = self.convert_type_to_account(fromAccount)
+        toId = self.convert_type_to_account(toAccount)
+        exchangeIds = [] if (self.ids is None) else self.ids
+        fromIsolated = self.in_array(fromId, exchangeIds)
+        toIsolated = self.in_array(toId, exchangeIds)
+        if fromIsolated:
+            request['fromAccountSymbol'] = fromId
+            fromId = 'ISOLATED'
+        if toIsolated:
+            request['toAccountSymbol'] = toId
+            toId = 'ISOLATED'
+        utaAccountsByType = self.safe_dict(self.options, 'utaAccountsByType', {})
+        fromId = self.safe_string(utaAccountsByType, fromId, fromId)
+        toId = self.safe_string(utaAccountsByType, toId, toId)
+        request['fromAccountType'] = fromId.upper()
+        request['toAccountType'] = toId.upper()
+        types = {
+            'INTERNAL': '0',
+            'PARENT_TO_SUB': '1',
+            'SUB_TO_PARENT': '2',
+            'SUB_TO_SUB': '3',
+        }
+        request['type'] = self.safe_string(types, transferTypeOption, transferTypeOption)
+        response = self.utaPrivatePostAccountTransfer(self.extend(request, paramsClientOid))
+        #
+        #
+        data = self.safe_dict(response, 'data', {})
+        transfer = self.parse_transfer(data, currency)
+        transferOptions = self.safe_dict(self.options, 'transfer', {})
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest is True:
+            transfer['amount'] = amount
+            transfer['fromAccount'] = fromAccount
+            transfer['toAccount'] = toAccount
+            transfer['status'] = 'ok'
+        return transfer
+
+    def transfer_classic(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
+        """
+        transfer currency internally between wallets on the same account with classic endpoints
 
         https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
 
@@ -4447,27 +8124,29 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.toUserId]: required if transferType is PARENT_TO_SUB
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         requestedAmount = self.currency_to_precision(code, amount)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'amount': requestedAmount,
         }
         transferType = 'INTERNAL'
-        transferType, params = self.handle_param_string_2(params, 'transferType', 'type', transferType)
-        if transferType == 'PARENT_TO_SUB':
-            if not ('toUserId' in params):
+        transferTypeOption, paramsTransferType = self.handle_param_string_2(params, 'transferType', 'type', transferType)
+        if transferTypeOption == 'PARENT_TO_SUB':
+            if not ('toUserId' in paramsTransferType):
                 raise ExchangeError(self.id + ' transfer() requires a toUserId param for PARENT_TO_SUB transfers')
-        elif transferType == 'SUB_TO_PARENT':
-            if not ('fromUserId' in params):
+        elif transferTypeOption == 'SUB_TO_PARENT':
+            if not ('fromUserId' in paramsTransferType):
                 raise ExchangeError(self.id + ' transfer() requires a fromUserId param for SUB_TO_PARENT transfers')
-        if not ('clientOid' in params):
+        if not ('clientOid' in paramsTransferType):
             request['clientOid'] = self.uuid()
         fromId = self.convert_type_to_account(fromAccount)
         toId = self.convert_type_to_account(toAccount)
-        fromIsolated = self.in_array(fromId, self.ids)
-        toIsolated = self.in_array(toId, self.ids)
+        exchangeIds = [] if (self.ids is None) else self.ids
+        fromIsolated = self.in_array(fromId, exchangeIds)
+        toIsolated = self.in_array(toId, exchangeIds)
         if fromIsolated:
             request['fromAccountTag'] = fromId
             fromId = 'isolated'
@@ -4475,15 +8154,15 @@ class kucoin(Exchange, ImplicitAPI):
             request['toAccountTag'] = toId
             toId = 'isolated'
         hfOrMining = self.is_hf_or_mining(fromId, toId)
-        response = None
+        response: dict
         if hfOrMining:
             # new endpoint does not support hf and mining transfers
             # use old endpoint for hf and mining transfers
             request['from'] = fromId
             request['to'] = toId
-            response = self.privatePostAccountsInnerTransfer(self.extend(request, params))
+            response = self.privatePostAccountsInnerTransfer(self.extend(request, paramsTransferType))
         else:
-            request['type'] = transferType
+            request['type'] = transferTypeOption
             request['fromAccountType'] = fromId.upper()
             request['toAccountType'] = toId.upper()
             #
@@ -4494,12 +8173,12 @@ class kucoin(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            response = self.privatePostAccountsUniversalTransfer(self.extend(request, params))
-        data = self.safe_dict(response, 'data')
+            response = self.privatePostAccountsUniversalTransfer(self.extend(request, paramsTransferType))
+        data = self.safe_dict(response, 'data', {})
         transfer = self.parse_transfer(data, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             transfer['amount'] = amount
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
@@ -4511,7 +8190,7 @@ class kucoin(Exchange, ImplicitAPI):
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
-        # transfer(spot)
+        # transfer (spot)
         #
         #    {
         #        "orderId": "605a6211e657f00006ad0ad6"
@@ -4522,7 +8201,7 @@ class kucoin(Exchange, ImplicitAPI):
         #        "msg": "Failed to transfer out. The amount exceeds the upper limit"
         #    }
         #
-        # transfer(futures)
+        # transfer (futures)
         #
         #     {
         #         "applyId": "605a87217dff1500063d485d",
@@ -4544,7 +8223,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         "updatedAt": 1616545569000
         #     }
         #
-        # ledger entry - from account ledgers API(for fetchTransfers)
+        # ledger entry - from account ledgers API (for fetchTransfers)
         #
         # {
         #     "id": "611a1e7c6a053300067a88d9",
@@ -4559,7 +8238,19 @@ class kucoin(Exchange, ImplicitAPI):
         #     "context": "{\"orderId\":\"611a1e7c6a053300067a88d9\"}"
         # }
         #
-        timestamp = self.safe_integer(transfer, 'createdAt')
+        # ledger entry from contracts API
+        #     {
+        #         "time": 1771765696000,
+        #         "type": "TransferIn",
+        #         "amount": 10.0,
+        #         "fee": 0.0,
+        #         "accountEquity": 54.53821148,
+        #         "status": "Completed",
+        #         "remark": "Transferred from Trading Account",
+        #         "offset": 71904927,
+        #         "currency": "USDT"
+        #     }
+        timestamp = self.safe_integer_2(transfer, 'createdAt', 'time')
         currencyId = self.safe_string(transfer, 'currency')
         rawStatus = self.safe_string(transfer, 'status')
         bizType = self.safe_string(transfer, 'bizType')
@@ -4579,8 +8270,8 @@ class kucoin(Exchange, ImplicitAPI):
             accountFromRaw = self.safe_string_lower(transfer, 'payAccountType')
             accountToRaw = self.safe_string_lower(transfer, 'recAccountType')
         accountsByType = self.safe_dict(self.options, 'accountsByType')
-        accountFrom = self.safe_string(accountsByType, accountFromRaw, accountFromRaw)
-        accountTo = self.safe_string(accountsByType, accountToRaw, accountToRaw)
+        accountFrom = None if (accountFromRaw is None) else self.safe_string(accountsByType, accountFromRaw, accountFromRaw)
+        accountTo = None if (accountToRaw is None) else self.safe_string(accountsByType, accountToRaw, accountToRaw)
         return {
             'id': self.safe_string_n(transfer, ['id', 'applyId', 'orderId']),
             'currency': self.safe_currency_code(currencyId, currency),
@@ -4594,83 +8285,156 @@ class kucoin(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses: dict = {
+        statuses = {
             'PROCESSING': 'pending',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
-    def parse_ledger_entry_type(self, type):
-        types: dict = {
+    def parse_ledger_entry_type(self, type: Str) -> Str:
+        types = {
             'Assets Transferred in After Upgrading': 'transfer',  # Assets Transferred in After V1 to V2 Upgrading
             'Deposit': 'transaction',  # Deposit
             'Withdrawal': 'transaction',  # Withdrawal
             'Transfer': 'transfer',  # Transfer
             'Trade_Exchange': 'trade',  # Trade
-            # 'Vote for Coin': 'Vote for Coin',  # Vote for Coin
+            # 'Vote for Coin': 'Vote for Coin', // Vote for Coin
             'KuCoin Bonus': 'bonus',  # KuCoin Bonus
             'Referral Bonus': 'referral',  # Referral Bonus
             'Rewards': 'bonus',  # Activities Rewards
-            # 'Distribution': 'Distribution',  # Distribution, such GAS by holding NEO
+            # 'Distribution': 'Distribution', // Distribution, such as get GAS by holding NEO
             'Airdrop/Fork': 'airdrop',  # Airdrop/Fork
             'Other rewards': 'bonus',  # Other rewards, except Vote, Airdrop, Fork
             'Fee Rebate': 'rebate',  # Fee Rebate
             'Buy Crypto': 'trade',  # Use credit card to buy crypto
             'Sell Crypto': 'sell',  # Use credit card to sell crypto
             'Public Offering Purchase': 'trade',  # Public Offering Purchase for Spotlight
-            # 'Send red envelope': 'Send red envelope',  # Send red envelope
-            # 'Open red envelope': 'Open red envelope',  # Open red envelope
-            # 'Staking': 'Staking',  # Staking
-            # 'LockDrop Vesting': 'LockDrop Vesting',  # LockDrop Vesting
-            # 'Staking Profits': 'Staking Profits',  # Staking Profits
-            # 'Redemption': 'Redemption',  # Redemption
+            # 'Send red envelope': 'Send red envelope', // Send red envelope
+            # 'Open red envelope': 'Open red envelope', // Open red envelope
+            # 'Staking': 'Staking', // Staking
+            # 'LockDrop Vesting': 'LockDrop Vesting', // LockDrop Vesting
+            # 'Staking Profits': 'Staking Profits', // Staking Profits
+            # 'Redemption': 'Redemption', // Redemption
             'Refunded Fees': 'fee',  # Refunded Fees
             'KCS Pay Fees': 'fee',  # KCS Pay Fees
             'Margin Trade': 'trade',  # Margin Trade
             'Loans': 'Loans',  # Loans
-            # 'Borrowings': 'Borrowings',  # Borrowings
-            # 'Debt Repayment': 'Debt Repayment',  # Debt Repayment
-            # 'Loans Repaid': 'Loans Repaid',  # Loans Repaid
-            # 'Lendings': 'Lendings',  # Lendings
-            # 'Pool transactions': 'Pool transactions',  # Pool-X transactions
+            # 'Borrowings': 'Borrowings', // Borrowings
+            # 'Debt Repayment': 'Debt Repayment', // Debt Repayment
+            # 'Loans Repaid': 'Loans Repaid', // Loans Repaid
+            # 'Lendings': 'Lendings', // Lendings
+            # 'Pool transactions': 'Pool transactions', // Pool-X transactions
             'Instant Exchange': 'trade',  # Instant Exchange
             'Sub-account transfer': 'transfer',  # Sub-account transfer
             'Liquidation Fees': 'fee',  # Liquidation Fees
-            # 'Soft Staking Profits': 'Soft Staking Profits',  # Soft Staking Profits
-            # 'Voting Earnings': 'Voting Earnings',  # Voting Earnings on Pool-X
-            # 'Redemption of Voting': 'Redemption of Voting',  # Redemption of Voting on Pool-X
-            # 'Voting': 'Voting',  # Voting on Pool-X
-            # 'Convert to KCS': 'Convert to KCS',  # Convert to KCS
+            # 'Soft Staking Profits': 'Soft Staking Profits', // Soft Staking Profits
+            # 'Voting Earnings': 'Voting Earnings', // Voting Earnings on Pool-X
+            # 'Redemption of Voting': 'Redemption of Voting', // Redemption of Voting on Pool-X
+            # 'Voting': 'Voting', // Voting on Pool-X
+            # 'Convert to KCS': 'Convert to KCS', // Convert to KCS
+            'RealisedPNL': 'trade',
+            'TransferIn': 'transfer',
+            'TransferOut': 'transfer',
+            'TRADE_EXCHANGE': 'trade',
+            'TRANSFER': 'transfer',
+            'SUB_TRANSFER': 'transfer',
+            'RETURNED_FEES': 'fee',
+            'DEDUCTION_FEES': 'fee',
+            'OTHER': 'other',
+            'SUB_TO_SUB_TRANSFER': 'transfer',
+            'SPOT_EXCHANGE': 'trade',
+            'SPOT_EXCHANGE_REBATE': 'rebate',
+            'FUTURES_EXCHANGE_OPEN': 'trade',
+            'FUTURES_EXCHANGE_CLOSE': 'trade',
+            'FUTURES_EXCHANGE_REBATE': 'rebate',
+            'FUNDING_FEE': 'fee',
+            'LIABILITY_INTEREST': 'fee',
+            'KCS_DEDUCTION_FEES': 'fee',
+            'KCS_RETURNED_FEES': 'fee',
+            'AUTO_EXCHANGE_USER': 'trade',
         }
         return self.safe_string(types, type, type)
+
+    def parse_ledger_direction(self, direction: Str) -> Str:
+        directions = {
+            'in': 'in',
+            'out': 'out',
+            'TransferIn': 'in',
+            'TransferOut': 'out',
+            'IN': 'in',
+            'OUT': 'out',
+        }
+        return self.safe_string(directions, direction, direction)
+
+    def parse_ledger_status(self, status: Str) -> Str:
+        statuses = {
+            'Completed': 'ok',
+            'Pending': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         #     {
-        #         "id": "611a1e7c6a053300067a88d9",  #unique key for each ledger entry
-        #         "currency": "USDT",  #Currency
-        #         "amount": "10.00059547",  #The total amount of assets(fees included) involved in assets changes such, withdrawal and bonus distribution.
-        #         "fee": "0",  #Deposit or withdrawal fee
-        #         "balance": "0",  #Total assets of a currency remaining funds after transaction
-        #         "accountType": "MAIN",  #Account Type
-        #         "bizType": "Loans Repaid",  #business type
-        #         "direction": "in",  #side, in or out
-        #         "createdAt": 1629101692950,  #Creation time
-        #         "context": "{\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\"}"  #Business core parameters
+        #         "id": "611a1e7c6a053300067a88d9", //unique key for each ledger entry
+        #         "currency": "USDT", //Currency
+        #         "amount": "10.00059547", //The total amount of assets (fees included) involved in assets changes such as transaction, withdrawal and bonus distribution.
+        #         "fee": "0", //Deposit or withdrawal fee
+        #         "balance": "0", //Total assets of a currency remaining funds after transaction
+        #         "accountType": "MAIN", //Account Type
+        #         "bizType": "Loans Repaid", //business type
+        #         "direction": "in", //side, in or out
+        #         "createdAt": 1629101692950, //Creation time
+        #         "context": "{\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\"}" //Business core parameters
+        #     }
+        #
+        # ledger entry from contracts API
+        #     {
+        #         "time": 1771765696000,
+        #         "type": "TransferIn",
+        #         "amount": 10.0,
+        #         "fee": 0.0,
+        #         "accountEquity": 54.53821148,
+        #         "status": "Completed",
+        #         "remark": "Transferred from Trading Account",
+        #         "offset": 71904927,
+        #         "currency": "USDT"
+        #     }
+        #
+        # ledger entry from UTA API
+        #     {
+        #         "accountType": "UNIFIED",
+        #         "id": "30000000001200350",
+        #         "currency": "USDT",
+        #         "direction": "IN",
+        #         "businessType": "TRANSFER",
+        #         "amount": "30",
+        #         "balance": "30",
+        #         "fee": "0",
+        #         "tax": "0",
+        #         "remark": "Funding Account",
+        #         "ts": 1774241648267000000
         #     }
         #
         id = self.safe_string(item, 'id')
         currencyId = self.safe_string(item, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        currency = self.safe_currency(currencyId, currency)
-        amount = self.safe_number(item, 'amount')
-        balanceAfter = None
-        # balanceAfter = self.safe_number(item, 'balance'); only returns zero string
-        bizType = self.safe_string(item, 'bizType')
+        currencyResolved = self.safe_currency(currencyId, currency)
+        amount = self.safe_string(item, 'amount')
+        balanceAfter = self.safe_number_omit_zero(item, 'balance')
+        bizType = self.safe_string_n(item, ['bizType', 'businessType', 'type'])
         type = self.parse_ledger_entry_type(bizType)
-        direction = self.safe_string(item, 'direction')
-        timestamp = self.safe_integer(item, 'createdAt')
-        datetime = self.iso8601(timestamp)
+        direction = self.safe_string_2(item, 'direction', 'type')
         account = self.safe_string(item, 'accountType')  # MAIN, TRADE, MARGIN, or CONTRACT
+        timestamp = self.safe_integer(item, 'createdAt')
+        if timestamp is None:
+            timestamp = self.safe_integer(item, 'time')
+            if timestamp is not None:
+                account = 'CONTRACT'  # contract ledger entries do not have an accountType field, so we set it to CONTRACT if the time field is present
+            else:
+                timestamp = self.safe_integer_product(item, 'ts', 0.000001)  # for UTA API
+        datetime = self.iso8601(timestamp)
         context = self.safe_string(item, 'context')  # contains other information about the ledger entry
         #
         # withdrawal transaction
@@ -4699,60 +8463,94 @@ class kucoin(Exchange, ImplicitAPI):
             except Exception as exc:
                 referenceId = context
         fee = None
-        feeCost = self.safe_string(item, 'fee')
+        feeCostString = self.safe_string(item, 'fee')
+        feeCost = None if (feeCostString is None) else self.omit_zero(feeCostString)
         feeCurrency = None
-        if feeCost != '0':
+        if feeCost is not None:
             feeCurrency = code
             fee = {'cost': self.parse_number(feeCost), 'currency': feeCurrency}
+        status = self.safe_string(item, 'status')
         return self.safe_ledger_entry({
             'info': item,
             'id': id,
-            'direction': direction,
+            'direction': self.parse_ledger_direction(direction),
             'account': account,
             'referenceId': referenceId,
             'referenceAccount': account,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': self.parse_number(Precise.string_abs(amount)),
             'timestamp': timestamp,
             'datetime': datetime,
             'before': None,
-            'after': balanceAfter,  # None
-            'status': None,
+            'after': balanceAfter,
+            'status': self.parse_ledger_status(status),
             'fee': fee,
-        }, currency)
+        }, currencyResolved)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
-        https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-spot-margin
-        https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf
-        https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf
+        https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
+        https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-tradehf
+        https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-marginhf
+        https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-futures
+        https://www.kucoin.com/docs-new/rest/ua/get-account-ledger
 
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.type]: extra parameters specific to the exchange API endpoint
         :param boolean [params.hf]: default False, when True will fetch ledger entries for the high frequency trading account
         :param int [params.until]: the latest time in ms to fetch entries for
+        :param boolean [params.uta]: default False, when True will fetch ledger entries for the unified trading account(UTA) instead of the regular accounts endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.load_accounts()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
+        uta = self.is_uta_enabled()
+        paramsRequest = None
+        uta, paramsRequest = self.handle_option_bool_and_params(params, 'fetchLedger', 'uta', uta)
         hf = None
-        hf, params = self.handle_hf_and_params(params)
+        hf, paramsRequest = self.handle_hf_and_params(paramsRequest)
+        requestedType = None
+        if uta:
+            requestedType = 'UNIFIED'
+        requestedType, paramsRequest = self.handle_market_type_and_params('fetchLedger', None, paramsRequest, requestedType)
+        marginMode = None
+        marginMode, paramsRequest = self.handle_margin_mode_and_params('fetchLedger', paramsRequest)
+        if uta and (requestedType == 'margin'):
+            marginMode = 'cross' if (marginMode is None) else marginMode  # default to cross margin for UTA if margin is requested but marginMode is not specified
+            requestedType = marginMode
+        accountsByType = self.safe_dict(self.options, 'accountsByType')
+        if uta:
+            accountsByType = self.safe_dict(self.options, 'utaAccountsByType')
+        type = None
+        type = self.safe_string(accountsByType, requestedType, requestedType)
+        maxLimit = 500  # for spot non-uta and margin
+        if hf is True:
+            maxLimit = 200
+        elif type == 'contract':
+            maxLimit = 50
+        elif uta:
+            if (type == 'UNIFIED') or (type == 'SPOT'):
+                maxLimit = 200
+            elif type == 'FUTURES':
+                maxLimit = 100
+        paginate = False
+        paginate, paramsRequest = self.handle_option_bool_and_params(paramsRequest, 'fetchLedger', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params)
-        request: dict = {
-            # 'currency': currency['id'],  # can choose up to 10, if not provided returns for all currencies by default
-            # 'direction': 'in',  # 'out'
-            # 'bizType': 'DEPOSIT',  # DEPOSIT, WITHDRAW, TRANSFER, SUB_TRANSFER,TRADE_EXCHANGE, MARGIN_EXCHANGE, KUCOIN_BONUS(optional)
+            return self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, paramsRequest, maxLimit)
+        request = {
+            # 'currency': currency['id'], // can choose up to 10, if not provided returns for all currencies by default
+            # 'direction': 'in', // 'out'
+            # 'bizType': 'DEPOSIT', // DEPOSIT, WITHDRAW, TRANSFER, SUB_TRANSFER,TRADE_EXCHANGE, MARGIN_EXCHANGE, KUCOIN_BONUS (optional)
             # 'startAt': since,
-            # 'endAt': exchange.milliseconds(),
+            # 'endAt': exchange.milliseconds (),
         }
         if since is not None:
             request['startAt'] = since
@@ -4761,17 +8559,48 @@ class kucoin(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
-        request, params = self.handle_until_option('endAt', request, params)
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchLedger', params)
-        response = None
-        if hf:
-            if marginMode is not None:
-                response = self.privateGetHfMarginAccountLedgers(self.extend(request, params))
+        request, paramsRequest = self.handle_until_option('endAt', request, paramsRequest)
+        if limit is not None:
+            if type == 'contract':
+                request['maxCount'] = limit
+            elif hf is True:
+                request['limit'] = limit
             else:
-                response = self.privateGetHfAccountsLedgers(self.extend(request, params))
+                request['pageSize'] = limit
+        response: dict
+        if uta:
+            request['accountType'] = type
+            response = self.utaPrivateGetAccountLedger(self.extend(request, paramsRequest))
+        elif hf is True:
+            if marginMode is not None:
+                response = self.privateGetHfMarginAccountLedgers(self.extend(request, paramsRequest))
+            else:
+                response = self.privateGetHfAccountsLedgers(self.extend(request, paramsRequest))
+        elif type == 'contract':
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": {
+            #             "dataList": [
+            #                 {
+            #                     "time": 1771765696000,
+            #                     "type": "TransferIn",
+            #                     "amount": 10.0,
+            #                     "fee": 0.0,
+            #                     "accountEquity": 54.53821148,
+            #                     "status": "Completed",
+            #                     "remark": "Transferred from Trading Account",
+            #                     "offset": 71904927,
+            #                     "currency": "USDT"
+            #                 }
+            #             ],
+            #             "hasMore": false
+            #         }
+            #     }
+            #
+            response = self.futuresPrivateGetTransactionHistory(self.extend(request, paramsRequest))
         else:
-            response = self.privateGetAccountsLedgers(self.extend(request, params))
+            response = self.privateGetAccountsLedgers(self.extend(request, paramsRequest))
         #
         #     {
         #         "code":"200000",
@@ -4795,14 +8624,14 @@ class kucoin(Exchange, ImplicitAPI):
         #                 }
         #                 {
         #                     "id": "611a1e7c6a053300067a88d9",//unique key
-        #                     "currency": "USDT",  #Currency
-        #                     "amount": "10.00059547",  #Change amount of the funds
-        #                     "fee": "0",  #Deposit or withdrawal fee
-        #                     "balance": "0",  #Total assets of a currency
-        #                     "accountType": "MAIN",  #Account Type
-        #                     "bizType": "Loans Repaid",  #business type
-        #                     "direction": "in",  #side, in or out
-        #                     "createdAt": 1629101692950,  #Creation time
+        #                     "currency": "USDT", //Currency
+        #                     "amount": "10.00059547", //Change amount of the funds
+        #                     "fee": "0", //Deposit or withdrawal fee
+        #                     "balance": "0", //Total assets of a currency
+        #                     "accountType": "MAIN", //Account Type
+        #                     "bizType": "Loans Repaid", //business type
+        #                     "direction": "in", //side, in or out
+        #                     "createdAt": 1629101692950, //Creation time
         #                     "context": "{\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\"}"
         #                 },
         #             ]
@@ -4813,10 +8642,10 @@ class kucoin(Exchange, ImplicitAPI):
         if dataList is not None:
             return self.parse_ledger(dataList, currency, since, limit)
         data = self.safe_dict(response, 'data')
-        items = self.safe_list(data, 'items', [])
+        items = self.safe_list_2(data, 'items', 'dataList', [])
         return self.parse_ledger(items, currency, since, limit)
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
         versions = self.safe_dict(self.options, 'versions', {})
         apiVersions = self.safe_dict(versions, api, {})
         methodVersions = self.safe_dict(apiVersions, method, {})
@@ -4830,7 +8659,7 @@ class kucoin(Exchange, ImplicitAPI):
             return config['v1']
         return self.safe_value(config, 'cost', 1)
 
-    def parse_borrow_rate(self, info, currency: Currency = None):
+    def parse_borrow_rate(self, info: object, currency: Currency = None):
         #
         #     {
         #         "tradeId": "62db2dcaff219600012b56cd",
@@ -4848,24 +8677,36 @@ class kucoin(Exchange, ImplicitAPI):
         #         "dayRatio": "0.001"
         #     }
         #
+        # fetchCrossBorrowRate
+        #     {
+        #         "currentRateHourly": "0.00000353",
+        #         "currentRateDaily": "0.00008466",
+        #         "borrowLimitTotal": "600.00000000000000000000",
+        #         "borrowLimitTotalHold": "0.00000000000000000000",
+        #         "borrowLimitHold": "0.00000000000000000000",
+        #         "interestFreeBorrowLimit": "0.60000000000000000000"
+        #     }
+        #
         timestampId = self.safe_string_2(info, 'createdAt', 'timestamp')
-        timestamp = self.parse_to_int(timestampId[0:13])
+        timestamp = None
+        if timestampId is not None:
+            timestamp = self.parse_to_int(timestampId[0:13])
         currencyId = self.safe_string(info, 'currency')
         return {
             'currency': self.safe_currency_code(currencyId, currency),
-            'rate': self.safe_number_2(info, 'dailyIntRate', 'dayRatio'),
+            'rate': self.safe_number_n(info, ['dailyIntRate', 'dayRatio', 'currentRateDaily']),
             'period': 86400000,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,
         }
 
-    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
 
-        https://docs.kucoin.com/#get-repay-record
-        https://docs.kucoin.com/#query-isolated-margin-account-info
+        https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin
+        https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
 
         :param str [code]: unified currency code
         :param str [symbol]: unified market symbol, required for isolated margin
@@ -4875,10 +8716,10 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated' default is 'cross'
         :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/?id=borrow-interest-structure>`
         """
-        self.load_markets()
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params, 'cross')
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchBorrowInterest', params, 'cross')
+        request = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -4889,11 +8730,11 @@ class kucoin(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = None
+        response: dict
         if marginMode == 'isolated':
-            response = self.privateGetIsolatedAccounts(self.extend(request, params))
+            response = self.privateGetIsolatedAccounts(self.extend(request, paramsMarginMode))
         else:
-            response = self.privateGetMarginAccounts(self.extend(request, params))
+            response = self.privateGetMarginAccounts(self.extend(request, paramsMarginMode))
         #
         # Cross
         #
@@ -4912,8 +8753,8 @@ class kucoin(Exchange, ImplicitAPI):
         #                     "hold": "0",
         #                     "liability": "0",
         #                     "maxBorrowSize": "0",
-        #                     "borrowEnabled": True,
-        #                     "transferInEnabled": True
+        #                     "borrowEnabled": true,
+        #                     "transferInEnabled": true
         #                 }
         #             ]
         #         }
@@ -4933,9 +8774,9 @@ class kucoin(Exchange, ImplicitAPI):
         #                     "status": "BORROW",
         #                     "baseAsset": {
         #                         "currency": "MANA",
-        #                         "borrowEnabled": True,
-        #                         "repayEnabled": True,
-        #                         "transferEnabled": True,
+        #                         "borrowEnabled": true,
+        #                         "repayEnabled": true,
+        #                         "transferEnabled": true,
         #                         "borrowed": "0",
         #                         "totalAsset": "0",
         #                         "available": "0",
@@ -4944,9 +8785,9 @@ class kucoin(Exchange, ImplicitAPI):
         #                     },
         #                     "quoteAsset": {
         #                         "currency": "USDT",
-        #                         "borrowEnabled": True,
-        #                         "repayEnabled": True,
-        #                         "transferEnabled": True,
+        #                         "borrowEnabled": true,
+        #                         "repayEnabled": true,
+        #                         "transferEnabled": true,
         #                         "borrowed": "0",
         #                         "totalAsset": "0",
         #                         "available": "0",
@@ -4959,7 +8800,11 @@ class kucoin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        assets = self.safe_list(data, 'assets', []) if (marginMode == 'isolated') else self.safe_list(data, 'accounts', [])
+        assets = None
+        if marginMode == 'isolated':
+            assets = self.safe_list(data, 'assets', [])
+        else:
+            assets = self.safe_list(data, 'accounts', [])
         interest = self.parse_borrow_interests(assets, market)
         filteredByCurrency = self.filter_by_currency_since_limit(interest, code, since, limit)
         return self.filter_by_symbol_since_limit(filteredByCurrency, symbol, since, limit)
@@ -4969,62 +8814,67 @@ class kucoin(Exchange, ImplicitAPI):
         # Cross
         #
         #     {
-        #         "currency": "1INCH",
-        #         "total": "0",
-        #         "available": "0",
+        #         "currency": "DOGE",
+        #         "total": "119.99995308",
+        #         "available": "119.99995308",
         #         "hold": "0",
-        #         "liability": "0",
-        #         "maxBorrowSize": "0",
-        #         "borrowEnabled": True,
-        #         "transferInEnabled": True
+        #         "liability": "10.00004692",
+        #         "liabilityPrincipal": "10",
+        #         "liabilityInterest": "0.00004692",
+        #         "maxBorrowSize": "1140",
+        #         "borrowEnabled": true,
+        #         "transferInEnabled": true
         #     }
         #
         # Isolated
         #
         #     {
-        #         "symbol": "MANA-USDT",
-        #         "debtRatio": "0",
-        #         "status": "BORROW",
+        #         "symbol": "DOGE-USDT",
+        #         "status": "EFFECTIVE",
+        #         "debtRatio": "0.0822",
         #         "baseAsset": {
-        #             "currency": "MANA",
-        #             "borrowEnabled": True,
-        #             "repayEnabled": True,
-        #             "transferEnabled": True,
-        #             "borrowed": "0",
-        #             "totalAsset": "0",
-        #             "available": "0",
+        #             "currency": "DOGE",
+        #             "borrowEnabled": true,
+        #             "transferInEnabled": true,
+        #             "liability": "10.00009385",
+        #             "liabilityPrincipal": "10.00004692",
+        #             "liabilityInterest": "0.00004693",
+        #             "total": "10",
+        #             "available": "10",
         #             "hold": "0",
-        #             "maxBorrowSize": "1000"
+        #             "maxBorrowSize": "990"
         #         },
         #         "quoteAsset": {
         #             "currency": "USDT",
-        #             "borrowEnabled": True,
-        #             "repayEnabled": True,
-        #             "transferEnabled": True,
-        #             "borrowed": "0",
-        #             "totalAsset": "0",
-        #             "available": "0",
+        #             "borrowEnabled": true,
+        #             "transferInEnabled": true,
+        #             "liability": "0",
+        #             "liabilityPrincipal": "0",
+        #             "liabilityInterest": "0",
+        #             "total": "10",
+        #             "available": "10",
         #             "hold": "0",
-        #             "maxBorrowSize": "50000"
+        #             "maxBorrowSize": "89"
         #         }
         #     }
         #
         marketId = self.safe_string(info, 'symbol')
-        marginMode = 'cross' if (marketId is None) else 'isolated'
-        market = self.safe_market(marketId, market)
-        symbol = self.safe_string(market, 'symbol')
-        timestamp = self.safe_integer(info, 'createdAt')
+        marginMode = 'isolated'
+        if marketId is None:
+            marginMode = 'cross'
+        marketResolved = self.safe_market(marketId, market)
+        symbol = self.safe_string(marketResolved, 'symbol')
         isolatedBase = self.safe_dict(info, 'baseAsset', {})
         amountBorrowed = None
         interest = None
         currencyId = None
         if marginMode == 'isolated':
-            amountBorrowed = self.safe_number(isolatedBase, 'liability')
-            interest = self.safe_number(isolatedBase, 'interest')
+            amountBorrowed = self.safe_number(isolatedBase, 'liabilityPrincipal')
+            interest = self.safe_number(isolatedBase, 'liabilityInterest')
             currencyId = self.safe_string(isolatedBase, 'currency')
         else:
-            amountBorrowed = self.safe_number(info, 'liability')
-            interest = self.safe_number(info, 'accruedInterest')
+            amountBorrowed = self.safe_number(info, 'liabilityPrincipal')
+            interest = self.safe_number(info, 'liabilityInterest')
             currencyId = self.safe_string(info, 'currency')
         return {
             'info': info,
@@ -5034,15 +8884,15 @@ class kucoin(Exchange, ImplicitAPI):
             'interestRate': self.safe_number(info, 'dailyIntRate'),
             'amountBorrowed': amountBorrowed,
             'marginMode': marginMode,
-            'timestamp': timestamp,  # create time
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
 
-    def fetch_borrow_rate_histories(self, codes=None, since: Int = None, limit: Int = None, params={}):
+    def fetch_borrow_rate_histories(self, codes: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> dict:
         """
         retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is None
 
-        https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
+        https://www.kucoin.com/docs-new/rest/margin-trading/debit/get-interest-history
 
         :param str[]|None codes: list of unified currency codes, default is None
         :param int [since]: timestamp in ms of the earliest borrowRate, default is None
@@ -5052,19 +8902,19 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch entries for
         :returns dict: a dictionary of `borrow rate structures <https://docs.ccxt.com/?id=borrow-rate-structure>` indexed by the market symbol
         """
-        self.load_markets()
-        marginResult = self.handle_margin_mode_and_params('fetchBorrowRateHistories', params)
-        marginMode = self.safe_string(marginResult, 0, 'cross')
-        isIsolated = (marginMode == 'isolated')  # True-isolated, False-cross
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        marginMode = self.handle_margin_mode_and_params('fetchBorrowRateHistories', params, 'cross')[0]
+        isIsolated = (marginMode == 'isolated')  # true-isolated, false-cross
+        request = {
             'isIsolated': isIsolated,
         }
         if since is not None:
             request['startTime'] = since
-        request, params = self.handle_until_option('endTime', request, params)
+        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
         if limit is not None:
-            request['pageSize'] = limit  # default:50, min:10, max:500
-        response = self.privateGetMarginInterest(self.extend(request, params))
+            requestUntil['pageSize'] = limit  # default:50, min:10, max:500
+        response = self.privateGetMarginInterest(self.extend(requestUntil, paramsUntil))
         #
         #     {
         #         "code": "200000",
@@ -5089,11 +8939,11 @@ class kucoin(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'items', [])
         return self.parse_borrow_rate_histories(rows, codes, since, limit)
 
-    def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):
+    def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
 
-        https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
+        https://www.kucoin.com/docs-new/rest/margin-trading/debit/get-interest-history
 
         :param str code: unified currency code
         :param int [since]: timestamp for the earliest borrow rate
@@ -5103,21 +8953,21 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch entries for
         :returns dict[]: an array of `borrow rate structures <https://docs.ccxt.com/?id=borrow-rate-structure>`
         """
-        self.load_markets()
-        marginResult = self.handle_margin_mode_and_params('fetchBorrowRateHistories', params)
-        marginMode = self.safe_string(marginResult, 0, 'cross')
-        isIsolated = (marginMode == 'isolated')  # True-isolated, False-cross
+        if self.markets is None:
+            self.load_markets()
+        marginMode = self.handle_margin_mode_and_params('fetchBorrowRateHistories', params, 'cross')[0]
+        isIsolated = (marginMode == 'isolated')  # true-isolated, false-cross
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'isIsolated': isIsolated,
             'currency': currency['id'],
         }
         if since is not None:
             request['startTime'] = since
-        request, params = self.handle_until_option('endTime', request, params)
+        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
         if limit is not None:
-            request['pageSize'] = limit  # default:50, min:10, max:500
-        response = self.privateGetMarginInterest(self.extend(request, params))
+            requestUntil['pageSize'] = limit  # default:50, min:10, max:500
+        response = self.privateGetMarginInterest(self.extend(requestUntil, paramsUntil))
         #
         #     {
         #         "code": "200000",
@@ -5142,7 +8992,7 @@ class kucoin(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'items', [])
         return self.parse_borrow_rate_history(rows, code, since, limit)
 
-    def parse_borrow_rate_histories(self, response, codes, since, limit):
+    def parse_borrow_rate_histories(self, response: list[object], codes: Strings, since: Int, limit: Int) -> dict:
         #
         #     [
         #         {
@@ -5153,11 +9003,11 @@ class kucoin(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        borrowRateHistories: dict = {}
+        borrowRateHistories = {}
         for i in range(0, len(response)):
-            item = response[i]
+            item = self.safe_dict(response, i)
             code = self.safe_currency_code(self.safe_string(item, 'currency'))
-            if codes is None or self.in_array(code, codes):
+            if (code is not None) and (codes is None or self.in_array(code, codes)):
                 if not (code in borrowRateHistories):
                     borrowRateHistories[code] = []
                 borrowRateStructure = self.parse_borrow_rate(item)
@@ -5169,11 +9019,44 @@ class kucoin(Exchange, ImplicitAPI):
             borrowRateHistories[code] = self.filter_by_currency_since_limit(borrowRateHistories[code], code, since, limit)
         return borrowRateHistories
 
-    def borrow_cross_margin(self, code: str, amount: float, params={}):
+    def fetch_cross_borrow_rate(self, code: str, params: dict = {}) -> CrossBorrowRate:
+        """
+        fetch the rate of interest to borrow a currency for margin trading
+
+        https://www.kucoin.com/docs-new/rest/ua/get-borrowing-rates-and-limits
+
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `borrow rate structure <https://docs.ccxt.com/?id=borrow-rate-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.utaPrivateGetAccountInterestLimits(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "currentRateHourly": "0.00000353",
+        #             "currentRateDaily": "0.00008466",
+        #             "borrowLimitTotal": "600.00000000000000000000",
+        #             "borrowLimitTotalHold": "0.00000000000000000000",
+        #             "borrowLimitHold": "0.00000000000000000000",
+        #             "interestFreeBorrowLimit": "0.60000000000000000000"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_borrow_rate(data, currency)
+
+    def borrow_cross_margin(self, code: str, amount: float, params: dict = {}) -> MarginLoan:
         """
         create a loan to borrow margin
 
-        https://docs.kucoin.com/#1-margin-borrowing
+        https://www.kucoin.com/docs-new/rest/margin-trading/debit/borrow
 
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
@@ -5181,9 +9064,10 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.timeInForce]: either IOC or FOK
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'size': self.currency_to_precision(code, amount),
             'timeInForce': 'FOK',
@@ -5191,10 +9075,10 @@ class kucoin(Exchange, ImplicitAPI):
         response = self.privatePostMarginBorrow(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "code": "200",
         #         "msg": "success",
-        #         "retry": False,
+        #         "retry": false,
         #         "data": {
         #             "orderNo": "5da6dba0f943c0c81f5d5db5",
         #             "actualSize": 10
@@ -5204,11 +9088,11 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
+    def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params: dict = {}) -> MarginLoan:
         """
         create a loan to borrow margin
 
-        https://docs.kucoin.com/#1-margin-borrowing
+        https://www.kucoin.com/docs-new/rest/margin-trading/debit/borrow
 
         :param str symbol: unified market symbol, required for isolated margin
         :param str code: unified currency code of the currency to borrow
@@ -5217,10 +9101,11 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.timeInForce]: either IOC or FOK
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'size': self.currency_to_precision(code, amount),
             'symbol': market['id'],
@@ -5230,10 +9115,10 @@ class kucoin(Exchange, ImplicitAPI):
         response = self.privatePostMarginBorrow(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "code": "200",
         #         "msg": "success",
-        #         "retry": False,
+        #         "retry": false,
         #         "data": {
         #             "orderNo": "5da6dba0f943c0c81f5d5db5",
         #             "actualSize": 10
@@ -5243,30 +9128,31 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    def repay_cross_margin(self, code: str, amount, params={}):
+    def repay_cross_margin(self, code: str, amount: float, params: dict = {}) -> MarginLoan:
         """
         repay borrowed margin and interest
 
-        https://docs.kucoin.com/#2-repayment
+        https://www.kucoin.com/docs-new/rest/margin-trading/debit/repay
 
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param dict [params]: extra parameters specific to the exchange API endpoints
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'size': self.currency_to_precision(code, amount),
         }
         response = self.privatePostMarginRepay(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "code": "200",
         #         "msg": "success",
-        #         "retry": False,
+        #         "retry": false,
         #         "data": {
         #             "orderNo": "5da6dba0f943c0c81f5d5db5",
         #             "actualSize": 10
@@ -5276,11 +9162,11 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    def repay_isolated_margin(self, symbol: str, code: str, amount: float, params: dict = {}) -> MarginLoan:
         """
         repay borrowed margin and interest
 
-        https://docs.kucoin.com/#2-repayment
+        https://www.kucoin.com/docs-new/rest/margin-trading/debit/repay
 
         :param str symbol: unified market symbol
         :param str code: unified currency code of the currency to repay
@@ -5288,10 +9174,11 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoints
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'size': self.currency_to_precision(code, amount),
             'symbol': market['id'],
@@ -5300,10 +9187,10 @@ class kucoin(Exchange, ImplicitAPI):
         response = self.privatePostMarginRepay(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "code": "200",
         #         "msg": "success",
-        #         "retry": False,
+        #         "retry": false,
         #         "data": {
         #             "orderNo": "5da6dba0f943c0c81f5d5db5",
         #             "actualSize": 10
@@ -5313,36 +9200,36 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    def parse_margin_loan(self, info, currency: Currency = None):
+    def parse_margin_loan(self, info: dict, currency: Currency = None) -> MarginLoan:
         #
         #     {
         #         "orderNo": "5da6dba0f943c0c81f5d5db5",
         #         "actualSize": 10
         #     }
         #
-        timestamp = self.milliseconds()
         currencyId = self.safe_string(info, 'currency')
         return {
             'id': self.safe_string(info, 'orderNo'),
             'currency': self.safe_currency_code(currencyId, currency),
             'amount': self.safe_number(info, 'actualSize'),
             'symbol': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'info': info,
         }
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
 
-        https://docs.kucoin.com/#get-currencies
+        https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies
 
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.publicGetCurrencies(params)
         #
         #  [
@@ -5355,116 +9242,343 @@ class kucoin(Exchange, ImplicitAPI):
         #        "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
         #        "withdrawalMinSize": "2000",
         #        "withdrawalMinFee": "1000",
-        #        "isWithdrawEnabled": True,
-        #        "isDepositEnabled": True,
-        #        "isMarginEnabled": False,
-        #        "isDebitEnabled": False
+        #        "isWithdrawEnabled": true,
+        #        "isDepositEnabled": true,
+        #        "isMarginEnabled": false,
+        #        "isDebitEnabled": false
         #      },
         #  ]
         #
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
+        """
+        fetch the set leverage for a market
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-cross-margin-leverage
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
+        """
+        marginMode, paramsMarginMode = self.handle_margin_mode_and_params(symbol, params)
+        if marginMode != 'cross':
+            raise NotSupported(self.id + ' fetchLeverage() currently supports only params["marginMode"] = "cross"')
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        if market['contract'] is not True:
+            raise NotSupported(self.id + ' fetchLeverage() supports contract markets only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.futuresPrivateGetGetCrossUserLeverage(self.extend(request, paramsMarginMode))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "symbol": "XBTUSDTM",
+        #            "leverage": "3"
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'data', {})
+        parsed = self.parse_leverage(data, market)
+        return self.extend(parsed, {
+            'marginMode': marginMode,
+        })
+
+    def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
-        https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-leverage-multiplier
+        https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage  # margin
+        https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage  # contract
+        https://www.kucoin.com/docs-new/rest/ua/modify-cross-margin-leverage-uta  # margin uta
+        https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta  # contract uta
 
         :param int [leverage]: New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta)
+        :param str [params.marginMode]: *spot non-uta only* 'cross' or 'isolated' default is 'cross'
+        :param str [params.code]: *uta margin only* the unified currency code for the margin to set the leverage for
         :returns dict: response from the exchange
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
-        marketType: Str = None
-        marketType, params = self.handle_market_type_and_params('setLeverage', None, params)
-        if (symbol is not None) or marketType != 'spot':
+        marketType = None
+        paramsRequest: dict
+        marketType, paramsRequest = self.handle_market_type_and_params('setLeverage', None, params)
+        if (symbol is not None) or ((marketType != 'spot') and (marketType != 'margin')):
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' setLeverage requires a symbol argument for contract markets')
             market = self.market(symbol)
-            if market['contract']:
-                raise NotSupported(self.id + ' setLeverage currently supports only spot margin')
-        marginMode: Str = None
-        marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
-        if marginMode is None:
-            raise ArgumentsRequired(self.id + ' setLeverage requires a marginMode parameter')
-        request: dict = {}
-        if marginMode == 'isolated' and symbol is None:
-            raise ArgumentsRequired(self.id + ' setLeverage requires a symbol parameter for isolated margin')
-        if symbol is not None:
-            request['symbol'] = market['id']
-        request['leverage'] = str(leverage)
-        request['isIsolated'] = (marginMode == 'isolated')
-        return self.privatePostPositionUpdateUserLeverage(self.extend(request, params))
+            if market['contract'] is True:
+                return self.set_contract_leverage(leverage, symbol, paramsRequest)
+        request = {
+            'leverage': self.number_to_string(leverage),
+        }
+        marginMode = None
+        marginMode, paramsRequest = self.handle_margin_mode_and_params('setLeverage', paramsRequest)
+        uta = self.is_uta_enabled()
+        uta, paramsRequest = self.handle_option_bool_and_params(paramsRequest, 'setLeverage', 'uta', uta)
+        response = {}
+        if uta:
+            if marginMode == 'isolated':
+                raise NotSupported(self.id + ' unified trading account does not support isolated margin')
+            request['accountMode'] = 'unified'
+            code = None
+            code, paramsRequest = self.handle_option_string_and_params_2(paramsRequest, 'setLeverage', 'currency', 'code')
+            if code is None:
+                raise ArgumentsRequired(self.id + ' setLeverage requires a currency code in the params["code"] for unified trading account')
+            request['currency'] = self.currency_id(code)
+            response = self.utaPrivatePostAccountModeAccountModifyLeverageMarginCross(self.extend(request, paramsRequest))
+        else:
+            if marginMode is None:
+                raise ArgumentsRequired(self.id + ' setLeverage requires a marginMode parameter')
+            if marginMode == 'isolated' and symbol is None:
+                raise ArgumentsRequired(self.id + ' setLeverage requires a symbol parameter for isolated margin')
+            if symbol is not None:
+                request['symbol'] = self.safe_string(market, 'id')
+            request['isIsolated'] = (marginMode == 'isolated')
+            response = self.privatePostPositionUpdateUserLeverage(self.extend(request, paramsRequest))
+        return response
 
-    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    def set_contract_leverage(self, leverage: int, symbol: Str = None, params: dict = {}) -> Leverage:
         """
-        fetch the current funding rate
+        set the level of leverage for a market
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
+        https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta
+
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta)
+        :returns dict: response from the exchange
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        marginMode, paramsMarginMode = self.handle_margin_mode_and_params(symbol, params)
+        if (marginMode is not None) and (marginMode != 'cross'):
+            raise NotSupported(self.id + ' setLeverage() currently supports only params["marginMode"] = "cross" for contracts')
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'leverage': str(leverage),
+        }
+        uta = self.is_uta_enabled()
+        utaOption, paramsUta = self.handle_option_bool_and_params(paramsMarginMode, 'setLeverage', 'uta', uta)
+        response: dict
+        if utaOption:
+            request['accountMode'] = 'unified'
+            response = self.utaPrivatePostAccountModeAccountModifyLeverage(self.extend(request, paramsUta))
+        else:
+            #
+            #    {
+            #        "code": "200000",
+            #        "data": true
+            #    }
+            #
+            response = self.futuresPrivatePostChangeCrossUserLeverage(self.extend(request, paramsUta))
+        data = self.safe_dict(response, 'data', {})
+        leverageNum = self.safe_number(data, 'leverage')
+        return {
+            'info': response,
+            'symbol': market['symbol'],
+            'marginMode': None,
+            'longLeverage': leverageNum,
+            'shortLeverage': leverageNum,
+        }
+
+    def fetch_funding_interval(self, symbol: str, params: dict = {}) -> FundingRate:
+        """
+        fetch the current funding rate interval
 
         https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
+        https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
+        return self.fetch_funding_rate(symbol, params)
+
+    def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
+        """
+        fetch the current funding rate
+
+        https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
+        https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta)
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
-        response = self.utaGetMarketFundingRate(self.extend(request, params))
-        #
-        #     {
-        #         "code": "200000",
-        #         "data": {
-        #             "symbol": ".XBTUSDTMFPI8H",
-        #             "nextFundingRate": 7.4E-5,
-        #             "fundingTime": 1762444800000,
-        #             "fundingRateCap": 0.003,
-        #             "fundingRateFloor": -0.003
-        #         }
-        #     }
-        #
+        uta = False
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchFundingRate', 'uta', uta)
+        response: dict
+        if utaOption:
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": {
+            #             "symbol": ".ETHUSDTMFPI8H",
+            #             "nextFundingRate": -3.4E-5,
+            #             "fundingTime": 1776700800000,
+            #             "fundingRateCap": 0.00375,
+            #             "fundingRateFloor": -0.00375,
+            #             "currentGranularity": 28800000,
+            #             "newGranularity": 28800000,
+            #             "newGranularityStartTime": 1750147200000
+            #         }
+            #     }
+            #
+            response = self.utaGetMarketFundingRate(self.extend(request, paramsUta))
+        else:
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": {
+            #             "symbol": ".ETHUSDTMFPI8H",
+            #             "granularity": 28800000,
+            #             "timePoint": 1776672000000,
+            #             "value": -3.2E-5,
+            #             "dailyInterestRate": 3.0E-4,
+            #             "fundingRateCap": 0.00375,
+            #             "fundingRateFloor": -0.00375,
+            #             "period": 1,
+            #             "fundingTime": 1776700800000
+            #         }
+            #     }
+            #
+            response = self.futuresPublicGetFundingRateSymbolCurrent(self.extend(request, paramsUta))
         data = self.safe_dict(response, 'data', {})
         return self.parse_funding_rate(data, market)
 
-    def parse_funding_rate(self, data, market: Market = None) -> FundingRate:
+    def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
+        """
+        fetch the current funding rates for multiple markets
+
+        https://www.kucoin.com/docs-new/v2/rest/ua/get-current-funding
+
+        :param str[] [symbols]: unified market symbols, all markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.productType]: filter by USDT-FUTURES, USDC-FUTURES or COIN-FUTURES
+        :param str [params.symbol]: exchange-specific contract id(e.g. XBTUSDTM), overrides productType when provided
+        :returns dict: a dictionary of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`, indexed by market symbols
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols)
+        response = self.utaV2GetMarketFundingRate(params)
         #
         #     {
-        #         "symbol": ".XBTUSDTMFPI8H",
-        #         "nextFundingRate": 7.4E-5,
-        #         "fundingTime": 1762444800000,
-        #         "fundingRateCap": 0.003,
-        #         "fundingRateFloor": -0.003
+        #         "code": "200000",
+        #         "data": [
+        #             {
+        #                 "symbol": "XBTUSDTM",
+        #                 "nextFundingRate": "-0.000004",
+        #                 "fundingTime": 1789315200000,
+        #                 "fundingRateCap": "0.003",
+        #                 "fundingRateFloor": "-0.003",
+        #                 "currentGranularity": 28800000,
+        #                 "newGranularity": 28800000,
+        #                 "newGranularityStartTime": 1750147200000
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        rates = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'symbol')
+            # kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
+            isFundingIndex = (marketId is not None) and (marketId.startswith('.'))
+            if not isFundingIndex:
+                rates.append(entry)
+        return self.parse_funding_rates(rates, symbolsNormalized)
+
+    def parse_funding_rate(self, data: object, market: Market = None) -> FundingRate:
+        # uta
+        #     {
+        #         "symbol": ".ETHUSDTMFPI8H",
+        #         "nextFundingRate": -3.4E-5,
+        #         "fundingTime": 1776700800000,
+        #         "fundingRateCap": 0.00375,
+        #         "fundingRateFloor": -0.00375,
+        #         "currentGranularity": 28800000,
+        #         "newGranularity": 28800000,
+        #         "newGranularityStartTime": 1750147200000
+        #     }
+        #
+        # futures
+        #     {
+        #         "symbol": ".ETHUSDTMFPI8H",
+        #         "granularity": 28800000,
+        #         "timePoint": 1776672000000,
+        #         "value": -3.2E-5,
+        #         "dailyInterestRate": 3.0E-4,
+        #         "fundingRateCap": 0.00375,
+        #         "fundingRateFloor": -0.00375,
+        #         "period": 1,
+        #         "fundingTime": 1776700800000
         #     }
         #
         fundingTimestamp = self.safe_integer(data, 'fundingTime')
+        previousFundingTimestamp = self.safe_integer(data, 'timePoint')
+        nextFundingTimestamp = self.safe_integer(data, 'newGranularityStartTime')
         marketId = self.safe_string(data, 'symbol')
+        granularity = self.safe_string_2(data, 'granularity', 'currentGranularity')
         return {
             'info': data,
             'symbol': self.safe_symbol(marketId, market, None, 'contract'),
             'markPrice': None,
             'indexPrice': None,
-            'interestRate': None,
+            'interestRate': self.safe_number(data, 'dailyInterestRate'),
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': self.safe_number(data, 'nextFundingRate'),
+            'fundingRate': self.safe_number_2(data, 'nextFundingRate', 'value'),
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': None,
-            'nextFundingTimestamp': None,
-            'nextFundingDatetime': None,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
             'previousFundingRate': None,
-            'previousFundingTimestamp': None,
-            'previousFundingDatetime': None,
-            'interval': None,
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
+            'interval': self.parse_funding_interval(granularity),
         }
 
-    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def parse_funding_interval(self, interval: Str) -> Str:
+        intervals = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        }
+        return self.safe_string(intervals, interval, interval)
+
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
+        https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-public-funding-history
         https://www.kucoin.com/docs-new/rest/ua/get-history-funding-rate
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
@@ -5472,61 +9586,1383 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: end time in ms
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to True
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        if since is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a since argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         until = self.safe_integer(params, 'until')
-        params = self.omit(params, 'until')
-        if since is not None:
-            request['startAt'] = since
-            if until is None:
-                request['endAt'] = self.milliseconds()
-        if until is not None:
-            request['endAt'] = until
-        response = self.utaGetMarketFundingRateHistory(self.extend(request, params))
-        #
-        #     {
-        #         "code": "200000",
-        #         "data": {
-        #             "symbol": "XBTUSDTM",
-        #             "list": [
-        #                 {
-        #                     "fundingRate": 7.6E-5,
-        #                     "ts": 1706097600000
-        #                 },
-        #             ]
-        #         }
-        #     }
-        #
-        data = self.safe_dict(response, 'data', {})
-        result = self.safe_list(data, 'list', [])
+        uta = False
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'uta', uta)
+        paramsOmitted = self.omit(paramsUta, 'until')
+        start = since
+        end = until
+        if since is None:
+            start = 0
+        if until is None:
+            end = self.milliseconds()
+        response = None
+        resultKey = 'data'
+        if utaOption:
+            request['startAt'] = start
+            request['endAt'] = end
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": {
+            #             "symbol": "XBTUSDTM",
+            #             "list": [
+            #                 {
+            #                     "fundingRate": 7.6E-5,
+            #                     "ts": 1706097600000
+            #                 },
+            #             ]
+            #         }
+            #     }
+            #
+            utaResponse = self.utaGetMarketFundingRateHistory(self.extend(request, paramsOmitted))
+            response = self.safe_dict(utaResponse, 'data', {})
+            resultKey = 'list'
+        else:
+            request['from'] = start
+            request['to'] = end
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": [
+            #             {
+            #                 "symbol": "IDUSDTM",
+            #                 "fundingRate": 2.26E-4,
+            #                 "timepoint": 1702296000000
+            #             }
+            #         ]
+            #     }
+            #
+            response = self.futuresPublicGetContractFundingRates(self.extend(request, paramsOmitted))
+        result = self.safe_list(response, resultKey, [])
         return self.parse_funding_rate_histories(result, market, since, limit)
 
-    def parse_funding_rate_history(self, info, market: Market = None):
+    def parse_funding_rate_history(self, info: object, market: Market = None) -> FundingRateHistory:
         #
+        # uta
         #     {
         #         "fundingRate": 7.6E-5,
         #         "ts": 1706097600000
         #     }
         #
-        timestamp = self.safe_integer(info, 'ts')
+        # futures
+        #     {
+        #         "symbol": "IDUSDTM",
+        #         "fundingRate": 2.26E-4,
+        #         "timepoint": 1702296000000
+        #     }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        timestamp = self.safe_integer_2(info, 'ts', 'timepoint')
         return {
             'info': info,
-            'symbol': self.safe_symbol(None, market),
+            'symbol': self.safe_symbol(marketId, market),
             'fundingRate': self.safe_number(info, 'fundingRate'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
+        """
+        fetch the history of funding payments paid and received on self account
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-private-funding-history
+
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        uta = self.is_uta_enabled()
+        paramsRequest = None
+        uta, paramsRequest = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'uta', uta)
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        elif not uta:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        if since is not None:
+            request['startAt'] = since
+        dataList = []
+        if uta:
+            if limit is not None:
+                request['pageSize'] = limit
+            request, paramsRequest = self.handle_until_option('endAt', request, paramsRequest)
+            response = self.utaPrivateGetPositionFundingHistory(self.extend(request, paramsRequest))
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": {
+            #             "lastId": 2125247170385112,
+            #             "items": [
+            #                 {
+            #                     "symbol": "DOGEUSDTM",
+            #                     "marginMode": "CROSS",
+            #                     "fundingRate": "0.000172",
+            #                     "markPrice": "0.09326",
+            #                     "size": "-1",
+            #                     "positionValue": "-9.326",
+            #                     "fundingFee": "0.00160407",
+            #                     "settleCurrency": "USDT",
+            #                     "settlementTime": 1775030400000
+            #                 }
+            #             ]
+            #         }
+            #     }
+            data = self.safe_dict(response, 'data')
+            dataList = self.safe_list(data, 'items', [])
+        else:
+            if limit is not None:
+                # * Since is ignored if limit is defined
+                request['maxCount'] = limit
+            response = self.futuresPrivateGetFundingHistory(self.extend(request, paramsRequest))
+            #
+            #    {
+            #        "code": "200000",
+            #        "data": {
+            #            "dataList": [
+            #                {
+            #                    "id": 239471298749817,
+            #                    "symbol": "ETHUSDTM",
+            #                    "timePoint": 1638532800000,
+            #                    "fundingRate": 0.000100,
+            #                    "markPrice": 4612.8300000000,
+            #                    "positionQty": 12,
+            #                    "positionCost": 553.5396000000,
+            #                    "funding": -0.0553539600,
+            #                    "settleCurrency": "USDT"
+            #                },
+            #                ...
+            #            ],
+            #            "hasMore": true
+            #        }
+            #    }
+            #
+            data = self.safe_dict(response, 'data')
+            dataList = self.safe_list(data, 'dataList', [])
+        fees = []
+        for i in range(0, len(dataList)):
+            listItem = dataList[i]
+            timestamp = self.safe_integer_2(listItem, 'timePoint', 'settlementTime')
+            marketId = self.safe_string(listItem, 'symbol')
+            fees.append({
+                'info': listItem,
+                'symbol': self.safe_symbol(marketId, market),
+                'code': self.safe_currency_code(self.safe_string(listItem, 'settleCurrency')),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'id': self.safe_number(listItem, 'id'),
+                'amount': self.safe_number_2(listItem, 'funding', 'fundingFee'),
+                'fundingRate': self.safe_number(listItem, 'fundingRate'),
+                'markPrice': self.safe_number(listItem, 'markPrice'),
+                'positionQty': self.safe_number_2(listItem, 'positionQty', 'size'),
+                'positionCost': self.safe_number_2(listItem, 'positionCost', 'positionValue'),
+            })
+        return fees
+
+    def fetch_position(self, symbol: str, params: dict = {}) -> Position:
+        """
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-details
+        https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
+
+        fetch data on an open position
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param integer [params.pageSize]: *uta only* page size for the uta endpoint(default 50, max 200)
+        :param integer [params.pageNumber]: *uta only* page number for the uta endpoint(default 1)
+        :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        uta = self.is_uta_enabled()
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchPosition', 'uta', uta)
+        response: dict
+        position = None
+        if utaOption:
+            request['accountMode'] = 'unified'
+            response = self.utaPrivateGetAccountModePositionOpenList(self.extend(request, paramsUta))
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": [
+            #             {
+            #                 "symbol": "DOGEUSDTM",
+            #                 "id": "30000000000084351",
+            #                 "marginMode": "CROSS",
+            #                 "size": "2",
+            #                 "entryPrice": "0.093795",
+            #                 "positionValue": "18.298",
+            #                 "markPrice": "0.09149",
+            #                 "leverage": "3",
+            #                 "unrealizedPnL": "-0.461",
+            #                 "realizedPnL": "-0.01122489",
+            #                 "initialMargin": "6.0993333327234",
+            #                 "mmr": "0.007",
+            #                 "maintenanceMargin": "0.128086",
+            #                 "creationTime": 1774469753178000000
+            #                 "updateTime": 1774469753178000000
+            #             }
+            #         ]
+            #     }
+            #
+            data = self.safe_list(response, 'data', [])
+            position = self.safe_dict(data, 0, {})
+        else:
+            response = self.futuresPrivateGetPosition(self.extend(request, paramsUta))
+            #
+            #    {
+            #        "code": "200000",
+            #        "data": {
+            #            "id": "6505ee6eaff4070001f651c4",
+            #            "symbol": "XBTUSDTM",
+            #            "autoDeposit": false,
+            #            "maintMarginReq": 0,
+            #            "riskLimit": 200,
+            #            "realLeverage": 0.0,
+            #            "crossMode": false,
+            #            "delevPercentage": 0.0,
+            #            "currentTimestamp": 1694887534594,
+            #            "currentQty": 0,
+            #            "currentCost": 0.0,
+            #            "currentComm": 0.0,
+            #            "unrealisedCost": 0.0,
+            #            "realisedGrossCost": 0.0,
+            #            "realisedCost": 0.0,
+            #            "isOpen": false,
+            #            "markPrice": 26611.71,
+            #            "markValue": 0.0,
+            #            "posCost": 0.0,
+            #            "posCross": 0,
+            #            "posInit": 0.0,
+            #            "posComm": 0.0,
+            #            "posLoss": 0.0,
+            #            "posMargin": 0.0,
+            #            "posMaint": 0.0,
+            #            "maintMargin": 0.0,
+            #            "realisedGrossPnl": 0.0,
+            #            "realisedPnl": 0.0,
+            #            "unrealisedPnl": 0.0,
+            #            "unrealisedPnlPcnt": 0,
+            #            "unrealisedRoePcnt": 0,
+            #            "avgEntryPrice": 0.0,
+            #            "liquidationPrice": 0.0,
+            #            "bankruptPrice": 0.0,
+            #            "settleCurrency": "USDT",
+            #            "maintainMargin": 0,
+            #            "riskLimitLevel": 1
+            #        }
+            #    }
+            #
+            position = self.safe_dict(response, 'data', {})
+        return self.parse_position(position, market)
+
+    def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
+        """
+        fetch all open positions
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+        https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
+
+        :param str[]|None symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param integer [params.pageSize]: *uta only* page size for the uta endpoint(default 50, max 200)
+        :param integer [params.pageNumber]: *uta only* page number for the uta endpoint(default 1)
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        uta = self.is_uta_enabled()
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchPositions', 'uta', uta)
+        response: dict
+        if utaOption:
+            response = self.utaPrivateGetAccountModePositionOpenList(self.extend({'accountMode': 'unified', 'limit': 200}, paramsUta))
+        else:
+            response = self.futuresPrivateGetPositions(paramsUta)
+            #
+            #    {
+            #        "code": "200000",
+            #        "data": [
+            #            {
+            #                "id": "615ba79f83a3410001cde321",
+            #                "symbol": "ETHUSDTM",
+            #                "autoDeposit": false,
+            #                "maintMarginReq": 0.005,
+            #                "riskLimit": 1000000,
+            #                "realLeverage": 18.61,
+            #                "crossMode": false,
+            #                "delevPercentage": 0.86,
+            #                "openingTimestamp": 1638563515618,
+            #                "currentTimestamp": 1638576872774,
+            #                "currentQty": 2,
+            #                "currentCost": 83.64200000,
+            #                "currentComm": 0.05018520,
+            #                "unrealisedCost": 83.64200000,
+            #                "realisedGrossCost": 0.00000000,
+            #                "realisedCost": 0.05018520,
+            #                "isOpen": true,
+            #                "markPrice": 4225.01,
+            #                "markValue": 84.50020000,
+            #                "posCost": 83.64200000,
+            #                "posCross": 0.0000000000,
+            #                "posInit": 3.63660870,
+            #                "posComm": 0.05236717,
+            #                "posLoss": 0.00000000,
+            #                "posMargin": 3.68897586,
+            #                "posMaint": 0.50637594,
+            #                "maintMargin": 4.54717586,
+            #                "realisedGrossPnl": 0.00000000,
+            #                "realisedPnl": -0.05018520,
+            #                "unrealisedPnl": 0.85820000,
+            #                "unrealisedPnlPcnt": 0.0103,
+            #                "unrealisedRoePcnt": 0.2360,
+            #                "avgEntryPrice": 4182.10,
+            #                "liquidationPrice": 4023.00,
+            #                "bankruptPrice": 4000.25,
+            #                "settleCurrency": "USDT",
+            #                "isInverse": false
+            #            }
+            #        ]
+            #    }
+            #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_positions(data, symbols)
+
+    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
+        """
+        fetches historical positions
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-positions-history
+        https://www.kucoin.com/docs-new/rest/ua/get-position-history-uta
+
+        :param str[] [symbols]: list of unified market symbols
+        :param int [since]: the earliest time in ms to fetch position history for
+        :param int [limit]: the maximum number of entries to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: closing end time
+        :param int [params.pageId]: page id
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        uta = self.is_uta_enabled()
+        paramsRequest = None
+        uta, paramsRequest = self.handle_option_bool_and_params(params, 'fetchPositionsHistory', 'uta', uta)
+        response: dict
+        request = {}
+        symbolsNormalized = self.market_symbols(symbols)
+        if symbolsNormalized is not None:
+            length = len(symbolsNormalized)
+            if length == 1:
+                market = self.market(symbolsNormalized[0])
+                request['symbol'] = market['id']
+        if uta:
+            if since is not None:
+                request['startAt'] = since
+            if limit is not None:
+                request['pageSize'] = limit
+            request, paramsRequest = self.handle_until_option('endAt', request, paramsRequest)
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": {
+            #             "items": [
+            #                 {
+            #                     "symbol": "DOGEUSDTM",
+            #                     "closeId": "30000000000162175",
+            #                     "marginMode": "CROSS",
+            #                     "side": "LONG",
+            #                     "entryPrice": "0.09641",
+            #                     "closePrice": "0.09613",
+            #                     "maxSize": "1",
+            #                     "avgClosePrice": "0.09613",
+            #                     "leverage": "3",
+            #                     "realizedPnL": "-0.0395524",
+            #                     "fee": "0.0115524",
+            #                     "tax": "0",
+            #                     "fundingFee": "0",
+            #                     "closingTime": 1774469647311000000,
+            #                     "creationTime": 1774468501294000000
+            #                 }
+            #             ],
+            #             "lastId": 30000000000162175
+            #         }
+            #     }
+            #
+            response = self.utaPrivateGetPositionHistory(self.extend(request, paramsRequest))
+        else:
+            request['limit'] = 200 if (limit is None) else limit
+            if since is not None:
+                request['from'] = since
+            until = self.safe_integer(paramsRequest, 'until')
+            if until is not None:
+                paramsRequest = self.omit(paramsRequest, 'until')
+                request['to'] = until
+            #
+            # {
+            #     "success": true,
+            #     "code": "200",
+            #     "msg": "success",
+            #     "retry": false,
+            #     "data": {
+            #         "currentPage": 1,
+            #         "pageSize": 10,
+            #         "totalNum": 25,
+            #         "totalPage": 3,
+            #         "items": [
+            #             {
+            #                 "closeId": "300000000000000030",
+            #                 "positionId": "300000000000000009",
+            #                 "uid": 99996908309485,
+            #                 "userId": "6527d4fc8c7f3d0001f40f5f",
+            #                 "symbol": "XBTUSDM",
+            #                 "settleCurrency": "XBT",
+            #                 "leverage": "0.0",
+            #                 "type": "LIQUID_LONG",
+            #                 "side": null,
+            #                 "closeSize": null,
+            #                 "pnl": "-1.0000003793999999",
+            #                 "realisedGrossCost": "0.9993849748999999",
+            #                 "withdrawPnl": "0.0",
+            #                 "roe": null,
+            #                 "tradeFee": "0.0006154045",
+            #                 "fundingFee": "0.0",
+            #                 "openTime": 1713785751181,
+            #                 "closeTime": 1713785752784,
+            #                 "openPrice": null,
+            #                 "closePrice": null
+            #             }
+            #         ]
+            #     }
+            # }
+            #
+            response = self.futuresPrivateGetHistoryPositions(self.extend(request, paramsRequest))
+        data = self.safe_dict(response, 'data')
+        items = self.safe_list(data, 'items', [])
+        return self.parse_positions(items, symbolsNormalized)
+
+    def parse_position(self, position: dict, market: Market = None) -> Position:
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": [
+        #            {
+        #                "id": "615ba79f83a3410001cde321",         // Position ID
+        #                "symbol": "ETHUSDTM",                     // Symbol
+        #                "autoDeposit": false,                     // Auto deposit margin or not
+        #                "maintMarginReq": 0.005,                  // Maintenance margin requirement
+        #                "riskLimit": 1000000,                     // Risk limit
+        #                "realLeverage": 25.92,                    // Leverage of the order
+        #                "crossMode": false,                       // Cross mode or not
+        #                "delevPercentage": 0.76,                  // ADL ranking percentile
+        #                "openingTimestamp": 1638578546031,        // Open time
+        #                "currentTimestamp": 1638578563580,        // Current timestamp
+        #                "currentQty": 2,                          // Current postion quantity
+        #                "currentCost": 83.787,                    // Current postion value
+        #                "currentComm": 0.0167574,                 // Current commission
+        #                "unrealisedCost": 83.787,                 // Unrealised value
+        #                "realisedGrossCost": 0.0,                 // Accumulated realised gross profit value
+        #                "realisedCost": 0.0167574,                // Current realised position value
+        #                "isOpen": true,                           // Opened position or not
+        #                "markPrice": 4183.38,                     // Mark price
+        #                "markValue": 83.6676,                     // Mark value
+        #                "posCost": 83.787,                        // Position value
+        #                "posCross": 0.0,                          // added margin
+        #                "posInit": 3.35148,                       // Leverage margin
+        #                "posComm": 0.05228309,                    // Bankruptcy cost
+        #                "posLoss": 0.0,                           // Funding fees paid out
+        #                "posMargin": 3.40376309,                  // Position margin
+        #                "posMaint": 0.50707892,                   // Maintenance margin
+        #                "maintMargin": 3.28436309,                // Position margin
+        #                "realisedGrossPnl": 0.0,                  // Accumulated realised gross profit value
+        #                "realisedPnl": -0.0167574,                // Realised profit and loss
+        #                "unrealisedPnl": -0.1194,                 // Unrealised profit and loss
+        #                "unrealisedPnlPcnt": -0.0014,             // Profit-loss ratio of the position
+        #                "unrealisedRoePcnt": -0.0356,             // Rate of return on investment
+        #                "avgEntryPrice": 4189.35,                 // Average entry price
+        #                "liquidationPrice": 4044.55,              // Liquidation price
+        #                "bankruptPrice": 4021.75,                 // Bankruptcy price
+        #                "settleCurrency": "USDT",                 // Currency used to clear and settle the trades
+        #                "isInverse": false
+        #            }
+        #        ]
+        #    }
+        # position history
+        #             {
+        #                 "closeId": "300000000000000030",
+        #                 "positionId": "300000000000000009",
+        #                 "uid": 99996908309485,
+        #                 "userId": "6527d4fc8c7f3d0001f40f5f",
+        #                 "symbol": "XBTUSDM",
+        #                 "settleCurrency": "XBT",
+        #                 "leverage": "0.0",
+        #                 "type": "LIQUID_LONG",
+        #                 "side": null,
+        #                 "closeSize": null,
+        #                 "pnl": "-1.0000003793999999",
+        #                 "realisedGrossCost": "0.9993849748999999",
+        #                 "withdrawPnl": "0.0",
+        #                 "roe": null,
+        #                 "tradeFee": "0.0006154045",
+        #                 "fundingFee": "0.0",
+        #                 "openTime": 1713785751181,
+        #                 "closeTime": 1713785752784,
+        #                 "openPrice": null,
+        #                 "closePrice": null
+        #             }
+        #
+        # uta fetchPositions
+        #     {
+        #         "symbol": "DOGEUSDTM",
+        #         "id": "30000000000084351",
+        #         "marginMode": "CROSS",
+        #         "size": "2",
+        #         "entryPrice": "0.093795",
+        #         "positionValue": "18.298",
+        #         "markPrice": "0.09149",
+        #         "leverage": "3",
+        #         "unrealizedPnL": "-0.461",
+        #         "realizedPnL": "-0.01122489",
+        #         "initialMargin": "6.0993333327234",
+        #         "mmr": "0.007",
+        #         "maintenanceMargin": "0.128086",
+        #         "creationTime": 1774469753178000000
+        #         "updateTime": 1774469753178000000
+        #     }
+        #
+        # uta fetchPositionsHistory
+        #     {
+        #         "symbol": "DOGEUSDTM",
+        #         "closeId": "30000000000162175",
+        #         "marginMode": "CROSS",
+        #         "side": "LONG",
+        #         "entryPrice": "0.09641",
+        #         "closePrice": "0.09613",
+        #         "maxSize": "1",
+        #         "avgClosePrice": "0.09613",
+        #         "leverage": "3",
+        #         "realizedPnL": "-0.0395524",
+        #         "fee": "0.0115524",
+        #         "tax": "0",
+        #         "fundingFee": "0",
+        #         "closingTime": 1774469647311000000,
+        #         "creationTime": 1774468501294000000
+        #     }
+        #
+        symbol = self.safe_string(position, 'symbol')
+        marketResolved = self.safe_market(symbol, market)
+        timestamp = self.safe_integer(position, 'currentTimestamp')
+        if timestamp is None:
+            timestamp = self.safe_integer_product(position, 'creationTime', 0.000001)
+        size = self.safe_string_n(position, ['currentQty', 'size', 'maxSize', 'closeSize'])
+        side = self.safe_string_lower(position, 'side')
+        type = self.safe_string_lower(position, 'type')
+        if side is None:
+            if size is not None:
+                if Precise.string_gt(size, '0'):
+                    side = 'long'
+                elif Precise.string_lt(size, '0'):
+                    side = 'short'
+            elif type is not None:
+                if type.find('long') > -1:
+                    side = 'long'
+                else:
+                    side = 'short'
+        notional = Precise.string_abs(self.safe_string_2(position, 'posCost', 'positionValue'))
+        initialMargin = self.safe_string_2(position, 'posInit', 'initialMargin')
+        initialMarginPercentage = Precise.string_div(initialMargin, notional)
+        # const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
+        unrealisedPnl = self.safe_string_2(position, 'unrealisedPnl', 'unrealizedPnL')
+        crossMode = self.safe_bool(position, 'crossMode')
+        # currently crossMode is always set to false and only isolated positions are supported
+        marginMode = self.safe_string_lower(position, 'marginMode')
+        if crossMode is not None:
+            marginMode = 'cross' if (crossMode is True) else 'isolated'
+        lastUpdateTimestamp = self.safe_integer(position, 'closeTime')
+        if lastUpdateTimestamp is None:
+            if 'closingTime' in position:
+                lastUpdateTimestamp = self.safe_integer_product(position, 'closingTime', 0.000001)
+            elif 'updateTime' in position:
+                lastUpdateTimestamp = self.safe_integer_product(position, 'updateTime', 0.000001)
+        return self.safe_position({
+            'info': position,
+            'id': self.safe_string_n(position, ['id', 'positionId', 'closeId']),
+            'symbol': self.safe_string(marketResolved, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'initialMargin': self.parse_number(initialMargin),
+            'initialMarginPercentage': self.parse_number(initialMarginPercentage),
+            'maintenanceMargin': self.safe_number_2(position, 'posMaint', 'maintenanceMargin'),
+            'maintenanceMarginPercentage': self.safe_number_2(position, 'maintMarginReq', 'mmr'),
+            'entryPrice': self.safe_number_n(position, ['avgEntryPrice', 'openPrice', 'entryPrice']),
+            'notional': self.parse_number(notional),
+            'leverage': self.safe_number_2(position, 'realLeverage', 'leverage'),
+            'unrealizedPnl': self.parse_number(unrealisedPnl),
+            'contracts': self.parse_number(Precise.string_abs(size)),
+            'contractSize': self.safe_value(marketResolved, 'contractSize'),
+            'realizedPnl': self.safe_number_n(position, ['realisedPnl', 'pnl', 'realizedPnL']),
+            'marginRatio': None,
+            'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'lastPrice': self.safe_number(position, 'closePrice'),
+            'collateral': self.safe_number(position, 'maintMargin'),
+            'marginMode': marginMode,
+            'side': side,
+            'percentage': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
+        })
+
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
+        """
+        cancel multiple orders for contract markets
+
+        https://www.kucoin.com/docs-new/3470241e0
+        https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-id
+
+        :param str[] ids: order ids
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderIds]: client order ids
+        :param boolean [params.uta]: set to True to use the unified trading account(uta) endpoint, defaults to False for the contract orders
+        :param str [params.accountMode]: *for uta endpoint only* 'unified' or 'classic'(default is 'unified')
+        :param str [params.marginMode]: *for margin orders only* 'cross' or 'isolated'(unified accountMode supports cross margin only)
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        uta = self.is_uta_enabled()
+        paramsRequest = None
+        uta, paramsRequest = self.handle_option_bool_and_params(params, 'cancelOrders', 'uta', uta)
+        market = None
+        isContractMarket = True  # default to contract market orders if symbol is not provided, uta endpoint requires a symbol to be provided
+        if symbol is not None:
+            market = self.market(symbol)
+            isContractMarket = market['contract']
+            if isContractMarket is not True:
+                uta = True  # spot market orders can only be cancelled via the uta endpoint
+        elif uta:
+            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument for uta endpoint')
+        ordersRequests = []
+        clientOrderIds = self.safe_list_2(paramsRequest, 'clientOrderIds', 'clientOids', [])
+        paramsRequest = self.omit(paramsRequest, ['clientOrderIds', 'clientOids'])
+        useClientorderId = False
+        for i in range(0, len(clientOrderIds)):
+            useClientorderId = True
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument when cancelling by clientOrderIds')
+            ordersRequests.append({
+                'symbol': self.safe_string(market, 'id'),
+                'clientOid': self.safe_string(clientOrderIds, i),
+            })
+        for i in range(0, len(ids)):
+            orderId = ids[i]
+            if uta:
+                ordersRequests.append({
+                    'orderId': orderId,
+                    'symbol': self.safe_string(market, 'id'),
+                })
+            else:
+                ordersRequests.append(ids[i])
+        request = {}
+        response: dict
+        orders = []
+        if uta:
+            accountMode = 'unified'
+            accountMode, paramsRequest = self.handle_option_string_and_params(paramsRequest, 'cancelOrders', 'accountMode', accountMode)
+            request['accountMode'] = accountMode
+            marginMode = None
+            marginMode, paramsRequest = self.handle_margin_mode_and_params('cancelOrders', paramsRequest)
+            isUnified = (accountMode == 'unified')
+            tradeType = self.handle_trade_type(isContractMarket, marginMode, isUnified, paramsRequest)
+            request['tradeType'] = tradeType
+            request['cancelOrderList'] = ordersRequests
+            response = self.utaPrivatePostAccountModeOrderCancelBatch(self.extend(request, paramsRequest))
+            data = self.safe_dict(response, 'data', {})
+            orders = self.safe_list(data, 'items', [])
+        else:
+            requestKey = 'orderIdsList'
+            if useClientorderId:
+                requestKey = 'clientOidsList'
+            request[requestKey] = ordersRequests
+            response = self.futuresPrivateDeleteOrdersMultiCancel(self.extend(request, paramsRequest))
+            #
+            #   {
+            #       "code": "200000",
+            #       "data":
+            #       [
+            #           {
+            #               "orderId": "80465574458560512",
+            #               "clientOid": null,
+            #               "code": "200",
+            #               "msg": "success"
+            #           },
+            #           {
+            #               "orderId": "80465575289094144",
+            #               "clientOid": null,
+            #               "code": "200",
+            #               "msg": "success"
+            #           }
+            #       ]
+            #   }
+            #
+            orders = self.safe_list(response, 'data', [])
+        return self.parse_orders(orders, market)
+
+    def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
+        """
+        add margin
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/positions/add-isolated-margin
+
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.positionSide]: *required for hedged position* 'BOTH', 'LONG' or 'SHORT'(default is 'BOTH')
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        uuid = self.uuid()
+        request = {
+            'symbol': market['id'],
+            'margin': self.amount_to_precision(symbol, amount),
+            'bizNo': uuid,
+        }
+        response = self.futuresPrivatePostPositionMarginDepositMargin(self.extend(request, params))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "id": "62311d26064e8f00013f2c6d",
+        #            "symbol": "XRPUSDTM",
+        #            "autoDeposit": false,
+        #            "maintMarginReq": 0.01,
+        #            "riskLimit": 200000,
+        #            "realLeverage": 0.88,
+        #            "crossMode": false,
+        #            "delevPercentage": 0.4,
+        #            "openingTimestamp": 1647385894798,
+        #            "currentTimestamp": 1647414510672,
+        #            "currentQty": -1,
+        #            "currentCost": -7.658,
+        #            "currentComm": 0.0053561,
+        #            "unrealisedCost": -7.658,
+        #            "realisedGrossCost": 0,
+        #            "realisedCost": 0.0053561,
+        #            "isOpen": true,
+        #            "markPrice": 0.7635,
+        #            "markValue": -7.635,
+        #            "posCost": -7.658,
+        #            "posCross": 1.00016084,
+        #            "posInit": 7.658,
+        #            "posComm": 0.00979006,
+        #            "posLoss": 0,
+        #            "posMargin": 8.6679509,
+        #            "posMaint": 0.08637006,
+        #            "maintMargin": 8.6909509,
+        #            "realisedGrossPnl": 0,
+        #            "realisedPnl": -0.0038335,
+        #            "unrealisedPnl": 0.023,
+        #            "unrealisedPnlPcnt": 0.003,
+        #            "unrealisedRoePcnt": 0.003,
+        #            "avgEntryPrice": 0.7658,
+        #            "liquidationPrice": 1.6239,
+        #            "bankruptPrice": 1.6317,
+        #            "settleCurrency": "USDT"
+        #        }
+        #    }
+        #
+        #
+        #    {
+        #        "code":"200000",
+        #        "msg":"Position does not exist"
+        #    }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.extend(self.parse_margin_modification(data, market), {
+            'amount': self.amount_to_precision(symbol, amount),
+            'direction': 'in',
+        })
+
+    def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
+        """
+        remove margin from a position
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/positions/remove-isolated-margin
+
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.positionSide]: *required for hedged position* 'BOTH', 'LONG' or 'SHORT'(default is 'BOTH')
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        amountString = self.amount_to_precision(symbol, amount)
+        request = {
+            'symbol': market['id'],
+            'withdrawAmount': amountString,
+        }
+        response = self.futuresPrivatePostMarginWithdrawMargin(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": "0.1"
+        #     }
+        #
+        currencyId = self.safe_string(market, 'settle')
+        responseCode = self.safe_string(response, 'code')
+        return {
+            'info': response,
+            'symbol': market['symbol'],
+            'type': 'reduce',
+            'marginMode': 'isolated',
+            'amount': self.parse_number(amountString),
+            'total': None,
+            'code': self.safe_currency_code(currencyId),
+            'status': 'ok' if (responseCode == '200000') else None,
+            'timestamp': None,
+            'datetime': None,
+        }
+
+    def parse_margin_modification(self, info: dict, market: Market = None) -> MarginModification:
+        #
+        #    {
+        #        "id": "62311d26064e8f00013f2c6d",
+        #        "symbol": "XRPUSDTM",
+        #        "autoDeposit": false,
+        #        "maintMarginReq": 0.01,
+        #        "riskLimit": 200000,
+        #        "realLeverage": 0.88,
+        #        "crossMode": false,
+        #        "delevPercentage": 0.4,
+        #        "openingTimestamp": 1647385894798,
+        #        "currentTimestamp": 1647414510672,
+        #        "currentQty": -1,
+        #        "currentCost": -7.658,
+        #        "currentComm": 0.0053561,
+        #        "unrealisedCost": -7.658,
+        #        "realisedGrossCost": 0,
+        #        "realisedCost": 0.0053561,
+        #        "isOpen": true,
+        #        "markPrice": 0.7635,
+        #        "markValue": -7.635,
+        #        "posCost": -7.658,
+        #        "posCross": 1.00016084,
+        #        "posInit": 7.658,
+        #        "posComm": 0.00979006,
+        #        "posLoss": 0,
+        #        "posMargin": 8.6679509,
+        #        "posMaint": 0.08637006,
+        #        "maintMargin": 8.6909509,
+        #        "realisedGrossPnl": 0,
+        #        "realisedPnl": -0.0038335,
+        #        "unrealisedPnl": 0.023,
+        #        "unrealisedPnlPcnt": 0.003,
+        #        "unrealisedRoePcnt": 0.003,
+        #        "avgEntryPrice": 0.7658,
+        #        "liquidationPrice": 1.6239,
+        #        "bankruptPrice": 1.6317,
+        #        "settleCurrency": "USDT"
+        #    }
+        #
+        #    {
+        #        "code":"200000",
+        #        "msg":"Position does not exist"
+        #    }
+        #
+        id = self.safe_string(info, 'id')
+        marketResolved = self.safe_market(id, market)
+        currencyId = self.safe_string(info, 'settleCurrency')
+        crossMode = self.safe_bool(info, 'crossMode')
+        mode = 'cross' if (crossMode is True) else 'isolated'
+        marketId = self.safe_string(marketResolved, 'symbol')
+        timestamp = self.safe_integer(info, 'currentTimestamp')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, marketResolved),
+            'type': None,
+            'marginMode': mode,
+            'amount': None,
+            'total': None,
+            'code': self.safe_currency_code(currencyId),
+            'status': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
+    def fetch_margin_mode(self, symbol: str, params: dict = {}) -> MarginMode:
+        """
+        fetches the margin mode of a trading pair
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-margin-mode
+
+        :param str symbol: unified symbol of the market to fetch the margin mode for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.futuresPrivateGetPositionGetMarginMode(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "symbol": "XBTUSDTM",
+        #             "marginMode": "ISOLATED"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_margin_mode(data, market)
+
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
+        marginType = self.safe_string(marginMode, 'marginMode')
+        marginType = 'isolated' if (marginType == 'ISOLATED') else 'cross'
+        return {
+            'info': marginMode,
+            'symbol': self.safe_string(market, 'symbol'),
+            'marginMode': marginType,
+        }
+
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params: dict = {}):
+        """
+        set margin mode to 'cross' or 'isolated'
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-margin-mode
+
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        self.check_required_argument('setMarginMode', marginMode, 'marginMode', ['cross', 'isolated'])
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        if market['contract'] is not True:
+            raise NotSupported(self.id + ' setMarginMode() supports contract markets only')
+        request = {
+            'symbol': market['id'],
+            'marginMode': marginMode.upper(),
+        }
+        response = self.futuresPrivatePostPositionChangeMarginMode(self.extend(request, params))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "symbol": "XBTUSDTM",
+        #            "marginMode": "ISOLATED"
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_margin_mode(data, market)  # widened to Dict to match the base setMarginMode return ({}) — narrowing it to MarginMode breaks the Go IExchange interface
+
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
+        """
+        set hedged to True or False for a market
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-position-mode
+
+        :param bool hedged: set to True to use two way position
+        :param str [symbol]: not used by setPositionMode()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a response from the exchange
+        """
+        if self.markets is None:
+            self.load_markets()
+        posMode = '0'
+        if hedged:
+            posMode = '1'
+        request = {
+            'positionMode': posMode,
+        }
+        response = self.futuresPrivatePostPositionSwitchPositionMode(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "positionMode": 1
+        #         }
+        #     }
+        #
+        return response
+
+    def fetch_position_mode(self, symbol: Str = None, params: dict = {}) -> PositionModeInfo:
+        """
+        fetchs the position mode, hedged or one way
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-mode
+
+        :param str [symbol]: unified symbol of the market to fetch the position mode for(not used in blofin fetchPositionMode)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an object detailing whether the market is in hedged or one-way mode
+        """
+        response = self.futuresPrivateGetPositionGetPositionMode(params)
+        data = self.safe_dict(response, 'data', {})
+        positionMode = self.safe_integer(data, 'positionMode')
+        return {
+            'info': data,
+            'hedged': positionMode == 1,
+        }
+
+    def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
+        """
+        closes open positions for a market
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+        https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+
+        :param str symbol: Unified CCXT market symbol
+        :param str side: not used by kucoin closePositions
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: client order id of the order
+        :returns dict[]: `A list of position structures <https://docs.ccxt.com/?id=position-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        testOrder = self.safe_bool(params, 'test', False)
+        paramsOmitted = self.omit(params, ['test', 'clientOrderId'])
+        if clientOrderId is None:
+            clientOrderId = self.number_to_string(self.nonce())
+        request = {
+            'symbol': market['id'],
+            'closeOrder': True,
+            'clientOid': clientOrderId,
+            'type': 'market',
+        }
+        response = None
+        if testOrder is True:
+            response = self.futuresPrivatePostOrdersTest(self.extend(request, paramsOmitted))
+        else:
+            response = self.futuresPrivatePostOrders(self.extend(request, paramsOmitted))
+        return self.parse_order(response, market)
+
+    def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}) -> list[LeverageTier]:
+        """
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-isolated-margin-risk-limit
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True to fetch leverage tiers for unified trading account instead of futures account(default is False)
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/?id=leverage-tiers-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        if market['contract'] is not True:
+            raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
+        uta = False
+        utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchMarketLeverageTiers', 'uta', uta)
+        if utaOption:
+            result = self.fetch_leverage_tiers([symbol], paramsUta)
+            return self.safe_list(result, symbol, [])
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.futuresPublicGetContractsRiskLimitSymbol(self.extend(request, paramsUta))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": [
+        #            {
+        #                "symbol": "ETHUSDTM",
+        #                "level": 1,
+        #                "maxRiskLimit": 300000,
+        #                "minRiskLimit": 0,
+        #                "maxLeverage": 100,
+        #                "initialMargin": 0.0100000000,
+        #                "maintainMargin": 0.0050000000
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_market_leverage_tiers(data, market)
+
+    def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
+        """
+ @ignore
+        :param dict info: Exchange market response for 1 market
+        :param dict market: CCXT market
+        """
+        #
+        # futures
+        #    {
+        #        "symbol": "ETHUSDTM",
+        #        "level": 1,
+        #        "maxRiskLimit": 300000,
+        #        "minRiskLimit": 0,
+        #        "maxLeverage": 100,
+        #        "initialMargin": 0.0100000000,
+        #        "maintainMargin": 0.0050000000
+        #    }
+        #
+        # uta
+        #     {
+        #         "symbol": "XBTUSDTM",
+        #         "tier": 2,
+        #         "maxSize": "600000",
+        #         "minSize": "250000",
+        #         "maxLeverage": "100",
+        #         "initialMarginRate": "0.0100000000",
+        #         "maintainMarginRate": "0.0050000000"
+        #     }
+        #
+        marketCursor = market
+        tiers = []
+        for i in range(0, len(info)):
+            tier = self.safe_dict(info, i, {})
+            marketId = self.safe_string(tier, 'symbol')
+            marketCursor = self.safe_market(marketId, marketCursor)
+            tiers.append({
+                'tier': self.safe_number_2(tier, 'level', 'tier'),
+                'symbol': marketCursor['symbol'],
+                'currency': marketCursor['base'],
+                'minNotional': self.safe_number_2(tier, 'minRiskLimit', 'minSize'),
+                'maxNotional': self.safe_number_2(tier, 'maxRiskLimit', 'maxSize'),
+                'maintenanceMarginRate': self.safe_number_2(tier, 'maintainMargin', 'maintainMarginRate'),
+                'maxLeverage': self.safe_number(tier, 'maxLeverage'),
+                'info': tier,
+            })
+        return tiers
+
+    def fetch_leverage_tiers(self, symbols: Strings = None, params: dict = {}) -> LeverageTiers:
+        """
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+
+        https://www.kucoin.com/docs-new/rest/ua/get-position-tiers
+
+        :param str[] symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`, indexed by market symbols
+        """
+        if self.markets is None:
+            self.load_markets()
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchLeverageTiers() requires a symbols argument')
+        symbolsNormalized = self.market_symbols(symbols, 'swap', False, True)
+        marginMode = 'cross'
+        paramsRequest = None
+        marginMode, paramsRequest = self.handle_option_string_and_params(params, 'fetchLeverageTiers', 'marginMode', marginMode)
+        marginMode = marginMode.upper()
+        if marginMode != 'CROSS':
+            raise BadRequest(self.id + ' fetchLeverageTiers() supports cross margin only')
+        marketIds = self.market_ids(symbolsNormalized)
+        request = {
+            'tradeType': 'FUTURES',
+            'marginMode': marginMode,
+            'data': 'RISK_LIMIT',
+            'accountType': 'UNIFIED',
+            'symbol': ','.join(marketIds),
+        }
+        response = self.utaGetMarketPositionTiers(self.extend(request, paramsRequest))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": [
+        #             {
+        #                 "symbol": "XBTUSDTM",
+        #                 "tier": 1,
+        #                 "maxSize": "250000",
+        #                 "minSize": "0",
+        #                 "maxLeverage": "125",
+        #                 "initialMarginRate": "0.0080000000",
+        #                 "maintainMarginRate": "0.0040000000"
+        #             },
+        #             {
+        #                 "symbol": "XBTUSDTM",
+        #                 "tier": 2,
+        #                 "maxSize": "600000",
+        #                 "minSize": "250000",
+        #                 "maxLeverage": "100",
+        #                 "initialMarginRate": "0.0100000000",
+        #                 "maintainMarginRate": "0.0050000000"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        result = {}
+        tiers = self.parse_market_leverage_tiers(data)
+        for i in range(0, len(tiers)):
+            tier = self.safe_dict(tiers, i)
+            symbol = self.safe_string(tier, 'symbol')
+            if symbol is not None:
+                if not (symbol in result):
+                    result[symbol] = []
+                result[symbol].append(tier)
+        return result
+
+    def fetch_open_interests(self, symbols: Strings = None, params: dict = {}) -> OpenInterests:
+        """
+        Retrieves the open interest for a list of symbols
+
+        https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
+
+        :param str[] [symbols]: Unified CCXT market symbol
+        :param dict [params]: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols)
+        request = {}
+        if symbolsNormalized is not None:
+            length = len(symbolsNormalized)
+            if length < 11:
+                # the endpoint does not accept more than 10 symbols at a time
+                # if user provided more than 10 symbols, we will fetch all symbols
+                marketIds = self.market_ids(symbolsNormalized)
+                request['symbol'] = ','.join(marketIds)
+        response = self.utaGetMarketOpenInterest(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": [
+        #             {
+        #                 "symbol": "ETHUSDTM",
+        #                 "openInterest": "8053960",
+        #                 "ts": 1774007467050
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_open_interests(data, symbolsNormalized)
+
+    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+        #
+        #     {
+        #         "symbol": "ETHUSDTM",
+        #         "openInterest": "8053960",
+        #         "ts": 1774007467050
+        #     }
+        #
+        marketId = self.safe_string(interest, 'symbol')
+        marketResolved = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(interest, 'ts')
+        return self.safe_open_interest({
+            'symbol': self.safe_symbol(marketId),
+            'openInterestAmount': self.safe_number(interest, 'openInterest'),
+            'openInterestValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }, marketResolved)
+
+    def fetch_open_interest_history(self, symbol: str, timeframe='5m', since: Int = None, limit: Int = None, params: dict = {}):
+        """
+        Retrieves the open interest history of a currency
+
+        https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
+
+        :param str symbol: Unified CCXT market symbol
+        :param str timeframe: '5m', '15m', '30m', '1h', '4h' or '1d'
+        :param int [since]: the time(ms) of the earliest record to retrieve as a unix timestamp
+        :param int [limit]: default 30，max 200
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict: an array of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        timeframes = {
+            '5m': '5min',
+            '15m': '15min',
+            '30m': '30min',
+            '1h': '1hour',
+            '4h': '4hour',
+            '1d': '1day',
+            '5min': '5min',
+            '15min': '15min',
+            '30min': '30min',
+            '1hour': '1hour',
+            '4hour': '4hour',
+            '1day': '1day',
+        }
+        interval = self.safe_string(timeframes, timeframe)
+        if interval is None:
+            raise BadRequest(self.id + ' fetchOpenInterestHistory() invalid timeframe, supported are 5m, 15m, 30m, 1h, 4h, 1d')
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        maxLimit = 200
+        paginate = False
+        paginateOption, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOpenInterestHistory', 'paginate', paginate)
+        if paginateOption:
+            return self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
+        request = {
+            'symbol': market['id'],
+            'interval': interval,
+        }
+        if since is not None:
+            request['startAt'] = since
+        if limit is not None:
+            request['pageSize'] = limit
+        requestUntil, paramsUntil = self.handle_until_option('endAt', request, paramsPaginate)
+        response = self.utaGetMarketOpenInterest(self.extend(requestUntil, paramsUntil))
+        data = self.safe_list(response, 'data')
+        return self.parse_open_interests_history(data, market, since, limit)
+
+    def is_uta_enabled(self, params: dict = {}) -> bool:
+        """
+
+        https://www.kucoin.com/docs-new/rest/ua/get-account-mode
+
+        returns True or False so the user can check if unified account is enabled
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns boolean: True if unified account is enabled, False otherwise
+        """
+        uta = self.safe_bool(self.options, 'uta')
+        if uta is None:
+            response = self.utaPrivateGetAccountMode(params)
+            data = self.safe_dict(response, 'data', {})
+            accountMode = self.safe_string(data, 'selfAccountMode')
+            uta = (accountMode == 'UNIFIED')
+            self.options['uta'] = uta
+        return uta
+
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         #
         # the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         #                                ↑                 ↑
@@ -5537,29 +10973,39 @@ class kucoin(Exchange, ImplicitAPI):
         methodVersions = self.safe_dict(apiVersions, method, {})
         defaultVersion = self.safe_string(methodVersions, path, self.options['version'])
         version = self.safe_string(params, 'version', defaultVersion)
-        params = self.omit(params, 'version')
-        endpoint = '/api/' + version + '/' + self.implode_params(path, params)
+        paramsOmitted = self.omit(params, 'version')
+        endpoint = '/api/' + version + '/' + self.implode_params(path, paramsOmitted)
+        if api == 'utaV2':
+            endpoint = '/api/ua/v2/' + self.implode_params(path, paramsOmitted)
         if api == 'webExchange':
-            endpoint = '/' + self.implode_params(path, params)
+            endpoint = '/' + self.implode_params(path, paramsOmitted)
         if api == 'earn':
-            endpoint = '/api/v1/' + self.implode_params(path, params)
+            endpoint = '/api/v1/' + self.implode_params(path, paramsOmitted)
         isUtaPrivate = False
         if (api == 'uta') or (api == 'utaPrivate'):
-            endpoint = '/api/ua/v1/' + self.implode_params(path, params)
+            endpoint = '/api/ua/v1/' + self.implode_params(path, paramsOmitted)
             if api == 'utaPrivate':
                 isUtaPrivate = True
-        query = self.omit(params, self.extract_params(path))
+        query = self.omit(paramsOmitted, self.extract_params(path))
         endpart = ''
-        headers = headers if (headers is not None) else {}
-        url = self.urls['api'][api]
+        headersBase = {}
+        if headers is not None:
+            headersBase = headers
+        bodyJson = body
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        tradeType = self.safe_string(query, 'tradeType')
         if not self.is_empty(query):
             if ((method == 'GET') or (method == 'DELETE')) and (path != 'orders/multi-cancel'):
                 endpoint += '?' + self.rawencode(query)
             else:
-                body = self.json(query)
-                endpart = body
-                headers['Content-Type'] = 'application/json'
-        url = url + endpoint
+                if (endpoint == '/api/ua/v1/classic/order/place') or (endpoint == '/api/ua/v1/classic/order/place/batch') or (endpoint == '/api/ua/v1/classic/order/cancel') or (endpoint == '/api/ua/v1/classic/order/cancel/batch'):
+                    endpoint += '?tradeType=' + tradeType
+                bodyJson = self.json(query)
+                endpart = bodyJson
+                headersBase['Content-Type'] = 'application/json'
+        headersResult = headersBase
         isFuturePrivate = (api == 'futuresPrivate')
         isPrivate = (api == 'private')
         isBroker = (api == 'broker')
@@ -5567,45 +11013,48 @@ class kucoin(Exchange, ImplicitAPI):
         if isPrivate or isFuturePrivate or isBroker or isEarn or isUtaPrivate:
             self.check_required_credentials()
             timestamp = str(self.nonce())
-            headers = self.extend({
+            headersSigned = self.extend({
                 'KC-API-KEY-VERSION': '2',
                 'KC-API-KEY': self.apiKey,
                 'KC-API-TIMESTAMP': timestamp,
-            }, headers)
-            apiKeyVersion = self.safe_string(headers, 'KC-API-KEY-VERSION')
+            }, headersBase)
+            apiKeyVersion = self.safe_string(headersSigned, 'KC-API-KEY-VERSION')
             if apiKeyVersion == '2':
                 passphrase = self.hmac(self.encode(self.password), self.encode(self.secret), hashlib.sha256, 'base64')
-                headers['KC-API-PASSPHRASE'] = passphrase
+                headersSigned['KC-API-PASSPHRASE'] = passphrase
             else:
-                headers['KC-API-PASSPHRASE'] = self.password
+                headersSigned['KC-API-PASSPHRASE'] = self.password
             payload = timestamp + method + endpoint + endpart
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
-            headers['KC-API-SIGN'] = signature
+            headersSigned['KC-API-SIGN'] = signature
             partner = self.safe_dict(self.options, 'partner', {})
-            partner = self.safe_value(partner, 'future', partner) if isFuturePrivate else self.safe_value(partner, 'spot', partner)
+            isUtaFuturePrivate = isUtaPrivate and (tradeType == 'FUTURES')
+            isFuturePartner = isFuturePrivate or isUtaFuturePrivate
+            partner = self.safe_value(partner, 'future', partner) if isFuturePartner else self.safe_value(partner, 'spot', partner)
             partnerId = self.safe_string(partner, 'id')
             partnerSecret = self.safe_string_2(partner, 'secret', 'key')
             if (partnerId is not None) and (partnerSecret is not None):
                 partnerPayload = timestamp + partnerId + self.apiKey
                 partnerSignature = self.hmac(self.encode(partnerPayload), self.encode(partnerSecret), hashlib.sha256, 'base64')
-                headers['KC-API-PARTNER-SIGN'] = partnerSignature
-                headers['KC-API-PARTNER'] = partnerId
-                headers['KC-API-PARTNER-VERIFY'] = 'true'
+                headersSigned['KC-API-PARTNER-SIGN'] = partnerSignature
+                headersSigned['KC-API-PARTNER'] = partnerId
+                headersSigned['KC-API-PARTNER-VERIFY'] = 'true'
             if isBroker:
                 brokerName = self.safe_string(partner, 'name')
                 if brokerName is not None:
-                    headers['KC-BROKER-NAME'] = brokerName
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+                    headersSigned['KC-BROKER-NAME'] = brokerName
+            headersResult = headersSigned
+        return {'url': apiUrl + endpoint, 'method': method, 'body': bodyJson, 'headers': headersResult}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
-        if not response:
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+        if (response is None) or (response is None):
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, body)
             return None
         #
         # bad
-        #     {"code": "400100", "msg": "validation.createOrder.clientOidIsRequired"}
+        #     { "code": "400100", "msg": "validation.createOrder.clientOidIsRequired" }
         # good
-        #     {code: '200000', data: {...}}
+        #     { code: '200000', data: { ... }}
         #
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string_2(response, 'msg', 'data', '')
@@ -5617,7 +11066,7 @@ class kucoin(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -5631,17 +11080,17 @@ class kucoin(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
+        if self.markets is None:
+            self.load_markets()
+        paginate, paramsRequest = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, params)
-        request: dict = {
+            return self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, paramsRequest)
+        request = {
             'bizType': 'TRANSFER',
         }
-        until = self.safe_integer(params, 'until')
+        until = self.safe_integer(paramsRequest, 'until')
+        paramsOmitted = self.omit(paramsRequest, 'until') if (until is not None) else paramsRequest
         if until is not None:
-            params = self.omit(params, 'until')
             request['endAt'] = until
         currency = None
         if code is not None:
@@ -5653,8 +11102,8 @@ class kucoin(Exchange, ImplicitAPI):
             request['pageSize'] = limit
         else:
             request['pageSize'] = 500
-        request, params = self.handle_until_option('endAt', request, params)
-        response = self.privateGetAccountsLedgers(self.extend(request, params))
+        request, paramsOmitted = self.handle_until_option('endAt', request, paramsOmitted)
+        response = self.privateGetAccountsLedgers(self.extend(request, paramsOmitted))
         #
         # {
         #     "code": "200000",
@@ -5683,3 +11132,123 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         items = self.safe_list(data, 'items', [])
         return self.parse_transfers(items, currency, since, limit)
+
+    def fetch_positions_adl_rank(self, symbols: Strings = None, params: dict = {}) -> list[ADL]:
+        """
+        fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
+        response = self.futuresPrivateGetPositions(params)
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": [
+        #             {
+        #                 "id": "600000000001260912",
+        #                 "symbol": "XBTUSDTM",
+        #                 "crossMode": true,
+        #                 "maintMarginReq": 0.0040000133,
+        #                 "delevPercentage": 0.0,
+        #                 "openingTimestamp": 1768481882915,
+        #                 "currentTimestamp": 1768481897988,
+        #                 "currentQty": 1,
+        #                 "currentCost": 96.9768,
+        #                 "currentComm": 0.05818608,
+        #                 "unrealisedCost": 96.9768,
+        #                 "realisedGrossCost": 0.0,
+        #                 "realisedCost": 0.05818608,
+        #                 "isOpen": true,
+        #                 "markPrice": 96985.6,
+        #                 "markValue": 96.9856,
+        #                 "posCost": 96.9768,
+        #                 "posInit": 4.84884,
+        #                 "posMargin": 4.84928,
+        #                 "posMaint": 0.38794369,
+        #                 "realisedGrossPnl": 0.0,
+        #                 "realisedPnl": -0.05818608,
+        #                 "unrealisedPnl": 0.0088,
+        #                 "unrealisedPnlPcnt": 1.0E-4,
+        #                 "unrealisedRoePcnt": 0.0018,
+        #                 "avgEntryPrice": 96976.8,
+        #                 "liquidationPrice": 52351.69,
+        #                 "bankruptPrice": 52110.87,
+        #                 "settleCurrency": "USDT",
+        #                 "isInverse": false,
+        #                 "maintainMargin": 0.0040000133,
+        #                 "marginMode": "CROSS",
+        #                 "positionSide": "LONG",
+        #                 "leverage": 20,
+        #                 "dealComm": -0.05818608,
+        #                 "fundingFee": 0,
+        #                 "tax": 0
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_adl_ranks(data, symbolsNormalized)
+
+    def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
+        #
+        # fetchPositionsADLRank
+        #
+        #     {
+        #         "id": "600000000001260912",
+        #         "symbol": "XBTUSDTM",
+        #         "crossMode": true,
+        #         "maintMarginReq": 0.0040000133,
+        #         "delevPercentage": 0.0,
+        #         "openingTimestamp": 1768481882915,
+        #         "currentTimestamp": 1768481897988,
+        #         "currentQty": 1,
+        #         "currentCost": 96.9768,
+        #         "currentComm": 0.05818608,
+        #         "unrealisedCost": 96.9768,
+        #         "realisedGrossCost": 0.0,
+        #         "realisedCost": 0.05818608,
+        #         "isOpen": true,
+        #         "markPrice": 96985.6,
+        #         "markValue": 96.9856,
+        #         "posCost": 96.9768,
+        #         "posInit": 4.84884,
+        #         "posMargin": 4.84928,
+        #         "posMaint": 0.38794369,
+        #         "realisedGrossPnl": 0.0,
+        #         "realisedPnl": -0.05818608,
+        #         "unrealisedPnl": 0.0088,
+        #         "unrealisedPnlPcnt": 1.0E-4,
+        #         "unrealisedRoePcnt": 0.0018,
+        #         "avgEntryPrice": 96976.8,
+        #         "liquidationPrice": 52351.69,
+        #         "bankruptPrice": 52110.87,
+        #         "settleCurrency": "USDT",
+        #         "isInverse": false,
+        #         "maintainMargin": 0.0040000133,
+        #         "marginMode": "CROSS",
+        #         "positionSide": "LONG",
+        #         "leverage": 20,
+        #         "dealComm": -0.05818608,
+        #         "fundingFee": 0,
+        #         "tax": 0
+        #     }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        timestamp = self.safe_integer(info, 'openingTimestamp')
+        percentage = self.safe_string(info, 'delevPercentage')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'rank': None,
+            'rating': None,
+            'percentage': self.parse_number(Precise.string_mul(percentage, '100')),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }

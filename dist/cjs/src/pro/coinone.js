@@ -56,10 +56,12 @@ class coinone extends coinone$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'orderbook:' + market['symbol'];
         const url = this.urls['api']['ws'];
@@ -100,11 +102,14 @@ class coinone extends coinone$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(message, 'data', {});
+        const data = this.safeDict(message, 'data', {});
         const baseId = this.safeStringUpper(data, 'target_currency');
         const quoteId = this.safeStringUpper(data, 'quote_currency');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return;
+        }
         const symbol = this.symbol(base + '/' + quote);
         const timestamp = this.safeInteger(data, 'timestamp');
         let orderbook = this.safeValue(this.orderbooks, symbol);
@@ -115,8 +120,8 @@ class coinone extends coinone$1["default"] {
             orderbook.reset();
         }
         orderbook['symbol'] = symbol;
-        const asks = this.safeValue(data, 'asks', []);
-        const bids = this.safeValue(data, 'bids', []);
+        const asks = this.safeList(data, 'asks', []);
+        const bids = this.safeList(data, 'bids', []);
         this.handleDeltas(orderbook['asks'], asks);
         this.handleDeltas(orderbook['bids'], bids);
         orderbook['timestamp'] = timestamp;
@@ -126,7 +131,7 @@ class coinone extends coinone$1["default"] {
         client.resolve(orderbook, messageHash);
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta, 'price', 'qty');
+        const bidAsk = this.parseOrderBookBidAsk(delta, 'price', 'qty');
         bookside.storeArray(bidAsk);
     }
     /**
@@ -139,7 +144,9 @@ class coinone extends coinone$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'ticker:' + market['symbol'];
         const url = this.urls['api']['ws'];
@@ -184,9 +191,12 @@ class coinone extends coinone$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(message, 'data', {});
+        const data = this.safeDict(message, 'data', {});
         const ticker = this.parseWsTicker(data);
         const symbol = ticker['symbol'];
+        if (symbol === undefined) {
+            return;
+        }
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
         client.resolve(this.tickers[symbol], messageHash);
@@ -223,7 +233,10 @@ class coinone extends coinone$1["default"] {
         const quoteId = this.safeString(ticker, 'quote_currency');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const symbol = this.symbol(base + '/' + quote);
+        let symbol = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = this.symbol(base + '/' + quote);
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -259,7 +272,9 @@ class coinone extends coinone$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'trade:' + market['symbol'];
         const url = this.urls['api']['ws'];
@@ -273,10 +288,11 @@ class coinone extends coinone$1["default"] {
         };
         const message = this.extend(request, params);
         const trades = await this.watch(url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(market['symbol'], limit);
+            limitResolved = trades.getLimit(market['symbol'], limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -294,7 +310,7 @@ class coinone extends coinone$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(message, 'data', {});
+        const data = this.safeDict(message, 'data', {});
         const trade = this.parseWsTrade(data);
         const symbol = trade['symbol'];
         let stored = this.safeValue(this.trades, symbol);
@@ -323,13 +339,16 @@ class coinone extends coinone$1["default"] {
         const quoteId = this.safeStringUpper(trade, 'quote_currency');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const symbol = base + '/' + quote;
+        let symbol = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+        }
         const timestamp = this.safeInteger(trade, 'timestamp');
-        market = this.safeMarket(symbol, market);
-        const isSellerMaker = this.safeValue(trade, 'is_seller_maker');
+        const marketResolved = this.safeMarket(symbol, market);
+        const isSellerMaker = this.safeBool(trade, 'is_seller_maker');
         let side = undefined;
         if (isSellerMaker !== undefined) {
-            side = isSellerMaker ? 'sell' : 'buy';
+            side = (isSellerMaker === true) ? 'sell' : 'buy';
         }
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'qty');
@@ -339,7 +358,7 @@ class coinone extends coinone$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'order': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -347,7 +366,7 @@ class coinone extends coinone$1["default"] {
             'amount': amountString,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
     handleErrorMessage(client, message) {
         //
@@ -364,7 +383,7 @@ class coinone extends coinone$1["default"] {
         return false;
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const type = this.safeString(message, 'response_type');

@@ -2,14 +2,15 @@
 
 import xtRest from '../xt.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { Balances, Bool, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { NotSupported } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class xt extends xtRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -28,6 +29,8 @@ export default class xt extends xtRest {
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchPositions': true,
+                'watchFundingRate': true,
+                'unWatchFundingRate': true,
             },
             'urls': {
                 'api': {
@@ -66,83 +69,116 @@ export default class xt extends xtRest {
      * @method
      * @description required for private endpoints
      * @param {string} isContract true for contract trades
-     * @see https://doc.xt.com/#websocket_privategetToken
-     * @see https://doc.xt.com/#futures_user_websocket_v2base
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/GetWsToken
+     * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
      * @returns {string} listen key / access token
      */
-    async getListenKey (isContract: boolean) {
+    async getListenKey (isContract: boolean): Promise<Str> {
         this.checkRequiredCredentials ();
-        const tradeType = isContract ? 'contract' : 'spot';
-        let url = this.urls['api']['ws'][tradeType];
+        let tradeType: Str = 'spot';
+        if (isContract) {
+            tradeType = 'contract';
+        }
+        let url = this.safeString (this.urls['api']['ws'], tradeType);
         if (!isContract) {
             url = url + '/private';
         }
         const client = this.client (url);
         const token = this.safeString (client.subscriptions, 'token');
         if (token === undefined) {
-            if (isContract) {
-                const response = await this.privateLinearGetFutureUserV1UserListenKey ();
-                //
-                //    {
-                //        returnCode: '0',
-                //        msgInfo: 'success',
-                //        error: null,
-                //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
-                //    }
-                //
-                client.subscriptions['token'] = this.safeString (response, 'result');
-            } else {
-                const response = await this.privateSpotPostWsToken ();
-                //
-                //    {
-                //        "rc": 0,
-                //        "mc": "SUCCESS",
-                //        "ma": [],
-                //        "result": {
-                //            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
-                //            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
-                //        }
-                //    }
-                //
-                const result = this.safeDict (response, 'result');
-                client.subscriptions['token'] = this.safeString (result, 'accessToken');
+            // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+            // concurrent callers each minted their own token, last write won, and the losers
+            // carried an orphaned token into name + '@' + listenKey so their streams went dead
+            const messageHash = 'authenticate:' + tradeType;
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the token is then in the bucket
+                await client.future (messageHash);
+                return client.subscriptions['token'];
             }
+            // client.futures is the same registry Exchange.watch () dedupes on, so registering
+            // the flight here, before any suspension point, makes concurrent callers wait
+            const future = client.reusableFuture (messageHash);
+            try {
+                let listenKey: Str = undefined;
+                if (isContract) {
+                    const response = await this.privateLinearGetFutureUserV1UserListenKey ();
+                    //
+                    //    {
+                    //        returnCode: '0',
+                    //        msgInfo: 'success',
+                    //        error: null,
+                    //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
+                    //    }
+                    //
+                    listenKey = this.safeString (response, 'result');
+                } else {
+                    const response = await this.privateSpotPostWsToken ();
+                    //
+                    //    {
+                    //        "rc": 0,
+                    //        "mc": "SUCCESS",
+                    //        "ma": [],
+                    //        "result": {
+                    //            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
+                    //            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
+                    //        }
+                    //    }
+                    //
+                    const result = this.safeDict (response, 'result');
+                    listenKey = this.safeString (result, 'accessToken');
+                }
+                if (listenKey === undefined) {
+                    // reject instead of caching an empty token, so waiters
+                    // retry rather than subscribing with the literal
+                    // string 'undefined' for the rest of the session
+                    throw new AuthenticationError (this.id + ' getListenKey() received an empty listen key');
+                }
+                client.subscriptions['token'] = listenKey;
+                client.resolve (listenKey, messageHash);
+            } catch (e) {
+                // hand the failure to every waiter so the next caller re-leads instead of
+                // deadlocking on a dead flight. no throw here: the trailing future rethrows
+                // to this caller and keeps a waiterless rejection from crashing the process
+                client.reject (e, messageHash);
+            }
+            await future;
         }
         return client.subscriptions['token'];
     }
 
-    getCacheIndex (orderbook, cache) {
+    override getCacheIndex (orderbook: any, cache: any): number {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         const nonce = this.safeInteger (orderbook, 'nonce');
-        const firstDelta = this.safeValue (cache, 0);
+        const firstDelta = this.safeDict (cache, 0);
         const firstDeltaNonce = this.safeInteger2 (firstDelta, 'i', 'u');
-        if (nonce < firstDeltaNonce - 1) {
+        if ((nonce !== undefined) && (firstDeltaNonce !== undefined) && (nonce < firstDeltaNonce - 1)) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
-            const delta = cache[i];
+            const delta = this.safeDict (cache, i);
             const deltaNonce = this.safeInteger2 (delta, 'i', 'u');
-            if (deltaNonce >= nonce) {
+            if ((deltaNonce !== undefined) && (nonce !== undefined) && (deltaNonce >= nonce)) {
                 return i;
             }
         }
         return cache.length;
     }
 
-    handleDelta (orderbook, delta) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
         orderbook['nonce'] = this.safeInteger2 (delta, 'i', 'u');
-        const obAsks = this.safeList (delta, 'a', []);
-        const obBids = this.safeList (delta, 'b', []);
+        const obAsks: Dict[] = this.safeList (delta, 'a', []);
+        const obBids: Dict[] = this.safeList (delta, 'b', []);
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
         for (let i = 0; i < obBids.length; i++) {
-            const bid = obBids[i];
+            const bid = this.safeList (obBids, i);
             const price = this.safeNumber (bid, 0);
             const quantity = this.safeNumber (bid, 1);
             bids.store (price, quantity);
         }
         for (let i = 0; i < obAsks.length; i++) {
-            const ask = obAsks[i];
+            const ask = this.safeList (obAsks, i);
             const price = this.safeNumber (ask, 0);
             const quantity = this.safeNumber (ask, 1);
             asks.store (price, quantity);
@@ -155,8 +191,8 @@ export default class xt extends xtRest {
      * @ignore
      * @method
      * @description Connects to a websocket channel
-     * @see https://doc.xt.com/#websocket_privaterequestFormat
-     * @see https://doc.xt.com/#futures_market_websocket_v2base
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/RequestMessageFormat
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/General_WSS_information
      * @param {string} name name of the channel
      * @param {string} access public or private
      * @param {string} methodName the name of the CCXT class method
@@ -165,13 +201,12 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the xt api
      * @returns {object} data from the websocket stream
      */
-    async subscribe (name: string, access: string, methodName: string, market: Market = undefined, symbols: string[] = undefined, params = {}) {
+    async subscribe (name: string, access: string, methodName: string, market: Market = undefined, symbols: Strings = undefined, params: Dict = {}) {
         const privateAccess = access === 'private';
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams (methodName, market, params);
         const isContract = (type !== 'spot');
         const id = this.numberToString (this.milliseconds ()) + name; // call back ID
-        const subscribe = {
+        const subscribe: Dict = {
             'method': isContract ? 'SUBSCRIBE' : 'subscribe',
             'id': id,
         };
@@ -187,12 +222,15 @@ export default class xt extends xtRest {
         } else {
             subscribe['params'] = [ name ];
         }
-        const tradeType = isContract ? 'contract' : 'spot';
+        let tradeType: Str = 'spot';
+        if (isContract) {
+            tradeType = 'contract';
+        }
         let messageHash = name + '::' + tradeType;
         if (symbols !== undefined) {
             messageHash = messageHash + '::' + symbols.join (',');
         }
-        const request = this.extend (subscribe, params);
+        const request = this.extend (subscribe, paramsMarketType);
         let tail = access;
         if (isContract) {
             tail = privateAccess ? 'user' : 'market';
@@ -200,7 +238,7 @@ export default class xt extends xtRest {
         const subscription: Dict = {
             'id': id,
         };
-        const url = this.urls['api']['ws'][tradeType] + '/' + tail;
+        const url = this.safeString (this.urls['api']['ws'], tradeType) + '/' + tail;
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
@@ -208,8 +246,8 @@ export default class xt extends xtRest {
      * @ignore
      * @method
      * @description Connects to a websocket channel
-     * @see https://doc.xt.com/#websocket_privaterequestFormat
-     * @see https://doc.xt.com/#futures_market_websocket_v2base
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/RequestMessageFormat
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/General_WSS_information
      * @param {string} messageHash the message hash of the subscription
      * @param {string} name name of the channel
      * @param {string} access public or private
@@ -221,13 +259,12 @@ export default class xt extends xtRest {
      * @param {object} subscriptionParams extra parameters specific to the subscription
      * @returns {object} data from the websocket stream
      */
-    async unSubscribe (messageHash: string, name: string, access: string, methodName: string, topic: string, market: Market = undefined, symbols: string[] = undefined, params = {}, subscriptionParams = {}): Promise<any> {
+    async unSubscribe (messageHash: string, name: string, access: string, methodName: string, topic: string, market: Market = undefined, symbols: Strings = undefined, params = {}, subscriptionParams = {}): Promise<any> {
         const privateAccess = access === 'private';
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams (methodName, market, params);
         const isContract = (type !== 'spot');
         const id = this.numberToString (this.milliseconds ()) + name; // call back ID
-        const unsubscribe = {
+        const unsubscribe: Dict = {
             'method': isContract ? 'UNSUBSCRIBE' : 'unsubscribe',
             'id': id,
         };
@@ -243,14 +280,17 @@ export default class xt extends xtRest {
         } else {
             unsubscribe['params'] = [ name ];
         }
-        const tradeType = isContract ? 'contract' : 'spot';
+        let tradeType: Str = 'spot';
+        if (isContract) {
+            tradeType = 'contract';
+        }
         const subMessageHash = name + '::' + tradeType;
-        const request = this.extend (unsubscribe, params);
+        const request = this.extend (unsubscribe, paramsMarketType);
         let tail = access;
         if (isContract) {
             tail = privateAccess ? 'user' : 'market';
         }
-        const url = this.urls['api']['ws'][tradeType] + '/' + tail;
+        const url = this.safeString (this.urls['api']['ws'], tradeType) + '/' + tail;
         const subscription: Dict = {
             'unsubscribe': true,
             'id': id,
@@ -262,25 +302,26 @@ export default class xt extends xtRest {
         const symbolsAndTimeframes = this.safeList (subscriptionParams, 'symbolsAndTimeframes');
         if (symbolsAndTimeframes !== undefined) {
             subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
-            subscriptionParams = this.omit (subscriptionParams, 'symbolsAndTimeframes');
         }
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash, this.extend (subscription, subscriptionParams));
+        const subscriptionParamsOmitted = this.omit (subscriptionParams, 'symbolsAndTimeframes');
+        return await this.watch (url, messageHash, this.extend (request, paramsMarketType), messageHash, this.extend (subscription, subscriptionParamsOmitted));
     }
 
     /**
      * @method
      * @name xt#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://doc.xt.com/#websocket_publictickerRealTime
-     * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
-     * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const options = this.safeDict (this.options, 'watchTicker');
         const defaultMethod = this.safeString (options, 'method', 'ticker');
@@ -293,16 +334,17 @@ export default class xt extends xtRest {
      * @method
      * @name xt#unWatchTicker
      * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://doc.xt.com/#websocket_publictickerRealTime
-     * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
-     * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    async unWatchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async unWatchTicker (symbol: string, params: Dict = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const options = this.safeDict (this.options, 'unWatchTicker');
         const defaultMethod = this.safeString (options, 'method', 'ticker');
@@ -316,20 +358,21 @@ export default class xt extends xtRest {
      * @method
      * @name xt#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://doc.xt.com/#websocket_publicallTicker
-     * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
-     * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
      * @param {string} [symbols] unified market symbols
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const options = this.safeDict (this.options, 'watchTickers');
         const defaultMethod = this.safeString (options, 'method', 'tickers');
         const name = this.safeString (params, 'method', defaultMethod);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             market = this.market (symbols[0]);
         }
@@ -344,16 +387,17 @@ export default class xt extends xtRest {
      * @method
      * @name xt#unWatchTickers
      * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://doc.xt.com/#websocket_publicallTicker
-     * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
-     * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
      * @param {string} [symbols] unified market symbols
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const options = this.safeDict (this.options, 'unWatchTickers');
         const defaultMethod = this.safeString (options, 'method', 'tickers');
         const name = this.safeString (params, 'method', defaultMethod);
@@ -372,39 +416,44 @@ export default class xt extends xtRest {
      * @method
      * @name xt#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://doc.xt.com/#websocket_publicsymbolKline
-     * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/Kline
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
      * @param {int} [since] not used by xt watchOHLCV
      * @param {int} [limit] not used by xt watchOHLCV
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const name = 'kline@' + market['id'] + ',' + timeframe;
         const ohlcv = await this.subscribe (name, 'public', 'watchOHLCV', market, undefined, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
      * @method
      * @name xt#unWatchOHLCV
      * @description stops watching historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://doc.xt.com/#websocket_publicsymbolKline
-     * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/Kline
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const name = 'kline@' + market['id'] + ',' + timeframe;
         const messageHash = 'unsubscribe::' + name;
@@ -416,37 +465,42 @@ export default class xt extends xtRest {
      * @method
      * @name xt#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://doc.xt.com/#websocket_publicdealRecord
-     * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const name = 'trade@' + market['id'];
         const trades = await this.subscribe (name, 'public', 'watchTrades', market, undefined, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp');
     }
 
     /**
      * @method
      * @name xt#unWatchTrades
      * @description stops watching the list of most recent trades for a particular symbol
-     * @see https://doc.xt.com/#websocket_publicdealRecord
-     * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
      * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
-    async unWatchTrades (symbol: string, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async unWatchTrades (symbol: string, params: Dict = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const name = 'trade@' + market['id'];
         const messageHash = 'unsubscribe::' + name;
@@ -457,26 +511,28 @@ export default class xt extends xtRest {
      * @method
      * @name xt#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://doc.xt.com/#websocket_publiclimitDepth
-     * @see https://doc.xt.com/#websocket_publicincreDepth
-     * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
-     * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] not used by xt watchOrderBook
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.levels] 5, 10, 20, or 50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const levels = this.safeString (params, 'levels');
-        params = this.omit (params, 'levels');
+        const paramsOmitted: Dict = this.omit (params, 'levels');
         let name = 'depth_update@' + market['id'];
         if (levels !== undefined) {
             name = 'depth@' + market['id'] + ',' + levels;
         }
-        const orderbook = await this.subscribe (name, 'public', 'watchOrderBook', market, undefined, params);
+        const orderbook: WsOrderBook = await this.subscribe (name, 'public', 'watchOrderBook', market, undefined, paramsOmitted);
         return orderbook.limit ();
     }
 
@@ -484,91 +540,101 @@ export default class xt extends xtRest {
      * @method
      * @name xt#unWatchOrderBook
      * @description stops watching information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://doc.xt.com/#websocket_publiclimitDepth
-     * @see https://doc.xt.com/#websocket_publicincreDepth
-     * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
-     * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.levels] 5, 10, 20, or 50
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
-    async unWatchOrderBook (symbol: string, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async unWatchOrderBook (symbol: string, params: Dict = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const levels = this.safeString (params, 'levels');
-        params = this.omit (params, 'levels');
+        const paramsOmitted: Dict = this.omit (params, 'levels');
         let name = 'depth_update@' + market['id'];
         if (levels !== undefined) {
             name = 'depth@' + market['id'] + ',' + levels;
         }
         const messageHash = 'unsubscribe::' + name;
-        return await this.unSubscribe (messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, [ symbol ], params);
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, [ symbol ], paramsOmitted);
     }
 
     /**
      * @method
      * @name xt#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://doc.xt.com/#websocket_privateorderChange
-     * @see https://doc.xt.com/#futures_user_websocket_v2order
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/OrderChange
+     * @see https://doc.xt.com/docs/futures/UserWebsocket/UserOrder
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] not used by xt watchOrders
      * @param {int} [limit] the maximum number of orders to return
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const name = 'order';
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         const orders = await this.subscribe (name, 'private', 'watchOrders', market, undefined, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp');
+        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp');
     }
 
     /**
      * @method
      * @name xt#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://doc.xt.com/#websocket_privateorderDeal
-     * @see https://doc.xt.com/#futures_user_websocket_v2trade
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/OrderFilled
+     * @see https://doc.xt.com/docs/futures/UserWebsocket/Transactions
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
-     * @param {object} params extra parameters specific to the kucoin api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const name = 'trade';
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         const trades = await this.subscribe (name, 'private', 'watchMyTrades', market, undefined, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp');
     }
 
     /**
      * @method
      * @name xt#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://doc.xt.com/#websocket_privatebalanceChange
-     * @see https://doc.xt.com/#futures_user_websocket_v2balance
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/BalanceChange
+     * @see https://doc.xt.com/docs/futures/UserWebsocket/BalanceChange
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const name = 'balance';
         return await this.subscribe (name, 'private', 'watchBalance', undefined, undefined, params);
     }
@@ -576,7 +642,7 @@ export default class xt extends xtRest {
     /**
      * @method
      * @name xt#watchPositions
-     * @see https://doc.xt.com/#futures_user_websocket_v2position
+     * @see https://doc.xt.com/docs/futures/UserWebsocket/ChangePosition
      * @description watch all open positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {number} [since] since timestamp
@@ -584,15 +650,17 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
-        const url = this.urls['api']['ws']['contract'] + '/' + 'user';
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const url = this.safeString (this.urls['api']['ws'], 'contract') + '/' + 'user';
         const client = this.client (url);
         this.setPositionsCache (client);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        const cache = this.positions;
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.isEmpty (cache)) {
+        const cache: ArrayCacheBySymbolBySide = this.positions;
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && this.isEmpty (cache)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
         }
@@ -604,12 +672,89 @@ export default class xt extends xtRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
+    /**
+     * @method
+     * @name xt#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+     */
+    override async watchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        if (market['swap'] !== true) {
+            throw new NotSupported (this.id + ' watchFundingRate() supports swap contracts only');
+        }
+        const name = 'fund_rate@' + market['id'];
+        return await this.subscribe (name, 'public', 'watchFundingRate', market, undefined, params);
+    }
+
+    /**
+     * @method
+     * @name xt#unWatchFundingRate
+     * @description stops watching the funding rate
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+     */
+    override async unWatchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        if (market['swap'] !== true) {
+            throw new NotSupported (this.id + ' unWatchFundingRate() supports swap contracts only');
+        }
+        const name = 'fund_rate@' + market['id'];
+        const messageHash = 'unsubscribe::' + name;
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchFundingRate', 'fund_rate', market, undefined, params);
+    }
+
+    handleFundingRate (client: Client, message: Dict): Dict {
+        //
+        //     {
+        //         "topic": "fund_rate",
+        //         "event": "fund_rate@btc_usdt",
+        //         "data": {
+        //             "s": "btc_usdt",  // symbol
+        //             "r": "0.01",      // funding rate
+        //             "t": 123124124    // timestamp
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'data');
+        const marketId = this.safeString (data, 's');
+        if (marketId !== undefined) {
+            const raw: Dict = {
+                'symbol': marketId,
+                'fundingRate': this.safeString (data, 'r'),
+            };
+            const fundingRate = this.parseFundingRate (raw);
+            const timestamp = this.safeInteger (data, 't');
+            fundingRate['timestamp'] = timestamp;
+            fundingRate['datetime'] = this.iso8601 (timestamp);
+            const symbol = fundingRate['symbol'];
+            this.fundingRates[(symbol as string)] = fundingRate;
+            const event = this.safeString (message, 'event');
+            if (event !== undefined) {
+                const messageHash = event + '::contract';
+                client.resolve (fundingRate, messageHash);
+            }
+        }
+        return message;
+    }
+
     setPositionsCache (client: Client) {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot');
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -618,14 +763,14 @@ export default class xt extends xtRest {
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash) {
-        const positions = await this.fetchPositions (undefined);
+    async loadPositionsSnapshot (client: Client, messageHash: any) {
+        const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
-            if (contracts > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append (position);
             }
         }
@@ -637,7 +782,7 @@ export default class xt extends xtRest {
         }
     }
 
-    handlePosition (client, message) {
+    handlePosition (client: Client, message: Dict) {
         //
         //    {
         //      topic: 'position',
@@ -671,7 +816,7 @@ export default class xt extends xtRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const data = this.safeDict (message, 'data', {});
         const position = this.parsePosition (data);
         cache.append (position);
@@ -689,7 +834,7 @@ export default class xt extends xtRest {
         client.resolve ([ position ], 'position::contract');
     }
 
-    handleTicker (client: Client, message: Dict) {
+    handleTicker (client: Client, message: Dict): Dict {
         //
         // spot
         //
@@ -750,23 +895,30 @@ export default class xt extends xtRest {
         //       }
         //    }
         //
-        const data = this.safeDict (message, 'data');
+        const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
             const cv = this.safeString (data, 'cv');
             const isSpot = cv !== undefined;
             const ticker = this.parseTicker (data);
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = ticker;
+            }
             const event = this.safeString (message, 'event');
-            const messageHashTail = isSpot ? 'spot' : 'contract';
-            const messageHash = event + '::' + messageHashTail;
-            client.resolve (ticker, messageHash);
+            let messageHashTail: Str = 'contract';
+            if (isSpot) {
+                messageHashTail = 'spot';
+            }
+            if (event !== undefined) {
+                const messageHash = event + '::' + messageHashTail;
+                client.resolve (ticker, messageHash);
+            }
         }
         return message;
     }
 
-    handleTickers (client: Client, message: Dict) {
+    handleTickers (client: Client, message: Dict): Dict {
         //
         // spot
         //
@@ -837,13 +989,18 @@ export default class xt extends xtRest {
         const data = this.safeList (message, 'data', []);
         const firstTicker = this.safeDict (data, 0);
         const spotTest = this.safeString2 (firstTicker, 'cv', 'aq');
-        const tradeType = (spotTest !== undefined) ? 'spot' : 'contract';
-        const newTickers = [];
+        let tradeType: Str = 'contract';
+        if (spotTest !== undefined) {
+            tradeType = 'spot';
+        }
+        const newTickers: Ticker[] = [];
         for (let i = 0; i < data.length; i++) {
             const tickerData = data[i];
             const ticker = this.parseTicker (tickerData);
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = ticker;
+            }
             newTickers.push (ticker);
         }
         const messageHashStart = this.safeString (message, 'topic') + '::' + tradeType;
@@ -864,7 +1021,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleOHLCV (client: Client, message: Dict) {
+    handleOHLCV (client: Client, message: Dict): Dict {
         //
         // spot
         //
@@ -905,8 +1062,11 @@ export default class xt extends xtRest {
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
-            const timeframe = this.safeString (data, 'i');
-            const tradeType = ('q' in data) ? 'spot' : 'contract';
+            const timeframe = this.safeString (data, 'i', '');
+            let tradeType: Str = 'contract';
+            if ('q' in data) {
+                tradeType = 'spot';
+            }
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
             const parsed = this.parseOHLCV (data, market);
@@ -919,13 +1079,15 @@ export default class xt extends xtRest {
             }
             stored.append (parsed);
             const event = this.safeString (message, 'event');
-            const messageHash = event + '::' + tradeType;
-            client.resolve (stored, messageHash);
+            if (event !== undefined) {
+                const messageHash = event + '::' + tradeType;
+                client.resolve (stored, messageHash);
+            }
         }
         return message;
     }
 
-    handleTrade (client: Client, message: Dict) {
+    handleTrade (client: Client, message: Dict): Dict {
         //
         // spot
         //
@@ -956,12 +1118,15 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        const data = this.safeDict (message, 'data');
+        const data = this.safeDict (message, 'data', {});
         const marketId = this.safeStringLower (data, 's');
         if (marketId !== undefined) {
             const trade = this.parseTrade (data);
             const i = this.safeString (data, 'i');
-            const tradeType = (i !== undefined) ? 'spot' : 'contract';
+            let tradeType: Str = 'contract';
+            if (i !== undefined) {
+                tradeType = 'spot';
+            }
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
             const event = this.safeString (message, 'event');
@@ -972,8 +1137,10 @@ export default class xt extends xtRest {
                 this.trades[symbol] = tradesArray;
             }
             tradesArray.append (trade);
-            const messageHash = event + '::' + tradeType;
-            client.resolve (tradesArray, messageHash);
+            if (event !== undefined) {
+                const messageHash = event + '::' + tradeType;
+                client.resolve (tradesArray, messageHash);
+            }
         }
         return message;
     }
@@ -1041,10 +1208,13 @@ export default class xt extends xtRest {
         const data = this.safeDict (message, 'data');
         const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
-            let event = this.safeString (message, 'event');
+            let event = this.safeString (message, 'event', '');
             const splitEvent = event.split (',');
-            event = this.safeString (splitEvent, 0);
-            const tradeType = ('fu' in data) ? 'contract' : 'spot';
+            event = this.safeString (splitEvent, 0, '');
+            let tradeType = 'spot';
+            if ((data !== undefined) && ('fu' in data)) {
+                tradeType = 'contract';
+            }
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
             const obAsks = this.safeList (data, 'a');
@@ -1069,7 +1239,7 @@ export default class xt extends xtRest {
             if (obAsks !== undefined) {
                 const asks = orderbook['asks'];
                 for (let i = 0; i < obAsks.length; i++) {
-                    const ask = obAsks[i];
+                    const ask = this.safeList (obAsks, i);
                     const price = this.safeNumber (ask, 0);
                     const quantity = this.safeNumber (ask, 1);
                     asks.store (price, quantity);
@@ -1078,7 +1248,7 @@ export default class xt extends xtRest {
             if (obBids !== undefined) {
                 const bids = orderbook['bids'];
                 for (let i = 0; i < obBids.length; i++) {
-                    const bid = obBids[i];
+                    const bid = this.safeList (obBids, i);
                     const price = this.safeNumber (bid, 0);
                     const quantity = this.safeNumber (bid, 1);
                     bids.store (price, quantity);
@@ -1093,7 +1263,7 @@ export default class xt extends xtRest {
         }
     }
 
-    parseWsOrderTrade (trade: Dict, market: Market = undefined) {
+    override parseWsOrderTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //    {
         //        "s": "btc_usdt",                         // symbol
@@ -1127,15 +1297,18 @@ export default class xt extends xtRest {
         //    }
         //
         const marketId = this.safeString (trade, 's');
-        const tradeType = ('symbol' in trade) ? 'contract' : 'spot';
-        market = this.safeMarket (marketId, market, undefined, tradeType);
+        let tradeType: Str = 'spot';
+        if ('symbol' in trade) {
+            tradeType = 'contract';
+        }
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, tradeType);
         const timestamp = this.safeString (trade, 't');
         return this.safeTrade ({
             'info': trade,
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': this.safeString (trade, 'i', 'orderId'),
             'type': this.parseOrderStatus (this.safeString (trade, 'st', 'state')),
             'side': this.safeStringLower (trade, 'sd', 'orderSide'),
@@ -1148,10 +1321,10 @@ export default class xt extends xtRest {
                 'cost': this.safeNumber (trade, 'f'),
                 'rate': undefined,
             },
-        }, market);
+        }, marketResolved);
     }
 
-    parseWsOrder (order: Dict, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot
         //
@@ -1195,8 +1368,11 @@ export default class xt extends xtRest {
         //    }
         //
         const marketId = this.safeString2 (order, 's', 'symbol');
-        const tradeType = ('symbol' in order) ? 'contract' : 'spot';
-        market = this.safeMarket (marketId, market, undefined, tradeType);
+        let tradeType: Str = 'spot';
+        if ('symbol' in order) {
+            tradeType = 'contract';
+        }
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, tradeType);
         const timestamp = this.safeInteger2 (order, 'ct', 'createTime');
         return this.safeOrder ({
             'info': order,
@@ -1205,15 +1381,15 @@ export default class xt extends xtRest {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
-            'type': market['type'],
+            'symbol': marketResolved['symbol'],
+            'type': marketResolved['type'],
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': this.safeStringLower2 (order, 'sd', 'orderSide'),
             'price': this.safeNumber2 (order, 'p', 'price'),
             'stopPrice': undefined,
-            'stopLoss': undefined,
-            'takeProfit': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
             'amount': this.safeString2 (order, 'oq', 'origQty'),
             'filled': this.safeString2 (order, 'eq', 'executedQty'),
             'remaining': this.safeString (order, 'lq'),
@@ -1225,10 +1401,10 @@ export default class xt extends xtRest {
                 'cost': this.safeNumber (order, 'f'),
             },
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
-    handleOrder (client: Client, message: Dict) {
+    handleOrder (client: Client, message: Dict): Dict {
         //
         // spot
         //
@@ -1280,7 +1456,10 @@ export default class xt extends xtRest {
         const order = this.safeDict (message, 'data', {});
         const marketId = this.safeString2 (order, 's', 'symbol');
         if (marketId !== undefined) {
-            const tradeType = ('symbol' in order) ? 'contract' : 'spot';
+            let tradeType: Str = 'spot';
+            if ('symbol' in order) {
+                tradeType = 'contract';
+            }
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const parsed = this.parseWsOrder (order, market);
             orders.append (parsed);
@@ -1331,9 +1510,14 @@ export default class xt extends xtRest {
         account['free'] = this.safeString (data, 'availableBalance');
         account['used'] = this.safeString (data, 'f');
         account['total'] = this.safeString2 (data, 'b', 'walletBalance');
-        this.balance[code] = account;
+        if (code !== undefined) {
+            this.balance[code] = account;
+        }
         this.balance = this.safeBalance (this.balance);
-        const tradeType = ('coin' in data) ? 'contract' : 'spot';
+        let tradeType: Str = 'spot';
+        if ('coin' in data) {
+            tradeType = 'contract';
+        }
         client.resolve (this.balance, 'balance::' + tradeType);
     }
 
@@ -1380,13 +1564,20 @@ export default class xt extends xtRest {
             this.myTrades = stored;
         }
         const parsedTrade = this.parseTrade (data);
-        const market = this.market (parsedTrade['symbol']);
+        const tradeSymbol = parsedTrade['symbol'];
+        if (tradeSymbol === undefined) {
+            return;
+        }
+        const market = this.market (tradeSymbol);
         stored.append (parsedTrade);
-        const tradeType = market['contract'] ? 'contract' : 'spot';
+        let tradeType: Str = 'spot';
+        if (market['contract'] === true) {
+            tradeType = 'contract';
+        }
         client.resolve (stored, 'trade::' + tradeType);
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: Dict) {
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
             client.onPong ();
@@ -1403,11 +1594,12 @@ export default class xt extends xtRest {
                 'balance': this.handleBalance,
                 'order': this.handleOrder,
                 'position': this.handlePosition,
+                'fund_rate': this.handleFundingRate,
             };
-            let method = this.safeValue (methods, topic);
+            let method = (topic === undefined) ? undefined : this.safeValue (methods, topic);
             if (topic === 'trade') {
                 const data = this.safeDict (message, 'data');
-                if (('oi' in data) || ('orderId' in data)) {
+                if ((data !== undefined) && (('oi' in data) || ('orderId' in data))) {
                     method = this.handleMyTrades;
                 } else {
                     method = this.handleTrade;
@@ -1421,12 +1613,12 @@ export default class xt extends xtRest {
         }
     }
 
-    ping (client: Client) {
+    override ping (client: Client): string {
         client.lastPong = this.milliseconds ();
         return 'ping';
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message: Dict): Dict {
         //
         //     {
         //         id: '1763045665228ticker@eth_usdt',
@@ -1444,11 +1636,11 @@ export default class xt extends xtRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        let unsubscribe = false;
+        let unsubscribe: Bool = false;
         if (id !== undefined) {
             const subscription = this.safeDict (subscriptionsById, id, {});
             unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
-            if (unsubscribe) {
+            if (unsubscribe === true) {
                 this.handleUnSubscription (client, subscription);
             }
         }
@@ -1456,8 +1648,8 @@ export default class xt extends xtRest {
     }
 
     handleUnSubscription (client: Client, subscription: Dict) {
-        const messageHashes = this.safeList (subscription, 'messageHashes', []);
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
         for (let j = 0; j < messageHashes.length; j++) {
             const unsubHash = messageHashes[j];
             const subHash = subMessageHashes[j];
@@ -1476,10 +1668,13 @@ export default class xt extends xtRest {
         //
         const msg = this.safeString (message, 'msg');
         if ((msg === 'invalid_listen_key') || (msg === 'token expire')) {
-            client.subscriptions['token'] = undefined;
+            if ('token' in client.subscriptions) {
+                delete client.subscriptions['token'];
+            }
             this.getListenKey (true);
             return;
         }
-        client.reject (message);
+        const error = new ExchangeError (this.id + ' ' + this.json (message));
+        client.reject (error);
     }
 }

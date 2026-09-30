@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitopro$1 = require('./abstract/bitopro.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class bitopro extends bitopro$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bitopro',
             'name': 'BitoPro',
-            'countries': ['TW'],
+            'countries': ['TW'], // Taiwan
             'version': 'v3',
             'rateLimit': 100,
             'pro': true,
@@ -98,7 +98,7 @@ class bitopro extends bitopro$1["default"] {
                 'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
@@ -163,42 +163,42 @@ class bitopro extends bitopro$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'order-book/{pair}': 1,
-                        'tickers': 1,
-                        'tickers/{pair}': 1,
-                        'trades/{pair}': 1,
-                        'provisioning/currencies': 1,
-                        'provisioning/trading-pairs': 1,
-                        'provisioning/limitations-and-fees': 1,
-                        'trading-history/{pair}': 1,
-                        'price/otc/{currency}': 1,
+                        'order-book/{pair}': { 'cost': 1 },
+                        'tickers': { 'cost': 1 },
+                        'tickers/{pair}': { 'cost': 1 },
+                        'trades/{pair}': { 'cost': 1 },
+                        'provisioning/currencies': { 'cost': 1 },
+                        'provisioning/trading-pairs': { 'cost': 1 },
+                        'provisioning/limitations-and-fees': { 'cost': 1 },
+                        'trading-history/{pair}': { 'cost': 1 },
+                        'price/otc/{currency}': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts/balance': 1,
-                        'orders/history': 1,
-                        'orders/all/{pair}': 1,
-                        'orders/trades/{pair}': 1,
-                        'orders/{pair}/{orderId}': 1,
-                        'wallet/withdraw/{currency}/{serial}': 1,
-                        'wallet/withdraw/{currency}/id/{id}': 1,
-                        'wallet/depositHistory/{currency}': 1,
-                        'wallet/withdrawHistory/{currency}': 1,
-                        'orders/open': 1,
+                        'accounts/balance': { 'cost': 1 },
+                        'orders/history': { 'cost': 1 },
+                        'orders/all/{pair}': { 'cost': 1 },
+                        'orders/trades/{pair}': { 'cost': 1 },
+                        'orders/{pair}/{orderId}': { 'cost': 1 },
+                        'wallet/withdraw/{currency}/{serial}': { 'cost': 1 },
+                        'wallet/withdraw/{currency}/id/{id}': { 'cost': 1 },
+                        'wallet/depositHistory/{currency}': { 'cost': 1 },
+                        'wallet/withdrawHistory/{currency}': { 'cost': 1 },
+                        'orders/open': { 'cost': 1 },
                     },
                     'post': {
-                        'orders/{pair}': 1 / 2,
-                        'orders/batch': 20 / 3,
-                        'wallet/withdraw/{currency}': 10, // 60/m => 1/s => 10/1 = 10
+                        'orders/{pair}': { 'cost': 1 / 2 }, // 1200/m => 20/s => 10/20 = 1/2
+                        'orders/batch': { 'cost': 20 / 3 }, // 90/m => 1.5/s => 10/1.5 = 20/3
+                        'wallet/withdraw/{currency}': { 'cost': 10 }, // 60/m => 1/s => 10/1 = 10
                     },
                     'put': {
-                        'orders': 5, // 2/s => 10/2 = 5
+                        'orders': { 'cost': 5 }, // 2/s => 10/2 = 5
                     },
                     'delete': {
-                        'orders/{pair}/{id}': 2 / 3,
-                        'orders/all': 5,
-                        'orders/{pair}': 5, // 2/s => 10/2 = 5
+                        'orders/{pair}/{id}': { 'cost': 2 / 3 }, // 900/m => 15/s => 10/15 = 2/3
+                        'orders/all': { 'cost': 5 }, // 2/s => 10/2 = 5
+                        'orders/{pair}': { 'cost': 5 }, // 2/s => 10/2 = 5
                     },
                 },
             },
@@ -239,7 +239,9 @@ class bitopro extends bitopro$1["default"] {
                     'BEP20': 'BSC',
                     'BSC': 'BSC',
                 },
-                'fiatCurrencies': ['TWD'], // the only fiat currency for exchange
+                'fetchCurrencies': {
+                    'fiatCurrencies': ['TWD'], // the only fiat currency for exchange
+                },
             },
             'features': {
                 'spot': {
@@ -248,7 +250,7 @@ class bitopro extends bitopro$1["default"] {
                         'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
-                        'triggerDirection': true,
+                        'triggerDirection': true, // todo implement
                         'stopLossPrice': false,
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
@@ -323,16 +325,16 @@ class bitopro extends bitopro$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'Unsupported currency.': errors.BadRequest,
-                    'Unsupported order type': errors.BadRequest,
-                    'Invalid body': errors.BadRequest,
-                    'Invalid Signature': errors.AuthenticationError,
+                    'Unsupported currency.': errors.BadRequest, // {"error":"Unsupported currency."}
+                    'Unsupported order type': errors.BadRequest, // {"error":"Unsupported order type"}
+                    'Invalid body': errors.BadRequest, // {"error":"Invalid body"}
+                    'Invalid Signature': errors.AuthenticationError, // {"error":"Invalid Signature"}
                     'Address not in whitelist.': errors.BadRequest,
                 },
                 'broad': {
-                    'Invalid amount': errors.InvalidOrder,
-                    'Balance for ': errors.InsufficientFunds,
-                    'Invalid ': errors.BadRequest,
+                    'Invalid amount': errors.InvalidOrder, // {"error":"Invalid amount 0.0000000001, decimal limit is 8."}
+                    'Balance for ': errors.InsufficientFunds, // {"error":"Balance for eth not enough, only has 0, but ordered 0.01."}
+                    'Invalid ': errors.BadRequest, // {"error":"Invalid price -1."}
                     'Wrong parameter': errors.BadRequest, // {"error":"Wrong parameter: from"}
                 },
             },
@@ -349,7 +351,6 @@ class bitopro extends bitopro$1["default"] {
      */
     async fetchCurrencies(params = {}) {
         const response = await this.publicGetProvisioningCurrencies(params);
-        const currencies = this.safeList(response, 'data', []);
         //
         //     {
         //         "data":[
@@ -366,44 +367,39 @@ class bitopro extends bitopro$1["default"] {
         //         ]
         //     }
         //
-        const result = {};
-        const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const currencyId = this.safeString(currency, 'currency');
-            const code = this.safeCurrencyCode(currencyId);
-            const deposit = this.safeBool(currency, 'deposit');
-            const withdraw = this.safeBool(currency, 'withdraw');
-            const fee = this.safeNumber(currency, 'withdrawFee');
-            const withdrawMin = this.safeNumber(currency, 'minWithdraw');
-            const withdrawMax = this.safeNumber(currency, 'maxWithdraw');
-            const limits = {
+        const currencies = this.safeList(response, 'data', []);
+        return this.parseCurrencies(currencies);
+    }
+    parseCurrency(rawCurrency) {
+        const fiatCurrencies = this.handleOption('fetchCurrencies', 'fiatCurrencies', []);
+        const currencyId = this.safeString(rawCurrency, 'currency');
+        const code = this.safeCurrencyCode(currencyId);
+        const deposit = this.safeBool(rawCurrency, 'deposit');
+        const withdraw = this.safeBool(rawCurrency, 'withdraw');
+        const isFiat = this.inArray(code, fiatCurrencies);
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'code': code,
+            'info': rawCurrency,
+            'type': isFiat ? 'fiat' : 'crypto',
+            'name': undefined,
+            'active': ((deposit === true) && (withdraw === true)),
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': this.safeNumber(rawCurrency, 'withdrawFee'),
+            'precision': undefined,
+            'limits': {
                 'withdraw': {
-                    'min': withdrawMin,
-                    'max': withdrawMax,
+                    'min': this.safeNumber(rawCurrency, 'minWithdraw'),
+                    'max': this.safeNumber(rawCurrency, 'maxWithdraw'),
                 },
                 'amount': {
                     'min': undefined,
                     'max': undefined,
                 },
-            };
-            const isFiat = this.inArray(code, fiatCurrencies);
-            result[code] = {
-                'id': currencyId,
-                'code': code,
-                'info': currency,
-                'type': isFiat ? 'fiat' : 'crypto',
-                'name': undefined,
-                'active': deposit && withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': fee,
-                'precision': undefined,
-                'limits': limits,
-                'networks': undefined,
-            };
-        }
-        return result;
+            },
+            'networks': undefined,
+        });
     }
     /**
      * @method
@@ -439,13 +435,19 @@ class bitopro extends bitopro$1["default"] {
         return this.parseMarkets(markets);
     }
     parseMarket(market) {
-        const active = !this.safeBool(market, 'maintain');
+        const active = (!this.safeBool(market, 'maintain', false));
         const id = this.safeString(market, 'pair');
+        if (id === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarket() missing id');
+        }
         const uppercaseId = id.toUpperCase();
         const baseId = this.safeString(market, 'base');
         const quoteId = this.safeString(market, 'quote');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         const limits = {
             'amount': {
@@ -465,7 +467,7 @@ class bitopro extends bitopro$1["default"] {
                 'max': undefined,
             },
         };
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'uppercaseId': uppercaseId,
             'symbol': symbol,
@@ -497,7 +499,7 @@ class bitopro extends bitopro$1["default"] {
             'active': active,
             'created': undefined,
             'info': market,
-        };
+        });
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -512,8 +514,8 @@ class bitopro extends bitopro$1["default"] {
         //     }
         //
         const marketId = this.safeString(ticker, 'pair');
-        market = this.safeMarket(marketId, market);
-        const symbol = this.safeString(market, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = this.safeString(marketResolved, 'symbol');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
@@ -535,7 +537,7 @@ class bitopro extends bitopro$1["default"] {
             'baseVolume': this.safeString(ticker, 'volume24hr'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -547,7 +549,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -579,7 +583,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetTickers();
         const tickers = this.safeList(response, 'data', []);
         //
@@ -607,10 +613,12 @@ class bitopro extends bitopro$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -676,14 +684,14 @@ class bitopro extends bitopro$1["default"] {
             timestamp = this.safeInteger(trade, 'timestamp');
         }
         const marketId = this.safeString(trade, 'pair');
-        market = this.safeMarket(marketId, market);
-        const symbol = this.safeString(market, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = this.safeString(marketResolved, 'symbol');
         const price = this.safeString(trade, 'price');
         const type = this.safeStringLower(trade, 'type');
         let side = this.safeStringLower(trade, 'action');
         if (side === undefined) {
             const isBuyer = this.safeBool(trade, 'isBuyer');
-            if (isBuyer) {
+            if (isBuyer === true) {
                 side = 'buy';
             }
             else {
@@ -728,7 +736,7 @@ class bitopro extends bitopro$1["default"] {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -742,7 +750,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -772,10 +782,12 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetProvisioningLimitationsAndFees(params);
         const tradingFeeRate = this.safeDict(response, 'tradingFeeRate', {});
-        const first = this.safeValue(tradingFeeRate, 0);
+        const first = this.safeDict(tradingFeeRate, 0);
         //
         //     {
         //         "tradingFeeRate":[
@@ -840,8 +852,9 @@ class bitopro extends bitopro$1["default"] {
         const result = {};
         const maker = this.safeNumber(first, 'makerFee');
         const taker = this.safeNumber(first, 'takerFee');
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': first,
                 'symbol': symbol,
@@ -876,7 +889,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const resolution = this.safeString(this.timeframes, timeframe, timeframe);
         const request = {
@@ -884,23 +899,19 @@ class bitopro extends bitopro$1["default"] {
             'resolution': resolution,
         };
         // we need to have a limit argument because "to" and "from" are required
-        if (limit === undefined) {
-            limit = 500;
-        }
-        else {
-            limit = Math.min(limit, 75000); // supports slightly more than 75k candles atm, but limit here to avoid errors
-        }
+        // supports slightly more than 75k candles atm, but limit here to avoid errors
+        const limitResolved = (limit === undefined) ? 500 : Math.min(limit, 75000);
         const timeframeInSeconds = this.parseTimeframe(timeframe);
         let alignedSince = undefined;
         if (since === undefined) {
             request['to'] = this.seconds();
-            request['from'] = request['to'] - (limit * timeframeInSeconds);
+            request['from'] = request['to'] - (limitResolved * timeframeInSeconds);
         }
         else {
             const timeframeInMilliseconds = timeframeInSeconds * 1000;
             alignedSince = Math.floor(since / timeframeInMilliseconds) * timeframeInMilliseconds;
             request['from'] = Math.floor(since / 1000);
-            request['to'] = this.sum(request['from'], limit * timeframeInSeconds);
+            request['to'] = this.sum(request['from'], limitResolved * timeframeInSeconds);
         }
         const response = await this.publicGetTradingHistoryPair(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
@@ -918,8 +929,8 @@ class bitopro extends bitopro$1["default"] {
         //         ]
         //     }
         //
-        const sparse = this.parseOHLCVs(data, market, timeframe, since, limit);
-        return this.insertMissingCandles(sparse, timeframeInSeconds, alignedSince, limit);
+        const sparse = this.parseOHLCVs(data, market, timeframe, since, limitResolved);
+        return this.insertMissingCandles(sparse, timeframeInSeconds, alignedSince, limitResolved);
     }
     insertMissingCandles(candles, distance, since, limit) {
         // the exchange doesn't send zero volume candles so we emulate them instead
@@ -976,7 +987,7 @@ class bitopro extends bitopro$1["default"] {
             'info': response,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict(response, i);
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const amount = this.safeString(balance, 'amount');
@@ -985,7 +996,9 @@ class bitopro extends bitopro$1["default"] {
                 'free': available,
                 'total': amount,
             };
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -998,7 +1011,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetAccountsBalance(params);
         const balances = this.safeList(response, 'data', []);
         //
@@ -1026,7 +1041,7 @@ class bitopro extends bitopro$1["default"] {
             '4': 'canceled',
             '6': 'canceled',
         };
-        return this.safeString(statuses, status, undefined);
+        return (status === undefined) ? undefined : this.safeString(statuses, status);
     }
     parseOrder(order, market = undefined) {
         //
@@ -1066,12 +1081,15 @@ class bitopro extends bitopro$1["default"] {
         const id = this.safeString2(order, 'id', 'orderId');
         const timestamp = this.safeInteger2(order, 'timestamp', 'createdTimestamp');
         let side = this.safeString(order, 'action');
+        if (side === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseOrder() returned no side');
+        }
         side = side.toLowerCase();
         const amount = this.safeString2(order, 'amount', 'originalAmount');
         const price = this.safeString(order, 'price');
         const marketId = this.safeString(order, 'pair');
-        market = this.safeMarket(marketId, market, '_');
-        const symbol = this.safeString(market, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market, '_');
+        const symbol = this.safeString(marketResolved, 'symbol');
         const orderStatus = this.safeString(order, 'status');
         const status = this.parseOrderStatus(orderStatus);
         const type = this.safeStringLower(order, 'type');
@@ -1114,7 +1132,7 @@ class bitopro extends bitopro$1["default"] {
             'fee': fee,
             'trades': undefined,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1131,7 +1149,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'type': type,
@@ -1146,8 +1166,7 @@ class bitopro extends bitopro$1["default"] {
         }
         if (orderType === 'STOP_LIMIT') {
             request['price'] = this.priceToPrecision(symbol, price);
-            const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-            params = this.omit(params, ['triggerPrice', 'stopPrice']);
+            const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
             if (triggerPrice === undefined) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() requires a triggerPrice parameter for ' + orderType + ' orders');
             }
@@ -1162,11 +1181,12 @@ class bitopro extends bitopro$1["default"] {
                 request['condition'] = condition;
             }
         }
-        const postOnly = this.isPostOnly(orderType === 'MARKET', undefined, params);
+        const paramsOmitted = (orderType === 'STOP_LIMIT') ? this.omit(params, ['triggerPrice', 'stopPrice']) : params;
+        const postOnly = this.isPostOnly(orderType === 'MARKET', undefined, paramsOmitted);
         if (postOnly) {
             request['timeInForce'] = 'POST_ONLY';
         }
-        const response = await this.privatePostOrdersPair(this.extend(request, params));
+        const response = await this.privatePostOrdersPair(this.extend(request, paramsOmitted));
         //
         //     {
         //         "orderId": "2220595581",
@@ -1193,7 +1213,9 @@ class bitopro extends bitopro$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'id': id,
@@ -1241,11 +1263,15 @@ class bitopro extends bitopro$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const id = market['uppercaseId'];
         const request = {};
-        request[id] = ids;
+        if (id !== undefined) {
+            request[id] = ids;
+        }
         const response = await this.privatePutOrders(this.extend(request, params));
         //
         //     {
@@ -1265,12 +1291,14 @@ class bitopro extends bitopro$1["default"] {
      * @name bitopro#cancelAllOrders
      * @description cancel all open orders
      * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_all_orders.md
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'pair': market['id'], // optional
         };
@@ -1310,7 +1338,9 @@ class bitopro extends bitopro$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'orderId': id,
@@ -1357,7 +1387,9 @@ class bitopro extends bitopro$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -1417,7 +1449,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1460,7 +1494,9 @@ class bitopro extends bitopro$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -1563,7 +1599,7 @@ class bitopro extends bitopro$1["default"] {
             'txid': this.safeString(transaction, 'txid'),
             'type': undefined,
             'currency': code,
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'amount': this.safeNumber(transaction, 'total'),
             'status': this.parseTransactionStatus(status),
             'timestamp': timestamp,
@@ -1599,7 +1635,9 @@ class bitopro extends bitopro$1["default"] {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDeposits() requires the code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.safeCurrency(code);
         const request = {
             'currency': currency['id'],
@@ -1651,7 +1689,9 @@ class bitopro extends bitopro$1["default"] {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawals() requires the code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.safeCurrency(code);
         const request = {
             'currency': currency['id'],
@@ -1701,7 +1741,9 @@ class bitopro extends bitopro$1["default"] {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawal() requires the code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.safeCurrency(code);
         const request = {
             'serial': id,
@@ -1740,8 +1782,10 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         const currency = this.currency(code);
         const request = {
@@ -1749,20 +1793,24 @@ class bitopro extends bitopro$1["default"] {
             'amount': this.numberToString(amount),
             'address': address,
         };
-        if ('network' in params) {
+        const hasNetwork = ('network' in paramsWithdrawTag);
+        let paramsOmitted = paramsWithdrawTag;
+        if (hasNetwork) {
+            paramsOmitted = this.omit(paramsWithdrawTag, ['network']);
+        }
+        if (hasNetwork) {
             const networks = this.safeDict(this.options, 'networks', {});
-            const requestedNetwork = this.safeStringUpper(params, 'network');
-            params = this.omit(params, ['network']);
-            const networkId = this.safeString(networks, requestedNetwork);
+            const requestedNetwork = this.safeStringUpper(paramsWithdrawTag, 'network');
+            const networkId = (requestedNetwork === undefined) ? undefined : this.safeString(networks, requestedNetwork);
             if (networkId === undefined) {
                 throw new errors.ExchangeError(this.id + ' invalid network ' + requestedNetwork);
             }
             request['protocol'] = networkId;
         }
-        if (tag !== undefined) {
-            request['message'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['message'] = tagWithdrawTag;
         }
-        const response = await this.privatePostWalletWithdrawCurrency(this.extend(request, params));
+        const response = await this.privatePostWalletWithdrawCurrency(this.extend(request, paramsOmitted));
         const result = this.safeDict(response, 'data', {});
         //
         //     {
@@ -1813,7 +1861,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetProvisioningCurrencies(params);
         //
         //     {
@@ -1837,22 +1887,25 @@ class bitopro extends bitopro$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        if (headers === undefined) {
-            headers = {};
+        const requestHeaders = (headers === undefined) ? {} : headers;
+        const isSignedBody = (api === 'private') && ((method === 'POST') || (method === 'PUT'));
+        const signedBody = this.json(params);
+        let requestBody = body;
+        if (isSignedBody) {
+            requestBody = signedBody;
         }
-        headers['X-BITOPRO-API'] = 'ccxt';
+        requestHeaders['X-BITOPRO-API'] = 'ccxt';
         if (api === 'private') {
             this.checkRequiredCredentials();
             if (method === 'POST' || method === 'PUT') {
-                body = this.json(params);
-                const payload = this.stringToBase64(body);
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384);
-                headers['X-BITOPRO-APIKEY'] = this.apiKey;
-                headers['X-BITOPRO-PAYLOAD'] = payload;
-                headers['X-BITOPRO-SIGNATURE'] = signature;
+                const payload = this.stringToBase64(signedBody);
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha384);
+                requestHeaders['X-BITOPRO-APIKEY'] = this.apiKey;
+                requestHeaders['X-BITOPRO-PAYLOAD'] = payload;
+                requestHeaders['X-BITOPRO-SIGNATURE'] = signature;
             }
             else if (method === 'GET' || method === 'DELETE') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
                 const nonce = this.milliseconds();
@@ -1861,19 +1914,23 @@ class bitopro extends bitopro$1["default"] {
                 };
                 const data = this.json(rawData);
                 const payload = this.stringToBase64(data);
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384);
-                headers['X-BITOPRO-APIKEY'] = this.apiKey;
-                headers['X-BITOPRO-PAYLOAD'] = payload;
-                headers['X-BITOPRO-SIGNATURE'] = signature;
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha384);
+                requestHeaders['X-BITOPRO-APIKEY'] = this.apiKey;
+                requestHeaders['X-BITOPRO-PAYLOAD'] = payload;
+                requestHeaders['X-BITOPRO-SIGNATURE'] = signature;
             }
         }
         else if (api === 'public' && method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
-        url = this.urls['api']['rest'] + url;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const fullUrl = apiUrl + url;
+        return { 'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

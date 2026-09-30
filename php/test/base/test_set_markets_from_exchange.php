@@ -15,7 +15,7 @@ function test_set_markets_from_exchange() {
         $empty_exchange = new \ccxt\async\Exchange(array(
             'id' => 'sample0',
         ));
-        assert('GO_SKIP_START');
+        // @SKIP_START_GO
         $method_name = 'setMarketsFromExchange';
         $true_clause = $empty_exchange->safe_string(null, null) === null;
         $sample_market = array(
@@ -38,7 +38,7 @@ function test_set_markets_from_exchange() {
         $exchange2 = new \ccxt\async\Exchange(array(
             'id' => 'primaryEx',
         ));
-        assert(count(is_array($exchange1->markets) ? array_keys($exchange1->markets) : array()) > 0, 'Markets should be loaded in exchange1');
+        assert(($exchange1->markets !== null) && (count(is_array($exchange1->markets) ? array_keys($exchange1->markets) : array()) > 0), 'Markets should be loaded in exchange1');
         // Test error case: exchanges are different
         $different_exchange = new \ccxt\async\Exchange(array(
             'id' => 'secondaryEx',
@@ -71,11 +71,12 @@ function test_set_markets_from_exchange() {
         // assert ('ETH/USD' in exchange2.markets, 'Modifying exchange1 markets should reflect in exchange2');
         // Test 2: loadMarkets on shared markets should not make API call and be very fast
         $start_time = $empty_exchange->milliseconds();
-        Async\await($exchange2->load_markets());
+        \React\Async\await($exchange2->load_markets());
         $end_time = $empty_exchange->milliseconds();
         // Should be very fast since no API call is made
         $time_taken = $end_time - $start_time;
         assert($time_taken < 10, 'loadMarkets on shared markets should be fast');
-        assert('GO_SKIP_END');
+        // @SKIP_END_GO
+        $empty_exchange->describe(); // avoid unused var
     }) ();
 }

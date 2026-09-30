@@ -1,2 +1,2 @@
-declare function testThrottle(): void;
+declare function testThrottle(): Promise<void>;
 export default testThrottle;

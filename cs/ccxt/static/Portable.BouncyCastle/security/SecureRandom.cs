@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Prng;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
@@ -26,7 +27,8 @@ namespace Org.BouncyCastle.Security
 
         private static DigestRandomGenerator CreatePrng(string digestName, bool autoSeed)
         {
-            IDigest digest = DigestUtilities.GetDigest(digestName);
+            // the vendored digest registry (DigestUtilities) only ever resolved SHA-256; construct it directly
+            IDigest digest = GetDigest(digestName);
             if (digest == null)
                 return null;
             DigestRandomGenerator prng = new DigestRandomGenerator(digest);
@@ -36,6 +38,18 @@ namespace Org.BouncyCastle.Security
                 prng.AddSeedMaterial(GetNextBytes(Master, digest.GetDigestSize()));
             }
             return prng;
+        }
+
+        private static IDigest GetDigest(string digestName)
+        {
+            switch (digestName.ToUpperInvariant())
+            {
+                case "SHA256":
+                case "SHA-256":
+                    return new Sha256Digest();
+                default:
+                    return null;
+            }
         }
 
         public static byte[] GetNextBytes(SecureRandom secureRandom, int length)

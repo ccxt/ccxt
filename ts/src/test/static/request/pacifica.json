@@ -1,0 +1,345 @@
+{
+    "exchange": "pacifica",
+    "skipKeys": ["wallet", "timestamp", "symbol", "signature", "end_time", "sub_signature", "main_signature"],
+    "privateKey": "2fGURdTtScQVocLdZovb6kJ3V8TmWe3eg5TJpYAqrTRTqYf27goDdQVfMx4W2uUmTwTc78qxsxhhvrdx7MTd55rn",
+    "walletAddress": "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+    "options": {
+        "apiKey": null
+    },
+    "isSandboxModeEnabled": true,
+    "methods": {
+        "fetchOpenInterests": [
+            {
+                "description": "open interest for all markets",
+                "method": "fetchOpenInterests",
+                "url": "https://api.pacifica.fi/api/v1/info/prices",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "open interest for a single market",
+                "method": "fetchOpenInterest",
+                "url": "https://api.pacifica.fi/api/v1/info/prices",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "createSubAccount": [
+            {
+                "description": "create a subaccount with an agent wallet header",
+                "method": "createSubAccount",
+                "url": "https://test-api.pacifica.fi/api/v1/account/subaccount/create",
+                "input": [
+                    "ccxtsub5",
+                    {
+                        "subAccountAddress": "AUCaxhvyYhnYH7RqBz2g19riU4HEhvETzauGsL6DxUQS",
+                        "subAccountPrivateKey": "2HwJG4ffT7dRyRXbutkPjxjciXHLadsS9r569H8ZQZzFsh9YdGWgz8JXF1xBjM1C6SFGjBkSYmCpNfoocD7YbFEy",
+                        "agentAddress": "8g1g9FMKw7HfAMiD8L3p28RKfv7LQJzAf56A4ftSxMt9"
+                    }
+                ],
+                "output": "{\"agent_wallet\":\"8g1g9FMKw7HfAMiD8L3p28RKfv7LQJzAf56A4ftSxMt9\",\"main_account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"subaccount\":\"AUCaxhvyYhnYH7RqBz2g19riU4HEhvETzauGsL6DxUQS\",\"sub_signature\":\"pj7T3SYyJEn3nbmxbSzPLRVL8se3JGP85fFZ7jvsM5KzEkSkb5TvGbEnExYKVSPidvzFM3TuZtYrsirijkVVWcD\",\"main_signature\":\"3Jv3QnvJooSKBme5hktrapcAeNMt78HTg5QQtaMiXK8RYWsfWRigQFd8cN3LPLUvFBWEuWJNGqcpq85FEnXAuB7T\",\"timestamp\":1789231873830,\"expiry_window\":5000}"
+            },
+            {
+                "description": "create a subaccount",
+                "method": "createSubAccount",
+                "url": "https://test-api.pacifica.fi/api/v1/account/subaccount/create",
+                "input": [
+                    "ccxtsub2",
+                    {
+                        "subAccountAddress": "AubBvFpKrUiVnXpRq7wZYSUnrx4K5yBYepdmZm75iySQ",
+                        "subAccountPrivateKey": "65qLgAgXZ4Vu7PyzLHHiPy77w2ca6ryWZvzS1nNqSK5YWWj3Ekuq74cEFjEh2UHNLd8drM33WK3Vuc2QvpuAkQhN"
+                    }
+                ],
+                "output": "{\"main_account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"subaccount\":\"AubBvFpKrUiVnXpRq7wZYSUnrx4K5yBYepdmZm75iySQ\",\"sub_signature\":\"3aoFWK9jS4hY2q7GuLGpoAGDPdjfvDaAXgcUmxFbi39Hf6ZAWGvnt9x1FehnisZE8DcPH1Uo2d3VmARUYf9mvtNC\",\"main_signature\":\"5cozzmP3MeewUpBtcMLyNGfMSRXtW5MPYSfkoj8W5i67rDEiiiXvuhfSSayGU2oTvj8vRgPCjpmHF1qmpSArDtsy\",\"timestamp\":1789231157386,\"expiry_window\":5000}"
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer between own accounts",
+                "method": "transfer",
+                "url": "https://test-api.pacifica.fi/api/v1/account/subaccount/transfer",
+                "input": [
+                    "USDC",
+                    10,
+                    "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                    "B9AJ1AD23xkhgoJn4dBtUn8iGpHTXa9Rj4DoH5R5S6FJ"
+                ],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"5MrUVrWfDRm3UKSU4oa11brK8Lhe3f6DbD1zApikDnTDjKtKp14RyPm4ojv7SfGJSPRpmRW6vqVKLmwaxMZCepGG\",\"timestamp\":1789202095104,\"expiry_window\":5000,\"to_account\":\"B9AJ1AD23xkhgoJn4dBtUn8iGpHTXa9Rj4DoH5R5S6FJ\",\"amount\":\"10\"}"
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw a small amount as a plain decimal string",
+                "method": "withdraw",
+                "url": "https://test-api.pacifica.fi/api/v1/account/withdraw",
+                "input": [
+                    "USDC",
+                    0.0000001,
+                    "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt"
+                ],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"2M4jwfEjfcddGgNewsBvQK1Qa7fodiNuLMxDKysnpFqLT98qrMh4DEEcRRndHDdYq59a9XDyHbtC1Zn9ieVc472M\",\"timestamp\":1790590926778,\"expiry_window\":5000,\"amount\":\"0.0000001\"}"
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "Cancel Orders with ids",
+                "method": "cancelOrders",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/batch",
+                "input": [
+                    [
+                        "241524077",
+                        "241567560"
+                    ],
+                    "BTC/USDC:USDC",
+                    {}
+                ],
+                "output": "{\"actions\":[{\"type\":\"Cancel\",\"data\":{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"41qacQ6uaKoHxrChAmGxZXWRzG2Uz8ChW4oNrCSkAkx8zc5L6fjTEobzX6EtfZGaTpzbuzz9gS9KwQHLEqS34eEk\",\"timestamp\":1769563525053,\"expiry_window\":5000,\"symbol\":\"BTC\",\"order_id\":241524077}},{\"type\":\"Cancel\",\"data\":{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"48QdWUqicajR2j4xYMCJEzjA7GUTzkKfiMRhbcwMBBcpmyeRuSGpnroBxM7KUs9zXfqyc4daMwWqEdTmFBceXSAa\",\"timestamp\":1769563525122,\"expiry_window\":5000,\"symbol\":\"BTC\",\"order_id\":241567560}}]}"
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch positions state",
+                "method": "fetchPositions",
+                "url": "https://test-api.pacifica.fi/api/v1/positions?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                "input": [],
+                "output": null
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel All Orders by symbol",
+                "method": "cancelAllOrders",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/cancel_all",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"5Nr89XDPCtkpfBrD28TpPe2F6EfXX5Gbaxt4uQhVoCji2SUPguCq2U6ysNXZwomyHQyMnzLk3YVXR1WrWfQCgdfp\",\"timestamp\":1769562329985,\"expiry_window\":5000,\"exclude_reduce_only\":false,\"all_symbols\":false,\"symbol\":\"BTC\"}"
+            },
+            {
+                "description": "Cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/cancel_all",
+                "input": [],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"4WLtHv7zGgU8r8XedU8fCAUpejQPgSMG1Qz5LTSRKjxvhaHaF2xniZ6hbe4GeBFWFLr4kSLZXJ3atw16MsEPVDqT\",\"timestamp\":1769554743228,\"expiry_window\":5000,\"exclude_reduce_only\":false,\"all_symbols\":true}"
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Edit limit order amount and price",
+                "method": "editOrder",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/edit",
+                "input": [
+                    "241146145",
+                    "BTC/USDC:USDC",
+                    "null",
+                    "null",
+                    0.003,
+                    83900
+                ],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"5bMKhRf5GyZ8KgG88wzWBQrNfLRvY8uNz67rQkc72bFW8JGXqCetdSd6dnc1wML51CpYpe2y1GBJ3Ed9ywu9k6ch\",\"timestamp\":1769554678301,\"expiry_window\":5000,\"symbol\":\"BTC\",\"price\":\"83900\",\"amount\":\"0.003\",\"order_id\":241146145}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch opened orders",
+                "method": "fetchOpenOrders",
+                "url": "https://test-api.pacifica.fi/api/v1/orders?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "filled order average from fill event",
+                "method": "fetchOrder",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/history_by_id?order_id=395934592",
+                "input": ["395934592"],
+                "output": null
+            },
+            {
+                "description": "Fetch order by id",
+                "method": "fetchOrder",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/history_by_id?order_id=241146145",
+                "input": ["241146145"],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades without symbol",
+                "method": "fetchMyTrades",
+                "url": "https://test-api.pacifica.fi/api/v1/trades/history?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch recent public trades",
+                "method": "fetchTrades",
+                "url": "https://test-api.pacifica.fi/api/v1/trades?symbol=BTC",
+                "input": ["BTC/USDC:USDC"],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "reduce-only market sell",
+                "method": "createOrder",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/create_market",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "sell",
+                    0.00028,
+                    null,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"3eics2rAWLvNrCQgMr9EdW673UHJqZ2dXtmnPMe43TyT1n2nujjH2puBjie1hsPjqeCzteWcEthtzyRsM1J7yViE\",\"timestamp\":1789736694000,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"ask\",\"reduce_only\":true,\"slippage_percent\":\"0.5\",\"amount\":\"0.00028\"}"
+            },
+            {
+                "description": "market buy with slippage_percent passed as a number",
+                "method": "createOrder",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/create_market",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.00014,
+                    null,
+                    {
+                        "slippage_percent": 1
+                    }
+                ],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"3PjETfbhxYoexXuAQxrbB18NeXAFjCXyjxiUP1QhbN2a8jFCrgVYAW2WTuRs8RrV1MV8MxbwwdW7E6xH1THWjrKm\",\"timestamp\":1789736682724,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"bid\",\"reduce_only\":false,\"slippage_percent\":\"1\",\"amount\":\"0.00014\"}"
+            },
+            {
+                "description": "market buy with slippage",
+                "method": "createOrder",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/create_market",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.00014,
+                    null,
+                    {
+                        "slippage": 1
+                    }
+                ],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"3JRBPrLJ1Bc8ZootSTmq539xtfTHRskB2HzEJ86Fcsc4YH21uGLpxvd5mCzrBw9HcSHFckxu68KA4BxsKGJD7K7R\",\"timestamp\":1789736671761,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"bid\",\"reduce_only\":false,\"slippage_percent\":\"1\",\"amount\":\"0.00014\"}"
+            },
+            {
+                "description": "Stop (trigger) buy order",
+                "method": "createOrder",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/stop/create",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.004,
+                    87900,
+                    {
+                        "triggerPrice": 90000
+                    }
+                ],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"3UMzrK1qEMDJj3tDZ3N8ufit6B1tm6Uhm1TTYjs4Vhke3CSUCdvamjcHdaGXmaq75HkSjeFuK3fR6CacS6W3v6Jq\",\"timestamp\":1769555700037,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"bid\",\"reduce_only\":false,\"stop_order\":{\"amount\":\"0.004\",\"stop_price\":\"90000\",\"limit_price\":\"87900\"}}"
+            },
+            {
+                "description": "Set position TP/SL (no price arg)",
+                "method": "createOrder",
+                "url": "https://test-api.pacifica.fi/api/v1/positions/tpsl",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.001,
+                    null,
+                    {
+                        "takeProfitPrice": 83000,
+                        "stopLossPrice": 90000
+                    }
+                ],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"SHBGzpVrS1Giz9GuhhdQ22V1YVR5AgxCgmmB3Ba4ycSo8k9PomXtPUfVSdBWgDQKgK2iRCYiRAZ2yKz9GuoYzPL\",\"timestamp\":1769555623980,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"bid\",\"take_profit\":{\"stop_price\":\"83000\"},\"stop_loss\":{\"stop_price\":\"90000\"}}"
+            },
+            {
+                "description": "Set position TP/SL with snake_case reduce_only (must not leak into the tpsl body)",
+                "method": "createOrder",
+                "url": "https://test-api.pacifica.fi/api/v1/positions/tpsl",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.001,
+                    null,
+                    {
+                        "takeProfitPrice": 83000,
+                        "stopLossPrice": 90000,
+                        "reduce_only": true
+                    }
+                ],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"5MnF1UzXa913WUFkGY8cHbEQ98cNL7jk1CZgBkY1sB379S5Ahe6aEehTfbTZ49AJtDnr9p5Ke8zk2Qt5CoKPQG8c\",\"timestamp\":1789809700912,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"bid\",\"take_profit\":{\"stop_price\":\"83000\"},\"stop_loss\":{\"stop_price\":\"90000\"}}"
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "Batch create limit orders",
+                "method": "createOrders",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/batch",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDC:USDC",
+                            "side": "buy",
+                            "amount": 0.002,
+                            "price": 87768
+                        },
+                        {
+                            "symbol": "BTC/USDC:USDC",
+                            "side": "sell",
+                            "amount": 0.002,
+                            "price": 87800
+                        }
+                    ]
+                ],
+                "output": "{\"actions\":[{\"type\":\"Create\",\"data\":{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"X5vn4dC5y97EBxrWpgAUfor8N29tNkv4Puqrry33iWLJp2QZmHVVmD1JHGj86JDTVhGAYUU5PyS8uUxY8hmoTKW\",\"timestamp\":1769554042037,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"bid\",\"reduce_only\":false,\"tif\":\"GTC\",\"price\":\"87768\",\"amount\":\"0.002\"}},{\"type\":\"Create\",\"data\":{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"3yzGKHhWC5kKdYhwyehwHujSMh3RAFpFRUqVkGUPW6prQEWb3sPvMexePB8y6LUJzStBSTkgX4hGyDesW38uDnmv\",\"timestamp\":1769554042037,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"ask\",\"reduce_only\":false,\"tif\":\"GTC\",\"price\":\"87800\",\"amount\":\"0.002\"}}]}"
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch markets without private initialization",
+                "method": "fetchMarkets",
+                "url": "https://test-api.pacifica.fi/api/v1/info",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "spot plus perp collateral balance",
+                "method": "fetchBalance",
+                "url": "https://test-api.pacifica.fi/api/v1/account?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://test-api.pacifica.fi/api/v1/book?symbol=BTC&agg_level=1",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}

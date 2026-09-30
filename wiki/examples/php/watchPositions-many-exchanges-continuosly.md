@@ -1,8 +1,5 @@
-- [Watchpositions Many Exchanges Continuosly](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -20,13 +17,12 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 // watch and handle constinuosly
 function watch_positions_continuously($exchange) {
     return Async\async(function () use ($exchange) {
         while (true) {
             try {
-                $positions = Async\await($exchange->watch_positions());
+                $positions = \React\Async\await($exchange->watch_positions());
                 var_dump('Fetched ', $exchange->id, ' - Positions: ', $positions);
             } catch(Exception $e) {
                 var_dump($e);
@@ -45,8 +41,8 @@ function start_exchange($exchange_name, $config) {
         $ex = new $exchange_class($config);
         $promises = [];
         $promises[] = watch_positions_continuously($ex);
-        Async\await(Promise\all($promises));
-        Async\await($ex->close());
+        \React\Async\await(\React\Promise\all($promises));
+        \React\Async\await($ex->close());
     }) ();
 }
 
@@ -63,7 +59,7 @@ function example() {
                 'apiKey' => 'YOUR_API_KEY',
                 'secret' => 'YOUR_API_SECRET',
             ),
-            'huobi' => array(
+            'htx' => array(
                 'apiKey' => 'YOUR_API_KEY',
                 'secret' => 'YOUR_API_SECRET',
             ),
@@ -75,11 +71,11 @@ function example() {
             $config = $exchanges[$exchange_name];
             $promises[] = start_exchange($exchange_name, $config);
         }
-        Async\await(Promise\all($promises));
+        \React\Async\await(\React\Promise\all($promises));
     }) ();
 }
 
 
-Async\await(example());
- 
+\React\Async\await(example());
+
 ```

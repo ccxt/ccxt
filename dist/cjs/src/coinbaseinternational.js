@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinbaseinternational$1 = require('./abstract/coinbaseinternational.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -22,7 +22,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'countries': ['US'],
             'certified': false,
             'pro': true,
-            'rateLimit': 100,
+            'rateLimit': 100, // 10 requests per second
             'version': 'v1',
             'userAgent': this.userAgents['chrome'],
             'headers': {
@@ -33,7 +33,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 'spot': true,
                 'margin': true,
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': false,
                 'cancelAllOrders': true,
@@ -67,6 +67,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -82,8 +83,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyBuys': true,
-                'fetchMySells': true,
+                'fetchMyBuys': false,
+                'fetchMySells': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
@@ -112,6 +113,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 'setMargin': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'urls': {
@@ -139,53 +141,78 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'api': {
                 'v1': {
                     'public': {
-                        'get': [
-                            'assets',
-                            'assets/{assets}',
-                            'assets/{asset}/networks',
-                            'instruments',
-                            'instruments/{instrument}',
-                            'instruments/{instrument}/quote',
-                            'instruments/{instrument}/funding',
-                            'instruments/{instrument}/candles',
-                        ],
+                        'get': {
+                            'assets': { 'cost': 1 },
+                            'assets/{assets}': { 'cost': 1 },
+                            'assets/{asset}/networks': { 'cost': 1 },
+                            'instruments': { 'cost': 1 },
+                            'instruments/{instrument}': { 'cost': 1 },
+                            'instruments/{instrument}/quote': { 'cost': 1 },
+                            'instruments/{instrument}/funding': { 'cost': 1 },
+                            'instruments/{instrument}/candles': { 'cost': 1 },
+                            'instruments/volumes/daily': { 'cost': 1 },
+                            'position-offsets': { 'cost': 1 },
+                            'fee-rate-tiers': { 'cost': 1 },
+                        },
                     },
                     'private': {
-                        'get': [
-                            'orders',
-                            'orders/{id}',
-                            'portfolios',
-                            'portfolios/{portfolio}',
-                            'portfolios/{portfolio}/detail',
-                            'portfolios/{portfolio}/summary',
-                            'portfolios/{portfolio}/balances',
-                            'portfolios/{portfolio}/balances/{asset}',
-                            'portfolios/{portfolio}/positions',
-                            'portfolios/{portfolio}/positions/{instrument}',
-                            'portfolios/fills',
-                            'portfolios/{portfolio}/fills',
-                            'transfers',
-                            'transfers/{transfer_uuid}',
-                        ],
-                        'post': [
-                            'orders',
-                            'portfolios',
-                            'portfolios/margin',
-                            'portfolios/transfer',
-                            'transfers/withdraw',
-                            'transfers/address',
-                            'transfers/create-counterparty-id',
-                            'transfers/validate-counterparty-id',
-                            'transfers/withdraw/counterparty',
-                        ],
-                        'put': [
-                            'orders/{id}',
-                            'portfolios/{portfolio}',
-                        ],
-                        'delete': [
-                            'orders',
-                            'orders/{id}',
-                        ],
+                        'get': {
+                            'address-book': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'orders/{id}': { 'cost': 1 },
+                            'index/{index}/composition': { 'cost': 1 },
+                            'index/{index}/composition-history': { 'cost': 1 },
+                            'index/{index}/price': { 'cost': 1 },
+                            'index/{index}/candles': { 'cost': 1 },
+                            'portfolios': { 'cost': 1 },
+                            'portfolios/{portfolio}': { 'cost': 1 },
+                            'portfolios/{portfolio}/detail': { 'cost': 1 },
+                            'portfolios/{portfolio}/summary': { 'cost': 1 },
+                            'portfolios/{portfolio}/balances': { 'cost': 1 },
+                            'portfolios/{portfolio}/balances/{asset}': { 'cost': 1 },
+                            'portfolios/{portfolio}/positions': { 'cost': 1 },
+                            'portfolios/{portfolio}/positions/{instrument}': { 'cost': 1 },
+                            'portfolios/{portfolio}/position-limits': { 'cost': 1 },
+                            'portfolios/{portfolio}/position-limits/positions': { 'cost': 1 },
+                            'portfolios/{portfolio}/position-limits/positions/{instrument}': { 'cost': 1 },
+                            'portfolios/fills': { 'cost': 1 },
+                            'portfolios/{portfolio}/fills': { 'cost': 1 },
+                            'portfolios/fee-rates': { 'cost': 1 },
+                            'portfolios/{portfolio}/loans': { 'cost': 1 },
+                            'portfolios/{portfolio}/loans/{asset}': { 'cost': 1 },
+                            'portfolios/{portfolio}/loans/{asset}/availability': { 'cost': 1 },
+                            'portfolios/{portfolio}/margin-call-status': { 'cost': 1 },
+                            'transfers': { 'cost': 1 },
+                            'transfers/{transfer_uuid}': { 'cost': 1 },
+                            'transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit': { 'cost': 1 },
+                        },
+                        'post': {
+                            'orders': { 'cost': 1 },
+                            'portfolios': { 'cost': 1 },
+                            'portfolios/margin': { 'cost': 1 },
+                            'portfolios/{portfolio}/cross-collateral-enabled': { 'cost': 1 },
+                            'portfolios/{portfolio}/auto-margin-enabled': { 'cost': 1 },
+                            'portfolios/{portfolio}/loans/{asset}': { 'cost': 1 },
+                            'portfolios/{portfolio}/loans/{asset}/preview': { 'cost': 1 },
+                            'portfolios/transfer': { 'cost': 1 },
+                            'portfolios/transfer-position': { 'cost': 1 },
+                            'transfers/withdraw': { 'cost': 1 },
+                            'transfers/address': { 'cost': 1 },
+                            'transfers/create-counterparty-id': { 'cost': 1 },
+                            'transfers/validate-counterparty-id': { 'cost': 1 },
+                            'transfers/withdraw/counterparty': { 'cost': 1 },
+                        },
+                        'put': {
+                            'orders/{id}': { 'cost': 1 },
+                            'portfolios/{portfolio}': { 'cost': 1 },
+                        },
+                        'delete': {
+                            'orders': { 'cost': 1 },
+                            'orders/{id}': { 'cost': 1 },
+                        },
+                        'patch': {
+                            'portfolios/{portfolio}': { 'cost': 1 },
+                        },
                     },
                 },
             },
@@ -229,6 +256,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                     'is a required field': errors.BadRequest,
                     'Not Found': errors.BadRequest,
                     'ip not allowed': errors.AuthenticationError,
+                    'cbe spot routing instrument not supported': errors.NotSupported,
                 },
             },
             'timeframes': {
@@ -243,7 +271,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             },
             'options': {
                 'brokerId': 'nfqkvdjp',
-                'portfolio': '',
+                'portfolio': '', // default portfolio id
                 'withdraw': {
                     'method': 'v1PrivatePostTransfersWithdraw', // use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
                 },
@@ -265,8 +293,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': true,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo implementation
+                        'takeProfitPrice': false, // todo implementation
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -280,7 +308,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                         'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': true,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: implement
                         'iceberg': false,
                     },
                     'createOrders': undefined,
@@ -329,34 +357,33 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         });
     }
     async handlePortfolioAndParams(methodName, params = {}) {
-        let portfolio = undefined;
-        [portfolio, params] = this.handleOptionAndParams(params, methodName, 'portfolio');
+        const [portfolio, paramsPortfolio] = this.handleOptionStringAndParams(params, methodName, 'portfolio');
         if ((portfolio !== undefined) && (portfolio !== '')) {
-            return [portfolio, params];
+            return [portfolio, paramsPortfolio];
         }
         const defaultPortfolio = this.safeString(this.options, 'portfolio');
         if ((defaultPortfolio !== undefined) && (defaultPortfolio !== '')) {
-            return [defaultPortfolio, params];
+            return [defaultPortfolio, paramsPortfolio];
         }
         const accounts = await this.fetchAccounts();
         for (let i = 0; i < accounts.length; i++) {
-            const account = accounts[i];
+            const account = this.safeDict(accounts, i);
             const info = this.safeDict(account, 'info', {});
-            if (this.safeBool(info, 'is_default')) {
+            if (this.safeBool(info, 'is_default', false)) {
                 const portfolioId = this.safeString(info, 'portfolio_id');
                 this.options['portfolio'] = portfolioId;
-                return [portfolioId, params];
+                return [portfolioId, paramsPortfolio];
             }
         }
         throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() requires a portfolio parameter or set the default portfolio with this.options["portfolio"]');
     }
-    async handleNetworkIdAndParams(currencyCode, methodName, params) {
-        let networkId = undefined;
-        [networkId, params] = this.handleOptionAndParams(params, methodName, 'network_arn_id');
+    async handleNetworkIdAndParams(currencyCode, methodName, params = {}) {
+        const [networkIdOption, paramsNetworkArnId] = this.handleOptionStringAndParams(params, methodName, 'network_arn_id');
+        let networkId = networkIdOption;
         if (networkId === undefined) {
             await this.loadCurrencyNetworks(currencyCode);
             const networks = this.currencies[currencyCode]['networks'];
-            const network = this.safeString2(params, 'networkCode', 'network');
+            const network = this.safeString2(paramsNetworkArnId, 'networkCode', 'network');
             if (network === undefined) {
                 // find default network
                 if (this.isEmpty(networks)) {
@@ -369,7 +396,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 networkId = this.networkCodeToId(network, currencyCode);
             }
         }
-        return [networkId, params];
+        return [networkId, paramsNetworkArnId];
     }
     /**
      * @method
@@ -380,7 +407,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivateGetPortfolios(params);
         //
         //    [
@@ -439,29 +468,36 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
-        await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 10000);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 10000);
         }
         const market = this.market(symbol);
         const request = {
             'instrument': market['id'],
             'granularity': this.safeString(this.timeframes, timeframe, timeframe),
         };
+        const duration = this.parseTimeframe(timeframe);
         if (since !== undefined) {
             request['start'] = this.iso8601(since);
         }
         else {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOHLCV() requires a since argument');
+            let limitResolved = limit;
+            if (limitResolved === undefined) {
+                limitResolved = 300; // the default of api
+            }
+            const sinceResolved = this.sum(this.milliseconds(), -limitResolved * duration * 1000);
+            request['start'] = this.iso8601(sinceResolved);
         }
-        const unitl = this.safeInteger(params, 'until');
+        const unitl = this.safeInteger(paramsPaginate, 'until');
         if (unitl !== undefined) {
-            params = this.omit(params, 'until');
             request['end'] = this.iso8601(unitl);
         }
-        const response = await this.v1PublicGetInstrumentsInstrumentCandles(this.extend(request, params));
+        const paramsOmitted = (unitl !== undefined) ? this.omit(paramsPaginate, 'until') : paramsPaginate;
+        const response = await this.v1PublicGetInstrumentsInstrumentCandles(this.extend(request, paramsOmitted));
         //
         //   {
         //       "aggregations": [
@@ -515,25 +551,27 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
-        let maxEntriesPerRequest = undefined;
-        [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', 100);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
+        const maxEntriesPerRequest = 100;
+        const [maxEntriesPerRequestOption, paramsMaxEntriesPerRequest] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchFundingRateHistory', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental('fetchFundingRateHistory', symbol, since, limit, params, pageKey, maxEntriesPerRequest);
+            return await this.fetchPaginatedCallIncremental('fetchFundingRateHistory', symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption);
         }
         const market = this.market(symbol);
-        const page = this.safeInteger(params, pageKey, 1) - 1;
+        const page = this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1;
+        const offSet = this.safeInteger2(paramsMaxEntriesPerRequest, 'offset', 'result_offset', page * maxEntriesPerRequestOption);
         const request = {
             'instrument': market['id'],
-            'result_offset': this.safeInteger2(params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+            'result_offset': offSet,
         };
         if (limit !== undefined) {
             request['result_limit'] = limit;
         }
-        const response = await this.v1PublicGetInstrumentsInstrumentFunding(this.extend(request, params));
+        const response = await this.v1PublicGetInstrumentsInstrumentFunding(this.extend(request, paramsMaxEntriesPerRequest));
         //
         //    {
         //        "pagination":{
@@ -555,7 +593,14 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         return this.parseFundingRateHistories(rawRates, market, since, limit);
     }
     parseFundingRateHistory(info, market = undefined) {
-        return this.parseFundingRate(info, market);
+        const fundingRate = this.parseFundingRate(info, market);
+        return {
+            'info': info,
+            'symbol': fundingRate['symbol'],
+            'fundingRate': fundingRate['fundingRate'],
+            'timestamp': fundingRate['timestamp'],
+            'datetime': fundingRate['datetime'],
+        };
     }
     parseFundingRate(contract, market = undefined) {
         //
@@ -599,7 +644,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'type': 'FUNDING',
         };
@@ -607,8 +654,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        let portfolios = undefined;
-        [portfolios, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'portfolios');
+        const [portfolios, paramsPortfolios] = this.handleOptionStringAndParams(params, 'fetchFundingHistory', 'portfolios');
         if (portfolios !== undefined) {
             request['portfolios'] = portfolios;
         }
@@ -621,7 +667,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         else {
             request['result_limit'] = 100;
         }
-        const response = await this.v1PrivateGetTransfers(this.extend(request, params));
+        const response = await this.v1PrivateGetTransfers(this.extend(request, paramsPortfolios));
         const fundings = this.safeList(response, 'results', []);
         return this.parseIncomes(fundings, market, since, limit);
     }
@@ -649,14 +695,14 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         // }
         //
         const marketId = this.safeString(income, 'symbol');
-        market = this.safeMarket(marketId, market, undefined, 'contract');
+        const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
         const datetime = this.safeInteger(income, 'created_at');
         const timestamp = this.parse8601(datetime);
         const currencyId = this.safeString(income, 'asset');
         const code = this.safeCurrencyCode(currencyId);
         return {
             'info': income,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'code': code,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -677,7 +723,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'type': 'INTERNAL',
         };
@@ -685,8 +733,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        let portfolios = undefined;
-        [portfolios, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'portfolios');
+        const [portfolios, paramsPortfolios] = this.handleOptionStringAndParams(params, 'fetchTransfers', 'portfolios');
         if (portfolios !== undefined) {
             request['portfolios'] = portfolios;
         }
@@ -699,7 +746,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         else {
             request['result_limit'] = 100;
         }
-        const response = await this.v1PrivateGetTransfers(this.extend(request, params));
+        const response = await this.v1PrivateGetTransfers(this.extend(request, paramsPortfolios));
         const transfers = this.safeList(response, 'results', []);
         return this.parseTransfers(transfers, currency, since, limit);
     }
@@ -768,22 +815,29 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async createDepositAddress(code, params = {}) {
-        await this.loadMarkets();
-        let method = undefined;
-        [method, params] = this.handleOptionAndParams(params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
-        let portfolio = undefined;
-        [portfolio, params] = await this.handlePortfolioAndParams('createDepositAddress', params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [method, paramsMethod] = this.handleOptionStringAndParams(params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
+        const [portfolio, paramsPortfolio] = await this.handlePortfolioAndParams('createDepositAddress', paramsMethod);
+        let requestParams = paramsPortfolio;
         const request = {
             'portfolio': portfolio,
         };
         if (method === 'v1PrivatePostTransfersAddress') {
             const currency = this.currency(code);
             request['asset'] = currency['id'];
-            let networkId = undefined;
-            [networkId, params] = await this.handleNetworkIdAndParams(code, 'createDepositAddress', params);
+            const [networkId, paramsNetworkId] = await this.handleNetworkIdAndParams(code, 'createDepositAddress', paramsPortfolio);
             request['network_arn_id'] = networkId;
+            requestParams = paramsNetworkId;
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'v1PrivatePostTransfersCreateCounterpartyId') {
+            response = await this.v1PrivatePostTransfersCreateCounterpartyId(this.extend(request, requestParams));
+        }
+        else {
+            response = await this.v1PrivatePostTransfersAddress(this.extend(request, requestParams));
+        }
         //
         // v1PrivatePostTransfersAddress
         //    {
@@ -810,7 +864,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
     findDefaultNetwork(networks) {
         const networksArray = this.toArray(networks);
         for (let i = 0; i < networksArray.length; i++) {
-            const info = networksArray[i]['info'];
+            const info = this.safeDict(networksArray[i], 'info');
             const is_default = this.safeBool(info, 'is_default', false);
             if (is_default === true) {
                 return networksArray[i];
@@ -910,8 +964,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
     async setMargin(symbol, amount, params = {}) {
-        let portfolio = undefined;
-        [portfolio, params] = await this.handlePortfolioAndParams('setMargin', params);
+        const [portfolio, paramsPortfolio] = await this.handlePortfolioAndParams('setMargin', params);
         if (symbol !== undefined) {
             throw new errors.BadRequest(this.id + ' setMargin() only allows setting margin to full portfolio');
         }
@@ -919,11 +972,12 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'portfolio': portfolio,
             'margin_override': amount,
         };
-        return await this.v1PrivatePostPortfoliosMargin(this.extend(request, params));
+        const response = await this.v1PrivatePostPortfoliosMargin(this.extend(request, paramsPortfolio));
+        return response;
     }
     /**
      * @method
-     * @name exchange#fetchDepositsWithdrawals
+     * @name coinbaseinternational#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
      * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
@@ -938,18 +992,20 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let paginate = undefined;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchDepositsWithdrawals', 'paginate');
-        let maxEntriesPerRequest = undefined;
-        [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', 100);
-        const pageKey = 'ccxtPageKey';
-        if (paginate) {
-            return await this.fetchPaginatedCallIncremental('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
         }
-        const page = this.safeInteger(params, pageKey, 1) - 1;
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchDepositsWithdrawals', 'paginate');
+        const maxEntriesPerRequest = 100;
+        const [maxEntriesPerRequestOption, paramsMaxEntriesPerRequest] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest);
+        const pageKey = 'ccxtPageKey';
+        if (paginate === true) {
+            return await this.fetchPaginatedCallIncremental('fetchDepositsWithdrawals', code, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption);
+        }
+        const page = this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1;
+        const offSet = this.safeInteger2(paramsMaxEntriesPerRequest, 'offset', 'result_offset', page * maxEntriesPerRequestOption);
         const request = {
-            'result_offset': this.safeInteger2(params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+            'result_offset': offSet,
         };
         if (since !== undefined) {
             request['time_from'] = this.iso8601(since);
@@ -958,17 +1014,15 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             const newLimit = Math.min(limit, 100);
             request['result_limit'] = newLimit;
         }
-        let portfolios = undefined;
-        [portfolios, params] = this.handleOptionAndParams(params, 'fetchDepositsWithdrawals', 'portfolios');
+        const [portfolios, paramsPortfolios] = this.handleOptionStringAndParams(paramsMaxEntriesPerRequest, 'fetchDepositsWithdrawals', 'portfolios');
         if (portfolios !== undefined) {
             request['portfolios'] = portfolios;
         }
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, 'fetchDepositsWithdrawals', 'until');
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams(paramsPortfolios, 'fetchDepositsWithdrawals', 'until');
         if (until !== undefined) {
             request['time_to'] = this.iso8601(until);
         }
-        const response = await this.v1PrivateGetTransfers(this.extend(request, params));
+        const response = await this.v1PrivateGetTransfers(this.extend(request, paramsUntil));
         //
         //    {
         //        "pagination":{
@@ -1008,15 +1062,16 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
-        symbol = this.symbol(symbol);
-        let portfolio = undefined;
-        [portfolio, params] = await this.handlePortfolioAndParams('fetchPosition', params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolValue = this.symbol(symbol);
+        const [portfolio, paramsPortfolio] = await this.handlePortfolioAndParams('fetchPosition', params);
         const request = {
             'portfolio': portfolio,
-            'instrument': this.marketId(symbol),
+            'instrument': this.marketId(symbolValue),
         };
-        const position = await this.v1PrivateGetPortfoliosPortfolioPositionsInstrument(this.extend(request, params));
+        const position = await this.v1PrivateGetPortfoliosPortfolioPositionsInstrument(this.extend(request, paramsPortfolio));
         //
         //    {
         //        "symbol":"BTC-PERP",
@@ -1052,7 +1107,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         //
         const marketId = this.safeString(position, 'symbol');
         let quantity = this.safeString(position, 'net_size');
-        market = this.safeMarket(marketId, market, '-');
+        const marketResolved = this.safeMarket(marketId, market, '-');
         let side = 'long';
         if (Precise["default"].stringLe(quantity, '0')) {
             side = 'short';
@@ -1061,7 +1116,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'id'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'entryPrice': undefined,
             'markPrice': this.safeNumber(position, 'mark_price'),
             'notional': undefined,
@@ -1069,7 +1124,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'unrealizedPnl': this.safeNumber(position, 'unrealized_pnl'),
             'side': side,
             'contracts': this.parseNumber(quantity),
-            'contractSize': this.safeNumber(market, 'contractSize'),
+            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'timestamp': undefined,
             'datetime': undefined,
             'hedged': undefined,
@@ -1094,13 +1149,14 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        let portfolio = undefined;
-        [portfolio, params] = await this.handlePortfolioAndParams('fetchPositions', params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [portfolio, paramsPortfolio] = await this.handlePortfolioAndParams('fetchPositions', params);
         const request = {
             'portfolio': portfolio,
         };
-        const response = await this.v1PrivateGetPortfoliosPortfolioPositions(this.extend(request, params));
+        const response = await this.v1PrivateGetPortfoliosPortfolioPositions(this.extend(request, paramsPortfolio));
         //
         //    [
         //        {
@@ -1122,8 +1178,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         if (this.isEmpty(symbols)) {
             return positions;
         }
-        symbols = this.marketSymbols(symbols);
-        return this.filterByArrayPositions(positions, 'symbol', symbols, false);
+        const symbolsNormalized = this.marketSymbols(symbols);
+        return this.filterByArrayPositions(positions, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -1142,7 +1198,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         params['type'] = 'WITHDRAW';
         return await this.fetchDepositsWithdrawals(code, since, limit, params);
     }
@@ -1162,7 +1220,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         params['type'] = 'DEPOSIT';
         return await this.fetchDepositsWithdrawals(code, since, limit, params);
     }
@@ -1186,14 +1246,15 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const addressFrom = this.safeStringN(transaction, ['from_address', 'from_cb_account', this.safeStringN(fromPorfolio, ['id', 'uuid', 'name']), 'from_counterparty_id']);
         const toPorfolio = this.safeDict(transaction, 'from_portfolio', {});
         const addressTo = this.safeStringN(transaction, ['to_address', 'to_cb_account', this.safeStringN(toPorfolio, ['id', 'uuid', 'name']), 'to_counterparty_id']);
+        const code = this.safeString(currency, 'code');
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'transfer_uuid'),
             'txid': this.safeString(transaction, 'transaction_uuid'),
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
-            'network': this.networkIdToCode(this.safeString(transaction, 'network_name')),
-            'address': undefined,
+            'network': this.networkIdToCode(this.safeString(transaction, 'network_name'), code),
+            'address': undefined, // TODO check if withdraw or deposit and populate
             'addressTo': addressTo,
             'addressFrom': addressFrom,
             'tag': undefined,
@@ -1378,22 +1439,30 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const typeId = this.safeString(market, 'type'); // 'SPOT', 'PERP'
         const isSpot = (typeId === 'SPOT');
         const fees = this.fees;
+        if ((baseId === undefined) || (quoteId === undefined)) {
+            return undefined;
+        }
         let symbol = baseId + '/' + quoteId;
         let settleId = undefined;
         if (!isSpot) {
             settleId = quoteId;
             symbol += ':' + quoteId;
         }
-        return {
+        const isLinear = isSpot ? undefined : (settleId === quoteId);
+        const isInverse = isSpot ? undefined : (settleId !== quoteId);
+        if (marketId === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarket() missing marketId');
+        }
+        return this.safeMarketStructure({
             'id': marketId,
             'lowercaseId': marketId.toLowerCase(),
             'symbol': symbol,
             'base': baseId,
             'quote': quoteId,
-            'settle': settleId ? settleId : undefined,
+            'settle': settleId,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': settleId ? settleId : undefined,
+            'settleId': settleId,
             'type': isSpot ? 'spot' : 'swap',
             'spot': isSpot,
             'margin': false,
@@ -1402,8 +1471,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'option': false,
             'active': this.safeString(market, 'trading_state') === 'TRADING',
             'contract': !isSpot,
-            'linear': isSpot ? undefined : (settleId === quoteId),
-            'inverse': isSpot ? undefined : (settleId !== quoteId),
+            'linear': isLinear,
+            'inverse': isInverse,
             'taker': fees['trading']['taker'],
             'maker': fees['trading']['maker'],
             'contractSize': isSpot ? undefined : 1,
@@ -1436,7 +1505,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             },
             'info': market,
             'created': undefined,
-        };
+        });
     }
     /**
      * @method
@@ -1452,7 +1521,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         //    [
         //        {
         //           "asset_id":"1",
-        //           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
+        //           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f6",
         //           "asset_name":"USDC",
         //           "status":"ACTIVE",
         //           "collateral_weight":1.0,
@@ -1502,18 +1571,24 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
         const instruments = await this.v1PublicGetInstruments(params);
         const tickers = {};
-        for (let i = 0; i < instruments.length; i++) {
-            const instrument = instruments[i];
+        let rows = [];
+        if (Array.isArray(instruments)) {
+            rows = instruments;
+        }
+        for (let i = 0; i < rows.length; i++) {
+            const instrument = this.safeDict(rows, i);
             const marketId = this.safeString(instrument, 'symbol');
             const symbol = this.safeSymbol(marketId);
             const quote = this.safeDict(instrument, 'quote', {});
             tickers[symbol] = this.parseTicker(quote, this.safeMarket(marketId));
         }
-        return this.filterByArray(tickers, 'symbol', symbols, true);
+        return this.filterByArray(tickers, 'symbol', symbolsNormalized, true);
     }
     /**
      * @method
@@ -1525,7 +1600,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument': this.marketId(symbol),
@@ -1587,13 +1664,14 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
-        let portfolio = undefined;
-        [portfolio, params] = await this.handlePortfolioAndParams('fetchBalance', params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [portfolio, paramsPortfolio] = await this.handlePortfolioAndParams('fetchBalance', params);
         const request = {
             'portfolio': portfolio,
         };
-        const balances = await this.v1PrivateGetPortfoliosPortfolioBalances(this.extend(request, params));
+        const balances = await this.v1PrivateGetPortfoliosPortfolioBalances(this.extend(request, paramsPortfolio));
         //
         //    [
         //        {
@@ -1633,13 +1711,15 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'info': response,
         };
         for (let i = 0; i < response.length; i++) {
-            const rawBalance = response[i];
+            const rawBalance = this.safeDict(response, i);
             const currencyId = this.safeString(rawBalance, 'asset_name');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             account['total'] = this.safeString(rawBalance, 'quantity');
             account['used'] = this.safeString(rawBalance, 'hold');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1656,11 +1736,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
-            'ammount': amount,
+            'amount': amount,
             'from': fromAccount,
             'to': toAccount,
         };
@@ -1675,7 +1757,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': success ? 'ok' : 'failed',
+            'status': (success === true) ? 'ok' : 'failed',
         };
     }
     /**
@@ -1699,13 +1781,16 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let typeId = type.toUpperCase();
         const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
         const clientOrderIdprefix = this.safeString(this.options, 'brokerId', 'nfqkvdjp');
         let clientOrderId = clientOrderIdprefix + '-' + this.uuid();
         clientOrderId = clientOrderId.slice(0, 17);
+        this.checkRequiredArgument('createOrder', side, 'side');
         const request = {
             'client_order_id': clientOrderId,
             'side': side.toUpperCase(),
@@ -1728,13 +1813,12 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             }
             request['price'] = price;
         }
-        let portfolio = undefined;
-        [portfolio, params] = await this.handlePortfolioAndParams('createOrder', params);
+        const [portfolio, paramsPortfolio] = await this.handlePortfolioAndParams('createOrder', params);
         if (portfolio !== undefined) {
             request['portfolio'] = portfolio;
         }
-        const postOnly = this.safeBool2(params, 'postOnly', 'post_only');
-        let tif = this.safeString2(params, 'tif', 'timeInForce');
+        const postOnly = this.safeBool2(paramsPortfolio, 'postOnly', 'post_only');
+        let tif = this.safeString2(paramsPortfolio, 'tif', 'timeInForce');
         // market orders must be IOC
         if (typeId === 'MARKET') {
             if (tif !== undefined && tif !== 'IOC') {
@@ -1743,14 +1827,16 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             tif = 'IOC';
         }
         else {
-            tif = (tif === undefined) ? 'GTC' : tif;
+            if (tif === undefined) {
+                tif = 'GTC';
+            }
         }
         if (postOnly !== undefined) {
             request['post_only'] = postOnly;
         }
         request['tif'] = tif;
-        params = this.omit(params, ['client_order_id', 'user', 'postOnly', 'timeInForce']);
-        const response = await this.v1PrivatePostOrders(this.extend(request, params));
+        const paramsOmitted = this.omit(paramsPortfolio, ['client_order_id', 'user', 'postOnly', 'timeInForce']);
+        const response = await this.v1PrivatePostOrders(this.extend(request, paramsOmitted));
         //
         //    {
         //        "order_id":"1x96skvg-1-0",
@@ -1835,6 +1921,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
     }
     parseOrderStatus(status) {
         const statuses = {
+            // order_status carries WORKING and DONE; the other keys are event_type
+            // values, which the same payload reports in its own field
+            'WORKING': 'open',
             'NEW': 'open',
             'PARTIAL_FILLED': 'open',
             'FILLED': 'closed',
@@ -1866,14 +1955,15 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @description cancels an open order
      * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
      * @param {string} id order id
-     * @param {string} symbol not used by coinbaseinternational cancelOrder()
+     * @param {string} symbol not used by cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
-        let portfolio = undefined;
-        [portfolio, params] = await this.handlePortfolioAndParams('cancelOrder', params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [portfolio, paramsPortfolio] = await this.handlePortfolioAndParams('cancelOrder', params);
         const request = {
             'portfolio': portfolio,
             'id': id,
@@ -1882,7 +1972,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const orders = await this.v1PrivateDeleteOrdersId(this.extend(request, params));
+        const orders = await this.v1PrivateDeleteOrdersId(this.extend(request, paramsPortfolio));
         //
         //    {
         //        "order_id":"1x96skvg-1-0",
@@ -1912,23 +2002,24 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @method
      * @name coinbaseinternational#cancelAllOrders
      * @description cancel all open orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
-        let portfolio = undefined;
-        [portfolio, params] = await this.handlePortfolioAndParams('cancelAllOrders', params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [portfolio, paramsPortfolio] = await this.handlePortfolioAndParams('cancelAllOrders', params);
         const request = {
             'portfolio': portfolio,
         };
         let market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market(symbol);
             request['instrument'] = market['id'];
         }
-        const orders = await this.v1PrivateDeleteOrders(this.extend(request, params));
+        const orders = await this.v1PrivateDeleteOrders(this.extend(request, paramsPortfolio));
         return this.parseOrders(orders, market);
     }
     /**
@@ -1947,13 +2038,14 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'id': id,
         };
-        let portfolio = undefined;
-        [portfolio, params] = await this.handlePortfolioAndParams('editOrder', params);
+        const [portfolio, paramsPortfolio] = await this.handlePortfolioAndParams('editOrder', params);
         if (portfolio !== undefined) {
             request['portfolio'] = portfolio;
         }
@@ -1963,16 +2055,16 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const triggerPrice = this.safeNumberN(params, ['stopPrice', 'stop_price', 'triggerPrice']);
+        const triggerPrice = this.safeNumberN(paramsPortfolio, ['stopPrice', 'stop_price', 'triggerPrice']);
         if (triggerPrice !== undefined) {
             request['stop_price'] = triggerPrice;
         }
-        const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
+        const clientOrderId = this.safeString2(paramsPortfolio, 'client_order_id', 'clientOrderId');
         if (clientOrderId === undefined) {
             throw new errors.BadRequest(this.id + ' editOrder() requires a clientOrderId parameter');
         }
         request['client_order_id'] = clientOrderId;
-        const order = await this.v1PrivatePutOrdersId(this.extend(request, params));
+        const order = await this.v1PrivatePutOrdersId(this.extend(request, paramsPortfolio));
         return this.parseOrder(order, market);
     }
     /**
@@ -1986,18 +2078,19 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        let portfolio = undefined;
-        [portfolio, params] = await this.handlePortfolioAndParams('fetchOrder', params);
+        const [portfolio, paramsPortfolio] = await this.handlePortfolioAndParams('fetchOrder', params);
         const request = {
             'id': id,
             'portfolio': portfolio,
         };
-        const order = await this.v1PrivateGetOrdersId(this.extend(request, params));
+        const order = await this.v1PrivateGetOrdersId(this.extend(request, paramsPortfolio));
         //
         //    {
         //        "order_id":"1x96skvg-1-0",
@@ -2040,24 +2133,25 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let portfolio = undefined;
-        [portfolio, params] = await this.handlePortfolioAndParams('fetchOpenOrders', params);
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'paginate');
-        let maxEntriesPerRequest = undefined;
-        [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [portfolio, paramsPortfolio] = await this.handlePortfolioAndParams('fetchOpenOrders', params);
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(paramsPortfolio, 'fetchOpenOrders', 'paginate', false);
+        const maxEntriesPerRequest = 100;
+        const [maxEntriesPerRequestOption, paramsMaxEntriesPerRequest] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchOpenOrders', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental('fetchOpenOrders', symbol, since, limit, params, pageKey, maxEntriesPerRequest);
+            return await this.fetchPaginatedCallIncremental('fetchOpenOrders', symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption);
         }
-        const page = this.safeInteger(params, pageKey, 1) - 1;
+        const page = this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1;
+        const offSet = this.safeInteger2(paramsMaxEntriesPerRequest, 'offset', 'result_offset', page * maxEntriesPerRequestOption);
         const request = {
             'portfolio': portfolio,
-            'result_offset': this.safeInteger2(params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+            'result_offset': offSet,
         };
         let market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market(symbol);
             request['instrument'] = symbol;
         }
@@ -2070,7 +2164,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         if (since !== undefined) {
             request['ref_datetime'] = this.iso8601(since);
         }
-        const response = await this.v1PrivateGetOrders(this.extend(request, params));
+        const response = await this.v1PrivateGetOrders(this.extend(request, paramsMaxEntriesPerRequest));
         //
         //    {
         //        "pagination":{
@@ -2122,22 +2216,23 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchMyTrades', 'paginate', false);
         const pageKey = 'ccxtPageKey';
-        let maxEntriesPerRequest = undefined;
-        [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
+        const [maxEntriesPerRequest, paramsMaxEntriesPerRequest] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental('fetchMyTrades', symbol, since, limit, params, pageKey, maxEntriesPerRequest);
+            return await this.fetchPaginatedCallIncremental('fetchMyTrades', symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest);
         }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const page = this.safeInteger(params, pageKey, 1) - 1;
+        const page = this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1;
+        const offSet = this.safeInteger2(paramsMaxEntriesPerRequest, 'offset', 'result_offset', page * maxEntriesPerRequest);
         const request = {
-            'result_offset': this.safeInteger2(params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+            'result_offset': offSet,
         };
         if (limit !== undefined) {
             if (limit > 100) {
@@ -2148,12 +2243,12 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         if (since !== undefined) {
             request['time_from'] = this.iso8601(since);
         }
-        const until = this.safeStringN(params, ['until']);
+        const until = this.safeString(paramsMaxEntriesPerRequest, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['until']);
             request['ref_datetime'] = this.iso8601(until);
         }
-        const response = await this.v1PrivateGetPortfoliosFills(this.extend(request, params));
+        const paramsOmitted = (until !== undefined) ? this.omit(paramsMaxEntriesPerRequest, ['until']) : paramsMaxEntriesPerRequest;
+        const response = await this.v1PrivateGetPortfoliosFills(this.extend(request, paramsOmitted));
         //
         //    {
         //        "pagination":{
@@ -2214,16 +2309,16 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const tagAndParams = this.handleWithdrawTagAndParams(tag, params);
+        const paramsWithdrawTag = tagAndParams[1];
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
-        let portfolio = undefined;
-        [portfolio, params] = await this.handlePortfolioAndParams('withdraw', params);
-        let method = undefined;
-        [method, params] = this.handleOptionAndParams(params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw');
-        let networkId = undefined;
-        [networkId, params] = await this.handleNetworkIdAndParams(code, 'withdraw', params);
+        const [portfolio, paramsPortfolio] = await this.handlePortfolioAndParams('withdraw', paramsWithdrawTag);
+        const [method, paramsMethod] = this.handleOptionStringAndParams(paramsPortfolio, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw');
+        const [networkId, paramsNetworkId] = await this.handleNetworkIdAndParams(code, 'withdraw', paramsMethod);
         const request = {
             'portfolio': portfolio,
             'type': 'send',
@@ -2234,7 +2329,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'network_arn_id': networkId,
             'nonce': this.nonce(),
         };
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'v1PrivatePostTransfersWithdrawCounterparty') {
+            response = await this.v1PrivatePostTransfersWithdrawCounterparty(this.extend(request, paramsNetworkId));
+        }
+        else {
+            response = await this.v1PrivatePostTransfersWithdraw(this.extend(request, paramsNetworkId));
+        }
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -2242,76 +2343,50 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         //
         return this.parseTransaction(response, currency);
     }
-    safeNetwork(network) {
-        let withdrawEnabled = this.safeBool(network, 'withdraw');
-        let depositEnabled = this.safeBool(network, 'deposit');
-        const limits = this.safeDict(network, 'limits');
-        const withdraw = this.safeDict(limits, 'withdraw');
-        const withdrawMax = this.safeNumber(withdraw, 'max');
-        const deposit = this.safeDict(limits, 'deposit');
-        const depositMax = this.safeNumber(deposit, 'max');
-        if (withdrawEnabled === undefined && withdrawMax !== undefined) {
-            withdrawEnabled = (withdrawMax > 0);
-        }
-        if (depositEnabled === undefined && depositMax !== undefined) {
-            depositEnabled = (depositMax > 0);
-        }
-        const networkId = this.safeString(network, 'id');
-        const isEnabled = (withdrawEnabled && depositEnabled);
-        return {
-            'info': network['info'],
-            'id': networkId,
-            'name': this.safeString(network, 'name'),
-            'network': this.safeString(network, 'network'),
-            'active': this.safeBool(network, 'active', isEnabled),
-            'deposit': depositEnabled,
-            'withdraw': withdrawEnabled,
-            'fee': this.safeNumber(network, 'fee'),
-            'precision': this.safeNumber(network, 'precision'),
-            'limits': {
-                'withdraw': {
-                    'min': this.safeNumber(withdraw, 'min'),
-                    'max': withdrawMax,
-                },
-                'deposit': {
-                    'min': this.safeNumber(deposit, 'min'),
-                    'max': depositMax,
-                },
-            },
-        };
-    }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const version = api[0];
-        const signed = api[1] === 'private';
+        const version = this.safeString(api, 0);
+        const signed = this.safeString(api, 1) === 'private';
         let fullPath = '/' + version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const savedPath = '/api' + fullPath;
         if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 fullPath += '?' + this.urlencodeWithArrayRepeat(query);
             }
         }
-        const url = this.urls['api']['rest'] + fullPath;
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + fullPath;
+        const hasSignedBody = signed && (method !== 'GET') && (Object.keys(query).length > 0);
+        let signedBody = '';
+        if (hasSignedBody) {
+            signedBody = this.json(query);
+        }
+        let requestBody = body;
+        if (hasSignedBody) {
+            requestBody = signedBody;
+        }
+        let signedHeaders = undefined;
         if (signed) {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
-            let payload = '';
-            if (method !== 'GET') {
-                if (Object.keys(query).length) {
-                    body = this.json(query);
-                    payload = body;
-                }
-            }
+            const payload = signedBody;
             const auth = nonce + method + savedPath + payload;
-            const signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256.sha256, 'base64');
-            headers = {
+            const signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha2_js.sha256, 'base64');
+            signedHeaders = {
                 'CB-ACCESS-TIMESTAMP': nonce,
                 'CB-ACCESS-SIGN': signature,
                 'CB-ACCESS-PASSPHRASE': this.password,
                 'CB-ACCESS-KEY': this.apiKey,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        let requestHeaders = headers;
+        if (signed) {
+            requestHeaders = signedHeaders;
+        }
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //

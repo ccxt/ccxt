@@ -1,8 +1,5 @@
-- [Fetch Balance](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include dirname(dirname(dirname(__FILE__))) . '/ccxt.php';
 date_default_timezone_set('UTC');
@@ -24,5 +21,5 @@ try {
 } catch (Exception $e) {
     echo '[Error] ' . $e->getMessage() . "\n";
 }
- 
+
 ```

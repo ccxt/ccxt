@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testSharedMethods from './base/test.sharedMethods.js';
 
 async function testProxies (exchange: Exchange, skippedProperties: object) {
@@ -7,8 +7,8 @@ async function testProxies (exchange: Exchange, skippedProperties: object) {
     await testHttpProxy (exchange, skippedProperties);
     // 'httpsProxy', 'socksProxy'
     await testProxyForExceptions (exchange, skippedProperties);
+    return true;
 }
-
 
 async function testProxyUrl (exchange: Exchange, skippedProperties: object) {
     const method = 'proxyUrl';
@@ -25,7 +25,6 @@ async function testProxyUrl (exchange: Exchange, skippedProperties: object) {
     return true;
 }
 
-
 async function testHttpProxy (exchange: Exchange, skippedProperties: object) {
     const method = 'httpProxy';
     const proxyServerIp = '5.75.153.75';
@@ -36,8 +35,8 @@ async function testHttpProxy (exchange: Exchange, skippedProperties: object) {
     assert (response === proxyServerIp, exchange.id + ' ' + method + ' test failed. Returned response is ' + response + ' while it should be "' + proxyServerIp + '"');
     // reset the instance property
     testSharedMethods.setProxyOptions (exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
+    return true;
 }
-
 
 // with the below method we test out all variations of possible proxy options, so at least 2 of them should be set together, and such cases must throw exception
 async function testProxyForExceptions (exchange: Exchange, skippedProperties: object) {
@@ -83,6 +82,7 @@ async function testProxyForExceptions (exchange: Exchange, skippedProperties: ob
     }
     // reset the instance property
     testSharedMethods.setProxyOptions (exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
+    return true;
 }
 
 export default testProxies;

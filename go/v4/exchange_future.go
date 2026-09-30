@@ -10,17 +10,17 @@ import (
 //	- use the channel returned by Await() (or the struct itself) to receive the value
 
 type GetsLimit interface {
-	GetLimit(symbol interface{}, limit interface{}) interface{}
+	GetLimit(symbol any, limit any) *int64
 }
 
 // used when a value does not implement GetsLimit
 // returns the caller-supplied limit unchanged
-type NoopLimit struct{ Val interface{} }
+type NoopLimit struct{ Val any }
 
-func (n NoopLimit) GetLimit(symbol interface{}, limit interface{}) interface{} { return limit }
+func (n NoopLimit) GetLimit(symbol any, limit any) *int64 { return Int64PtrTyped(limit) }
 
 // converts arbitrary values to the GetsLimit interface expected by Future.Resolve
-func ToGetsLimit(v interface{}) GetsLimit {
+func ToGetsLimit(v any) GetsLimit {
 	if gl, ok := v.(GetsLimit); ok {
 		//If the value already implements GetsLimit it is returned verbatim
 		return gl
@@ -29,28 +29,33 @@ func ToGetsLimit(v interface{}) GetsLimit {
 }
 
 type Future struct {
-	result        chan interface{}
-	err           chan interface{}
-	subscribers   []chan interface{}
+	result        chan any
+	err           chan any
+	subscribers   []chan AsyncResult[any]
 	resolved      bool
-	resolvedValue interface{}
-	resolvedError interface{}
-	mu            sync.Mutex
-	once          sync.Once
-	subscribersMu sync.Mutex
+	resolvedValue any
+	resolvedError any
+	// mu guards resolved state AND subscribers together: Await must check
+	// resolved and append its subscriber under the same lock that Resolve
+	// and Reject use to set the state and take the subscriber snapshot,
+	// otherwise a resolve landing between an unlocked check and the append
+	// notifies an empty list, clears it, and the subscriber blocks forever,
+	// see https://github.com/ccxt/ccxt/issues/29586
+	mu   sync.Mutex
+	once sync.Once
 }
 
 // Create new Future
 func NewFuture() *Future {
 	return &Future{
-		result: make(chan interface{}, 1),
-		err:    make(chan interface{}, 1),
+		result: make(chan any, 1),
+		err:    make(chan any, 1),
 	}
 }
 
 // Resolve asynchronously with a value
-func (f *Future) Resolve(args ...interface{}) {
-	var value interface{}
+func (f *Future) Resolve(args ...any) {
+	var value any
 	if len(args) == 0 {
 		value = nil
 	} else {
@@ -61,6 +66,8 @@ func (f *Future) Resolve(args ...interface{}) {
 		f.resolved = true
 		f.resolvedValue = value
 		f.resolvedError = nil
+		subscribers := f.subscribers
+		f.subscribers = nil
 		f.mu.Unlock()
 
 		func() {
@@ -76,10 +83,11 @@ func (f *Future) Resolve(args ...interface{}) {
 			}
 		}()
 
-		f.subscribersMu.Lock()
-		// Notify all subscribers
-		for _, sub := range f.subscribers {
-			func(sub chan interface{}) {
+		// notify the snapshot outside the lock, every subscriber channel has
+		// capacity 1 and receives at most this one send, so the non blocking
+		// send cannot drop a wakeup
+		for _, sub := range subscribers {
+			func(sub chan AsyncResult[any]) {
 				defer func() {
 					if r := recover(); r != nil {
 						// Channel is closed, but that's okay since we're using sync.Once
@@ -87,23 +95,23 @@ func (f *Future) Resolve(args ...interface{}) {
 					}
 				}()
 				select {
-				case sub <- value:
+				case sub <- AsyncResult[any]{Value: value}:
 				default:
 				}
 			}(sub)
 		}
-		f.subscribers = nil // Clear subscribers after notifying them
-		f.subscribersMu.Unlock()
 	})
 }
 
 // Reject asynchronously with an error
-func (f *Future) Reject(reason interface{}) {
+func (f *Future) Reject(reason any) {
 	f.once.Do(func() {
 		f.mu.Lock()
 		f.resolved = true
 		f.resolvedValue = nil
 		f.resolvedError = reason
+		subscribers := f.subscribers
+		f.subscribers = nil
 		f.mu.Unlock()
 
 		func() {
@@ -119,9 +127,10 @@ func (f *Future) Reject(reason interface{}) {
 			}
 		}()
 
-		// Notify all subscribers
-		for _, sub := range f.subscribers {
-			func(sub chan interface{}) {
+		// notify the snapshot outside the lock, see Resolve
+		failure := rejectionError(reason)
+		for _, sub := range subscribers {
+			func(sub chan AsyncResult[any]) {
 				defer func() {
 					if r := recover(); r != nil {
 						// Channel is closed, but that's okay since we're using sync.Once
@@ -129,136 +138,50 @@ func (f *Future) Reject(reason interface{}) {
 					}
 				}()
 				select {
-				case sub <- reason:
+				case sub <- AsyncResult[any]{Err: failure}:
 				default:
 				}
 			}(sub)
 		}
-		f.subscribers = nil // Clear subscribers after notifying them
 	})
 }
 
-// // Await blocks until either result or error is received
-// // Returns the resolved value (which could be an error)
-// func (f *Future) Await() <-chan interface{} {
-// 	ch := make(chan interface{})
+// rejectionError is the Err a rejection reason is delivered as; a nil reason reads as nil, as before.
+func rejectionError(reason any) error {
+	if reason == nil {
+		return nil
+	}
+	return RecoveredError(reason)
+}
 
-// 	go func() {
-// 		defer close(ch)
-
-// 		// f.mu.Lock()
-// 		if f.resolved {
-// 			// f.mu.Unlock()
-// 			// for {
-// 			// Already resolved, return cached value immediately
-// 			// f.mu.Lock()
-// 			if f.resolvedError != nil {
-// 				ch <- f.resolvedError
-// 			} else {
-// 				ch <- f.resolvedValue
-// 			}
-// 			// f.mu.Unlock()
-// 			// f.mu.Unlock()
-// 			// return
-// 		}
-// 		// }
-// 		// f.mu.Unlock()
-
-// 		// // Not resolved yet, wait for it
-// 		// select {
-// 		// case res := <-f.result:
-// 		// 	for {
-// 		// 		ch <- res
-// 		// 	}
-// 		// case err := <-f.err:
-// 		// 	for {
-// 		// 		ch <- err
-// 		// 	}
-// 		// }
-
-// 		resCh, errCh := f.result, f.err
-// 		// f.mu.Unlock()
-
-// 		var out interface{}
-// 		select {
-// 		case out = <-resCh:
-// 		case out = <-errCh:
-// 		}
-
-// 		// Cache the resolution
-// 		f.mu.Lock()
-// 		f.resolved = true
-// 		if e, ok := out.(error); ok {
-// 			f.resolvedError = e
-// 		} else {
-// 			f.resolvedValue = out
-// 		}
-// 		val, err := f.resolvedValue, f.resolvedError
-// 		f.mu.Unlock()
-
-// 		// for {
-// 		if err != nil {
-// 			ch <- err
-// 		} else {
-// 			ch <- val
-// 		}
-// 		// }
-// 	}()
-
-// 	return ch
-// }
-
-func (f *Future) Await() <-chan interface{} {
-	ch := make(chan interface{}, 1)
+// Await delivers the outcome: {Value} on resolve, {Err} on reject.
+func (f *Future) Await() <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	f.mu.Lock()
 	if f.resolved {
 		// Already resolved, return cached value immediately
 		if f.resolvedError != nil {
-			ch <- f.resolvedError
+			ch <- AsyncResult[any]{Err: rejectionError(f.resolvedError)}
 		} else {
-			ch <- f.resolvedValue
+			ch <- AsyncResult[any]{Value: f.resolvedValue}
 		}
 		f.mu.Unlock()
 		return ch
 	}
-	f.mu.Unlock()
-	f.subscribersMu.Lock()
+	// still unresolved under the same lock, so a concurrent Resolve cannot
+	// have taken its subscriber snapshot yet, the append below is safe
 	if f.subscribers == nil {
-		f.subscribers = make([]chan interface{}, 0)
+		f.subscribers = make([]chan AsyncResult[any], 0)
 	}
 	f.subscribers = append(f.subscribers, ch)
-	f.subscribersMu.Unlock()
-	// go func() {
-	// 	defer close(ch)
-	// 	// f.mu.Lock()
-	// 	if f.resolved {
-	// 		// Already resolved, return cached value immediately
-	// 		if f.resolvedError != nil {
-	// 			ch <- f.resolvedError
-	// 		} else {
-	// 			ch <- f.resolvedValue
-	// 		}
-	// 		// f.mu.Unlock()
-	// 		return
-	// 	}
-
-	// 	// f.mu.Unlock()
-
-	// 	// Not resolved yet, wait for it
-	// 	select {
-	// 	case res := <-f.result:
-	// 		ch <- res
-	// 	case err := <-f.err:
-	// 		ch <- err
-	// 	}
-	// }()
+	f.mu.Unlock()
 
 	return ch
 }
 
-// Wrap an existing channel that returns (interface{}, error) into Future
+// Wrap an existing channel that returns (any, error) into Future
 func WrapFuture(ch <-chan struct {
-	val interface{}
+	val any
 	err error
 }) *Future {
 	f := NewFuture()
@@ -273,19 +196,46 @@ func WrapFuture(ch <-chan struct {
 	return f
 }
 
-// Race multiple Futures: returns the first resolved or rejected value/error
+// Race multiple Futures: returns the first resolved or rejected value/error.
+// Uses a shared subscriber channel instead of one goroutine per future to
+// avoid O(N) goroutine creation on every call (fixes #28182).
 func FutureRace(futures []*Future) *Future {
 	result := NewFuture()
+	// Buffered so that a non-blocking send from Future.Resolve succeeds
+	// even before the reader goroutine is scheduled.
+	sharedCh := make(chan AsyncResult[any], 1)
+
 	for _, f := range futures {
-		go func(fut *Future) {
-			futureC := fut.Await()
-			futureResponse := <-futureC
-			if err, isError := futureResponse.(error); isError {
+		f.mu.Lock()
+		if f.resolved {
+			val, err := f.resolvedValue, f.resolvedError
+			f.mu.Unlock()
+			if err != nil {
 				result.Reject(err)
 			} else {
-				result.Resolve(futureResponse)
+				result.Resolve(val)
 			}
-		}(f)
+			return result
+		}
+		// same lock spans the resolved check and the subscribe, a resolve
+		// landing in between would otherwise notify an empty list and this
+		// racer would never wake, see https://github.com/ccxt/ccxt/issues/29586
+		if f.subscribers == nil {
+			f.subscribers = make([]chan AsyncResult[any], 0)
+		}
+		f.subscribers = append(f.subscribers, sharedCh)
+		f.mu.Unlock()
 	}
+
+	// Single goroutine forwards the first resolved/rejected value.
+	go func() {
+		val := <-sharedCh
+		if val.Err != nil {
+			result.Reject(val.Err)
+		} else {
+			result.Resolve(val.Value)
+		}
+	}()
+
 	return result
 }

@@ -11,6 +11,7 @@ const UINT_512_MAX = (1n << 512n) - 1n;
 const UINT_512_MIN = 0n;
 const UINT_128_MIN = 0n;
 class CairoUint512 {
+    static { this.abiSelector = 'core::integer::u512'; }
     constructor(...arr) {
         if (typeof arr[0] === 'object' &&
             arr.length === 1 &&
@@ -129,7 +130,6 @@ class CairoUint512 {
         ];
     }
 }
-CairoUint512.abiSelector = 'core::integer::u512';
 
 exports.CairoUint512 = CairoUint512;
 exports.UINT_128_MIN = UINT_128_MIN;

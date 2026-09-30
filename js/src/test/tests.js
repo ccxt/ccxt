@@ -12,15 +12,18 @@ AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, O
 // shared
 getCliArgValue, 
 //
-getRootDir, isSync, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, isNullValue, close, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, } from './tests.helpers.js';
+getRootDir, isSync, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, setFetchResponseByUrl, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, wsClientHasPendingFutures, markWsTestCompleted, isWsTestCompleted, getWsSentMessages, isNullValue, close, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, } from './tests.helpers.js';
 class testMainClass {
     constructor() {
         this.idTests = false;
         this.requestTestsFailed = false;
         this.responseTestsFailed = false;
+        this.staticWsTestsFailed = false;
         this.requestTests = false;
         this.wsTests = false;
+        this.staticWsTests = false;
         this.responseTests = false;
+        this.predictionTests = false;
         this.info = false;
         this.verbose = false;
         this.debug = false;
@@ -50,6 +53,9 @@ class testMainClass {
         this.sandbox = getCliArgValue('--sandbox');
         this.loadKeys = getCliArgValue('--loadKeys');
         this.wsTests = getCliArgValue('--ws');
+        this.staticWsTests = getCliArgValue('--wsTests');
+        // when set, static request/response tests are read from the static/<type>/prediction/ subfolder
+        this.predictionTests = getCliArgValue('--prediction');
         this.lang = getLang();
         this.ext = getExt();
     }
@@ -61,6 +67,7 @@ class testMainClass {
             dump('[TEST_FAILURE]'); // tell run-tests.js this is failure
             throw e;
         }
+        return true;
     }
     async initInner(exchangeId, symbolArgv, methodArgv) {
         this.parseCliArgsAndProps();
@@ -71,6 +78,10 @@ class testMainClass {
         }
         if (this.responseTests) {
             await this.runStaticResponseTests(exchangeId, symbolArgv);
+            return true;
+        }
+        if (this.staticWsTests) {
+            await this.runStaticWsTests(exchangeId, symbolArgv);
             return true;
         }
         if (this.requestTests) {
@@ -90,12 +101,14 @@ class testMainClass {
             'timeout': 30000,
         };
         const exchange = initExchange(exchangeId, exchangeArgs, this.wsTests);
+        setExchangeProp(exchange, 'fetchHistoryCacheSize', 5);
         if (exchange.alias) {
             dump(this.addPadding("[INFO] skipping alias", 25));
             exitScript(0);
         }
         await this.importFiles(exchange);
-        assert(Object.keys(this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
+        // ensure test files are found & filled
+        assert(Object.keys(this.testFiles).length > 0, 'Test files were not loaded');
         this.expandSettings(exchange);
         this.checkIfSpecificTestIsChosen(methodArgv);
         await this.startTest(exchange, symbolArgv);
@@ -123,6 +136,7 @@ class testMainClass {
     async importFiles(exchange) {
         const properties = Object.keys(exchange.has);
         properties.push('loadMarkets');
+        properties.push('afterConstruct');
         if (isSync()) {
             this.testFiles = getTestFilesSync(properties, this.wsTests);
         }
@@ -138,12 +152,12 @@ class testMainClass {
         for (let i = 0; i < objkeys.length; i++) {
             const credential = objkeys[i];
             const isRequired = reqCreds[credential];
-            if (isRequired && getExchangeProp(exchange, credential) === undefined) {
+            if ((isRequired === true) && (getExchangeProp(exchange, credential) === undefined)) {
                 const fullKey = exchangeId + '_' + credential;
                 const credentialEnvName = fullKey.toUpperCase(); // example: KRAKEN_APIKEY
                 const envVars = getEnvVars();
                 const credentialValue = (credentialEnvName in envVars) ? envVars[credentialEnvName] : undefined;
-                if (credentialValue) {
+                if (credentialValue !== undefined && credentialValue !== '') {
                     setExchangeProp(exchange, credential, credentialValue);
                 }
             }
@@ -165,13 +179,15 @@ class testMainClass {
         }
         const allSettings = exchange.deepExtend(globalSettings, localSettings);
         const exchangeSettings = exchange.safeValue(allSettings, exchangeId, {});
-        if (exchangeSettings) {
+        if (exchangeSettings !== undefined) {
             const settingKeys = Object.keys(exchangeSettings);
             for (let i = 0; i < settingKeys.length; i++) {
                 const key = settingKeys[i];
-                if (exchangeSettings[key]) {
+                const settingValue = exchangeSettings[key];
+                const settingIsEmpty = (settingValue === undefined) || (settingValue === null) || (settingValue === '') || (settingValue === false) || (settingValue === 0);
+                if (!settingIsEmpty) {
                     let finalValue = undefined;
-                    if (typeof exchangeSettings[key] === 'object') {
+                    if (exchange.isDictionary(exchangeSettings[key])) {
                         const existing = getExchangeProp(exchange, key, {});
                         finalValue = exchange.deepExtend(existing, exchangeSettings[key]);
                     }
@@ -230,17 +246,18 @@ class testMainClass {
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isFetchCurrencies = (methodName === 'fetchCurrencies');
         const isProxyTest = (methodName === this.proxyTestFileName);
+        const isConstructorTest = (methodName === 'afterConstruct');
         const isFeatureTest = (methodName === 'features');
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!isPublic && (methodName in this.checkedPublicTests) && !isFetchCurrencies) {
             return true;
         }
         let skipMessage = undefined;
-        const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
-        if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray(methodName, this.onlySpecificTests))) {
+        const supportedByExchange = (methodName in exchange.has) && (exchange.has[methodName] !== undefined) && (exchange.has[methodName] !== false);
+        if (!isLoadMarkets && ((this.onlySpecificTests.length > 0) && (exchange.inArray(methodName, this.onlySpecificTests) !== true))) {
             skipMessage = '[INFO] IGNORED_TEST';
         }
-        else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest) {
+        else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest) {
             skipMessage = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
         }
         else if (typeof skippedPropertiesForMethod === 'string') {
@@ -249,30 +266,31 @@ class testMainClass {
         else if (!(methodName in this.testFiles)) {
             skipMessage = '[INFO] UNIMPLEMENTED_TEST';
         }
+        const name = exchange.id;
+        // the TESTING / TESTING DONE / TESTING FAILED markers are dumped unconditionally
+        // (not gated on `--info`) because run-tests.js diffs them on RUNTEST_TIMED_OUT to
+        // report which method(s) were still running when the per-exchange timeout fired
         // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
         if (isLoadMarkets) {
+            dump(this.addPadding('[INFO] TESTING', 25), name, methodName);
             await exchange.loadMarkets(true);
+            dump(this.addPadding('[INFO] TESTING DONE', 25), name, methodName);
         }
-        const name = exchange.id;
-        if (skipMessage) {
+        if (skipMessage !== undefined && skipMessage !== '') {
             if (this.info) {
                 dump(this.addPadding(skipMessage, 25), name, methodName);
             }
             return true;
         }
-        if (this.info) {
-            const argsStringified = '(' + exchange.json(args) + ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-            dump(this.addPadding('[INFO] TESTING', 25), name, methodName, argsStringified);
-        }
+        const argsStringified = '(' + exchange.json(args) + ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+        dump(this.addPadding('[INFO] TESTING', 25), name, methodName, argsStringified);
         if (isSync()) {
             callMethodSync(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
         }
         else {
             await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
         }
-        if (this.info) {
-            dump(this.addPadding('[INFO] TESTING DONE', 25), name, methodName);
-        }
+        dump(this.addPadding('[INFO] TESTING DONE', 25), name, methodName);
         // add to the list of successed tests
         if (isPublic) {
             this.checkedPublicTests[methodName] = true;
@@ -346,11 +364,15 @@ class testMainClass {
                 return true;
             }
             catch (ex) {
+                // close the TESTING marker (pairs with the dump in `testMethod`), so on a
+                // RUNTEST_TIMED_OUT run-tests.js doesn't misreport a failed method as hung
+                dump(this.addPadding('[INFO] TESTING FAILED', 25), exchange.id, methodName);
                 const e = getRootException(ex);
                 const isLoadMarkets = (methodName === 'loadMarkets');
                 const isAuthError = (e instanceof AuthenticationError);
                 const isNotSupported = (e instanceof NotSupported);
                 const isOperationFailed = (e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
+                const lastUrlMsg = this.wsTests ? '' : ' (Last url: ' + this.getLastRequestUrl(exchange) + ' )';
                 if (isOperationFailed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
@@ -384,7 +406,7 @@ class testMainClass {
                         }
                         // output the message
                         const failType = shouldFail ? '[TEST_FAILURE]' : '[TEST_WARNING]';
-                        dump(failType, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, methodName, argsStringified, exceptionMessage(e));
+                        dump(failType, exchange.id, methodName, argsStringified, lastUrlMsg, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exceptionMessage(e));
                         return retSuccess;
                     }
                     else {
@@ -399,14 +421,14 @@ class testMainClass {
                 else {
                     // if it's loadMarkets, then fail test, because it's mandatory for tests
                     if (isLoadMarkets) {
-                        dump('[TEST_FAILURE]', 'Exchange can not load markets', exceptionMessage(e), exchange.id, methodName, argsStringified);
+                        dump('[TEST_FAILURE]', exchange.id, methodName, argsStringified, lastUrlMsg, 'Exchange can not load markets', exceptionMessage(e));
                         return false;
                     }
                     // if the specific arguments to the test method throws "NotSupported" exception
                     // then let's don't fail the test
                     if (isNotSupported) {
                         if (this.info) {
-                            dump('[INFO] NOT_SUPPORTED', exceptionMessage(e), exchange.id, methodName, argsStringified);
+                            dump('[INFO] NOT_SUPPORTED', exchange.id, methodName, argsStringified, lastUrlMsg, exceptionMessage(e));
                         }
                         return true;
                     }
@@ -414,13 +436,13 @@ class testMainClass {
                     if (isPublic && isAuthError) {
                         if (this.info) {
                             // todo - turn into warning
-                            dump('[INFO]', 'Authentication problem for public method', exceptionMessage(e), exchange.id, methodName, argsStringified);
+                            dump('[INFO]', exchange.id, methodName, argsStringified, lastUrlMsg, 'Authentication problem for public method', exceptionMessage(e));
                         }
                         return true;
                     }
                     // in rest of the cases, fail the test
                     else {
-                        dump('[TEST_FAILURE]', exceptionMessage(e), exchange.id, methodName, argsStringified);
+                        dump('[TEST_FAILURE]', exchange.id, methodName, argsStringified, lastUrlMsg, exceptionMessage(e));
                         return false;
                     }
                 }
@@ -428,16 +450,30 @@ class testMainClass {
         }
         return true;
     }
-    async runPublicTests(exchange, symbol) {
+    getLastRequestUrl(exchange) {
+        const fetchCache = exchange.getFetchCache();
+        let url = '';
+        if (fetchCache.length > 0) {
+            const lastEntry = fetchCache[fetchCache.length - 1];
+            const lastRequest = lastEntry['request'];
+            if (lastRequest !== undefined) {
+                url = exchange.safeString(lastRequest, 'url', '');
+            }
+        }
+        return url;
+    }
+    async runPublicTests(exchange, symbols) {
+        const primarySymbol = symbols[0];
         let tests = {
             'features': [],
+            'afterConstruct': [],
             'fetchCurrencies': [],
-            'fetchTicker': [symbol],
-            'fetchTickers': [symbol],
-            'fetchLastPrices': [symbol],
-            'fetchOHLCV': [symbol],
-            'fetchTrades': [symbol],
-            'fetchOrderBook': [symbol],
+            'fetchTicker': [primarySymbol],
+            'fetchTickers': [primarySymbol],
+            'fetchLastPrices': [primarySymbol],
+            'fetchOHLCV': [primarySymbol],
+            'fetchTrades': [primarySymbol],
+            'fetchOrderBook': [primarySymbol],
             // 'fetchL2OrderBook': [ symbol ],
             'fetchOrderBooks': [],
             'fetchBidsAsks': [],
@@ -447,30 +483,30 @@ class testMainClass {
         if (this.wsTests) {
             tests = {
                 // @ts-ignore
-                'watchOHLCV': [symbol],
-                'watchOHLCVForSymbols': [symbol],
-                'watchTicker': [symbol],
-                'watchTickers': [symbol],
-                'watchBidsAsks': [symbol],
-                'watchOrderBook': [symbol],
-                'watchOrderBookForSymbols': [[symbol]],
-                'watchTrades': [symbol],
-                'watchTradesForSymbols': [[symbol]],
+                'watchOHLCV': [primarySymbol],
+                'watchOHLCVForSymbols': [primarySymbol], // argument type will be handled inside test
+                'watchTicker': [primarySymbol],
+                'watchTickers': [primarySymbol],
+                'watchBidsAsks': [primarySymbol],
+                'watchOrderBook': [primarySymbol],
+                'watchOrderBookForSymbols': [symbols],
+                'watchTrades': [primarySymbol],
+                'watchTradesForSymbols': [symbols],
             };
         }
-        const market = exchange.market(symbol);
+        const market = exchange.market(primarySymbol);
         const isSpot = market['spot'];
         if (!this.wsTests) {
-            if (isSpot) {
+            if (isSpot === true) {
                 tests['fetchCurrencies'] = [];
             }
             else {
-                tests['fetchFundingRates'] = [symbol];
-                tests['fetchFundingRate'] = [symbol];
-                tests['fetchFundingRateHistory'] = [symbol];
-                tests['fetchIndexOHLCV'] = [symbol];
-                tests['fetchMarkOHLCV'] = [symbol];
-                tests['fetchPremiumIndexOHLCV'] = [symbol];
+                tests['fetchFundingRates'] = [primarySymbol];
+                tests['fetchFundingRate'] = [primarySymbol];
+                tests['fetchFundingRateHistory'] = [primarySymbol];
+                tests['fetchIndexOHLCV'] = [primarySymbol];
+                tests['fetchMarkOHLCV'] = [primarySymbol];
+                tests['fetchPremiumIndexOHLCV'] = [primarySymbol];
             }
         }
         this.publicTests = tests;
@@ -493,12 +529,12 @@ class testMainClass {
         for (let i = 0; i < testNames.length; i++) {
             const testName = testNames[i];
             const testReturnedValue = results[i];
-            if (!testReturnedValue) {
+            if (testReturnedValue !== true) {
                 failedMethods.push(testName);
             }
         }
         const testPrefixString = isPublicTest ? 'PUBLIC_TESTS' : 'PRIVATE_TESTS';
-        if (failedMethods.length) {
+        if (failedMethods.length > 0) {
             const errorsString = failedMethods.join(', ');
             dump('[TEST_FAILURE]', exchange.id, testPrefixString, 'Failed methods : ' + errorsString);
         }
@@ -520,10 +556,10 @@ class testMainClass {
         let symbol = undefined;
         const preferredSpotSymbol = exchange.safeString(this.skippedSettingsForExchange, 'preferredSpotSymbol');
         const preferredSwapSymbol = exchange.safeString(this.skippedSettingsForExchange, 'preferredSwapSymbol');
-        if (isSpot && preferredSpotSymbol) {
+        if ((isSpot === true) && (preferredSpotSymbol !== undefined) && (preferredSpotSymbol !== '')) {
             return preferredSpotSymbol;
         }
-        else if (!isSpot && preferredSwapSymbol) {
+        else if ((isSpot !== true) && (preferredSwapSymbol !== undefined) && (preferredSwapSymbol !== '')) {
             return preferredSwapSymbol;
         }
         for (let i = 0; i < symbols.length; i++) {
@@ -531,7 +567,7 @@ class testMainClass {
             const market = exchange.safeValue(exchange.markets, s);
             if (market !== undefined) {
                 const active = exchange.safeValue(market, 'active');
-                if (active || (active === undefined)) {
+                if ((active === true) || (active === undefined)) {
                     symbol = s;
                     break;
                 }
@@ -558,10 +594,10 @@ class testMainClass {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const market = markets[key];
-            if (spot && market['spot']) {
+            if (spot && (market['spot'] === true)) {
                 res[market['symbol']] = market;
             }
-            else if (!spot && !market['spot']) {
+            else if (!spot && (market['spot'] !== true)) {
                 res[market['symbol']] = market;
             }
         }
@@ -583,7 +619,7 @@ class testMainClass {
             'USDT',
             'USDC',
             'USD',
-            'GUSD',
+            'GUSD', // gemini gusd
             'EUR',
             'TUSD',
             'CNY',
@@ -621,10 +657,14 @@ class testMainClass {
         const swapSymbols = [
             // linear
             'BTC/USDT:USDT',
+            'BTC/USD:USDT',
             'BTC/USDC:USDC',
+            'BTC/USD:USDC',
             'BTC/USD:USD',
             'ETH/USDT:USDT',
+            'ETH/USD:USDT',
             'ETH/USDC:USDC',
+            'ETH/USD:USDC',
             'ETH/USD:USD',
             // inverse
             'BTC/USD:BTC',
@@ -640,7 +680,7 @@ class testMainClass {
                 const indexedMkts = exchange.indexBy(marketsArrayForCurrentCode, 'symbol');
                 const symbolsArrayForCurrentCode = Object.keys(indexedMkts);
                 const symbolsLength = symbolsArrayForCurrentCode.length;
-                if (symbolsLength) {
+                if (symbolsLength > 0) {
                     symbol = this.getTestSymbol(exchange, spot, symbolsArrayForCurrentCode);
                     break;
                 }
@@ -667,63 +707,522 @@ class testMainClass {
         }
         return symbol;
     }
+    getTickerVolume(exchange, ticker) {
+        // all candidates compared with this helper share the same quote currency,
+        // so `quoteVolume` is directly comparable between them. fall back to the
+        // base volume converted with the last price, then to the raw base volume,
+        // because not every exchange populates `quoteVolume`.
+        const quoteVolume = exchange.safeNumber(ticker, 'quoteVolume');
+        if (quoteVolume !== undefined) {
+            return quoteVolume;
+        }
+        const baseVolume = exchange.safeNumber(ticker, 'baseVolume');
+        if (baseVolume === undefined) {
+            return 0;
+        }
+        const last = exchange.safeNumber(ticker, 'last');
+        if (last !== undefined) {
+            return baseVolume * last;
+        }
+        return baseVolume;
+    }
+    async getMostActiveSymbols(exchange, defaultSymbols) {
+        // `watch*` methods only resolve when the exchange pushes an update, so a
+        // thinly traded market makes the ws tests hang until the harness timeout
+        // kills them. the 24h volume is our proxy for "how often does this book
+        // change", so rank the markets by it and watch the busiest ones instead.
+        // the ranking is restricted to markets sharing the type/quote/settle of
+        // the statically chosen symbol, which keeps the volumes comparable (quote
+        // volumes denominated in different quote currencies are not) and keeps a
+        // per-exchange `preferredSpotSymbol`/`preferredSwapSymbol` meaningful.
+        const defaultSymbol = defaultSymbols[0];
+        const defaultMarket = exchange.safeDict(exchange.markets, defaultSymbol);
+        if (defaultMarket === undefined) {
+            return defaultSymbols;
+        }
+        // an explicit per-exchange pin is a deliberate maintainer choice (it usually
+        // works around a venue-specific quirk), so never rank around it
+        const isSpot = exchange.safeBool(defaultMarket, 'spot', false);
+        const preferredKey = (isSpot === true) ? 'preferredSpotSymbol' : 'preferredSwapSymbol';
+        const preferredSymbol = exchange.safeString(this.skippedSettingsForExchange, preferredKey);
+        if (preferredSymbol !== undefined) {
+            return defaultSymbols;
+        }
+        if (exchange.safeBool(exchange.has, 'fetchTickers', false) !== true) {
+            return defaultSymbols;
+        }
+        let tickers = undefined;
+        try {
+            // dynamic dispatch: `fetchTickers` is not on the base exchange type in
+            // the statically typed ports (c#/go/java), same as the other call sites
+            tickers = await callExchangeMethodDynamically(exchange, 'fetchTickers', []);
+        }
+        catch (e) {
+            // choosing a symbol must never fail the run, keep the static choice
+            tickers = undefined;
+        }
+        if (tickers === undefined) {
+            return defaultSymbols;
+        }
+        const marketType = exchange.safeString(defaultMarket, 'type');
+        const quote = exchange.safeString(defaultMarket, 'quote');
+        const settle = exchange.safeString(defaultMarket, 'settle');
+        const candidates = [];
+        const tickerSymbols = Object.keys(tickers);
+        for (let i = 0; i < tickerSymbols.length; i++) {
+            const tickerSymbol = tickerSymbols[i];
+            const market = exchange.safeDict(exchange.markets, tickerSymbol);
+            if (market !== undefined) {
+                // exchanges keep returning tickers for delisted markets, and those
+                // never push a websocket update at all, so skip inactive markets
+                const isActive = exchange.safeBool(market, 'active', true);
+                const sameType = exchange.safeString(market, 'type') === marketType;
+                const sameQuote = exchange.safeString(market, 'quote') === quote;
+                const sameSettle = exchange.safeString(market, 'settle') === settle;
+                if ((isActive === true) && sameType && sameQuote && sameSettle) {
+                    const ticker = exchange.safeDict(tickers, tickerSymbol, {});
+                    const volume = this.getTickerVolume(exchange, ticker);
+                    if (volume > 0) {
+                        const entry = {};
+                        entry['symbol'] = tickerSymbol;
+                        entry['volume'] = volume;
+                        candidates.push(entry);
+                    }
+                }
+            }
+        }
+        const ranked = exchange.sortBy(candidates, 'volume', true);
+        const rankedLength = ranked.length;
+        if (rankedLength === 0) {
+            return defaultSymbols;
+        }
+        const result = [exchange.safeString(ranked[0], 'symbol')];
+        if (rankedLength > 1) {
+            result.push(exchange.safeString(ranked[1], 'symbol'));
+        }
+        return result;
+    }
     async testExchange(exchange, providedSymbol = undefined) {
-        let spotSymbol = undefined;
-        let swapSymbol = undefined;
+        // prediction-market exchanges have no spot/swap markets and address methods by an
+        // outcome handle (not a market symbol), so they take a dedicated test flow
+        if (exchange.safeBool(exchange.has, 'prediction', false) === true) {
+            await this.runPredictionTests(exchange);
+            return true;
+        }
+        let spotSymbols = undefined;
+        let swapSymbols = undefined;
+        // `has` values can be true, false, undefined or 'emulated', so only false/undefined mean unsupported
+        const hasSpot = (exchange.has['spot'] !== undefined) && (exchange.has['spot'] !== false);
+        const hasSwap = (exchange.has['swap'] !== undefined) && (exchange.has['swap'] !== false);
         if (providedSymbol !== undefined) {
             const market = exchange.market(providedSymbol);
-            if (market['spot']) {
-                spotSymbol = providedSymbol;
+            if (market['spot'] === true) {
+                spotSymbols = [providedSymbol];
             }
             else {
-                swapSymbol = providedSymbol;
+                swapSymbols = [providedSymbol];
             }
         }
         else {
-            if (exchange.has['spot']) {
-                spotSymbol = this.getValidSymbol(exchange, true);
+            if (hasSpot) {
+                const primarySymbol = this.getValidSymbol(exchange, true);
+                if (primarySymbol !== undefined) {
+                    const secondarySymbol = primarySymbol.replace('BTC', 'ETH'); // this should work any exchange
+                    spotSymbols = [primarySymbol, secondarySymbol];
+                }
             }
-            if (exchange.has['swap']) {
-                swapSymbol = this.getValidSymbol(exchange, false);
+            if (hasSwap) {
+                const primarySymbol = this.getValidSymbol(exchange, false);
+                // some exchanges advertise has['swap']=true via describe() but
+                // the live market list contains no swap entries (e.g. bequant
+                // inherits hitbtc swap support but exposes only spot pairs).
+                // getValidSymbol returns undefined in that case — skip swap
+                // tests rather than crashing on `undefined.replace(...)`.
+                if (primarySymbol !== undefined) {
+                    const secondarySymbol = primarySymbol.replaceAll('BTC', 'ETH'); // this should work any exchange
+                    swapSymbols = [primarySymbol, secondarySymbol];
+                }
+            }
+            // ws tests subscribe with `watch*`, which only resolves on an update,
+            // so re-target them at the most actively traded markets to avoid the
+            // harness timing out on a quiet book. rest tests keep the static choice.
+            if (this.wsTests) {
+                if (spotSymbols !== undefined) {
+                    spotSymbols = await this.getMostActiveSymbols(exchange, spotSymbols);
+                }
+                if (swapSymbols !== undefined) {
+                    swapSymbols = await this.getMostActiveSymbols(exchange, swapSymbols);
+                }
             }
         }
-        if (spotSymbol !== undefined) {
-            dump('[INFO:MAIN] Selected SPOT SYMBOL:', spotSymbol);
+        if (spotSymbols !== undefined) {
+            dump('[INFO:MAIN] Selected SPOT SYMBOL:', exchange.json(spotSymbols));
         }
-        if (swapSymbol !== undefined) {
-            dump('[INFO:MAIN] Selected SWAP SYMBOL:', swapSymbol);
+        if (swapSymbols !== undefined) {
+            dump('[INFO:MAIN] Selected SWAP SYMBOL:', exchange.json(swapSymbols));
         }
         if (!this.privateTestOnly) {
             // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
-            if (exchange.has['spot'] && spotSymbol !== undefined) {
+            if (hasSpot && (spotSymbols !== undefined)) {
                 if (this.info) {
                     dump('[INFO] ### SPOT TESTS ###');
                 }
                 exchange.options['defaultType'] = 'spot';
-                await this.runPublicTests(exchange, spotSymbol);
+                await this.runPublicTests(exchange, spotSymbols);
             }
-            if (exchange.has['swap'] && swapSymbol !== undefined) {
+            if (hasSwap && (swapSymbols !== undefined)) {
                 if (this.info) {
                     dump('[INFO] ### SWAP TESTS ###');
                 }
                 exchange.options['defaultType'] = 'swap';
-                await this.runPublicTests(exchange, swapSymbol);
+                await this.runPublicTests(exchange, swapSymbols);
             }
         }
         if (this.privateTest || this.privateTestOnly) {
-            if (exchange.has['spot'] && spotSymbol !== undefined) {
+            if (hasSpot && (spotSymbols !== undefined)) {
                 exchange.options['defaultType'] = 'spot';
-                await this.runPrivateTests(exchange, spotSymbol);
+                await this.runPrivateTests(exchange, spotSymbols);
             }
-            if (exchange.has['swap'] && swapSymbol !== undefined) {
+            if (hasSwap && (swapSymbols !== undefined)) {
                 exchange.options['defaultType'] = 'swap';
-                await this.runPrivateTests(exchange, swapSymbol);
+                await this.runPrivateTests(exchange, swapSymbols);
             }
         }
         return true;
     }
-    async runPrivateTests(exchange, symbol) {
-        if (!exchange.checkRequiredCredentials(false)) {
+    async runPredictionTests(exchange) {
+        // loadMarkets (already called by loadExchange) populates the markets and their outcome
+        // tokens; resolve a tradeable outcome handle from them (works in every language since
+        // exchange.markets is typed on the base, unlike the prediction-only outcomes cache),
+        // then fetchEvents for an event id and run every method by that outcome handle
+        // a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
+        // many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
+        let outcomeSymbol = exchange.safeString(this.skippedSettingsForExchange, 'preferredPredictionOutcome');
+        if (outcomeSymbol !== undefined) {
+            // validate the pin against the live listing - venues can rotate ids/handles
+            // (hyperliquid re-assigns outcome ids), which would strand a stale pin
+            let pinFound = false;
+            const pinnedKeys = Object.keys(exchange.markets);
+            for (let i = 0; i < pinnedKeys.length; i++) {
+                const pinnedMarket = exchange.markets[pinnedKeys[i]];
+                const pinnedOutcomes = exchange.safeList(pinnedMarket, 'outcomes', []);
+                for (let j = 0; j < pinnedOutcomes.length; j++) {
+                    if (exchange.safeString(pinnedOutcomes[j], 'outcome') === outcomeSymbol) {
+                        pinFound = true;
+                        break;
+                    }
+                }
+                if (pinFound) {
+                    break;
+                }
+            }
+            if (!pinFound) {
+                dump('[INFO:MAIN] preferredPredictionOutcome', outcomeSymbol, 'not in the live listing (stale pin?) - falling back to market scan');
+                outcomeSymbol = undefined;
+            }
+        }
+        if (outcomeSymbol === undefined) {
+            const marketKeys = Object.keys(exchange.markets);
+            for (let i = 0; i < marketKeys.length; i++) {
+                const market = exchange.markets[marketKeys[i]];
+                const outcomesList = exchange.safeList(market, 'outcomes', []);
+                const outcomesListLength = outcomesList.length;
+                if (outcomesListLength > 0) {
+                    outcomeSymbol = exchange.safeString(outcomesList[0], 'outcome');
+                    if (outcomeSymbol !== undefined) {
+                        break;
+                    }
+                }
+            }
+        }
+        if (outcomeSymbol === undefined) {
+            dump('[TEST_FAILURE]', exchange.id, 'no tradeable outcome available in loaded markets');
+            return false;
+        }
+        // fetchEvents/fetchEvent are prediction-only and not on every language's typed base
+        // (Go's ICoreExchange / C# Exchange), so invoke them dynamically by name and validate
+        // inline rather than through a per-method test file
+        let eventId = undefined;
+        if (!this.wsTests) {
+            // try/catch is required: callExchangeMethodDynamically is a checked-throwing call in
+            // Java and its async lambda can't propagate (or re-throw) a checked exception
+            try {
+                // the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
+                // every prediction venue — assert it so the contract can't silently regress.
+                // venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
+                const exchangeOptions = getExchangeProp(exchange, 'options', {});
+                const allowUnscopedFetchEvents = exchange.safeBool(exchangeOptions, 'allowUnscopedFetchEvents', false);
+                if (allowUnscopedFetchEvents !== true) {
+                    let unscopedError = '';
+                    try {
+                        await callExchangeMethodDynamically(exchange, 'fetchEvents', [{}]);
+                    }
+                    catch (e) {
+                        unscopedError = exceptionMessage(e);
+                    }
+                    assert(unscopedError.indexOf('requires at least one of') >= 0, exchange.id + ' fetchEvents () without a scope must throw ArgumentsRequired, got: ' + unscopedError);
+                }
+                // every venue requires fetchEvents to be scoped; a skip-tests.json
+                // preferredEventQuery supplies a query known to match the venue's markets
+                let eventQuery = exchange.safeString(this.skippedSettingsForExchange, 'preferredEventQuery');
+                if (eventQuery === undefined) {
+                    // derive one from the selected outcome handle (the market words with
+                    // separators as spaces) so the scoped contract holds even without a pin
+                    const handleParts = outcomeSymbol.split(':');
+                    const marketPart = handleParts[0];
+                    const lowerPart = marketPart.toLowerCase();
+                    const dedashed = lowerPart.replaceAll('-', ' ');
+                    eventQuery = dedashed.replaceAll('_', ' ');
+                }
+                const eventParams = {};
+                if (eventQuery !== undefined) {
+                    eventParams['query'] = eventQuery;
+                }
+                const events = await callExchangeMethodDynamically(exchange, 'fetchEvents', [eventParams]);
+                assert(events !== undefined, exchange.id + ' fetchEvents returned undefined');
+                // coerce the dynamic (any) result to a typed list via safeList (on the core interface)
+                const eventsList = exchange.safeList({ 'events': events }, 'events', []);
+                this.assertPredictionEvents(exchange, eventsList);
+                const eventsLength = eventsList.length;
+                if (eventsLength > 0) {
+                    eventId = exchange.safeString(eventsList[0], 'id');
+                }
+                if ((eventId !== undefined) && (exchange.safeBool(exchange.has, 'fetchEvent', false) === true)) {
+                    const event = await callExchangeMethodDynamically(exchange, 'fetchEvent', [eventId]);
+                    this.assertPredictionEvent(exchange, event);
+                }
+                // exercise EACH scoping parameter path, not just the initial query. a scope that
+                // silently returns [] (e.g. an eventId served from a cold cache, or an unresolved
+                // series filter) is a real bug that only surfaces if the path is actually asserted.
+                // build the scope list here (inline, not via a helper) so the callExchangeMethodDynamically
+                // calls stay inside this try/catch — Java can't propagate their checked exception otherwise
+                const scopesToTest = [];
+                if (eventId !== undefined) {
+                    // copy to a const so the dict capture is effectively-final (Java inner-class rule),
+                    // since eventId is reassigned above. every venue must refetch an event by its own id
+                    const eventIdScope = eventId;
+                    scopesToTest.push({ 'eventId': eventIdScope });
+                }
+                // optional exchange-specific server-side scopes (e.g. kalshi series_ticker / tags /
+                // category) declared in skip-tests.json preferredEventScopes as an array of param dicts
+                const extraScopes = exchange.safeList(this.skippedSettingsForExchange, 'preferredEventScopes', []);
+                const extraScopesLength = extraScopes.length;
+                for (let si = 0; si < extraScopesLength; si++) {
+                    scopesToTest.push(extraScopes[si]);
+                }
+                const scopesToTestLength = scopesToTest.length;
+                for (let sj = 0; sj < scopesToTestLength; sj++) {
+                    const scope = scopesToTest[sj];
+                    // fetchEvents scoped by a single parameter must return a non-empty, valid list
+                    const scopedEvents = await callExchangeMethodDynamically(exchange, 'fetchEvents', [scope]);
+                    const scopedList = exchange.safeList({ 'events': scopedEvents }, 'events', []);
+                    const scopedListLength = scopedList.length;
+                    assert(scopedListLength > 0, exchange.id + ' fetchEvents scoped by ' + exchange.json(scope) + ' returned no events - the parameter path may be broken');
+                    this.assertPredictionEvents(exchange, scopedList);
+                }
+                if (eventQuery !== undefined) {
+                    // limit must bound the number of events returned (applied by applyEventFetchParams)
+                    const limited = await callExchangeMethodDynamically(exchange, 'fetchEvents', [{ 'query': eventQuery, 'limit': 1 }]);
+                    const limitedList = exchange.safeList({ 'events': limited }, 'events', []);
+                    const limitedListLength = limitedList.length;
+                    assert(limitedListLength <= 1, exchange.id + ' fetchEvents did not honour limit=1');
+                }
+            }
+            catch (e) {
+                dump('[TEST_FAILURE]', exchange.id, 'fetchEvents/fetchEvent failed:', exceptionMessage(e));
+                return false;
+            }
+            // no-arg fetchTickers honesty: a venue that cannot serve every ticker without an
+            // unbounded scan (options.loadAllOutcomes false) must throw ArgumentsRequired
+            // instead of silently returning a capped subset
+            const canServeAllTickers = exchange.safeBool(exchange.options, 'loadAllOutcomes', false);
+            if ((canServeAllTickers !== true) && (exchange.safeBool(exchange.has, 'fetchTickers', false) === true)) {
+                let tickersError = '';
+                try {
+                    await callExchangeMethodDynamically(exchange, 'fetchTickers', []);
+                }
+                catch (e) {
+                    tickersError = exceptionMessage(e);
+                }
+                assert(tickersError.indexOf('requires an outcomes argument') >= 0, exchange.id + ' fetchTickers () without outcomes must throw ArgumentsRequired, got: ' + tickersError);
+            }
+        }
+        dump('[INFO:MAIN] Selected prediction OUTCOME:', outcomeSymbol, '| EVENT:', exchange.json(eventId));
+        let publicTests = {
+            'fetchStatus': [],
+            'fetchTime': [],
+            'fetchTradingFee': [outcomeSymbol],
+            'fetchOpenInterest': [outcomeSymbol],
+            'fetchTicker': [outcomeSymbol],
+            'fetchTickers': [outcomeSymbol],
+            'fetchOrderBook': [outcomeSymbol],
+            'fetchOHLCV': [outcomeSymbol],
+            'fetchTrades': [outcomeSymbol],
+        };
+        if (this.wsTests) {
+            publicTests = {
+                // @ts-ignore
+                'watchTicker': [outcomeSymbol],
+                'watchOrderBook': [outcomeSymbol],
+                'watchTrades': [outcomeSymbol],
+            };
+        }
+        if (!this.privateTestOnly) {
+            await this.runTests(exchange, publicTests, true);
+        }
+        if ((this.privateTest || this.privateTestOnly) && !this.wsTests) {
+            const privateTests = {
+                'fetchBalance': [],
+                'fetchPositions': [outcomeSymbol],
+                'fetchMyTrades': [outcomeSymbol],
+                'fetchOrders': [outcomeSymbol],
+                'fetchOpenOrders': [outcomeSymbol],
+                'fetchClosedOrders': [outcomeSymbol],
+                'fetchOrder': [outcomeSymbol],
+            };
+            await this.runTests(exchange, privateTests, false);
+            // order placement is real money — gated behind --fundedTests, like crypto createOrder
+            if (getCliArgValue('--fundedTests')) {
+                await this.testPredictionCreateCancelOrder(exchange, outcomeSymbol);
+            }
+        }
+        return true;
+    }
+    assertPredictionEvents(exchange, events) {
+        assert(Array.isArray(events), exchange.id + ' fetchEvents/fetchEvent should return a list');
+        const eventsLength = events.length;
+        for (let i = 0; i < eventsLength; i++) {
+            this.assertPredictionEvent(exchange, events[i]);
+        }
+        return true;
+    }
+    assertPredictionEvent(exchange, event) {
+        // validates one PredictionEvent structure (id, event handle, markets each carrying an
+        // outcomes list, and the optional typed fields when present)
+        const logText = ' event: ' + exchange.json(event);
+        assert(exchange.isDictionary(event) === true, exchange.id + ' event should be a dict' + logText);
+        assert(exchange.safeString(event, 'id') !== undefined, exchange.id + ' event missing id' + logText);
+        assert(exchange.safeString(event, 'event') !== undefined, exchange.id + ' event missing the unified event handle' + logText);
+        const markets = exchange.safeList(event, 'markets');
+        assert(markets !== undefined, exchange.id + ' event missing markets' + logText);
+        const marketsLength = markets.length;
+        assert(exchange.safeString(event, 'symbol') === undefined, exchange.id + ' event must not carry the deprecated symbol key' + logText);
+        for (let i = 0; i < marketsLength; i++) {
+            const market = markets[i];
+            assert(exchange.isDictionary(market) === true, exchange.id + ' event market should be a dict' + logText);
+            assert(exchange.safeString(market, 'market') !== undefined, exchange.id + ' event market missing the unified market handle' + logText);
+            // 'symbol' is deprecated on prediction structures — the unified 'market' handle is the identity
+            assert(exchange.safeString(market, 'symbol') === undefined, exchange.id + ' event market must not carry the deprecated symbol key' + logText);
+            const outcomes = exchange.safeList(market, 'outcomes');
+            assert(outcomes !== undefined, exchange.id + ' event market missing outcomes' + logText);
+            const outcomesLength = outcomes.length;
+            for (let j = 0; j < outcomesLength; j++) {
+                assert(exchange.safeString(outcomes[j], 'symbol') === undefined, exchange.id + ' event outcome must not carry the deprecated symbol key' + logText);
+            }
+        }
+        // optional typed fields must have the right type when present
+        const active = exchange.safeValue(event, 'active');
+        if (active !== undefined) {
+            // typeof check, not `=== true || === false` — the latter transpiles to `== False`
+            // in Python, which ruff rejects (E712)
+            assert(typeof active === 'boolean', exchange.id + ' event active must be a bool' + logText);
+        }
+        const tags = exchange.safeValue(event, 'tags');
+        if (tags !== undefined) {
+            assert(Array.isArray(tags), exchange.id + ' event tags must be a list' + logText);
+        }
+        const info = exchange.safeValue(event, 'info');
+        assert(info !== undefined, exchange.id + ' event missing info' + logText);
+        return true;
+    }
+    async testPredictionCreateCancelOrder(exchange, outcome) {
+        // place a deliberately non-marketable limit BUY (low fixed price * tiny amount), assert
+        // it, then always cancel it. Safe by construction: 5 shares @ 0.02 = 0.10 USD notional,
+        // far under the 25 USD live-test cap, and a 0.02 bid won't fill for a normal outcome.
+        // createOrder/cancelOrder are invoked dynamically since they aren't on every language's
+        // typed core-exchange interface (e.g. Go's ICoreExchange).
+        if (exchange.safeBool(exchange.has, 'createOrder', false) !== true) {
+            return true;
+        }
+        // honour a skip-tests.json createOrder skip — e.g. polymarket geo-blocks order placement
+        // and CI runs via an EU proxy, so live order placement is skipped and covered by fixtures
+        const createOrderSkip = this.getSkips(exchange, 'createOrder');
+        if (typeof createOrderSkip === 'string') {
+            dump('[INFO] skipping prediction createOrder test', exchange.id, createOrderSkip);
+            return true;
+        }
+        const canCancel = (exchange.safeBool(exchange.has, 'cancelOrder', false) === true) || (exchange.safeBool(exchange.has, 'cancelAllOrders', false) === true);
+        if (!canCancel) {
+            dump('[INFO] skipping prediction createOrder test', exchange.id, 'no cancelOrder/cancelAllOrders');
+            return true;
+        }
+        if (exchange.checkRequiredCredentials(false) !== true) {
+            dump('[INFO] skipping prediction createOrder test', exchange.id, 'keys not found');
+            return true;
+        }
+        // default 5 @ 0.02 = 0.10 USD notional. a venue with a higher minimum (e.g. hyperliquid
+        // testnet's 10 USD min) overrides amount/price via skip-tests.json fundedAmount/fundedPrice;
+        // any override's notional (amount * price) MUST stay well under the 25 USD live-test cap
+        let price = exchange.parseToNumeric('0.02');
+        let amount = exchange.parseToNumeric('5');
+        const fundedPrice = exchange.safeString(this.skippedSettingsForExchange, 'fundedPrice');
+        if (fundedPrice !== undefined) {
+            price = exchange.parseToNumeric(fundedPrice);
+        }
+        const fundedAmount = exchange.safeString(this.skippedSettingsForExchange, 'fundedAmount');
+        if (fundedAmount !== undefined) {
+            amount = exchange.parseToNumeric(fundedAmount);
+        }
+        dump('[INFO:MAIN] prediction createOrder', exchange.id, outcome, 'buy', amount, '@', price);
+        // no try/finally and no re-throw from the catch (the typed-lang async lambdas can't do
+        // either): record any failure, ALWAYS attempt the cancel, then report the failure
+        let order = undefined;
+        let placedId = undefined;
+        let failure = undefined;
+        try {
+            order = await callExchangeMethodDynamically(exchange, 'createOrder', [outcome, 'limit', 'buy', amount, price]);
+            assert(order !== undefined, 'createOrder returned undefined for ' + exchange.id);
+            assert(exchange.isDictionary(order) === true, 'createOrder did not return an order structure for ' + exchange.id);
+            placedId = exchange.safeString(order, 'id');
+            assert(placedId !== undefined, 'createOrder returned no order id for ' + exchange.id);
+            const returnedOutcome = exchange.safeString(order, 'outcome');
+            assert((returnedOutcome === undefined) || (returnedOutcome === outcome), 'createOrder outcome "' + exchange.json(returnedOutcome) + '" should match requested "' + outcome + '" for ' + exchange.id);
+        }
+        catch (e) {
+            failure = exceptionMessage(e);
+        }
+        // always cancel any placed order (cancelPredictionOrder swallows its own errors)
+        await this.cancelPredictionOrder(exchange, placedId, outcome);
+        if (failure !== undefined) {
+            dump('[TEST_FAILURE]', exchange.id, 'prediction createOrder failed:', failure);
+            return false;
+        }
+        return true;
+    }
+    async cancelPredictionOrder(exchange, orderId, outcome) {
+        if (orderId === undefined) {
+            return true;
+        }
+        try {
+            if (exchange.safeBool(exchange.has, 'cancelOrder', false) === true) {
+                await callExchangeMethodDynamically(exchange, 'cancelOrder', [orderId, outcome]);
+            }
+            else {
+                await callExchangeMethodDynamically(exchange, 'cancelAllOrders', [outcome]);
+            }
+            dump('[INFO:MAIN] prediction order cancelled', exchange.id, orderId);
+        }
+        catch (e) {
+            dump('[WARN] prediction order cancel failed', exchange.id, orderId, exceptionMessage(e));
+        }
+        return true;
+    }
+    async runPrivateTests(exchange, symbols) {
+        // mirrors runPublicTests: the caller always passes the selected symbols as an array
+        // (even a CLI-provided symbol arrives as a one-element array), and private tests run
+        // on the primary symbol per market type
+        const symbol = symbols[0];
+        if (exchange.checkRequiredCredentials(false) !== true) {
             dump('[INFO] Skipping private tests', 'Keys not found');
             return true;
         }
@@ -750,6 +1249,7 @@ class testMainClass {
             'fetchTransactions': [code],
             'fetchDeposits': [code],
             'fetchWithdrawals': [code],
+            'fetchTransfers': [code],
             'fetchBorrowInterest': [code, symbol],
             // 'addMargin': [ ],
             // 'reduceMargin': [ ],
@@ -795,7 +1295,7 @@ class testMainClass {
         const market = exchange.market(symbol);
         const isSpot = market['spot'];
         if (!this.wsTests) {
-            if (isSpot) {
+            if (isSpot === true) {
                 tests['fetchCurrencies'] = [];
             }
             else {
@@ -823,20 +1323,20 @@ class testMainClass {
         }
         // try proxy several times
         const maxRetries = 3;
-        let exception = undefined;
+        let exceptionMessageString = undefined;
         for (let j = 0; j < maxRetries; j++) {
             try {
                 await this.testMethod(proxyTestName, exchange, [], true);
                 return true; // if successfull, then end the test
             }
             catch (e) {
-                exception = e;
+                exceptionMessageString = exceptionMessage(e);
                 await exchange.sleep(j * 1000);
             }
         }
         // if exception was set, then throw it
-        if (exception !== undefined) {
-            const errorMessage = '[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage(exception);
+        if (exceptionMessageString !== undefined) {
+            const errorMessage = '[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessageString;
             // temporary comment the below, because c# transpilation failure
             // throw new Exchange Error (errorMessage.toString ());
             dump('[TEST_WARNING]' + errorMessage);
@@ -871,16 +1371,17 @@ class testMainClass {
         exchange.returnResponseHeaders = false;
         return true;
     }
-    async startTest(exchange, symbol) {
+    async startTest(exchange, symbolArgv) {
         // we do not need to test aliases
-        if (exchange.alias) {
+        if (exchange.alias === true) {
             return true;
         }
         this.checkConstructor(exchange);
         // await this.testReturnResponseHeaders (exchange);
-        if (this.sandbox || getExchangeProp(exchange, 'sandbox')) {
+        if (this.sandbox || (getExchangeProp(exchange, 'sandbox') === true)) {
             exchange.setSandboxMode(true);
         }
+        this.testHasProps(exchange);
         // because of python-async, we need proper `.close()` handling
         try {
             const result = await this.loadExchange(exchange);
@@ -894,7 +1395,7 @@ class testMainClass {
             //     // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
             //     // await this.testProxies (exchange);
             // }
-            await this.testExchange(exchange, symbol);
+            await this.testExchange(exchange, symbolArgv);
             if (!isSync()) {
                 await close(exchange);
             }
@@ -907,10 +1408,32 @@ class testMainClass {
         }
         return true; // required in c#
     }
+    testHasProps(exchange) {
+        const watchOrderBookSkips = this.getSkips(exchange, 'watchOrderBook');
+        const fetchOrderBookSkips = this.getSkips(exchange, 'fetchOrderBook');
+        // ensure with hardcoded list of required methods
+        if (this.wsTests && (exchange.safeBool(exchange.has, 'watchOrderBook', false) !== true) && typeof watchOrderBookSkips !== 'string') {
+            dump('[TEST_FAILURE] Method "watchOrderBook" is not set in "has", please check the "has" property of exchange');
+            exitScript(1);
+        }
+        else if (!this.wsTests && (exchange.safeBool(exchange.has, 'fetchOrderBook', false) !== true) && typeof fetchOrderBookSkips !== 'string') {
+            dump('[TEST_FAILURE] Method "fetchOrderBook" is not set in "has", please check the "has" property of exchange');
+            exitScript(1);
+        }
+    }
     assertStaticError(cond, message, calculatedOutput, storedOutput, key = undefined) {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
+        // Fast path: the error message is only consumed when the assertion
+        // fails, but `jsonStringify` of the (possibly large) computed and
+        // stored outputs happens here on EVERY leaf/branch comparison.
+        // That is cheap in JS but O(tree²) in the Rust port (each level
+        // re-serialises its whole subtree) — it made `--responseTests`
+        // take minutes. Bail out before stringifying when the check holds.
+        if (cond) {
+            return;
+        }
         const calculatedString = jsonStringify(calculatedOutput);
         const storedString = jsonStringify(storedOutput);
         let errorMessage = message;
@@ -929,6 +1452,15 @@ class testMainClass {
         const content = ioFileRead(filename);
         return content;
     }
+    loadEventsFromFile(id) {
+        // prediction fixtures are cached as an event -> markets -> outcomes hierarchy under
+        // static/events/<id>.json; returns undefined when the exchange has no events fixture
+        const filename = getRootDir() + './ts/src/test/static/events/' + id + '.json';
+        if (!ioFileExists(filename)) {
+            return undefined;
+        }
+        return ioFileRead(filename);
+    }
     loadCurrenciesFromFile(id) {
         const filename = getRootDir() + './ts/src/test/static/currencies/' + id + '.json';
         const content = ioFileRead(filename);
@@ -936,7 +1468,7 @@ class testMainClass {
     }
     loadStaticData(folder, targetExchange = undefined) {
         const result = {};
-        if (targetExchange) {
+        if (targetExchange !== undefined && targetExchange !== '') {
             // read a single exchange
             const path = folder + targetExchange + '.json';
             if (!ioFileExists(path)) {
@@ -949,6 +1481,13 @@ class testMainClass {
         const files = ioDirRead(folder);
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
+            // the only non-json entry in the static dirs is the prediction/ subfolder (prediction
+            // fixtures live under static/<type>/prediction/). skip it by name — a string-equality
+            // check the AST transpiler renders correctly in every language (indexOf/slice on this
+            // entry mis-transpile in PHP: array_search / mb_strpos(...) < 0 / undefined)
+            if (file === 'prediction') {
+                continue;
+            }
             const exchangeName = file.replace('.json', '');
             const content = ioFileRead(folder + file);
             result[exchangeName] = content;
@@ -997,56 +1536,167 @@ class testMainClass {
         }
         return result;
     }
+    // reproduces the JS falsiness of `!value` for the output values compared below.
+    // note: a plain `value === 0` is not enough, php's strict comparison says `0.0 !== 0`, so a
+    // computed float zero would not be treated as empty and would mismatch a stored null (#30082)
+    isEmptyOutputValue(exchange, value) {
+        if ((value === undefined) || (value === false) || (value === '')) {
+            return true;
+        }
+        if (exchange.isDictionary(value) || Array.isArray(value)) {
+            return false; // a non-empty container, `!value` is false for containers in js
+        }
+        if ((typeof value === 'string') || (typeof value === 'boolean')) {
+            return false; // non-empty string / true, both handled above
+        }
+        // whatever is left is numeric - compare with inequalities so that int and float zero
+        // are both detected in every language
+        return (value <= 0) && (value >= 0);
+    }
+    isVacantValue(exchange, value) {
+        // C# and Go only. The unified types are structs, so the two sides of the comparison
+        // carry different key sets for reasons that are structural, not behavioural:
+        //   - a struct field the venue never populated is still a field, and comes
+        //     back as an explicit null the fixture may not carry (Balance.debt);
+        //   - a unified key the struct has no field for cannot come back at all,
+        //     however the fixture carries it (Order has no `fees` field, and the
+        //     stored value is `[]` or a list of all-null Fee objects).
+        // Neither direction is recoverable from the struct, so a key that is absent
+        // on one side counts as a difference only when it actually carries data.
+        if (isNullValue(value)) {
+            return true;
+        }
+        if (Array.isArray(value)) {
+            for (let i = 0; i < value.length; i++) {
+                if (!this.isVacantValue(exchange, value[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        if (exchange.isDictionary(value)) {
+            const keys = Object.keys(value);
+            for (let i = 0; i < keys.length; i++) {
+                if (!this.isVacantValue(exchange, value[keys[i]])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+    countSignificantKeys(exchange, target, otherKeys) {
+        // count the keys of `target`, skipping those the other side does not have at
+        // all and which carry no data here (see isVacantValue)
+        const keys = Object.keys(target);
+        let count = 0;
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (!(exchange.inArray(key, otherKeys)) && this.isVacantValue(exchange, target[key])) {
+                continue;
+            }
+            count = count + 1;
+        }
+        return count;
+    }
+    effectiveSkipKeys(exchange, exchangeData, entry) {
+        // 'forceCheckKeys' re-enables the full comparison (both presence and value)
+        // for the listed keys in this one entry, overriding the file-level 'skipKeys'
+        const rawSkipKeys = exchange.safeList(exchangeData, 'skipKeys', []);
+        const forceCheckKeys = exchange.safeList(entry, 'forceCheckKeys', []);
+        const skipKeys = [];
+        for (let i = 0; i < rawSkipKeys.length; i++) {
+            const key = rawSkipKeys[i];
+            if (!(exchange.inArray(key, forceCheckKeys))) {
+                skipKeys.push(key);
+            }
+        }
+        return skipKeys;
+    }
     assertNewAndStoredOutputInner(exchange, skipKeys, newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
         if (isNullValue(newOutput) && isNullValue(storedOutput)) {
             return true;
             // c# requirement
         }
-        if (!newOutput && !storedOutput) {
+        const newOutputIsEmpty = this.isEmptyOutputValue(exchange, newOutput);
+        const storedOutputIsEmpty = this.isEmptyOutputValue(exchange, storedOutput);
+        if (newOutputIsEmpty && storedOutputIsEmpty) {
             return true;
             // c# requirement
+        }
+        if ((this.lang === 'C#') || (this.lang === 'GO')) {
+            // a struct is never null: an absent `fee` comes back as a Fee whose every
+            // field is null, and an absent `fees` as []. The stored fixture writes the
+            // same thing as a bare null. Treat "carries no data" as equal on both
+            // sides, but only when neither side carries data (see isVacantValue).
+            if (this.isVacantValue(exchange, newOutput) && this.isVacantValue(exchange, storedOutput)) {
+                return true;
+            }
         }
         // if needed convert stringified jsons to objects
         if ((typeof storedOutput === 'string') && (typeof newOutput === 'string') && storedOutput.startsWith('{') && newOutput.startsWith('{')) {
             storedOutput = jsonParse(storedOutput);
             newOutput = jsonParse(newOutput);
         }
-        if ((typeof storedOutput === 'object') && (typeof newOutput === 'object')) {
+        if (exchange.isDictionary(storedOutput) && exchange.isDictionary(newOutput)) {
             const storedOutputKeys = Object.keys(storedOutput);
             const newOutputKeys = Object.keys(newOutput);
-            const storedKeysLength = storedOutputKeys.length;
-            const newKeysLength = newOutputKeys.length;
+            let storedKeysLength = storedOutputKeys.length;
+            let newKeysLength = newOutputKeys.length;
+            if ((this.lang === 'C#') || (this.lang === 'GO')) {
+                // the unified types are structs there, so an unpopulated field still
+                // comes back (as an explicit null) and a unified key with no struct
+                // field cannot come back at all; count only the keys that carry data
+                storedKeysLength = this.countSignificantKeys(exchange, storedOutput, newOutputKeys);
+                newKeysLength = this.countSignificantKeys(exchange, newOutput, storedOutputKeys);
+            }
             this.assertStaticError(storedKeysLength === newKeysLength, 'output length mismatch', storedOutput, newOutput);
             // iterate over the keys
             for (let i = 0; i < storedOutputKeys.length; i++) {
                 const key = storedOutputKeys[i];
-                if (exchange.inArray(key, skipKeys)) {
-                    continue;
-                }
                 if (!(exchange.inArray(key, newOutputKeys))) {
+                    if (((this.lang === 'C#') || (this.lang === 'GO')) && this.isVacantValue(exchange, storedOutput[key])) {
+                        continue; // the struct has no field for it and it carries no data
+                    }
                     this.assertStaticError(false, 'output key missing: ' + key, storedOutput, newOutput);
+                }
+                if (exchange.inArray(key, skipKeys)) {
+                    continue; // the key must be present (asserted above), but its value is not compared
                 }
                 const storedValue = storedOutput[key];
                 const newValue = newOutput[key];
-                this.assertNewAndStoredOutput(exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
+                // Recurse into the *inner* (non-try/catch) variant: the
+                // wrapper's try/catch is only for top-level failure
+                // reporting, and in the Rust port it transpiles to a
+                // `catch_unwind` per node — setting that up at every one
+                // of a result's thousands of nodes made `--responseTests`
+                // take minutes. A failure still unwinds to the single
+                // top-level wrapper.
+                this.assertNewAndStoredOutputInner(exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
+            // `newOutput !== undefined` is redundant in JS (Array.isArray (undefined) is false) but
+            // required in C#: Array.isArray transpiles to a `.GetType()` probe that throws on null,
+            // so a stored list against a computed null crashed here instead of failing the assert.
         }
-        else if (Array.isArray(storedOutput) && (Array.isArray(newOutput))) {
+        else if ((storedOutput !== undefined) && (newOutput !== undefined) && Array.isArray(storedOutput) && (Array.isArray(newOutput))) {
             const storedArrayLength = storedOutput.length;
             const newArrayLength = newOutput.length;
             this.assertStaticError(storedArrayLength === newArrayLength, 'output length mismatch', storedOutput, newOutput);
             for (let i = 0; i < storedOutput.length; i++) {
                 const storedItem = storedOutput[i];
                 const newItem = newOutput[i];
-                this.assertNewAndStoredOutput(exchange, skipKeys, newItem, storedItem, strictTypeCheck);
+                this.assertNewAndStoredOutputInner(exchange, skipKeys, newItem, storedItem, strictTypeCheck);
             }
         }
         else {
             // built-in types like strings, numbers, booleans
             const sanitizedNewOutput = (isNullValue(newOutput)) ? undefined : newOutput; // we store undefined as nulls in the json file so we need to convert it back
             const sanitizedStoredOutput = (isNullValue(storedOutput)) ? undefined : storedOutput;
-            const newOutputString = sanitizedNewOutput ? sanitizedNewOutput.toString() : "undefined";
-            const storedOutputString = sanitizedStoredOutput ? sanitizedStoredOutput.toString() : "undefined";
+            // a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
+            // typed core hits constantly (its Num fields are real doubles, so an unset
+            // cost arrives as 0.0 rather than as a string). Test for undefined instead.
+            const newOutputString = (sanitizedNewOutput !== undefined) ? sanitizedNewOutput.toString() : "undefined";
+            const storedOutputString = (sanitizedStoredOutput !== undefined) ? sanitizedStoredOutput.toString() : "undefined";
             const messageError = 'output value mismatch:' + newOutputString + ' != ' + storedOutputString;
             if (strictTypeCheck && (this.lang !== 'C#')) { // in c# types are different, so we can't do strict type check
                 // upon building the request we want strict type check to make sure all the types are correct
@@ -1061,6 +1711,37 @@ class testMainClass {
                 const isComputedUndefined = (sanitizedNewOutput === undefined);
                 const isStoredUndefined = (sanitizedStoredOutput === undefined);
                 const shouldBeSame = (isComputedBool === isStoredBool) && (isComputedString === isStoredString) && (isComputedUndefined === isStoredUndefined);
+                if (!shouldBeSame && ((this.lang === 'PY') || (this.lang === 'C#') || (this.lang === 'GO')) && !isComputedBool && !isStoredBool && !isComputedUndefined && !isStoredUndefined) {
+                    // python parses json numbers natively (arbitrary-precision ints), while fixtures
+                    // captured under number-quoting store them as strings - compare numerically like C#/GO
+                    // c#: a typed core returns the unified `Num` fields as a real double, whereas the
+                    // fixture was captured through the untyped path and kept the venue's quoted string
+                    // (cost "0.02" vs 0.02) - same value, different json spelling; go structs likewise
+                    // pass the sanitized VALUES, not their string forms: C# renders a small
+                    // double as "6.79E-05", which parseToNumeric cannot parse. And only the
+                    // STRING side needs parsing - parseToNumeric round-trips a double through
+                    // numberToString/decimal and drops its last significant digit, so a real
+                    // 81003.30644700001 stopped matching the stored "81003.306447000009".
+                    let isNumber = false;
+                    let computedNumeric = sanitizedNewOutput;
+                    let storedNumeric = sanitizedStoredOutput;
+                    try {
+                        if (isComputedString) {
+                            computedNumeric = exchange.parseToNumeric(sanitizedNewOutput);
+                        }
+                        if (isStoredString) {
+                            storedNumeric = exchange.parseToNumeric(sanitizedStoredOutput);
+                        }
+                        isNumber = true;
+                    }
+                    catch (e) {
+                        isNumber = false;
+                    }
+                    if (isNumber) {
+                        this.assertStaticError(computedNumeric === storedNumeric, messageError, storedOutput, newOutput, assertingKey);
+                        return true;
+                    }
+                }
                 this.assertStaticError(shouldBeSame, 'output type mismatch', storedOutput, newOutput, assertingKey);
                 const isBoolean = isComputedBool || isStoredBool;
                 const isString = isComputedString || isStoredString;
@@ -1174,7 +1855,7 @@ class testMainClass {
             newOutput = this.urlencodedToDict(newOutput);
         }
         else if (type === 'both') {
-            if (storedOutput.startsWith('{') || storedOutput.startsWith('[')) {
+            if ((storedOutput.startsWith('{') === true) || (storedOutput.startsWith('[') === true)) {
                 storedOutput = jsonParse(storedOutput);
                 newOutput = jsonParse(newOutput);
             }
@@ -1232,6 +1913,21 @@ class testMainClass {
         try {
             const callOutput = exchange.safeValue(data, 'output');
             this.assertStaticRequestOutput(exchange, type, skipKeys, data['url'], requestUrl, callOutput, output);
+            // optional per-test header pinning. only the keys the fixture lists are compared, so a
+            // fixture can pin one auth header without freezing the whole header set. this is the
+            // only cross-language assertion on header *names*, which the php transpiler can
+            // silently corrupt when a header literal contains a local/parameter name of sign ()
+            const storedHeaders = exchange.safeDict(data, 'headers');
+            if (storedHeaders !== undefined) {
+                const sentHeaders = (exchange.last_request_headers !== undefined) ? exchange.last_request_headers : {};
+                const storedHeaderKeys = Object.keys(storedHeaders);
+                for (let i = 0; i < storedHeaderKeys.length; i++) {
+                    const headerKey = storedHeaderKeys[i];
+                    const storedHeaderValue = storedHeaders[headerKey];
+                    const sentHeaderValue = exchange.safeString(sentHeaders, headerKey);
+                    this.assertStaticError(sentHeaderValue === storedHeaderValue, 'header mismatch for ' + headerKey, storedHeaderValue, sentHeaderValue);
+                }
+            }
         }
         catch (e) {
             this.requestTestsFailed = true;
@@ -1242,7 +1938,17 @@ class testMainClass {
     }
     async testResponseStatically(exchange, method, skipKeys, data) {
         const expectedResult = exchange.safeValue(data, 'parsedResponse');
-        const mockedExchange = setFetchResponse(exchange, data['httpResponse']);
+        // 'httpResponseByUrl' serves a body per url fragment for methods that call several
+        // endpoints; the typed ports narrow each body to the shape its api leaf declares,
+        // so one shared 'httpResponse' cannot cover two differently-shaped endpoints
+        const responsesByUrl = exchange.safeDict(data, 'httpResponseByUrl');
+        let mockedExchange = exchange;
+        if (responsesByUrl !== undefined) {
+            mockedExchange = setFetchResponseByUrl(exchange, responsesByUrl);
+        }
+        else {
+            mockedExchange = setFetchResponse(exchange, data['httpResponse']);
+        }
         if (this.info) {
             dump('[INFO] STATIC RESPONSE TEST:', method, ':', data['description']);
         }
@@ -1264,21 +1970,229 @@ class testMainClass {
         setFetchResponse(exchange, undefined); // reset state
         return true;
     }
-    initOfflineExchange(exchangeName) {
-        const markets = this.loadMarketsFromFile(exchangeName);
-        const currencies = this.loadCurrenciesFromFile(exchangeName);
+    async injectWsMessages(exchange, url, messages, sequential = false) {
+        // before every frame, wait until the watch flow is actually awaiting
+        // something — a fixed head-start sleep is not enough on slow ci
+        // runners and the frame's resolution would be dropped
+        for (let i = 0; i < messages.length; i++) {
+            let waited = 0;
+            while (!wsClientHasPendingFutures(exchange, url) && (waited < 5000)) {
+                await exchange.sleep(50);
+                waited = waited + 50;
+            }
+            injectWsMessage(exchange, url, messages[i]);
+            // threaded runtimes resolve futures on another thread — wait for
+            // the consumed frame to settle so the pending check above does not
+            // observe a stale future and burn the next frame early; frames
+            // that resolve nothing (e.g. subscribe acks) fall through on the
+            // timeout
+            let settled = 0;
+            while (wsClientHasPendingFutures(exchange, url) && (settled < 500)) {
+                await exchange.sleep(20);
+                settled = settled + 20;
+            }
+        }
+        await exchange.sleep(50);
+        if (sequential) {
+            // a watch call of a sequence can register its future after every
+            // frame was already consumed — keep rejecting until the watch side
+            // reports completion (the rejections force it to finish). the time
+            // bound is a backstop for threaded runtimes where this task can be
+            // executed inline on a stack that blocks the watch side (forkjoin
+            // work stealing): give up eventually so the stack unwinds instead
+            // of deadlocking
+            let waitedDone = 0;
+            while (!isWsTestCompleted(exchange, url) && (waitedDone < 30000)) {
+                rejectPendingWsFutures(exchange, url);
+                await exchange.sleep(50);
+                waitedDone = waitedDone + 50;
+            }
+        }
+        // reject anything still pending so a wrong fixture fails fast
+        // instead of hanging the test run forever
+        rejectPendingWsFutures(exchange, url);
+        return true; // c# methods used with promiseAll need to return something
+    }
+    async watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults) {
+        // await the watch method once per expected result: each injected frame
+        // resolves the pending future, so successive awaits observe the
+        // successive states (e.g. an order going from open to closed)
+        try {
+            for (let i = 0; i < expectedResults.length; i++) {
+                const result = await callExchangeMethodDynamically(exchange, method, input);
+                // ws structures can be live typed objects (e.g. orderbooks) in some
+                // runtimes — roundtrip through json so the deep-compare sees plain
+                // dicts in every language
+                const unifiedResult = jsonParse(jsonStringify(result));
+                this.assertStaticResponseOutput(exchange, skipKeys, unifiedResult, expectedResults[i]);
+            }
+        }
+        catch (e) {
+            // let the injector's rejection loop exit before the caller reports
+            // — the explicit try/catch also keeps the java transpilation
+            // compilable (checked exceptions)
+            markWsTestCompleted(exchange, url);
+            throw e;
+        }
+        markWsTestCompleted(exchange, url);
+        return true; // c# methods used with promiseAll need to return something
+    }
+    assertWsSentMessages(exchange, url, data) {
+        // the ws analog of the static request tests: assert the frames the
+        // watch method sent over the mocked transport (subscribe requests etc)
+        const expectedSent = exchange.safeList(data, 'sentMessages');
+        if (expectedSent === undefined) {
+            return;
+        }
+        // ids/signatures/timestamps inside outgoing frames can be volatile —
+        // exclude them per entry without touching the response skipKeys
+        const sentSkipKeys = exchange.safeList(data, 'sentSkipKeys', []);
+        const sentMessages = getWsSentMessages(exchange, url);
+        const sentLength = sentMessages.length;
+        const expectedLength = expectedSent.length;
+        assert(sentLength === expectedLength, 'sent ws messages count mismatch: sent ' + sentLength.toString() + ', expected ' + expectedLength.toString() + ' ' + jsonStringify(sentMessages));
+        for (let i = 0; i < expectedLength; i++) {
+            const unifiedSent = jsonParse(jsonStringify(sentMessages[i]));
+            this.assertStaticResponseOutput(exchange, sentSkipKeys, unifiedSent, expectedSent[i]);
+        }
+    }
+    async testWsStatically(exchange, method, skipKeys, data) {
+        const url = exchange.safeString(data, 'url');
+        setupWsMockTransport(exchange, url);
+        const httpResponse = exchange.safeValue(data, 'httpResponse');
+        if (httpResponse !== undefined) {
+            // some watch methods fetch a rest snapshot (e.g. watchOrderBook)
+            setFetchResponse(exchange, httpResponse);
+        }
+        if (this.info) {
+            dump('[INFO] STATIC WS TEST:', method, ':', data['description']);
+        }
+        try {
+            const messages = exchange.safeList(data, 'messages', []);
+            const input = this.sanitizeDataInput(data['input']);
+            const expectedResults = exchange.safeList(data, 'parsedResponses');
+            if (expectedResults !== undefined) {
+                // 'parsedResponses' asserts one result per successive watch
+                // resolution (e.g. an order going from open to closed)
+                // start the injector before the watch side: it must never sit
+                // queued while the watch chain blocks on a join — a forkjoin
+                // worker could execute it inline on the blocked stack and the
+                // rejection loop would then wait on the very watch side it is
+                // buried on top of
+                const promises = [
+                    this.injectWsMessages(exchange, url, messages, true),
+                    this.watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults),
+                ];
+                await Promise.all(promises);
+                this.assertWsSentMessages(exchange, url, data);
+            }
+            else {
+                // 'parsedResponse' asserts the final state after every frame
+                // was replayed — live structures like orderbooks keep updating
+                // after the first resolution, so serialize only at the end
+                const promises = [
+                    callExchangeMethodDynamically(exchange, method, input),
+                    this.injectWsMessages(exchange, url, messages),
+                ];
+                const results = await Promise.all(promises);
+                const unifiedResult = jsonParse(jsonStringify(results[0]));
+                this.assertStaticResponseOutput(exchange, skipKeys, unifiedResult, data['parsedResponse']);
+                this.assertWsSentMessages(exchange, url, data);
+            }
+        }
+        catch (e) {
+            this.staticWsTestsFailed = true;
+            const errorMessage = '[' + this.lang + '][STATIC_WS]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exceptionMessage(e);
+            dump('[TEST_FAILURE]' + errorMessage);
+        }
+        setFetchResponse(exchange, undefined); // reset state
+        return true;
+    }
+    async testExchangeWsStatically(exchangeName, exchangeData, testName = undefined) {
+        const globalOptions = exchangeData['options'] === undefined ? {} : exchangeData['options'];
+        const methods = exchangeData['methods'] === undefined ? {} : exchangeData['methods'];
+        const methodsNames = Object.keys(methods);
+        for (let i = 0; i < methodsNames.length; i++) {
+            const method = methodsNames[i];
+            const results = methods[method];
+            for (let j = 0; j < results.length; j++) {
+                const result = results[j];
+                const description = result['description'];
+                if ((testName !== undefined) && (testName !== description)) {
+                    continue;
+                }
+                // a fresh exchange per entry: ws caches (trades, orderbooks,
+                // ohlcvs) and request-id counters survive between watch calls
+                // and would leak state across entries otherwise
+                const exchange = this.initOfflineExchange(exchangeName, true);
+                const isDisabled = exchange.safeBool(result, 'disabled', false);
+                if (isDisabled === true) {
+                    continue;
+                }
+                const disabledString = exchange.safeString(result, 'disabled', '');
+                if (disabledString !== '') {
+                    continue;
+                }
+                const isDisabledCSharp = exchange.safeString(result, 'disabledCS');
+                if ((isDisabledCSharp !== undefined) && (this.lang === 'C#')) {
+                    continue;
+                }
+                const isDisabledGo = exchange.safeString(result, 'disabledGO');
+                if ((isDisabledGo !== undefined) && (this.lang === 'GO')) {
+                    continue;
+                }
+                const isDisabledJava = exchange.safeString(result, 'disabledJava');
+                if ((isDisabledJava !== undefined) && (this.lang === 'java')) {
+                    continue;
+                }
+                const isDisabledPhp = exchange.safeString(result, 'disabledPHP');
+                if ((isDisabledPhp !== undefined) && (this.lang === 'PHP')) {
+                    continue;
+                }
+                const isDisabledRust = exchange.safeString(result, 'disabledRS');
+                if ((isDisabledRust !== undefined) && (this.lang === 'RUST')) {
+                    continue;
+                }
+                exchange.extendExchangeOptions(globalOptions);
+                const testExchangeOptions = exchange.safeValue(result, 'options', {});
+                exchange.extendExchangeOptions(testExchangeOptions);
+                const skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
+                await this.testWsStatically(exchange, method, skipKeys, result);
+                if (!isSync()) {
+                    await close(exchange);
+                }
+            }
+        }
+        return true; // in c# methods that will be used with promiseAll need to return something
+    }
+    initOfflineExchange(exchangeName, isWs = false) {
+        // prediction exchanges load their outcome markets from an event -> markets -> outcomes
+        // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
+        // standard prediction path (kalshi/limitless/myriad/polymarket/hyperliquid all ship one) and
+        // is required for ids present in both namespaces (e.g. hyperliquid), whose markets/<id>.json
+        // holds the crypto markets. when a fixture is present, skip markets/currencies entirely so
+        // setMarkets rebuilds cleanly from the outcome markets
+        let predictionEvents = undefined;
+        if (this.predictionTests) {
+            predictionEvents = this.loadEventsFromFile(exchangeName);
+        }
+        let markets = undefined;
+        let currencies = undefined;
+        if (predictionEvents === undefined) {
+            markets = this.loadMarketsFromFile(exchangeName);
+            currencies = this.loadCurrenciesFromFile(exchangeName);
+        }
         let wasmExecPath = undefined;
         let libraryPath = undefined;
         // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
-        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter-signer.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
-        // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         const basePath = getRootDir() + 'ts/src/test/static/binaries/';
         if (exchangeName === 'lighter') {
             if (this.lang === 'JS') {
-                wasmExecPath = getRootDir() + '/src/test/static/binaries/wasm_exec.js';
-                libraryPath = basePath + 'lighter.wasm';
+                wasmExecPath = basePath + 'wasm_exec.js';
+                libraryPath = basePath + 'lighter-signer.wasm';
             }
             else {
                 if (isWindows()) {
@@ -1293,8 +2207,12 @@ class testMainClass {
                     }
                 }
                 else {
-                    // assume macos arm64
-                    libraryPath = basePath + 'lighter-signer-darwin-arm64.dylib';
+                    if (isAmd64()) {
+                        libraryPath = basePath + 'lighter-signer-darwin-x86.dylib';
+                    }
+                    else {
+                        libraryPath = basePath + 'lighter-signer-darwin-arm64.dylib';
+                    }
                 }
             }
         }
@@ -1303,6 +2221,7 @@ class testMainClass {
             "currencies": currencies,
             "enableRateLimit": false,
             "rateLimit": 1,
+            // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
             "httpProxy": "http://fake:8080",
             "httpsProxy": "http://fake:8080",
             "apiKey": "key",
@@ -1334,8 +2253,35 @@ class testMainClass {
                 "wasmExecPath": wasmExecPath
             }
         };
-        const exchange = initExchange(exchangeName, options);
-        exchange.currencies = currencies;
+        if (exchangeName === 'grvt') {
+            options['apiKey'] = "";
+            options['secret'] = "";
+        }
+        const exchange = initExchange(exchangeName, options, isWs);
+        if (currencies !== undefined) {
+            exchange.currencies = currencies;
+        }
+        // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
+        // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
+        if (predictionEvents !== undefined) {
+            const eventMarkets = [];
+            for (let i = 0; i < predictionEvents.length; i++) {
+                const evMarkets = exchange.safeList(predictionEvents[i], 'markets', []);
+                for (let j = 0; j < evMarkets.length; j++) {
+                    const evMarket = evMarkets[j];
+                    // every market row must carry the unified market handle (PredictionMarket
+                    // declares it required) — enforce it on the fixtures so a venue that stops
+                    // setting it fails offline, not just in live tests. 'symbol' is deprecated
+                    // on prediction structures and must be absent
+                    assert(exchange.safeString(evMarket, 'market') !== undefined, exchangeName + ' static events fixture: market row missing the unified market handle');
+                    assert(exchange.safeString(evMarket, 'symbol') === undefined, exchangeName + ' static events fixture: market row must not carry the deprecated symbol key');
+                    eventMarkets.push(evMarket);
+                }
+            }
+            if (eventMarkets.length > 0) {
+                exchange.setMarkets(eventMarkets);
+            }
+        }
         // not working in python if assigned  in the config dict
         return exchange;
     }
@@ -1345,27 +2291,27 @@ class testMainClass {
         const globalOptions = exchange.safeDict(exchangeData, 'options', {});
         // read apiKey/secret from the test file
         const apiKey = exchange.safeString(exchangeData, 'apiKey');
-        if (apiKey) {
+        if (!exchange.isEmptyString(apiKey)) {
             // c# to string requirement
             exchange.apiKey = apiKey.toString();
         }
         const secret = exchange.safeString(exchangeData, 'secret');
-        if (secret) {
+        if (!exchange.isEmptyString(secret)) {
             // c# to string requirement
             exchange.secret = secret.toString();
         }
         const privateKey = exchange.safeString(exchangeData, 'privateKey');
-        if (privateKey) {
+        if (!exchange.isEmptyString(privateKey)) {
             // c# to string requirement
             exchange.privateKey = privateKey.toString();
         }
         const walletAddress = exchange.safeString(exchangeData, 'walletAddress');
-        if (walletAddress) {
+        if (!exchange.isEmptyString(walletAddress)) {
             // c# to string requirement
             exchange.walletAddress = walletAddress.toString();
         }
         const accounts = exchange.safeList(exchangeData, 'accounts');
-        if (accounts) {
+        if (accounts !== undefined && accounts !== null) {
             exchange.accounts = accounts;
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
@@ -1386,7 +2332,7 @@ class testMainClass {
                     continue;
                 }
                 const isDisabled = exchange.safeBool(result, 'disabled', false);
-                if (isDisabled) {
+                if (isDisabled === true) {
                     continue;
                 }
                 const disabledString = exchange.safeString(result, 'disabled', '');
@@ -1394,15 +2340,23 @@ class testMainClass {
                     continue;
                 }
                 const isDisabledCSharp = exchange.safeBool(result, 'disabledCS', false);
-                if (isDisabledCSharp && (this.lang === 'C#')) {
+                if ((isDisabledCSharp === true) && (this.lang === 'C#')) {
                     continue;
                 }
                 const isDisabledGo = exchange.safeBool(result, 'disabledGO', false);
-                if (isDisabledGo && (this.lang === 'GO')) {
+                if ((isDisabledGo === true) && (this.lang === 'GO')) {
+                    continue;
+                }
+                const isDisabledRust = exchange.safeBool(result, 'disabledRS', false);
+                if (isDisabledRust && (this.lang === 'RUST')) {
+                    continue;
+                }
+                const isDisabledJava = exchange.safeBool(result, 'disabledJava', false);
+                if ((isDisabledJava === true) && (this.lang === 'java')) {
                     continue;
                 }
                 const type = exchange.safeString(exchangeData, 'outputType');
-                const skipKeys = exchange.safeValue(exchangeData, 'skipKeys', []);
+                const skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
                 await this.testRequestStatically(exchange, method, result, type, skipKeys);
                 // reset options
                 exchange.options = exchange.convertToSafeDictionary(exchange.deepExtend(oldExchangeOptions, {}));
@@ -1418,22 +2372,22 @@ class testMainClass {
         const exchange = this.initOfflineExchange(exchangeName);
         // read apiKey/secret from the test file
         const apiKey = exchange.safeString(exchangeData, 'apiKey');
-        if (apiKey) {
+        if (!exchange.isEmptyString(apiKey)) {
             // c# to string requirement
             exchange.apiKey = apiKey.toString();
         }
         const secret = exchange.safeString(exchangeData, 'secret');
-        if (secret) {
+        if (!exchange.isEmptyString(secret)) {
             // c# to string requirement
             exchange.secret = secret.toString();
         }
         const privateKey = exchange.safeString(exchangeData, 'privateKey');
-        if (privateKey) {
+        if (!exchange.isEmptyString(privateKey)) {
             // c# to string requirement
             exchange.privateKey = privateKey.toString();
         }
         const walletAddress = exchange.safeString(exchangeData, 'walletAddress');
-        if (walletAddress) {
+        if (!exchange.isEmptyString(walletAddress)) {
             // c# to string requirement
             exchange.walletAddress = walletAddress.toString();
         }
@@ -1453,25 +2407,33 @@ class testMainClass {
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, testExchangeOptions));
                 const isDisabled = exchange.safeBool(result, 'disabled', false);
-                if (isDisabled) {
+                if (isDisabled === true) {
                     continue;
                 }
                 const isDisabledCSharp = exchange.safeBool(result, 'disabledCS', false);
-                if (isDisabledCSharp && (this.lang === 'C#')) {
+                if ((isDisabledCSharp === true) && (this.lang === 'C#')) {
                     continue;
                 }
                 const isDisabledPHP = exchange.safeBool(result, 'disabledPHP', false);
-                if (isDisabledPHP && (this.lang === 'PHP')) {
+                if ((isDisabledPHP === true) && (this.lang === 'PHP')) {
                     continue;
                 }
                 if ((testName !== undefined) && (testName !== description)) {
                     continue;
                 }
                 const isDisabledGO = exchange.safeBool(result, 'disabledGO', false);
-                if (isDisabledGO && (this.lang === 'GO')) {
+                if ((isDisabledGO === true) && (this.lang === 'GO')) {
                     continue;
                 }
-                const skipKeys = exchange.safeValue(exchangeData, 'skipKeys', []);
+                const isDisabledRust = exchange.safeBool(result, 'disabledRS', false);
+                if (isDisabledRust && (this.lang === 'RUST')) {
+                    continue;
+                }
+                const isDisabledJava = exchange.safeBool(result, 'disabledJava', false);
+                if ((isDisabledJava === true) && (this.lang === 'java')) {
+                    continue;
+                }
+                const skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
                 await this.testResponseStatically(exchange, method, skipKeys, result);
                 // reset options
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
@@ -1500,24 +2462,41 @@ class testMainClass {
     }
     checkIfExchangeIsDisabled(exchangeName, exchangeData) {
         const exchange = initExchange('Exchange', {});
+        // prediction-market exchanges exist only in the async namespaces in python/php,
+        // so their fixtures declare asyncOnly and the sync harness skips them
+        const isAsyncOnly = exchange.safeBool(exchangeData, 'asyncOnly', false);
+        if ((isAsyncOnly === true) && isSync()) {
+            dump('[TEST_WARNING] Exchange ' + exchangeName + ' is async-only, skipped by the sync test harness');
+            return true;
+        }
         const isDisabledPy = exchange.safeBool(exchangeData, 'disabledPy', false);
-        if (isDisabledPy && (this.lang === 'PY')) {
+        if ((isDisabledPy === true) && (this.lang === 'PY')) {
             dump('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in python');
             return true;
         }
         const isDisabledPHP = exchange.safeBool(exchangeData, 'disabledPHP', false);
-        if (isDisabledPHP && (this.lang === 'PHP')) {
+        if ((isDisabledPHP === true) && (this.lang === 'PHP')) {
             dump('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in php');
             return true;
         }
         const isDisabledCSharp = exchange.safeBool(exchangeData, 'disabledCS', false);
-        if (isDisabledCSharp && (this.lang === 'C#')) {
+        if ((isDisabledCSharp === true) && (this.lang === 'C#')) {
             dump('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in c#');
             return true;
         }
         const isDisabledGO = exchange.safeBool(exchangeData, 'disabledGO', false);
-        if (isDisabledGO && (this.lang === 'GO')) {
+        if ((isDisabledGO === true) && (this.lang === 'GO')) {
             dump('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in go');
+            return true;
+        }
+        const isDisabledRust = exchange.safeBool(exchangeData, 'disabledRS', false);
+        if (isDisabledRust && (this.lang === 'RUST')) {
+            dump('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in rust');
+            return true;
+        }
+        const isDisabledJava = exchange.safeBool(exchangeData, 'disabledJava', false);
+        if ((isDisabledJava === true) && (this.lang === 'java')) {
+            dump('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in java');
             return true;
         }
         return false;
@@ -1527,7 +2506,12 @@ class testMainClass {
         return true;
     }
     async runStaticTests(type, targetExchange = undefined, testName = undefined) {
-        const folder = getRootDir() + './ts/src/test/static/' + type + '/';
+        // prediction-market exchanges keep their fixtures under static/<type>/prediction/ and are
+        // run separately via the --prediction flag (npm run request-ts-prediction / response-ts-prediction)
+        let folder = getRootDir() + './ts/src/test/static/' + type + '/';
+        if (this.predictionTests) {
+            folder = folder + 'prediction/';
+        }
         const staticData = this.loadStaticData(folder, targetExchange);
         if (staticData === undefined) {
             return true;
@@ -1536,10 +2520,10 @@ class testMainClass {
         const exchange = initExchange('Exchange', {}); // tmp to do the calculations until we have the ast-transpiler transpiling this code
         const promises = [];
         let sum = 0;
-        if (targetExchange) {
+        if (targetExchange !== undefined && targetExchange !== '') {
             dump("[INFO:MAIN] Exchange to test: " + targetExchange);
         }
-        if (testName) {
+        if (testName !== undefined && testName !== '') {
             dump("[INFO:MAIN] Testing only: " + testName);
         }
         for (let i = 0; i < exchanges.length; i++) {
@@ -1554,6 +2538,9 @@ class testMainClass {
             if (type === 'request') {
                 promises.push(this.testExchangeRequestStatically(exchangeName, exchangeData, testName));
             }
+            else if (type === 'ws') {
+                promises.push(this.testExchangeWsStatically(exchangeName, exchangeData, testName));
+            }
             else {
                 promises.push(this.testExchangeResponseStatically(exchangeName, exchangeData, testName));
             }
@@ -1565,13 +2552,16 @@ class testMainClass {
             if (type === 'request') {
                 this.requestTestsFailed = true;
             }
+            else if (type === 'ws') {
+                this.staticWsTestsFailed = true;
+            }
             else {
                 this.responseTestsFailed = true;
             }
             const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + exceptionMessage(e);
             dump('[TEST_FAILURE]' + errorMessage);
         }
-        if (this.requestTestsFailed || this.responseTestsFailed) {
+        if (this.requestTestsFailed || this.responseTestsFailed || this.staticWsTestsFailed) {
             exitScript(1);
         }
         else {
@@ -1586,6 +2576,18 @@ class testMainClass {
         //  --- Init of mockResponses tests functions------------------------------------
         //  -----------------------------------------------------------------------------
         await this.runStaticTests('response', exchangeName, test);
+        return true;
+    }
+    async runStaticWsTests(exchangeName = undefined, test = undefined) {
+        //  -----------------------------------------------------------------------------
+        //  --- static ws tests: replay canned frames into the ws message handlers ------
+        //  -----------------------------------------------------------------------------
+        if (isSync()) {
+            // watch methods are async-only, there is nothing to test in the
+            // synchronous python/php flavours
+            return true;
+        }
+        await this.runStaticTests('ws', exchangeName, test);
         return true;
     }
     async runBrokerIdTests() {
@@ -1603,7 +2605,6 @@ class testMainClass {
             this.testMexc(),
             this.testHtx(),
             this.testWoo(),
-            this.testBitmart(),
             this.testCoinex(),
             this.testBingx(),
             this.testPhemex(),
@@ -1612,16 +2613,17 @@ class testMainClass {
             this.testCoinbaseinternational(),
             this.testCoinbaseAdvanced(),
             this.testWoofiPro(),
-            this.testOxfun(),
             this.testXT(),
             this.testParadex(),
             this.testHashkey(),
-            this.testCoincatch(),
-            this.testDefx(),
             this.testCryptomus(),
             this.testDerive(),
             this.testModeTrade(),
-            this.testBackpack()
+            this.testBackpack(),
+            this.testToobit(),
+            this.testWeex(),
+            this.testFoxbit(),
+            this.testBithumb()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1634,7 +2636,7 @@ class testMainClass {
         const spotId = 'x-TKT5PX2F';
         const swapId = 'x-cvBPrNm9';
         const inverseSwapId = 'x-xcKtGhcu';
-        let spotOrderRequest = undefined;
+        let spotOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1643,15 +2645,15 @@ class testMainClass {
         }
         const clientOrderId = spotOrderRequest['newClientOrderId'];
         const spotIdString = spotId.toString();
-        assert(clientOrderId.startsWith(spotIdString), 'binance - spot clientOrderId: ' + clientOrderId + ' does not start with spotId' + spotIdString);
-        let swapOrderRequest = undefined;
+        assert(clientOrderId.startsWith(spotIdString) === true, 'binance - spot clientOrderId: ' + clientOrderId + ' does not start with spotId' + spotIdString);
+        let swapOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
             swapOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
-        let swapInverseOrderRequest = undefined;
+        let swapInverseOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USD:BTC', 'limit', 'buy', 1, 20000);
         }
@@ -1661,25 +2663,33 @@ class testMainClass {
         // linear swap
         const clientOrderIdSwap = swapOrderRequest['newClientOrderId'];
         const swapIdString = swapId.toString();
-        assert(clientOrderIdSwap.startsWith(swapIdString), 'binance - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with swapId' + swapIdString);
+        assert(clientOrderIdSwap.startsWith(swapIdString) === true, 'binance - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with swapId' + swapIdString);
         // inverse swap
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
-        assert(clientOrderIdInverse.startsWith(inverseSwapId), 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + inverseSwapId);
+        assert(clientOrderIdInverse.startsWith(inverseSwapId) === true, 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + inverseSwapId);
         // linear swap conditional order
-        let swapAlgoOrderRequest = undefined;
+        let swapAlgoOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, { 'triggerPrice': 101000 });
-            const checkOrderRequest = this.urlencodedToDict(exchange.last_request_body);
-            const algoOrderIdDefined = (checkOrderRequest['algoOrderId'] !== undefined);
-            assert(algoOrderIdDefined, 'binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined');
-            const clientAlgoIdSwap = swapAlgoOrderRequest['clientAlgoId'];
-            const swapAlgoIdString = swapId.toString();
-            assert(clientAlgoIdSwap.startsWith(swapAlgoIdString), 'binance - swap clientOrderId: ' + clientAlgoIdSwap + ' does not start with swapId' + swapAlgoIdString);
         }
         catch (e) {
             swapAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
-        let createOrdersRequest = undefined;
+        const clientAlgoIdSwap = swapAlgoOrderRequest['clientAlgoId'];
+        assert(clientAlgoIdSwap !== undefined, 'binance - swap conditional order must send clientAlgoId');
+        assert(clientAlgoIdSwap.startsWith(swapIdString) === true, 'binance - swap clientAlgoId: ' + clientAlgoIdSwap + ' does not start with swapId' + swapIdString);
+        // inverse swap conditional order
+        let inverseAlgoOrderRequest = {};
+        try {
+            await exchange.createOrder('BTC/USD:BTC', 'limit', 'buy', 1, 20000, { 'triggerPrice': 21000 });
+        }
+        catch (e) {
+            inverseAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        const clientAlgoIdInverse = inverseAlgoOrderRequest['clientAlgoId'];
+        assert(clientAlgoIdInverse !== undefined, 'binance - inverse swap conditional order must send clientAlgoId');
+        assert(clientAlgoIdInverse.startsWith(inverseSwapId) === true, 'binance - inverse swap clientAlgoId: ' + clientAlgoIdInverse + ' does not start with inverseSwapId' + inverseSwapId);
+        let createOrdersRequest = {};
         try {
             const orders = [
                 {
@@ -1705,8 +2715,53 @@ class testMainClass {
         for (let i = 0; i < batchOrders.length; i++) {
             const current = batchOrders[i];
             const currentClientOrderId = current['newClientOrderId'];
-            assert(currentClientOrderId.startsWith(swapIdString), 'binance createOrders - clientOrderId: ' + currentClientOrderId + ' does not start with swapId' + swapIdString);
+            assert(currentClientOrderId.startsWith(swapIdString) === true, 'binance createOrders - clientOrderId: ' + currentClientOrderId + ' does not start with swapId' + swapIdString);
         }
+        // linear conditional orders cannot be batched
+        let linearConditionalBatchNotSupported = false;
+        try {
+            const linearConditionalOrders = [
+                {
+                    'symbol': 'BTC/USDT:USDT',
+                    'type': 'limit',
+                    'side': 'buy',
+                    'amount': 1,
+                    'price': 20000,
+                    'params': { 'triggerPrice': 21000 },
+                },
+            ];
+            await exchange.createOrders(linearConditionalOrders);
+        }
+        catch (e) {
+            linearConditionalBatchNotSupported = (e instanceof NotSupported);
+        }
+        assert(linearConditionalBatchNotSupported, 'binance createOrders - linear conditional order must throw NotSupported');
+        // inverse conditional orders are batched in the regular (non-algo) format
+        let inverseConditionalBatchRequest = {};
+        let inverseConditionalBatchNotSupported = false;
+        try {
+            const inverseConditionalOrders = [
+                {
+                    'symbol': 'BTC/USD:BTC',
+                    'type': 'limit',
+                    'side': 'buy',
+                    'amount': 1,
+                    'price': 20000,
+                    'params': { 'triggerPrice': 21000 },
+                },
+            ];
+            await exchange.createOrders(inverseConditionalOrders);
+        }
+        catch (e) {
+            inverseConditionalBatchNotSupported = (e instanceof NotSupported);
+            inverseConditionalBatchRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        assert(!inverseConditionalBatchNotSupported, 'binance createOrders - inverse conditional order must not throw NotSupported');
+        const inverseConditionalBatchOrders = exchange.safeList(inverseConditionalBatchRequest, 'batchOrders', []);
+        const inverseConditionalBatchOrder = exchange.safeDict(inverseConditionalBatchOrders, 0, {});
+        const inverseConditionalClientOrderId = exchange.safeString(inverseConditionalBatchOrder, 'newClientOrderId');
+        assert(inverseConditionalClientOrderId !== undefined, 'binance createOrders - inverse conditional order must send newClientOrderId');
+        assert(inverseConditionalClientOrderId.startsWith(inverseSwapId) === true, 'binance createOrders - inverse conditional clientOrderId: ' + inverseConditionalClientOrderId + ' does not start with inverseSwapId' + inverseSwapId);
         if (!isSync()) {
             await close(exchange);
         }
@@ -1715,7 +2770,7 @@ class testMainClass {
     async testOkx() {
         const exchange = this.initOfflineExchange('okx');
         const id = '6b9ad766b55dBCDE';
-        let spotOrderRequest = undefined;
+        let spotOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1724,10 +2779,10 @@ class testMainClass {
         }
         const clientOrderId = spotOrderRequest[0]['clOrdId']; // returns order inside array
         const idString = id.toString();
-        assert(clientOrderId.startsWith(idString), 'okx - spot clientOrderId: ' + clientOrderId + ' does not start with id: ' + idString);
+        assert(clientOrderId.startsWith(idString) === true, 'okx - spot clientOrderId: ' + clientOrderId + ' does not start with id: ' + idString);
         const spotTag = spotOrderRequest[0]['tag'];
         assert(spotTag === id, 'okx - id: ' + id + ' different from spot tag: ' + spotTag);
-        let swapOrderRequest = undefined;
+        let swapOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1735,7 +2790,7 @@ class testMainClass {
             swapOrderRequest = jsonParse(exchange.last_request_body);
         }
         const clientOrderIdSwap = swapOrderRequest[0]['clOrdId'];
-        assert(clientOrderIdSwap.startsWith(idString), 'okx - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with id: ' + idString);
+        assert(clientOrderIdSwap.startsWith(idString) === true, 'okx - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with id: ' + idString);
         const swapTag = swapOrderRequest[0]['tag'];
         assert(swapTag === id, 'okx - id: ' + id + ' different from swap tag: ' + swapTag);
         if (!isSync()) {
@@ -1747,7 +2802,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange('cryptocom');
         const id = 'CCXT';
         await exchange.loadMarkets();
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1763,7 +2818,7 @@ class testMainClass {
     }
     async testBybit() {
         const exchange = this.initOfflineExchange('bybit');
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = 'CCXT';
         assert(exchange.options['brokerId'] === id, 'id not in options');
         try {
@@ -1771,7 +2826,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['Referer'] === id, 'bybit - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -1779,22 +2834,85 @@ class testMainClass {
         }
         return true;
     }
+    async testBithumb() {
+        const exchange = this.initOfflineExchange('bithumb');
+        const id = 'CCXT';
+        let reqHeaders = {};
+        try {
+            // default path: generation 2, the versioned (jwt-signed) endpoints
+            await exchange.createOrder('BTC/KRW', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
+        }
+        assert(reqHeaders['OPEN-API-PARTNER'] === id, 'bithumb - id: ' + id + ' not in headers (v2 endpoints).');
+        reqHeaders = {};
+        try {
+            // legacy path: generation 1, the hmac-signed endpoints
+            await exchange.createOrder('BTC/KRW', 'limit', 'buy', 1, 20000, { 'generation': 1 });
+        }
+        catch (e) {
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
+        }
+        assert(reqHeaders['OPEN-API-PARTNER'] === id, 'bithumb - id: ' + id + ' not in headers (legacy endpoints).');
+        reqHeaders = {};
+        try {
+            // public endpoints carry the partner header as well
+            await exchange.fetchTicker('BTC/KRW');
+        }
+        catch (e) {
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
+        }
+        assert(reqHeaders['OPEN-API-PARTNER'] === id, 'bithumb - id: ' + id + ' not in headers (public endpoints).');
+        if (!isSync()) {
+            await close(exchange);
+        }
+        return true;
+    }
     async testKucoin() {
         const exchange = this.initOfflineExchange('kucoin');
-        let reqHeaders = undefined;
+        exchange.options['uta'] = false; // prevents fetching account mode inside createOrder
+        let reqHeaders = {};
         const spotId = exchange.options['partner']['spot']['id'];
         const spotKey = exchange.options['partner']['spot']['key'];
         assert(spotId === 'ccxt', 'kucoin - id: ' + spotId + ' not in options');
         assert(spotKey === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' + spotKey + ' not in options.');
+        const futureId = exchange.options['partner']['future']['id'];
+        const futureKey = exchange.options['partner']['future']['key'];
+        assert(futureId === 'ccxtfutures', 'kucoin - id: ' + futureId + ' not in options.');
+        assert(futureKey === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoin - key: ' + futureKey + ' not in options.');
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
-        const id = 'ccxt';
-        assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers.');
+        let id = 'ccxt';
+        assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for spot orders.');
+        try {
+            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
+        }
+        catch (e) {
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
+        }
+        assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for spot uta orders.');
+        id = 'ccxtfutures';
+        try {
+            await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
+        }
+        assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for swap orders.');
+        try {
+            await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
+        }
+        catch (e) {
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
+        }
+        assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for swap uta orders.');
         if (!isSync()) {
             await close(exchange);
         }
@@ -1802,19 +2920,28 @@ class testMainClass {
     }
     async testKucoinfutures() {
         const exchange = this.initOfflineExchange('kucoinfutures');
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = 'ccxtfutures';
         const futureId = exchange.options['partner']['future']['id'];
         const futureKey = exchange.options['partner']['future']['key'];
         assert(futureId === id, 'kucoinfutures - id: ' + futureId + ' not in options.');
         assert(futureKey === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' + futureKey + ' not in options.');
         try {
+            exchange.options['uta'] = false;
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers.');
+        try {
+            exchange.options['uta'] = true;
+            await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
+        }
+        assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers for uta orders.');
         if (!isSync()) {
             await close(exchange);
         }
@@ -1822,14 +2949,14 @@ class testMainClass {
     }
     async testBitget() {
         const exchange = this.initOfflineExchange('bitget');
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = 'p4sve';
         assert(exchange.options['broker'] === id, 'bitget - id: ' + id + ' not in options');
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['X-CHANNEL-API-CODE'] === id, 'bitget - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -1839,7 +2966,7 @@ class testMainClass {
     }
     async testMexc() {
         const exchange = this.initOfflineExchange('mexc');
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = 'CCXT';
         assert(exchange.options['broker'] === id, 'mexc - id: ' + id + ' not in options');
         await exchange.loadMarkets();
@@ -1847,7 +2974,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['source'] === id, 'mexc - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -1859,7 +2986,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange('htx');
         // spot test
         const id = 'AA03022abc';
-        let spotOrderRequest = undefined;
+        let spotOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1868,16 +2995,16 @@ class testMainClass {
         }
         const clientOrderId = spotOrderRequest['client-order-id'];
         const idString = id.toString();
-        assert(clientOrderId.startsWith(idString), 'htx - spot clientOrderId ' + clientOrderId + ' does not start with id: ' + idString);
+        assert(clientOrderId.startsWith(idString) === true, 'htx - spot clientOrderId ' + clientOrderId + ' does not start with id: ' + idString);
         // swap test
-        let swapOrderRequest = undefined;
+        let swapOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
             swapOrderRequest = jsonParse(exchange.last_request_body);
         }
-        let swapInverseOrderRequest = undefined;
+        let swapInverseOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USD:BTC', 'limit', 'buy', 1, 20000);
         }
@@ -1885,9 +3012,9 @@ class testMainClass {
             swapInverseOrderRequest = jsonParse(exchange.last_request_body);
         }
         const clientOrderIdSwap = swapOrderRequest['channel_code'];
-        assert(clientOrderIdSwap.startsWith(idString), 'htx - swap channel_code ' + clientOrderIdSwap + ' does not start with id: ' + idString);
+        assert(clientOrderIdSwap.startsWith(idString) === true, 'htx - swap channel_code ' + clientOrderIdSwap + ' does not start with id: ' + idString);
         const clientOrderIdInverse = swapInverseOrderRequest['channel_code'];
-        assert(clientOrderIdInverse.startsWith(idString), 'htx - swap inverse channel_code ' + clientOrderIdInverse + ' does not start with id: ' + idString);
+        assert(clientOrderIdInverse.startsWith(idString) === true, 'htx - swap inverse channel_code ' + clientOrderIdInverse + ' does not start with id: ' + idString);
         if (!isSync()) {
             await close(exchange);
         }
@@ -1897,7 +3024,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange('woo');
         // spot test
         const id = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
-        let spotOrderRequest = undefined;
+        let spotOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1906,9 +3033,9 @@ class testMainClass {
         }
         const brokerId = spotOrderRequest['broker_id'];
         const idString = id.toString();
-        assert(brokerId.startsWith(idString), 'woo - broker_id: ' + brokerId + ' does not start with id: ' + idString);
+        assert(brokerId.startsWith(idString) === true, 'woo - broker_id: ' + brokerId + ' does not start with id: ' + idString);
         // swap test
-        let stopOrderRequest = undefined;
+        let stopOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'stopPrice': 30000 });
         }
@@ -1916,25 +3043,7 @@ class testMainClass {
             stopOrderRequest = jsonParse(exchange.last_request_body);
         }
         const clientOrderIdStop = stopOrderRequest['brokerId'];
-        assert(clientOrderIdStop.startsWith(idString), 'woo - brokerId: ' + clientOrderIdStop + ' does not start with id: ' + idString);
-        if (!isSync()) {
-            await close(exchange);
-        }
-        return true;
-    }
-    async testBitmart() {
-        const exchange = this.initOfflineExchange('bitmart');
-        let reqHeaders = undefined;
-        const id = 'CCXTxBitmart000';
-        assert(exchange.options['brokerId'] === id, 'bitmart - id: ' + id + ' not in options');
-        await exchange.loadMarkets();
-        try {
-            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
-        }
-        catch (e) {
-            reqHeaders = exchange.last_request_headers;
-        }
-        assert(reqHeaders['X-BM-BROKER-ID'] === id, 'bitmart - id: ' + id + ' not in headers');
+        assert(clientOrderIdStop.startsWith(idString) === true, 'woo - brokerId: ' + clientOrderIdStop + ' does not start with id: ' + idString);
         if (!isSync()) {
             await close(exchange);
         }
@@ -1944,7 +3053,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange('coinex');
         const id = 'x-167673045';
         assert(exchange.options['brokerId'] === id, 'coinex - id: ' + id + ' not in options');
-        let spotOrderRequest = undefined;
+        let spotOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1953,7 +3062,7 @@ class testMainClass {
         }
         const clientOrderId = spotOrderRequest['client_id'];
         const idString = id.toString();
-        assert(clientOrderId.startsWith(idString), 'coinex - clientOrderId: ' + clientOrderId + ' does not start with id: ' + idString);
+        assert(clientOrderId.startsWith(idString) === true, 'coinex - clientOrderId: ' + clientOrderId + ' does not start with id: ' + idString);
         if (!isSync()) {
             await close(exchange);
         }
@@ -1961,7 +3070,7 @@ class testMainClass {
     }
     async testBingx() {
         const exchange = this.initOfflineExchange('bingx');
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = 'CCXT';
         assert(exchange.options['broker'] === id, 'bingx - id: ' + id + ' not in options');
         try {
@@ -1969,7 +3078,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['X-SOURCE-KEY'] === id, 'bingx - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -1980,7 +3089,7 @@ class testMainClass {
     async testPhemex() {
         const exchange = this.initOfflineExchange('phemex');
         const id = 'CCXT123456';
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1989,7 +3098,7 @@ class testMainClass {
         }
         const clientOrderId = request['clOrdID'];
         const idString = id.toString();
-        assert(clientOrderId.startsWith(idString), 'phemex - clOrdID: ' + clientOrderId + ' does not start with id: ' + idString);
+        assert(clientOrderId.startsWith(idString) === true, 'phemex - clOrdID: ' + clientOrderId + ' does not start with id: ' + idString);
         if (!isSync()) {
             await close(exchange);
         }
@@ -1998,7 +3107,7 @@ class testMainClass {
     async testBlofin() {
         const exchange = this.initOfflineExchange('blofin');
         const id = 'ec6dd3a7dd982d0b';
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('LTC/USDT:USDT', 'market', 'buy', 1);
         }
@@ -2007,7 +3116,7 @@ class testMainClass {
         }
         const brokerId = request['brokerId'];
         const idString = id.toString();
-        assert(brokerId.startsWith(idString), 'blofin - brokerId: ' + brokerId + ' does not start with id: ' + idString);
+        assert(brokerId.startsWith(idString) === true, 'blofin - brokerId: ' + brokerId + ' does not start with id: ' + idString);
         if (!isSync()) {
             await close(exchange);
         }
@@ -2016,7 +3125,7 @@ class testMainClass {
     // async testHyperliquid () {
     //     const exchange = this.initOfflineExchange ('hyperliquid');
     //     const id = '1';
-    //     let request = undefined;
+    //     let request: NullableDict = undefined;
     //     try {
     //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
     //     } catch (e) {
@@ -2034,7 +3143,7 @@ class testMainClass {
         exchange.options['portfolio'] = 'random';
         const id = 'nfqkvdjp';
         assert(exchange.options['brokerId'] === id, 'id not in options');
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
         }
@@ -2042,7 +3151,7 @@ class testMainClass {
             request = jsonParse(exchange.last_request_body);
         }
         const clientOrderId = request['client_order_id'];
-        assert(clientOrderId.startsWith(id.toString()), 'clientOrderId does not start with id');
+        assert(clientOrderId.startsWith(id.toString()) === true, 'clientOrderId does not start with id');
         if (!isSync()) {
             await close(exchange);
         }
@@ -2052,7 +3161,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange('coinbase');
         const id = 'ccxt';
         assert(exchange.options['brokerId'] === id, 'id not in options');
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('BTC/USDC', 'limit', 'buy', 1, 20000);
         }
@@ -2060,18 +3169,21 @@ class testMainClass {
             request = jsonParse(exchange.last_request_body);
         }
         const clientOrderId = request['client_order_id'];
-        assert(clientOrderId.startsWith(id.toString()), 'clientOrderId does not start with id');
+        assert(clientOrderId.startsWith(id.toString()) === true, 'clientOrderId does not start with id');
         if (!isSync()) {
             await close(exchange);
         }
         return true;
     }
     async testWoofiPro() {
+        if (this.lang === 'java') {
+            return false;
+        }
         const exchange = this.initOfflineExchange('woofipro');
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
         const id = 'CCXT';
         await exchange.loadMarkets();
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
         }
@@ -2085,28 +3197,10 @@ class testMainClass {
         }
         return true;
     }
-    async testOxfun() {
-        const exchange = this.initOfflineExchange('oxfun');
-        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
-        const id = 1000;
-        await exchange.loadMarkets();
-        let request = undefined;
-        try {
-            await exchange.createOrder('BTC/USD:OX', 'limit', 'buy', 1, 20000);
-        }
-        catch (e) {
-            request = jsonParse(exchange.last_request_body);
-        }
-        const orders = request['orders'];
-        const first = orders[0];
-        const brokerId = first['source'];
-        assert(brokerId === id, 'oxfun - id: ' + id.toString() + ' different from  broker_id: ' + brokerId.toString());
-        return true;
-    }
     async testXT() {
         const exchange = this.initOfflineExchange('xt');
         const id = 'CCXT';
-        let spotOrderRequest = undefined;
+        let spotOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -2115,7 +3209,7 @@ class testMainClass {
         }
         const spotMedia = spotOrderRequest['media'];
         assert(spotMedia === id, 'xt - id: ' + id + ' different from swap tag: ' + spotMedia);
-        let swapOrderRequest = undefined;
+        let swapOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
@@ -2130,13 +3224,16 @@ class testMainClass {
         return true;
     }
     async testParadex() {
+        if (this.lang === 'java') {
+            return false;
+        }
         const exchange = this.initOfflineExchange('paradex');
         exchange.walletAddress = '0xc751489d24a33172541ea451bc253d7a9e98c781';
         exchange.privateKey = 'c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b';
         exchange.options['authToken'] = 'token';
         exchange.options['systemConfig'] =
             { "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io", "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7", "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA", "block_explorer_url": "https://voyager.testnet.paradex.trade/", "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6", "paraclear_decimals": 8, "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9", "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e", "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f", "bridged_tokens": [{ "name": "TEST USDC", "symbol": "USDC", "decimals": 6, "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666", "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C", "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e", "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef" }], "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af", "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB", "l1_chain_id": "11155111", "liquidation_fee": "0.2" };
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = 'CCXT';
         assert(exchange.options['broker'] === id, 'paradex - id: ' + id + ' not in options');
         await exchange.loadMarkets();
@@ -2144,7 +3241,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USD:USDC', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['PARADEX-PARTNER'] === id, 'paradex - id: ' + id + ' not in headers');
         if (!isSync()) {
@@ -2154,14 +3251,14 @@ class testMainClass {
     }
     async testHashkey() {
         const exchange = this.initOfflineExchange('hashkey');
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = "10000700011";
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['INPUT-SOURCE'] === id, 'hashkey - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2169,43 +3266,9 @@ class testMainClass {
         }
         return true;
     }
-    async testCoincatch() {
-        const exchange = this.initOfflineExchange('coincatch');
-        let reqHeaders = undefined;
-        const id = "47cfy";
-        try {
-            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
-        }
-        catch (e) {
-            // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
-        }
-        assert(reqHeaders['X-CHANNEL-API-CODE'] === id, 'coincatch - id: ' + id + ' not in headers.');
-        if (!isSync()) {
-            await close(exchange);
-        }
-        return true;
-    }
-    async testDefx() {
-        const exchange = this.initOfflineExchange('defx');
-        let reqHeaders = undefined;
-        try {
-            await exchange.createOrder('DOGE/USDC:USDC', 'limit', 'buy', 100, 1);
-        }
-        catch (e) {
-            // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
-        }
-        const id = 'ccxt';
-        assert(reqHeaders['X-DEFX-SOURCE'] === id, 'defx - id: ' + id + ' not in headers.');
-        if (!isSync()) {
-            await close(exchange);
-        }
-        return true;
-    }
     async testCryptomus() {
         const exchange = this.initOfflineExchange('cryptomus');
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'sell', 1, 20000);
         }
@@ -2220,10 +3283,13 @@ class testMainClass {
         return true;
     }
     async testDerive() {
+        if (this.lang === 'java') {
+            return false;
+        }
         const exchange = this.initOfflineExchange('derive');
         const id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
         assert(exchange.options['id'] === id, 'derive - id: ' + id + ' not in options');
-        let request = undefined;
+        let request = {};
         try {
             const params = {
                 'subaccount_id': 1234,
@@ -2244,11 +3310,14 @@ class testMainClass {
         return true;
     }
     async testModeTrade() {
+        if (this.lang === 'java') {
+            return false;
+        }
         const exchange = this.initOfflineExchange('modetrade');
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
         const id = 'CCXTMODE';
         await exchange.loadMarkets();
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
         }
@@ -2266,16 +3335,74 @@ class testMainClass {
         const exchange = this.initOfflineExchange('backpack');
         exchange.apiKey = "Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=";
         exchange.secret = "sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=";
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = '1400';
         try {
             await exchange.createOrder('ETH/USDC', 'limit', 'buy', 1, 5000);
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['X-Broker-Id'] === id, 'backpack - id: ' + id + ' not in headers.');
+        if (!isSync()) {
+            await close(exchange);
+        }
+        return true;
+    }
+    async testToobit() {
+        const exchange = this.initOfflineExchange('toobit');
+        let reqHeaders = {};
+        const id = '177321641268789';
+        try {
+            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
+        }
+        assert(reqHeaders['X-BB-API-PLATFORM'] === id, 'toobit - id: ' + id + ' not in headers.');
+        if (!isSync()) {
+            await close(exchange);
+        }
+        return true;
+    }
+    async testWeex() {
+        const exchange = this.initOfflineExchange('weex');
+        const id = 'b-WEEX111125';
+        assert(exchange.options['partner'] === id, 'weex - id: ' + id + ' not in options');
+        let request = {};
+        try {
+            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            request = jsonParse(exchange.last_request_body);
+        }
+        let clientOrderId = request['newClientOrderId'];
+        assert(clientOrderId.startsWith(id) === true, 'weex - newClientOrderId: ' + clientOrderId + ' for spot order does not start with id: ' + id);
+        try {
+            await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            request = jsonParse(exchange.last_request_body);
+        }
+        clientOrderId = request['newClientOrderId'];
+        assert(clientOrderId.startsWith(id) === true, 'weex - newClientOrderId: ' + clientOrderId + ' for swap order does not start with id: ' + id);
+    }
+    async testFoxbit() {
+        const exchange = this.initOfflineExchange('foxbit');
+        let reqHeaders = {};
+        const id = 'ccxt';
+        try {
+            await exchange.createOrder('BTC/BRL', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
+        }
+        assert(reqHeaders['X-FB-CLIENT'] === id, 'foxbit - id: ' + id + ' not in headers.');
+        const version = exchange.getCcxtVersion();
+        assert(reqHeaders['X-FB-CLIENT-VERSION'] === version, 'foxbit - version: ' + version + ' not in headers.');
         if (!isSync()) {
             await close(exchange);
         }

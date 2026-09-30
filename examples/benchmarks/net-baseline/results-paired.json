@@ -1,0 +1,362 @@
+[
+ {
+  "round": 1,
+  "lang": "js",
+  "kind": "raw",
+  "net": 57.72
+ },
+ {
+  "round": 1,
+  "lang": "js",
+  "kind": "ccxt",
+  "net": 42.71
+ },
+ {
+  "round": 1,
+  "lang": "python",
+  "kind": "raw",
+  "net": 59.38
+ },
+ {
+  "round": 1,
+  "lang": "python",
+  "kind": "ccxt",
+  "net": 45.79
+ },
+ {
+  "round": 1,
+  "lang": "go",
+  "kind": "raw",
+  "net": 67.38
+ },
+ {
+  "round": 1,
+  "lang": "go",
+  "kind": "ccxt",
+  "net": 44.21
+ },
+ {
+  "round": 1,
+  "lang": "csharp",
+  "kind": "raw",
+  "net": 49.19
+ },
+ {
+  "round": 1,
+  "lang": "csharp",
+  "kind": "ccxt",
+  "net": 83.8
+ },
+ {
+  "round": 1,
+  "lang": "java",
+  "kind": "raw",
+  "net": 61.56
+ },
+ {
+  "round": 1,
+  "lang": "java",
+  "kind": "ccxt",
+  "net": 55.91
+ },
+ {
+  "round": 2,
+  "lang": "js",
+  "kind": "raw",
+  "net": 61.24
+ },
+ {
+  "round": 2,
+  "lang": "js",
+  "kind": "ccxt",
+  "net": 51.48
+ },
+ {
+  "round": 2,
+  "lang": "python",
+  "kind": "raw",
+  "net": 62.68
+ },
+ {
+  "round": 2,
+  "lang": "python",
+  "kind": "ccxt",
+  "net": 51.05
+ },
+ {
+  "round": 2,
+  "lang": "go",
+  "kind": "raw",
+  "net": 55.86
+ },
+ {
+  "round": 2,
+  "lang": "go",
+  "kind": "ccxt",
+  "net": 42.64
+ },
+ {
+  "round": 2,
+  "lang": "csharp",
+  "kind": "raw",
+  "net": 48.99
+ },
+ {
+  "round": 2,
+  "lang": "csharp",
+  "kind": "ccxt",
+  "net": 70.71
+ },
+ {
+  "round": 2,
+  "lang": "java",
+  "kind": "raw",
+  "net": 62.73
+ },
+ {
+  "round": 2,
+  "lang": "java",
+  "kind": "ccxt",
+  "net": 53.56
+ },
+ {
+  "round": 3,
+  "lang": "js",
+  "kind": "raw",
+  "net": 57.17
+ },
+ {
+  "round": 3,
+  "lang": "js",
+  "kind": "ccxt",
+  "net": 44.81
+ },
+ {
+  "round": 3,
+  "lang": "python",
+  "kind": "raw",
+  "net": 62.46
+ },
+ {
+  "round": 3,
+  "lang": "python",
+  "kind": "ccxt",
+  "net": 46.24
+ },
+ {
+  "round": 3,
+  "lang": "go",
+  "kind": "raw",
+  "net": 61.57
+ },
+ {
+  "round": 3,
+  "lang": "go",
+  "kind": "ccxt",
+  "net": 45.61
+ },
+ {
+  "round": 3,
+  "lang": "csharp",
+  "kind": "raw",
+  "net": 58.89
+ },
+ {
+  "round": 3,
+  "lang": "csharp",
+  "kind": "ccxt",
+  "net": 75.49
+ },
+ {
+  "round": 3,
+  "lang": "java",
+  "kind": "raw",
+  "net": 67.54
+ },
+ {
+  "round": 3,
+  "lang": "java",
+  "kind": "ccxt",
+  "net": 57.89
+ },
+ {
+  "round": 4,
+  "lang": "js",
+  "kind": "raw",
+  "net": 64.22
+ },
+ {
+  "round": 4,
+  "lang": "js",
+  "kind": "ccxt",
+  "net": 49.84
+ },
+ {
+  "round": 4,
+  "lang": "python",
+  "kind": "raw",
+  "net": 71.81
+ },
+ {
+  "round": 4,
+  "lang": "python",
+  "kind": "ccxt",
+  "net": 42.35
+ },
+ {
+  "round": 4,
+  "lang": "go",
+  "kind": "raw",
+  "net": 75.49
+ },
+ {
+  "round": 4,
+  "lang": "go",
+  "kind": "ccxt",
+  "net": 48.81
+ },
+ {
+  "round": 4,
+  "lang": "csharp",
+  "kind": "raw",
+  "net": 65.9
+ },
+ {
+  "round": 4,
+  "lang": "csharp",
+  "kind": "ccxt",
+  "net": 68.6
+ },
+ {
+  "round": 4,
+  "lang": "java",
+  "kind": "raw",
+  "net": 65.1
+ },
+ {
+  "round": 4,
+  "lang": "java",
+  "kind": "ccxt",
+  "net": 63.65
+ },
+ {
+  "round": 5,
+  "lang": "js",
+  "kind": "raw",
+  "net": 62.96
+ },
+ {
+  "round": 5,
+  "lang": "js",
+  "kind": "ccxt",
+  "net": 47.81
+ },
+ {
+  "round": 5,
+  "lang": "python",
+  "kind": "raw",
+  "net": 56.79
+ },
+ {
+  "round": 5,
+  "lang": "python",
+  "kind": "ccxt",
+  "net": 51.37
+ },
+ {
+  "round": 5,
+  "lang": "go",
+  "kind": "raw",
+  "net": 52.4
+ },
+ {
+  "round": 5,
+  "lang": "go",
+  "kind": "ccxt",
+  "net": 52.17
+ },
+ {
+  "round": 5,
+  "lang": "csharp",
+  "kind": "raw",
+  "net": 66.97
+ },
+ {
+  "round": 5,
+  "lang": "csharp",
+  "kind": "ccxt",
+  "net": 65.25
+ },
+ {
+  "round": 5,
+  "lang": "java",
+  "kind": "raw",
+  "net": 63.19
+ },
+ {
+  "round": 5,
+  "lang": "java",
+  "kind": "ccxt",
+  "net": 59.8
+ },
+ {
+  "round": 6,
+  "lang": "js",
+  "kind": "raw",
+  "net": 61.82
+ },
+ {
+  "round": 6,
+  "lang": "js",
+  "kind": "ccxt",
+  "net": 46.75
+ },
+ {
+  "round": 6,
+  "lang": "python",
+  "kind": "raw",
+  "net": 60.36
+ },
+ {
+  "round": 6,
+  "lang": "python",
+  "kind": "ccxt",
+  "net": 46.34
+ },
+ {
+  "round": 6,
+  "lang": "go",
+  "kind": "raw",
+  "net": 62.46
+ },
+ {
+  "round": 6,
+  "lang": "go",
+  "kind": "ccxt",
+  "net": 44.09
+ },
+ {
+  "round": 6,
+  "lang": "csharp",
+  "kind": "raw",
+  "net": 48.59
+ },
+ {
+  "round": 6,
+  "lang": "csharp",
+  "kind": "ccxt",
+  "net": 61.54
+ },
+ {
+  "round": 6,
+  "lang": "java",
+  "kind": "raw",
+  "net": 61.14
+ },
+ {
+  "round": 6,
+  "lang": "java",
+  "kind": "ccxt",
+  "net": 56.55
+ }
+]

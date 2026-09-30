@@ -1,5 +1,7 @@
-// sw.js – works perfectly offline, no cache-busting needed long-term, but safe if you keep it
+// sw.js – single cache, refreshes from network at most once per 24 h, never caches its own script or HTML shell
 const CACHE = 'docs.ccxt.com';
+const ONE_DAY = 24 * 3600 * 1000;
+let lastRefresh = 0;
 
 self.addEventListener('install', e => {
   self.skipWaiting();
@@ -10,34 +12,42 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', event => {
-  const requestUrl = new URL(event.request.url);
+  const url = new URL(event.request.url);
 
-  if (new URL(event.request.url).origin !== self.location.origin) {
-    // Forward directly to network without modification if cors
-    event.respondWith(fetch(event.request));
+  if (url.origin !== self.location.origin) {
+    return; // let the browser handle cross-origin normally
+  }
+
+  // Never cache the service worker itself or navigation requests (the HTML shell).
+  // This guarantees that updates to sw.js or index.html are never delayed by the cache.
+  if (url.pathname.endsWith('/sw.js') || event.request.mode === 'navigate') {
     return;
   }
 
-  // 1. Only apply cache-busting to same-origin requests
-  if (requestUrl.origin === self.location.origin) {
-    requestUrl.search += (requestUrl.search ? '&' : '?') + 'cache-bust=' + Date.now();
-  }
+  if (event.request.method !== 'GET') return;
 
-  // 2. Create a clean version for caching (ignore all query parameters)
+  // Use a query-free key so that any query params are ignored for caching purposes.
   const cacheKey = new URL(event.request.url);
-  cacheKey.search = '';   // strip any query string, including cache-bust
+  cacheKey.search = '';
 
   event.respondWith(
-    caches.open(CACHE).then(cache => {
-      return cache.match(cacheKey).then(cachedResponse => {
-        if (cachedResponse) return cachedResponse;   // offline → serve clean version
+    caches.open(CACHE).then(async cache => {
+      const cached = await cache.match(cacheKey);
+      const now = Date.now();
 
-        // online → fetch the (possibly cache-busted) URL
-        return fetch(requestUrl).then(networkResponse => {
-          cache.put(cacheKey, networkResponse.clone());
-          return networkResponse;
-        });
-      });
+      // Serve from the single cache unless we have never refreshed or > 24 h have passed.
+      if (cached && now - lastRefresh < ONE_DAY) {
+        return cached;
+      }
+
+      try {
+        const fresh = await fetch(event.request, { cache: 'reload' });
+        lastRefresh = now;
+        cache.put(cacheKey, fresh.clone());
+        return fresh;
+      } catch {
+        return cached || new Response('Offline', { status: 503 });
+      }
     })
   );
 });

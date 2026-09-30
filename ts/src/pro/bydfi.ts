@@ -1,17 +1,18 @@
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import bydfiRest from '../bydfi.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers } from '../base/types.js';
+import type { Balances, Dict, Int, Market, FeeString, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, List } from '../base/types.js';
 import { ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class bydfi extends bydfiRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -44,7 +45,7 @@ export default class bydfi extends bydfiRest {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://stream.bydfi.com/v1/public/swap',
+                    'ws': 'wss://stream.bydfi.com/v1/public/fapi',
                 },
             },
             'options': {
@@ -80,14 +81,14 @@ export default class bydfi extends bydfiRest {
         });
     }
 
-    ping (client: Client) {
+    override ping (client: Client) {
         return {
             'id': this.requestId (),
             'method': 'ping',
         };
     }
 
-    requestId () {
+    requestId (): number {
         this.lockId ();
         const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);
         this.options['reqid'] = reqid;
@@ -95,7 +96,7 @@ export default class bydfi extends bydfiRest {
         return reqid;
     }
 
-    async watchPublic (messageHashes, channels, params = {}, subscription = {}) {
+    async watchPublic (messageHashes: string[], channels: Strings, params: Dict = {}, subscription: Dict = {}) {
         const url = this.urls['api']['ws'];
         const id = this.requestId ();
         const subscriptionParams: Dict = {
@@ -103,9 +104,9 @@ export default class bydfi extends bydfiRest {
         };
         const unsubscribe = this.safeBool (params, 'unsubscribe', false);
         let method = 'SUBSCRIBE';
-        if (unsubscribe) {
+        const paramsOmitted: Dict = (unsubscribe === true) ? this.omit (params, 'unsubscribe') : params;
+        if (unsubscribe === true) {
             method = 'UNSUBSCRIBE';
-            params = this.omit (params, 'unsubscribe');
             subscriptionParams['unsubscribe'] = true;
             subscriptionParams['messageHashes'] = messageHashes;
         }
@@ -114,16 +115,17 @@ export default class bydfi extends bydfiRest {
             'method': method,
             'params': channels,
         };
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, this.extend (subscriptionParams, subscription));
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (message, paramsOmitted), messageHashes, this.extend (subscriptionParams, subscription));
     }
 
-    async watchPrivate (messageHashes, params = {}) {
+    async watchPrivate (messageHashes: string[], params: Dict = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const subHash = 'private';
         const client = this.client (url);
         const privateSubscription = this.safeValue (client.subscriptions, subHash);
         const subscription: Dict = {};
+        let paramsLogin = undefined;
         if (privateSubscription === undefined) {
             const id = this.requestId ();
             const timestamp = this.milliseconds ().toString ();
@@ -138,23 +140,26 @@ export default class bydfi extends bydfiRest {
                     'sign': signature,
                 },
             };
-            params = this.deepExtend (request, params);
+            paramsLogin = this.deepExtend (request, params);
             subscription['id'] = id;
         }
-        return await this.watchMultiple (url, messageHashes, params, [ 'private' ], subscription);
+        const paramsResolved = (paramsLogin !== undefined) ? paramsLogin : params;
+        return await this.watchMultiple (url, messageHashes, paramsResolved, [ 'private' ], subscription);
     }
 
     /**
      * @method
      * @name bydfi#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
+     * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const marketId = market['id'];
         const messageHash = 'ticker::' + symbol;
@@ -166,67 +171,69 @@ export default class bydfi extends bydfiRest {
      * @method
      * @name bydfi#unWatchTicker
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
+     * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTicker (symbol: string, params = {}): Promise<any> {
-        return await this.unWatchTickers ([ symbol ], params);
+    override unWatchTicker (symbol: string, params = {}): Promise<any> {
+        return this.unWatchTickers ([ symbol ], params);
     }
 
     /**
      * @method
      * @name bydfi#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
-     * @see https://developers.bydfi.com/en/swap/websocket-market#market-wide-ticker
+     * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
+     * @see https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true);
-        const messageHashes = [];
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true);
+        const messageHashes: List = [];
         const messageHash = 'ticker::';
-        const channels = [];
+        const channels: List = [];
         const channel = '@ticker';
-        if (symbols === undefined) {
+        if (symbolsNormalized === undefined) {
             messageHashes.push (messageHash + 'all');
             channels.push ('!ticker@arr');
         } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const marketId = this.marketId (symbol);
                 messageHashes.push (messageHash + symbol);
                 channels.push (marketId + channel);
             }
         }
         await this.watchPublic (messageHashes, channels, params);
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     /**
      * @method
      * @name bydfi#unWatchTickers
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
-     * @see https://developers.bydfi.com/en/swap/websocket-market#market-wide-ticker
+     * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
+     * @see https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
-        symbols = this.marketSymbols (symbols, undefined, true);
-        const messageHashes = [];
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true);
+        const messageHashes: List = [];
         const messageHash = 'unsubscribe::ticker::';
-        const channels = [];
+        const channels: List = [];
         const channel = '@ticker';
         const subscription: Dict = {
             'topic': 'ticker',
         };
-        if (symbols === undefined) {
+        if (symbolsNormalized === undefined) {
             // all tickers and tickers for specific symbols are different channels
             // we need to unsubscribe from all ticker channels
             const subHashes = this.getMessageHashesForTickersUnsubscription ();
@@ -246,23 +253,23 @@ export default class bydfi extends bydfiRest {
             messageHashes.push (messageHash);
             channels.push ('!ticker@arr');
         } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const marketId = this.marketId (symbol);
                 messageHashes.push (messageHash + symbol);
                 channels.push (marketId + channel);
             }
-            subscription['symbols'] = symbols;
+            subscription['symbols'] = symbolsNormalized;
         }
-        params = this.extend (params, { 'unsubscribe': true });
-        return await this.watchPublic (messageHashes, channels, params, subscription);
+        const paramsExtended = this.extend (params, { 'unsubscribe': true });
+        return await this.watchPublic (messageHashes, channels, paramsExtended, subscription);
     }
 
     getMessageHashesForTickersUnsubscription () {
         const url = this.urls['api']['ws']['public'];
         const client = this.client (url);
         const subscriptions = client.subscriptions;
-        const messageHashes = [];
+        const messageHashes: List = [];
         const keys = Object.keys (subscriptions);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -273,7 +280,7 @@ export default class bydfi extends bydfiRest {
         return messageHashes;
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "s": "KAS-USDT",
@@ -289,8 +296,8 @@ export default class bydfi extends bydfiRest {
         const ticker = this.parseTicker (message);
         const symbol = ticker['symbol'];
         const messageHash = 'ticker::' + symbol;
-        this.tickers[symbol] = ticker;
-        client.resolve (this.tickers[symbol], messageHash);
+        this.tickers[symbol as string] = ticker;
+        client.resolve (this.tickers[symbol as string], messageHash);
         client.resolve (this.tickers, 'ticker::all');
     }
 
@@ -298,7 +305,7 @@ export default class bydfi extends bydfiRest {
      * @method
      * @name bydfi#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
-     * @see https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+     * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -306,7 +313,7 @@ export default class bydfi extends bydfiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
         return result[symbol][timeframe];
     }
@@ -315,37 +322,37 @@ export default class bydfi extends bydfiRest {
      * @method
      * @name bydfi#unWatchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+     * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
-        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
+    override unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+        return this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }
 
     /**
      * @method
      * @name bydfi#watchOHLCVForSymbols
      * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
-     * @see https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+     * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
         await this.loadMarkets ();
-        const channels = [];
-        const messageHashes = [];
+        const channels: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const symbolAndTimeframe = this.safeList (symbolsAndTimeframes, i);
             const marketId = this.safeString (symbolAndTimeframe, 0);
             const market = this.market (marketId);
             const tf = this.safeString (symbolAndTimeframe, 1);
@@ -355,10 +362,11 @@ export default class bydfi extends bydfiRest {
             messageHashes.push ('ohlcv::' + market['symbol'] + '::' + interval);
         }
         const [ symbol, timeframe, candles ] = await this.watchPublic (messageHashes, channels, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = candles.getLimit (symbol, limit);
+            limitResolved = candles.getLimit (symbol, limit);
         }
-        const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit (candles, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -366,21 +374,21 @@ export default class bydfi extends bydfiRest {
      * @method
      * @name bydfi#unWatchOHLCVForSymbols
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+     * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params: Dict = {}): Promise<any> {
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
         await this.loadMarkets ();
-        const channels = [];
-        const messageHashes = [];
+        const channels: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const symbolAndTimeframe = this.safeList (symbolsAndTimeframes, i);
             const marketId = this.safeString (symbolAndTimeframe, 0);
             const market = this.market (marketId);
             const tf = this.safeString (symbolAndTimeframe, 1);
@@ -388,15 +396,15 @@ export default class bydfi extends bydfiRest {
             channels.push (market['id'] + '@kline_' + interval);
             messageHashes.push ('unsubscribe::ohlcv::' + market['symbol'] + '::' + interval);
         }
-        params = this.extend (params, { 'unsubscribe': true });
+        const paramsExtended = this.extend (params, { 'unsubscribe': true });
         const subscription: Dict = {
             'topic': 'ohlcv',
             'symbolsAndTimeframes': symbolsAndTimeframes,
         };
-        return await this.watchPublic (messageHashes, channels, params, subscription);
+        return await this.watchPublic (messageHashes, channels, paramsExtended, subscription);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "s": "ETH-USDC",
@@ -420,12 +428,12 @@ export default class bydfi extends bydfiRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        if (!((timeframe as string) in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe as string] = stored;
         }
-        const ohlcv = this.ohlcvs[symbol][timeframe];
+        const ohlcv = this.ohlcvs[symbol][timeframe as string];
         const parsed = this.parseWsOHLCV (message);
         ohlcv.append (parsed);
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
@@ -436,59 +444,61 @@ export default class bydfi extends bydfiRest {
      * @method
      * @name bydfi#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+     * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default and maxi is 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    override watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        return this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     /**
      * @method
      * @name bydfi#unWatchOrderBook
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+     * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
-        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    override unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        return this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
 
     /**
      * @method
      * @name bydfi#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+     * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return (default and max is 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
-        let depth = '100';
-        [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', depth);
-        let frequency = '100ms';
-        [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'frequency', frequency);
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
+        const depth = '100';
+        const [ depthOption, paramsDepth ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'depth', depth);
+        const frequency = '100ms';
+        const [ frequencyOption, paramsFrequency ] = this.handleOptionStringAndParams (paramsDepth, 'watchOrderBookForSymbols', 'frequency', frequency);
         let channelSuffix = '';
-        if (frequency === '100ms') {
+        if (frequencyOption === '100ms') {
             channelSuffix = '@100ms';
         }
-        const channels = [];
-        const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        const channels: List = [];
+        const messageHashes: List = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            channels.push (market['id'] + '@depth' + depth + channelSuffix);
+            channels.push (market['id'] + '@depth' + depthOption + channelSuffix);
             messageHashes.push ('orderbook::' + symbol);
         }
-        const orderbook = await this.watchPublic (messageHashes, channels, params);
+        const orderbook: WsOrderBook = await this.watchPublic (messageHashes, channels, paramsFrequency);
         return orderbook.limit ();
     }
 
@@ -496,40 +506,42 @@ export default class bydfi extends bydfiRest {
      * @method
      * @name bydfi#unWatchOrderBookForSymbols
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+     * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
-        let depth = '100';
-        [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', depth);
-        let frequency = '100ms';
-        [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'frequency', frequency);
+    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
+        const depth = '100';
+        const [ depthOption, paramsDepth ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'depth', depth);
+        const frequency = '100ms';
+        const [ frequencyOption, paramsFrequency ] = this.handleOptionStringAndParams (paramsDepth, 'watchOrderBookForSymbols', 'frequency', frequency);
         let channelSuffix = '';
-        if (frequency === '100ms') {
+        if (frequencyOption === '100ms') {
             channelSuffix = '@100ms';
         }
-        const channels = [];
-        const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        const channels: List = [];
+        const messageHashes: List = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            channels.push (market['id'] + '@depth' + depth + channelSuffix);
+            channels.push (market['id'] + '@depth' + depthOption + channelSuffix);
             messageHashes.push ('unsubscribe::orderbook::' + symbol);
         }
         const subscription: Dict = {
             'topic': 'orderbook',
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
         };
-        params = this.extend (params, { 'unsubscribe': true });
-        return await this.watchPublic (messageHashes, channels, params, subscription);
+        const paramsExtended = this.extend (paramsFrequency, { 'unsubscribe': true });
+        return await this.watchPublic (messageHashes, channels, paramsExtended, subscription);
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "a": [ [ 150000, 15 ], ... ],
@@ -557,54 +569,57 @@ export default class bydfi extends bydfiRest {
      * @method
      * @name bydfi#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://developers.bydfi.com/en/swap/websocket-account#order-trade-update-push
+     * @see https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        let symbols = undefined;
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        let symbols: Strings = undefined;
         if (symbol !== undefined) {
             symbols = [ symbol ];
         }
-        return await this.watchOrdersForSymbols (symbols, since, limit, params);
+        return await this.watchOrdersForSymbols (symbols as string[], since, limit, params);
     }
 
     /**
      * @method
      * @name bydfi#watchOrdersForSymbols
      * @description watches information on multiple orders made by the user
-     * @see https://developers.bydfi.com/en/swap/websocket-account#order-trade-update-push
+     * @see https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push
      * @param {string[]} symbols unified symbol of the market to fetch orders for
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true);
-        const messageHashes = [];
-        if (symbols === undefined) {
+    override async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, true);
+        const messageHashes: List = [];
+        if (symbolsNormalized === undefined) {
             messageHashes.push ('orders');
         } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push ('orders::' + symbol);
             }
         }
         const orders = await this.watchPrivate (messageHashes, params);
+        const first = this.safeDict (orders, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeValue (orders, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = orders.getLimit (tradeSymbol, limit);
+            limitResolved = orders.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: Dict) {
         //
         //     {
         //         "T": 1766588450558,
@@ -652,7 +667,7 @@ export default class bydfi extends bydfiRest {
         client.resolve (orders, symbolMessageHash);
     }
 
-    parseWsOrder (order: Dict, market: Market = undefined): Order {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "S": "BUY",
@@ -677,15 +692,15 @@ export default class bydfi extends bydfiRest {
         //     }
         //
         const marketId = this.safeString (order, 's');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const rawStatus = this.safeString (order, 'st');
         const rawType = this.safeString (order, 't');
-        let fee = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.safeString (order, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': Precise.stringAbs (feeCost),
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         }
         return this.safeOrder ({
@@ -697,7 +712,7 @@ export default class bydfi extends bydfiRest {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
             'status': this.parseOrderStatus (rawStatus),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.parseOrderType (rawType),
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -713,31 +728,33 @@ export default class bydfi extends bydfiRest {
             'cost': undefined,
             'trades': undefined,
             'fee': fee,
-            'average': this.omitZero (this.safeString (order, 'ap')),
-        }, market);
+            'average': this.omitZero (this.safeString (order, 'ap') as string),
+        }, marketResolved);
     }
 
     /**
      * @method
      * @name bydfi#watchPositions
      * @description watch all open positions
-     * @see https://developers.bydfi.com/en/swap/websocket-account#balance-and-position-update-push
+     * @see https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum number of positions to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true);
-        const messageHashes = [];
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true);
+        const messageHashes: List = [];
         const messageHash = 'positions';
-        if (symbols === undefined) {
+        if (symbolsNormalized === undefined) {
             messageHashes.push (messageHash);
         } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push (messageHash + '::' + symbol);
             }
         }
@@ -745,10 +762,10 @@ export default class bydfi extends bydfiRest {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
-    handlePositions (client, message) {
+    handlePositions (client: Client, message: Dict) {
         //
         //     {
         //         "a": {
@@ -800,7 +817,7 @@ export default class bydfi extends bydfiRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const parsedPosition = this.parseWsPosition (rawPosition, market);
         const timestamp = this.safeInteger (message, 'T');
         parsedPosition['timestamp'] = timestamp;
@@ -810,7 +827,7 @@ export default class bydfi extends bydfiRest {
         client.resolve ([ parsedPosition ], symbolMessageHash);
     }
 
-    parseWsPosition (position, market = undefined) {
+    parseWsPosition (position: Dict, market: Market = undefined): Position {
         //
         //     {
         //         "S": "1",
@@ -832,13 +849,13 @@ export default class bydfi extends bydfiRest {
         //     }
         //
         const marketId = this.safeString (position, 's');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const rawPositionSide = this.safeString (position, 'S');
         const positionMode = this.safeString (position, 'pt');
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'id'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'entryPrice': this.parseNumber (this.safeString (position, 'ap')),
             'markPrice': undefined,
             'lastPrice': undefined,
@@ -870,26 +887,28 @@ export default class bydfi extends bydfiRest {
             '1': 'long',
             '2': 'short',
         };
-        return this.safeString (sides, rawPositionSide, rawPositionSide);
+        return this.safeString (sides, rawPositionSide as string, rawPositionSide);
     }
 
     /**
      * @method
      * @name bydfi#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://developers.bydfi.com/en/swap/websocket-account#balance-and-position-update-push
+     * @see https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         this.fetchBalanceSnapshot (client);
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
-        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
             await client.future ('fetchBalanceSnapshot');
         }
         const messageHash = 'balance';
@@ -897,9 +916,9 @@ export default class bydfi extends bydfiRest {
     }
 
     fetchBalanceSnapshot (client: Client) {
-        const options = this.safeValue (this.options, 'watchBalance');
+        const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot) {
+        if (fetchBalanceSnapshot === true) {
             const messageHash = 'fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -908,7 +927,7 @@ export default class bydfi extends bydfiRest {
         }
     }
 
-    async loadBalanceSnapshot (client, messageHash) {
+    async loadBalanceSnapshot (client: Client, messageHash: string) {
         const params: Dict = {
             'type': 'swap',
         };
@@ -920,7 +939,7 @@ export default class bydfi extends bydfiRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "a": {
@@ -964,7 +983,7 @@ export default class bydfi extends bydfiRest {
         const messageHash = 'balance';
         if (messageHash in client.futures) {
             const data = this.safeDict (message, 'a', {});
-            const balances = this.safeList (data, 'B', []);
+            const balances: Dict[] = this.safeList (data, 'B', []);
             const timestamp = this.safeInteger (message, 'T');
             const result: Dict = {
                 'info': message,
@@ -972,13 +991,15 @@ export default class bydfi extends bydfiRest {
                 'datetime': this.iso8601 (timestamp),
             };
             for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
+                const balance = this.safeDict (balances, i);
                 const currencyId = this.safeString (balance, 'a');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
                 account['total'] = this.safeString (balance, 'wb');
                 account['used'] = this.safeString (balance, 'tfm');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             const parsedBalance = this.safeBalance (result);
             this.balance = this.extend (this.balance, parsedBalance);
@@ -986,7 +1007,7 @@ export default class bydfi extends bydfiRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: Dict): Dict {
         //
         //     {
         //         "result": true,
@@ -997,7 +1018,7 @@ export default class bydfi extends bydfiRest {
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeDict (subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool (subscription, 'unsubscribe', false);
-        if (isUnSubMessage) {
+        if (isUnSubMessage === true) {
             this.handleUnSubscription (client, subscription);
         }
         return message;
@@ -1014,7 +1035,7 @@ export default class bydfi extends bydfiRest {
         this.cleanCache (subscription);
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: Dict): Dict {
         //
         //     {
         //         "id": 1,
@@ -1025,7 +1046,7 @@ export default class bydfi extends bydfiRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message: Dict) {
         //
         //     {
         //         "msg": "Service error",
@@ -1041,7 +1062,7 @@ export default class bydfi extends bydfiRest {
         throw new ExchangeError (feedback);
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: Dict) {
         const code = this.safeString (message, 'code');
         if (code !== undefined && (code !== '0')) {
             this.handleErrorMessage (client, message);

@@ -1,8 +1,5 @@
-- [Binance Savings Endpoints](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -42,5 +39,5 @@ response = exchange.sapi_post_lending_daily_redeem({
     # https://binance-docs.github.io/apidocs/spot/en/#redeem-flexible-product-user_data
 })
 
-pprint(response) 
+pprint(response)
 ```

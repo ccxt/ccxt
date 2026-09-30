@@ -1,3 +1,4 @@
+// @NO_AUTO_TRANSPILE
 // @ts-nocheck
 // JavaScript sample Proxy with CORS support
 // Save this in a file like cors.js and run with:

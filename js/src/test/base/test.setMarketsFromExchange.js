@@ -11,7 +11,7 @@ async function testSetMarketsFromExchange() {
     const emptyExchange = new ccxt.Exchange({
         'id': 'sample0',
     });
-    assert("GO_SKIP_START");
+    // @SKIP_START_GO
     const methodName = 'setMarketsFromExchange';
     const trueClause = emptyExchange.safeString(undefined, undefined) === undefined;
     const sampleMarket = {
@@ -25,7 +25,7 @@ async function testSetMarketsFromExchange() {
     const exchange2 = new ccxt.Exchange({
         'id': 'primaryEx',
     });
-    assert(Object.keys(exchange1.markets).length > 0, 'Markets should be loaded in exchange1');
+    assert((exchange1.markets !== undefined) && (Object.keys(exchange1.markets).length > 0), 'Markets should be loaded in exchange1');
     // Test error case: exchanges are different
     const differentExchange = new ccxt.Exchange({
         'id': 'secondaryEx',
@@ -65,6 +65,7 @@ async function testSetMarketsFromExchange() {
     // Should be very fast since no API call is made
     const timeTaken = endTime - startTime;
     assert(timeTaken < 10, 'loadMarkets on shared markets should be fast');
-    assert("GO_SKIP_END");
+    // @SKIP_END_GO
+    emptyExchange.describe(); // avoid unused var
 }
 export default testSetMarketsFromExchange;

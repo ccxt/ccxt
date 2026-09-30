@@ -6,7 +6,7 @@
     "methods": {
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "url": "https://api.ndax.io:8443/AP/GetProducts?omsId=1",
                 "input": [],
@@ -15,12 +15,15 @@
         ],
         "fetchTrades": [
             {
-                "description": "spot fetchTrades",
+                "description": "with limit",
                 "method": "fetchTrades",
-                "url": "https://api.ndax.io:8443/AP/GetLastTrades?omsId=1&InstrumentId=82",
+                "url": "https://api.ndax.io:8443/AP/GetLastTrades?omsId=1&InstrumentId=82&Count=10",
                 "input": [
-                    "BTC/USDT"
-                ]
+                    "BTC/USDT",
+                    null,
+                    10
+                ],
+                "output": null
             }
         ],
         "fetchOrderBook": [
@@ -98,7 +101,7 @@
                     "buy",
                     1
                 ],
-                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":0,\"Quantity\":1,\"OrderType\":1}"
+                "output": { "InstrumentId": 78, "omsId": 1, "AccountId": 187639, "TimeInForce": 1, "Side": 0, "Quantity": 1, "OrderType": 1 }
             },
             {
                 "description": "Stop limit order",
@@ -114,7 +117,7 @@
                     "triggerPrice": "1.60"
                   }
                 ],
-                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":1,\"Quantity\":0.9,\"OrderType\":4,\"LimitPrice\":1.6,\"StopPrice\":\"1.60\"}"
+                "output": { "InstrumentId": 78, "omsId": 1, "AccountId": 187639, "TimeInForce": 1, "Side": 1, "Quantity": 0.99, "OrderType": 4, "LimitPrice": 1.6, "StopPrice": "1.60" }
             },
             {
                 "description": "Limit Order",
@@ -127,7 +130,7 @@
                   0.998,
                   1.6
                 ],
-                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":1,\"Quantity\":0.9,\"OrderType\":2,\"LimitPrice\":1.6}"
+                "output": { "InstrumentId": 78, "omsId": 1, "AccountId": 187639, "TimeInForce": 1, "Side": 1, "Quantity": 0.99, "OrderType": 2, "LimitPrice": 1.6 }
             },
             {
                 "description": "Order with ClientOrderId",
@@ -143,7 +146,7 @@
                     "clientOrderId": "27"
                   }
                 ],
-                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":0,\"Quantity\":0.9,\"OrderType\":2,\"LimitPrice\":1.6,\"ClientOrderId\":27}"
+                "output": { "InstrumentId": 78, "omsId": 1, "AccountId": 187639, "TimeInForce": 1, "Side": 0, "Quantity": 0.99, "OrderType": 2, "LimitPrice": 1.6, "ClientOrderId": 27 }
             }
         ],
         "cancelOrder": [
@@ -154,7 +157,7 @@
                 "input": [
                   "23092280996"
                 ],
-                "output": "{\"omsId\":1,\"OrderId\":23092280996}"
+                "output": { "omsId": 1, "OrderId": 23092280996 }
             },
             {
                 "description": "Cancel order by ClientOrderId",
@@ -167,7 +170,7 @@
                     "clientOrderId": "27"
                   }
                 ],
-                "output": "{\"omsId\":1,\"ClOrderId\":27}"
+                "output": { "omsId": 1, "ClOrderId": 27 }
               }
         ],
         "cancelAllOrders": [
@@ -176,7 +179,7 @@
                 "method": "cancelAllOrders",
                 "url": "https://api.ndax.io:8443/AP/CancelAllOrders",
                 "input": [],
-                "output": "{\"omsId\":1,\"AccountId\":187639}"
+                "output": { "omsId": 1, "AccountId": 187639 }
             },
             {
                 "description": "Cancel All Orders with symbol since and limit",
@@ -185,7 +188,7 @@
                 "input": [
                   "ADA/CAD"
                 ],
-                "output": "{\"omsId\":1,\"AccountId\":187639,\"IntrumentId\":\"78\"}"
+                "output": { "omsId": 1, "AccountId": 187639, "IntrumentId": "78" }
             }
         ],
         "fetchDeposits": [

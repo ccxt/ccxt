@@ -6,6 +6,20 @@
       "portfolio": "1wp37qsc-1-0"
     },
     "methods": {
+       "transfer": [
+        {
+          "description": "transfer an asset between portfolios",
+          "method": "transfer",
+          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/transfer",
+          "input": [
+            "USDC",
+            100.5,
+            "portfolio-a",
+            "portfolio-b"
+          ],
+          "output": "{\"asset\":\"USDC\",\"amount\":100.5,\"from\":\"portfolio-a\",\"to\":\"portfolio-b\"}"
+        }
+       ],
        "fetchAccounts": [
         {
           "description": "fetchAccounts",
@@ -234,6 +248,18 @@
       }
     ],
     "fetchOHLCV": [
+            {
+                "disabled": true,
+                "reason": "without since it uses dynamic ts value, which can't be fixtured",
+                "description": "without since",
+                "method": "fetchOHLCV",
+                "url": "https://api.international.coinbase.com/api/v1/instruments/BTC-PERP/candles?granularity=ONE_MINUTE&start=2026-09-22T17%3A39%3A23.381Z",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m"
+                ],
+                "output": null
+            },
       {
         "description": "fetchOHLCV",
         "method": "fetchOHLCV",

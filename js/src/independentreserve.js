@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/independentreserve.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { BadRequest } from './base/errors.js';
+import { BadRequest, ExchangeError } from './base/errors.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class independentreserve
@@ -20,7 +20,7 @@ export default class independentreserve extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'independentreserve',
             'name': 'Independent Reserve',
-            'countries': ['AU', 'NZ'],
+            'countries': ['AU', 'NZ'], // Australia, New Zealand
             'rateLimit': 1000,
             'pro': true,
             'has': {
@@ -130,51 +130,58 @@ export default class independentreserve extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'GetValidPrimaryCurrencyCodes',
-                        'GetValidSecondaryCurrencyCodes',
-                        'GetValidLimitOrderTypes',
-                        'GetValidMarketOrderTypes',
-                        'GetValidOrderTypes',
-                        'GetValidTransactionTypes',
-                        'GetMarketSummary',
-                        'GetOrderBook',
-                        'GetAllOrders',
-                        'GetTradeHistorySummary',
-                        'GetRecentTrades',
-                        'GetFxRates',
-                        'GetOrderMinimumVolumes',
-                        'GetCryptoWithdrawalFees',
-                        'GetCryptoWithdrawalFees2',
-                        'GetNetworks',
-                        'GetPrimaryCurrencyConfig2',
-                    ],
+                    'get': {
+                        'GetValidPrimaryCurrencyCodes': { 'cost': 1 },
+                        'GetValidSecondaryCurrencyCodes': { 'cost': 1 },
+                        'GetValidLimitOrderTypes': { 'cost': 1 },
+                        'GetValidMarketOrderTypes': { 'cost': 1 },
+                        'GetValidOrderTypes': { 'cost': 1 },
+                        'GetValidTransactionTypes': { 'cost': 1 },
+                        'GetMarketSummary': { 'cost': 1 },
+                        'GetOrderBook': { 'cost': 1 },
+                        'GetAllOrders': { 'cost': 1 },
+                        'GetTradeHistorySummary': { 'cost': 1 },
+                        'GetRecentTrades': { 'cost': 1 },
+                        'GetFxRates': { 'cost': 1 },
+                        'GetOrderMinimumVolumes': { 'cost': 1 },
+                        'GetDepositFees': { 'cost': 1 },
+                        'GetFiatWithdrawalFees': { 'cost': 1 },
+                        'GetCryptoWithdrawalFees': { 'cost': 1 },
+                        'GetCryptoWithdrawalFees2': { 'cost': 1 },
+                        'GetNetworks': { 'cost': 1 },
+                        'GetPrimaryCurrencyConfig2': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'GetOpenOrders',
-                        'GetClosedOrders',
-                        'GetClosedFilledOrders',
-                        'GetOrderDetails',
-                        'GetAccounts',
-                        'GetTransactions',
-                        'GetFiatBankAccounts',
-                        'GetDigitalCurrencyDepositAddress',
-                        'GetDigitalCurrencyDepositAddress2',
-                        'GetDigitalCurrencyDepositAddresses',
-                        'GetDigitalCurrencyDepositAddresses2',
-                        'GetTrades',
-                        'GetBrokerageFees',
-                        'GetDigitalCurrencyWithdrawal',
-                        'PlaceLimitOrder',
-                        'PlaceMarketOrder',
-                        'CancelOrder',
-                        'SynchDigitalCurrencyDepositAddressWithBlockchain',
-                        'RequestFiatWithdrawal',
-                        'WithdrawFiatCurrency',
-                        'WithdrawDigitalCurrency',
-                        'WithdrawCrypto',
-                    ],
+                    'post': {
+                        'GetOpenOrders': { 'cost': 1 },
+                        'GetClosedOrders': { 'cost': 1 },
+                        'GetClosedFilledOrders': { 'cost': 1 },
+                        'GetOrderDetails': { 'cost': 1 },
+                        'GetAccounts': { 'cost': 1 },
+                        'GetTransactions': { 'cost': 1 },
+                        'GetFiatBankAccounts': { 'cost': 1 },
+                        'GetDigitalCurrencyDepositAddress': { 'cost': 1 },
+                        'GetDigitalCurrencyDepositAddress2': { 'cost': 1 },
+                        'GetDigitalCurrencyDepositAddresses': { 'cost': 1 },
+                        'GetDigitalCurrencyDepositAddresses2': { 'cost': 1 },
+                        'GetTrades': { 'cost': 1 },
+                        'GetTradesByOrder': { 'cost': 1 },
+                        'GetBrokerageFees': { 'cost': 1 },
+                        'GetDigitalCurrencyWithdrawal': { 'cost': 1 },
+                        'GetFiatWithdrawal': { 'cost': 1 },
+                        'GetDepositLimits': { 'cost': 1 },
+                        'GetWithdrawalLimits': { 'cost': 1 },
+                        'PlaceLimitOrder': { 'cost': 1 },
+                        'PlaceMarketOrder': { 'cost': 1 },
+                        'CancelOrder': { 'cost': 1 },
+                        'CancelOrders': { 'cost': 1 },
+                        'SynchDigitalCurrencyDepositAddressWithBlockchain': { 'cost': 1 },
+                        'RequestFiatWithdrawal': { 'cost': 1 },
+                        'WithdrawFiatCurrency': { 'cost': 1 },
+                        'WithdrawDigitalCurrency': { 'cost': 1 },
+                        'WithdrawCrypto': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -197,9 +204,10 @@ export default class independentreserve extends Exchange {
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'IOC': false,
-                            'FOK': false,
-                            'PO': false,
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
                             'GTD': false,
                         },
                         'hedged': false,
@@ -213,7 +221,7 @@ export default class independentreserve extends Exchange {
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 100,
+                        'limit': 100, // todo
                         'daysBack': undefined,
                         'untilDays': undefined,
                         'symbolRequired': false,
@@ -226,7 +234,7 @@ export default class independentreserve extends Exchange {
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
-                        'limit': 100,
+                        'limit': 100, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -234,7 +242,7 @@ export default class independentreserve extends Exchange {
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
                         'marginMode': false,
-                        'limit': 100,
+                        'limit': 100, // todo
                         'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
@@ -336,13 +344,18 @@ export default class independentreserve extends Exchange {
         //     }
         //
         const result = [];
-        for (let i = 0; i < baseCurrencies.length; i++) {
-            const baseId = baseCurrencies[i];
+        const baseCurrencyIds = this.toArray(baseCurrencies);
+        const quoteCurrencyIds = this.toArray(quoteCurrencies);
+        for (let i = 0; i < baseCurrencyIds.length; i++) {
+            const baseId = baseCurrencyIds[i];
             const base = this.safeCurrencyCode(baseId);
             const minAmount = this.safeNumber(limits, baseId);
-            for (let j = 0; j < quoteCurrencies.length; j++) {
-                const quoteId = quoteCurrencies[j];
+            for (let j = 0; j < quoteCurrencyIds.length; j++) {
+                const quoteId = quoteCurrencyIds[j];
                 const quote = this.safeCurrencyCode(quoteId);
+                if ((base === undefined) || (quote === undefined)) {
+                    continue;
+                }
                 const id = baseId + '/' + quoteId;
                 result.push({
                     'id': id,
@@ -400,13 +413,15 @@ export default class independentreserve extends Exchange {
     parseBalance(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict(response, i);
             const currencyId = this.safeString(balance, 'CurrencyCode');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             account['free'] = this.safeString(balance, 'AvailableBalance');
             account['total'] = this.safeString(balance, 'TotalBalance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -418,7 +433,9 @@ export default class independentreserve extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostGetAccounts(params);
         return this.parseBalance(response);
     }
@@ -429,10 +446,12 @@ export default class independentreserve extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'primaryCurrencyCode': market['baseId'],
@@ -463,8 +482,8 @@ export default class independentreserve extends Exchange {
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             defaultMarketId = baseId + '/' + quoteId;
         }
-        market = this.safeMarket(defaultMarketId, market, '/');
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(defaultMarketId, market, '/');
+        const symbol = marketResolved['symbol'];
         const last = this.safeString(ticker, 'LastPrice');
         return this.safeTicker({
             'symbol': symbol,
@@ -487,7 +506,7 @@ export default class independentreserve extends Exchange {
             'baseVolume': this.safeString(ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -498,7 +517,9 @@ export default class independentreserve extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'primaryCurrencyCode': market['baseId'],
@@ -578,12 +599,14 @@ export default class independentreserve extends Exchange {
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             base = this.safeCurrencyCode(baseId);
             quote = this.safeCurrencyCode(quoteId);
-            symbol = base + '/' + quote;
+            if ((base !== undefined) && (quote !== undefined)) {
+                symbol = base + '/' + quote;
+            }
         }
         else if (market !== undefined) {
             symbol = market['symbol'];
             base = market['base'];
-            quote = market['quote'];
+            quote = this.safeString(market, 'quote');
         }
         let orderType = this.safeString2(order, 'Type', 'OrderType');
         let side = undefined;
@@ -617,7 +640,7 @@ export default class independentreserve extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': orderType,
-            'timeInForce': undefined,
+            'timeInForce': this.parseTimeInForce(this.safeString(order, 'TimeInForce')),
             'postOnly': undefined,
             'side': side,
             'price': this.safeString(order, 'Price'),
@@ -645,8 +668,18 @@ export default class independentreserve extends Exchange {
             'Cancelled': 'canceled',
             'PartiallyFilledAndExpired': 'canceled',
             'Expired': 'canceled',
+            'Failed': 'canceled',
         };
         return this.safeString(statuses, status, status);
+    }
+    parseTimeInForce(timeInForce) {
+        const timeInForces = {
+            'Gtc': 'GTC',
+            'Moc': 'PO',
+            'Fok': 'FOK',
+            'Ioc': 'IOC',
+        };
+        return this.safeString(timeInForces, timeInForce, timeInForce);
     }
     /**
      * @method
@@ -658,7 +691,9 @@ export default class independentreserve extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostGetOrderDetails(this.extend({
             'orderGuid': id,
         }, params));
@@ -679,7 +714,9 @@ export default class independentreserve extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -687,14 +724,15 @@ export default class independentreserve extends Exchange {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        if (limit === undefined) {
-            limit = 50;
+        let limitResolved = limit;
+        if (limitResolved === undefined) {
+            limitResolved = 50;
         }
         request['pageIndex'] = 1;
-        request['pageSize'] = limit;
+        request['pageSize'] = limitResolved;
         const response = await this.privatePostGetOpenOrders(this.extend(request, params));
         const data = this.safeList(response, 'Data', []);
-        return this.parseOrders(data, market, since, limit);
+        return this.parseOrders(data, market, since, limitResolved);
     }
     /**
      * @method
@@ -707,7 +745,9 @@ export default class independentreserve extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -715,14 +755,15 @@ export default class independentreserve extends Exchange {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        if (limit === undefined) {
-            limit = 50;
+        let limitResolved = limit;
+        if (limitResolved === undefined) {
+            limitResolved = 50;
         }
         request['pageIndex'] = 1;
-        request['pageSize'] = limit;
+        request['pageSize'] = limitResolved;
         const response = await this.privatePostGetClosedOrders(this.extend(request, params));
         const data = this.safeList(response, 'Data', []);
-        return this.parseOrders(data, market, since, limit);
+        return this.parseOrders(data, market, since, limitResolved);
     }
     /**
      * @method
@@ -735,21 +776,25 @@ export default class independentreserve extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = 50, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const pageIndex = this.safeInteger(params, 'pageIndex', 1);
-        if (limit === undefined) {
-            limit = 50;
+        let limitResolved = limit;
+        if (limitResolved === undefined) {
+            limitResolved = 50;
         }
         const request = {
             'pageIndex': pageIndex,
-            'pageSize': limit,
+            'pageSize': limitResolved,
         };
         const response = await this.privatePostGetTrades(this.extend(request, params));
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        return this.parseTrades(response['Data'], market, since, limit);
+        const data = this.safeList(response, 'Data', []);
+        return this.parseTrades(data, market, since, limitResolved);
     }
     parseTrade(trade, market = undefined) {
         const timestamp = this.parse8601(trade['TradeTimestampUtc']);
@@ -803,7 +848,9 @@ export default class independentreserve extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'primaryCurrencyCode': market['baseId'],
@@ -811,7 +858,8 @@ export default class independentreserve extends Exchange {
             'numberOfRecentTradesToRetrieve': 50, // max = 50
         };
         const response = await this.publicGetGetRecentTrades(this.extend(request, params));
-        return this.parseTrades(response['Trades'], market, since, limit);
+        const trades = this.safeList(response, 'Trades', []);
+        return this.parseTrades(trades, market, since, limit);
     }
     /**
      * @method
@@ -821,7 +869,9 @@ export default class independentreserve extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostGetBrokerageFees(params);
         //
         //     [
@@ -833,23 +883,27 @@ export default class independentreserve extends Exchange {
         //     ]
         //
         const fees = {};
-        for (let i = 0; i < response.length; i++) {
-            const fee = response[i];
+        const rows = this.toArray(response);
+        for (let i = 0; i < rows.length; i++) {
+            const fee = rows[i];
             const currencyId = this.safeString(fee, 'CurrencyCode');
             const code = this.safeCurrencyCode(currencyId);
             const tradingFee = this.safeNumber(fee, 'Fee');
-            fees[code] = {
-                'info': fee,
-                'fee': tradingFee,
-            };
+            if (code !== undefined) {
+                fees[code] = {
+                    'info': fee,
+                    'fee': tradingFee,
+                };
+            }
         }
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
-            const fee = this.safeValue(fees, market['base'], {});
+            const fee = this.safeDict(fees, market['base'], {});
             result[symbol] = {
-                'info': this.safeValue(fee, 'info'),
+                'info': this.safeDict(fee, 'info'),
                 'symbol': symbol,
                 'maker': this.safeNumber(fee, 'fee'),
                 'taker': this.safeNumber(fee, 'fee'),
@@ -872,7 +926,9 @@ export default class independentreserve extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let orderType = this.capitalize(type);
         orderType += (side === 'sell') ? 'Offer' : 'Bid';
@@ -881,7 +937,7 @@ export default class independentreserve extends Exchange {
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
         };
-        let response = undefined;
+        let response;
         request['volume'] = amount;
         if (type === 'limit') {
             request['price'] = price;
@@ -906,7 +962,9 @@ export default class independentreserve extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'orderGuid': id,
         };
@@ -938,7 +996,9 @@ export default class independentreserve extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'primaryCurrencyCode': currency['id'],
@@ -989,23 +1049,24 @@ export default class independentreserve extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'primaryCurrencyCode': currency['id'],
             'withdrawalAddress': address,
             'amount': this.currencyToPrecision(code, amount),
         };
-        if (tag !== undefined) {
-            request['destinationTag'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['destinationTag'] = tagWithdrawTag;
         }
-        let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         if (networkCode !== undefined) {
             throw new BadRequest(this.id + ' withdraw () does not accept params["networkCode"]');
         }
-        const response = await this.privatePostWithdrawDigitalCurrency(this.extend(request, params));
+        const response = await this.privatePostWithdrawDigitalCurrency(this.extend(request, paramsNetworkCode));
         //
         //    {
         //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
@@ -1077,16 +1138,25 @@ export default class independentreserve extends Exchange {
             'internal': false,
         };
     }
+    nonce() {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds();
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + path;
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + path;
         if (api === 'public') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
         else {
             this.checkRequiredCredentials();
-            const nonce = this.nonce();
+            // independentreserve requires an increasing nonce
+            const nonce = this.incrementingNonce();
             const auth = [
                 url,
                 'apiKey=' + this.apiKey,
@@ -1108,8 +1178,9 @@ export default class independentreserve extends Exchange {
                 const key = keys[i];
                 query[key] = params[key];
             }
-            body = this.json(query);
-            headers = { 'Content-Type': 'application/json' };
+            const signedBody = this.json(query);
+            const signedHeaders = { 'Content-Type': 'application/json' };
+            return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

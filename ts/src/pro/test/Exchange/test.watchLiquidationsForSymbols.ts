@@ -1,27 +1,29 @@
 import assert from 'assert';
-import { Exchange } from "../../../../ccxt";
+import { Exchange } from "../../../../ccxt.js";
 import { NetworkError } from '../../../base/errors.js';
+import { Liquidation } from '../../../base/types.js';
 import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
-
 
 async function testWatchLiquidationsForSymbols (exchange: Exchange, skippedProperties: object, symbol: string) {
 
     const method = 'watchLiquidationsForSymbols';
 
     // we have to skip some exchanges here due to the frequency of trading
-    const skippedExchanges = [];
+    const skippedExchanges: string[] = [];
 
     if (exchange.inArray (exchange.id, skippedExchanges)) {
-        console.log (exchange.id, method + '() test skipped');
+        const m1 = (exchange.id + ' ' + method + '() test skipped');
+        console.log (m1);
         return false;
     }
 
-    if (!exchange.has[method]) {
-        console.log (exchange.id, method + '() is not supported');
+    if (exchange.has[method] === undefined || exchange.has[method] === false) {
+        const m2 = (exchange.id + ' does not support ' + method + '() method');
+        console.log (m2);
         return false;
     }
 
-    let response = undefined;
+    let response: Liquidation[] | undefined = undefined;
 
     let now = Date.now ();
     const ends = now + 10000;
@@ -30,14 +32,15 @@ async function testWatchLiquidationsForSymbols (exchange: Exchange, skippedPrope
 
         try {
 
-            response = await exchange[method] ([ symbol ]);
+            response = await exchange.watchLiquidationsForSymbols ([ symbol ]);
 
             now = Date.now ();
 
             const isArray = Array.isArray (response);
             assert (isArray, "response must be an array");
 
-            console.log (exchange.iso8601 (now), exchange.id, symbol, method, Object.values (response).length, 'liquidations');
+            const m3 = (exchange.id + ' ' + method + '() returned ' + response.length + ' liquidations');
+            console.log (m3);
 
             // log.noLocate (asTable (response))
 

@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var whitebit$1 = require('./abstract/whitebit.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -37,7 +37,7 @@ class whitebit extends whitebit$1["default"] {
                 'createConvertTrade': true,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketOrderWithCost': false,
+                'createMarketOrderWithCost': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -48,13 +48,14 @@ class whitebit extends whitebit$1["default"] {
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchClosedOrders': true,
                 'fetchConvertQuote': true,
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': true,
-                'fetchCrossBorrowRate': true,
+                'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
@@ -68,7 +69,7 @@ class whitebit extends whitebit$1["default"] {
                 'fetchFundingHistory': true,
                 'fetchFundingLimits': true,
                 'fetchFundingRate': true,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
@@ -146,143 +147,171 @@ class whitebit extends whitebit$1["default"] {
             },
             'api': {
                 'web': {
-                    'get': [
-                        'v1/healthcheck',
-                    ],
+                    'get': {
+                        'v1/healthcheck': { 'cost': 1 },
+                    },
                 },
                 'v1': {
                     'public': {
-                        'get': [
-                            'markets',
-                            'tickers',
-                            'ticker',
-                            'symbols',
-                            'depth/result',
-                            'history',
-                            'kline',
-                        ],
+                        'get': {
+                            'markets': { 'cost': 1 },
+                            'tickers': { 'cost': 1 },
+                            'ticker': { 'cost': 1 },
+                            'symbols': { 'cost': 1 },
+                            'depth/result': { 'cost': 1 },
+                            'history': { 'cost': 1 },
+                            'kline': { 'cost': 1 },
+                        },
                     },
                     'private': {
-                        'post': [
-                            'account/balance',
-                            'order/new',
-                            'order/cancel',
-                            'orders',
-                            'account/order_history',
-                            'account/executed_history',
-                            'account/executed_history/all',
-                            'account/order',
-                        ],
+                        'post': {
+                            'account/balance': { 'cost': 1 },
+                            'order/new': { 'cost': 1 },
+                            'order/cancel': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'account/order_history': { 'cost': 1 },
+                            'account/executed_history': { 'cost': 1 },
+                            'account/executed_history/all': { 'cost': 1 },
+                            'account/order': { 'cost': 1 },
+                        },
                     },
                 },
                 'v2': {
                     'public': {
-                        'get': [
-                            'markets',
-                            'ticker',
-                            'assets',
-                            'fee',
-                            'depth/{market}',
-                            'trades/{market}',
-                        ],
+                        'get': {
+                            'markets': { 'cost': 1 },
+                            'ticker': { 'cost': 1 },
+                            'assets': { 'cost': 1 },
+                            'fee': { 'cost': 1 },
+                            'depth/{market}': { 'cost': 1 },
+                            'trades/{market}': { 'cost': 1 },
+                        },
                     },
                 },
                 'v4': {
                     'public': {
-                        'get': [
-                            'assets',
-                            'collateral/markets',
-                            'fee',
-                            'orderbook/depth/{market}',
-                            'orderbook/{market}',
-                            'ticker',
-                            'trades/{market}',
-                            'time',
-                            'ping',
-                            'markets',
-                            'futures',
-                            'platform/status',
-                            'mining-pool',
-                        ],
+                        'get': {
+                            'assets': { 'cost': 1 },
+                            'collateral/markets': { 'cost': 1 },
+                            'fee': { 'cost': 1 },
+                            'funding-history/{market}': { 'cost': 1 },
+                            'orderbook/depth/{market}': { 'cost': 1 },
+                            'orderbook/{market}': { 'cost': 1 },
+                            'ticker': { 'cost': 1 },
+                            'trades/{market}': { 'cost': 1 },
+                            'time': { 'cost': 1 },
+                            'ping': { 'cost': 1 },
+                            'markets': { 'cost': 1 },
+                            'futures': { 'cost': 1 },
+                            'platform/status': { 'cost': 1 },
+                            'mining-pool': { 'cost': 1 },
+                        },
                     },
                     'private': {
-                        'post': [
-                            'collateral-account/balance',
-                            'collateral-account/balance-summary',
-                            'collateral-account/positions/history',
-                            'collateral-account/leverage',
-                            'collateral-account/positions/open',
-                            'collateral-account/summary',
-                            'collateral-account/funding-history',
-                            'main-account/address',
-                            'main-account/balance',
-                            'main-account/create-new-address',
-                            'main-account/codes',
-                            'main-account/codes/apply',
-                            'main-account/codes/my',
-                            'main-account/codes/history',
-                            'main-account/fiat-deposit-url',
-                            'main-account/history',
-                            'main-account/withdraw',
-                            'main-account/withdraw-pay',
-                            'main-account/transfer',
-                            'main-account/smart/plans',
-                            'main-account/smart/investment',
-                            'main-account/smart/investment/close',
-                            'main-account/smart/investments',
-                            'main-account/fee',
-                            'main-account/smart/interest-payment-history',
-                            'trade-account/balance',
-                            'trade-account/executed-history',
-                            'trade-account/order/history',
-                            'trade-account/order',
-                            'order/collateral/limit',
-                            'order/collateral/market',
-                            'order/collateral/stop-limit',
-                            'order/collateral/trigger-market',
-                            'order/collateral/bulk',
-                            'order/new',
-                            'order/market',
-                            'order/stock_market',
-                            'order/stop_limit',
-                            'order/stop_market',
-                            'order/cancel',
-                            'order/cancel/all',
-                            'order/kill-switch',
-                            'order/kill-switch/status',
-                            'order/bulk',
-                            'order/modify',
-                            'order/conditional-cancel',
-                            'orders',
-                            'oco-orders',
-                            'order/collateral/oco',
-                            'order/oco-cancel',
-                            'order/oto-cancel',
-                            'profile/websocket_token',
-                            'convert/estimate',
-                            'convert/confirm',
-                            'convert/history',
-                            'sub-account/create',
-                            'sub-account/delete',
-                            'sub-account/edit',
-                            'sub-account/list',
-                            'sub-account/transfer',
-                            'sub-account/block',
-                            'sub-account/unblock',
-                            'sub-account/balances',
-                            'sub-account/transfer/history',
-                            'sub-account/api-key/create',
-                            'sub-account/api-key/edit',
-                            'sub-account/api-key/delete',
-                            'sub-account/api-key/list',
-                            'sub-account/api-key/reset',
-                            'sub-account/api-key/ip-address/list',
-                            'sub-account/api-key/ip-address/create',
-                            'sub-account/api-key/ip-address/delete',
-                            'mining/rewards',
-                            'market/fee',
-                            'conditional-orders',
-                        ],
+                        'post': {
+                            'collateral-account/balance': { 'cost': 1 },
+                            'collateral-account/balance-summary': { 'cost': 1 },
+                            'collateral-account/positions/history': { 'cost': 1 },
+                            'collateral-account/leverage': { 'cost': 1 },
+                            'collateral-account/positions/open': { 'cost': 1 },
+                            'collateral-account/positions/closed-pnl': { 'cost': 1 },
+                            'collateral-account/summary': { 'cost': 1 },
+                            'collateral-account/funding-history': { 'cost': 1 },
+                            'main-account/address': { 'cost': 1 },
+                            'main-account/balance': { 'cost': 1 },
+                            'main-account/create-new-address': { 'cost': 1 },
+                            'main-account/codes': { 'cost': 1 },
+                            'main-account/codes/apply': { 'cost': 1 },
+                            'main-account/codes/my': { 'cost': 1 },
+                            'main-account/codes/history': { 'cost': 1 },
+                            'main-account/fiat-deposit-url': { 'cost': 1 },
+                            'main-account/history': { 'cost': 1 },
+                            'main-account/withdraw': { 'cost': 1 },
+                            'main-account/withdraw-pay': { 'cost': 1 },
+                            'main-account/express-withdraw/token': { 'cost': 1 },
+                            'main-account/transfer': { 'cost': 1 },
+                            'main-account/smart/plans': { 'cost': 1 },
+                            'main-account/smart/investment': { 'cost': 1 },
+                            'main-account/smart/investment/close': { 'cost': 1 },
+                            'main-account/smart/investments': { 'cost': 1 },
+                            'main-account/fee': { 'cost': 1 },
+                            'main-account/smart/interest-payment-history': { 'cost': 1 },
+                            'main-account/smart-flex/plans': { 'cost': 1 },
+                            'main-account/smart-flex/investments': { 'cost': 1 },
+                            'main-account/smart-flex/investments/history': { 'cost': 1 },
+                            'main-account/smart-flex/investments/payment-history': { 'cost': 1 },
+                            'main-account/smart-flex/investments/invest': { 'cost': 1 },
+                            'main-account/smart-flex/investments/withdraw': { 'cost': 1 },
+                            'main-account/smart-flex/investments/close': { 'cost': 1 },
+                            'main-account/smart-flex/investments/auto-invest': { 'cost': 1 },
+                            'trade-account/balance': { 'cost': 1 },
+                            // answers with a list when a market is set and a dict of lists otherwise — no shape assertion
+                            'trade-account/executed-history': { 'cost': 1 },
+                            'trade-account/order/history': { 'cost': 1 },
+                            'trade-account/order/history/query': { 'cost': 1 },
+                            'trade-account/order': { 'cost': 1 },
+                            'order/collateral/limit': { 'cost': 1 },
+                            'order/collateral/market': { 'cost': 1 },
+                            'order/collateral/stop-limit': { 'cost': 1 },
+                            'order/collateral/trigger-market': { 'cost': 1 },
+                            'order/collateral/bulk': { 'cost': 1 },
+                            'order/new': { 'cost': 1 },
+                            'order/market': { 'cost': 1 },
+                            'order/stock_market': { 'cost': 1 },
+                            'order/stop_limit': { 'cost': 1 },
+                            'order/stop_market': { 'cost': 1 },
+                            'order/cancel': { 'cost': 1 },
+                            'order/cancel/all': { 'cost': 1 },
+                            'order/cancel/bulk': { 'cost': 1 },
+                            'order/kill-switch': { 'cost': 1 },
+                            'order/kill-switch/status': { 'cost': 1 },
+                            'order/bulk': { 'cost': 1 },
+                            'order/modify': { 'cost': 1 },
+                            'order/conditional-cancel': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'oco-orders': { 'cost': 1 },
+                            'order/collateral/oco': { 'cost': 1 },
+                            'order/oco-cancel': { 'cost': 1 },
+                            'order/oto-cancel': { 'cost': 1 },
+                            'profile/websocket_token': { 'cost': 1 },
+                            'convert/estimate': { 'cost': 1 },
+                            'convert/confirm': { 'cost': 1 },
+                            'convert/history': { 'cost': 1 },
+                            'sub-account/create': { 'cost': 1 },
+                            'sub-account/delete': { 'cost': 1 },
+                            'sub-account/edit': { 'cost': 1 },
+                            'sub-account/list': { 'cost': 1 },
+                            'sub-account/transfer': { 'cost': 1 },
+                            'sub-account/block': { 'cost': 1 },
+                            'sub-account/unblock': { 'cost': 1 },
+                            'sub-account/balances': { 'cost': 1 },
+                            'sub-account/transfer/history': { 'cost': 1 },
+                            'sub-account/api-key/create': { 'cost': 1 },
+                            'sub-account/api-key/edit': { 'cost': 1 },
+                            'sub-account/api-key/delete': { 'cost': 1 },
+                            'sub-account/api-key/list': { 'cost': 1 },
+                            'sub-account/api-key/reset': { 'cost': 1 },
+                            'sub-account/api-key/ip-address/list': { 'cost': 1 },
+                            'sub-account/api-key/ip-address/create': { 'cost': 1 },
+                            'sub-account/api-key/ip-address/delete': { 'cost': 1 },
+                            'mining/rewards': { 'cost': 1 },
+                            'mining/hashrate': { 'cost': 1 },
+                            'mining/payout-destination': { 'cost': 1 },
+                            'mining/payout-destination/edit': { 'cost': 1 },
+                            'mining/miners/info': { 'cost': 1 },
+                            'mining/workers/names': { 'cost': 1 },
+                            'mining/workers/hashrate': { 'cost': 1 },
+                            'mining/watcher-links/create': { 'cost': 1 },
+                            'mining/watcher-links/list': { 'cost': 1 },
+                            'mining/accounts/create': { 'cost': 1 },
+                            'mining/accounts': { 'cost': 1 },
+                            'market/fee': { 'cost': 1 },
+                            'market/fee/single': { 'cost': 1 },
+                            'conditional-orders': { 'cost': 1 },
+                            'travel-rule/vasps': { 'cost': 1 },
+                            'travel-rule/deposit/verification': { 'cost': 1 },
+                            'jwt': { 'cost': 1 },
+                        },
                     },
                 },
             },
@@ -295,10 +324,10 @@ class whitebit extends whitebit$1["default"] {
                 },
             },
             'options': {
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'timeDifference': 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'fiatCurrencies': ['EUR', 'USD', 'RUB', 'UAH'],
-                'nonceWindow': false,
+                'nonceWindow': false, // controls nonce validation behavior in API requests. Set to true for time-based validation. Useful for high-frequency trading systems with concurrent requests. For more details, see https://docs.whitebit.com/private/http-auth/
                 'fetchBalance': {
                     'account': 'spot',
                 },
@@ -321,8 +350,8 @@ class whitebit extends whitebit$1["default"] {
                         'triggerPrice': true,
                         'triggerDirection': false,
                         'triggerPriceType': undefined,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -410,28 +439,31 @@ class whitebit extends whitebit$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'Unauthorized request.': errors.AuthenticationError,
-                    'The market format is invalid.': errors.BadSymbol,
-                    'Market is not available': errors.BadSymbol,
-                    'Invalid payload.': errors.BadRequest,
-                    'Amount must be greater than 0': errors.InvalidOrder,
-                    'Not enough balance.': errors.InsufficientFunds,
-                    'The order id field is required.': errors.InvalidOrder,
-                    'Not enough balance': errors.InsufficientFunds,
-                    'This action is unauthorized.': errors.PermissionDenied,
-                    'This API Key is not authorized to perform this action.': errors.PermissionDenied,
-                    'Unexecuted order was not found.': errors.OrderNotFound,
-                    'The selected from is invalid.': errors.BadRequest,
-                    '503': errors.ExchangeNotAvailable,
+                    'Unauthorized request.': errors.AuthenticationError, // {"code":10,"message":"Unauthorized request."}
+                    'The market format is invalid.': errors.BadSymbol, // {"code":0,"message":"Validation failed","errors":{"market":["The market format is invalid."]}}
+                    'Market is not available': errors.BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
+                    'Invalid payload.': errors.BadRequest, // {"code":9,"message":"Invalid payload."}
+                    'Amount must be greater than 0': errors.InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
+                    'Not enough balance.': errors.InsufficientFunds, // {"code":10,"message":"Inner validation failed","errors":{"amount":["Not enough balance."]}}
+                    'The order id field is required.': errors.InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"orderId":["The order id field is required."]}}
+                    'Not enough balance': errors.InsufficientFunds, // {"code":0,"message":"Validation failed","errors":{"amount":["Not enough balance"]}}
+                    'This action is unauthorized.': errors.PermissionDenied, // {"code":0,"message":"This action is unauthorized."}
+                    'This API Key is not authorized to perform this action.': errors.PermissionDenied, // {"code":4,"message":"This API Key is not authorized to perform this action."}
+                    'Unexecuted order was not found.': errors.OrderNotFound, // {"code":2,"message":"Inner validation failed","errors":{"order_id":["Unexecuted order was not found."]}}
+                    'The selected from is invalid.': errors.BadRequest, // {"code":0,"message":"Validation failed","errors":{"from":["The selected from is invalid."]}}
+                    '503': errors.ExchangeNotAvailable, // {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null},
                     '422': errors.OrderNotFound, // {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
                 'broad': {
-                    'This action is unauthorized': errors.PermissionDenied,
-                    'Given amount is less than min amount': errors.InvalidOrder,
-                    'Min amount step': errors.InvalidOrder,
-                    'Total is less than': errors.InvalidOrder,
-                    'fee must be no less than': errors.InvalidOrder,
-                    'Enable your key in API settings': errors.PermissionDenied,
+                    'limit must be less than or equal to': errors.BadRequest,
+                    'The Price should be less than or equal to': errors.InvalidOrder, // {"code":250,"errors":{"price":["The Price should be less than or equal to 1.277"]},"message":"Validation failed"}
+                    'The Price should be greater than or equal to': errors.InvalidOrder, // {"code":250,"errors":{"price":["The Price should be greater than or equal to 0.0029"]},"message":"Validation failed"}
+                    'This action is unauthorized': errors.PermissionDenied, // {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
+                    'Given amount is less than min amount': errors.InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
+                    'Min amount step': errors.InvalidOrder, // {"code":32,"errors":{"amount":["Min amount step = 0.01"]},"message":"Validation failed"}
+                    'Total is less than': errors.InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
+                    'fee must be no less than': errors.InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Total amount + fee must be no less than 5.05505"]}}
+                    'Enable your key in API settings': errors.PermissionDenied, // {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
                     'You don\'t have such amount for transfer': errors.InsufficientFunds, // {"code":3,"message":"Inner validation failed","errors":{"amount":["You don't have such amount for transfer (available 0.44523433, in amount: 2)"]}}
                 },
             },
@@ -446,7 +478,7 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.safeBool(this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference();
         }
         const markets = await this.v4PublicGetMarkets();
@@ -479,21 +511,25 @@ class whitebit extends whitebit$1["default"] {
         const id = this.safeString(market, 'name');
         const baseId = this.safeString(market, 'stock');
         let quoteId = this.safeString(market, 'money');
-        quoteId = (quoteId === 'PERP') ? 'USDT' : quoteId;
+        if (quoteId === 'PERP') {
+            quoteId = 'USDT';
+        }
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const active = this.safeValue(market, 'tradesEnabled');
-        const isCollateral = this.safeValue(market, 'isCollateral');
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
+        const active = this.safeBool(market, 'tradesEnabled');
+        const isCollateral = this.safeBool(market, 'isCollateral');
         const typeId = this.safeString(market, 'type');
-        let type;
+        let type = undefined;
         let settle = undefined;
         let settleId = undefined;
         let symbol = base + '/' + quote;
-        const swap = typeId === 'futures';
-        const margin = isCollateral && !swap;
+        const swap = (typeId === 'futures') || (typeId === 'tradfiFutures');
+        const margin = (isCollateral === true) && !swap;
         let contract = false;
         const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
-        const contractSize = amountPrecision;
         let linear = undefined;
         let inverse = undefined;
         if (swap) {
@@ -513,7 +549,7 @@ class whitebit extends whitebit$1["default"] {
         const makerFeeRate = this.safeString(market, 'makerFee');
         const maker = Precise["default"].stringDiv(makerFeeRate, '100');
         const isSpot = !swap;
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -534,7 +570,7 @@ class whitebit extends whitebit$1["default"] {
             'inverse': inverse,
             'taker': this.parseNumber(taker),
             'maker': this.parseNumber(maker),
-            'contractSize': isSpot ? undefined : contractSize,
+            'contractSize': isSpot ? undefined : this.parseNumber('1'), // perpetual amounts are denominated in base currency units
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -563,7 +599,7 @@ class whitebit extends whitebit$1["default"] {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -640,27 +676,28 @@ class whitebit extends whitebit$1["default"] {
         //   }
         // }
         //
-        const ids = Object.keys(response);
-        const result = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const currency = response[id];
-            // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
-            const code = this.safeCurrencyCode(id);
-            const hasProvider = ('providers' in currency);
-            const networks = {};
-            const rawNetworks = this.safeDict(currency, 'networks', {});
-            const depositsNetworks = this.safeList(rawNetworks, 'deposits', []);
-            const withdrawsNetworks = this.safeList(rawNetworks, 'withdraws', []);
-            const networkLimits = this.safeDict(currency, 'limits', {});
-            const depositLimits = this.safeDict(networkLimits, 'deposit', {});
-            const withdrawLimits = this.safeDict(networkLimits, 'withdraw', {});
-            const allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
-            for (let j = 0; j < allNetworks.length; j++) {
-                const networkId = allNetworks[j];
-                const networkCode = this.networkIdToCode(networkId);
-                const networkDepositLimits = this.safeDict(depositLimits, networkId, {});
-                const networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, {});
+        const enhancedArray = this.addKeyInArrayItems(response, '_coin_id');
+        return this.parseCurrencies(enhancedArray);
+    }
+    parseCurrency(rawCurrency) {
+        // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
+        const id = this.safeString(rawCurrency, '_coin_id');
+        const code = this.safeCurrencyCode(id);
+        const hasProvider = ('providers' in rawCurrency);
+        const networks = {};
+        const rawNetworks = this.safeDict(rawCurrency, 'networks', {});
+        const depositsNetworks = this.safeList(rawNetworks, 'deposits', []);
+        const withdrawsNetworks = this.safeList(rawNetworks, 'withdraws', []);
+        const networkLimits = this.safeDict(rawCurrency, 'limits', {});
+        const depositLimits = this.safeDict(networkLimits, 'deposit', {});
+        const withdrawLimits = this.safeDict(networkLimits, 'withdraw', {});
+        const allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
+        for (let j = 0; j < allNetworks.length; j++) {
+            const networkId = allNetworks[j];
+            const networkCode = this.networkIdToCode(networkId, code);
+            const networkDepositLimits = this.safeDict(depositLimits, networkId, {});
+            const networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, {});
+            if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
@@ -681,35 +718,34 @@ class whitebit extends whitebit$1["default"] {
                     },
                 };
             }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': undefined,
-                'active': undefined,
-                'deposit': this.safeBool(currency, 'can_deposit'),
-                'withdraw': this.safeBool(currency, 'can_withdraw'),
-                'fee': undefined,
-                'networks': networks,
-                'type': hasProvider ? 'fiat' : 'crypto',
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'currency_precision'))),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': this.safeNumber(currency, 'min_withdraw'),
-                        'max': this.safeNumber(currency, 'max_withdraw'),
-                    },
-                    'deposit': {
-                        'min': this.safeNumber(currency, 'min_deposit'),
-                        'max': this.safeNumber(currency, 'max_deposit'),
-                    },
-                },
-            });
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency, // the original payload
+            'name': undefined, // see the comment above
+            'active': undefined,
+            'deposit': this.safeBool(rawCurrency, 'can_deposit'),
+            'withdraw': this.safeBool(rawCurrency, 'can_withdraw'),
+            'fee': undefined,
+            'networks': networks,
+            'type': hasProvider ? 'fiat' : 'crypto',
+            'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'currency_precision'))),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber(rawCurrency, 'min_withdraw'),
+                    'max': this.safeNumber(rawCurrency, 'max_withdraw'),
+                },
+                'deposit': {
+                    'min': this.safeNumber(rawCurrency, 'min_deposit'),
+                    'max': this.safeNumber(rawCurrency, 'max_deposit'),
+                },
+            },
+        });
     }
     /**
      * @method
@@ -722,7 +758,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTransactionFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v4PublicGetFee(params);
         //
         //      {
@@ -754,12 +792,16 @@ class whitebit extends whitebit$1["default"] {
         const depositFees = {};
         for (let i = 0; i < currenciesIds.length; i++) {
             const currency = currenciesIds[i];
-            const data = response[currency];
+            const data = this.safeDict(response, currency, {});
             const code = this.safeCurrencyCode(currency);
-            const withdraw = this.safeValue(data, 'withdraw', {});
-            withdrawFees[code] = this.safeString(withdraw, 'fixed');
-            const deposit = this.safeValue(data, 'deposit', {});
-            depositFees[code] = this.safeString(deposit, 'fixed');
+            const withdraw = this.safeDict(data, 'withdraw', {});
+            if (code !== undefined) {
+                withdrawFees[code] = this.safeString(withdraw, 'fixed');
+            }
+            const deposit = this.safeDict(data, 'deposit', {});
+            if (code !== undefined) {
+                depositFees[code] = this.safeString(deposit, 'fixed');
+            }
         }
         return {
             'withdraw': withdrawFees,
@@ -777,7 +819,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v4PublicGetFee(params);
         //
         //    {
@@ -867,7 +911,7 @@ class whitebit extends whitebit$1["default"] {
         //    }
         //
         const depositWithdrawFees = {};
-        codes = this.marketCodes(codes);
+        const codesValue = this.marketCodes(codes);
         const currencyIds = Object.keys(response);
         for (let i = 0; i < currencyIds.length; i++) {
             const entry = currencyIds[i];
@@ -875,15 +919,15 @@ class whitebit extends whitebit$1["default"] {
             const currencyId = splitEntry[0];
             const feeInfo = response[entry];
             const code = this.safeCurrencyCode(currencyId);
-            if ((codes === undefined) || (this.inArray(code, codes))) {
-                const depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
+            if ((code !== undefined) && ((codesValue === undefined) || (this.inArray(code, codesValue)))) {
+                const depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                 }
                 depositWithdrawFees[code]['info'][entry] = feeInfo;
                 let networkId = this.safeString(splitEntry, 1);
-                const withdraw = this.safeValue(feeInfo, 'withdraw');
-                const deposit = this.safeValue(feeInfo, 'deposit');
+                const withdraw = this.safeDict(feeInfo, 'withdraw');
+                const deposit = this.safeDict(feeInfo, 'deposit');
                 const withdrawFee = this.safeNumber(withdraw, 'fixed');
                 const depositFee = this.safeNumber(deposit, 'fixed');
                 const withdrawResult = {
@@ -897,11 +941,13 @@ class whitebit extends whitebit$1["default"] {
                 if (networkId !== undefined) {
                     const networkLength = networkId.length;
                     networkId = networkId.slice(1, networkLength - 1);
-                    const networkCode = this.networkIdToCode(networkId);
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
-                    };
+                    const networkCode = this.networkIdToCode(networkId, code);
+                    if (networkCode !== undefined) {
+                        depositWithdrawFees[code]['networks'][networkCode] = {
+                            'withdraw': withdrawResult,
+                            'deposit': depositResult,
+                        };
+                    }
                 }
                 else {
                     depositWithdrawFees[code]['withdraw'] = withdrawResult;
@@ -926,7 +972,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v4PublicGetAssets(params);
         //
         //      {
@@ -946,10 +994,11 @@ class whitebit extends whitebit$1["default"] {
         //      }
         //
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
-            const fee = this.safeValue(response, market['baseId'], {});
+            const fee = this.safeDict(response, market['baseId'], {});
             let makerFee = this.safeString(fee, 'maker_fee');
             let takerFee = this.safeString(fee, 'taker_fee');
             makerFee = Precise["default"].stringDiv(makerFee, '100');
@@ -975,7 +1024,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a [trading limits structure]{@link https://docs.ccxt.com/?id=trading-limits-structure}
      */
     async fetchTradingLimits(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         //
         // Trading limits are derived from market information already loaded by loadMarkets()
         // Market structure includes:
@@ -1022,16 +1073,21 @@ class whitebit extends whitebit$1["default"] {
         //
         const result = {};
         // Process all markets from the loaded markets cache
-        const marketIds = Object.keys(this.markets);
+        const markets = this.markets;
+        if (markets === undefined) {
+            throw new errors.ExchangeError(this.id + ' markets not loaded');
+        }
+        const marketIds = Object.keys(markets);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.markets[marketId];
-            if (!market || !market['symbol']) {
+            const market = markets[marketId];
+            const marketSymbol = this.safeString(market, 'symbol');
+            if ((market === undefined) || (market === null) || (marketSymbol === undefined) || (marketSymbol === '')) {
                 continue; // Skip invalid markets silently
             }
-            const symbol = market['symbol'];
+            const symbol = marketSymbol;
             // Filter by symbols if specified
-            if (symbols) {
+            if (symbols !== undefined) {
                 let symbolFound = false;
                 for (let j = 0; j < symbols.length; j++) {
                     if (symbols[j] === symbol) {
@@ -1049,10 +1105,10 @@ class whitebit extends whitebit$1["default"] {
             const priceLimits = this.safeDict(limits, 'price');
             const costLimits = this.safeDict(limits, 'cost');
             // Validate that all required limits exist and are valid numbers
-            const hasAmountLimits = amountLimits && this.safeNumber(amountLimits, 'min') !== undefined && this.safeNumber(amountLimits, 'max') !== undefined;
-            const hasPriceLimits = priceLimits && this.safeNumber(priceLimits, 'min') !== undefined && this.safeNumber(priceLimits, 'max') !== undefined;
-            const hasCostLimits = costLimits && this.safeNumber(costLimits, 'min') !== undefined && this.safeNumber(costLimits, 'max') !== undefined;
-            if (hasAmountLimits && hasPriceLimits && hasCostLimits) {
+            const hasAmountLimits = (amountLimits !== undefined) && (amountLimits !== null) && this.safeNumber(amountLimits, 'min') !== undefined && this.safeNumber(amountLimits, 'max') !== undefined;
+            const hasPriceLimits = (priceLimits !== undefined) && (priceLimits !== null) && this.safeNumber(priceLimits, 'min') !== undefined && this.safeNumber(priceLimits, 'max') !== undefined;
+            const hasCostLimits = (costLimits !== undefined) && (costLimits !== null) && this.safeNumber(costLimits, 'min') !== undefined && this.safeNumber(costLimits, 'max') !== undefined;
+            if ((hasAmountLimits === true) && (hasPriceLimits === true) && (hasCostLimits === true)) {
                 result[symbol] = {
                     'info': market,
                     'limits': {
@@ -1085,7 +1141,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a [funding limits structure]{@link https://docs.ccxt.com/?id=funding-limits-structure}
      */
     async fetchFundingLimits(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         // Fetch both currencies and fees data for comprehensive funding limits
         const [currenciesData, feesData] = await Promise.all([
             this.fetchCurrencies(),
@@ -1152,7 +1210,7 @@ class whitebit extends whitebit$1["default"] {
         for (let i = 0; i < currencyKeys.length; i++) {
             const code = currencyKeys[i];
             const currency = currenciesData[code];
-            if (!currency) {
+            if (currency === undefined) {
                 // Skip invalid currency silently
                 continue;
             }
@@ -1165,32 +1223,33 @@ class whitebit extends whitebit$1["default"] {
             const feeKeys = Object.keys(feesData);
             for (let j = 0; j < feeKeys.length; j++) {
                 const feeKey = feeKeys[j];
-                const fee = feesData[feeKey];
-                if (fee && fee['ticker'] === code) {
+                const fee = this.safeDict(feesData, feeKey);
+                if ((fee !== undefined && fee !== null) && this.safeString(fee, 'ticker') === code) {
                     feeData = fee;
                     break;
                 }
             }
             // Build comprehensive funding limits
+            const currencyLimits = this.safeDict(currency, 'limits', {});
             const limits = {
                 'deposit': {
-                    'min': currency['limits']['deposit']['min'],
-                    'max': currency['limits']['deposit']['max'],
+                    'min': currencyLimits['deposit']['min'],
+                    'max': currencyLimits['deposit']['max'],
                 },
                 'withdraw': {
-                    'min': currency['limits']['withdraw']['min'],
-                    'max': currency['limits']['withdraw']['max'],
+                    'min': currencyLimits['withdraw']['min'],
+                    'max': currencyLimits['withdraw']['max'],
                 },
             };
             // Add fee information if available
-            if (feeData) {
+            if (feeData !== undefined) {
                 const depositFee = feeData['deposit'];
                 const withdrawFee = feeData['withdraw'];
-                if (depositFee) {
+                if ((depositFee !== undefined) && (depositFee !== null)) {
                     const depositFeeData = {
                         'fixed': this.safeNumber(depositFee, 'fixed'),
                     };
-                    if (depositFee['flex']) {
+                    if ((depositFee['flex'] !== undefined) && (depositFee['flex'] !== null)) {
                         depositFeeData['flex'] = {
                             'min': this.safeNumber(depositFee['flex'], 'min_fee'),
                             'max': this.safeNumber(depositFee['flex'], 'max_fee'),
@@ -1199,11 +1258,11 @@ class whitebit extends whitebit$1["default"] {
                     }
                     limits['deposit']['fee'] = depositFeeData;
                 }
-                if (withdrawFee) {
+                if ((withdrawFee !== undefined) && (withdrawFee !== null)) {
                     const withdrawFeeData = {
                         'fixed': this.safeNumber(withdrawFee, 'fixed'),
                     };
-                    if (withdrawFee['flex']) {
+                    if ((withdrawFee['flex'] !== undefined) && (withdrawFee['flex'] !== null)) {
                         withdrawFeeData['flex'] = {
                             'min': this.safeNumber(withdrawFee['flex'], 'min_fee'),
                             'max': this.safeNumber(withdrawFee['flex'], 'max_fee'),
@@ -1214,7 +1273,7 @@ class whitebit extends whitebit$1["default"] {
                 }
             }
             // Add network-specific limits if available
-            if (currency['networks']) {
+            if (currency['networks'] !== undefined) {
                 limits['networks'] = currency['networks'];
             }
             result[code] = {
@@ -1234,7 +1293,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -1346,13 +1407,13 @@ class whitebit extends whitebit$1["default"] {
         //     }
         //
         const marketId = this.safeString2(ticker, 'tradingPairs', 'ticker_id');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         // last price is provided as "last" or "last_price"
         const last = this.safeStringN(ticker, ['last', 'last_price', 'lastPrice']);
         // if "close" is provided, use it, otherwise use <last>
         const close = this.safeString(ticker, 'close', last);
         return this.safeTicker({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
             'high': this.safeString(ticker, 'high'),
@@ -1362,18 +1423,18 @@ class whitebit extends whitebit$1["default"] {
             'ask': this.safeString2(ticker, 'ask', 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString(ticker, 'open'),
+            'open': this.safeString(ticker, 'open'), // can not be defined in v4PublicGetFutures
             'close': close,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': this.safeString(ticker, 'change'),
-            'average': undefined,
+            'change': undefined, // can not be defined in v4PublicGetFutures
+            'percentage': this.safeString(ticker, 'change'), // can not be defined in v4PublicGetFutures
+            'average': undefined, // can not be defined in v4PublicGetFutures
             'baseVolume': this.safeStringN(ticker, ['base_volume', 'volume', 'baseVolume24h', 'stock_volume']),
             'quoteVolume': this.safeStringN(ticker, ['quote_volume', 'deal', 'quoteVolume24h', 'money_volume']),
             'indexPrice': this.safeString(ticker, 'index_price'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1389,10 +1450,13 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         // Extract control parameters from params
         const checkActive = this.safeBool(params, 'checkActive', true);
         const checkExecuted = this.safeBool(params, 'checkExecuted', true);
+        const paramsOmitted = this.omit(params, ['checkActive', 'checkExecuted']);
         const request = {
             'orderId': id,
         };
@@ -1402,12 +1466,13 @@ class whitebit extends whitebit$1["default"] {
             request['market'] = market['id'];
         }
         // Try active orders first (if enabled)
-        if (checkActive) {
+        if (checkActive === true) {
             try {
-                const response = await this.v4PrivatePostOrders(this.extend(request, params));
+                const response = await this.v4PrivatePostOrders(this.extend(request, paramsOmitted));
                 // Search for order in active orders response (array format)
-                for (let i = 0; i < response.length; i++) {
-                    const order = response[i];
+                const orders = this.toArray(response);
+                for (let i = 0; i < orders.length; i++) {
+                    const order = orders[i];
                     const orderId = this.safeString(order, 'orderId');
                     if (orderId === id) {
                         const marketId = this.safeString(order, 'market');
@@ -1423,17 +1488,17 @@ class whitebit extends whitebit$1["default"] {
             }
         }
         // Try executed orders (if enabled)
-        if (checkExecuted) {
+        if (checkExecuted === true) {
             try {
-                const response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, params));
+                const response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, paramsOmitted));
                 // Search for order in executed orders response (object format)
                 const marketIds = Object.keys(response);
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const marketNew = this.safeMarket(marketId, undefined, '_');
-                    const orders = response[marketId];
-                    for (let j = 0; j < orders.length; j++) {
-                        const order = orders[j];
+                    const marketOrders = this.safeList(response, marketId, []);
+                    for (let j = 0; j < marketOrders.length; j++) {
+                        const order = marketOrders[j];
                         const orderId = this.safeString(order, 'id');
                         if (orderId === id) {
                             return this.parseOrder(order, marketNew);
@@ -1462,14 +1527,16 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
         let onlyContractSymbols = true;
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
-                if (!(market['contract'])) {
+                if (market['contract'] !== true) {
                     onlyContractSymbols = false;
                     break;
                 }
@@ -1478,10 +1545,9 @@ class whitebit extends whitebit$1["default"] {
         else {
             onlyContractSymbols = false;
         }
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', undefined, params);
-        let method = undefined;
-        [method, params] = this.handleOptionAndParams(params, 'fetchTickers', 'method', method);
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchTickers', undefined, params);
+        const [methodOption, paramsMethod] = this.handleOptionStringAndParams(paramsMarketType, 'fetchTickers', 'method');
+        let method = methodOption;
         if (method === undefined) {
             // if the user did not specify a method, choose it based on market type and symbols
             if (onlyContractSymbols || (marketType === 'swap')) {
@@ -1491,7 +1557,7 @@ class whitebit extends whitebit$1["default"] {
                 method = 'v4PublicGetTicker';
             }
         }
-        let response = undefined;
+        let response;
         if (method === 'v4PublicGetTicker') {
             //
             //      "BCH_RUB": {
@@ -1504,7 +1570,7 @@ class whitebit extends whitebit$1["default"] {
             //          "change":"2.12"
             //      },
             //
-            response = await this.v4PublicGetTicker(params);
+            response = await this.v4PublicGetTicker(paramsMethod);
         }
         else if (method === 'v4PublicGetFutures') {
             //
@@ -1546,14 +1612,14 @@ class whitebit extends whitebit$1["default"] {
             //         ]
             //     }
             //
-            response = await this.v4PublicGetFutures(params);
+            response = await this.v4PublicGetFutures(paramsMethod);
         }
         else {
-            response = await this.v2PublicGetTicker(params);
+            response = await this.v2PublicGetTicker(paramsMethod);
         }
         const resultList = this.safeList(response, 'result');
         if (resultList !== undefined) {
-            return this.parseTickers(resultList, symbols);
+            return this.parseTickers(resultList, symbolsNormalized);
         }
         const marketIds = Object.keys(response);
         const result = {};
@@ -1564,7 +1630,7 @@ class whitebit extends whitebit$1["default"] {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArrayTickers(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -1574,10 +1640,12 @@ class whitebit extends whitebit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -1620,7 +1688,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -1652,7 +1722,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -1706,7 +1778,7 @@ class whitebit extends whitebit$1["default"] {
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
                 const marketNew = this.safeMarket(marketId, undefined, '_');
-                const rawTrades = this.safeValue(response, marketId, []);
+                const rawTrades = this.safeList(response, marketId, []);
                 const parsed = this.parseTrades(rawTrades, marketNew, since, limit);
                 results = this.arrayConcat(results, parsed);
             }
@@ -1758,7 +1830,7 @@ class whitebit extends whitebit$1["default"] {
         //          "feeAsset": "USDT"
         //      }
         //
-        market = this.safeMarket(undefined, market);
+        const marketResolved = this.safeMarket(undefined, market);
         const timestamp = this.safeTimestamp2(trade, 'time', 'trade_timestamp');
         const orderId = this.safeString2(trade, 'dealOrderId', 'orderId');
         const cost = this.safeString(trade, 'deal');
@@ -1766,7 +1838,7 @@ class whitebit extends whitebit$1["default"] {
         const amount = this.safeString2(trade, 'amount', 'quote_volume');
         const id = this.safeString2(trade, 'id', 'tradeID');
         const side = this.safeString2(trade, 'type', 'side');
-        const symbol = market['symbol'];
+        const symbol = marketResolved['symbol'];
         const role = this.safeInteger(trade, 'role');
         let takerOrMaker = undefined;
         if (role !== undefined) {
@@ -1794,7 +1866,7 @@ class whitebit extends whitebit$1["default"] {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1809,23 +1881,23 @@ class whitebit extends whitebit$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
+        const maxLimit = 1440;
+        const sinceLimit = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
+        const limitResolved = (since !== undefined) ? sinceLimit : limit;
         if (since !== undefined) {
-            const maxLimit = 1440;
-            if (limit === undefined) {
-                limit = maxLimit;
-            }
-            limit = Math.min(limit, maxLimit);
             const start = this.parseToInt(since / 1000);
             request['start'] = start;
         }
-        if (limit !== undefined) {
-            request['limit'] = Math.min(limit, 1440);
+        if (limitResolved !== undefined) {
+            request['limit'] = Math.min(limitResolved, 1440);
         }
         const response = await this.v1PublicGetKline(this.extend(request, params));
         //
@@ -1840,7 +1912,7 @@ class whitebit extends whitebit$1["default"] {
         //     }
         //
         const result = this.safeList(response, 'result', []);
-        return this.parseOHLCVs(result, market, timeframe, since, limit);
+        return this.parseOHLCVs(result, market, timeframe, since, limitResolved);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1855,11 +1927,11 @@ class whitebit extends whitebit$1["default"] {
         //     ]
         //
         return [
-            this.safeTimestamp(ohlcv, 0),
-            this.safeNumber(ohlcv, 1),
-            this.safeNumber(ohlcv, 3),
-            this.safeNumber(ohlcv, 4),
-            this.safeNumber(ohlcv, 2),
+            this.safeTimestamp(ohlcv, 0), // timestamp
+            this.safeNumber(ohlcv, 1), // open
+            this.safeNumber(ohlcv, 3), // high
+            this.safeNumber(ohlcv, 4), // low
+            this.safeNumber(ohlcv, 2), // close
             this.safeNumber(ohlcv, 5), // volume
         ];
     }
@@ -1951,19 +2023,21 @@ class whitebit extends whitebit$1["default"] {
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.timeInForce] "GTC", "IOC" or "PO"; IOC and PO are limit-order only, not supported for stop orders
      * @param {string} [params.clientOrderId] a unique id for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
             'side': side,
         };
-        let cost = undefined;
-        [cost, params] = this.handleParamString(params, 'cost');
+        const [cost, paramsCost] = this.handleParamString(params, 'cost');
         if (cost !== undefined) {
             if ((side !== 'buy') || (type !== 'market')) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() cost is only supported for market buy orders');
@@ -1973,7 +2047,7 @@ class whitebit extends whitebit$1["default"] {
         else {
             request['amount'] = this.amountToPrecision(symbol, amount);
         }
-        const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
+        const clientOrderId = this.safeString2(paramsCost, 'clOrdId', 'clientOrderId');
         if (clientOrderId === undefined) {
             const brokerId = this.safeString(this.options, 'brokerId');
             if (brokerId !== undefined) {
@@ -1982,38 +2056,52 @@ class whitebit extends whitebit$1["default"] {
         }
         else {
             request['clientOrderId'] = clientOrderId;
-            params = this.omit(params, ['clientOrderId']);
         }
+        const paramsOmitted = (clientOrderId !== undefined) ? this.omit(paramsCost, ['clientOrderId']) : paramsCost;
         const marketType = this.safeString(market, 'type');
         const isLimitOrder = type === 'limit';
         const isMarketOrder = type === 'market';
-        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'activation_price']);
+        const triggerPrice = this.safeNumberN(paramsOmitted, ['triggerPrice', 'stopPrice', 'activation_price']);
         const isStopOrder = (triggerPrice !== undefined);
-        const postOnly = this.isPostOnly(isMarketOrder, false, params);
-        const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
+        const timeInForce = this.safeStringUpper(paramsOmitted, 'timeInForce');
+        if ((timeInForce !== undefined) && (timeInForce !== 'GTC') && (timeInForce !== 'IOC') && (timeInForce !== 'PO')) {
+            throw new errors.NotSupported(this.id + ' createOrder() does not support timeInForce ' + timeInForce + ', only GTC, IOC and PO are allowed');
+        }
+        const postOnly = this.isPostOnly(isMarketOrder, false, paramsOmitted);
+        const ioc = (timeInForce === 'IOC');
+        if (isStopOrder && (postOnly || ioc)) {
+            throw new errors.NotSupported(this.id + ' createOrder() does not support postOnly or timeInForce IOC for stop orders');
+        }
+        if (ioc && !isLimitOrder) {
+            throw new errors.NotSupported(this.id + ' createOrder() timeInForce IOC is only supported for limit orders');
+        }
+        const [marginMode, query] = this.handleMarginModeAndParams('createOrder', paramsOmitted);
         if (postOnly) {
             request['postOnly'] = true;
+        }
+        if (ioc) {
+            request['ioc'] = true;
         }
         if (marginMode !== undefined && marginMode !== 'cross') {
             throw new errors.NotSupported(this.id + ' createOrder() is only available for cross margin');
         }
-        params = this.omit(query, ['postOnly', 'triggerPrice', 'stopPrice']);
+        const orderParams = this.omit(query, ['postOnly', 'triggerPrice', 'stopPrice', 'timeInForce']);
         const useCollateralEndpoint = marginMode !== undefined || marketType === 'swap';
-        let response = undefined;
+        let response;
         if (isStopOrder) {
             request['activation_price'] = this.priceToPrecision(symbol, triggerPrice);
             if (isLimitOrder) {
                 // stop limit order
                 request['price'] = this.priceToPrecision(symbol, price);
-                response = await this.v4PrivatePostOrderStopLimit(this.extend(request, params));
+                response = await this.v4PrivatePostOrderStopLimit(this.extend(request, orderParams));
             }
             else {
                 // stop market order
                 if (useCollateralEndpoint) {
-                    response = await this.v4PrivatePostOrderCollateralTriggerMarket(this.extend(request, params));
+                    response = await this.v4PrivatePostOrderCollateralTriggerMarket(this.extend(request, orderParams));
                 }
                 else {
-                    response = await this.v4PrivatePostOrderStopMarket(this.extend(request, params));
+                    response = await this.v4PrivatePostOrderStopMarket(this.extend(request, orderParams));
                 }
             }
         }
@@ -2022,23 +2110,23 @@ class whitebit extends whitebit$1["default"] {
                 // limit order
                 request['price'] = this.priceToPrecision(symbol, price);
                 if (useCollateralEndpoint) {
-                    response = await this.v4PrivatePostOrderCollateralLimit(this.extend(request, params));
+                    response = await this.v4PrivatePostOrderCollateralLimit(this.extend(request, orderParams));
                 }
                 else {
-                    response = await this.v4PrivatePostOrderNew(this.extend(request, params));
+                    response = await this.v4PrivatePostOrderNew(this.extend(request, orderParams));
                 }
             }
             else {
                 // market order
                 if (useCollateralEndpoint) {
-                    response = await this.v4PrivatePostOrderCollateralMarket(this.extend(request, params));
+                    response = await this.v4PrivatePostOrderCollateralMarket(this.extend(request, orderParams));
                 }
                 else {
                     if (cost !== undefined) {
-                        response = await this.v4PrivatePostOrderMarket(this.extend(request, params));
+                        response = await this.v4PrivatePostOrderMarket(this.extend(request, orderParams));
                     }
                     else {
-                        response = await this.v4PrivatePostOrderStockMarket(this.extend(request, params));
+                        response = await this.v4PrivatePostOrderStockMarket(this.extend(request, orderParams));
                     }
                 }
             }
@@ -2060,7 +2148,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -2108,8 +2198,8 @@ class whitebit extends whitebit$1["default"] {
         if (!hasModifiableParam) {
             throw new errors.ArgumentsRequired(this.id + ' editOrder() requires at least one of: amount, price, activationPrice, or total parameters');
         }
-        params = this.omit(params, ['clientOrderId', 'triggerPrice', 'stopPrice', 'activationPrice', 'total']);
-        const response = await this.v4PrivatePostOrderModify(this.extend(request, params));
+        const paramsOmitted = this.omit(params, ['clientOrderId', 'triggerPrice', 'stopPrice', 'activationPrice', 'total']);
+        const response = await this.v4PrivatePostOrderModify(this.extend(request, paramsOmitted));
         return this.parseOrder(response);
     }
     /**
@@ -2126,7 +2216,9 @@ class whitebit extends whitebit$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -2159,26 +2251,28 @@ class whitebit extends whitebit$1["default"] {
      * @name whitebit#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] market type, ['swap', 'spot']
      * @param {boolean} [params.isMargin] cancel all margin orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['market'] = market['id'];
         }
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
         const requestType = [];
-        if (type === 'spot') {
-            let isMargin = undefined;
-            [isMargin, params] = this.handleOptionAndParams(params, 'cancelAllOrders', 'isMargin', false);
+        let requestParams = paramsMarketType;
+        if (marketType === 'spot') {
+            const [isMargin, paramsIsMargin] = this.handleOptionBoolAndParams(paramsMarketType, 'cancelAllOrders', 'isMargin', false);
+            requestParams = paramsIsMargin;
             if (isMargin) {
                 requestType.push('margin');
             }
@@ -2186,14 +2280,14 @@ class whitebit extends whitebit$1["default"] {
                 requestType.push('spot');
             }
         }
-        else if (type === 'swap') {
+        else if (marketType === 'swap') {
             requestType.push('futures');
         }
         else {
-            throw new errors.NotSupported(this.id + ' cancelAllOrders() does not support ' + type + ' type');
+            throw new errors.NotSupported(this.id + ' cancelAllOrders() does not support ' + marketType + ' type');
         }
         request['type'] = requestType;
-        const response = await this.v4PrivatePostOrderCancelAll(this.extend(request, params));
+        const response = await this.v4PrivatePostOrderCancelAll(this.extend(request, requestParams));
         //
         // []
         //
@@ -2212,7 +2306,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         // Fetch both open and closed orders in parallel
         const [openOrders, closedOrders] = await Promise.all([
             this.fetchOpenOrders(symbol, since, limit, params),
@@ -2239,17 +2335,21 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter(timeout, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const symbol = this.safeString(params, 'symbol');
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrdersAfter() requires a symbol argument in params');
         }
         const market = this.market(symbol);
-        params = this.omit(params, 'symbol');
+        const paramsOmitted = this.omit(params, 'symbol');
+        if (timeout === undefined) {
+            throw new errors.ExchangeError(this.id + ' cancelAllOrdersAfter() missing timeout');
+        }
         const isBiggerThanZero = (timeout > 0);
         const request = {
             'market': market['id'],
-            // 'timeout': (timeout > 0) ? this.numberToString (timeout / 1000) : null,
         };
         if (isBiggerThanZero) {
             request['timeout'] = this.numberToString(timeout / 1000);
@@ -2257,7 +2357,7 @@ class whitebit extends whitebit$1["default"] {
         else {
             request['timeout'] = 'null';
         }
-        const response = await this.v4PrivatePostOrderKillSwitch(this.extend(request, params));
+        const response = await this.v4PrivatePostOrderKillSwitch(this.extend(request, paramsOmitted));
         //
         //     {
         //         "market": "BTC_USDT", // currency market,
@@ -2275,17 +2375,21 @@ class whitebit extends whitebit$1["default"] {
             const id = balanceKeys[i];
             const code = this.safeCurrencyCode(id);
             const balance = response[id];
-            if (typeof balance === 'object' && balance !== undefined) {
+            if (balance !== undefined && this.isDictionary(balance)) {
                 const account = this.account();
                 account['free'] = this.safeString2(balance, 'available', 'main_balance');
                 account['used'] = this.safeString(balance, 'freeze');
                 account['total'] = this.safeString(balance, 'main_balance');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             else {
                 const account = this.account();
                 account['total'] = balance;
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -2300,23 +2404,24 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        let response = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        let response;
         if (marketType === 'swap') {
-            response = await this.v4PrivatePostCollateralAccountBalance(params);
+            response = await this.v4PrivatePostCollateralAccountBalance(paramsMarketType);
         }
         else {
-            const options = this.safeValue(this.options, 'fetchBalance', {});
+            const options = this.safeDict(this.options, 'fetchBalance', {});
             const defaultAccount = this.safeString(options, 'account');
-            const account = this.safeString2(params, 'account', 'type', defaultAccount);
-            params = this.omit(params, ['account', 'type']);
+            const account = this.safeString2(paramsMarketType, 'account', 'type', defaultAccount);
+            const paramsOmitted = this.omit(paramsMarketType, ['account', 'type']);
             if (account === 'main' || account === 'funding') {
-                response = await this.v4PrivatePostMainAccountBalance(params);
+                response = await this.v4PrivatePostMainAccountBalance(paramsOmitted);
             }
             else {
-                response = await this.v4PrivatePostTradeAccountBalance(params);
+                response = await this.v4PrivatePostTradeAccountBalance(paramsOmitted);
             }
         }
         //
@@ -2355,7 +2460,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -2400,14 +2507,16 @@ class whitebit extends whitebit$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbol = market['symbol'];
             request['market'] = market['id'];
         }
+        const symbolResolved = (market !== undefined) ? this.safeString(market, 'symbol') : symbol;
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 100); // default 50 max 100
         }
@@ -2434,14 +2543,14 @@ class whitebit extends whitebit$1["default"] {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketNew = this.safeMarket(marketId, undefined, '_');
-            const orders = response[marketId];
+            const orders = this.safeList(response, marketId, []);
             for (let j = 0; j < orders.length; j++) {
                 const order = this.parseOrder(orders[j], marketNew);
                 results.push(this.extend(order, { 'status': 'closed' }));
             }
         }
         results = this.sortBy(results, 'timestamp');
-        results = this.filterBySymbolSinceLimit(results, symbol, since, limit);
+        results = this.filterBySymbolSinceLimit(results, symbolResolved, since, limit);
         return results;
     }
     parseOrderType(type) {
@@ -2497,8 +2606,8 @@ class whitebit extends whitebit$1["default"] {
         //      }
         //
         const marketId = this.safeString(order, 'market');
-        market = this.safeMarket(marketId, market, '_');
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market, '_');
+        const symbol = marketResolved['symbol'];
         const side = this.safeString(order, 'side');
         const filled = this.safeString(order, 'dealStock');
         let remaining = this.safeString(order, 'left');
@@ -2524,11 +2633,20 @@ class whitebit extends whitebit$1["default"] {
         if (dealFee !== undefined) {
             fee = {
                 'cost': this.parseNumber(dealFee),
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         }
         const timestamp = this.safeTimestamp2(order, 'ctime', 'timestamp');
         const lastTradeTimestamp = this.safeTimestamp(order, 'ftime');
+        const postOnly = this.safeBool(order, 'postOnly');
+        const ioc = this.safeBool(order, 'ioc');
+        let timeInForce = undefined;
+        if (ioc === true) {
+            timeInForce = 'IOC';
+        }
+        else if (postOnly === true) {
+            timeInForce = 'PO';
+        }
         return this.safeOrder({
             'info': order,
             'id': orderId,
@@ -2537,8 +2655,8 @@ class whitebit extends whitebit$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'status': this.parseOrderStatus(this.safeString(order, 'status')),
             'side': side,
             'price': price,
@@ -2551,7 +2669,7 @@ class whitebit extends whitebit$1["default"] {
             'cost': cost,
             'fee': fee,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -2575,7 +2693,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'orderId': parseInt(id),
         };
@@ -2623,7 +2743,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
@@ -2633,12 +2755,11 @@ class whitebit extends whitebit$1["default"] {
         if (since !== undefined) {
             request['startDate'] = this.parseToInt(since / 1000);
         }
+        let limitResolved = limit;
         if (limit === undefined || limit > 100) {
-            limit = 100;
+            limitResolved = 100;
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
+        request['limit'] = limitResolved;
         // Use transactionMethod parameter to filter withdrawals server-side (method = 2)
         request['transactionMethod'] = '2';
         const response = await this.v4PrivatePostMainAccountHistory(this.extend(request, params));
@@ -2660,7 +2781,7 @@ class whitebit extends whitebit$1["default"] {
         //         { ... }                                 // More withdrawal transactions
         //     ]
         //
-        return this.parseTransactions(this.safeList(response, 'records', []), currency, since, limit);
+        return this.parseTransactions(this.safeList(response, 'records', []), currency, since, limitResolved);
     }
     /**
      * @method
@@ -2675,7 +2796,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
@@ -2685,33 +2808,42 @@ class whitebit extends whitebit$1["default"] {
         if (since !== undefined) {
             request['startDate'] = this.parseToInt(since / 1000);
         }
+        let limitResolved = limit;
         if (limit === undefined || limit > 100) {
-            limit = 100;
+            limitResolved = 100;
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
+        request['limit'] = limitResolved;
         // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
         const response = await this.v4PrivatePostMainAccountHistory(this.extend(request, params));
         //
-        //     [
-        //         {
-        //             "id": 123456789,                    // Transaction ID
-        //             "method": "1",                      // Method: 1=deposit, 2=withdrawal
-        //             "ticker": "BTC",                    // Currency ticker
-        //             "amount": "0.001",                  // Transaction amount
-        //             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Transaction address
-        //             "memo": "",                         // Memo/tag (if required)
-        //             "network": "BTC",                   // Network name
-        //             "fee": "0.0005",                    // Transaction fee
-        //             "status": "1",                      // Status: 0=pending, 1=completed, 2=failed
-        //             "timestamp": 1641051917,            // Transaction timestamp
-        //             "txid": "abc123def456..."           // Transaction hash
-        //         },
-        //         { ... }                                 // More transactions (deposits and withdrawals)
-        //     ]
+        //     {
+        //         "records": [
+        //             {
+        //                 "address": "TDepositAddressExample1111111111111",
+        //                 "uniqueId": null,
+        //                 "transactionId": "11111111-2222-3333-4444-555555555555",
+        //                 "createdAt": 1786182572,
+        //                 "currency": "Tether US",
+        //                 "ticker": "USDT",
+        //                 "method": 1,                    // 1 = deposit, 2 = withdraw
+        //                 "amount": "20.723117",
+        //                 "description": null,
+        //                 "memo": null,
+        //                 "fee": "0",
+        //                 "status": 3,
+        //                 "network": "TRC20",
+        //                 "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+        //                 "details": { "partial": null },
+        //                 "centralized": false
+        //             }
+        //         ],
+        //         "total": 1,
+        //         "limit": 100,
+        //         "offset": 0
+        //     }
         //
-        return this.parseTransactions(response, currency, since, limit);
+        const records = this.safeList(response, 'records', []);
+        return this.parseTransactions(records, currency, since, limitResolved);
     }
     /**
      * @method
@@ -2724,12 +2856,14 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'ticker': currency['id'],
         };
-        let response = undefined;
+        let response;
         if (this.isFiat(code)) {
             const provider = this.safeString(params, 'provider');
             if (provider === undefined) {
@@ -2777,7 +2911,7 @@ class whitebit extends whitebit$1["default"] {
         //     }
         //
         const url = this.safeString(response, 'url');
-        const account = this.safeValue(response, 'account', {});
+        const account = this.safeDict(response, 'account', {});
         const address = this.safeString(account, 'address', url);
         const tag = this.safeString(account, 'memo');
         this.checkAddress(address);
@@ -2801,7 +2935,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async createDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'ticker': currency['id'],
@@ -2852,35 +2988,41 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
     async fetchAccounts(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const accounts = [];
-        // Fetch sub-accounts
+        const response = await this.v4PrivatePostSubAccountList(params);
         //
-        //     [
-        //         {
-        //             "id": "12345",
-        //             "name": "SubAccount1",
-        //             "status": "active",
-        //             "permissions": ["trade", "withdraw"]
-        //         }
-        //     ]
+        //     {
+        //         "offset": 0,
+        //         "limit": 100,
+        //         "data": [
+        //             {
+        //                 "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+        //                 "alias": "trading_bot",
+        //                 "userId": "u-12345",
+        //                 "email": "s***@example.com",
+        //                 "status": "active",
+        //                 "color": "#FF5733",
+        //                 "kyc": { "shareKyc": false, "kycStatus": "verified" },
+        //                 "permissions": { "spotEnabled": true, "collateralEnabled": false }
+        //             }
+        //         ]
+        //     }
         //
-        const subAccounts = await this.v4PrivatePostSubAccountList(params);
-        if (subAccounts && Array.isArray(subAccounts)) {
-            for (let i = 0; i < subAccounts.length; i++) {
-                const subAccount = this.safeValue(subAccounts, i);
-                const accountId = this.safeString(subAccount, 'id');
-                const accountName = this.safeString(subAccount, 'name');
-                if (accountId) {
-                    accounts.push({
-                        'id': accountId,
-                        'type': 'subaccount',
-                        'name': accountName || 'SubAccount ' + accountId,
-                        'code': undefined,
-                        'info': subAccount,
-                    });
-                }
-            }
+        const subAccounts = this.safeList(response, 'data', []);
+        for (let i = 0; i < subAccounts.length; i++) {
+            const subAccount = this.safeDict(subAccounts, i, {});
+            const accountId = this.safeString(subAccount, 'id');
+            const accountName = this.safeString(subAccount, 'alias');
+            accounts.push({
+                'id': accountId,
+                'type': 'subaccount',
+                'name': accountName,
+                'code': undefined,
+                'info': subAccount,
+            });
         }
         return accounts;
     }
@@ -2895,7 +3037,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} response from the exchange
      */
     async setLeverage(leverage, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol !== undefined) {
             throw new errors.NotSupported(this.id + ' setLeverage() does not allow to set per symbol');
         }
@@ -2923,9 +3067,11 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
-        const accountsByType = this.safeValue(this.options, 'accountsByType');
+        const accountsByType = this.safeDict(this.options, 'accountsByType');
         const fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toAccountId = this.safeString(accountsByType, toAccount, toAccount);
         const amountString = this.currencyToPrecision(code, amount);
@@ -2970,7 +3116,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code); // check if it has canDeposit
         const request = {
             'ticker': currency['id'],
@@ -3033,7 +3181,7 @@ class whitebit extends whitebit$1["default"] {
         //         "centralized": false,
         //     }
         //
-        currency = this.safeCurrency(undefined, currency);
+        const currencyResolved = this.safeCurrency(undefined, currency);
         const address = this.safeString(transaction, 'address');
         const timestamp = this.safeTimestamp(transaction, 'createdAt');
         const currencyId = this.safeString(transaction, 'ticker');
@@ -3050,7 +3198,7 @@ class whitebit extends whitebit$1["default"] {
             'addressTo': (method === '2') ? address : undefined,
             'amount': this.safeNumber(transaction, 'amount'),
             'type': (method === '1') ? 'deposit' : 'withdrawal',
-            'currency': this.safeCurrencyCode(currencyId, currency),
+            'currency': this.safeCurrencyCode(currencyId, currencyResolved),
             'status': this.parseTransactionStatus(status),
             'updated': undefined,
             'tagFrom': undefined,
@@ -3060,7 +3208,7 @@ class whitebit extends whitebit$1["default"] {
             'internal': undefined,
             'fee': {
                 'cost': this.safeNumber(transaction, 'fee'),
-                'currency': this.safeCurrencyCode(currencyId, currency),
+                'currency': this.safeCurrencyCode(currencyId, currencyResolved),
             },
             'info': transaction,
         };
@@ -3092,12 +3240,14 @@ class whitebit extends whitebit$1["default"] {
      * @description fetch information on a deposit
      * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
      * @param {string} id deposit id
-     * @param {string} code not used by whitebit fetchDeposit ()
+     * @param {string} code not used by fetchDeposit ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposit(id, code = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {
             'transactionMethod': 1,
@@ -3147,7 +3297,7 @@ class whitebit extends whitebit$1["default"] {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        const records = this.safeValue(response, 'records', []);
+        const records = this.safeList(response, 'records', []);
         const first = this.safeDict(records, 0, {});
         return this.parseTransaction(first, currency);
     }
@@ -3163,7 +3313,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {
             'transactionMethod': 1,
@@ -3216,7 +3368,11 @@ class whitebit extends whitebit$1["default"] {
         //     }
         //
         const records = this.safeList(response, 'records', []);
-        return this.parseTransactions(records, currency, since, limit);
+        let recordsList = [];
+        if (records !== undefined) {
+            recordsList = records;
+        }
+        return this.parseTransactions(recordsList, currency, since, limit);
     }
     /**
      * @method
@@ -3231,7 +3387,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
     async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -3291,7 +3449,7 @@ class whitebit extends whitebit$1["default"] {
             'symbol': symbol,
             'currency': 'USDT',
             'interest': this.safeNumber(info, 'unrealizedFunding'),
-            'interestRate': 0.00098,
+            'interestRate': 0.00098, // https://whitebit.com/fees
             'amountBorrowed': this.safeNumber(info, 'amount'),
             'marginMode': 'cross',
             'timestamp': timestamp,
@@ -3308,10 +3466,13 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
-        symbol = this.symbol(symbol);
-        const response = await this.fetchFundingRates([symbol], params);
-        return this.safeValue(response, symbol);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolValue = this.symbol(symbol);
+        const response = await this.fetchFundingRates([symbolValue], params);
+        const fundingRate = this.safeDict(response, symbolValue);
+        return fundingRate;
     }
     /**
      * @method
@@ -3323,8 +3484,10 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.v4PublicGetFutures(params);
         //
         //    [
@@ -3371,7 +3534,7 @@ class whitebit extends whitebit$1["default"] {
         //    ]
         //
         const data = this.safeList(response, 'result', []);
-        return this.parseFundingRates(data, symbols);
+        return this.parseFundingRates(data, symbolsNormalized);
     }
     parseFundingRate(contract, market = undefined) {
         //
@@ -3446,22 +3609,24 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingHistory() requires a symbol argument');
         }
         const market = this.market(symbol);
-        let request = {
+        const request = {
             'market': market['id'],
         };
         if (since !== undefined) {
             request['startDate'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = since;
+            request['limit'] = limit;
         }
-        [request, params] = this.handleUntilOption('endDate', request, params);
-        const response = await this.v4PrivatePostCollateralAccountFundingHistory(request);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endDate', request, params);
+        const response = await this.v4PrivatePostCollateralAccountFundingHistory(this.extend(requestUntil, paramsUntil));
         //
         //     {
         //         "records": [
@@ -3509,7 +3674,7 @@ class whitebit extends whitebit$1["default"] {
     parseFundingHistories(contracts, market = undefined, since = undefined, limit = undefined) {
         const result = [];
         for (let i = 0; i < contracts.length; i++) {
-            const contract = contracts[i];
+            const contract = this.safeDict(contracts, i);
             result.push(this.parseFundingHistory(contract, market));
         }
         const sorted = this.sortBy(result, 'timestamp');
@@ -3535,7 +3700,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -3585,7 +3752,11 @@ class whitebit extends whitebit$1["default"] {
         //    }
         //
         const records = this.safeList(response, 'records');
-        return this.parseTransactions(records, currency, since, limit);
+        let recordsList = [];
+        if (records !== undefined) {
+            recordsList = records;
+        }
+        return this.parseTransactions(recordsList, currency, since, limit);
     }
     /**
      * @method
@@ -3599,7 +3770,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertQuote(fromCode, toCode, amount = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const fromCurrency = this.currency(fromCode);
         const toCurrency = this.currency(toCode);
         const request = {
@@ -3635,7 +3808,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const fromCurrency = this.currency(fromCode);
         const toCurrency = this.currency(toCode);
         const request = {
@@ -3666,8 +3841,10 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertTradeHistory(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let request = {};
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const request = {};
         if (code !== undefined) {
             request['fromTicker'] = code;
         }
@@ -3678,8 +3855,8 @@ class whitebit extends whitebit$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [request, params] = this.handleUntilOption('to', request, params, 0.001);
-        const response = await this.v4PrivatePostConvertHistory(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('to', request, params, 0.001);
+        const response = await this.v4PrivatePostConvertHistory(this.extend(requestUntil, paramsUntil));
         //
         //     {
         //         "records": [
@@ -3774,14 +3951,16 @@ class whitebit extends whitebit$1["default"] {
      * @param {string} symbol unified contract symbol
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.positionId] the id of the requested position
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionHistory(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let request = {
+        const request = {
             'market': market['id'],
         };
         if (since !== undefined) {
@@ -3790,8 +3969,8 @@ class whitebit extends whitebit$1["default"] {
         if (limit !== undefined) {
             request['limit'] = since;
         }
-        [request, params] = this.handleUntilOption('endDate', request, params);
-        const response = await this.v4PrivatePostCollateralAccountPositionsHistory(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endDate', request, params);
+        const response = await this.v4PrivatePostCollateralAccountPositionsHistory(this.extend(requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -3828,8 +4007,10 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.v4PrivatePostCollateralAccountPositionsOpen(params);
         //
         //     [
@@ -3852,7 +4033,7 @@ class whitebit extends whitebit$1["default"] {
         //         }
         //     ]
         //
-        return this.parsePositions(response, symbols);
+        return this.parsePositions(response, symbolsNormalized);
     }
     /**
      * @method
@@ -3864,7 +4045,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -3973,80 +4156,120 @@ class whitebit extends whitebit$1["default"] {
             'takeProfitPrice': this.safeNumber(tpsl, 'takeProfit'),
         });
     }
-    /**
-     * @method
-     * @name whitebit#fetchCrossBorrowRate
-     * @description fetch the rate of interest to borrow a currency for margin trading
-     * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
-     */
-    async fetchCrossBorrowRate(code, params = {}) {
-        await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
-            'ticker': currency['id'],
-        };
-        const response = await this.v4PrivatePostMainAccountSmartPlans(this.extend(request, params));
-        //
-        //
-        const data = this.safeList(response, 0, []);
-        return this.parseBorrowRate(data, currency);
-    }
-    parseBorrowRate(info, currency = undefined) {
-        //
-        //
-        const currencyId = this.safeString(info, 'ticker');
-        const percent = this.safeString(info, 'percent');
-        return {
-            'currency': this.safeCurrencyCode(currencyId, currency),
-            'rate': this.parseNumber(Precise["default"].stringDiv(percent, '100')),
-            'period': this.safeInteger(info, 'duration'),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'info': info,
-        };
-    }
     isFiat(currency) {
-        const fiatCurrencies = this.safeValue(this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
         return this.inArray(currency, fiatCurrencies);
     }
+    /**
+     * @method
+     * @name whitebit#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://docs.whitebit.com/api-reference/market-data/funding-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (default 100, max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        const maxLimit = 100;
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, maxLimit);
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (since !== undefined) {
+            request['startDate'] = Math.round(since / 1000);
+        }
+        const [requestUntil, paramsUntil] = this.handleUntilOption('until_timestamp', request, paramsPaginate, 0.001);
+        if (limit !== undefined) {
+            requestUntil['limit'] = limit;
+        }
+        const response = await this.v4PublicGetFundingHistoryMarket(this.extend(requestUntil, paramsUntil));
+        //
+        //     [
+        //         {
+        //             "fundingTime": "1773648000",
+        //             "fundingRate": "-0.00004593",
+        //             "market": "ETH_PERP",
+        //             "settlementPrice": "2248.47",
+        //             "rateCalculatedTime": "1773619200"
+        //         }
+        //     ]
+        //
+        return this.parseFundingRateHistories(response, market, since, limit);
+    }
+    parseFundingRateHistory(info, market = undefined) {
+        const marketId = this.safeString(info, 'market');
+        const marketResolved = this.safeMarket(marketId, market);
+        const timestamp = this.safeTimestamp(info, 'fundingTime');
+        return {
+            'info': info,
+            'symbol': marketResolved['symbol'],
+            'fundingRate': this.safeNumber(info, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
+    }
     nonce() {
-        return this.milliseconds() - this.options['timeDifference'];
+        return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
         const version = this.safeValue(api, 0);
-        const accessibility = this.safeValue(api, 1);
-        if (headers === undefined) {
-            headers = {};
-        }
-        headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
+        const accessibility = this.safeString(api, 1);
+        const publicHeaders = (headers === undefined) ? {} : headers;
+        publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams(path, params);
-        let url = this.urls['api'][version][accessibility] + pathWithParams;
+        const apiUrl = this.safeString(this.urls['api'][version], accessibility);
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + pathWithParams;
         if (accessibility === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
+        let privateBody = undefined;
+        let privateHeaders = {};
         if (accessibility === 'private') {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            // whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
+            const nonce = this.incrementingNonce().toString();
             const secret = this.encode(this.secret);
             const request = '/' + 'api' + '/' + version + pathWithParams;
-            const [nonceWindow, requestParams] = this.handleOptionAndParams(params, 'sign', 'nonceWindow', false);
-            body = this.json(this.extend({ 'request': request, 'nonce': nonce, 'nonceWindow': nonceWindow }, requestParams));
-            const payload = this.stringToBase64(body);
-            const signature = this.hmac(this.encode(payload), secret, sha512.sha512);
-            headers = {
+            const [nonceWindow, requestParams] = this.handleOptionBoolAndParams(params, 'sign', 'nonceWindow', false);
+            privateBody = this.json(this.extend({ 'request': request, 'nonce': nonce, 'nonceWindow': nonceWindow }, requestParams));
+            const payload = this.stringToBase64(privateBody);
+            const signature = this.hmac(this.encode(payload), secret, sha2_js.sha512);
+            privateHeaders = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
                 'X-TXC-PAYLOAD': payload,
                 'X-TXC-SIGNATURE': signature,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const isPrivate = (accessibility === 'private');
+        let requestBody = body;
+        if (isPrivate) {
+            requestBody = privateBody;
+        }
+        let requestHeaders = publicHeaders;
+        if (isPrivate) {
+            requestHeaders = privateHeaders;
+        }
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {
@@ -4059,7 +4282,7 @@ class whitebit extends whitebit$1["default"] {
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             const status = this.safeString(response, 'status');
-            const errors$1 = this.safeValue(response, 'errors');
+            const errors$1 = this.safeDict(response, 'errors');
             // {"code":10,"message":"Unauthorized request."}
             const message = this.safeString(response, 'message');
             // For these cases where we have a generic code variable error key
@@ -4078,11 +4301,29 @@ class whitebit extends whitebit$1["default"] {
                     const errorsLength = errorKeys.length;
                     if (errorsLength > 0) {
                         const errorKey = errorKeys[0];
-                        const errorMessageArray = this.safeValue(errorObject, errorKey, []);
+                        const errorMessageArray = this.safeList(errorObject, errorKey, []);
                         const errorMessageLength = errorMessageArray.length;
                         errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
                     }
                 }
+                this.throwExactlyMatchedException(this.exceptions['exact'], errorInfo, feedback);
+                this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
+                throw new errors.ExchangeError(feedback);
+            }
+            // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
+            const success = this.safeBool(response, 'success', true);
+            if (success !== true) {
+                const errMsg = this.safeDict(response, 'message', {});
+                const errKeys = Object.keys(errMsg);
+                const errKeysLength = errKeys.length;
+                let errorInfo = body;
+                if (errKeysLength > 0) {
+                    const errorKey = errKeys[0];
+                    const errorMessageArray = this.safeList(errMsg, errorKey, []);
+                    const errorMessageLength = errorMessageArray.length;
+                    errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
+                }
+                const feedback = this.id + ' ' + body;
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorInfo, feedback);
                 this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
                 throw new errors.ExchangeError(feedback);

@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mercado import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
@@ -17,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class mercado(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(mercado, self).describe(), {
             'id': 'mercado',
             'name': 'Mercado Bitcoin',
@@ -136,6 +135,7 @@ class mercado(Exchange, ImplicitAPI):
                     'private': 'https://www.mercadobitcoin.net/tapi',
                     'v4Public': 'https://www.mercadobitcoin.com.br/v4',
                     'v4PublicNet': 'https://api.mercadobitcoin.net/api/v4',
+                    'v4Private': 'https://api.mercadobitcoin.net/api/v4',
                 },
                 'www': 'https://www.mercadobitcoin.com.br',
                 'doc': [
@@ -145,41 +145,51 @@ class mercado(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'coins',
-                        '{coin}/orderbook/',  # last slash critical
-                        '{coin}/ticker/',
-                        '{coin}/trades/',
-                        '{coin}/trades/{from}/',
-                        '{coin}/trades/{from}/{to}',
-                        '{coin}/day-summary/{year}/{month}/{day}/',
-                    ],
+                    'get': {
+                        'coins': {'cost': 1},
+                        '{coin}/orderbook/': {'cost': 1},
+                        '{coin}/ticker/': {'cost': 1},
+                        '{coin}/trades/': {'cost': 1},
+                        '{coin}/trades/{from}/': {'cost': 1},
+                        '{coin}/trades/{from}/{to}': {'cost': 1},
+                        '{coin}/day-summary/{year}/{month}/{day}/': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'post': [
-                        'cancel_order',
-                        'get_account_info',
-                        'get_order',
-                        'get_withdrawal',
-                        'list_system_messages',
-                        'list_orders',
-                        'list_orderbook',
-                        'place_buy_order',
-                        'place_sell_order',
-                        'place_market_buy_order',
-                        'place_market_sell_order',
-                        'withdraw_coin',
-                    ],
+                    'post': {
+                        'cancel_order': {'cost': 1},
+                        'get_account_info': {'cost': 1},
+                        'get_order': {'cost': 1},
+                        'get_withdrawal': {'cost': 1},
+                        'list_system_messages': {'cost': 1},
+                        'list_orders': {'cost': 1},
+                        'list_orderbook': {'cost': 1},
+                        'place_buy_order': {'cost': 1},
+                        'place_sell_order': {'cost': 1},
+                        'place_market_buy_order': {'cost': 1},
+                        'place_market_sell_order': {'cost': 1},
+                        'withdraw_coin': {'cost': 1},
+                    },
                 },
                 'v4Public': {
-                    'get': [
-                        '{coin}/candle/',
-                    ],
+                    'get': {
+                        '{coin}/candle/': {'cost': 1},
+                    },
                 },
                 'v4PublicNet': {
-                    'get': [
-                        'candles',
-                    ],
+                    'get': {
+                        'candles': {'cost': 1},
+                    },
+                },
+                'v4Private': {
+                    'post': {
+                        'accounts': {'cost': 1},
+                        'accounts/{accountId}/{symbol}/transfers/internal': {'cost': 1},
+                        'oauth2/token': {'cost': 1},
+                    },
+                    'patch': {
+                        'accounts/{accountId}/wallet/{symbol}/deposits/{depositId}': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -269,7 +279,7 @@ class mercado(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for mercado
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -298,13 +308,16 @@ class mercado(Exchange, ImplicitAPI):
         #     ]
         #
         result = []
-        amountLimits = self.safe_value(self.options, 'limits', {})
-        for i in range(0, len(response)):
-            coin = response[i]
+        amountLimits = self.safe_dict(self.options, 'limits', {})
+        coins = self.to_array(response)
+        for i in range(0, len(coins)):
+            coin = coins[i]
             baseId = coin
             quoteId = 'BRL'
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             id = quote + base
             result.append({
                 'id': id,
@@ -357,17 +370,18 @@ class mercado(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'coin': market['base'],
         }
         response = self.publicGetCoinOrderbook(self.extend(request, params))
@@ -412,20 +426,21 @@ class mercado(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'coin': market['base'],
         }
         response = self.publicGetCoinTicker(self.extend(request, params))
-        ticker = self.safe_value(response, 'ticker', {})
+        ticker = self.safe_dict(response, 'ticker', {})
         #
         #     {
         #         "ticker": {
@@ -444,7 +459,7 @@ class mercado(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         timestamp = self.safe_timestamp_2(trade, 'date', 'executed_timestamp')
-        market = self.safe_market(None, market)
+        marketResolved = self.safe_market(None, market)
         id = self.safe_string_2(trade, 'tid', 'operation_id')
         type = None
         side = self.safe_string(trade, 'type')
@@ -462,7 +477,7 @@ class mercado(Exchange, ImplicitAPI):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': None,
             'type': type,
             'side': side,
@@ -471,9 +486,9 @@ class mercado(Exchange, ImplicitAPI):
             'amount': amount,
             'cost': None,
             'fee': fee,
-        }, market)
+        }, marketResolved)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -482,48 +497,53 @@ class mercado(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        method = 'publicGetCoinTrades'
-        request: dict = {
+        request = {
             'coin': market['base'],
         }
         if since is not None:
-            method += 'From'
             request['from'] = self.parse_to_int(since / 1000)
         to = self.safe_integer(params, 'to')
-        if to is not None:
-            method += 'To'
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if (since is not None) and (to is not None):
+            response = self.publicGetCoinTradesFromTo(self.extend(request, params))
+        elif since is not None:
+            response = self.publicGetCoinTradesFrom(self.extend(request, params))
+        else:
+            response = self.publicGetCoinTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_balance(self, response) -> Balances:
-        data = self.safe_value(response, 'response_data', {})
-        balances = self.safe_value(data, 'balance', {})
-        result: dict = {'info': response}
+    def parse_balance(self, response: object) -> Balances:
+        data = self.safe_dict(response, 'response_data', {})
+        balances = self.safe_dict(data, 'balance', {})
+        result = {'info': response}
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             if currencyId in balances:
-                balance = self.safe_value(balances, currencyId, {})
+                balance = self.safe_dict(balances, currencyId, {})
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'available')
                 account['total'] = self.safe_string(balance, 'total')
-                result[code] = account
+                if code is not None:
+                    result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privatePostGetAccountInfo(params)
         return self.parse_balance(response)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -534,35 +554,39 @@ class mercado(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'coin_pair': market['id'],
         }
-        method = self.capitalize(side) + 'Order'
+        response = None
         if type == 'limit':
-            method = 'privatePostPlace' + method
             request['limit_price'] = self.price_to_precision(market['symbol'], price)
             request['quantity'] = self.amount_to_precision(market['symbol'], amount)
+            if side == 'buy':
+                response = self.privatePostPlaceBuyOrder(self.extend(request, params))
+            else:
+                response = self.privatePostPlaceSellOrder(self.extend(request, params))
         else:
-            method = 'privatePostPlaceMarket' + method
             if side == 'buy':
                 if price is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount')
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount')
                 amountString = self.number_to_string(amount)
                 priceString = self.number_to_string(price)
                 cost = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
                 request['cost'] = self.price_to_precision(market['symbol'], cost)
+                response = self.privatePostPlaceMarketBuyOrder(self.extend(request, params))
             else:
                 request['quantity'] = self.amount_to_precision(market['symbol'], amount)
-        response = getattr(self, method)(self.extend(request, params))
-        # TODO: replace self with a call to parseOrder for unification
+                response = self.privatePostPlaceMarketSellOrder(self.extend(request, params))
+        # TODO: replace this with a call to parseOrder for unification
         return self.safe_order({
             'info': response,
             'id': str(response['response_data']['order']['order_id']),
         }, market)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
         :param str id: order id
@@ -572,9 +596,10 @@ class mercado(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'coin_pair': market['id'],
             'order_id': id,
         }
@@ -587,7 +612,7 @@ class mercado(Exchange, ImplicitAPI):
         #                 "coin_pair": "BRLBCH",
         #                 "order_type": 2,
         #                 "status": 3,
-        #                 "has_fills": False,
+        #                 "has_fills": false,
         #                 "quantity": "0.10000000",
         #                 "limit_price": "1996.15999",
         #                 "executed_quantity": "0.00000000",
@@ -602,12 +627,12 @@ class mercado(Exchange, ImplicitAPI):
         #         "server_unix_timestamp": "1536956499"
         #     }
         #
-        responseData = self.safe_value(response, 'response_data', {})
+        responseData = self.safe_dict(response, 'response_data', {})
         order = self.safe_dict(responseData, 'order', {})
         return self.parse_order(order, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             '2': 'open',
             '3': 'canceled',
             '4': 'closed',
@@ -621,7 +646,7 @@ class mercado(Exchange, ImplicitAPI):
         #         "coin_pair": "BRLBTC",
         #         "order_type": 1,
         #         "status": 2,
-        #         "has_fills": True,
+        #         "has_fills": true,
         #         "quantity": "2.00000000",
         #         "limit_price": "900.00000",
         #         "executed_quantity": "1.00000000",
@@ -647,19 +672,20 @@ class mercado(Exchange, ImplicitAPI):
             side = 'buy' if (order_type == '1') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'coin_pair')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         timestamp = self.safe_timestamp(order, 'created_timestamp')
         fee = {
             'cost': self.safe_string(order, 'fee'),
-            'currency': market['quote'],
+            'currency': marketResolved['quote'],
         }
         price = self.safe_string(order, 'limit_price')
-        # price = self.safe_number(order, 'executed_price_avg', price)
+        # price = this.safeNumber (order, 'executed_price_avg', price);
         average = self.safe_string(order, 'executed_price_avg')
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'executed_quantity')
         lastTradeTimestamp = self.safe_timestamp(order, 'updated_timestamp')
-        rawTrades = self.safe_value(order, 'operations', [])
+        rawTrades = self.safe_list(order, 'operations', [])
+        symbol = marketResolved['symbol']
         return self.safe_order({
             'info': order,
             'id': id,
@@ -667,7 +693,7 @@ class mercado(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'timeInForce': None,
             'postOnly': None,
@@ -682,9 +708,9 @@ class mercado(Exchange, ImplicitAPI):
             'status': status,
             'fee': fee,
             'trades': rawTrades,
-        }, market)
+        }, marketResolved)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
         :param str id: order id
@@ -694,18 +720,19 @@ class mercado(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'coin_pair': market['id'],
             'order_id': int(id),
         }
         response = self.privatePostGetOrder(self.extend(request, params))
-        responseData = self.safe_value(response, 'response_data', {})
+        responseData = self.safe_dict(response, 'response_data', {})
         order = self.safe_dict(responseData, 'order')
         return self.parse_order(order, market)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
@@ -715,30 +742,31 @@ class mercado(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'coin': currency['id'],
             'quantity': format(amount, '.10f'),
             'address': address,
         }
         if code == 'BRL':
-            account_ref = ('account_ref' in params)
+            account_ref = ('account_ref' in paramsWithdrawTag)
             if not account_ref:
                 raise ArgumentsRequired(self.id + ' withdraw() requires account_ref parameter to withdraw ' + code)
         elif code != 'LTC':
-            tx_fee = ('tx_fee' in params)
+            tx_fee = ('tx_fee' in paramsWithdrawTag)
             if not tx_fee:
                 raise ArgumentsRequired(self.id + ' withdraw() requires tx_fee parameter to withdraw ' + code)
             if code == 'XRP':
-                if tag is None:
-                    if not ('destination_tag' in params):
+                if tagWithdrawTag is None:
+                    if not ('destination_tag' in paramsWithdrawTag):
                         raise ArgumentsRequired(self.id + ' withdraw() requires a tag argument or destination_tag parameter to withdraw ' + code)
                 else:
-                    request['destination_tag'] = tag
-        response = self.privatePostWithdrawCoin(self.extend(request, params))
+                    request['destination_tag'] = tagWithdrawTag
+        response = self.privatePostWithdrawCoin(self.extend(request, paramsWithdrawTag))
         #
         #     {
         #         "response_data": {
@@ -758,7 +786,7 @@ class mercado(Exchange, ImplicitAPI):
         #         "server_unix_timestamp": "1453912088"
         #     }
         #
-        responseData = self.safe_value(response, 'response_data', {})
+        responseData = self.safe_dict(response, 'response_data', {})
         withdrawal = self.safe_dict(responseData, 'withdrawal')
         return self.parse_transaction(withdrawal, currency)
 
@@ -776,7 +804,7 @@ class mercado(Exchange, ImplicitAPI):
         #         "updated_timestamp": "1453912088"
         #     }
         #
-        currency = self.safe_currency(None, currency)
+        currencyResolved = self.safe_currency(None, currency)
         return {
             'id': self.safe_string(transaction, 'id'),
             'txid': None,
@@ -788,7 +816,7 @@ class mercado(Exchange, ImplicitAPI):
             'addressTo': None,
             'amount': None,
             'type': None,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'status': None,
             'updated': None,
             'tagFrom': None,
@@ -800,7 +828,7 @@ class mercado(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -810,7 +838,7 @@ class mercado(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '15m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '15m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -818,27 +846,30 @@ class mercado(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             'symbol': market['base'] + '-' + market['quote'],  # exceptional endpoint, that needs custom symbol syntax
         }
-        if limit is None:
-            limit = 100  # set some default limit,'s required if user doesn't provide it
+        # set some default limit, as it's required if user doesn't provide it
+        limitResolved = 100 if (limit is None) else limit
         if since is not None:
             request['from'] = self.parse_to_int(since / 1000)
-            request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe))
+            request['to'] = self.sum(request['from'], limitResolved * self.parse_timeframe(timeframe))
         else:
-            request['to'] = self.seconds()
-            request['from'] = request['to'] - (limit * self.parse_timeframe(timeframe))
+            to = self.seconds()
+            request['to'] = to
+            request['from'] = to - (limitResolved * self.parse_timeframe(timeframe))
         response = self.v4PublicNetGetCandles(self.extend(request, params))
-        candles = self.convert_trading_view_to_ohlcv(response, 't', 'o', 'h', 'l', 'c', 'v')
-        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+        # parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
+        # then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
+        return self.parse_trading_view_ohlcv(response, market, timeframe, since, limitResolved)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -849,17 +880,18 @@ class mercado(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'coin_pair': market['id'],
         }
         response = self.privatePostListOrders(self.extend(request, params))
-        responseData = self.safe_value(response, 'response_data', {})
+        responseData = self.safe_dict(response, 'response_data', {})
         orders = self.safe_list(responseData, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -870,18 +902,19 @@ class mercado(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'coin_pair': market['id'],
             'status_list': '[2]',  # open only
         }
         response = self.privatePostListOrders(self.extend(request, params))
-        responseData = self.safe_value(response, 'response_data', {})
+        responseData = self.safe_dict(response, 'response_data', {})
         orders = self.safe_list(responseData, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -892,55 +925,73 @@ class mercado(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'coin_pair': market['id'],
             'has_fills': True,
         }
         response = self.privatePostListOrders(self.extend(request, params))
-        responseData = self.safe_value(response, 'response_data', {})
-        ordersRaw = self.safe_value(responseData, 'orders', [])
+        responseData = self.safe_dict(response, 'response_data', {})
+        ordersRaw = self.safe_list(responseData, 'orders', [])
         orders = self.parse_orders(ordersRaw, market, since, limit)
         trades = self.orders_to_trades(orders)
-        return self.filter_by_symbol_since_limit(trades, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(trades, self.safe_string(market, 'symbol'), since, limit)
 
-    def orders_to_trades(self, orders):
+    def orders_to_trades(self, orders: list[Order]) -> list[Trade]:
         result = []
         for i in range(0, len(orders)):
-            trades = self.safe_value(orders[i], 'trades', [])
+            trades = self.safe_list(orders[i], 'trades', [])
             for y in range(0, len(trades)):
                 result.append(trades[y])
         return result
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] + '/'
+    def nonce(self) -> float:
+        # the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return self.milliseconds()
+
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/'
         query = self.omit(params, self.extract_params(path))
-        if (api == 'public') or (api == 'v4Public') or (api == 'v4PublicNet'):
+        isPublic = (api == 'public') or (api == 'v4Public') or (api == 'v4PublicNet')
+        privateBody = None
+        privateHeaders = None
+        if isPublic:
             url += self.implode_params(path, params)
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             url += self.version + '/'
-            nonce = self.nonce()
-            body = self.urlencode(self.extend({
+            # mercado requires each tonce to be greater than the previous one
+            nonce = self.incrementing_nonce()
+            privateBody = self.urlencode(self.extend({
                 'tapi_method': path,
                 'tapi_nonce': nonce,
             }, params))
-            auth = '/tapi/' + self.version + '/' + '?' + body
-            headers = {
+            auth = '/tapi/' + self.version + '/' + '?' + privateBody
+            privateHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'TAPI-ID': self.apiKey,
                 'TAPI-MAC': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512),
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        requestBody = privateBody
+        if isPublic:
+            requestBody = body
+        requestHeaders = privateHeaders
+        if isPublic:
+            requestHeaders = headers
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         #
-        # todo add a unified standard handleErrors with self.exceptions in describe()
+        # todo add a unified standard handleErrors with this.exceptions in describe()
         #
         #     {"status":503,"message":"Maintenancing, try again later","result":null}
         #

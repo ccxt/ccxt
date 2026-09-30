@@ -1,15 +1,15 @@
 
 // ---------------------------------------------------------------------------
 
+import { ed25519 } from '@noble/curves/ed25519.js';
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/modetrade.js';
 import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, InsufficientFunds, ArgumentsRequired, NetworkError, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
-import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
-import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, Position } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, List, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFees, Transaction, int, Status, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, O
  * @augments Exchange
  */
 export default class modetrade extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'modetrade',
             'name': 'Mode Trade',
@@ -28,7 +28,6 @@ export default class modetrade extends Exchange {
             'certified': false,
             'pro': true,
             'dex': true,
-            'hostname': 'trade.mode.network',
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -50,6 +49,7 @@ export default class modetrade extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -60,6 +60,7 @@ export default class modetrade extends Exchange {
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': true,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchCanceledOrders': false,
@@ -128,7 +129,7 @@ export default class modetrade extends Exchange {
                 '1y': '1y',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/cec2b7f1-3b2b-4502-971b-447ee1937d6b',
+                'logo': 'https://github.com/user-attachments/assets/bbde7d00-6e40-404f-8f34-8fb15893eb24',
                 'api': {
                     'public': 'https://api-evm.orderly.org',
                     'private': 'https://api-evm.orderly.org',
@@ -138,6 +139,9 @@ export default class modetrade extends Exchange {
                     'private': 'https://testnet-api-evm.orderly.org',
                 },
                 'www': 'https://trade.mode.network',
+                'doc': [
+                    'https://orderly.network/docs/build-on-omnichain/building-on-omnichain',
+                ],
                 'referral': {
                     'url': 'https://trade.mode.network?ref=MODETRADE',
                     'discount': 0.2,
@@ -147,133 +151,161 @@ export default class modetrade extends Exchange {
                 'v1': {
                     'public': {
                         'get': {
-                            'public/volume/stats': 1,
-                            'public/broker/name': 1,
-                            'public/chain_info/{broker_id}': 1,
-                            'public/system_info': 1,
-                            'public/vault_balance': 1,
-                            'public/insurancefund': 1,
-                            'public/chain_info': 1,
-                            'faucet/usdc': 1,
-                            'public/account': 1,
-                            'get_account': 1,
-                            'registration_nonce': 1,
-                            'get_orderly_key': 1,
-                            'public/liquidation': 1,
-                            'public/liquidated_positions': 1,
-                            'public/config': 1,
-                            'public/campaign/ranking': 10,
-                            'public/campaign/stats': 10,
-                            'public/campaign/user': 10,
-                            'public/campaign/stats/details': 10,
-                            'public/campaigns': 10,
-                            'public/points/leaderboard': 1,
-                            'client/points': 1,
-                            'public/points/epoch': 1,
-                            'public/points/epoch_dates': 1,
-                            'public/referral/check_ref_code': 1,
-                            'public/referral/verify_ref_code': 1,
-                            'referral/admin_info': 1,
-                            'referral/info': 1,
-                            'referral/referee_info': 1,
-                            'referral/referee_rebate_summary': 1,
-                            'referral/referee_history': 1,
-                            'referral/referral_history': 1,
-                            'referral/rebate_summary': 1,
-                            'client/distribution_history': 1,
-                            'tv/config': 1,
-                            'tv/history': 1,
-                            'tv/symbol_info': 1,
-                            'public/funding_rate_history': 1,
-                            'public/funding_rate/{symbol}': 0.33,
-                            'public/funding_rates': 1,
-                            'public/info': 1,
-                            'public/info/{symbol}': 1,
-                            'public/market_trades': 1,
-                            'public/token': 1,
-                            'public/futures': 1,
-                            'public/futures/{symbol}': 1,
+                            'public/volume/stats': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/broker/name': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/chain_info/{broker_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/system_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/vault_balance': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/insurancefund': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/chain_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'faucet/usdc': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/account': { 'cost': 1 } as Endpoint<Dict>,
+                            'get_account': { 'cost': 1 } as Endpoint<Dict>,
+                            'registration_nonce': { 'cost': 1 } as Endpoint<Dict>,
+                            'get_orderly_key': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/liquidation': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/liquidated_positions': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/config': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/campaign/ranking': { 'cost': 10 } as Endpoint<Dict>,
+                            'public/campaign/stats': { 'cost': 10 } as Endpoint<Dict>,
+                            'public/campaign/user': { 'cost': 10 } as Endpoint<Dict>,
+                            'public/campaign/stats/details': { 'cost': 10 } as Endpoint<Dict>,
+                            'public/campaigns': { 'cost': 10 } as Endpoint<Dict>,
+                            'public/points/leaderboard': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/points': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/points/epoch': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/points/epoch_dates': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/referral/check_ref_code': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/referral/verify_ref_code': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/admin_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/referee_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/referee_rebate_summary': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/referee_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/referral_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/rebate_summary': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/distribution_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'tv/config': { 'cost': 1 } as Endpoint<Dict>,
+                            'tv/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'tv/symbol_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'tv/kline_history': { 'cost': 20 } as Endpoint<Dict>,
+                            'public/funding_rate_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/funding_rate/{symbol}': { 'cost': 0.33 } as Endpoint<Dict>,
+                            'public/funding_rates': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/info/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/market_trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/token': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/futures': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/futures/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'register_account': 1,
+                            'register_account': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/query': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
-                            'client/key_info': 6,
-                            'client/orderly_key_ip_restriction': 6,
-                            'order/{oid}': 1,
-                            'client/order/{client_order_id}': 1,
-                            'algo/order/{oid}': 1,
-                            'algo/client/order/{client_order_id}': 1,
-                            'orders': 1,
-                            'algo/orders': 1,
-                            'trade/{tid}': 1,
-                            'trades': 1,
-                            'order/{oid}/trades': 1,
-                            'client/liquidator_liquidations': 1,
-                            'liquidations': 1,
-                            'asset/history': 60,
-                            'client/holding': 1,
-                            'withdraw_nonce': 1,
-                            'settle_nonce': 1,
-                            'pnl_settlement/history': 1,
-                            'volume/user/daily': 60,
-                            'volume/user/stats': 60,
-                            'client/statistics': 60,
-                            'client/info': 60,
-                            'client/statistics/daily': 60,
-                            'positions': 3.33,
-                            'position/{symbol}': 3.33,
-                            'funding_fee/history': 30,
-                            'notification/inbox/notifications': 60,
-                            'notification/inbox/unread': 60,
-                            'volume/broker/daily': 60,
-                            'broker/fee_rate/default': 10,
-                            'broker/user_info': 10,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
+                            'client/key_info': { 'cost': 6 } as Endpoint<Dict>,
+                            'client/orderly_key_ip_restriction': { 'cost': 6 } as Endpoint<Dict>,
+                            'order/{oid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/order/{oid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/client/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'trade/{tid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/{oid}/trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/liquidator_liquidations': { 'cost': 1 } as Endpoint<Dict>,
+                            'liquidations': { 'cost': 1 } as Endpoint<Dict>,
+                            'asset/history': { 'cost': 60 } as Endpoint<Dict>,
+                            'client/holding': { 'cost': 1 } as Endpoint<Dict>,
+                            'withdraw_nonce': { 'cost': 1 } as Endpoint<Dict>,
+                            'settle_nonce': { 'cost': 1 } as Endpoint<Dict>,
+                            'pnl_settlement/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'internal_transfer_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'volume/user/daily': { 'cost': 60 } as Endpoint<Dict>,
+                            'volume/user/stats': { 'cost': 60 } as Endpoint<Dict>,
+                            'client/statistics': { 'cost': 60 } as Endpoint<Dict>,
+                            'client/info': { 'cost': 60 } as Endpoint<Dict>,
+                            'client/statistics/daily': { 'cost': 60 } as Endpoint<Dict>,
+                            'positions': { 'cost': 3.33 } as Endpoint<Dict>,
+                            'position/{symbol}': { 'cost': 3.33 } as Endpoint<Dict>,
+                            'funding_fee/history': { 'cost': 30 } as Endpoint<Dict>,
+                            'notification/inbox/notifications': { 'cost': 60 } as Endpoint<Dict>,
+                            'notification/inbox/unread': { 'cost': 60 } as Endpoint<Dict>,
+                            'volume/broker/daily': { 'cost': 60 } as Endpoint<Dict>,
+                            'broker/fee_rate/default': { 'cost': 10 } as Endpoint<Dict>,
+                            'broker/user_info': { 'cost': 10 } as Endpoint<Dict>,
+                            'broker/daily_fee_revenue': { 'cost': 1 } as Endpoint<Dict>,
+                            'orderbook/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/leverages': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/margin_modes': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/admin': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/referee_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/summary': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/max_rebate_rate': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/rebate_info': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/referee_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/statistics': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/volume_prerequisite': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'orderly_key': 1,
-                            'client/set_orderly_key_ip_restriction': 6,
-                            'client/reset_orderly_key_ip_restriction': 6,
-                            'order': 1,
-                            'batch-order': 10,
-                            'algo/order': 1,
-                            'liquidation': 1,
-                            'claim_insurance_fund': 1,
-                            'withdraw_request': 1,
-                            'settle_pnl': 1,
-                            'notification/inbox/mark_read': 60,
-                            'notification/inbox/mark_read_all': 60,
-                            'client/leverage': 120,
-                            'client/maintenance_config': 60,
-                            'delegate_signer': 10,
-                            'delegate_orderly_key': 10,
-                            'delegate_settle_pnl': 10,
-                            'delegate_withdraw_request': 10,
-                            'broker/fee_rate/set': 10,
-                            'broker/fee_rate/set_default': 10,
-                            'broker/fee_rate/default': 10,
-                            'referral/create': 10,
-                            'referral/update': 10,
-                            'referral/bind': 10,
-                            'referral/edit_split': 10,
+                            'orderly_key': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/set_orderly_key_ip_restriction': { 'cost': 6 } as Endpoint<Dict>,
+                            'client/reset_orderly_key_ip_restriction': { 'cost': 6 } as Endpoint<Dict>,
+                            'order': { 'cost': 1 } as Endpoint<Dict>,
+                            'batch-order': { 'cost': 10 } as Endpoint<Dict>,
+                            'algo/order': { 'cost': 1 } as Endpoint<Dict>,
+                            'liquidation': { 'cost': 1 } as Endpoint<Dict>,
+                            'claim_insurance_fund': { 'cost': 1 } as Endpoint<Dict>,
+                            'withdraw_request': { 'cost': 1 } as Endpoint<Dict>,
+                            'settle_pnl': { 'cost': 1 } as Endpoint<Dict>,
+                            'internal_transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'notification/inbox/mark_read': { 'cost': 60 } as Endpoint<Dict>,
+                            'notification/inbox/mark_read_all': { 'cost': 60 } as Endpoint<Dict>,
+                            'client/leverage': { 'cost': 120 } as Endpoint<Dict>,
+                            'client/leverages': { 'cost': 120 } as Endpoint<Dict>,
+                            'client/margin_mode': { 'cost': 1 } as Endpoint<Dict>,
+                            'position_margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/maintenance_config': { 'cost': 60 } as Endpoint<Dict>,
+                            'delegate_signer': { 'cost': 10 } as Endpoint<Dict>,
+                            'delegate_orderly_key': { 'cost': 10 } as Endpoint<Dict>,
+                            'delegate_settle_pnl': { 'cost': 10 } as Endpoint<Dict>,
+                            'delegate_withdraw_request': { 'cost': 10 } as Endpoint<Dict>,
+                            'broker/fee_rate/set': { 'cost': 10 } as Endpoint<Dict>,
+                            'broker/fee_rate/set_default': { 'cost': 10 } as Endpoint<Dict>,
+                            'broker/fee_rate/default': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/create': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/update': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/bind': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/edit_split': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/edit_referee_description': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/admin': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/update': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/create/affiliate': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/reset/affiliate': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/update/affiliate': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/claim_code': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/rebate_rate/set_default': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/rebate_rate/update': { 'cost': 10 } as Endpoint<Dict>,
                         },
                         'put': {
-                            'order': 1,
-                            'algo/order': 1,
+                            'order': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/order': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'order': 1,
-                            'algo/order': 1,
-                            'client/order': 1,
-                            'algo/client/order': 1,
-                            'algo/orders': 1,
-                            'orders': 1,
-                            'batch-order': 1,
-                            'client/batch-order': 1,
+                            'order': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/order': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/order': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/client/order': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders': { 'cost': 1 } as Endpoint<List>,
+                            'batch-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/batch-order': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -315,12 +347,12 @@ export default class modetrade extends Exchange {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': true,
-                        'leverage': true, // todo implement
+                        'trailing': false,
+                        'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
-                        'iceberg': true, // todo implement
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 10,
@@ -345,7 +377,15 @@ export default class modetrade extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'untilDays': 100000,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 500,
@@ -360,9 +400,7 @@ export default class modetrade extends Exchange {
                         'limit': 1000,
                     },
                 },
-                'spot': {
-                    'extends': 'default',
-                },
+                'spot': undefined,
                 'forDerivatives': {
                     'extends': 'default',
                     'createOrder': {
@@ -421,7 +459,7 @@ export default class modetrade extends Exchange {
         });
     }
 
-    setSandboxMode (enable: boolean) {
+    override setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
     }
@@ -430,11 +468,11 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    async fetchStatus (params = {}) {
+    override async fetchStatus (params: Dict = {}): Promise<Status> {
         const response = await this.v1PublicGetPublicSystemInfo (params);
         //
         //     {
@@ -468,11 +506,11 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.v1PublicGetPublicSystemInfo (params);
         //
         //     {
@@ -487,7 +525,7 @@ export default class modetrade extends Exchange {
         return this.safeInteger (response, 'timestamp');
     }
 
-    parseMarket (market: Dict): Market {
+    override parseMarket (market: Dict): Market {
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
@@ -515,17 +553,20 @@ export default class modetrade extends Exchange {
         //     "liquidation_tier": "1"
         //   }
         //
-        const marketId = this.safeString (market, 'symbol');
+        const marketId = this.safeString (market, 'symbol', '');
         const parts = marketId.split ('_');
         const marketType = 'swap';
         const baseId = this.safeString (parts, 1);
         const quoteId = this.safeString (parts, 2);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const settleId: Str = this.safeString (parts, 2);
-        const settle: Str = this.safeCurrencyCode (settleId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
+        const settleId = this.safeString (parts, 2);
+        const settle = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -573,18 +614,18 @@ export default class modetrade extends Exchange {
             },
             'created': this.safeInteger (market, 'created_time'),
             'info': market,
-        };
+        });
     }
 
     /**
      * @method
      * @name modetrade#fetchMarkets
      * @description retrieves data on all markets for modetrade
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.v1PublicGetPublicInfo (params);
         //
         //   {
@@ -622,7 +663,7 @@ export default class modetrade extends Exchange {
         //   }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseMarkets (rows);
     }
 
@@ -630,12 +671,11 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
-        const result: Dict = {};
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.v1PublicGetPublicToken (params);
         //
         // {
@@ -661,71 +701,71 @@ export default class modetrade extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const tokenRows = this.safeList (data, 'rows', []);
-        for (let i = 0; i < tokenRows.length; i++) {
-            const token = tokenRows[i];
-            const currencyId = this.safeString (token, 'token');
-            const networks = this.safeList (token, 'chain_details');
-            const code = this.safeCurrencyCode (currencyId);
-            let minPrecision = undefined;
-            const resultingNetworks: Dict = {};
-            for (let j = 0; j < networks.length; j++) {
-                const network = networks[j];
-                // TODO: transform chain id to human readable name
-                const networkId = this.safeString (network, 'chain_id');
-                const precision = this.parsePrecision (this.safeString (network, 'decimals'));
-                if (precision !== undefined) {
-                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
-                }
-                resultingNetworks[networkId] = {
-                    'id': networkId,
-                    'network': networkId,
-                    'limits': {
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': this.safeNumber (network, 'withdrawal_fee'),
-                    'precision': this.parseNumber (precision),
-                    'info': network,
-                };
+        return this.parseCurrencies (tokenRows);
+    }
+
+    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
+        const currencyId = this.safeString (rawCurrency, 'token');
+        const networks: Dict[] = this.safeList (rawCurrency, 'chain_details', []);
+        const code = this.safeCurrencyCode (currencyId);
+        let minPrecision: Str = undefined;
+        const resultingNetworks: Dict = {};
+        for (let j = 0; j < networks.length; j++) {
+            const network = networks[j];
+            // TODO: transform chain id to human readable name
+            const networkId = this.safeString (network, 'chain_id', '');
+            const precision = this.parsePrecision (this.safeString (network, 'decimals'));
+            if (precision !== undefined) {
+                minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
             }
-            result[code] = this.safeCurrencyStructure ({
-                'id': currencyId,
-                'name': currencyId,
-                'code': code,
-                'precision': this.parseNumber (minPrecision),
-                'active': undefined,
-                'fee': undefined,
-                'networks': resultingNetworks,
-                'deposit': undefined,
-                'withdraw': undefined,
+            resultingNetworks[networkId] = {
+                'id': networkId,
+                'network': networkId,
                 'limits': {
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'deposit': {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'withdraw': {
-                        'min': this.safeNumber (token, 'minimum_withdraw_amount'),
-                        'max': undefined,
-                    },
                 },
-                'info': token,
-            });
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': this.safeNumber (network, 'withdrawal_fee'),
+                'precision': this.parseNumber (precision),
+                'info': network,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': currencyId,
+            'name': currencyId,
+            'code': code,
+            'precision': this.parseNumber (minPrecision),
+            'active': undefined,
+            'fee': undefined,
+            'networks': resultingNetworks,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber (rawCurrency, 'minimum_withdraw_amount'),
+                    'max': undefined,
+                },
+            },
+            'info': rawCurrency,
+        });
     }
 
-    parseTokenAndFeeTemp (item, feeTokenKey, feeAmountKey) {
+    parseTokenAndFeeTemp (item: Dict, feeTokenKey: string, feeAmountKey: string) {
         const feeCost = this.safeString (item, feeAmountKey);
-        let fee = undefined;
+        let fee: FeeString = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (item, feeTokenKey);
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -737,7 +777,7 @@ export default class modetrade extends Exchange {
         return fee;
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public/market_trades
         //
@@ -768,14 +808,14 @@ export default class modetrade extends Exchange {
         const isFromFetchOrder = ('id' in trade);
         const timestamp = this.safeInteger (trade, 'executed_timestamp');
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString (trade, 'executed_price');
         const amount = this.safeString (trade, 'executed_quantity');
         const order_id = this.safeString (trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp (trade, 'fee_asset', 'fee');
         const feeCost = this.safeString (fee, 'cost');
-        if (feeCost !== undefined) {
+        if ((feeCost !== undefined) && (fee !== undefined)) {
             fee['cost'] = feeCost;
         }
         const cost = Precise.stringMul (price, amount);
@@ -800,22 +840,24 @@ export default class modetrade extends Exchange {
             'type': undefined,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     /**
      * @method
      * @name modetrade#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -840,11 +882,11 @@ export default class modetrade extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseTrades (rows, market, since, limit);
     }
 
-    parseFundingRate (fundingRate, market: Market = undefined): FundingRate {
+    override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
         //
         //         {
         //             "symbol":"PERP_AAVE_USDT",
@@ -857,16 +899,17 @@ export default class modetrade extends Exchange {
         //         }
         //
         const symbol = this.safeString (fundingRate, 'symbol');
-        market = this.market (symbol);
+        const marketValue: Market = (symbol === undefined) ? market : this.market (symbol);
         const nextFundingTimestamp = this.safeInteger (fundingRate, 'next_funding_time');
         const estFundingRateTimestamp = this.safeInteger (fundingRate, 'est_funding_rate_timestamp');
         const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'last_funding_rate_timestamp');
         const fundingTimeString = this.safeString (fundingRate, 'last_funding_rate_timestamp');
         const nextFundingTimeString = this.safeString (fundingRate, 'next_funding_time');
         const millisecondsInterval = Precise.stringSub (nextFundingTimeString, fundingTimeString);
+        const fundingSymbol = (marketValue !== undefined) ? marketValue['symbol'] : undefined;
         return {
             'info': fundingRate,
-            'symbol': market['symbol'],
+            'symbol': fundingSymbol,
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': this.parseNumber ('0'),
@@ -886,7 +929,7 @@ export default class modetrade extends Exchange {
         } as FundingRate;
     }
 
-    parseFundingInterval (interval) {
+    parseFundingInterval (interval: Str): Str {
         const intervals: Dict = {
             '3600000': '1h',
             '14400000': '4h',
@@ -901,12 +944,12 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchFundingInterval
      * @description fetch the current funding rate interval
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingInterval (symbol: string, params: Dict = {}): Promise<FundingRate> {
         return await this.fetchFundingRate (symbol, params);
     }
 
@@ -914,13 +957,15 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
+    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -949,14 +994,16 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchFundingRates
      * @description fetch the current funding rate for multiple markets
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+    override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.v1PublicGetPublicFundingRates (params);
         //
         // {
@@ -976,15 +1023,15 @@ export default class modetrade extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
-        return this.parseFundingRates (rows, symbols);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
+        return this.parseFundingRates (rows, symbolsNormalized);
     }
 
     /**
      * @method
      * @name modetrade#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -993,24 +1040,26 @@ export default class modetrade extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25) as FundingRateHistory[];
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
         }
-        let request: Dict = {};
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'page', 25) as FundingRateHistory[];
+        }
+        const request: Dict = {};
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbol = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('end_t', request, params, 0.001);
-        const response = await this.v1PublicGetPublicFundingRateHistory (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_t', request, paramsPaginate, 0.001);
+        const response = await this.v1PublicGetPublicFundingRateHistory (this.extend (requestUntil, paramsUntil));
         //
         // {
         //     "success": true,
@@ -1031,8 +1080,8 @@ export default class modetrade extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const result = this.safeList (data, 'rows', []);
-        const rates = [];
+        const result: Dict[] = this.safeList (data, 'rows', []);
+        const rates: List = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString (entry, 'symbol');
@@ -1046,10 +1095,10 @@ export default class modetrade extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit) as FundingRateHistory[];
     }
 
-    parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: Dict, market: Market = undefined): Dict {
         //
         // {
         //         "symbol": "PERP_ETH_USDC",
@@ -1086,7 +1135,7 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -1094,12 +1143,13 @@ export default class modetrade extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, params, 'page', 500) as FundingHistory[];
+            return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'page', 500) as FundingHistory[];
         }
         const request: Dict = {};
         let market: Market = undefined;
@@ -1110,15 +1160,15 @@ export default class modetrade extends Exchange {
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        const until = this.safeInteger (params, 'until'); // unified in milliseconds
-        params = this.omit (params, [ 'until' ]);
+        const until = this.safeInteger (paramsPaginate, 'until'); // unified in milliseconds
+        const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
         if (until !== undefined) {
             request['end_t'] = until;
         }
         if (limit !== undefined) {
             request['size'] = Math.min (limit, 500);
         }
-        const response = await this.v1PrivateGetFundingFeeHistory (this.extend (request, params));
+        const response = await this.v1PrivateGetFundingFeeHistory (this.extend (request, paramsOmitted));
         //
         // {
         //     "success": true,
@@ -1143,7 +1193,7 @@ export default class modetrade extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseIncomes (rows, market, since, limit);
     }
 
@@ -1151,12 +1201,14 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
-        await this.loadMarkets ();
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v1PrivateGetClientInfo (params);
         //
         // {
@@ -1189,16 +1241,19 @@ export default class modetrade extends Exchange {
         const maker = this.safeString (data, 'futures_maker_fee_rate');
         const taker = this.safeString (data, 'futures_taker_fee_rate');
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
-            result[symbol] = {
-                'info': response,
-                'symbol': symbol,
-                'maker': this.parseNumber (Precise.stringDiv (maker, '10000')),
-                'taker': this.parseNumber (Precise.stringDiv (taker, '10000')),
-                'percentage': true,
-                'tierBased': true,
-            };
+        const symbols = this.symbols;
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                result[symbol] = {
+                    'info': response,
+                    'symbol': symbol,
+                    'maker': this.parseNumber (Precise.stringDiv (maker, '10000')),
+                    'taker': this.parseNumber (Precise.stringDiv (taker, '10000')),
+                    'percentage': true,
+                    'tierBased': true,
+                };
+            }
         }
         return result;
     }
@@ -1207,21 +1262,22 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            limit = Math.min (limit, 1000);
-            request['max_level'] = limit;
+            request['max_level'] = Math.min (limit, 1000);
         }
         const response = await this.v1PrivateGetOrderbookSymbol (this.extend (request, params));
         //
@@ -1246,7 +1302,7 @@ export default class modetrade extends Exchange {
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 'start_timestamp'),
             this.safeNumber (ohlcv, 'open'),
@@ -1260,7 +1316,7 @@ export default class modetrade extends Exchange {
     /**
      * @method
      * @name modetrade#fetchOHLCV
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1269,8 +1325,10 @@ export default class modetrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1305,7 +1363,7 @@ export default class modetrade extends Exchange {
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // Possible input functions:
         // * createOrder
@@ -1355,35 +1413,35 @@ export default class modetrade extends Exchange {
         const orderId = this.safeStringN (order, [ 'order_id', 'orderId', 'algoOrderId' ]);
         const clientOrderId = this.omitZero (this.safeString2 (order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString2 (order, 'order_price', 'price');
         const amount = this.safeString2 (order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
         const orderType = this.safeStringLower2 (order, 'order_type', 'type');
-        let status = this.safeValue2 (order, 'status', 'algoStatus');
+        let status = this.safeString2 (order, 'status', 'algoStatus');
         const success = this.safeBool (order, 'success');
         if (success !== undefined) {
             status = (success) ? 'NEW' : 'REJECTED';
         }
         const side = this.safeStringLower (order, 'side');
-        const filled = this.omitZero (this.safeValue2 (order, 'executed', 'totalExecutedQuantity'));
+        const filled = this.omitZero (this.safeString2 (order, 'executed', 'totalExecutedQuantity'));
         const average = this.omitZero (this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice'));
         const remaining = Precise.stringSub (cost, filled);
-        const fee = this.safeValue2 (order, 'total_fee', 'totalFee');
+        const fee = this.safeNumber2 (order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
-        const transactions = this.safeValue (order, 'Transactions');
+        const transactions = this.safeList (order, 'Transactions');
         const triggerPrice = this.safeNumber (order, 'triggerPrice');
         let takeProfitPrice: Num = undefined;
         let stopLossPrice: Num = undefined;
-        const childOrders = this.safeValue (order, 'childOrders');
+        const childOrders = this.safeList (order, 'childOrders');
         if (childOrders !== undefined) {
-            const first = this.safeValue (childOrders, 0);
-            const innerChildOrders = this.safeValue (first, 'childOrders', []);
+            const first = this.safeDict (childOrders, 0);
+            const innerChildOrders = this.safeList (first, 'childOrders', []);
             const innerChildOrdersLength = innerChildOrders.length;
             if (innerChildOrdersLength > 0) {
-                const takeProfitOrder = this.safeValue (innerChildOrders, 0);
-                const stopLossOrder = this.safeValue (innerChildOrders, 1);
+                const takeProfitOrder = this.safeDict (innerChildOrders, 0);
+                const stopLossOrder = this.safeDict (innerChildOrders, 1);
                 takeProfitPrice = this.safeNumber (takeProfitOrder, 'triggerPrice');
                 stopLossPrice = this.safeNumber (stopLossOrder, 'triggerPrice');
             }
@@ -1418,7 +1476,7 @@ export default class modetrade extends Exchange {
                 'currency': feeCurrency,
             },
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -1427,7 +1485,10 @@ export default class modetrade extends Exchange {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return this.safeString (timeInForces, timeInForce, undefined);
+        if (timeInForce === undefined) {
+            return undefined;
+        }
+        return this.safeString (timeInForces, timeInForce);
     }
 
     parseOrderStatus (status: Str) {
@@ -1443,9 +1504,12 @@ export default class modetrade extends Exchange {
                 'INCOMPLETE': 'open',
                 'COMPLETED': 'closed',
             };
+            if (status === undefined) {
+                return undefined;
+            }
             return this.safeString (statuses, status, status);
         }
-        return status;
+        return undefined;
     }
 
     parseOrderType (type: Str) {
@@ -1454,10 +1518,19 @@ export default class modetrade extends Exchange {
             'MARKET': 'market',
             'POST_ONLY': 'limit',
         };
+        if (type === undefined) {
+            return undefined;
+        }
         return this.safeStringLower (types, type, type);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
         /**
          * @method
          * @ignore
@@ -1474,6 +1547,9 @@ export default class modetrade extends Exchange {
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase ();
         const market = this.market (symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         const orderSide = side.toUpperCase ();
         const request: Dict = {
             'symbol': market['id'],
@@ -1489,9 +1565,18 @@ export default class modetrade extends Exchange {
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarket, undefined, params);
-        const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
-        const priceKey = isConditional ? 'price' : 'order_price';
-        const typeKey = isConditional ? 'type' : 'order_type';
+        let orderQtyKey: Str = 'order_quantity';
+        if (isConditional) {
+            orderQtyKey = 'quantity';
+        }
+        let priceKey: Str = 'order_price';
+        if (isConditional) {
+            priceKey = 'price';
+        }
+        let typeKey: Str = 'order_type';
+        if (isConditional) {
+            typeKey = 'type';
+        }
         request[typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!isConditional) {
             if (postOnly) {
@@ -1502,7 +1587,7 @@ export default class modetrade extends Exchange {
                 request['order_type'] = 'IOC';
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduce_only'] = reduceOnly;
         }
         if (price !== undefined) {
@@ -1529,7 +1614,10 @@ export default class modetrade extends Exchange {
                 'child_orders': [],
             };
             const childOrders = outterOrder['child_orders'];
-            const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
+            let closeSide: Str = 'BUY';
+            if (orderSide === 'BUY') {
+                closeSide = 'SELL';
+            }
             if (hasStopLoss) {
                 const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
                 const stopLossOrder: Dict = {
@@ -1550,20 +1638,20 @@ export default class modetrade extends Exchange {
                     'type': 'LIMIT',
                     'reduce_only': true,
                 };
-                outterOrder.push (takeProfitOrder);
+                childOrders.push (takeProfitOrder);
             }
             request['child_orders'] = [ outterOrder ];
         }
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
-        return this.extend (request, params);
+        const paramsOmitted: Dict = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
+        return this.extend (request, paramsOmitted);
     }
 
     /**
      * @method
      * @name modetrade#createOrder
      * @description create a trade order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1575,20 +1663,25 @@ export default class modetrade extends Exchange {
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.algoType] 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL'
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {bool} [params.postOnly] true or false whether the order is post-only
+     * @param {string} [params.timeInForce] 'IOC', 'FOK' or 'PO'
+     * @param {object[]} [params.childOrders] *algo order only* a list of child orders passed through to the exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
         const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
-        let response = undefined;
+        let response: Dict;
         if (isConditional) {
             response = await this.v1PrivatePostAlgoOrder (request);
             //
@@ -1621,7 +1714,7 @@ export default class modetrade extends Exchange {
             // }
             //
         }
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         data['timestamp'] = this.safeInteger (response, 'timestamp');
         const order = this.parseOrder (data, market);
         order['type'] = type;
@@ -1632,25 +1725,30 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#createOrders
      * @description *contract only* create a list of trade orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrders (orders: OrderRequest[], params = {}) {
-        await this.loadMarkets ();
-        const ordersRequests = [];
+    override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
-            const type = this.safeString (rawOrder, 'type');
+            if (marketId === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol for each order');
+            }
+            const type = this.safeString (rawOrder, 'type', '');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
-            const stopLoss = this.safeValue (orderParams, 'stopLoss');
-            const takeProfit = this.safeValue (orderParams, 'takeProfit');
+            const stopLoss = this.safeDict (orderParams, 'stopLoss');
+            const takeProfit = this.safeDict (orderParams, 'takeProfit');
             const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (orderParams, 'childOrders') !== undefined);
             if (isConditional) {
                 throw new NotSupported (this.id + ' createOrders() only support non-stop order');
@@ -1665,7 +1763,7 @@ export default class modetrade extends Exchange {
         //
         //     {
         //         "success": true,
-        //         "timestamp": 1702989203989,
+        //         "timestamp": 1702989203988,
         //         "data": {
         //             "rows": [{
         //                 "order_id": 13,
@@ -1680,7 +1778,7 @@ export default class modetrade extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseOrders (rows);
     }
 
@@ -1688,8 +1786,8 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#editOrder
      * @description edit a trade order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -1702,8 +1800,10 @@ export default class modetrade extends Exchange {
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'order_id': id,
@@ -1713,25 +1813,33 @@ export default class modetrade extends Exchange {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         const isConditional = (triggerPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
-        const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
-        const priceKey = isConditional ? 'price' : 'order_price';
+        let orderQtyKey: Str = 'order_quantity';
+        if (isConditional) {
+            orderQtyKey = 'quantity';
+        }
+        let priceKey: Str = 'order_price';
+        if (isConditional) {
+            priceKey = 'price';
+        }
         if (price !== undefined) {
             request[priceKey] = this.priceToPrecision (symbol, price);
         }
         if (amount !== undefined) {
             request[orderQtyKey] = this.amountToPrecision (symbol, amount);
         }
-        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
-        let response = undefined;
+        const paramsOmitted: Dict = this.omit (params, [ 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
+        let response: Dict;
         if (isConditional) {
-            response = await this.v1PrivatePutAlgoOrder (this.extend (request, params));
+            response = await this.v1PrivatePutAlgoOrder (this.extend (request, paramsOmitted));
         } else {
             request['symbol'] = market['id'];
-            request['side'] = side.toUpperCase ();
+            if (side !== undefined) {
+                request['side'] = side.toUpperCase ();
+            }
             const orderType = type.toUpperCase ();
-            const timeInForce = this.safeStringLower (params, 'timeInForce');
+            const timeInForce = this.safeStringLower (paramsOmitted, 'timeInForce');
             const isMarket = orderType === 'MARKET';
-            const postOnly = this.isPostOnly (isMarket, undefined, params);
+            const postOnly = this.isPostOnly (isMarket, undefined, paramsOmitted);
             if (postOnly) {
                 request['order_type'] = 'POST_ONLY';
             } else if (timeInForce === 'fok') {
@@ -1741,14 +1849,14 @@ export default class modetrade extends Exchange {
             } else {
                 request['order_type'] = orderType;
             }
-            const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-            params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce' ]);
+            const clientOrderId = this.safeStringN (paramsOmitted, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+            const paramsOrder: Dict = this.omit (paramsOmitted, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce' ]);
             if (clientOrderId !== undefined) {
                 request['client_order_id'] = clientOrderId;
             }
             // request['side'] = side.toUpperCase ();
             // request['symbol'] = market['id'];
-            response = await this.v1PrivatePutOrder (this.extend (request, params));
+            response = await this.v1PrivatePutOrder (this.extend (request, paramsOrder));
         }
         //
         // {
@@ -1767,10 +1875,10 @@ export default class modetrade extends Exchange {
     /**
      * @method
      * @name modetrade#cancelOrder
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -1779,41 +1887,42 @@ export default class modetrade extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        params = this.omit (params, [ 'stop', 'trigger' ]);
-        if (!trigger && (symbol === undefined)) {
+        const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
+        if ((trigger !== true) && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         const request: Dict = {
-            'symbol': market['id'],
+            'symbol': this.safeString (market, 'id'),
         };
-        const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
+        const clientOrderIdUnified = this.safeString2 (paramsOmitted, 'clOrdID', 'clientOrderId');
+        const clientOrderIdExchangeSpecific = this.safeString (paramsOmitted, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response = undefined;
-        if (trigger) {
+        const paramsClientOrder: Dict = this.omit (paramsOmitted, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        let response: Dict;
+        if (trigger === true) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
-                params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-                response = await this.v1PrivateDeleteAlgoClientOrder (this.extend (request, params));
+                response = await this.v1PrivateDeleteAlgoClientOrder (this.extend (request, paramsClientOrder));
             } else {
                 request['order_id'] = id;
-                response = await this.v1PrivateDeleteAlgoOrder (this.extend (request, params));
+                response = await this.v1PrivateDeleteAlgoOrder (this.extend (request, paramsOmitted));
             }
         } else {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
-                params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-                response = await this.v1PrivateDeleteClientOrder (this.extend (request, params));
+                response = await this.v1PrivateDeleteClientOrder (this.extend (request, paramsClientOrder));
             } else {
                 request['order_id'] = id;
-                response = await this.v1PrivateDeleteOrder (this.extend (request, params));
+                response = await this.v1PrivateDeleteOrder (this.extend (request, paramsOmitted));
             }
         }
         //
@@ -1837,7 +1946,7 @@ export default class modetrade extends Exchange {
         } else {
             extendParams['id'] = id;
         }
-        if (trigger) {
+        if (trigger === true) {
             return this.extend (this.parseOrder (response), extendParams) as Order;
         }
         const data = this.safeDict (response, 'data', {});
@@ -1848,26 +1957,28 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#cancelOrders
      * @description cancel multiple orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async cancelOrders (ids:string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
-        params = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const request: Dict = {};
-        let response = undefined;
-        if (clientOrderIds) {
+        let response: Dict;
+        if (clientOrderIds !== undefined) {
             request['client_order_ids'] = clientOrderIds.join (',');
-            response = await this.v1PrivateDeleteClientBatchOrder (this.extend (request, params));
+            response = await this.v1PrivateDeleteClientBatchOrder (this.extend (request, paramsOmitted));
         } else {
             request['order_ids'] = ids.join (',');
-            response = await this.v1PrivateDeleteBatchOrder (this.extend (request, params));
+            response = await this.v1PrivateDeleteBatchOrder (this.extend (request, paramsOmitted));
         }
         //
         // {
@@ -1886,28 +1997,30 @@ export default class modetrade extends Exchange {
     /**
      * @method
      * @name modetrade#cancelAllOrders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
      * @description cancel all open orders in a market
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
         let response = undefined;
-        if (trigger) {
-            response = await this.v1PrivateDeleteAlgoOrders (this.extend (request, params));
+        if (trigger === true) {
+            response = await this.v1PrivateDeleteAlgoOrders (this.extend (request, paramsOmitted));
         } else {
-            response = await this.v1PrivateDeleteOrders (this.extend (request, params));
+            response = await this.v1PrivateDeleteOrders (this.extend (request, paramsOmitted));
         }
         // trigger
         // {
@@ -1934,10 +2047,10 @@ export default class modetrade extends Exchange {
     /**
      * @method
      * @name modetrade#fetchOrder
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
      * @description fetches information on an order made by the user
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -1946,32 +2059,34 @@ export default class modetrade extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        params = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        let response = undefined;
-        if (trigger) {
-            if (clientOrderId) {
+        const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        let response: Dict;
+        if (trigger === true) {
+            if (clientOrderId !== undefined && clientOrderId !== '') {
                 request['client_order_id'] = clientOrderId;
-                response = await this.v1PrivateGetAlgoClientOrderClientOrderId (this.extend (request, params));
+                response = await this.v1PrivateGetAlgoClientOrderClientOrderId (this.extend (request, paramsOmitted));
             } else {
                 request['oid'] = id;
-                response = await this.v1PrivateGetAlgoOrderOid (this.extend (request, params));
+                response = await this.v1PrivateGetAlgoOrderOid (this.extend (request, paramsOmitted));
             }
         } else {
-            if (clientOrderId) {
+            if ((clientOrderId !== undefined) && (clientOrderId !== '')) {
                 request['client_order_id'] = clientOrderId;
-                response = await this.v1PrivateGetClientOrderClientOrderId (this.extend (request, params));
+                response = await this.v1PrivateGetClientOrderClientOrderId (this.extend (request, paramsOmitted));
             } else {
                 request['oid'] = id;
-                response = await this.v1PrivateGetOrderOid (this.extend (request, params));
+                response = await this.v1PrivateGetOrderOid (this.extend (request, paramsOmitted));
             }
         }
         //
@@ -2002,18 +2117,18 @@ export default class modetrade extends Exchange {
         // }
         //
         const orders = this.safeDict (response, 'data', response);
-        return this.parseOrder (orders, market);
+        return this.parseOrder (orders as Dict, market);
     }
 
     /**
      * @method
      * @name modetrade#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2022,18 +2137,19 @@ export default class modetrade extends Exchange {
      * @param {int} params.until timestamp in ms of the latest order to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        let paginate = false;
-        const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        const maxLimit = (isTrigger) ? 100 : 500;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', maxLimit) as Order[];
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
         }
-        let request: Dict = {};
+        const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
+        const maxLimit = (isTrigger === true) ? 100 : 500;
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, paramsPaginate, 'page', maxLimit) as Order[];
+        }
+        const request: Dict = {};
         let market: Market = undefined;
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'stop', 'trigger' ]);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -2042,19 +2158,19 @@ export default class modetrade extends Exchange {
             request['start_t'] = since;
         }
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['size'] = Math.min (limit, maxLimit);
         } else {
             request['size'] = maxLimit;
         }
-        if (isTrigger) {
+        if (isTrigger === true) {
             request['algo_type'] = 'STOP';
         }
-        [ request, params ] = this.handleUntilOption ('end_t', request, params);
-        let response = undefined;
-        if (isTrigger) {
-            response = await this.v1PrivateGetAlgoOrders (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_t', request, paramsOmitted);
+        let response: Dict;
+        if (isTrigger === true) {
+            response = await this.v1PrivateGetAlgoOrders (this.extend (requestUntil, paramsUntil));
         } else {
-            response = await this.v1PrivateGetOrders (this.extend (request, params));
+            response = await this.v1PrivateGetOrders (this.extend (requestUntil, paramsUntil));
         }
         //
         //     {
@@ -2090,8 +2206,8 @@ export default class modetrade extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', response);
-        const orders = this.safeList (data, 'rows');
+        const data = this.safeDict (response, 'data', response);
+        const orders: Dict[] = this.safeList (data, 'rows', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2099,11 +2215,11 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2112,8 +2228,10 @@ export default class modetrade extends Exchange {
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const extendedParams = this.extend (params, { 'status': 'INCOMPLETE' });
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
@@ -2122,11 +2240,11 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchClosedOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2135,8 +2253,10 @@ export default class modetrade extends Exchange {
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const extendedParams = this.extend (params, { 'status': 'COMPLETED' });
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
@@ -2145,7 +2265,7 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-trades-of-specific-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2153,8 +2273,10 @@ export default class modetrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2185,14 +2307,14 @@ export default class modetrade extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'rows', []);
+        const trades: Dict[] = this.safeList (data, 'rows', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
     /**
      * @method
      * @name modetrade#fetchMyTrades
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-trades
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2202,14 +2324,15 @@ export default class modetrade extends Exchange {
      * @param {int} params.until timestamp in ms of the latest trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
         }
-        let request: Dict = {};
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, paramsPaginate, 'page', 500) as Trade[];
+        }
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2223,8 +2346,8 @@ export default class modetrade extends Exchange {
         } else {
             request['size'] = 500;
         }
-        [ request, params ] = this.handleUntilOption ('end_t', request, params);
-        const response = await this.v1PrivateGetTrades (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_t', request, paramsPaginate);
+        const response = await this.v1PrivateGetTrades (this.extend (requestUntil, paramsUntil));
         //
         // {
         //     "success": true,
@@ -2252,22 +2375,24 @@ export default class modetrade extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'rows', []);
-        return this.parseTrades (trades, market, since, limit, params);
+        const trades: Dict[] = this.safeList (data, 'rows', []);
+        return this.parseTrades (trades, market, since, limit, paramsUntil);
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
         };
-        const balances = this.safeList (response, 'holding', []);
+        const balances: Dict[] = this.safeList (response, 'holding', []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');
             account['used'] = this.safeString (balance, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -2276,12 +2401,14 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v1PrivateGetClientHolding (params);
         //
         // {
@@ -2303,25 +2430,27 @@ export default class modetrade extends Exchange {
     }
 
     async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = { };
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['balance_token'] = currency['id'];
+            request['token'] = currency['id'];
         }
         if (since !== undefined) {
             request['start_t'] = since;
         }
         if (limit !== undefined) {
-            request['pageSize'] = limit;
+            request['size'] = limit;
         }
         const transactionType = this.safeString (params, 'type');
-        params = this.omit (params, 'type');
+        const paramsOmitted = this.omit (params, 'type');
         if (transactionType !== undefined) {
             request['type'] = transactionType;
         }
-        const response = await this.v1PrivateGetAssetHistory (this.extend (request, params));
+        const response = await this.v1PrivateGetAssetHistory (this.extend (request, paramsOmitted));
         //
         // {
         //     "success": true,
@@ -2351,22 +2480,46 @@ export default class modetrade extends Exchange {
         return [ currency, this.safeList (data, 'rows', []) ];
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+    override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
         const currencyId = this.safeString (item, 'token');
         const code = this.safeCurrencyCode (currencyId, currency);
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const amount = this.safeNumber (item, 'amount');
-        const side = this.safeString (item, 'token_side');
-        const direction = (side === 'DEPOSIT') ? 'in' : 'out';
+        const side = this.safeString (item, 'side');
+        let direction: Str = undefined;
+        if (side !== undefined) {
+            direction = (side === 'DEPOSIT') ? 'in' : 'out';
+        }
         const timestamp = this.safeInteger (item, 'created_time');
-        const fee = this.parseTokenAndFeeTemp (item, 'fee_token', 'fee_amount');
+        const feeCost = this.parseNumber (this.safeString (item, 'fee'));
+        let fee: Fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            };
+        }
         return this.safeLedgerEntry ({
             'id': this.safeString (item, 'id'),
             'currency': code,
-            'account': this.safeString (item, 'account'),
+            'account': undefined,
             'referenceAccount': undefined,
             'referenceId': this.safeString (item, 'tx_id'),
-            'status': this.parseTransactionStatus (this.safeString (item, 'status')),
+            'status': this.parseTransactionStatus (this.safeString (item, 'trans_status')),
             'amount': amount,
             'before': undefined,
             'after': undefined,
@@ -2374,47 +2527,68 @@ export default class modetrade extends Exchange {
             'direction': direction,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'type': this.parseLedgerEntryType (this.safeString (item, 'type')),
+            'type': this.parseLedgerEntryType (this.safeString2 (item, 'type', 'side')),
             'info': item,
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: Str): Str {
         const types: Dict = {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
+            'DEPOSIT': 'transaction', // Funds deposited from the chain
+            'WITHDRAW': 'transaction', // Funds withdrawn to the chain
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**
      * @method
      * @name modetrade#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         const currencyRows = await this.getAssetHistoryRows (code, since, limit, params);
         const currency = this.safeValue (currencyRows, 0);
         const rows = this.safeList (currencyRows, 1);
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
-        // example in fetchLedger
-        const code = this.safeString (transaction, 'token');
-        let movementDirection = this.safeStringLower (transaction, 'token_side');
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
+        const currencyId = this.safeString (transaction, 'token');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        let movementDirection = this.safeStringLower (transaction, 'side');
         if (movementDirection === 'withdraw') {
             movementDirection = 'withdrawal';
         }
-        const fee = this.parseTokenAndFeeTemp (transaction, 'fee_token', 'fee_amount');
-        const addressTo = this.safeString (transaction, 'target_address');
-        const addressFrom = this.safeString (transaction, 'source_address');
+        const feeCost = this.parseNumber (this.safeString (transaction, 'fee'));
+        let fee: Fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            };
+        }
         const timestamp = this.safeInteger (transaction, 'created_time');
         return {
             'info': transaction,
@@ -2423,20 +2597,20 @@ export default class modetrade extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': undefined,
-            'addressFrom': addressFrom,
-            'addressTo': addressTo,
-            'tag': this.safeString (transaction, 'extra'),
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': undefined,
             'tagFrom': undefined,
             'tagTo': undefined,
             'type': movementDirection,
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
-            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'trans_status')),
             'updated': this.safeInteger (transaction, 'updated_time'),
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-            'network': undefined,
+            'network': undefined, // raw rows carry only a chain id, no mapping to unified network codes exists yet
         } as Transaction;
     }
 
@@ -2444,10 +2618,16 @@ export default class modetrade extends Exchange {
         const statuses: Dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
+            'PENDING': 'pending',
+            'PENDING_REBALANCE': 'pending',
             'PROCESSING': 'pending',
             'COMPLETED': 'ok',
+            'FAILED': 'failed',
             'CANCELED': 'canceled',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -2455,14 +2635,14 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         const request: Dict = {
             'side': 'DEPOSIT',
         };
@@ -2473,14 +2653,14 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         const request: Dict = {
             'side': 'WITHDRAW',
         };
@@ -2491,18 +2671,18 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         const request: Dict = {};
         const currencyRows = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
         const currency = this.safeValue (currencyRows, 0);
-        const rows = this.safeList (currencyRows, 1);
+        const rows: Dict[] = this.safeList (currencyRows, 1, []);
         //
         //     {
         //         "rows":[],
@@ -2514,10 +2694,11 @@ export default class modetrade extends Exchange {
         //         "success":true
         //     }
         //
-        return this.parseTransactions (rows, currency, since, limit, params);
+        const paramsOmitted: Dict = this.omit (params, 'side'); // request-side filter, not a unified transaction field
+        return this.parseTransactions (rows, currency, since, limit, paramsOmitted);
     }
 
-    async getWithdrawNonce (params = {}) {
+    async getWithdrawNonce (params: Dict = {}): Promise<Num> {
         const response = await this.v1PrivateGetWithdrawNonce (params);
         //
         //     {
@@ -2532,11 +2713,11 @@ export default class modetrade extends Exchange {
         return this.safeNumber (data, 'withdraw_nonce');
     }
 
-    hashMessage (message) {
+    hashMessage (message: any) {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash, privateKey) {
+    signHash (hash: string, privateKey: string): string {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
@@ -2544,7 +2725,7 @@ export default class modetrade extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    signMessage (message, privateKey) {
+    signMessage (message: any, privateKey: string): string {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
@@ -2552,7 +2733,7 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#withdraw
      * @description make a withdrawal
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-request
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -2560,20 +2741,20 @@ export default class modetrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        await this.loadMarkets ();
-        this.checkAddress (address);
-        if (code !== undefined) {
-            code = code.toUpperCase ();
-            if (code !== 'USDC') {
-                throw new NotSupported (this.id + ' withdraw() only support USDC');
-            }
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
         }
-        const currency = this.currency (code);
+        this.checkAddress (address);
+        const codeUpper = code.toUpperCase ();
+        if (codeUpper !== 'USDC') {
+            throw new NotSupported (this.id + ' withdraw() only support USDC');
+        }
+        const currency = this.currency (codeUpper);
         const verifyingContractAddress = this.safeString (this.options, 'verifyingContractAddress');
         const chainId = this.safeString (params, 'chainId');
         const currencyNetworks = this.safeDict (currency, 'networks', {});
-        const coinNetwork = this.safeDict (currencyNetworks, chainId, {});
+        const coinNetwork = (chainId === undefined) ? {} : this.safeDict (currencyNetworks, chainId, {});
         const coinNetworkId = this.safeNumber (coinNetwork, 'id');
         if (coinNetworkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() require chainId parameter');
@@ -2601,7 +2782,7 @@ export default class modetrade extends Exchange {
             'brokerId': this.safeString (this.options, 'keyBrokerId', 'mode'),
             'chainId': this.parseToInt (chainId),
             'receiver': address,
-            'token': code,
+            'token': codeUpper,
             'amount': amount.toString (),
             'withdrawNonce': withdrawNonce,
             'timestamp': nonce,
@@ -2614,8 +2795,8 @@ export default class modetrade extends Exchange {
             'verifyingContract': verifyingContractAddress,
             'message': withdrawRequest,
         };
-        params = this.omit (params, 'chainId');
-        const response = await this.v1PrivatePostWithdrawRequest (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, 'chainId');
+        const response = await this.v1PrivatePostWithdrawRequest (this.extend (request, paramsOmitted));
         //
         //     {
         //         "success": true,
@@ -2629,11 +2810,11 @@ export default class modetrade extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const leverageValue = this.safeInteger (leverage, 'max_leverage');
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'marginMode': undefined,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
@@ -2644,13 +2825,15 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
-        await this.loadMarkets ();
+    override async fetchLeverage (symbol: string, params: Dict = {}): Promise<Leverage> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const response = await this.v1PrivateGetClientInfo (params);
         //
@@ -2688,14 +2871,16 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#setLeverage
      * @description set the level of leverage for a market
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
      * @param {int} [leverage] the rate of leverage
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const isMinLeverage = leverage < 1;
         const isMaxLeverage = leverage > 50;
         if (isMinLeverage || isMaxLeverage) {
@@ -2707,7 +2892,7 @@ export default class modetrade extends Exchange {
         return await this.v1PrivatePostClientLeverage (this.extend (request, params));
     }
 
-    parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         // {
         //     "IMR_withdraw_orders": 0.1,
@@ -2731,7 +2916,7 @@ export default class modetrade extends Exchange {
         // }
         //
         const contract = this.safeString (position, 'symbol');
-        market = this.safeMarket (contract, market);
+        const marketResolved: Market = this.safeMarket (contract, market);
         let size = this.safeString (position, 'position_qty');
         let side: Str = undefined;
         if (Precise.stringGt (size, '0')) {
@@ -2739,7 +2924,7 @@ export default class modetrade extends Exchange {
         } else {
             side = 'short';
         }
-        const contractSize = this.safeString (market, 'contractSize');
+        const contractSize = this.safeString (marketResolved, 'contractSize');
         const markPrice = this.safeString (position, 'mark_price');
         const timestamp = this.safeInteger (position, 'timestamp');
         const entryPrice = this.safeString (position, 'average_open_price');
@@ -2749,7 +2934,7 @@ export default class modetrade extends Exchange {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': undefined,
@@ -2769,7 +2954,6 @@ export default class modetrade extends Exchange {
             'lastPrice': undefined,
             'collateral': undefined,
             'marginMode': 'cross',
-            'marginType': undefined,
             'side': side,
             'percentage': undefined,
             'hedged': undefined,
@@ -2781,14 +2965,19 @@ export default class modetrade extends Exchange {
     /**
      * @method
      * @name modetrade#fetchPosition
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
      * @description fetch data on an open position
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPosition (symbol: Str, params = {}) {
-        await this.loadMarkets ();
+    override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPosition() requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2820,7 +3009,7 @@ export default class modetrade extends Exchange {
         //     }
         // }
         //
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         return this.parsePosition (data, market);
     }
 
@@ -2828,13 +3017,15 @@ export default class modetrade extends Exchange {
      * @method
      * @name modetrade#fetchPositions
      * @description fetch all open positions
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v1PrivateGetPositions (params);
         //
         // {
@@ -2875,26 +3066,28 @@ export default class modetrade extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'data', {});
-        const positions = this.safeList (result, 'rows', []);
+        const positions: Dict[] = this.safeList (result, 'rows', []);
         return this.parsePositions (positions, symbols);
     }
 
-    nonce () {
+    override nonce (): number {
         return this.milliseconds ();
     }
 
-    sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    override sign (path: string, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
-        let url = this.implodeHostname (this.urls['api'][access]);
-        url += '/' + version + '/';
-        params = this.omit (params, this.extractParams (path));
-        params = this.keysort (params);
+        const apiUrl = this.safeString (this.urls['api'], access);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + version + '/';
+        const paramsSorted: Dict = this.keysort (this.omit (params, this.extractParams (path)));
         if (access === 'public') {
             url += pathWithParams;
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+            if (Object.keys (paramsSorted).length > 0) {
+                url += '?' + this.urlencode (paramsSorted);
             }
         } else {
             this.checkRequiredCredentials ();
@@ -2902,18 +3095,21 @@ export default class modetrade extends Exchange {
             const isOrder = path === 'algo/order' || path === 'order' || path === 'batch-order';
             if (isPostOrPut && isOrder) {
                 const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-                if (!isSandboxMode) {
+                if (isSandboxMode !== true) {
                     const brokerId = this.safeString (this.options, 'brokerId', 'CCXTMODE');
                     if (path === 'batch-order') {
-                        const ordersList = this.safeList (params, 'orders', []);
+                        const ordersList = this.safeList (paramsSorted, 'orders', []);
                         for (let i = 0; i < ordersList.length; i++) {
-                            params['orders'][i]['order_tag'] = brokerId;
+                            paramsSorted['orders'][i]['order_tag'] = brokerId;
                         }
                     } else {
-                        params['order_tag'] = brokerId;
+                        paramsSorted['order_tag'] = brokerId;
                     }
                 }
-                params = this.keysort (params);
+            }
+            let paramsSigned: Dict = paramsSorted;
+            if (isPostOrPut && isOrder) {
+                paramsSigned = this.keysort (paramsSorted);
             }
             let auth = '';
             const ts = this.nonce ().toString ();
@@ -2922,25 +3118,24 @@ export default class modetrade extends Exchange {
             if (apiKey.indexOf ('ed25519:') < 0) {
                 apiKey = 'ed25519:' + apiKey;
             }
-            headers = {
+            const signedHeaders: Dict = {
                 'orderly-account-id': this.accountId,
                 'orderly-key': apiKey,
                 'orderly-timestamp': ts,
             };
             auth = ts + method + '/' + version + '/' + pathWithParams;
+            let signedBody: Str = undefined;
             if (method === 'POST' || method === 'PUT') {
-                body = this.json (params);
-                auth += body;
-                headers['content-type'] = 'application/json';
+                signedBody = this.json (paramsSigned);
+                auth += signedBody;
+                signedHeaders['content-type'] = 'application/json';
             } else {
-                if (Object.keys (params).length) {
-                    url += '?' + this.urlencode (params);
-                    auth += '?' + this.rawencode (params);
+                if (Object.keys (paramsSigned).length > 0) {
+                    url += '?' + this.urlencode (paramsSigned);
+                    auth += '?' + this.rawencode (paramsSigned);
                 }
-                headers['content-type'] = 'application/x-www-form-urlencoded';
-                if (method === 'DELETE') {
-                    body = '';
-                }
+                signedHeaders['content-type'] = 'application/x-www-form-urlencoded';
+                signedBody = (method === 'DELETE') ? '' : body;
             }
             let secret = this.secret;
             if (secret.indexOf ('ed25519:') >= 0) {
@@ -2948,13 +3143,14 @@ export default class modetrade extends Exchange {
                 secret = parts[1];
             }
             const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
-            headers['orderly-signature'] = this.urlencodeBase64 (this.base64ToBinary (signature));
+            signedHeaders['orderly-signature'] = this.urlencodeBase64 (this.base64ToBinary (signature));
+            return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        if (!response) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //
@@ -2963,7 +3159,7 @@ export default class modetrade extends Exchange {
         //
         const success = this.safeBool (response, 'success');
         const errorCode = this.safeString (response, 'code');
-        if (!success) {
+        if (success !== true) {
             const feedback = this.id + ' ' + this.json (response);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

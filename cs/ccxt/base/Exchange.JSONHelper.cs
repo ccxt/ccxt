@@ -5,7 +5,7 @@ namespace ccxt;
 
 using dict = Dictionary<string, object>;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     public static bool isValidJson(string json)

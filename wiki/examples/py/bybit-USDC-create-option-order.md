@@ -1,8 +1,5 @@
-- [Bybit Usdc Create Option Order](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -28,5 +25,5 @@ try:
     pprint(order)
 except Exception as err:
     print(err)
- 
+
 ```

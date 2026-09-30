@@ -18,11 +18,11 @@ public partial class BaseTest
                     } },
                 } },
             });
-            object initialParams = new Dictionary<string, object>() {
+            Dictionary<string, object> initialParams = new Dictionary<string, object>() {
                 { "defaultType", "valueFromParam" },
             };
-            object market = exchange.safeMarket("TEST1/TEST2");
-            ((IDictionary<string,object>)market)["type"] = "spot";
+            Dictionary<string, object> market = toDict(exchange.safeMarket("TEST1/TEST2"));
+            market["type"] = "spot";
             //
             // ########### test different variations ###########
             //
@@ -31,8 +31,8 @@ public partial class BaseTest
             var marketType1params1Variable = exchange.handleMarketTypeAndParams("fetchX", market, initialParams, "valueDefault");
             var marketType1 = ((IList<object>) marketType1params1Variable)[0];
             var params1 = ((IList<object>) marketType1params1Variable)[1];
-            Assert(inOp(initialParams, "defaultType"));
-            Assert(!isTrue((inOp(params1, "defaultType"))));
+            Assert(initialParams.ContainsKey("defaultType"));
+            Assert(!(inOp(params1, "defaultType")));
             Assert(isEqual(marketType1, "valueFromParam"));
             //
             // case #2, should prevail: market.type
@@ -71,7 +71,7 @@ public partial class BaseTest
             var params6 = ((IList<object>) marketType6params6Variable)[1];
             Assert(isEqual(marketType6, "spot"));
             // fake Assertion to avoid unused vars
-            Assert(isTrue(isTrue(isTrue(isTrue(isTrue(!isEqual(params1, null)) || isTrue(!isEqual(params2, null))) || isTrue(!isEqual(params3, null))) || isTrue(!isEqual(params4, null))) || isTrue(!isEqual(params5, null))) || isTrue(!isEqual(params6, null)));
+            Assert((params1 != null) || (params2 != null) || (params3 != null) || (params4 != null) || (params5 != null) || (params6 != null));
         }
         public void helperTestHandleNetworkRequest()
         {
@@ -84,20 +84,54 @@ public partial class BaseTest
                 } },
             });
             exchange.currencies = exchange.createSafeDictionary(); // todo: initialize in C# base files
-            object currencyCode = "ETH"; // todo: in future with complex cases
+            string currencyCode = "ETH"; // todo: in future with complex cases
             // no-case
             var request1params1Variable = exchange.handleRequestNetwork(new Dictionary<string, object>() {
             { "network", "XYZ" },
         }, new Dictionary<string, object>() {}, "chain_id", currencyCode, false);
             var request1 = ((IList<object>) request1params1Variable)[0];
             var params1 = ((IList<object>) request1params1Variable)[1];
-            Assert(!isTrue((inOp(params1, "network"))));
+            Assert(!(inOp(params1, "network")));
             Assert(inOp(request1, "chain_id"));
             Assert(isEqual(getValue(request1, "chain_id"), "Xyz"));
+        }
+        public void helperTestHandleTypedOptions()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+                { "options", new Dictionary<string, object>() {
+                    { "marginMode", "isolated" },
+                    { "fetchX", new Dictionary<string, object>() {
+                        { "uta", true },
+                    } },
+                } },
+            });
+            (string?, object) marginModeparams1Variable = exchange.handleMarginModeAndParams("fetchX", new Dictionary<string, object>() {}, "cross");
+            object marginMode = marginModeparams1Variable.Item1;
+            object params1 = marginModeparams1Variable.Item2;
+            Assert(isEqual(marginMode, "isolated"));
+            (bool?, object) utaparams2Variable = exchange.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "fetchX", "uta", false);
+            object uta = utaparams2Variable.Item1;
+            object params2 = utaparams2Variable.Item2;
+            Assert(isEqual(uta, true));
+            (string?, object) absentparams3Variable = exchange.handleOptionStringAndParams(new Dictionary<string, object>() {}, "fetchX", "absentKey", "fallback");
+            object absent = absentparams3Variable.Item1;
+            object params3 = absentparams3Variable.Item2;
+            Assert(isEqual(absent, "fallback"));
+            (string?, object) fromParamsparams4Variable = exchange.handleOptionStringAndParams(new Dictionary<string, object>() {
+            { "absentKey", "p" },
+        }, "fetchX", "absentKey", "fallback");
+            object fromParams = fromParamsparams4Variable.Item1;
+            object params4 = fromParamsparams4Variable.Item2;
+            Assert(isEqual(fromParams, "p"));
+            Assert(!(inOp(params4, "absentKey")));
+            // a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+            Assert((params1 != null) || (params2 != null) || (params3 != null));
         }
         public void testHandleMethods()
         {
             helperTestHandleMarketTypeAndParams();
             helperTestHandleNetworkRequest();
+            helperTestHandleTypedOptions();
         }
 }

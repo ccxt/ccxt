@@ -2,12 +2,14 @@
 import { ROUND_UP, ROUND_DOWN } from './number.js'
 import { asFloat } from './type.js'
 import { NotSupported } from '../errors.js'
-import { Dictionary, Num } from '../types.js'
+import { Dict, Dictionary, Num } from '../types.js'
 
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
-const parseTimeframe = (timeframe: string): number => {
-
+const parseTimeframe = (timeframe: string | undefined): number => {
+    if (timeframe === undefined) {
+        throw new NotSupported ('timeframe is required');
+    }
     const amount = asFloat (timeframe.slice (0, -1));
     const unit = timeframe.slice (-1);
     let scale: Num = undefined;
@@ -34,6 +36,41 @@ const parseTimeframe = (timeframe: string): number => {
 };
 
 const roundTimeframe = (timeframe: string, timestamp: number, direction = ROUND_DOWN) => {
+    const amount = asFloat (timeframe.slice (0, -1));
+    const unit = timeframe.slice (-1);
+    if (((unit === 'w') || (unit === 'M') || (unit === 'y')) && (amount >= 1) && (Math.floor (amount) === amount)) {
+        const date = new Date (timestamp);
+        let rounded = timestamp;
+        if (unit === 'w') {
+            const day = date.getUTCDay ();
+            const daysSinceMonday = (day + 6) % 7;
+            const week = 7 * 24 * 60 * 60 * 1000;
+            const monday = Date.UTC (date.getUTCFullYear (), date.getUTCMonth (), date.getUTCDate () - daysSinceMonday);
+            const epochMonday = Date.UTC (1970, 0, 5);
+            const weeksSinceEpochMonday = Math.floor ((monday - epochMonday) / week);
+            const roundedWeeks = Math.floor (weeksSinceEpochMonday / amount) * amount;
+            rounded = epochMonday + roundedWeeks * week;
+            if (direction === ROUND_UP) {
+                rounded += amount * week;
+            }
+        } else if (unit === 'M') {
+            const monthsSinceYearZero = date.getUTCFullYear () * 12 + date.getUTCMonth ();
+            const roundedMonths = Math.floor (monthsSinceYearZero / amount) * amount;
+            const year = Math.floor (roundedMonths / 12);
+            const month = roundedMonths % 12;
+            rounded = Date.UTC (year, month, 1);
+            if (direction === ROUND_UP) {
+                rounded = Date.UTC (year, month + amount, 1);
+            }
+        } else {
+            const year = Math.floor (date.getUTCFullYear () / amount) * amount;
+            rounded = Date.UTC (year, 0, 1);
+            if (direction === ROUND_UP) {
+                rounded = Date.UTC (year + amount, 0, 1);
+            }
+        }
+        return rounded;
+    }
     const ms = parseTimeframe (timeframe) * 1000;
     // Get offset based on timeframe in milliseconds
     const offset = timestamp % ms;
@@ -48,7 +85,7 @@ const extractParams = (string: string): string[] => {
      * @returns {[string]} all substrings surrounded by {} from parameter string
      */
     const re = /{([\w-]+)}/g;
-    const matches = [];
+    const matches: string[] = [];
     let match = re.exec (string);
     while (match) {
         matches.push (match[1]);
@@ -57,7 +94,10 @@ const extractParams = (string: string): string[] => {
     return matches;
 };
 
-const implodeParams = (string: string, params: Dictionary<any> | any[]): string => {
+const implodeParams = (string: string | undefined, params: Dictionary<any> | any[]): string => {
+    if (string === undefined) {
+        return '';
+    }
     if (!Array.isArray (params)) {
         const keys = Object.keys (params);
         for (let i = 0; i < keys.length; i++) {
@@ -76,9 +116,9 @@ function vwap (baseVolume: number, quoteVolume: number): Num {
 
 /*  ------------------------------------------------------------------------ */
 
-function aggregate (bidasks) {  // TODO: Parameter 'bidasks' implicitly has an 'any' type.ts(7006)
+function aggregate (bidasks: any[]) {
 
-    const result = {}
+    const result: Dict = {}
 
     for (let i = 0; i < bidasks.length; i++) {
         const [ price, volume ] = bidasks[i];

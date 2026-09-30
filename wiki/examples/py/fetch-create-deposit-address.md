@@ -1,8 +1,5 @@
-- [Fetch Create Deposit Address](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -24,7 +21,7 @@ exchange = getattr(ccxt, exchange_id)({
     # 'verbose': True, // ←- uncomment this for verbose output
 
     # additional credentials might be required in exchange-specific cases:
-    # uid or password for coinbasepro, etc...
+    # uid or password for coinbaseexchange, etc...
 })
 if not exchange.has['fetchDepositAddress']:
     print('The exchange does not support fetchDepositAddress() yet')
@@ -79,5 +76,5 @@ except ccxt.InvalidAddress as e:
 except Exception as e:
 
     print('There was an error while fetching deposit address for ' + currency_code, type(e).__name__, str(e))
- 
+
 ```

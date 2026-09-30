@@ -2,12 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bydfi$1 = require('./abstract/bydfi.js');
-require('../ccxt.js');
-var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
-var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
+var Precise = require('./base/Precise.js');
+var number = require('./base/functions/number.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -20,8 +19,8 @@ class bydfi extends bydfi$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bydfi',
             'name': 'BYDFi',
-            'countries': ['SG'],
-            'rateLimit': 50,
+            'countries': ['SG'], // Singapore todo check
+            'rateLimit': 50, // 20 requests per second
             'version': 'v1',
             'certified': false,
             'pro': true,
@@ -134,7 +133,7 @@ class bydfi extends bydfi$1["default"] {
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
-                'fetchOpenOrder': false,
+                'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
                 'fetchOptionChain': false,
@@ -187,7 +186,7 @@ class bydfi extends bydfi$1["default"] {
                 'ws': true,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/bfffb73d-29bd-465d-b75b-98e210491769',
+                'logo': 'https://github.com/user-attachments/assets/0e9319dc-b5f5-458b-bcfd-b21b50e162ea',
                 'api': {
                     'public': 'https://api.bydfi.com/api',
                     'private': 'https://api.bydfi.com/api',
@@ -200,57 +199,70 @@ class bydfi extends bydfi$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'v1/public/api_limits': 1,
-                        'v1/swap/market/exchange_info': 1,
-                        'v1/swap/market/depth': 1,
-                        'v1/swap/market/trades': 1,
-                        'v1/swap/market/klines': 1,
-                        'v1/swap/market/ticker/24hr': 1,
-                        'v1/swap/market/ticker/price': 1,
-                        'v1/swap/market/mark_price': 1,
-                        'v1/swap/market/funding_rate': 1,
-                        'v1/swap/market/funding_rate_history': 1,
-                        'v1/swap/market/risk_limit': 1, // https://developers.bydfi.com/en/swap/market#risk-limit
+                        'v1/public/api_limits': { 'cost': 1 }, // https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
+                        'v1/fapi/market/exchange_info': { 'cost': 1 },
+                        'v1/fapi/market/depth': { 'cost': 1 },
+                        'v1/fapi/market/trades': { 'cost': 1 },
+                        'v1/fapi/market/klines': { 'cost': 1 },
+                        'v1/fapi/market/ticker/24hr': { 'cost': 1 },
+                        'v1/fapi/market/ticker/price': { 'cost': 1 }, // https://developers.bydfi.com/en/futures/market#latest-price
+                        'v1/fapi/market/mark_price': { 'cost': 1 }, // https://developers.bydfi.com/en/futures/market#mark-price
+                        'v1/fapi/market/funding_rate': { 'cost': 1 },
+                        'v1/fapi/market/funding_rate_history': { 'cost': 1 },
+                        'v1/fapi/market/risk_limit': { 'cost': 1 }, // https://developers.bydfi.com/en/futures/market#risk-limit
                     },
                 },
                 'private': {
                     'get': {
-                        'v1/account/assets': 1,
-                        'v1/account/transfer_records': 1,
-                        'v1/spot/deposit_records': 1,
-                        'v1/spot/withdraw_records': 1,
-                        'v1/swap/trade/open_order': 1,
-                        'v1/swap/trade/plan_order': 1,
-                        'v1/swap/trade/leverage': 1,
-                        'v1/swap/trade/history_order': 1,
-                        'v1/swap/trade/history_trade': 1,
-                        'v1/swap/trade/position_history': 1,
-                        'v1/swap/trade/positions': 1,
-                        'v1/swap/account/balance': 1,
-                        'v1/swap/user_data/assets_margin': 1,
-                        'v1/swap/user_data/position_side/dual': 1,
-                        'v1/agent/teams': 1,
-                        'v1/agent/agent_links': 1,
-                        'v1/agent/regular_overview': 1,
-                        'v1/agent/agent_sub_overview': 1,
-                        'v1/agent/partener_user_deposit': 1,
-                        'v1/agent/partener_users_data': 1,
-                        'v1/agent/affiliate_uids': 1,
-                        'v1/agent/affiliate_commission': 1,
-                        'v1/agent/internal_withdrawal_status': 1, // https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
+                        'v1/account/assets': { 'cost': 1 },
+                        'v1/account/transfer_records': { 'cost': 1 },
+                        'v1/spot/deposit_records': { 'cost': 1 },
+                        'v1/spot/withdraw_records': { 'cost': 1 },
+                        'v1/fapi/trade/open_order': { 'cost': 1 },
+                        'v1/fapi/trade/plan_order': { 'cost': 1 },
+                        'v1/fapi/trade/leverage': { 'cost': 1 },
+                        'v1/fapi/trade/history_order': { 'cost': 1 },
+                        'v1/fapi/trade/history_trade': { 'cost': 1 },
+                        'v1/fapi/trade/position_history': { 'cost': 1 },
+                        'v1/fapi/trade/positions': { 'cost': 1 },
+                        'v2/fapi/trade/open_order': { 'cost': 1 },
+                        'v2/fapi/trade/plan_order': { 'cost': 1 },
+                        'v2/fapi/trade/history_order': { 'cost': 1 },
+                        'v2/fapi/trade/history_trade': { 'cost': 1 },
+                        'v2/fapi/trade/position_history': { 'cost': 1 },
+                        'v2/fapi/trade/positions': { 'cost': 1 },
+                        'v1/fapi/account/balance': { 'cost': 1 },
+                        'v1/fapi/user_data/assets_margin': { 'cost': 1 },
+                        'v1/fapi/user_data/position_side/dual': { 'cost': 1 },
+                        'v1/agent/teams': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
+                        'v1/agent/agent_links': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
+                        'v1/agent/regular_overview': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
+                        'v1/agent/agent_sub_overview': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-affiliate-list
+                        'v1/agent/partener_user_deposit': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#check-the-recharge-amount-of-kol-within-one-year
+                        'v1/agent/partener_users_data': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-deposit-and-trading-data
+                        'v1/agent/affiliate_uids': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#get-affiliate-uids
+                        'v1/agent/affiliate_commission': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#get-affiliate-commission
+                        'v1/agent/internal_withdrawal_status': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
                     },
                     'post': {
-                        'v1/account/transfer': 1,
-                        'v1/swap/trade/place_order': 1,
-                        'v1/swap/trade/batch_place_order': 1,
-                        'v1/swap/trade/edit_order': 1,
-                        'v1/swap/trade/batch_edit_order': 1,
-                        'v1/swap/trade/cancel_all_order': 1,
-                        'v1/swap/trade/leverage': 1,
-                        'v1/swap/trade/batch_leverage_margin': 1,
-                        'v1/swap/user_data/margin_type': 1,
-                        'v1/swap/user_data/position_side/dual': 1,
-                        'v1/agent/internal_withdrawal': 1, // https://developers.bydfi.com/en/agent/#internal-withdrawal
+                        'v1/account/transfer': { 'cost': 1 },
+                        'v1/fapi/trade/place_order': { 'cost': 1 },
+                        'v1/fapi/trade/batch_place_order': { 'cost': 1 },
+                        'v1/fapi/trade/edit_order': { 'cost': 1 },
+                        'v1/fapi/trade/batch_edit_order': { 'cost': 1 },
+                        'v1/fapi/trade/cancel_all_order': { 'cost': 1 },
+                        'v1/fapi/trade/leverage': { 'cost': 1 },
+                        'v1/fapi/trade/batch_leverage_margin': { 'cost': 1 }, // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
+                        'v2/fapi/trade/place_order': { 'cost': 1 },
+                        'v2/fapi/trade/batch_place_order': { 'cost': 1 },
+                        'v2/fapi/trade/edit_order': { 'cost': 1 },
+                        'v2/fapi/trade/batch_edit_order': { 'cost': 1 },
+                        'v2/fapi/trade/cancel_order': { 'cost': 1 },
+                        'v2/fapi/trade/batch_cancel_order': { 'cost': 1 },
+                        'v2/fapi/trade/cancel_all_order': { 'cost': 1 },
+                        'v1/fapi/user_data/margin_type': { 'cost': 1 },
+                        'v1/fapi/user_data/position_side/dual': { 'cost': 1 },
+                        'v1/agent/internal_withdrawal': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#internal-withdrawal
                     },
                 },
             },
@@ -269,7 +281,7 @@ class bydfi extends bydfi$1["default"] {
                             },
                             'stopLossPrice': true,
                             'takeProfitPrice': true,
-                            'attachedStopLossTakeProfit': undefined,
+                            'attachedStopLossTakeProfit': undefined, // not supported
                             'timeInForce': {
                                 'IOC': true,
                                 'FOK': true,
@@ -289,7 +301,7 @@ class bydfi extends bydfi$1["default"] {
                         },
                         'fetchMyTrades': {
                             'marginMode': false,
-                            'daysBack': 182,
+                            'daysBack': 182, // 6 months
                             'limit': 500,
                             'untilDays': 7,
                             'symbolRequired': false,
@@ -312,7 +324,7 @@ class bydfi extends bydfi$1["default"] {
                         'fetchCanceledAndClosedOrders': {
                             'marginMode': false,
                             'limit': 500,
-                            'daysBack': 182,
+                            'daysBack': 182, // 6 months
                             'untilDays': 7,
                             'trigger': false,
                             'trailing': false,
@@ -346,22 +358,22 @@ class bydfi extends bydfi$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    '101001': errors.AuthenticationError,
-                    '101103': errors.AuthenticationError,
-                    '102001': errors.BadRequest,
-                    '102002': errors.PermissionDenied,
-                    '401': errors.AuthenticationError,
-                    '500': errors.ExchangeError,
-                    '501': errors.ExchangeError,
-                    '506': errors.ExchangeError,
-                    '510': errors.RateLimitExceeded,
-                    '511': errors.AuthenticationError,
-                    '513': errors.BadRequest,
-                    '514': errors.BadRequest,
-                    '600': errors.BadRequest,
-                    'Position does not exist': errors.BadRequest,
-                    'Requires transaction permissions': errors.PermissionDenied,
-                    'Service error': errors.ExchangeError,
+                    '101001': errors.AuthenticationError, // {"code":101001,"message":"Apikey doesn't exist!"}
+                    '101103': errors.AuthenticationError, // {"code":101103,"message":"Invalid API-key, IP, or permissions for action."}
+                    '102001': errors.BadRequest, // {"code":102001,"message":"Unsupported transfer type"}
+                    '102002': errors.PermissionDenied, // {"code":102002,"message":"The current account does not support transfer of this currency"}
+                    '401': errors.AuthenticationError, // 401 Unauthorized – Invalid API Key
+                    '500': errors.ExchangeError, // 500 Internal Error
+                    '501': errors.ExchangeError, // 501 System Busy
+                    '506': errors.ExchangeError, // 506 Unknown Request Origin
+                    '510': errors.RateLimitExceeded, // 510 Requests Too Frequent
+                    '511': errors.AuthenticationError, // 511 Access to the Interface is Forbidden
+                    '513': errors.BadRequest, // 513 Invalid Request
+                    '514': errors.BadRequest, // 514 Duplicate Request
+                    '600': errors.BadRequest, // 600 Parameter Error
+                    'Position does not exist': errors.BadRequest, // {"code":100036,"message":"Position does not exist"}
+                    'Requires transaction permissions': errors.PermissionDenied, // {"code":101107,"message":"Requires transaction permissions"}
+                    'Service error': errors.ExchangeError, // { msg: 'Service error', code: '-1' }
                     'transfer failed': errors.InsufficientFunds, // {"code":500,"message":"transfer failed","success":false}
                 },
                 'broad': {
@@ -374,20 +386,22 @@ class bydfi extends bydfi$1["default"] {
                     'ERC20': 'ETH', // todo add more networks
                 },
                 'timeInForce': {
-                    'GTC': 'GTC',
-                    'FOK': 'FOK',
-                    'IOC': 'IOC',
+                    'GTC': 'GTC', // Good Till Cancelled
+                    'FOK': 'FOK', // Fill Or Kill
+                    'IOC': 'IOC', // Immediate Or Cancel
                     'PO': 'POST_ONLY', // Post Only
                 },
                 'accountsByType': {
                     'spot': 'SPOT',
-                    'swap': 'SWAP',
-                    'funding': 'FUND',
+                    'swap': 'UMFUTURE',
+                    'funding': 'FUNDING',
+                    'inverse': 'CMFUTURE',
                 },
                 'accountsById': {
                     'SPOT': 'spot',
-                    'SWAP': 'swap',
-                    'FUND': 'funding',
+                    'UMFUTURE': 'swap',
+                    'FUNDING': 'funding',
+                    'CMFUTURE': 'inverse',
                 },
             },
         });
@@ -396,12 +410,12 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#fetchMarkets
      * @description retrieves data on all markets for bydfi
-     * @see https://developers.bydfi.com/en/swap/market#fetching-trading-rules-and-pairs
+     * @see https://developers.bydfi.com/en/futures/market#fetching-trading-rules-and-pairs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const response = await this.publicGetV1SwapMarketExchangeInfo(params);
+        const response = await this.publicGetV1FapiMarketExchangeInfo(params);
         //
         //     {
         //         "code": "200",
@@ -481,6 +495,9 @@ class bydfi extends bydfi$1["default"] {
         const settleId = this.safeString(market, 'marginAsset');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode(settleId);
         const symbol = base + '/' + quote + ':' + settle;
         const inverse = this.safeBool(market, 'reverse');
@@ -516,7 +533,7 @@ class bydfi extends bydfi$1["default"] {
             'option': false,
             'active': status === 'NORMAL',
             'contract': true,
-            'linear': !inverse,
+            'linear': inverse !== true,
             'inverse': inverse,
             'taker': taker,
             'maker': maker,
@@ -556,15 +573,17 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://developers.bydfi.com/en/swap/market#depth-information
+     * @see https://developers.bydfi.com/en/futures/market#depth-information
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -572,7 +591,7 @@ class bydfi extends bydfi$1["default"] {
         if (limit !== undefined) {
             request['limit'] = this.getClosestLimit(limit);
         }
-        const response = await this.publicGetV1SwapMarketDepth(this.extend(request, params));
+        const response = await this.publicGetV1FapiMarketDepth(this.extend(request, params));
         //
         //     {
         //         "code": 200,
@@ -600,8 +619,7 @@ class bydfi extends bydfi$1["default"] {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        const timestamp = this.milliseconds();
-        const orderBook = this.parseOrderBook(data, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
+        const orderBook = this.parseOrderBook(data, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
         orderBook['nonce'] = this.safeInteger(data, 'lastUpdateId');
         return orderBook;
     }
@@ -609,6 +627,9 @@ class bydfi extends bydfi$1["default"] {
         const limits = [5, 10, 20, 50, 100, 500, 1000];
         let result = 1000;
         for (let i = 0; i < limits.length; i++) {
+            if (limit === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' getClosestLimit() requires a limit argument');
+            }
             if (limit <= limits[i]) {
                 result = limits[i];
                 break;
@@ -620,7 +641,7 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://developers.bydfi.com/en/swap/market#recent-trades
+     * @see https://developers.bydfi.com/en/futures/market#recent-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
@@ -629,15 +650,17 @@ class bydfi extends bydfi$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
-        const response = await this.publicGetV1SwapMarketTrades(this.extend(request, params));
+        const response = await this.publicGetV1FapiMarketTrades(this.extend(request, params));
         //
         //     {
         //         "code": 200,
@@ -662,7 +685,7 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://developers.bydfi.com/en/swap/trade#historical-trades-query
+     * @see https://developers.bydfi.com/en/futures/trade#historical-trades-query
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -674,17 +697,17 @@ class bydfi extends bydfi$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             const maxLimit = 500;
-            params = this.omit(params, 'paginate');
-            params = this.extend(params, { 'paginationDirection': 'backward' });
-            const paginatedResponse = await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params, maxLimit, true);
+            const paramsPaginate = this.extend(this.omit(params, 'paginate'), { 'paginationDirection': 'backward' });
+            const paginatedResponse = await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, paramsPaginate, maxLimit, true);
             return this.sortBy(paginatedResponse, 'timestamp');
         }
-        let contractType = 'FUTURE';
-        [contractType, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'contractType', contractType);
+        const [contractType, paramsContractType] = this.handleOptionStringAndParams(params, 'fetchMyTrades', 'contractType', 'FUTURE');
         const request = {
             'contractType': contractType,
         };
@@ -693,11 +716,11 @@ class bydfi extends bydfi$1["default"] {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        params = this.handleSinceAndUntil('fetchMyTrades', since, params);
+        const paramsSinceUntil = this.handleSinceAndUntil('fetchMyTrades', since, paramsContractType);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV1SwapTradeHistoryTrade(this.extend(request, params));
+        const response = await this.privateGetV1FapiTradeHistoryTrade(this.extend(request, paramsSinceUntil));
         //
         //     {
         //         "code": 200,
@@ -759,7 +782,7 @@ class bydfi extends bydfi$1["default"] {
         //     }
         //
         const marketId = this.safeString(trade, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(trade, 'time');
         let fee = undefined;
         const rawType = this.safeString(trade, 'type');
@@ -767,7 +790,7 @@ class bydfi extends bydfi$1["default"] {
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': market['settle'],
+                'currency': marketResolved['settle'],
             };
         }
         const orderId = this.safeString(trade, 'orderId');
@@ -780,7 +803,7 @@ class bydfi extends bydfi$1["default"] {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': this.safeString(trade, 'id'),
             'order': orderId,
             'type': this.parseTradeType(rawType),
@@ -790,7 +813,7 @@ class bydfi extends bydfi$1["default"] {
             'amount': this.safeString2(trade, 'quantity', 'dealVolume'),
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     parseTradeType(type) {
         const types = {
@@ -804,22 +827,23 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://developers.bydfi.com/en/swap/market#candlestick-data
+     * @see https://developers.bydfi.com/en/futures/market#candlestick-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (max 500)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const maxLimit = 500; // docs says max 1500, but in practice only 500 works
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
+            return this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
         }
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -828,9 +852,13 @@ class bydfi extends bydfi$1["default"] {
             'interval': interval,
         };
         let startTime = since;
-        const numberOfCandles = limit ? limit : maxLimit;
+        let numberOfCandles = maxLimit;
+        if (limit !== undefined && limit !== null && limit !== 0) {
+            numberOfCandles = limit;
+        }
         let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'until');
+        let paramsUntil = undefined;
+        [until, paramsUntil] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchOHLCV', 'until');
         const now = this.milliseconds();
         const duration = this.parseTimeframe(timeframe) * 1000;
         const timeDelta = duration * numberOfCandles;
@@ -839,6 +867,9 @@ class bydfi extends bydfi$1["default"] {
             until = now;
         }
         else if (until === undefined) {
+            if (startTime === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' fetchOHLCV() requires a since or until argument');
+            }
             until = startTime + timeDelta;
             if (until > now) {
                 until = now;
@@ -852,7 +883,7 @@ class bydfi extends bydfi$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetV1SwapMarketKlines(this.extend(request, params));
+        const response = await this.publicGetV1FapiMarketKlines(this.extend(request, paramsUntil));
         //
         //     {
         //         "code": 200,
@@ -899,15 +930,17 @@ class bydfi extends bydfi$1["default"] {
     /**
      * @method
      * @name bydfi#fetchTickers
-     * @see https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
+     * @see https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        const response = await this.publicGetV1SwapMarketTicker24hr(params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const response = await this.publicGetV1FapiMarketTicker24hr(params);
         //
         //     {
         //         "code": 200,
@@ -933,18 +966,20 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
+     * @see https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetV1SwapMarketTicker24hr(this.extend(request, params));
+        const response = await this.publicGetV1FapiMarketTicker24hr(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
         const ticker = this.safeDict(data, 0, {});
         return this.parseTicker(ticker, market);
@@ -963,11 +998,11 @@ class bydfi extends bydfi$1["default"] {
         //     }
         //
         const marketId = this.safeString2(ticker, 'symbol', 's');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger2(ticker, 'time', 'E');
         const last = this.safeString2(ticker, 'last', 'c');
         return this.safeTicker({
-            'symbol': this.safeSymbol(marketId, market),
+            'symbol': this.safeSymbol(marketId, marketResolved),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': this.safeString2(ticker, 'high', 'h'),
@@ -989,24 +1024,26 @@ class bydfi extends bydfi$1["default"] {
             'markPrice': undefined,
             'indexPrice': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
      * @name bydfi#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://developers.bydfi.com/en/swap/market#recent-funding-rate
+     * @see https://developers.bydfi.com/en/futures/market#recent-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetV1SwapMarketFundingRate(this.extend(request, params));
+        const response = await this.publicGetV1FapiMarketFundingRate(this.extend(request, params));
         //
         //     {
         //         "code": 200,
@@ -1061,7 +1098,7 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://developers.bydfi.com/en/swap/market#historical-funding-rates
+     * @see https://developers.bydfi.com/en/futures/market#historical-funding-rates
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1073,7 +1110,9 @@ class bydfi extends bydfi$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1084,12 +1123,11 @@ class bydfi extends bydfi$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'until');
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, 'fetchFundingRateHistory', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicGetV1SwapMarketFundingRateHistory(this.extend(request, params));
+        const response = await this.publicGetV1FapiMarketFundingRateHistory(this.extend(request, paramsUntil));
         //
         //     {
         //         "code": 200,
@@ -1131,7 +1169,7 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#createOrder
      * @description create a trade order
-     * @see https://developers.bydfi.com/en/swap/trade#placing-an-order
+     * @see https://developers.bydfi.com/en/futures/trade#placing-an-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1153,13 +1191,15 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params);
-        let wallet = 'W001';
-        [wallet, params] = this.handleOptionAndParams(params, 'createOrder', 'wallet', wallet);
-        orderRequest = this.extend(orderRequest, { 'wallet': wallet });
-        const response = await this.privatePostV1SwapTradePlaceOrder(orderRequest);
+        const wallet = 'W001';
+        const walletOption = this.handleOptionStringAndParams(params, 'createOrder', 'wallet', wallet)[0];
+        orderRequest = this.extend(orderRequest, { 'wallet': walletOption });
+        const response = await this.privatePostV1FapiTradePlaceOrder(orderRequest);
         //
         //     {
         //         "code": 200,
@@ -1194,7 +1234,16 @@ class bydfi extends bydfi$1["default"] {
         return this.parseOrder(data, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrderRequest() requires a side argument');
+        }
         const request = {
             'symbol': market['id'],
             'side': side.toUpperCase(),
@@ -1218,85 +1267,89 @@ class bydfi extends bydfi$1["default"] {
         const trailingPercent = this.safeString(params, 'trailingPercent');
         const isTailingStopOrder = (trailingPercent !== undefined);
         let stopPrice = undefined;
-        if (isStopLossOrder || isTakeProfitOrder) {
+        const isStopOrTakeProfit = isStopLossOrder || isTakeProfitOrder;
+        let query = params;
+        if (isStopOrTakeProfit) {
+            query = this.omit(params, ['stopLossPrice', 'takeProfitPrice']);
+        }
+        if (isStopOrTakeProfit) {
             stopPrice = isStopLossOrder ? stopLossPrice : takeProfitPrice;
-            params = this.omit(params, ['stopLossPrice', 'takeProfitPrice']);
             request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
         }
         else if (isTailingStopOrder) {
-            params = this.omit(params, ['trailingPercent']);
+            query = this.omit(query, ['trailingPercent']);
             request['callbackRate'] = trailingPercent;
             let trailingTriggerPrice = this.numberToString(price);
-            [trailingTriggerPrice, params] = this.handleParamString(params, 'trailingTriggerPrice', trailingTriggerPrice);
+            [trailingTriggerPrice, query] = this.handleParamString(query, 'trailingTriggerPrice', trailingTriggerPrice);
             if (trailingTriggerPrice !== undefined) {
                 request['activationPrice'] = this.priceToPrecision(symbol, trailingTriggerPrice);
-                params = this.omit(params, ['trailingTriggerPrice']);
+                query = this.omit(query, ['trailingTriggerPrice']);
             }
         }
-        type = type.toUpperCase();
-        const isMarketOrder = ((type === 'MARKET') || (type === 'STOP_MARKET') || (type === 'TAKE_PROFIT_MARKET') || (type === 'TRAILING_STOP_MARKET'));
+        let typeValue = type.toUpperCase();
+        const isMarketOrder = ((typeValue === 'MARKET') || (typeValue === 'STOP_MARKET') || (typeValue === 'TAKE_PROFIT_MARKET') || (typeValue === 'TRAILING_STOP_MARKET'));
         if (isMarketOrder) {
-            if (type === 'MARKET') {
+            if (typeValue === 'MARKET') {
                 if (isStopLossOrder) {
-                    type = 'STOP_MARKET';
+                    typeValue = 'STOP_MARKET';
                 }
                 else if (isTakeProfitOrder) {
-                    type = 'TAKE_PROFIT_MARKET';
+                    typeValue = 'TAKE_PROFIT_MARKET';
                 }
                 else if (isTailingStopOrder) {
-                    type = 'TRAILING_STOP_MARKET';
+                    typeValue = 'TRAILING_STOP_MARKET';
                 }
             }
         }
         else {
             if (price === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+                throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a price argument for a ' + typeValue + ' order');
             }
             request['price'] = this.priceToPrecision(symbol, price);
             if (isStopLossOrder) {
-                type = 'STOP';
+                typeValue = 'STOP';
             }
             else if (isTakeProfitOrder) {
-                type = 'TAKE_PROFIT';
+                typeValue = 'TAKE_PROFIT';
             }
         }
-        request['type'] = type;
+        request['type'] = typeValue;
         let hedged = false;
-        [hedged, params] = this.handleOptionAndParams(params, 'createOrder', 'hedged', hedged);
-        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
+        [hedged, query] = this.handleOptionBoolAndParams(query, 'createOrder', 'hedged', hedged);
+        const reduceOnly = this.safeBool(query, 'reduceOnly', false);
         if (hedged) {
-            params = this.omit(params, 'reduceOnly');
+            query = this.omit(query, 'reduceOnly');
             if (side === 'buy') {
-                request['positionSide'] = reduceOnly ? 'SHORT' : 'LONG';
+                request['positionSide'] = (reduceOnly === true) ? 'SHORT' : 'LONG';
             }
             else if (side === 'sell') {
-                request['positionSide'] = reduceOnly ? 'LONG' : 'SHORT';
+                request['positionSide'] = (reduceOnly === true) ? 'LONG' : 'SHORT';
             }
         }
-        const closePosition = this.safeBool(params, 'closePosition', false);
-        if (!closePosition) {
-            params = this.omit(params, 'closePosition');
+        const closePosition = this.safeBool(query, 'closePosition', false);
+        if (closePosition !== true) {
+            query = this.omit(query, 'closePosition');
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
-        else if ((type !== 'STOP_MARKET') && (type !== 'TAKE_PROFIT_MARKET')) {
+        else if ((typeValue !== 'STOP_MARKET') && (typeValue !== 'TAKE_PROFIT_MARKET')) {
             throw new errors.NotSupported(this.id + ' createOrder() closePosition is only supported for stopLoss and takeProfit market orders');
         }
-        let timeInForce = this.handleTimeInForce(params);
+        let timeInForce = this.handleTimeInForce(query);
         let postOnly = false;
-        [postOnly, params] = this.handlePostOnly(isMarketOrder, timeInForce === 'POST_ONLY', params);
+        [postOnly, query] = this.handlePostOnly(isMarketOrder, timeInForce === 'POST_ONLY', query);
         if (postOnly) {
             timeInForce = 'POST_ONLY';
         }
         if (timeInForce !== undefined) {
             request['timeInForce'] = timeInForce;
-            params = this.omit(params, 'timeInForce');
+            query = this.omit(query, 'timeInForce');
         }
         if (isStopLossOrder || isTakeProfitOrder || isTailingStopOrder) {
             let workingType = 'CONTRACT_PRICE';
-            [workingType, params] = this.handleOptionAndParams(params, 'createOrder', 'triggerPriceType', workingType);
+            [workingType, query] = this.handleOptionStringAndParams(query, 'createOrder', 'triggerPriceType', workingType);
             request['workingType'] = this.encodeWorkingType(workingType);
         }
-        return this.extend(request, params);
+        return this.extend(request, query);
     }
     encodeWorkingType(workingType) {
         const types = {
@@ -1312,21 +1365,23 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#createOrders
      * @description create a list of trade orders
-     * @see https://developers.bydfi.com/en/swap/trade#batch-order-placement
+     * @see https://developers.bydfi.com/en/futures/trade#batch-order-placement
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const length = orders.length;
         if (length > 5) {
             throw new errors.BadRequest(this.id + ' createOrders() accepts a maximum of 5 orders');
         }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict(orders, i);
             const symbol = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
@@ -1336,13 +1391,13 @@ class bydfi extends bydfi$1["default"] {
             const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
-        let wallet = 'W001';
-        [wallet, params] = this.handleOptionAndParams(params, 'createOrder', 'wallet', wallet);
+        const wallet = 'W001';
+        const [walletOption, paramsWallet] = this.handleOptionStringAndParams(params, 'createOrder', 'wallet', wallet);
         const request = {
-            'wallet': wallet,
+            'wallet': walletOption,
             'orders': ordersRequests,
         };
-        const response = await this.privatePostV1SwapTradeBatchPlaceOrder(this.extend(request, params));
+        const response = await this.privatePostV1FapiTradeBatchPlaceOrder(this.extend(request, paramsWallet));
         const data = this.safeList(response, 'data', []);
         return this.parseOrders(data);
     }
@@ -1350,7 +1405,7 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#editOrder
      * @description edit a trade order
-     * @see https://developers.bydfi.com/en/swap/trade#order-modification
+     * @see https://developers.bydfi.com/en/futures/trade#order-modification
      * @param {string} id order id (mandatory if params.clientOrderId is not provided)
      * @param {string} [symbol] unified symbol of the market to create an order in
      * @param {string} [type] not used by bydfi editOrder
@@ -1363,12 +1418,14 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = this.createEditOrderRequest(id, symbol, 'limit', side, amount, price, params);
-        let wallet = 'W001';
-        [wallet, params] = this.handleOptionAndParams(params, 'editOrder', 'wallet', wallet);
-        request['wallet'] = wallet;
-        const response = await this.privatePostV1SwapTradeEditOrder(request);
+        const wallet = 'W001';
+        const walletOption = this.handleOptionStringAndParams(params, 'editOrder', 'wallet', wallet)[0];
+        request['wallet'] = walletOption;
+        const response = await this.privatePostV1FapiTradeEditOrder(request);
         const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data);
     }
@@ -1376,21 +1433,23 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#editOrders
      * @description edit a list of trade orders
-     * @see https://developers.bydfi.com/en/swap/trade#batch-order-modification
+     * @see https://developers.bydfi.com/en/futures/trade#batch-order-modification
      * @param {Array} orders list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const length = orders.length;
         if (length > 5) {
             throw new errors.BadRequest(this.id + ' editOrders() accepts a maximum of 5 orders');
         }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict(orders, i);
             const id = this.safeString(rawOrder, 'id');
             const symbol = this.safeString(rawOrder, 'symbol');
             const side = this.safeString(rawOrder, 'side');
@@ -1400,13 +1459,13 @@ class bydfi extends bydfi$1["default"] {
             const orderRequest = this.createEditOrderRequest(id, symbol, 'limit', side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
-        let wallet = 'W001';
-        [wallet, params] = this.handleOptionAndParams(params, 'editOrder', 'wallet', wallet);
+        const wallet = 'W001';
+        const [walletOption, paramsWallet] = this.handleOptionStringAndParams(params, 'editOrder', 'wallet', wallet);
         const request = {
-            'wallet': wallet,
+            'wallet': walletOption,
             'editOrders': ordersRequests,
         };
-        const response = await this.privatePostV1SwapTradeBatchEditOrder(this.extend(request, params));
+        const response = await this.privatePostV1FapiTradeBatchEditOrder(this.extend(request, paramsWallet));
         const data = this.safeList(response, 'data', []);
         return this.parseOrders(data);
     }
@@ -1436,7 +1495,7 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://developers.bydfi.com/en/swap/trade#complete-order-cancellation
+     * @see https://developers.bydfi.com/en/futures/trade#complete-order-cancellation
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -1446,15 +1505,17 @@ class bydfi extends bydfi$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let wallet = 'W001';
-        [wallet, params] = this.handleOptionAndParams(params, 'cancelAllOrders', 'wallet', wallet);
+        const wallet = 'W001';
+        const [walletOption, paramsWallet] = this.handleOptionStringAndParams(params, 'cancelAllOrders', 'wallet', wallet);
         const request = {
             'symbol': market['id'],
-            'wallet': wallet,
+            'wallet': walletOption,
         };
-        const response = await this.privatePostV1SwapTradeCancelAllOrder(this.extend(request, params));
+        const response = await this.privatePostV1FapiTradeCancelAllOrder(this.extend(request, paramsWallet));
         //
         //     {
         //         "code": 200,
@@ -1494,8 +1555,8 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://developers.bydfi.com/en/swap/trade#pending-order-query
-     * @see https://developers.bydfi.com/en/swap/trade#planned-order-query
+     * @see https://developers.bydfi.com/en/futures/trade#pending-order-query
+     * @see https://developers.bydfi.com/en/futures/trade#planned-order-query
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1508,18 +1569,20 @@ class bydfi extends bydfi$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let wallet = 'W001';
-        [wallet, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'wallet', wallet);
+        const wallet = 'W001';
+        const [walletOption, paramsWallet] = this.handleOptionStringAndParams(params, 'fetchOpenOrders', 'wallet', wallet);
         const request = {
             'symbol': market['id'],
-            'wallet': wallet,
+            'wallet': walletOption,
         };
-        let response = undefined;
-        let trigger = false;
-        [trigger, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'trigger', trigger);
-        if (!trigger) {
+        let response;
+        const trigger = false;
+        const [triggerOption, paramsTrigger] = this.handleOptionBoolAndParams(paramsWallet, 'fetchOpenOrders', 'trigger', trigger);
+        if (!triggerOption) {
             //
             //     {
             //         "code": 200,
@@ -1552,10 +1615,10 @@ class bydfi extends bydfi$1["default"] {
             //         "success": true
             //     }
             //
-            response = await this.privateGetV1SwapTradeOpenOrder(this.extend(request, params));
+            response = await this.privateGetV1FapiTradeOpenOrder(this.extend(request, paramsTrigger));
         }
         else {
-            response = await this.privateGetV1SwapTradePlanOrder(this.extend(request, params));
+            response = await this.privateGetV1FapiTradePlanOrder(this.extend(request, paramsTrigger));
         }
         const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
@@ -1564,8 +1627,8 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#fetchOpenOrder
      * @description fetch an open order by the id
-     * @see https://developers.bydfi.com/en/swap/trade#pending-order-query
-     * @see https://developers.bydfi.com/en/swap/trade#planned-order-query
+     * @see https://developers.bydfi.com/en/futures/trade#pending-order-query
+     * @see https://developers.bydfi.com/en/futures/trade#planned-order-query
      * @param {string} id order id (mandatory if params.clientOrderId is not provided)
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1578,7 +1641,9 @@ class bydfi extends bydfi$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1590,17 +1655,17 @@ class bydfi extends bydfi$1["default"] {
         else if (id !== undefined) {
             request['orderId'] = id;
         }
-        let wallet = 'W001';
-        [wallet, params] = this.handleOptionAndParams(params, 'fetchOpenOrder', 'wallet', wallet);
-        request['wallet'] = wallet;
-        let response = undefined;
-        let trigger = false;
-        [trigger, params] = this.handleOptionAndParams(params, 'fetchOpenOrder', 'trigger', trigger);
-        if (!trigger) {
-            response = await this.privateGetV1SwapTradeOpenOrder(this.extend(request, params));
+        const wallet = 'W001';
+        const [walletOption, paramsWallet] = this.handleOptionStringAndParams(params, 'fetchOpenOrder', 'wallet', wallet);
+        request['wallet'] = walletOption;
+        let response;
+        const trigger = false;
+        const [triggerOption, paramsTrigger] = this.handleOptionBoolAndParams(paramsWallet, 'fetchOpenOrder', 'trigger', trigger);
+        if (!triggerOption) {
+            response = await this.privateGetV1FapiTradeOpenOrder(this.extend(request, paramsTrigger));
         }
         else {
-            response = await this.privateGetV1SwapTradePlanOrder(this.extend(request, params));
+            response = await this.privateGetV1FapiTradePlanOrder(this.extend(request, paramsTrigger));
         }
         const data = this.safeList(response, 'data', []);
         const order = this.safeDict(data, 0, {});
@@ -1610,7 +1675,7 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#fetchCanceledAndClosedOrders
      * @description fetches information on multiple canceled and closed orders made by the user
-     * @see https://developers.bydfi.com/en/swap/trade#historical-orders-query
+     * @see https://developers.bydfi.com/en/futures/trade#historical-orders-query
      * @param {string} symbol unified market symbol of the closed orders
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the max number of closed orders to return
@@ -1622,17 +1687,17 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             const maxLimit = 500;
-            params = this.omit(params, 'paginate');
-            params = this.extend(params, { 'paginationDirection': 'backward' });
-            const paginatedResponse = await this.fetchPaginatedCallDynamic('fetchCanceledAndClosedOrders', symbol, since, limit, params, maxLimit, true);
+            const paramsPaginate = this.extend(this.omit(params, 'paginate'), { 'paginationDirection': 'backward' });
+            const paginatedResponse = await this.fetchPaginatedCallDynamic('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate, maxLimit, true);
             return this.sortBy(paginatedResponse, 'timestamp');
         }
-        let contractType = 'FUTURE';
-        [contractType, params] = this.handleOptionAndParams(params, 'fetchCanceledAndClosedOrders', 'contractType', contractType);
+        const [contractType, paramsContractType] = this.handleOptionStringAndParams(params, 'fetchCanceledAndClosedOrders', 'contractType', 'FUTURE');
         const request = {
             'contractType': contractType,
         };
@@ -1641,11 +1706,11 @@ class bydfi extends bydfi$1["default"] {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        params = this.handleSinceAndUntil('fetchCanceledAndClosedOrders', since, params);
+        const paramsSinceUntil = this.handleSinceAndUntil('fetchCanceledAndClosedOrders', since, paramsContractType);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV1SwapTradeHistoryOrder(this.extend(request, params));
+        const response = await this.privateGetV1FapiTradeHistoryOrder(this.extend(request, paramsSinceUntil));
         //
         //     {
         //         "code": 200,
@@ -1696,7 +1761,8 @@ class bydfi extends bydfi$1["default"] {
     }
     handleSinceAndUntil(methodName, since = undefined, params = {}) {
         let until = undefined;
-        [until, params] = this.handleOptionAndParams2(params, methodName, 'until', 'endTime');
+        let paramsUntil = undefined;
+        [until, paramsUntil] = this.handleOptionIntegerAndParams2(params, methodName, 'until', 'endTime');
         const now = this.milliseconds();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         let startTime = since;
@@ -1725,7 +1791,7 @@ class bydfi extends bydfi$1["default"] {
             'startTime': startTime,
             'endTime': until,
         };
-        return this.extend(request, params);
+        return this.extend(request, paramsUntil);
     }
     parseOrder(order, market = undefined) {
         //
@@ -1793,7 +1859,7 @@ class bydfi extends bydfi$1["default"] {
         //     }
         //
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger2(order, 'createTime', 'ctime');
         const rawType = this.safeString(order, 'orderType');
         const stopPrice = this.safeStringN(order, ['stopPrice', 'activatePrice', 'triggerPrice']);
@@ -1801,7 +1867,7 @@ class bydfi extends bydfi$1["default"] {
         const isTakeProfitOrder = (rawType === 'TAKE_PROFIT') || (rawType === 'TAKE_PROFIT_MARKET');
         const rawTimeInForce = this.safeString(order, 'timeInForce');
         const timeInForce = this.parseOrderTimeInForce(rawTimeInForce);
-        let postOnly = undefined;
+        let postOnly = false;
         if (timeInForce === 'PO') {
             postOnly = true;
         }
@@ -1810,7 +1876,7 @@ class bydfi extends bydfi$1["default"] {
         const quoteFee = this.safeNumber(order, 'quoteFee');
         if (quoteFee !== undefined) {
             fee['cost'] = quoteFee;
-            fee['currency'] = market['quote'];
+            fee['currency'] = marketResolved['quote'];
         }
         return this.safeOrder({
             'info': order,
@@ -1821,7 +1887,7 @@ class bydfi extends bydfi$1["default"] {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeInteger2(order, 'updateTime', 'mtime'),
             'status': this.parseOrderStatus(rawStatus),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.parseOrderType(rawType),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -1838,7 +1904,7 @@ class bydfi extends bydfi$1["default"] {
             'trades': undefined,
             'fee': fee,
             'average': this.omitZero(this.safeString(order, 'avgPrice')),
-        }, market);
+        }, marketResolved);
     }
     parseOrderType(type) {
         const types = {
@@ -1879,7 +1945,7 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#setLeverage
      * @description set the level of leverage for a market
-     * @see https://developers.bydfi.com/en/swap/trade#set-leverage-for-single-trading-pair
+     * @see https://developers.bydfi.com/en/futures/trade#set-leverage-for-single-trading-pair
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1890,16 +1956,18 @@ class bydfi extends bydfi$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let wallet = 'W001';
-        [wallet, params] = this.handleOptionAndParams(params, 'setLeverage', 'wallet', wallet);
+        const wallet = 'W001';
+        const [walletOption, paramsWallet] = this.handleOptionStringAndParams(params, 'setLeverage', 'wallet', wallet);
         const request = {
             'symbol': market['id'],
             'leverage': leverage,
-            'wallet': wallet,
+            'wallet': walletOption,
         };
-        const response = await this.privatePostV1SwapTradeLeverage(this.extend(request, params));
+        const response = await this.privatePostV1FapiTradeLeverage(this.extend(request, paramsWallet));
         const data = this.safeDict(response, 'data', {});
         return data;
     }
@@ -1907,7 +1975,7 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://developers.bydfi.com/en/swap/trade#get-leverage-for-single-trading-pair
+     * @see https://developers.bydfi.com/en/futures/trade#get-leverage-for-single-trading-pair
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -1917,15 +1985,17 @@ class bydfi extends bydfi$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchLeverage() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let wallet = 'W001';
-        [wallet, params] = this.handleOptionAndParams(params, 'fetchLeverage', 'wallet', wallet);
+        const wallet = 'W001';
+        const [walletOption, paramsWallet] = this.handleOptionStringAndParams(params, 'fetchLeverage', 'wallet', wallet);
         const request = {
             'symbol': market['id'],
-            'wallet': wallet,
+            'wallet': walletOption,
         };
-        const response = await this.privateGetV1SwapTradeLeverage(this.extend(request, params));
+        const response = await this.privateGetV1FapiTradeLeverage(this.extend(request, paramsWallet));
         //
         //     {
         //         "code": 200,
@@ -1955,7 +2025,7 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#fetchPositions
      * @description fetch all open positions
-     * @see https://developers.bydfi.com/en/swap/trade#positions-query
+     * @see https://developers.bydfi.com/en/futures/trade#positions-query
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
@@ -1963,13 +2033,15 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        let contractType = 'FUTURE';
-        [contractType, params] = this.handleOptionAndParams(params, 'fetchPositions', 'contractType', contractType);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const contractType = 'FUTURE';
+        const [contractTypeOption, paramsContractType] = this.handleOptionStringAndParams(params, 'fetchPositions', 'contractType', contractType);
         const request = {
-            'contractType': contractType,
+            'contractType': contractTypeOption,
         };
-        const response = await this.privateGetV1SwapTradePositions(this.extend(request, params));
+        const response = await this.privateGetV1FapiTradePositions(this.extend(request, paramsContractType));
         //
         //     {
         //         "code": 200,
@@ -1999,7 +2071,7 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#fetchPositionsForSymbol
      * @description fetch open positions for a single market
-     * @see https://developers.bydfi.com/en/swap/trade#positions-query
+     * @see https://developers.bydfi.com/en/futures/trade#positions-query
      * @description fetch all open positions for specific symbol
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2007,15 +2079,17 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsForSymbol(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let contractType = 'FUTURE';
-        [contractType, params] = this.handleOptionAndParams(params, 'fetchPositions', 'contractType', contractType);
+        const contractType = 'FUTURE';
+        const [contractTypeOption, paramsContractType] = this.handleOptionStringAndParams(params, 'fetchPositions', 'contractType', contractType);
         const request = {
-            'contractType': contractType,
+            'contractType': contractTypeOption,
             'symbol': market['id'],
         };
-        const response = await this.privateGetV1SwapTradePositions(this.extend(request, params));
+        const response = await this.privateGetV1FapiTradePositions(this.extend(request, paramsContractType));
         const data = this.safeList(response, 'data', []);
         return this.parsePositions(data, [market['symbol']]);
     }
@@ -2072,11 +2146,11 @@ class bydfi extends bydfi$1["default"] {
         //     }
         //
         const marketId = this.safeString(position, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const buyOrSell = this.safeString(position, 'side');
         const rawPositionSide = this.safeStringLower(position, 'positionSide');
         let positionSide = this.parsePositionSide(buyOrSell);
-        let hedged = undefined;
+        let hedged = false;
         let isFetchPositionsHistory = false;
         if (rawPositionSide !== undefined) {
             isFetchPositionsHistory = true;
@@ -2088,7 +2162,7 @@ class bydfi extends bydfi$1["default"] {
                 hedged = false;
             }
         }
-        const contractSize = this.safeString(market, 'contractSize');
+        const contractSize = this.safeString(marketResolved, 'contractSize');
         let contracts = this.safeString2(position, 'volume', 'openPositionVolume');
         if (!isFetchPositionsHistory) {
             // in fetchPositions, the 'volume' is in base currency units, need to convert to contracts
@@ -2098,7 +2172,7 @@ class bydfi extends bydfi$1["default"] {
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'id'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'entryPrice': this.parseNumber(this.safeString2(position, 'avgOpenPositionPrice', 'avgPrice')),
             'markPrice': this.parseNumber(this.safeString(position, 'markPrice')),
             'lastPrice': this.parseNumber(this.safeString(position, 'avgClosePositionPrice')),
@@ -2135,30 +2209,32 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#fetchPositionHistory
      * @description fetches historical positions
-     * @see https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
+     * @see https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records
      * @param {string} symbol a unified market symbol
      * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
      * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionHistory(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let contractType = 'FUTURE';
-        [contractType, params] = this.handleOptionAndParams(params, 'fetchPositionsHistory', 'contractType', contractType);
+        const contractType = 'FUTURE';
+        const [contractTypeOption, paramsContractType] = this.handleOptionStringAndParams(params, 'fetchPositionHistory', 'contractType', contractType);
         const request = {
             'symbol': market['id'],
-            'contractType': contractType,
+            'contractType': contractTypeOption,
         };
-        params = this.handleSinceAndUntil('fetchPositionsHistory', since, params);
+        const paramsSinceAndUntil = this.handleSinceAndUntil('fetchPositionsHistory', since, paramsContractType);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV1SwapTradePositionHistory(this.extend(request, params));
+        const response = await this.privateGetV1FapiTradePositionHistory(this.extend(request, paramsSinceAndUntil));
         //
         //
         const data = this.safeList(response, 'data', []);
@@ -2169,28 +2245,30 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#fetchPositionsHistory
      * @description fetches historical positions
-     * @see https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
+     * @see https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records
      * @param {string[]} symbols a list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
      * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let contractType = 'FUTURE';
-        [contractType, params] = this.handleOptionAndParams(params, 'fetchPositionsHistory', 'contractType', contractType);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const contractType = 'FUTURE';
+        const [contractTypeOption, paramsContractType] = this.handleOptionStringAndParams(params, 'fetchPositionsHistory', 'contractType', contractType);
         const request = {
-            'contractType': contractType,
+            'contractType': contractTypeOption,
         };
-        params = this.handleSinceAndUntil('fetchPositionsHistory', since, params);
+        const paramsSinceAndUntil = this.handleSinceAndUntil('fetchPositionsHistory', since, paramsContractType);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV1SwapTradePositionHistory(this.extend(request, params));
+        const response = await this.privateGetV1FapiTradePositionHistory(this.extend(request, paramsSinceAndUntil));
         //
         //     {
         //         "code": 200,
@@ -2241,7 +2319,7 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#fetchMarginMode
      * @description fetches the margin mode of a trading pair
-     * @see https://developers.bydfi.com/en/swap/user#margin-mode-query
+     * @see https://developers.bydfi.com/en/futures/user#margin-mode-query
      * @param {string} symbol unified symbol of the market to fetch the margin mode for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
@@ -2249,18 +2327,20 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginMode(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let contractType = 'FUTURE';
-        [contractType, params] = this.handleOptionAndParams(params, 'fetchMarginMode', 'contractType', contractType);
-        let wallet = 'W001';
-        [wallet, params] = this.handleOptionAndParams(params, 'fetchMarginMode', 'wallet', wallet);
+        const contractType = 'FUTURE';
+        const [contractTypeOption, paramsContractType] = this.handleOptionStringAndParams(params, 'fetchMarginMode', 'contractType', contractType);
+        const wallet = 'W001';
+        const [walletOption, paramsWallet] = this.handleOptionStringAndParams(paramsContractType, 'fetchMarginMode', 'wallet', wallet);
         const request = {
-            'contractType': contractType,
+            'contractType': contractTypeOption,
             'symbol': market['id'],
-            'wallet': wallet,
+            'wallet': walletOption,
         };
-        const response = await this.privateGetV1SwapUserDataAssetsMargin(this.extend(request, params));
+        const response = await this.privateGetV1FapiUserDataAssetsMargin(this.extend(request, paramsWallet));
         //
         //     {
         //         "code": 200,
@@ -2288,7 +2368,7 @@ class bydfi extends bydfi$1["default"] {
      * @method
      * @name bydfi#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
-     * @see https://developers.bydfi.com/en/swap/user#change-margin-type-cross-margin
+     * @see https://developers.bydfi.com/en/futures/user#change-margin-type-cross-margin
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2300,31 +2380,33 @@ class bydfi extends bydfi$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
         }
-        marginMode = marginMode.toLowerCase();
-        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+        const marginModeValue = marginMode.toLowerCase();
+        if (marginModeValue !== 'isolated' && marginModeValue !== 'cross') {
             throw new errors.BadRequest(this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let contractType = 'FUTURE';
-        [contractType, params] = this.handleOptionAndParams(params, 'fetchMarginMode', 'contractType', contractType);
-        let wallet = 'W001';
-        [wallet, params] = this.handleOptionAndParams(params, 'fetchMarginMode', 'wallet', wallet);
+        const contractType = 'FUTURE';
+        const [contractTypeOption, paramsContractType] = this.handleOptionStringAndParams(params, 'setMarginMode', 'contractType', contractType);
+        const wallet = 'W001';
+        const [walletOption, paramsWallet] = this.handleOptionStringAndParams(paramsContractType, 'setMarginMode', 'wallet', wallet);
         const request = {
-            'contractType': contractType,
+            'contractType': contractTypeOption,
             'symbol': market['id'],
-            'marginType': marginMode.toUpperCase(),
-            'wallet': wallet,
+            'marginType': marginModeValue.toUpperCase(),
+            'wallet': walletOption,
         };
-        return await this.privatePostV1SwapUserDataMarginType(this.extend(request, params));
+        return await this.privatePostV1FapiUserDataMarginType(this.extend(request, paramsWallet));
     }
     /**
      * @method
      * @name bydfi#setPositionMode
      * @description set hedged to true or false for a market, hedged for bydfi is set identically for all markets with same settle currency
-     * @see https://developers.bydfi.com/en/swap/user#change-position-mode-dual
+     * @see https://developers.bydfi.com/en/futures/user#change-position-mode-dual
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} [symbol] not used by bydfi setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2335,19 +2417,24 @@ class bydfi extends bydfi$1["default"] {
         if (symbol !== undefined) {
             throw new errors.NotSupported(this.id + ' setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency');
         }
-        await this.loadMarkets();
-        const positionType = hedged ? 'HEDGE' : 'ONEWAY';
-        let wallet = 'W001';
-        [wallet, params] = this.handleOptionAndParams(params, 'setPositionMode', 'wallet', wallet);
-        let contractType = 'FUTURE';
-        [contractType, params] = this.handleOptionAndParams(params, 'setPositionMode', 'contractType', contractType);
-        let settleCoin = 'USDT';
-        [settleCoin, params] = this.handleOptionAndParams(params, 'setPositionMode', 'settleCoin', settleCoin);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        let positionType = 'ONEWAY';
+        if (hedged) {
+            positionType = 'HEDGE';
+        }
+        const wallet = 'W001';
+        const [walletOption, paramsWallet] = this.handleOptionStringAndParams(params, 'setPositionMode', 'wallet', wallet);
+        const contractType = 'FUTURE';
+        const [contractTypeOption, paramsContractType] = this.handleOptionStringAndParams(paramsWallet, 'setPositionMode', 'contractType', contractType);
+        const settleCoin = 'USDT';
+        const [settleCoinOption, paramsSettleCoin] = this.handleOptionStringAndParams(paramsContractType, 'setPositionMode', 'settleCoin', settleCoin);
         const request = {
-            'contractType': contractType,
-            'wallet': wallet,
+            'contractType': contractTypeOption,
+            'wallet': walletOption,
             'positionType': positionType,
-            'settleCoin': settleCoin,
+            'settleCoin': settleCoinOption,
         };
         //
         //     {
@@ -2356,13 +2443,13 @@ class bydfi extends bydfi$1["default"] {
         //         "success": true
         //     }
         //
-        return await this.privatePostV1SwapUserDataPositionSideDual(this.extend(request, params));
+        return await this.privatePostV1FapiUserDataPositionSideDual(this.extend(request, paramsSettleCoin));
     }
     /**
      * @method
      * @name bydfi#fetchPositionMode
      * @description fetchs the position mode, hedged or one way, hedged for bydfi is set identically for all markets with same settle currency
-     * @see https://developers.bydfi.com/en/swap/user#get-position-mode
+     * @see https://developers.bydfi.com/en/futures/user#get-position-mode
      * @param {string} [symbol] unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
@@ -2371,14 +2458,15 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
     async fetchPositionMode(symbol = undefined, params = {}) {
-        await this.loadMarkets();
-        let wallet = 'W001';
-        [wallet, params] = this.handleOptionAndParams(params, 'fetchPositionMode', 'wallet', wallet);
-        let contractType = 'FUTURE';
-        [contractType, params] = this.handleOptionAndParams(params, 'fetchPositionMode', 'contractType', contractType);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [wallet, paramsWallet] = this.handleOptionStringAndParams(params, 'fetchPositionMode', 'wallet', 'W001');
+        const [contractType, paramsContractType] = this.handleOptionStringAndParams(paramsWallet, 'fetchPositionMode', 'contractType', 'FUTURE');
         let settleCoin = 'USDT';
+        let query = paramsContractType;
         if (symbol === undefined) {
-            [settleCoin, params] = this.handleOptionAndParams(params, 'fetchPositionMode', 'settleCoin', settleCoin);
+            [settleCoin, query] = this.handleOptionStringAndParams(paramsContractType, 'fetchPositionMode', 'settleCoin', settleCoin);
         }
         else {
             const market = this.market(symbol);
@@ -2389,7 +2477,7 @@ class bydfi extends bydfi$1["default"] {
             'settleCoin': settleCoin,
             'wallet': wallet,
         };
-        const response = await this.privateGetV1SwapUserDataPositionSideDual(this.extend(request, params));
+        const response = await this.privateGetV1FapiUserDataPositionSideDual(this.extend(request, query));
         //
         //     {
         //         "code": 200,
@@ -2419,22 +2507,24 @@ class bydfi extends bydfi$1["default"] {
      * @name bydfi#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://developers.bydfi.com/en/account#asset-inquiry
-     * @see https://developers.bydfi.com/en/swap/user#asset-query
+     * @see https://developers.bydfi.com/en/futures/user#asset-query
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.accountType] the type of account to fetch the balance for, either 'spot' or 'swap'  or 'funding' (default is 'spot')
+     * @param {string} [params.account] the type of account to fetch the balance for, either 'SPOT' or 'UMFUTURE'  or 'CMFUTURE'  or 'COPY'  or 'GRID'  or 'FUNDING' (default is 'SPOT')
      * @param {string} [params.wallet] *swap only* The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @param {string} [params.asset] currency id for the balance to fetch
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
-        let accountType = 'spot';
-        [accountType, params] = this.handleOptionAndParams2(params, 'fetchBalance', 'accountType', 'type', accountType);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        const [wallet, paramsWallet] = this.handleOptionStringAndParams(paramsMarketType, 'fetchBalance', 'wallet');
         const request = {};
-        let response = undefined;
-        if (accountType !== 'swap') {
+        let response;
+        if (wallet === undefined) {
             const options = this.safeDict(this.options, 'accountsByType', {});
-            const parsedAccountType = this.safeString(options, accountType, accountType);
+            const parsedAccountType = this.safeStringUpper(options, type, type);
             request['walletType'] = parsedAccountType;
             //
             //     {
@@ -2452,11 +2542,9 @@ class bydfi extends bydfi$1["default"] {
             //         "success": true
             //     }
             //
-            response = await this.privateGetV1AccountAssets(this.extend(request, params));
+            response = await this.privateGetV1AccountAssets(this.extend(request, paramsWallet));
         }
         else {
-            let wallet = 'W001';
-            [wallet, params] = this.handleOptionAndParams(params, 'fetchBalance', 'wallet', wallet);
             request['wallet'] = wallet;
             //
             //     {
@@ -2486,26 +2574,27 @@ class bydfi extends bydfi$1["default"] {
             //         ],
             //         "success": true
             //     }
-            response = await this.privateGetV1SwapAccountBalance(this.extend(request, params));
+            response = await this.privateGetV1FapiAccountBalance(this.extend(request, paramsWallet));
         }
         const data = this.safeList(response, 'data', []);
         return this.parseBalance(data);
     }
     parseBalance(response) {
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict(response, i);
             const symbol = this.safeString(balance, 'asset');
             const code = this.safeCurrencyCode(symbol);
             const account = this.account();
             account['total'] = this.safeString2(balance, 'total', 'balance');
             account['free'] = this.safeString2(balance, 'available', 'availableBalance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2522,7 +2611,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -2544,10 +2635,7 @@ class bydfi extends bydfi$1["default"] {
         const transfer = this.parseTransfer(response, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
-            const timestamp = this.milliseconds();
-            transfer['timestamp'] = timestamp;
-            transfer['datetime'] = this.iso8601(timestamp);
+        if (fillResponseFromRequest === true) {
             transfer['currency'] = code;
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -2571,33 +2659,29 @@ class bydfi extends bydfi$1["default"] {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchTransfers() requires a code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             const maxLimit = 50;
-            params = this.omit(params, 'paginate');
-            params = this.extend(params, { 'paginationDirection': 'backward' });
-            const paginatedResponse = await this.fetchPaginatedCallDynamic('fetchTransfers', currency['code'], since, limit, params, maxLimit, true);
+            const paramsPaginate = this.extend(this.omit(params, 'paginate'), { 'paginationDirection': 'backward' });
+            const paginatedResponse = await this.fetchPaginatedCallDynamic('fetchTransfers', this.safeString(currency, 'code'), since, limit, paramsPaginate, maxLimit, true);
             return this.sortBy(paginatedResponse, 'timestamp');
         }
         const request = {
             'asset': currency['id'],
         };
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams2(params, 'fetchTransfers', 'until', 'endTime');
-        if (until === undefined) {
-            until = this.milliseconds(); // exchange requires endTime
-        }
-        if (since === undefined) {
-            since = 1; // exchange requires startTime but allows any value
-        }
-        request['startTime'] = since;
-        request['endTime'] = until;
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams2(params, 'fetchTransfers', 'until', 'endTime');
+        // exchange requires endTime, and startTime but allows any value
+        const sinceResolved = (since === undefined) ? 1 : since;
+        request['startTime'] = sinceResolved;
+        request['endTime'] = (until === undefined) ? this.milliseconds() : until;
         if (limit !== undefined) {
             request['rows'] = limit;
         }
-        const response = await this.privateGetV1AccountTransferRecords(this.extend(request, params));
+        const response = await this.privateGetV1AccountTransferRecords(this.extend(request, paramsUntil));
         //
         //     {
         //         "code": 200,
@@ -2618,7 +2702,7 @@ class bydfi extends bydfi$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseTransfers(data, currency, since, limit);
+        return this.parseTransfers(data, currency, sinceResolved, limit);
     }
     parseTransfer(transfer, currency = undefined) {
         //
@@ -2698,25 +2782,30 @@ class bydfi extends bydfi$1["default"] {
         return await this.fetchTransactionsHelper('withdrawal', code, since, limit, params);
     }
     async fetchTransactionsHelper(type, code, since, limit, params) {
-        const methodName = (type === 'deposit') ? 'fetchDeposits' : 'fetchWithdrawals';
+        let methodName = 'fetchWithdrawals';
+        if (type === 'deposit') {
+            methodName = 'fetchDeposits';
+        }
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() requires a code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             const maxLimit = 50;
-            params = this.omit(params, 'paginate');
-            params = this.extend(params, { 'paginationDirection': 'backward' });
-            const paginatedResponse = await this.fetchPaginatedCallDynamic(methodName, currency['code'], since, limit, params, maxLimit, true);
+            const paramsPaginate = this.extend(this.omit(params, 'paginate'), { 'paginationDirection': 'backward' });
+            const paginatedResponse = await this.fetchPaginatedCallDynamic(methodName, this.safeString(currency, 'code'), since, limit, paramsPaginate, maxLimit, true);
             return this.sortBy(paginatedResponse, 'timestamp');
         }
         const request = {
             'asset': currency['id'],
         };
         let until = undefined;
-        [until, params] = this.handleOptionAndParams2(params, 'fetchTransfers', 'until', 'endTime');
+        let paramsUntil = undefined;
+        [until, paramsUntil] = this.handleOptionIntegerAndParams2(params, 'fetchTransfers', 'until', 'endTime');
         const now = this.milliseconds();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         let startTime = since;
@@ -2746,7 +2835,7 @@ class bydfi extends bydfi$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         if (type === 'deposit') {
             //
             //     {
@@ -2769,20 +2858,20 @@ class bydfi extends bydfi$1["default"] {
             //         "success": true
             //     }
             //
-            response = await this.privateGetV1SpotDepositRecords(this.extend(request, params));
+            response = await this.privateGetV1SpotDepositRecords(this.extend(request, paramsUntil));
         }
         else {
             //
             // todo check after withdrawal
             //
-            response = await this.privateGetV1SpotWithdrawRecords(this.extend(request, params));
+            response = await this.privateGetV1SpotWithdrawRecords(this.extend(request, paramsUntil));
         }
         const data = this.safeList(response, 'data', []);
         const transactionParams = {
             'type': type,
         };
-        params = this.extend(params, transactionParams);
-        return this.parseTransactions(data, currency, since, limit, params);
+        const paramsTransaction = this.extend(paramsUntil, transactionParams);
+        return this.parseTransactions(data, currency, since, limit, paramsTransaction);
     }
     parseTransaction(transaction, currency = undefined) {
         //
@@ -2818,7 +2907,7 @@ class bydfi extends bydfi$1["default"] {
             'txid': this.safeString(transaction, 'txId'),
             'type': undefined,
             'currency': code,
-            'network': this.networkIdToCode(this.safeString(transaction, 'network')),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network'), code),
             'amount': this.safeNumber(transaction, 'amount'),
             'status': this.parseTransactionStatus(rawStatus),
             'timestamp': timestamp,
@@ -2844,7 +2933,11 @@ class bydfi extends bydfi$1["default"] {
         return this.safeString(statuses, status, status);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl;
         let endpoint = '/' + path;
         let query = '';
         const sortedParams = this.keysort(params);
@@ -2854,23 +2947,25 @@ class bydfi extends bydfi$1["default"] {
                 endpoint += '?' + query;
             }
         }
+        let requestBody = undefined;
+        let requestHeaders = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
             if (method === 'GET') {
                 const payload = this.apiKey + timestamp + query;
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'hex');
-                headers = {
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'hex');
+                requestHeaders = {
                     'X-API-KEY': this.apiKey,
                     'X-API-TIMESTAMP': timestamp,
                     'X-API-SIGNATURE': signature,
                 };
             }
             else {
-                body = this.json(sortedParams);
-                const payload = this.apiKey + timestamp + body;
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'hex');
-                headers = {
+                requestBody = this.json(sortedParams);
+                const payload = this.apiKey + timestamp + requestBody;
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'hex');
+                requestHeaders = {
                     'Content-Type': 'application/json',
                     'X-API-KEY': this.apiKey,
                     'X-API-TIMESTAMP': timestamp,
@@ -2879,7 +2974,9 @@ class bydfi extends bydfi$1["default"] {
             }
         }
         url += endpoint;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResolved = (requestBody === undefined) ? body : requestBody;
+        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

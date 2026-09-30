@@ -10,18 +10,25 @@ namespace ccxt;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_ticker.php';
 
 function test_fetch_tickers($exchange, $skipped_properties, $symbol) {
-    $without_symbol = test_fetch_tickers_helper($exchange, $skipped_properties, null);
-    $with_symbol = test_fetch_tickers_helper($exchange, $skipped_properties, [$symbol]);
-    $results = Promise\all([$without_symbol, $with_symbol]);
-    test_fetch_tickers_amounts($exchange, $skipped_properties, $results[0]);
+    // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
+    // is impractical and the "every active market has a ticker" check doesn't apply — test
+    // fetchTickers by the outcome handle instead
+    if ($exchange->safe_bool($exchange->has, 'prediction', false)) {
+        $prediction_result = fetch_tickers_helper_test($exchange, $skipped_properties, [$symbol]);
+        return [$prediction_result];
+    }
+    $without_symbol = fetch_tickers_helper_test($exchange, $skipped_properties, null);
+    $with_symbol = fetch_tickers_helper_test($exchange, $skipped_properties, [$symbol]);
+    $results = [$without_symbol, $with_symbol];
+    fetch_tickers_amounts_test($exchange, $skipped_properties, $results[0]);
     return $results;
 }
 
 
-function test_fetch_tickers_helper($exchange, $skipped_properties, $arg_symbols, $arg_params = array()) {
+function fetch_tickers_helper_test($exchange, $skipped_properties, $arg_symbols, $arg_params = array()) {
     $method = 'fetchTickers';
     $response = $exchange->fetch_tickers($arg_symbols, $arg_params);
-    assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($arg_symbols) . ' must return an object. ' . $exchange->json($response));
+    assert_dictionary_response($exchange, $method, $response, $exchange->json($arg_symbols));
     $values = is_array($response) ? array_values($response) : array();
     $checked_symbol = null;
     if ($arg_symbols !== null && count($arg_symbols) === 1) {
@@ -31,13 +38,22 @@ function test_fetch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
     for ($i = 0; $i < count($values); $i++) {
         // todo: symbol check here
         $ticker = $values[$i];
-        test_ticker($exchange, $skipped_properties, $method, $ticker, $checked_symbol);
+        try {
+            test_ticker($exchange, $skipped_properties, $method, $ticker, $checked_symbol);
+        } catch(\Throwable $ex) {
+            $ohlcv = null;
+            $ticker_symbol = $ticker['symbol'];
+            if (($ticker_symbol !== null) && ticker_exception_needs_ohlcv($ex, $exchange, $ticker)) {
+                $ohlcv = $exchange->fetch_ohlcv($ticker_symbol, '1d', null, 5);
+            }
+            validate_ticker_exception_for_percentage($ex, $exchange, $ticker, $ohlcv);
+        }
     }
     return $response;
 }
 
 
-function test_fetch_tickers_amounts($exchange, $skipped_properties, $tickers) {
+function fetch_tickers_amounts_test($exchange, $skipped_properties, $tickers) {
     $tickers_values = is_array($tickers) ? array_values($tickers) : array();
     if (!(is_array($skipped_properties) && array_key_exists('checkActiveSymbols', $skipped_properties))) {
         //
@@ -52,6 +68,9 @@ function test_fetch_tickers_amounts($exchange, $skipped_properties, $tickers) {
         // ensure tickers length is less than markets length
         //
         $all_markets = $exchange->markets;
+        if ($all_markets === null) {
+            return;
+        }
         $all_markets_length = count(is_array($all_markets) ? array_keys($all_markets) : array());
         assert($obtained_tickers_length <= $all_markets_length, $exchange->id . ' ' . 'fetchTickers' . ' must return <= than all markets, but returned: ' . ((string) $obtained_tickers_length) . ' tickers, ' . ((string) $all_markets_length) . ' markets');
     }

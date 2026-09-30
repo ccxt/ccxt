@@ -1,8 +1,5 @@
-- [Huobi Futures](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -49,5 +46,5 @@ try {
 }
 
 ?>
- 
+
 ```

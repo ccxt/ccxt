@@ -8,7 +8,6 @@ namespace ccxt\pro;
 use Exception; // a common import
 
 class okxus extends \ccxt\pro\okx {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'okxus',
@@ -31,7 +30,7 @@ class okxus extends \ccxt\pro\okx {
                 ),
             ),
             'has' => array(
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
                 'option' => false,
             ),

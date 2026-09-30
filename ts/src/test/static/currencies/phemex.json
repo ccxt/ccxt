@@ -13,7 +13,9 @@
             "inAssetsDisplay": "1",
             "perpetual": "0",
             "stableCoin": "0",
-            "assetsPrecision": "8"
+            "assetsPrecision": "8",
+            "spotInnoStatus": "0",
+            "timestamp": "1760495531"
         },
         "id": "BTC",
         "numericId": null,
@@ -53,7 +55,9 @@
             "inAssetsDisplay": "1",
             "perpetual": "2",
             "stableCoin": "1",
-            "assetsPrecision": "8"
+            "assetsPrecision": "8",
+            "spotInnoStatus": "0",
+            "timestamp": "1778207726"
         },
         "id": "USDT",
         "numericId": null,
@@ -93,7 +97,9 @@
             "inAssetsDisplay": "1",
             "perpetual": "0",
             "stableCoin": "0",
-            "assetsPrecision": "2"
+            "assetsPrecision": "2",
+            "spotInnoStatus": "0",
+            "timestamp": "1775356509"
         },
         "id": "USD",
         "numericId": null,
@@ -133,7 +139,9 @@
             "inAssetsDisplay": "1",
             "perpetual": "0",
             "stableCoin": "0",
-            "assetsPrecision": "8"
+            "assetsPrecision": "8",
+            "spotInnoStatus": "0",
+            "timestamp": "1778207727"
         },
         "id": "LTC",
         "numericId": null,
@@ -173,7 +181,9 @@
             "inAssetsDisplay": "1",
             "perpetual": "0",
             "stableCoin": "0",
-            "assetsPrecision": "8"
+            "assetsPrecision": "8",
+            "spotInnoStatus": "0",
+            "timestamp": "1760495526"
         },
         "id": "ETH",
         "numericId": null,
@@ -213,7 +223,9 @@
             "inAssetsDisplay": "1",
             "perpetual": "1",
             "stableCoin": "0",
-            "assetsPrecision": "8"
+            "assetsPrecision": "8",
+            "spotInnoStatus": "0",
+            "timestamp": "1760495521"
         },
         "id": "ADA",
         "numericId": null,
@@ -253,7 +265,9 @@
             "inAssetsDisplay": "1",
             "perpetual": "1",
             "stableCoin": "0",
-            "assetsPrecision": "8"
+            "assetsPrecision": "8",
+            "spotInnoStatus": "0",
+            "timestamp": "1778207727"
         },
         "id": "XRP",
         "numericId": null,
@@ -293,7 +307,9 @@
             "inAssetsDisplay": "1",
             "perpetual": "2",
             "stableCoin": "1",
-            "assetsPrecision": "6"
+            "assetsPrecision": "8",
+            "spotInnoStatus": "0",
+            "timestamp": "1760495535"
         },
         "id": "USDC",
         "numericId": null,
@@ -333,7 +349,9 @@
             "inAssetsDisplay": "1",
             "perpetual": "1",
             "stableCoin": "0",
-            "assetsPrecision": "8"
+            "assetsPrecision": "8",
+            "spotInnoStatus": "0",
+            "timestamp": "1760495529"
         },
         "id": "SOL",
         "numericId": null,

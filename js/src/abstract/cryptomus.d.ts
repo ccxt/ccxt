@@ -1,22 +1,37 @@
-import { implicitReturnType } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
-    publicGetV2UserApiExchangeMarkets(params?: {}): Promise<implicitReturnType>;
-    publicGetV2UserApiExchangeMarketPrice(params?: {}): Promise<implicitReturnType>;
-    publicGetV1ExchangeMarketAssets(params?: {}): Promise<implicitReturnType>;
-    publicGetV1ExchangeMarketOrderBookCurrencyPair(params?: {}): Promise<implicitReturnType>;
-    publicGetV1ExchangeMarketTickers(params?: {}): Promise<implicitReturnType>;
-    publicGetV1ExchangeMarketTradesCurrencyPair(params?: {}): Promise<implicitReturnType>;
-    privateGetV2UserApiExchangeOrders(params?: {}): Promise<implicitReturnType>;
-    privateGetV2UserApiExchangeOrdersHistory(params?: {}): Promise<implicitReturnType>;
-    privateGetV2UserApiExchangeAccountBalance(params?: {}): Promise<implicitReturnType>;
-    privateGetV2UserApiExchangeAccountTariffs(params?: {}): Promise<implicitReturnType>;
-    privateGetV2UserApiPaymentServices(params?: {}): Promise<implicitReturnType>;
-    privateGetV2UserApiPayoutServices(params?: {}): Promise<implicitReturnType>;
-    privateGetV2UserApiTransactionList(params?: {}): Promise<implicitReturnType>;
-    privatePostV2UserApiExchangeOrders(params?: {}): Promise<implicitReturnType>;
-    privatePostV2UserApiExchangeOrdersMarket(params?: {}): Promise<implicitReturnType>;
-    privateDeleteV2UserApiExchangeOrdersOrderId(params?: {}): Promise<implicitReturnType>;
+    publicGetV2UserApiExchangeMarkets(params?: {}): Promise<Dict>;
+    publicGetV2UserApiExchangeMarketPrice(params?: {}): Promise<Dict>;
+    publicGetV2UserApiExchangeMarketsPrice(params?: {}): Promise<Dict>;
+    publicGetV1ExchangeMarketAssets(params?: {}): Promise<Dict>;
+    publicGetV1ExchangeMarketOrderBookCurrencyPair(params?: {}): Promise<Dict>;
+    publicGetV1ExchangeMarketTickers(params?: {}): Promise<Dict>;
+    publicGetV1ExchangeMarketTradesCurrencyPair(params?: {}): Promise<Dict>;
+    privateGetV2UserApiExchangeOrders(params?: {}): Promise<Dict>;
+    privateGetV2UserApiExchangeOrdersHistory(params?: {}): Promise<Dict>;
+    privateGetV2UserApiExchangeAccountBalance(params?: {}): Promise<Dict>;
+    privateGetV2UserApiExchangeAccountTariffs(params?: {}): Promise<Dict>;
+    privateGetV2UserApiPaymentServices(params?: {}): Promise<Dict>;
+    privateGetV2UserApiPayoutServices(params?: {}): Promise<Dict>;
+    privateGetV2UserApiTransactionList(params?: {}): Promise<Dict>;
+    privateGetV2UserApiBalance(params?: {}): Promise<Dict>;
+    privateGetV2UserApiConvertDirectionList(params?: {}): Promise<Dict>;
+    privateGetV2UserApiConvertOrderList(params?: {}): Promise<Dict>;
+    privateGetV2UserApiAmlCheckBalance(params?: {}): Promise<Dict>;
+    privateGetV2UserApiAmlCheckCurrencies(params?: {}): Promise<Dict>;
+    privateGetV2UserApiAmlCheckPackages(params?: {}): Promise<Dict>;
+    privateGetV2UserApiAmlCheckRequest(params?: {}): Promise<Dict>;
+    privateGetV2UserApiAmlCheckRequestId(params?: {}): Promise<Dict>;
+    privatePostV2UserApiExchangeOrders(params?: {}): Promise<Dict>;
+    privatePostV2UserApiExchangeOrdersMarket(params?: {}): Promise<Dict>;
+    privatePostV2UserApiConvert(params?: {}): Promise<Dict>;
+    privatePostV2UserApiConvertCalculate(params?: {}): Promise<Dict>;
+    privatePostV2UserApiConvertLimit(params?: {}): Promise<Dict>;
+    privatePostV2UserApiAmlCheckRequest(params?: {}): Promise<Dict>;
+    privatePostV2UserApiAmlCheckRequestIdReportSend(params?: {}): Promise<Dict>;
+    privateDeleteV2UserApiExchangeOrdersOrderId(params?: {}): Promise<Dict>;
+    privateDeleteV2UserApiConvertOrderUuid(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

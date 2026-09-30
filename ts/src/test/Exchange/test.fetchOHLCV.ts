@@ -1,12 +1,12 @@
 import assert from 'assert';
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testOHLCV from './base/test.ohlcv.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
 async function testFetchOHLCV (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchOHLCV';
     const timeframeKeys = Object.keys (exchange.timeframes);
-    assert (timeframeKeys.length, exchange.id + ' ' + method + ' - no timeframes found');
+    assert (timeframeKeys.length > 0, exchange.id + ' ' + method + ' - no timeframes found');
     // prefer 1m timeframe if available, otherwise return the first one
     let chosenTimeframeKey = '1m';
     if (!exchange.inArray (chosenTimeframeKey, timeframeKeys)) {
@@ -19,7 +19,7 @@ async function testFetchOHLCV (exchange: Exchange, skippedProperties: object, sy
     testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, ohlcvs, symbol);
     const now = exchange.milliseconds ();
     for (let i = 0; i < ohlcvs.length; i++) {
-        testOHLCV (exchange, skippedProperties, method, ohlcvs[i], symbol, now);
+        testOHLCV (exchange, skippedProperties, method, ohlcvs[i] as number[], symbol, now);
     }
     // todo: sorted timestamps check
     return true;

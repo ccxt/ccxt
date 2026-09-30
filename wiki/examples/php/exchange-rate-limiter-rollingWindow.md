@@ -1,8 +1,5 @@
-- [Exchange Rate Limiter Rollingwindow](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -20,19 +17,18 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 function example() {
     return Async\async(function () {
         $myex = new \ccxt\async\okx(array(
             'rateLimiterAlgorithm' => 'rollingWindow',
             'rollingWindowSize' => 10000,
         ));
-        $trades = Async\await($myex->fetch_ohlcv('BTC/USDT'));
+        $trades = \React\Async\await($myex->fetch_ohlcv('BTC/USDT'));
         var_dump($trades);
     }) ();
 }
 
 
-Async\await(example());
- 
+\React\Async\await(example());
+
 ```

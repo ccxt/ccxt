@@ -13,7 +13,7 @@ using Org.BouncyCastle.Security;
 
 namespace ccxt;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     public static string sha1() => "sha1";
@@ -78,6 +78,8 @@ public partial class Exchange
 
     public string hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex") => Hmac(request2, secret2, algorithm2, digest);
 
+    // digest "binary" returns Byte[] — the signature must stay object so a binary-mode
+    // call site cannot be declared/composed as a string (see build/csharp-local-types.js)
     public object hash(object request2, Delegate algorithm2 = null, object digest2 = null) => Hash(request2, algorithm2, digest2);
 
     public static object Hash(object request2, Delegate hash = null, object digest2 = null)
@@ -195,12 +197,6 @@ public partial class Exchange
         return res;
     }
 
-    public static byte[] SignSHA256Bytes(string data)
-    {
-        using var encryptor = SHA256.Create();
-        return encryptor.ComputeHash(Encoding.UTF8.GetBytes(data));
-    }
-
     public static byte[] SignSHA256(string data)
     {
         using var encryptor = SHA256.Create();
@@ -299,15 +295,17 @@ public partial class Exchange
         return resultBytes;
     }
 
-    public string rsa(object request, object secret, Delegate alg = null) => Rsa(request, secret, alg);
+    public string rsa(object request, object secret, Delegate alg = null, object padding = null) => Rsa(request, secret, alg, padding);
 
-    public static string Rsa(object data, object publicKey, Delegate hash = null)
+    public static string Rsa(object data, object publicKey, Delegate hash = null, object padding = null)
     {
         var pk = ((string)publicKey);
+        // robust PEM parsing: drop the header/footer and blank lines by content instead of by
+        // position — a trailing newline (how openssl writes PEM files) would otherwise leave
+        // the footer line inside the base64 payload
         var pkParts = pk.Split(new[] { ((string)"\n") }, StringSplitOptions.None).ToList();
-        pkParts.RemoveAt(0);
-        pkParts.RemoveAt(pkParts.Count - 1);
-        var newPk = string.Join("", pkParts);
+        var b64Lines = pkParts.Select(l => l.Trim()).Where(l => l.Length > 0 && !l.StartsWith("-----")).ToList();
+        var newPk = string.Join("", b64Lines);
         byte[] Data = Encoding.UTF8.GetBytes((string)data);
         byte[] privatekey;
         privatekey = Convert.FromBase64String(newPk);
@@ -343,6 +341,18 @@ public partial class Exchange
         else
         {
             throw new ArgumentException("Invalid hash algorithm name");
+        }
+        var paddingMode = (padding as string) ?? "pkcs1";
+        if (paddingMode == "pss")
+        {
+            // RSACryptoServiceProvider can't do PSS; round-trip the key into an RSA that can
+            var rsaParams = rsa.ExportParameters(true);
+            using (var rsaPss = RSA.Create())
+            {
+                rsaPss.ImportParameters(rsaParams);
+                byte[] pssSig = rsaPss.SignData(Data, stringToHashAlgorithmName(algorithm), RSASignaturePadding.Pss);
+                return Convert.ToBase64String(pssSig);
+            }
         }
         byte[] signData = rsa.SignData(Data, sh);
 
@@ -383,9 +393,11 @@ public partial class Exchange
                          .ToArray();
     }
 
-    public object ecdsa(object request, object secret, Delegate alg = null, Delegate hash = null) => Ecdsa(request, secret, alg, hash);
+    // every return path of Ecdsa is the fresh { r, s, v } row it builds (or a throw), so the
+    // declared type names the box the value already has; the wrapper forwards it unchanged
+    public Dictionary<string, object> ecdsa(object request, object secret, Delegate alg = null, Delegate hash = null) => Ecdsa(request, secret, alg, hash);
 
-    public static object Ecdsa(object request, object secret, Delegate curve = null, Delegate hash = null)
+    public static Dictionary<string, object> Ecdsa(object request, object secret, Delegate curve = null, Delegate hash = null)
     {
         var curveName = "secp256k1";
         if (curve != null)
@@ -435,36 +447,9 @@ public partial class Exchange
         };
     }
 
-    public static string ByteArrayToString(byte[] ba)
-    {
-        return BitConverter.ToString(ba).Replace("-", "");
-    }
+    public string eddsa(object request, object secret, object alg = null) => Eddsa(request, secret, alg);
 
-    private static ECCurve stringToCurve(string curve)
-    {
-        switch (curve)
-        {
-            case "secp256k1":
-                return ECCurve.NamedCurves.nistP256;
-            case "secp256r1":
-                return ECCurve.NamedCurves.nistP256;
-            case "secp384r1":
-                return ECCurve.NamedCurves.nistP384;
-            case "secp521r1":
-                return ECCurve.NamedCurves.nistP521;
-            default:
-                throw new ArgumentException("Invalid curve name");
-        }
-    }
-
-    public object signMessageString(object str, object privateKey = null)
-    {
-        return (string)str; // stub
-    }
-
-    public object eddsa(object request, object secret, object alg = null) => Eddsa(request, secret, alg);
-
-    public static object Eddsa(object request, object secret, object alg = null)
+    public static string Eddsa(object request, object secret, object alg = null)
     {
         alg ??= "ed25519";
         byte[] msg;
@@ -628,23 +613,6 @@ public partial class Exchange
         return count;
     }
 
-    public object axolotl(object a, object b, object c)
-    {
-        return ""; // to be implemented
-    }
-
-    public static object inflate(object data)
-    {
-        var compressedMessage = Encoding.UTF8.GetBytes((string)data);
-        using (var compressedStream = new MemoryStream(compressedMessage))
-        using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress))
-        using (var resultStream = new MemoryStream())
-        {
-            deflateStream.CopyTo(resultStream);
-            return resultStream.ToArray();
-        }
-    }
-
     public static string ToHex(byte[] value, bool prefix = false)
     {
         var strPrex = prefix ? "0x" : "";
@@ -680,27 +648,6 @@ public partial class Exchange
                 // return keyPair.Private as ECPrivateKeyParameters;
                 var privateKeyParameters = keyPair.Private as ECPrivateKeyParameters;
                 return new ECPrivateKeyParameters(privateKeyParameters.D, new ECDomainParameters(curveParameters.Curve, curveParameters.G, curveParameters.N, curveParameters.H, curveParameters.GetSeed()));
-            }
-            else
-            {
-                throw new InvalidCastException("The PEM file does not contain an EC private key in an expected format.");
-            }
-        }
-    }
-
-    private static ECPublicKeyParameters ReadPemPublicKey(string pemContents, Org.BouncyCastle.Asn1.X9.X9ECParameters curveParameters)
-    {
-        using (TextReader textReader = new StringReader(pemContents))
-        {
-            PemReader pemReader = new PemReader(textReader);
-            object pemObject = pemReader.ReadObject();
-
-            // Handling AsymmetricCipherKeyPair
-            if (pemObject is Org.BouncyCastle.Crypto.AsymmetricCipherKeyPair keyPair)
-            {
-                // return keyPair.Private as ECPrivateKeyParameters;
-                var privateKeyParameters = keyPair.Public as ECPublicKeyParameters;
-                return new ECPublicKeyParameters(privateKeyParameters.Q, new ECDomainParameters(curveParameters.Curve, curveParameters.G, curveParameters.N, curveParameters.H, curveParameters.GetSeed()));
             }
             else
             {
@@ -747,30 +694,6 @@ public partial class Exchange
             {
                 X = q.AffineXCoord.GetEncoded(),
                 Y = q.AffineYCoord.GetEncoded()
-            }
-        });
-
-        return ecdsa;
-    }
-
-    public static ECDsa ConvertToECDsa(ECPublicKeyParameters publicKeyParameters)
-    {
-        // Extract the public key point
-        var q = publicKeyParameters.Q;
-
-        // Convert BouncyCastle's BigIntegers to byte arrays
-        var x = q.AffineXCoord.GetEncoded();
-        var y = q.AffineYCoord.GetEncoded();
-
-        // Create an ECDsa instance and initialize it with the public key parameters
-        ECDsa ecdsa = ECDsa.Create();
-        ecdsa.ImportParameters(new ECParameters
-        {
-            Curve = ECCurve.NamedCurves.nistP256, // Ensure this matches your actual curve
-            Q = new ECPoint
-            {
-                X = x,
-                Y = y
             }
         });
 

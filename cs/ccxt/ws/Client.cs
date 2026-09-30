@@ -5,23 +5,33 @@ namespace ccxt;
 using System;
 using System.Net.WebSockets;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.IO.Compression;
 using System.Net;
 
 
-public partial class Exchange
+public partial class BaseExchange
 {
     public class WebSocketClient
     {
         public string url; // Replace with your WebSocket server URL
         public ClientWebSocket webSocket = new ClientWebSocket();
-
+        
         public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
         public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>();
+        // spans future/resolve/reject so a resolve cannot land between
+        // futures GetOrAdd and the waiter attaching, and so settlements
+        // happen outside the lock (TaskCompletionSource is not
+        // RunContinuationsAsynchronously)
+        private readonly object futuresSync = new object();
         public bool verbose = false;
         public bool isConnected = false;
-        public bool startedConnecting = false;
+        public volatile bool startedConnecting = false;
+        private readonly object connectSync = new object();
+        private readonly CancellationTokenSource connectCancellation = new CancellationTokenSource();
+        private Task connectTask = null;
         private ManualResetEvent waitHandle = new ManualResetEvent(false);
 
         public TaskCompletionSource<bool> connected = null;
@@ -36,7 +46,7 @@ public partial class Exchange
 
         public onCloseDelegate onClose = null;
 
-        public onErrorDelegate onError = null;
+        public onErrorDelegate onErrorCallback = null;
 
         public delegate object pingDelegate(WebSocketClient client);
 
@@ -50,9 +60,15 @@ public partial class Exchange
 
         public Int64? connectionEstablished;
 
-        public bool error = false;
+        // mirrors js Client.error: null while live, the terminal error once
+        // retired. read and written under futuresSync.
+        public object error = null;
 
         public bool decompressBinary = true;
+
+        public bool isMock = false; // static ws tests: transport is stubbed, sends are recorded
+
+        public List<object> mockSentMessages = new List<object>(); // frames recorded in mock mode
 
         public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true)
         {
@@ -63,10 +79,10 @@ public partial class Exchange
             this.handleMessage = handleMessage;
             this.verbose = isVerbose;
             this.onClose = onClose;
-            this.onError = onError;
+            this.onErrorCallback = onError;
             this.keepAlive = keepA;
             this.decompressBinary = decompressBinary;
-
+            this.webSocket.Options.KeepAliveInterval = TimeSpan.Zero; // Disable unsolicited PONG. https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/websockets?#compression
             if (proxy != null)
             {
                 var webProxy = new WebProxy(proxy);
@@ -77,11 +93,19 @@ public partial class Exchange
         public Future future(object messageHash2)
         {
             var messageHash = messageHash2.ToString();
-            var future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
-            if ((this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out object rejection))
+            Future future;
+            object rejection = null;
+            lock (futuresSync)
+            {
+                future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
+                (this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out rejection);
+            }
+            // settle outside the lock, the TaskCompletionSource is not
+            // RunContinuationsAsynchronously so awaiter continuations can run
+            // synchronously on this thread
+            if (rejection != null)
             {
                 future.reject(rejection);
-                this.rejections.Remove(messageHash);
             }
             return future;
         }
@@ -98,7 +122,12 @@ public partial class Exchange
                 Console.WriteLine("resolve received undefined messageHash");
             }
             var messageHash = messageHash2.ToString();
-            if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
+            Future future = null;
+            lock (futuresSync)
+            {
+                (this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out future);
+            }
+            if (future != null)
             {
                 future.resolve(content);
             }
@@ -109,38 +138,90 @@ public partial class Exchange
             if (messageHash2 != null)
             {
                 var messageHash = messageHash2.ToString();
-                if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
+                Future future = null;
+                lock (futuresSync)
+                {
+                    if (!(this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out future))
+                    {
+                        (this.rejections as ConcurrentDictionary<string, object>)[messageHash] = content;
+                        future = null;
+                    }
+                }
+                if (future != null)
                 {
                     future.reject(content);
-                }
-                else
-                {
-                    (this.rejections as ConcurrentDictionary<string, object>).TryAdd(messageHash, content);
                 }
             }
             else
             {
-                foreach (var messageHash in this.futures.Keys)
+                var settled = new List<Future>();
+                lock (futuresSync)
                 {
-                    var future = this.futures[messageHash];
-                    this.futures.Remove(messageHash); // this order matters
+                    foreach (var messageHash in this.futures.Keys)
+                    {
+                        var future = this.futures[messageHash];
+                        this.futures.Remove(messageHash); // this order matters
+                        settled.Add(future);
+                    }
+                }
+                foreach (var future in settled)
+                {
                     future.reject(content);
                 }
             }
         }
 
-        public void reset(object message2)
+        // mirrors js Client.reset: reject every pending future and clear the
+        // consumer state. settles outside the lock, Future's
+        // TaskCompletionSource runs continuations inline.
+        public void reset(object error)
         {
-            // stub implement this later
-            this.reject(error);
+            var settled = new List<Future>();
+            lock (futuresSync)
+            {
+                foreach (var messageHash in this.futures.Keys.ToArray())
+                {
+                    settled.Add(this.futures[messageHash]);
+                    this.futures.Remove(messageHash);
+                }
+                this.subscriptions.Clear();
+            }
+            foreach (var future in settled)
+            {
+                future.reject(error);
+            }
+        }
+
+        // mirrors js Client.onError: set the error marker, reset, notify the
+        // exchange. the lock elects one winner when the transport error, a
+        // late onClose and a user Close() race on separate threads.
+        public void onError(object error)
+        {
+            lock (futuresSync)
+            {
+                if (this.error != null)
+                {
+                    return;
+                }
+                this.error = error;
+            }
+            this.isConnected = false; // stops PingLoop's while() condition
+            if (this.startedConnecting)
+            {
+                var connectionError = error as Exception ?? new Exception(error?.ToString() ?? "WebSocket connection failed");
+                this.connected.TrySetException(connectionError);
+            }
+            this.reset(error);
+            this.onErrorCallback?.Invoke(this, error);
         }
 
         public void onOpen()
         {
 
-            this.connected.SetResult(true);
             this.connectionEstablished = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             this.isConnected = true;
+            // Awaiters can resume inline in SetResult: publish the ready state first.
+            this.connected.SetResult(true);
             // this.clearConnectionTimeout();
             Task.Run(async () =>
             {
@@ -150,10 +231,30 @@ public partial class Exchange
 
         public Task connect(int backoffDelay = 0)
         {
-            if (!this.startedConnecting)
+            lock (connectSync)
             {
-                this.startedConnecting = true;
-                Task.Run(async () => Connect());
+                if (!this.startedConnecting)
+                {
+                    this.startedConnecting = true;
+                    object priorError;
+                    lock (futuresSync)
+                    {
+                        priorError = this.error;
+                    }
+                    if (priorError != null)
+                    {
+                        var connectionError = priorError as Exception ?? new Exception(priorError.ToString());
+                        this.connected.TrySetException(connectionError);
+                    }
+                    else
+                    {
+                        // run the dial on the thread pool: called inline it would capture the
+                        // caller's SynchronizationContext (a UI thread) and marshal onOpen and
+                        // the whole receive loop onto it
+                        var cancellationToken = this.connectCancellation.Token;
+                        this.connectTask = Task.Run(() => this.Connect(backoffDelay, cancellationToken));
+                    }
+                }
             }
             return this.connected.Task;
         }
@@ -184,6 +285,11 @@ public partial class Exchange
 
                 while (this.keepAlive != null && this.isConnected)
                 {
+                    // refresh on every iteration - a timestamp captured once before the loop
+                    // freezes the staleness comparison below and the pong-timeout branch can
+                    // never fire, leaving dead connections undetected,
+                    // see https://github.com/ccxt/ccxt/issues/23490
+                    now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
                     if (this.lastPong == null)
                     {
@@ -194,7 +300,23 @@ public partial class Exchange
                     var convertedKeepAlive = Convert.ToInt64(this.keepAlive);
                     if (lastPongConverted + convertedKeepAlive * this.maxPingPongMisses < now)
                     {
-                        this.onError(this, new Exception("Connection to" + this.url + " lost, did not receive pong within " + this.keepAlive + " seconds"));
+                        // sibling wording (ts/py/php/go) plus the actual numbers — the raw value
+                        // is what surfaced this bug in the first place, so keep it, but print the
+                        // real kill window with the real unit instead of the millisecond keepAlive
+                        // labeled as "seconds", and raise RequestTimeout instead of a bare
+                        // Exception the error-class handling cannot categorize
+                        this.onError(new RequestTimeout("Connection to " + this.url + " timed out due to a ping-pong keepalive missing on time (no liveness within " + (convertedKeepAlive * this.maxPingPongMisses) + " ms = keepAlive " + convertedKeepAlive + " ms x " + this.maxPingPongMisses + " misses)"));
+                        // onError rejects the pending futures and the exchange drops
+                        // this client from its registry, but the socket itself is
+                        // still open: leaving the loop does not tear it down, and the
+                        // server never asked for a close. left alone the Receiving
+                        // task keeps pulling frames and dispatching them into the
+                        // exchange caches next to the replacement connection the
+                        // next watch call opens. close the transport here so the
+                        // timeout ends the connection and not only the futures
+                        // waiting on it, mirroring ts/src/base/ws/Client.ts
+                        // onPingInterval (ccxt/ccxt#30293)
+                        await this.Close();
                         break;
                     }
                     else
@@ -234,55 +356,55 @@ public partial class Exchange
                 {
                     Console.WriteLine($"PingLoop error: {ex.Message}");
                 }
-                this.onError(this, ex);
+                this.onError(ex);
             }
         }
 
 
         private static readonly SemaphoreSlim _connectSemaphore = new SemaphoreSlim(1, 1);
 
-        public void Connect()
+        private async Task Connect(int backoffDelay, CancellationToken cancellationToken)
         {
-            var tcs = this.connected;
-            // Run the connection logic in a background task
-
-            if (this.webSocket.State == WebSocketState.Open)
+            var acquired = false;
+            try
             {
-                return; // already connected, return. Might happen when we call connect multiple times in a row
+                if (backoffDelay > 0)
+                {
+                    await Task.Delay(backoffDelay, cancellationToken);
+                }
 
+                await _connectSemaphore.WaitAsync(cancellationToken);
+                acquired = true;
+                if (this.webSocket.State == WebSocketState.Open)
+                {
+                    return;
+                }
+
+                await webSocket.ConnectAsync(new Uri(url), cancellationToken);
+                if (this.verbose)
+                {
+                    Console.WriteLine("WebSocket connected to " + url);
+                }
+                this.onOpen();
+                // start the receive loop off this path: inline, it would handle frames that
+                // are already buffered while the process-wide _connectSemaphore is still held
+                _ = Task.Run(() => this.Receiving(webSocket));
             }
-            Task.Run(async () =>
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                try
-                {
-                    await _connectSemaphore.WaitAsync();
-                    if (this.webSocket.State == WebSocketState.Open)
-                    {
-                        return; // already connected, return. Might happen when we call connect multiple times in a row
-
-                    }
-                    await webSocket.ConnectAsync(new Uri(url), CancellationToken.None);
-                    if (this.verbose)
-                    {
-                        Console.WriteLine("WebSocket connected to " + url);
-                    }
-                    this.onOpen();
-                    Task.Run(async () =>
-                    {
-                        Receiving(webSocket);
-                    });
-                }
-                catch (Exception ex)
-                {
-                    tcs.SetException(ex); // Set the exception if something goes wrong
-                }
-                finally
+                this.onError(this.error ?? new ExchangeClosedByUser("Connection closed by the user"));
+            }
+            catch (Exception ex)
+            {
+                this.onError(ex);
+            }
+            finally
+            {
+                if (acquired)
                 {
                     _connectSemaphore.Release();
                 }
-            });
-
-            // return tcs.Task;
+            }
         }
 
 
@@ -307,6 +429,12 @@ public partial class Exchange
         public async Task send(object message)
         {
             var jsonMessage = (message is string) ? ((string)message) : Exchange.Json(message);
+            if (this.isMock)
+            {
+                // static ws tests: record the outgoing frame so the test can assert it
+                this.mockSentMessages.Add(JsonHelper.Deserialize(jsonMessage));
+                return;
+            }
             if (this.verbose)
             {
                 Console.WriteLine($"Sending message: {jsonMessage}");
@@ -340,8 +468,21 @@ public partial class Exchange
         //    }
         // }
 
-        private void TryHandleMessage(string message)
+        // any inbound frame proves the connection alive: .NET ClientWebSocket
+        // neither surfaces incoming pong frames to user code nor exposes an API
+        // to send unsolicited pings, so protocol-level pong tracking is
+        // impossible here — without this, lastPong freezes at the ping loop's
+        // first iteration and every protocol-ping exchange (hitbtc, derive,
+        // lyra, ...) is deterministically disconnected at exactly
+        // keepAlive * maxPingPongMisses while perfectly healthy
+        public void markAlive()
         {
+            this.lastPong = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        }
+
+        public void TryHandleMessage(string message)
+        {
+            this.markAlive();
             object deserializedMessages = message;
             if (isValidJson(message))
             {
@@ -394,8 +535,9 @@ public partial class Exchange
                     {
 
                         var msgBinary = buffer.Take(result.Count).ToArray();
+                        // Use memory.ToArray() to get the FULL message (all frames), not just the last chunk
+                        var msgBinaryMemory = memory.ToArray();
                         // Handle binary message
-                        // assume gunzip for now
 
                         if (this.verbose)
                         {
@@ -404,6 +546,7 @@ public partial class Exchange
 
                         if (!this.decompressBinary)
                         {
+                            this.markAlive(); // this arm bypasses TryHandleMessage, raw-binary frames are liveness too
                             this.handleMessage(this, msgBinary);
                             continue;
                         }
@@ -420,19 +563,37 @@ public partial class Exchange
 
                         }
 
-                        using (MemoryStream compressedStream = new MemoryStream(buffer, 0, result.Count))
-                        using (GZipStream decompressionStream = new GZipStream(compressedStream, CompressionMode.Decompress))
-                        using (MemoryStream decompressedStream = new MemoryStream())
+                        // detect zlib magic bytes: 0x78 0x01, 0x78 0x5E, 0x78 0x9C, 0x78 0xDA
+                        bool isZLib = msgBinaryMemory.Length > 2 && msgBinaryMemory[0] == 0x78 && (msgBinaryMemory[1] == 0x01 || msgBinaryMemory[1] == 0x5E || msgBinaryMemory[1] == 0x9C || msgBinaryMemory[1] == 0xDA);
+
+                        if (isZLib)
+                        {
+                            using (var compressedStream = new MemoryStream(msgBinaryMemory, 2, msgBinaryMemory.Length - 2))
+                            using (var decompressionStream = new DeflateStream(compressedStream, CompressionMode.Decompress))
+                            using (var decompressedStream = new MemoryStream())
+                            {
+                                decompressionStream.CopyTo(decompressedStream);
+                                string decompressedString = Encoding.UTF8.GetString(decompressedStream.ToArray());
+                                if (this.verbose)
+                                    Console.WriteLine($"On zlib binary message decompressed {decompressedString}");
+                                this.TryHandleMessage(decompressedString);
+                            }
+                            continue;
+                        }
+
+                        // assume GZip (magic bytes: 0x1F 0x8B)
+                        // use msgBinaryMemory (full reassembled message) not msgBinary (last chunk only)
+                        bool isGZip = msgBinaryMemory.Length > 1 && msgBinaryMemory[0] == 0x1F && msgBinaryMemory[1] == 0x8B;
+
+                        if (isGZip)
+                        using (var compressedStream = new MemoryStream(msgBinaryMemory))
+                        using (var decompressionStream = new GZipStream(compressedStream, CompressionMode.Decompress))
+                        using (var decompressedStream = new MemoryStream())
                         {
                             decompressionStream.CopyTo(decompressedStream);
-                            byte[] decompressedData = decompressedStream.ToArray();
-
-                            string decompressedString = System.Text.Encoding.UTF8.GetString(decompressedData);
-
+                            string decompressedString = Encoding.UTF8.GetString(decompressedStream.ToArray());
                             if (this.verbose)
-                            {
-                                Console.WriteLine($"On binary message decompressed {decompressedString}");
-                            }
+                                Console.WriteLine($"On gzip binary message decompressed {decompressedString}");
                             this.TryHandleMessage(decompressedString);
                         }
                         // string json = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
@@ -457,7 +618,7 @@ public partial class Exchange
                     Console.WriteLine($"Receiving error: {ex.Message}");
                 }
                 this.isConnected = false;
-                this.onError(this, ex);
+                this.onError(ex);
             }
         }
 
@@ -472,24 +633,26 @@ public partial class Exchange
 
         public async Task Close()
         {
+            Task pendingConnect;
+            lock (connectSync)
+            {
+                this.connectCancellation.Cancel();
+                pendingConnect = this.connectTask;
+            }
+            this.onError(new ExchangeClosedByUser("Connection closed by the user"));
+            if (pendingConnect != null)
+            {
+                await pendingConnect;
+            }
             if (this.webSocket.State == WebSocketState.Open)
             {
                 try
                 {
                     await this.webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    // Console.WriteLine(e);
-                }
-
-            }
-            foreach (var future in this.futures.Values)
-            {
-                if (!future.task.IsCompleted)
-                {
-                    future.reject(new ExchangeClosedByUser("Connection closed by the user"));
-
+                    // the transport is going away regardless
                 }
             }
         }

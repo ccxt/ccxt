@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/apex.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -22,7 +22,7 @@ export default class apex extends Exchange {
             'name': 'Apex',
             'countries': [],
             'version': 'v3',
-            'rateLimit': 20,
+            'rateLimit': 20, // 600 requests per minute, 10 request per second
             'certified': false,
             'pro': true,
             'dex': true,
@@ -126,7 +126,7 @@ export default class apex extends Exchange {
                 'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {
@@ -145,7 +145,7 @@ export default class apex extends Exchange {
             },
             'hostname': 'omni.apex.exchange',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/fef8f2f7-4265-46aa-965e-33a91881cb00',
+                'logo': 'https://github.com/user-attachments/assets/8ba7fbfa-0dd0-4ab9-8b72-ff60abe08ac6',
                 'api': {
                     'public': 'https://{hostname}/api',
                     'private': 'https://{hostname}/api',
@@ -155,46 +155,51 @@ export default class apex extends Exchange {
                     'private': 'https://testnet.omni.apex.exchange/api',
                 },
                 'www': 'https://apex.exchange/',
-                'doc': 'https://api-docs.pro.apex.exchange',
+                'doc': 'https://api-docs.omni.apex.exchange',
                 'fees': 'https://apex-pro.gitbook.io/apex-pro/apex-omni-live-now/trading-perpetual-contracts/trading-fees',
                 'referral': 'https://omni.apex.exchange/trade',
             },
             'api': {
                 'public': {
                     'get': {
-                        'v3/symbols': 1,
-                        'v3/history-funding': 1,
-                        'v3/ticker': 1,
-                        'v3/klines': 1,
-                        'v3/trades': 1,
-                        'v3/depth': 1,
-                        'v3/time': 1,
-                        'v3/data/all-ticker-info': 1,
+                        'v3/symbols': { 'cost': 1 },
+                        'v3/history-funding': { 'cost': 1 },
+                        'v3/ticker': { 'cost': 1 },
+                        'v3/klines': { 'cost': 1 },
+                        'v3/trades': { 'cost': 1 },
+                        'v3/depth': { 'cost': 1 },
+                        'v3/time': { 'cost': 1 },
+                        'v3/data/all-ticker-info': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'v3/account': 1,
-                        'v3/account-balance': 1,
-                        'v3/fills': 1,
-                        'v3/order-fills': 1,
-                        'v3/order': 1,
-                        'v3/history-orders': 1,
-                        'v3/order-by-client-order-id': 1,
-                        'v3/funding': 1,
-                        'v3/historical-pnl': 1,
-                        'v3/open-orders': 1,
-                        'v3/transfers': 1,
-                        'v3/transfer': 1,
+                        'v3/account': { 'cost': 1 },
+                        'v3/account-balance': { 'cost': 1 },
+                        'v3/fills': { 'cost': 1 },
+                        'v3/order-fills': { 'cost': 1 },
+                        'v3/order': { 'cost': 1 },
+                        'v3/history-orders': { 'cost': 1 },
+                        'v3/order-by-client-order-id': { 'cost': 1 },
+                        'v3/funding': { 'cost': 1 },
+                        'v3/historical-pnl': { 'cost': 1 },
+                        'v3/open-orders': { 'cost': 1 },
+                        'v3/transfers': { 'cost': 1 },
+                        'v3/transfer': { 'cost': 1 },
+                        'v3/stock/account': { 'cost': 1 },
                     },
                     'post': {
-                        'v3/delete-open-orders': 1,
-                        'v3/delete-client-order-id': 1,
-                        'v3/delete-order': 1,
-                        'v3/order': 1,
-                        'v3/set-initial-margin-rate': 1,
-                        'v3/transfer-out': 1,
-                        'v3/contract-transfer-out': 1,
+                        'v3/delete-open-orders': { 'cost': 1 },
+                        'v3/delete-client-order-id': { 'cost': 1 },
+                        'v3/delete-order': { 'cost': 1 },
+                        'v3/order': { 'cost': 1 },
+                        'v3/set-initial-margin-rate': { 'cost': 1 },
+                        'v3/transfer-out': { 'cost': 1 },
+                        'v3/contract-transfer-out': { 'cost': 1 },
+                        'v3/contract-transfer-to': { 'cost': 1 },
+                        'v3/submit-withdraw-claim': { 'cost': 1 },
+                        'v3/stock/register-account': { 'cost': 1 },
+                        'v3/stock/generate-api': { 'cost': 1 },
                     },
                 },
             },
@@ -208,8 +213,8 @@ export default class apex extends Exchange {
                 // - ob: order balance - the total cost of current open orders
                 // - ab: available balance
                 'exact': {
-                    '20006': 'apikey sign error',
-                    '20016': 'request para error',
+                    '20006': 'apikey sign error', // apikey sign error
+                    '20016': 'request para error', // apikey sign error
                     '10001': BadRequest,
                 },
                 'broad': {
@@ -235,7 +240,6 @@ export default class apex extends Exchange {
             'commonCurrencies': {},
             'options': {
                 'defaultType': 'swap',
-                'defaultSlippage': 0.05,
                 'brokerId': '6956',
             },
             'features': {
@@ -246,8 +250,8 @@ export default class apex extends Exchange {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -257,7 +261,7 @@ export default class apex extends Exchange {
                         },
                         'hedged': false,
                         'selfTradePrevention': false,
-                        'trailing': true,
+                        'trailing': true, // todo unify
                         'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
@@ -311,7 +315,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -341,11 +345,10 @@ export default class apex extends Exchange {
         // }
         // }
         //
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const code = 'USDT';
         const account = this.account();
@@ -358,12 +361,14 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchBalance
      * @description query for account info
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetV3AccountBalance(params);
         const data = this.safeDict(response, 'data', {});
         return this.parseBalance(data);
@@ -381,12 +386,14 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchAccount
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchAccount(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetV3Account(params);
         const data = this.safeDict(response, 'data', {});
         return this.parseAccount(data);
@@ -395,7 +402,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -412,7 +419,7 @@ export default class apex extends Exchange {
         //             "displayName": "Tether USD Coin",
         //             "decimals": 18,
         //             "showStep": "0.01",
-        //             "iconUrl": "https://static-pro.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
+        //             "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
         //             "l2WithdrawFee": "0",
         //             "enableCollateral": true,
         //             "enableCrossCollateral": false,
@@ -427,7 +434,7 @@ export default class apex extends Exchange {
         //          "chainId": "9",
         //          "chainType": "0",
         //          "l1ChainId": "42161",
-        //          "chainIconUrl": "https://static-pro.apex.exchange/chains/chain_logos/Arbitrum.svg",
+        //          "chainIconUrl": "https://static-omni.apex.exchange/chains/chain_logos/Arbitrum.svg",
         //          "contractAddress": "0x3169844a120c0f517b4eb4a750c08d8518c8466a",
         //          "swapContractAddress": "0x9e07b6Aef1bbD9E513fc2Eb8873e311E80B4f855",
         //          "stopDeposit": false,
@@ -438,10 +445,10 @@ export default class apex extends Exchange {
         //          "gasTokenDecimals": 18,
         //          "feeGasLimit": 300000,
         //          "blockTimeSeconds": 2,
-        //          "rpcUrl": "https://arb.pro.apex.exchange",
+        //          "rpcUrl": "https://arb.omni.apex.exchange",
         //          "minSwapUsdtAmount": "",
         //          "maxSwapUsdtAmount": "",
-        //          "webRpcUrl": "https://arb.pro.apex.exchange",
+        //          "webRpcUrl": "https://arb.omni.apex.exchange",
         //          "webTxUrl": "https://arbiscan.io/tx/",
         //          "backupRpcUrl": "https://arb-mainnet.g.alchemy.com/v2/rGlYUbRHtUav5mfeThCPtsV9GLPt2Xq5",
         //          "txConfirm": 20,
@@ -449,7 +456,7 @@ export default class apex extends Exchange {
         //          "tokens": [
         //              {
         //                  "decimals": 6,
-        //                  "iconUrl": "https://static-pro.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
+        //                  "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
         //                  "token": "USDT",
         //                  "tokenAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
         //                  "pullOff": false,
@@ -470,7 +477,7 @@ export default class apex extends Exchange {
         //              },
         //              {
         //                  "decimals": 6,
-        //                  "iconUrl": "https://static-pro.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
+        //                  "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
         //                  "token": "USDC",
         //                  "tokenAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
         //                  "pullOff": false,
@@ -495,28 +502,33 @@ export default class apex extends Exchange {
         // }
         const rows = this.safeList(spotConfig, 'assets', []);
         const chains = this.safeList(multiChain, 'chains', []);
-        const result = {};
-        for (let i = 0; i < rows.length; i++) {
-            const currency = rows[i];
-            const currencyId = this.safeString(currency, 'token');
-            const code = this.safeCurrencyCode(currencyId);
-            const name = this.safeString(currency, 'displayName');
-            const networks = {};
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const tokens = this.safeList(chain, 'tokens', []);
-                for (let f = 0; f < tokens.length; f++) {
-                    const token = tokens[f];
-                    const tokenName = this.safeString(token, 'token');
-                    if (tokenName === currencyId) {
-                        const networkId = this.safeString(chain, 'chainId');
-                        const networkCode = this.networkIdToCode(networkId);
+        this.options['_temp_currencies_chains'] = chains;
+        const result = this.parseCurrencies(rows);
+        delete this.options['_temp_currencies_chains'];
+        return result;
+    }
+    parseCurrency(currency) {
+        const currencyId = this.safeString(currency, 'token');
+        const code = this.safeCurrencyCode(currencyId);
+        const name = this.safeString(currency, 'displayName');
+        const networks = {};
+        const chains = this.options['_temp_currencies_chains'];
+        for (let j = 0; j < chains.length; j++) {
+            const chain = this.safeDict(chains, j);
+            const tokens = this.safeList(chain, 'tokens', []);
+            for (let f = 0; f < tokens.length; f++) {
+                const token = this.safeDict(tokens, f);
+                const tokenName = this.safeString(token, 'token');
+                if (tokenName === currencyId) {
+                    const networkId = this.safeString(chain, 'chainId');
+                    const networkCode = this.networkIdToCode(networkId, code);
+                    if (networkCode !== undefined) {
                         networks[networkCode] = {
                             'info': chain,
                             'id': networkId,
                             'network': networkCode,
                             'active': undefined,
-                            'deposit': !this.safeBool(chain, 'depositDisable'),
+                            'deposit': (!this.safeBool(chain, 'depositDisable', false)),
                             'withdraw': this.safeBool(token, 'withdrawEnable'),
                             'fee': this.safeNumber(token, 'minFee'),
                             'precision': this.parseNumber(this.parsePrecision(this.safeString(token, 'decimals'))),
@@ -534,45 +546,44 @@ export default class apex extends Exchange {
                     }
                 }
             }
-            const networkKeys = Object.keys(networks);
-            const networksLength = networkKeys.length;
-            const emptyChains = networksLength === 0; // non-functional coins
-            const valueForEmpty = emptyChains ? false : undefined;
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'type': 'crypto',
-                'name': name,
-                'active': undefined,
-                'deposit': valueForEmpty,
-                'withdraw': valueForEmpty,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': networks,
-            });
         }
-        return result;
+        const networkKeys = Object.keys(networks);
+        const networksLength = networkKeys.length;
+        const emptyChains = networksLength === 0; // non-functional coins
+        const valueForEmpty = emptyChains ? false : undefined;
+        return this.safeCurrencyStructure({
+            'info': currency,
+            'code': code,
+            'id': currencyId,
+            'type': 'crypto',
+            'name': name,
+            'active': undefined,
+            'deposit': valueForEmpty,
+            'withdraw': valueForEmpty,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
      * @name apex#fetchMarkets
      * @description retrieves data on all markets for apex
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -613,7 +624,7 @@ export default class apex extends Exchange {
         //             "tickSize": "0.1",
         //             "maxMaintenanceMarginRate": "0.5000",
         //             "maxPositionValue": "5000000.0000",
-        //             "tagIconUrl": "https://static-pro.apex.exchange/icon/LABLE_HOT.svg",
+        //             "tagIconUrl": "https://static-omni.apex.exchange/icon/LABLE_HOT.svg",
         //             "tag": "HOT",
         //             "riskTip": false,
         //             "defaultInitialMarginRate": "0.05",
@@ -646,6 +657,9 @@ export default class apex extends Exchange {
         const base = this.safeCurrencyCode(baseId);
         const settleId = this.safeString(market, 'settleAssetId');
         const settle = this.safeCurrencyCode(settleId);
+        if ((baseId === undefined) || (quote === undefined) || (settle === undefined)) {
+            return undefined;
+        }
         const symbol = baseId + '/' + quote + ':' + settle;
         const expiry = 0;
         const takerFee = this.parseNumber('0.0002');
@@ -722,10 +736,9 @@ export default class apex extends Exchange {
         //     "tradeCount": 100
         // }
         //
-        const timestamp = this.milliseconds();
         const marketId = this.safeString(ticker, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = this.safeSymbol(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = this.safeSymbol(marketId, marketResolved);
         const last = this.safeString(ticker, 'lastPrice');
         const percentage = this.safeString(ticker, 'price24hPcnt');
         const quoteVolume = this.safeString(ticker, 'turnover24h');
@@ -734,8 +747,8 @@ export default class apex extends Exchange {
         const low = this.safeString(ticker, 'lowPrice24h');
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': high,
             'low': low,
             'bid': undefined,
@@ -755,22 +768,24 @@ export default class apex extends Exchange {
             'markPrice': this.safeString(ticker, 'markPrice'),
             'indexPrice': this.safeString(ticker, 'indexPrice'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
      * @name apex#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         const response = await this.publicGetV3Ticker(this.extend(request, params));
         const tickers = this.safeList(response, 'data', []);
@@ -781,13 +796,15 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchTickers
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetV3DataAllTickerInfo(params);
         const tickers = this.safeList(response, 'data', []);
         return this.parseTickers(tickers, symbols);
@@ -796,7 +813,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -806,24 +823,25 @@ export default class apex extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let request = {
+        const request = {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
-        if (limit === undefined) {
-            limit = 200; // default is 200 when requested with `since`
-        }
-        request['limit'] = limit; // max 200, default 200
-        [request, params] = this.handleUntilOption('end', request, params, 0.001);
+        // default is 200 when requested with `since`, max 200
+        const limitResolved = (limit === undefined) ? 200 : Math.min(limit, 200);
+        request['limit'] = limitResolved;
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, params, 0.001);
         if (since !== undefined) {
-            request['start'] = Math.floor(since / 1000);
+            requestUntil['start'] = Math.floor(since / 1000);
         }
-        const response = await this.publicGetV3Klines(this.extend(request, params));
+        const response = await this.publicGetV3Klines(this.extend(requestUntil, paramsUntil));
         const data = this.safeDict(response, 'data', {});
-        const OHLCVs = this.safeList(data, market['id2'], []);
-        return this.parseOHLCVs(OHLCVs, market, timeframe, since, limit);
+        const OHLCVs = this.safeList(data, this.safeString(market, 'id2'), []);
+        return this.parseOHLCVs(OHLCVs, market, timeframe, since, limitResolved);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -840,34 +858,33 @@ export default class apex extends Exchange {
         //  } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
         //
         return [
-            this.safeIntegerN(ohlcv, ['start', 't']),
-            this.safeNumberN(ohlcv, ['open', 'o']),
-            this.safeNumberN(ohlcv, ['high', 'h']),
-            this.safeNumberN(ohlcv, ['low', 'l']),
-            this.safeNumberN(ohlcv, ['close', 'c']),
-            this.safeNumberN(ohlcv, ['volume', 'v']),
+            this.safeInteger2(ohlcv, 'start', 't'),
+            this.safeNumber2(ohlcv, 'open', 'o'),
+            this.safeNumber2(ohlcv, 'high', 'h'),
+            this.safeNumber2(ohlcv, 'low', 'l'),
+            this.safeNumber2(ohlcv, 'close', 'c'),
+            this.safeNumber2(ohlcv, 'volume', 'v'),
         ];
     }
     /**
      * @method
      * @name apex#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
-        if (limit === undefined) {
-            limit = 100; // default is 200 when requested with `since`
-        }
-        request['limit'] = limit; // max 100, default 100
+        request['limit'] = (limit === undefined) ? 100 : limit; // max 100, default 100
         const response = await this.publicGetV3Depth(this.extend(request, params));
         //
         // {
@@ -905,7 +922,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -915,15 +932,15 @@ export default class apex extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
-        if (limit === undefined) {
-            limit = 500; // default is 50
-        }
-        request['limit'] = limit;
+        const limitResolved = (limit === undefined) ? 500 : limit; // default is 50
+        request['limit'] = limitResolved;
         const response = await this.publicGetV3Trades(this.extend(request, params));
         //
         // [
@@ -946,7 +963,7 @@ export default class apex extends Exchange {
         //  ]
         //
         const trades = this.safeList(response, 'data', []);
-        return this.parseTrades(trades, market, since, limit);
+        return this.parseTrades(trades, market, since, limitResolved);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -961,22 +978,22 @@ export default class apex extends Exchange {
         //  }
         //  ]
         //
-        const marketId = this.safeStringN(trade, ['s', 'symbol']);
-        market = this.safeMarket(marketId, market);
-        const id = this.safeStringN(trade, ['i', 'id']);
+        const marketId = this.safeString2(trade, 's', 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        const id = this.safeString2(trade, 'i', 'id');
         const timestamp = this.safeIntegerN(trade, ['t', 'T', 'createdAt']);
-        const priceString = this.safeStringN(trade, ['p', 'price']);
-        const amountString = this.safeStringN(trade, ['v', 'size']);
-        const side = this.safeStringLowerN(trade, ['S', 'side']);
-        const type = this.safeStringN(trade, ['type']);
-        const fee = this.safeStringN(trade, ['fee']);
+        const priceString = this.safeString2(trade, 'p', 'price');
+        const amountString = this.safeString2(trade, 'v', 'size');
+        const side = this.safeStringLower2(trade, 'S', 'side');
+        const type = this.safeString(trade, 'type');
+        const fee = this.safeString(trade, 'fee');
         return this.safeTrade({
             'info': trade,
             'id': id,
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'takerOrMaker': undefined,
             'side': side,
@@ -984,22 +1001,24 @@ export default class apex extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
      * @name apex#fetchOpenInterest
      * @description retrieves the open interest of a contract trading pair
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         const response = await this.publicGetV3Ticker(this.extend(request, params));
         const tickers = this.safeList(response, 'data', []);
@@ -1025,24 +1044,23 @@ export default class apex extends Exchange {
         //     "tradeCount": 100
         // }
         //
-        const timestamp = this.milliseconds();
         const marketId = this.safeString(interest, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = this.safeSymbol(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = this.safeSymbol(marketId, marketResolved);
         return this.safeOpenInterest({
             'symbol': symbol,
             'openInterestAmount': this.safeString(interest, 'openInterest'),
             'openInterestValue': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': interest,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
      * @name apex#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1055,7 +1073,9 @@ export default class apex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const market = this.market(symbol);
         request['symbol'] = market['id'];
@@ -1165,8 +1185,8 @@ export default class apex extends Exchange {
         const orderId = this.safeString(order, 'id');
         const clientOrderId = this.safeString(order, 'clientId');
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString(order, 'price');
         const amount = this.safeString(order, 'size');
         const orderType = this.safeString(order, 'type');
@@ -1201,10 +1221,10 @@ export default class apex extends Exchange {
             'trades': undefined,
             'fee': {
                 'cost': this.safeString(order, 'fee'),
-                'currency': market['settleId'],
+                'currency': marketResolved['settleId'],
             },
             'info': order,
-        }, market);
+        }, marketResolved);
     }
     parseTimeInForce(timeInForce) {
         const timeInForces = {
@@ -1213,7 +1233,7 @@ export default class apex extends Exchange {
             'IMMEDIATE_OR_CANCEL': 'IMMEDIATE_OR_CANCEL',
             'POST_ONLY': 'POST_ONLY',
         };
-        return this.safeString(timeInForces, timeInForce, undefined);
+        return this.safeString(timeInForces, timeInForce);
     }
     parseOrderStatus(status) {
         if (status !== undefined) {
@@ -1227,7 +1247,7 @@ export default class apex extends Exchange {
             };
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return undefined;
     }
     parseOrderType(type) {
         const types = {
@@ -1241,30 +1261,41 @@ export default class apex extends Exchange {
         return this.safeString(types, type, type);
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        let marketResolved = undefined;
         if (market === undefined && marketId !== undefined) {
-            if (marketId in this.markets) {
-                market = this.markets[marketId];
+            const marketsMap = this.markets;
+            const marketsById = this.markets_by_id;
+            if ((marketsMap !== undefined) && (marketId in marketsMap)) {
+                marketResolved = marketsMap[marketId];
             }
-            else if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
+            else if ((marketsById !== undefined) && (marketId in marketsById)) {
+                marketResolved = marketsById[marketId];
             }
             else {
                 const newMarketId = this.addHyphenBeforeUsdt(marketId);
-                if (newMarketId in this.markets_by_id) {
-                    const markets = this.markets_by_id[newMarketId];
+                if ((marketsById !== undefined) && (newMarketId in marketsById)) {
+                    const markets = marketsById[newMarketId];
                     const numMarkets = markets.length;
                     if (numMarkets > 0) {
-                        if (this.markets_by_id[newMarketId][0]['id2'] === marketId) {
-                            market = this.markets_by_id[newMarketId][0];
+                        if (marketsById[newMarketId][0]['id2'] === marketId) {
+                            marketResolved = marketsById[newMarketId][0];
                         }
                     }
                 }
             }
         }
-        return super.safeMarket(marketId, market, delimiter, marketType);
+        const marketValue = (marketResolved === undefined) ? market : marketResolved;
+        return super.safeMarket(marketId, marketValue, delimiter, marketType);
     }
     generateRandomClientIdOmni(_accountId) {
-        const accountId = _accountId || this.randNumber(12).toString();
+        const hasAccountId = (_accountId !== undefined) && (_accountId !== '');
+        let accountId = undefined;
+        if (hasAccountId) {
+            accountId = _accountId;
+        }
+        else {
+            accountId = this.randNumber(12).toString();
+        }
         return 'apexomni-' + accountId + '-' + this.milliseconds().toString() + '-' + this.randNumber(6).toString();
     }
     addHyphenBeforeUsdt(symbol) {
@@ -1295,7 +1326,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#createOrder
      * @description create a trade order
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1312,9 +1343,12 @@ export default class apex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let orderType = type.toUpperCase();
+        this.checkRequiredArgument('createOrder', side, 'side');
         const orderSide = side.toUpperCase();
         const orderSize = this.amountToPrecision(symbol, amount);
         let orderPrice = '0';
@@ -1354,21 +1388,23 @@ export default class apex extends Exchange {
                 timeInForce = 'IMMEDIATE_OR_CANCEL';
             }
         }
-        params = this.omit(params, 'timeInForce');
-        params = this.omit(params, 'postOnly');
-        let clientOrderId = this.safeStringN(params, ['clientId', 'clientOrderId', 'client_order_id']);
+        const paramsOmitted = this.omit(params, 'timeInForce');
+        const paramsOmitted2 = this.omit(paramsOmitted, 'postOnly');
+        let clientOrderId = this.safeStringN(paramsOmitted2, ['clientId', 'clientOrderId', 'client_order_id']);
         const accountId = await this.getAccountId();
         if (clientOrderId === undefined) {
             clientOrderId = this.generateRandomClientIdOmni(accountId);
         }
-        params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice']);
+        const finalClientOrderId = clientOrderId; // java req
+        const paramsOmitted3 = this.omit(paramsOmitted2, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice']);
+        const finalOrderPrice = orderPrice; // java req
         const orderToSign = {
             'accountId': accountId,
-            'slotId': clientOrderId,
-            'nonce': clientOrderId,
+            'slotId': finalClientOrderId,
+            'nonce': finalClientOrderId,
             'pairId': market['quoteId'],
             'size': orderSize,
-            'price': orderPrice,
+            'price': finalOrderPrice,
             'direction': orderSide,
             'makerFeeRate': maker,
             'takerFeeRate': taker,
@@ -1380,20 +1416,20 @@ export default class apex extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': orderSide,
-            'type': orderType,
+            'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
             'size': orderSize,
-            'price': orderPrice,
+            'price': finalOrderPrice,
             'limitFee': limitFee,
             'expiration': Math.floor(timeNow / 1000 + 30 * 24 * 60 * 60),
             'timeInForce': timeInForce,
-            'clientId': clientOrderId,
+            'clientId': finalClientOrderId,
             'brokerId': this.safeString(this.options, 'brokerId', '6956'),
         };
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         request['signature'] = signature;
-        const response = await this.privatePostV3Order(this.extend(request, params));
+        const response = await this.privatePostV3Order(this.extend(request, paramsOmitted3));
         const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
@@ -1410,7 +1446,9 @@ export default class apex extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const configResponse = await this.publicGetV3Symbols(params);
         const configData = this.safeDict(configResponse, 'data', {});
         const contractConfig = this.safeDict(configData, 'contractConfig', {});
@@ -1432,11 +1470,12 @@ export default class apex extends Exchange {
         if (subAccounts.length > 0) {
             nonce = this.safeString(subAccounts[0], 'nonce', '0');
         }
+        const finalNonce = nonce; // java req
         const ethAddress = this.safeString(accountData, 'ethereumAddress', '');
         const accountId = this.safeString(accountData, 'id', '');
         let currency = {};
         let assets = [];
-        if (fromAccount !== undefined && fromAccount.toLowerCase() === 'contract') {
+        if (fromAccount.toLowerCase() === 'contract') {
             assets = contractAssets;
         }
         else {
@@ -1448,14 +1487,18 @@ export default class apex extends Exchange {
             }
         }
         const tokenId = this.safeString(currency, 'tokenId', '');
-        const amountNumber = this.parseToInt(amount * (Math.pow(10, this.safeNumber(currency, 'decimals', 0))));
+        const decimalsNum = this.safeNumber(currency, 'decimals', 0);
+        const decimalsNumber = (decimalsNum === undefined) ? 0 : decimalsNum;
+        const mathPowResult = (Math.pow(10, decimalsNumber));
+        const amountNumber = this.parseToInt(amount * mathPowResult);
         const timestampSeconds = this.parseToInt(this.milliseconds() / 1000);
         let clientOrderId = this.safeStringN(params, ['clientId', 'clientOrderId', 'client_order_id']);
         if (clientOrderId === undefined) {
             clientOrderId = this.generateRandomClientIdOmni(this.safeString(this.options, 'accountId'));
         }
-        params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
-        if (fromAccount !== undefined && fromAccount.toLowerCase() === 'contract') {
+        const finalClientOrderId = clientOrderId; // java req
+        const paramsOmitted = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
+        if (fromAccount.toLowerCase() === 'contract') {
             const formattedUint32 = '4294967295';
             const zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
             const expireTime = timestampSeconds + 3600 * 24 * 28;
@@ -1467,7 +1510,7 @@ export default class apex extends Exchange {
                 'tokenId': tokenId,
                 'amount': amountNumber.toString(),
                 'fee': '0',
-                'nonce': clientOrderId,
+                'nonce': finalClientOrderId,
                 'timestampSeconds': expireTime,
                 'isContract': true,
             };
@@ -1475,18 +1518,19 @@ export default class apex extends Exchange {
             const request = {
                 'amount': amount,
                 'expireTime': expireTime,
-                'clientWithdrawId': clientOrderId,
+                'clientWithdrawId': finalClientOrderId,
                 'signature': signature,
                 'token': code,
                 'ethAddress': ethAddress,
             };
-            const response = await this.privatePostV3ContractTransferOut(this.extend(request, params));
+            const response = await this.privatePostV3ContractTransferOut(this.extend(request, paramsOmitted));
             const data = this.safeDict(response, 'data', {});
             const currentTime = this.milliseconds();
+            const parsedAmount = this.parseNumber(amount);
             return this.extend(this.parseTransfer(data, this.currency(code)), {
                 'timestamp': currentTime,
                 'datetime': this.iso8601(currentTime),
-                'amount': this.parseNumber(amount),
+                'amount': parsedAmount,
                 'fromAccount': 'contract',
                 'toAccount': 'spot',
             });
@@ -1500,14 +1544,16 @@ export default class apex extends Exchange {
                 'tokenId': tokenId,
                 'amount': amountNumber.toString(),
                 'fee': '0',
-                'nonce': nonce,
+                'nonce': finalNonce,
                 'timestampSeconds': timestampSeconds,
             };
             const signature = await this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign);
+            const amountStr = amount.toString();
+            const ts = timestampSeconds; // java req
             const request = {
-                'amount': amount.toString(),
-                'timestamp': timestampSeconds,
-                'clientTransferId': clientOrderId,
+                'amount': amountStr,
+                'timestamp': ts,
+                'clientTransferId': finalClientOrderId,
                 'signature': signature,
                 'zkAccountId': zkAccountId,
                 'subAccountId': subAccountId,
@@ -1518,9 +1564,9 @@ export default class apex extends Exchange {
                 'receiverZkAccountId': receiverZkAccountId,
                 'receiverSubAccountId': receiverSubAccountId,
                 'receiverAddress': receiverAddress,
-                'nonce': nonce,
+                'nonce': finalNonce,
             };
-            const response = await this.privatePostV3TransferOut(this.extend(request, params));
+            const response = await this.privatePostV3TransferOut(this.extend(request, paramsOmitted));
             const data = this.safeDict(response, 'data', {});
             const currentTime = this.milliseconds();
             return this.extend(this.parseTransfer(data, this.currency(code)), {
@@ -1539,7 +1585,7 @@ export default class apex extends Exchange {
         const toAccount = this.safeString(transfer, 'toAccount');
         return {
             'info': transfer,
-            'id': this.safeStringN(transfer, ['transferId', 'id']),
+            'id': this.safeString2(transfer, 'transferId', 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'currency': this.safeCurrencyCode(currencyId, currency),
@@ -1553,13 +1599,15 @@ export default class apex extends Exchange {
      * @method
      * @name apex#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
-     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -1574,9 +1622,9 @@ export default class apex extends Exchange {
      * @method
      * @name apex#cancelOrder
      * @description cancels an open order
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
      * @param {string} id order id
-     * @param symbol
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1586,8 +1634,7 @@ export default class apex extends Exchange {
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
-            params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
-            response = await this.privatePostV3DeleteClientOrderId(this.extend(request, params));
+            response = await this.privatePostV3DeleteClientOrderId(this.extend(request, this.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])));
         }
         else {
             request['id'] = id;
@@ -1600,8 +1647,8 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-id
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-id
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1609,14 +1656,15 @@ export default class apex extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const clientOrderId = this.safeStringN(params, ['clientId', 'clientOrderId', 'client_order_id']);
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
-            params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
-            response = await this.privateGetV3OrderByClientOrderId(this.extend(request, params));
+            response = await this.privateGetV3OrderByClientOrderId(this.extend(request, this.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])));
         }
         else {
             request['id'] = id;
@@ -1629,7 +1677,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-open-orders
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-open-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1637,7 +1685,9 @@ export default class apex extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetV3OpenOrders(params);
         const orders = this.safeList(response, 'data', []);
         return this.parseOrders(orders, undefined, since, limit);
@@ -1646,7 +1696,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchOrders
      * @description fetches information on multiple orders made by the user *classic accounts only*
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve, default 100
@@ -1660,7 +1710,9 @@ export default class apex extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1676,9 +1728,9 @@ export default class apex extends Exchange {
         const endTimeExclusive = this.safeIntegerN(params, ['endTime', 'endTimeExclusive', 'until']);
         if (endTimeExclusive !== undefined) {
             request['endTimeExclusive'] = endTimeExclusive;
-            params = this.omit(params, ['endTime', 'endTimeExclusive', 'until']);
         }
-        const response = await this.privateGetV3HistoryOrders(this.extend(request, params));
+        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit(params, ['endTime', 'endTimeExclusive', 'until']) : params;
+        const response = await this.privateGetV3HistoryOrders(this.extend(request, paramsOmitted));
         const data = this.safeDict(response, 'data', {});
         const orders = this.safeList(data, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
@@ -1687,7 +1739,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1696,7 +1748,9 @@ export default class apex extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientId');
         if (clientOrderId !== undefined) {
@@ -1705,8 +1759,8 @@ export default class apex extends Exchange {
         else {
             request['orderId'] = id;
         }
-        params = this.omit(params, ['clientOrderId', 'clientId']);
-        const response = await this.privateGetV3OrderFills(this.extend(request, params));
+        const paramsOmitted = this.omit(params, ['clientOrderId', 'clientId']);
+        const response = await this.privateGetV3OrderFills(this.extend(request, paramsOmitted));
         const data = this.safeDict(response, 'data', {});
         const orders = this.safeList(data, 'orders', []);
         return this.parseTrades(orders, undefined, since, limit);
@@ -1715,7 +1769,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchMyTrades
      * @description fetches information on multiple orders made by the user *classic accounts only*
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve, default 100
@@ -1727,7 +1781,9 @@ export default class apex extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1743,9 +1799,9 @@ export default class apex extends Exchange {
         const endTimeExclusive = this.safeIntegerN(params, ['endTime', 'endTimeExclusive', 'until']);
         if (endTimeExclusive !== undefined) {
             request['endTimeExclusive'] = endTimeExclusive;
-            params = this.omit(params, ['endTime', 'endTimeExclusive', 'until']);
         }
-        const response = await this.privateGetV3Fills(this.extend(request, params));
+        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit(params, ['endTime', 'endTimeExclusive', 'until']) : params;
+        const response = await this.privateGetV3Fills(this.extend(request, paramsOmitted));
         const data = this.safeDict(response, 'data', {});
         const orders = this.safeList(data, 'orders', []);
         return this.parseTrades(orders, market, since, limit);
@@ -1754,7 +1810,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchFundingHistory
      * @description fetches information on multiple orders made by the user *classic accounts only*
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve, default 100
@@ -1765,7 +1821,9 @@ export default class apex extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1780,10 +1838,10 @@ export default class apex extends Exchange {
         }
         const endTimeExclusive = this.safeIntegerN(params, ['endTime', 'endTimeExclusive', 'until']);
         if (endTimeExclusive !== undefined) {
-            params = this.omit(params, ['endTime', 'endTimeExclusive', 'until']);
             request['endTimeExclusive'] = endTimeExclusive;
         }
-        const response = await this.privateGetV3Funding(this.extend(request, params));
+        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit(params, ['endTime', 'endTimeExclusive', 'until']) : params;
+        const response = await this.privateGetV3Funding(this.extend(request, paramsOmitted));
         const data = this.safeDict(response, 'data', {});
         const fundingValues = this.safeList(data, 'fundingValues', []);
         return this.parseIncomes(fundingValues, market, since, limit);
@@ -1804,12 +1862,12 @@ export default class apex extends Exchange {
         // }
         //
         const marketId = this.safeString(income, 'symbol');
-        market = this.safeMarket(marketId, market, undefined, 'contract');
+        const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
         const code = 'USDT';
         const timestamp = this.safeInteger(income, 'fundingTime');
         return {
             'info': income,
-            'symbol': this.safeSymbol(marketId, market),
+            'symbol': this.safeSymbol(marketId, marketResolved),
             'code': code,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -1822,7 +1880,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#setLeverage
      * @description set the level of leverage for a market
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1832,7 +1890,9 @@ export default class apex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const leverageString = this.numberToString(leverage);
         const initialMarginRate = Precise.stringDiv('1', leverageString, 4);
@@ -1848,13 +1908,15 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchPositions
      * @description fetch all open positions
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetV3Account(params);
         const data = this.safeDict(response, 'data', {});
         const positions = this.safeList(data, 'positions', []);
@@ -1877,13 +1939,13 @@ export default class apex extends Exchange {
         //     "customInitialMarginRate": "0"
         // }
         const marketId = this.safeString(position, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower(position, 'side');
         const quantity = this.safeString(position, 'size');
         const timestamp = this.safeInteger(position, 'updatedTime');
         let leverage = 20;
-        const customInitialMarginRate = this.safeStringN(position, ['customInitialMarginRate', 'customImr'], '0');
+        const customInitialMarginRate = this.safeString2(position, 'customInitialMarginRate', 'customImr', '0');
         if (this.precisionFromString(customInitialMarginRate) !== 0) {
             leverage = this.parseToInt(Precise.stringDiv('1', customInitialMarginRate, 4));
         }
@@ -1891,7 +1953,7 @@ export default class apex extends Exchange {
             'info': position,
             'id': this.safeString(position, 'id'),
             'symbol': symbol,
-            'entryPrice': this.safeString(position, 'entryPrice'),
+            'entryPrice': this.safeNumber(position, 'entryPrice'),
             'markPrice': undefined,
             'notional': undefined,
             'collateral': undefined,
@@ -1914,8 +1976,12 @@ export default class apex extends Exchange {
         });
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeHostname(this.urls['api'][api]) + '/' + path;
-        headers = {
+        const baseApiUrl = this.safeString(this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = this.implodeHostname(baseApiUrl) + '/' + path;
+        const headersValue = {
             'User-Agent': 'apex-CCXT',
             'Accept': 'application/json',
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -1923,7 +1989,7 @@ export default class apex extends Exchange {
         let signPath = '/api/' + path;
         let signBody = body;
         if (method.toUpperCase() !== 'POST') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 signPath += '?' + this.rawencode(params);
                 url += '?' + this.rawencode(params);
             }
@@ -1940,12 +2006,12 @@ export default class apex extends Exchange {
                 messageString = messageString + signBody;
             }
             const signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256, 'base64');
-            headers['APEX-SIGNATURE'] = signature;
-            headers['APEX-API-KEY'] = this.apiKey;
-            headers['APEX-TIMESTAMP'] = timestamp;
-            headers['APEX-PASSPHRASE'] = this.password;
+            headersValue['APEX-SIGNATURE'] = signature;
+            headersValue['APEX-API-KEY'] = this.apiKey;
+            headersValue['APEX-TIMESTAMP'] = timestamp;
+            headersValue['APEX-PASSPHRASE'] = this.password;
         }
-        return { 'url': url, 'method': method, 'body': signBody, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': signBody, 'headers': headersValue };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //

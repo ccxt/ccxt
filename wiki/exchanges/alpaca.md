@@ -52,7 +52,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-alpaca.fetchTime ([params])
+alpaca.fetchTime (params?)
 ```
 
 
@@ -68,11 +68,11 @@ retrieves data on all markets for alpaca
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-alpaca.fetchMarkets ([params])
+alpaca.fetchMarkets (params?)
 ```
 
 
@@ -101,7 +101,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-alpaca.fetchTrades (symbol[, since, limit, params])
+alpaca.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -111,7 +111,7 @@ alpaca.fetchTrades (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>alpaca</code>](#alpaca)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.alpaca.markets/reference/cryptolatestorderbooks  
 
@@ -124,7 +124,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-alpaca.fetchOrderBook (symbol[, limit, params])
+alpaca.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -148,13 +148,16 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the alpha api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.paginationCalls | <code>int</code> | No | the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles |
 | params.loc | <code>string</code> | No | crypto location, default: us |
 | params.method | <code>string</code> | No | method, default: marketPublicGetV1beta3CryptoLocBars |
 
 
 ```javascript
-alpaca.fetchOHLCV (symbol, timeframe[, since, limit, params])
+alpaca.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -176,7 +179,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-alpaca.fetchTicker (symbol[, params])
+alpaca.fetchTicker (symbol, params?)
 ```
 
 
@@ -192,13 +195,13 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbols of the markets to fetch tickers for |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch tickers for, defaults to all markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.loc | <code>string</code> | No | crypto location, default: us |
 
 
 ```javascript
-alpaca.fetchTickers (symbols[, params])
+alpaca.fetchTickers (symbols?, params?)
 ```
 
 
@@ -221,7 +224,7 @@ create a market order by providing the symbol, side and cost
 
 
 ```javascript
-alpaca.createMarketOrderWithCost (symbol, side, cost[, params])
+alpaca.createMarketOrderWithCost (symbol, side, cost, params?)
 ```
 
 
@@ -243,7 +246,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-alpaca.createMarketBuyOrderWithCost (symbol, cost[, params])
+alpaca.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -265,7 +268,7 @@ create a market sell order by providing the symbol and cost
 
 
 ```javascript
-alpaca.createMarketSellOrderWithCost (symbol, cost[, params])
+alpaca.createMarketSellOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -288,11 +291,12 @@ create a trade order
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
+| params.timeInForce | <code>string</code> | No | 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC' |
 | params.cost | <code>float</code> | No | *market orders only* the cost of the order in units of the quote currency |
 
 
 ```javascript
-alpaca.createOrder (symbol, type, side, amount[, price, params])
+alpaca.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -314,7 +318,7 @@ cancels an open order
 
 
 ```javascript
-alpaca.cancelOrder (id, symbol[, params])
+alpaca.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -330,12 +334,12 @@ cancel all open orders in a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders |
+| symbol | <code>string</code> | No | alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-alpaca.cancelAllOrders (symbol[, params])
+alpaca.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -357,7 +361,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-alpaca.fetchOrder (id, symbol[, params])
+alpaca.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -378,10 +382,11 @@ fetches information on multiple orders made by the user
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
+| params.direction | <code>string</code> | No | the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set |
 
 
 ```javascript
-alpaca.fetchOrders (symbol[, since, limit, params])
+alpaca.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -402,10 +407,11 @@ fetch all unfilled currently open orders
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
+| params.direction | <code>string</code> | No | the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set |
 
 
 ```javascript
-alpaca.fetchOpenOrders (symbol[, since, limit, params])
+alpaca.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -426,10 +432,11 @@ fetches information on multiple closed orders made by the user
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
+| params.direction | <code>string</code> | No | the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set |
 
 
 ```javascript
-alpaca.fetchClosedOrders (symbol[, since, limit, params])
+alpaca.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -453,12 +460,12 @@ edit a trade order
 | price | <code>float</code> | No | the price for the order, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>string</code> | No | the price to trigger a stop order |
-| params.timeInForce | <code>string</code> | No | for crypto trading either 'gtc' or 'ioc' can be used |
+| params.timeInForce | <code>string</code> | No | 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC' |
 | params.clientOrderId | <code>string</code> | No | a unique identifier for the order, automatically generated if not sent |
 
 
 ```javascript
-alpaca.editOrder (id[, symbol, type, side, amount, price, params])
+alpaca.editOrder (id, symbol?, type?, side?, amount?, price?, params?)
 ```
 
 
@@ -483,7 +490,7 @@ fetch all trades made by the user
 
 
 ```javascript
-alpaca.fetchMyTrades ([symbol, since, limit, params])
+alpaca.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -504,7 +511,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-alpaca.fetchDepositAddress (code[, params])
+alpaca.fetchDepositAddress (code, params?)
 ```
 
 
@@ -528,7 +535,7 @@ make a withdrawal
 
 
 ```javascript
-alpaca.withdraw (code, amount, address, tag[, params])
+alpaca.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -551,7 +558,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-alpaca.fetchDepositsWithdrawals ([code, since, limit, params])
+alpaca.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -574,7 +581,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-alpaca.fetchDeposits ([code, since, limit, params])
+alpaca.fetchDeposits (code?, since?, limit?, params?)
 ```
 
 
@@ -597,7 +604,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-alpaca.fetchWithdrawals ([code, since, limit, params])
+alpaca.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -607,9 +614,15 @@ alpaca.fetchWithdrawals ([code, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>alpaca</code>](#alpaca)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure). note that `info` is
+the composite `{ account, positions }` wrapper of both raw venue payloads, not the bare account payload it was
+before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
 
-**See**: https://docs.alpaca.markets/reference/getaccount-1  
+**See**
+
+- https://docs.alpaca.markets/reference/getaccount-1
+- https://docs.alpaca.markets/reference/getallopenpositions
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -617,7 +630,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-alpaca.fetchBalance ([params])
+alpaca.fetchBalance (params?)
 ```
 
 
@@ -638,7 +651,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-alpaca.watchTicker (symbol[, params])
+alpaca.watchTicker (symbol, params?)
 ```
 
 
@@ -662,7 +675,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-alpaca.watchOHLCV (symbol, timeframe[, since, limit, params])
+alpaca.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -672,7 +685,7 @@ alpaca.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>alpaca</code>](#alpaca)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.alpaca.markets/docs/real-time-crypto-pricing-data#orderbooks  
 
@@ -684,7 +697,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-alpaca.watchOrderBook (symbol[, limit, params])
+alpaca.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -707,7 +720,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-alpaca.watchTrades (symbol[, since, limit, params])
+alpaca.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -731,7 +744,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-alpaca.watchMyTrades (symbol[, since, limit, params])
+alpaca.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -753,6 +766,6 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-alpaca.watchOrders (symbol[, since, limit, params])
+alpaca.watchOrders (symbol, since?, limit?, params?)
 ```
 

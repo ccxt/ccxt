@@ -7,454 +7,727 @@
 
 package ccxt
 
-func (this *DeriveCore) PublicGetGetAllCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetGetAllCurrencies", args...)
+// PublicGetGetAllCurrencies returns a channel that yields a JSON object.
+func (this *Derive) PublicGetGetAllCurrencies(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_all_currencies", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostBuildRegisterSessionKeyTx(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostBuildRegisterSessionKeyTx", args...)
+// PublicPostBuildRegisterSessionKeyTx returns a channel that yields a JSON object.
+func (this *Derive) PublicPostBuildRegisterSessionKeyTx(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "build_register_session_key_tx", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostRegisterSessionKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostRegisterSessionKey", args...)
+// PublicPostRegisterSessionKey returns a channel that yields a JSON object.
+func (this *Derive) PublicPostRegisterSessionKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "register_session_key", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostDeregisterSessionKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostDeregisterSessionKey", args...)
+// PublicPostDeregisterSessionKey returns a channel that yields a JSON object.
+func (this *Derive) PublicPostDeregisterSessionKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "deregister_session_key", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostLogin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostLogin", args...)
+// PublicPostGetWalletsFromSessionKey returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetWalletsFromSessionKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_wallets_from_session_key", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostStatistics(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostStatistics", args...)
+// PublicPostLogin returns a channel that yields a JSON object.
+func (this *Derive) PublicPostLogin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "login", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetAllCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetAllCurrencies", args...)
+// PublicPostStatistics returns a channel that yields a JSON object.
+func (this *Derive) PublicPostStatistics(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "statistics", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetCurrency(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetCurrency", args...)
+// PublicPostAllStatistics returns a channel that yields a JSON object.
+func (this *Derive) PublicPostAllStatistics(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "all_statistics", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetInstrument(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetInstrument", args...)
+// PublicPostUserStatistics returns a channel that yields a JSON object.
+func (this *Derive) PublicPostUserStatistics(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user_statistics", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetAllInstruments(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetAllInstruments", args...)
+// PublicPostAllUserStatistics returns a channel that yields a JSON object.
+func (this *Derive) PublicPostAllUserStatistics(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "all_user_statistics", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetInstruments(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetInstruments", args...)
+// PublicPostGetAllCurrencies returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetAllCurrencies(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_all_currencies", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetTicker", args...)
+// PublicPostGetCurrency returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_currency", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetLatestSignedFeeds(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetLatestSignedFeeds", args...)
+// PublicPostGetAsset returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetAsset(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_asset", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetOptionSettlementPrices(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetOptionSettlementPrices", args...)
+// PublicPostGetAssets returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetAssets(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_assets", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetSpotFeedHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetSpotFeedHistory", args...)
+// PublicPostGetInstrument returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_instrument", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetSpotFeedHistoryCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetSpotFeedHistoryCandles", args...)
+// PublicPostGetAllInstruments returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetAllInstruments(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_all_instruments", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetFundingRateHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetFundingRateHistory", args...)
+// PublicPostGetInstruments returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetInstruments(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_instruments", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetTradeHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetTradeHistory", args...)
+// PublicPostGetTicker returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_ticker", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetOptionSettlementHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetOptionSettlementHistory", args...)
+// PublicPostGetTickers returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetTickers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_tickers", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetLiquidationHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetLiquidationHistory", args...)
+// PublicPostGetLatestSignedFeeds returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetLatestSignedFeeds(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_latest_signed_feeds", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetInterestRateHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetInterestRateHistory", args...)
+// PublicPostGetOptionSettlementPrices returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetOptionSettlementPrices(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_option_settlement_prices", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetTransaction(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetTransaction", args...)
+// PublicPostGetSpotFeedHistory returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetSpotFeedHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_spot_feed_history", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetMargin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetMargin", args...)
+// PublicPostGetSpotFeedHistoryCandles returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetSpotFeedHistoryCandles(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_spot_feed_history_candles", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostMarginWatch(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostMarginWatch", args...)
+// PublicPostGetIndexChartData returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetIndexChartData(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_index_chart_data", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostValidateInviteCode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostValidateInviteCode", args...)
+// PublicPostGetTradingviewChartData returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetTradingviewChartData(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_tradingview_chart_data", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetPoints(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetPoints", args...)
+// PublicPostGetFundingRateHistory returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetFundingRateHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_funding_rate_history", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetAllPoints(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetAllPoints", args...)
+// PublicPostGetTradeHistory returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetTradeHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_trade_history", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetPointsLeaderboard(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetPointsLeaderboard", args...)
+// PublicPostGetOptionSettlementHistory returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetOptionSettlementHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_option_settlement_history", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetDescendantTree(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetDescendantTree", args...)
+// PublicPostGetLiquidationHistory returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetLiquidationHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_liquidation_history", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetTreeRoots(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetTreeRoots", args...)
+// PublicPostGetInterestRateHistory returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetInterestRateHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_interest_rate_history", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetSwellPercentPoints(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetSwellPercentPoints", args...)
+// PublicPostGetPerpImpactTwap returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetPerpImpactTwap(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_perp_impact_twap", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetVaultAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetVaultAssets", args...)
+// PublicPostGetTransaction returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetTransaction(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_transaction", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetEtherfiEffectiveBalances(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetEtherfiEffectiveBalances", args...)
+// PublicPostGetMargin returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetMargin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_margin", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetKelpEffectiveBalances(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetKelpEffectiveBalances", args...)
+// PublicPostMarginWatch returns a channel that yields a JSON object.
+func (this *Derive) PublicPostMarginWatch(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "margin_watch", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetBridgeBalances(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetBridgeBalances", args...)
+// PublicPostOrderQuote returns a channel that yields a JSON object.
+func (this *Derive) PublicPostOrderQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order_quote", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetEthenaParticipants(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetEthenaParticipants", args...)
+// PublicPostValidateInviteCode returns a channel that yields a JSON object.
+func (this *Derive) PublicPostValidateInviteCode(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "validate_invite_code", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetVaultShare(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetVaultShare", args...)
+// PublicPostGetPoints returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetPoints(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_points", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetVaultStatistics(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetVaultStatistics", args...)
+// PublicPostGetAllPoints returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetAllPoints(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_all_points", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetVaultBalances(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetVaultBalances", args...)
+// PublicPostGetPointsLeaderboard returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetPointsLeaderboard(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_points_leaderboard", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostEstimateIntegratorPoints(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostEstimateIntegratorPoints", args...)
+// PublicPostGetDescendantTree returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetDescendantTree(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_descendant_tree", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostCreateSubaccountDebug(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostCreateSubaccountDebug", args...)
+// PublicPostGetTreeRoots returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetTreeRoots(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_tree_roots", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostDepositDebug(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostDepositDebug", args...)
+// PublicPostGetSwellPercentPoints returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetSwellPercentPoints(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_swell_percent_points", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostWithdrawDebug(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostWithdrawDebug", args...)
+// PublicPostGetStdrvSnapshots returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetStdrvSnapshots(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_stdrv_snapshots", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostSendQuoteDebug(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostSendQuoteDebug", args...)
+// PublicPostGetVaultAssets returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetVaultAssets(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_vault_assets", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostExecuteQuoteDebug(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostExecuteQuoteDebug", args...)
+// PublicPostGetEtherfiEffectiveBalances returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetEtherfiEffectiveBalances(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_etherfi_effective_balances", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetInviteCode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetInviteCode", args...)
+// PublicPostGetKelpEffectiveBalances returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetKelpEffectiveBalances(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_kelp_effective_balances", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostRegisterInvite(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostRegisterInvite", args...)
+// PublicPostGetBridgeBalances returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetBridgeBalances(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_bridge_balances", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetTime", args...)
+// PublicPostGetEthenaParticipants returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetEthenaParticipants(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_ethena_participants", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetLiveIncidents(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetLiveIncidents", args...)
+// PublicPostGetVaultShare returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetVaultShare(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_vault_share", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetMakerPrograms(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetMakerPrograms", args...)
+// PublicPostGetVaultStatistics returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetVaultStatistics(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_vault_statistics", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PublicPostGetMakerProgramScores(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostGetMakerProgramScores", args...)
+// PublicPostGetVaultBalances returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetVaultBalances(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_vault_balances", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetAccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetAccount", args...)
+// PublicPostGetVaultPools returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetVaultPools(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_vault_pools", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostCreateSubaccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCreateSubaccount", args...)
+// PublicPostGetVaultRates returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetVaultRates(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_vault_rates", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetSubaccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetSubaccount", args...)
+// PublicPostEstimateIntegratorPoints returns a channel that yields a JSON object.
+func (this *Derive) PublicPostEstimateIntegratorPoints(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "estimate_integrator_points", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetSubaccounts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetSubaccounts", args...)
+// PublicPostCreateSubaccountDebug returns a channel that yields a JSON object.
+func (this *Derive) PublicPostCreateSubaccountDebug(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "create_subaccount_debug", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetAllPortfolios(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetAllPortfolios", args...)
+// PublicPostCreateAccountWithSecret returns a channel that yields a JSON object.
+func (this *Derive) PublicPostCreateAccountWithSecret(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "create_account_with_secret", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostChangeSubaccountLabel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostChangeSubaccountLabel", args...)
+// PublicPostDepositDebug returns a channel that yields a JSON object.
+func (this *Derive) PublicPostDepositDebug(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "deposit_debug", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetNotificationsv(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetNotificationsv", args...)
+// PublicPostWithdrawDebug returns a channel that yields a JSON object.
+func (this *Derive) PublicPostWithdrawDebug(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "withdraw_debug", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostUpdateNotifications(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostUpdateNotifications", args...)
+// PublicPostSendQuoteDebug returns a channel that yields a JSON object.
+func (this *Derive) PublicPostSendQuoteDebug(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "send_quote_debug", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostDeposit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostDeposit", args...)
+// PublicPostExecuteQuoteDebug returns a channel that yields a JSON object.
+func (this *Derive) PublicPostExecuteQuoteDebug(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "execute_quote_debug", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostWithdraw", args...)
+// PublicPostGetInviteCode returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetInviteCode(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_invite_code", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostTransferErc20(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTransferErc20", args...)
+// PublicPostRegisterInvite returns a channel that yields a JSON object.
+func (this *Derive) PublicPostRegisterInvite(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "register_invite", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostTransferPosition(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTransferPosition", args...)
+// PublicPostGetAllReferralCodes returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetAllReferralCodes(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_all_referral_codes", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostTransferPositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTransferPositions", args...)
+// PublicPostGetReferralPerformance returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetReferralPerformance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_referral_performance", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOrder", args...)
+// PublicPostGetTime returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_time", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostReplace(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostReplace", args...)
+// PublicPostGetLiveIncidents returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetLiveIncidents(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_live_incidents", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostOrderDebug(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOrderDebug", args...)
+// PublicPostGetMakerPrograms returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetMakerPrograms(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_maker_programs", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetOrder", args...)
+// PublicPostGetMakerProgramScores returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetMakerProgramScores(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_maker_program_scores", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetOrders", args...)
+// PublicPostGetDetailedMakerSnapshotHistory returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetDetailedMakerSnapshotHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_detailed_maker_snapshot_history", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetOpenOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetOpenOrders", args...)
+// PublicPostGetRateLimits returns a channel that yields a JSON object.
+func (this *Derive) PublicPostGetRateLimits(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "getRateLimits", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancel", args...)
+// PrivatePostGetAccount returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetAccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_account", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostCancelByLabel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelByLabel", args...)
+// PrivatePostCreateSubaccount returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostCreateSubaccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "create_subaccount", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostCancelByNonce(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelByNonce", args...)
+// PrivatePostGetSubaccount returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetSubaccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_subaccount", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostCancelByInstrument(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelByInstrument", args...)
+// PrivatePostGetSubaccounts returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetSubaccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_subaccounts", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostCancelAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelAll", args...)
+// PrivatePostGetAllPortfolios returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetAllPortfolios(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_all_portfolios", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostCancelTriggerOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelTriggerOrder", args...)
+// PrivatePostChangeSubaccountLabel returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostChangeSubaccountLabel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "change_subaccount_label", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetOrderHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetOrderHistory", args...)
+// PrivatePostGetNotificationsv returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetNotificationsv(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_notificationsv", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetTradeHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetTradeHistory", args...)
+// PrivatePostGetNotifications returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetNotifications(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_notifications", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetDepositHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetDepositHistory", args...)
+// PrivatePostUpdateNotifications returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostUpdateNotifications(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "update_notifications", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetWithdrawalHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetWithdrawalHistory", args...)
+// PrivatePostDeposit returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostDeposit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "deposit", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostSendRfq(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostSendRfq", args...)
+// PrivatePostWithdraw returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "withdraw", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostCancelRfq(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelRfq", args...)
+// PrivatePostTransferErc20 returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostTransferErc20(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "transfer_erc20", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostCancelBatchRfqs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelBatchRfqs", args...)
+// PrivatePostTransferPosition returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostTransferPosition(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "transfer_position", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetRfqs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetRfqs", args...)
+// PrivatePostTransferPositions returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostTransferPositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "transfer_positions", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostPollRfqs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostPollRfqs", args...)
+// PrivatePostOrder returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostSendQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostSendQuote", args...)
+// PrivatePostReplace returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostReplace(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "replace", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostCancelQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelQuote", args...)
+// PrivatePostOrderDebug returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostOrderDebug(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order_debug", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostCancelBatchQuotes(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelBatchQuotes", args...)
+// PrivatePostGetOrder returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetQuotes(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetQuotes", args...)
+// PrivatePostGetOrders returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostPollQuotes(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostPollQuotes", args...)
+// PrivatePostGetOpenOrders returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_open_orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostExecuteQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostExecuteQuote", args...)
+// PrivatePostGetTriggerOrders returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetTriggerOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_trigger_orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostRfqGetBestQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostRfqGetBestQuote", args...)
+// PrivatePostGetAlgoOrders returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetAlgoOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_algo_orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetMargin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetMargin", args...)
+// PrivatePostCancel returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetCollaterals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetCollaterals", args...)
+// PrivatePostCancelByLabel returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostCancelByLabel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_by_label", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetPositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetPositions", args...)
+// PrivatePostCancelByNonce returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostCancelByNonce(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_by_nonce", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetOptionSettlementHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetOptionSettlementHistory", args...)
+// PrivatePostCancelByInstrument returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostCancelByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_by_instrument", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetSubaccountValueHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetSubaccountValueHistory", args...)
+// PrivatePostCancelAll returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostCancelAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_all", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostExpiredAndCancelledHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostExpiredAndCancelledHistory", args...)
+// PrivatePostCancelTriggerOrder returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostCancelTriggerOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_trigger_order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetFundingHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetFundingHistory", args...)
+// PrivatePostCancelAlgoOrder returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostCancelAlgoOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_algo_order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetInterestHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetInterestHistory", args...)
+// PrivatePostCancelAllAlgoOrders returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostCancelAllAlgoOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_all_algo_orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetErc20TransferHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetErc20TransferHistory", args...)
+// PrivatePostCancelAllTriggerOrders returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostCancelAllTriggerOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_all_trigger_orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetLiquidationHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetLiquidationHistory", args...)
+// PrivatePostGetOrderHistory returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetOrderHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_order_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostLiquidate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostLiquidate", args...)
+// PrivatePostGetTradeHistory returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetTradeHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_trade_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetLiquidatorHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetLiquidatorHistory", args...)
+// PrivatePostGetDepositHistory returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetDepositHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_deposit_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostSessionKeys(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostSessionKeys", args...)
+// PrivatePostGetWithdrawalHistory returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetWithdrawalHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_withdrawal_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostEditSessionKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostEditSessionKey", args...)
+// PrivatePostSendRfq returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostSendRfq(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "send_rfq", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostRegisterScopedSessionKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostRegisterScopedSessionKey", args...)
+// PrivatePostCancelRfq returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostCancelRfq(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_rfq", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetMmpConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetMmpConfig", args...)
+// PrivatePostCancelBatchRfqs returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostCancelBatchRfqs(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_batch_rfqs", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostSetMmpConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostSetMmpConfig", args...)
+// PrivatePostGetRfqs returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetRfqs(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_rfqs", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostResetMmp(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostResetMmp", args...)
+// PrivatePostPollRfqs returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostPollRfqs(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "poll_rfqs", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostSetCancelOnDisconnect(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostSetCancelOnDisconnect", args...)
+// PrivatePostSendQuote returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostSendQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "send_quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostGetInviteCode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetInviteCode", args...)
+// PrivatePostCancelQuote returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostCancelQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *DeriveCore) PrivatePostRegisterInvite(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostRegisterInvite", args...)
+// PrivatePostCancelBatchQuotes returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostCancelBatchQuotes(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_batch_quotes", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostGetQuotes returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetQuotes(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_quotes", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostPollQuotes returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostPollQuotes(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "poll_quotes", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostExecuteQuote returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostExecuteQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "execute_quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostOrderQuote returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostOrderQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order_quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostReplaceQuote returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostReplaceQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "replace_quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostRfqGetBestQuote returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostRfqGetBestQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "rfq_get_best_quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostGetMargin returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetMargin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_margin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostGetCollaterals returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetCollaterals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_collaterals", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostGetPositions returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetPositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_positions", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostGetOptionSettlementHistory returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetOptionSettlementHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_option_settlement_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostGetSubaccountValueHistory returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetSubaccountValueHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_subaccount_value_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostExpiredAndCancelledHistory returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostExpiredAndCancelledHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "expired_and_cancelled_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostGetFundingHistory returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetFundingHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_funding_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostGetInterestHistory returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetInterestHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_interest_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostGetErc20TransferHistory returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetErc20TransferHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_erc20_transfer_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostGetLiquidationHistory returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetLiquidationHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_liquidation_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostLiquidate returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostLiquidate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "liquidate", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostGetLiquidatorHistory returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetLiquidatorHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_liquidator_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostSessionKeys returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostSessionKeys(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "session_keys", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostEditSessionKey returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostEditSessionKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "edit_session_key", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostChangeSessionKeyLabel returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostChangeSessionKeyLabel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "change_session_key_label", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostRegisterScopedSessionKey returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostRegisterScopedSessionKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "register_scoped_session_key", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostGetMmpConfig returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetMmpConfig(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_mmp_config", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostSetMmpConfig returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostSetMmpConfig(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "set_mmp_config", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostResetMmp returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostResetMmp(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "reset_mmp", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostSetCancelOnDisconnect returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostSetCancelOnDisconnect(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "set_cancel_on_disconnect", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostGetInviteCode returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetInviteCode(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_invite_code", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostRegisterInvite returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostRegisterInvite(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "register_invite", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostGetContactInfo returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostGetContactInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_contact_info", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostCreateContactInfo returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostCreateContactInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "create_contact_info", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostUpdateContactInfo returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostUpdateContactInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "update_contact_info", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostDeleteContactInfo returns a channel that yields a JSON object.
+func (this *Derive) PrivatePostDeleteContactInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "delete_contact_info", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

@@ -8,36 +8,43 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testWatchOrderBookForSymbols(Exchange exchange, object skippedProperties, object symbols)
+    async static public Task<object> testWatchOrderBookForSymbols(Exchange exchange, object skippedProperties, IList<object> symbols)
     {
-        object method = "watchOrderBookForSymbols";
-        object now = exchange.milliseconds();
-        object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        string method = "watchOrderBookForSymbols";
+        // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
+        // loop has to be bounded by the deadline alone. waiting for every requested
+        // symbol to be seen would hang forever whenever one of them stays idle.
+        int maxIdleTime = 5000;
+        Int64 currentTime = exchange.milliseconds();
+        Int64 deadline = (currentTime + 15000);
+        bool idle = false;
+        while ((currentTime < deadline) && !idle)
         {
             object response = null;
-            object success = true;
+            bool succeeded = true;
+            Int64 startTime = exchange.milliseconds();
             try
             {
-                response = ((IOrderBook)(await exchange.watchOrderBookForSymbols(symbols))).Copy();
+                response = ((IOrderBook)(await exchange.WatchOrderBookForSymbols(symbols))).Copy();
             } catch(Exception e)
             {
-                // temporary fix for InvalidNonce for c#
-                if (isTrue(!isTrue(testSharedMethods.isTemporaryFailure(e)) && !isTrue((e is InvalidNonce))))
+                // interim workaround for InvalidNonce raised by the c# runtime
+                if (!isTrue(testSharedMethods.isTemporaryFailure(e)) && !(e is InvalidNonce))
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
-                // continue;
-                success = false;
+                succeeded = false;
             }
-            if (isTrue(isEqual(success, true)))
+            currentTime = exchange.milliseconds();
+            if (((succeeded == true)) && ((response != null)))
             {
-                // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-                assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an object. "), exchange.json(response)));
-                now = exchange.milliseconds();
-                testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
                 testOrderBook(exchange, skippedProperties, method, response, null);
+                testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
+                Int64 elapsed = (currentTime - startTime);
+                if (elapsed > maxIdleTime)
+                {
+                    idle = true;
+                }
             }
         }
         return true;

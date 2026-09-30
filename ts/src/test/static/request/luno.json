@@ -1,6 +1,8 @@
 {
     "exchange": "luno",
-    "skipKeys": ["since"],
+    "skipKeys": [
+        "since"
+    ],
     "outputType": "both",
     "methods": {
         "fetchOHLCV": [
@@ -105,6 +107,19 @@
                     [
                         "BTC/USDT"
                     ]
+                ]
+            }
+        ],
+        "fetchDepositWithdrawFee": [
+            {
+                "description": "send fee quote requires currency id and destination address",
+                "method": "fetchDepositWithdrawFee",
+                "url": "https://api.luno.com/api/1/send_fee?currency=XBT&address=3EyjZ6CtazwXbKPUwx4FiG1c7PrZygX2FZ",
+                "input": [
+                    "BTC",
+                    {
+                        "address": "3EyjZ6CtazwXbKPUwx4FiG1c7PrZygX2FZ"
+                    }
                 ]
             }
         ]

@@ -69,20 +69,23 @@
 
   ## Hey! The fix you've uploaded is in TypeScript, would you fix JavaScript / Python / PHP as well, please?
 
-  Our build system generates exchange-specific JavaScript, Python and PHP code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
+  Our build system generates exchange-specific JavaScript, Python, PHP, C#, Go, Java and Rust code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
 
-  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip and PHP Composer as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
+  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go, Java and Rust (crates.io) as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
 
   More about it here:
 
   - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support
   - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files
 
+  ## What are Exchange Rate FX markets on Binance and how do I use them?
+
+  Binance offers the Exchange Rate Foreign Exchange (FX) perpetual `USDBRL/USDT:USDT`. It uses the USD/BRL exchange rate as its underlying asset and is traded through the same perpetual-swap methods as other Binance USDT-settled linear swaps. It is a derivative contract where the amount is the number of contracts, the position is USDT-settled, and funding applies. This should NOT be confused with the similarly named FX Currency Swap found in traditional finance.
 
 
   ## How to create an order with takeProfit+stopLoss?
   Some exchanges support `createOrder` with the additional "attached" `stopLoss` & `takeProfit` sub-orders - view [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position). 
-  However, some exchanges might not support that feature and you will need to run separate `createOrder` methods to add conditional order (e.g. ***trigger order | stoploss order | takeprofit order**) to the already open position - view [Conditional orders](Manual.md#Conditional Orders).
+  However, some exchanges might not support that feature and you will need to run separate `createOrder` methods to add conditional order (e.g. ***trigger order | stoploss order | takeprofit order**) to the already open position - view [Conditional orders](Manual.md#conditional-orders).
   You can also check them by looking at `exchange.has['createOrderWithTakeProfitAndStopLoss']`, `exchange.has['createStopLossOrder']` and `exchange.has['createTakeProfitOrder']`, however they are not as precise as `.features` property.
 
   ## What is the difference between `takeProfit/stopLoss` and `takeProfitPrice/stopLossPrice` orders
@@ -268,29 +271,23 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
 ## How to use the Lighter Exchange in CCXT?
 
-
 Lighter is available as part of CCXT and it works similarly to any other CCXT exchange, but it has some particularities that might be confusing for some users but we will explain it in detail below. We just need to set some basic credentials and dependencies.
 
-## Credentials requirements
+
+After the latest upgrade CCXT has simplified the authentication process and now using the L1 private key is enough.
+
+### Credentials requirements
 
 Lighter requires the following :
-- `privateKey`: the API key private key (hex) from Lighter’s API keys page, not the l1 privateKey (https://app.lighter.xyz/apikeys)
-- `apiKeyIndex` in `exchange.options`: the index assigned to the API key you generated (typically 0–254) you can get it from the API Keys page as well
-- `accountIndex` in `exchange.options`: — the Lighter internal account index (master account or sub-account). Each internal account has its own API key indices. You can checking by opening this link in the browser using your l1 address https://mainnet.zklighter.elliot.ai/api/v1/accountsByL1Address?l1_address=0xYOUR_ADDRESS_here
-
-
-
-![image](https://github.com/user-attachments/assets/f50602be-31eb-497c-a6df-e9b2803defdf)
+- `privateKey`: the L1 private key **mandatory**
+- `accountIndex` (an integer) in `exchange.options`: — **optional** CCXT will fetch it if not available, set it if using a subAccount
+- `apiKeyIndex` (an integer) in `exchange.options`: **optional**  CCXT will use a default value (254)
 
 Example
 
 ```Python
 lighter = ccxt.lighter({
-	'privateKey': 'XXXXXXX',
-	'options': {
-		'apiKeyIndex': 3,
-		'accountIndex': '715085'
-	}
+	'privateKey': 'XXXXXXX', # l1 private key
 })
 ```
 
@@ -300,7 +297,8 @@ Since the signing algorithms and structs are not supported natively in all langu
 
 ### Python/C#/PHP users:
 
-- The binaries can be downloaded here: https://github.com/elliottech/lighter-python/tree/main/lighter/signers
+- The binaries can be downloaded here: https://github.com/elliottech/lighter-python/tree/8bac9f56b9d0dd0eedaeb53a00ccb4fc9d77082e/lighter/signers
+- If they don't support the os you used, you can clone and build library from their lighter-go: https://github.com/elliottech/lighter-go/tree/25847e7e39603dbb90a0bf60b689b571116b7187
 - The path to the binary needs to be provided as `libraryPath`
 - You need to choose the binary according to your OS/architecture
 
@@ -329,3 +327,302 @@ lighter = ccxt.lighter({
 ### GO users
 
 - Nothing is required, CCXT is consuming the official GO package you just need to provide the credentials
+
+
+## How to use the DyDx Exchange in CCXT?
+
+DyDx is available as part of CCXT and it works similarly to any other CCXT exchange, but it has some particularities that might be confusing for some users but we will explain it in detail below. We just need to set some basic credentials and dependencies.
+
+Due to current signing-related dependency requirements, the exchange is available only in Python and JavaScript. Support for additional languages will be introduced once the necessary dependencies have been ported.
+
+
+## Credentials requirements
+
+DyDx requires one of the following :
+- `privateKey`: the l1 private key (hex) used on dydx, or you can set l2 mnemonic in options
+- `mnemonic` in `exchange.options`: the 24 words to retrieve your l2 private key, you can find it on the web UI
+
+Example
+
+```Python
+dydx = ccxt.dydx({
+	'privateKey': 'XXXXXXX',
+})
+
+# or
+dydx = ccxt.dydx({
+	'options': {
+		'mnemonic': 'test test ...',
+	}
+})
+```
+
+### Dependencies requirements
+
+DyDx requires another dependency for python users. Before use it, you need to install pycryptodom locally.
+
+```BASH
+$ pip3 install pycryptodom
+```
+
+
+Additionally, protobuf is also required, but it is not a direct dependency of CCXT. You will need to install it manually:
+
+```
+npm install protobufjs // javascript/typescript
+pip install "protobuf==5.29.5" // python
+```
+
+### Usage
+
+Usage is largely consistent with other exchanges, though certain behaviors differ.
+
+For example, while orders can be placed normally, cancelling an order on dYdX does not use the traditional orderId. Instead, dYdX requires additional fields such as:
+
+- clientOrderId, not the orderId
+- orderFlags (0 for market and non-limit GTT orders, 64 for limit GTT orders, and 32 for conditional orders), ccxt assumes 64 as default
+- goodTillBlockTimeInSeconds (required for long-term and conditional orders; CCXT assumes a default of 30 days)
+- subAccountId, ccxt assumes 0 as default
+
+CCXT provides sensible defaults for the most common use cases; however, you may need to override these values (using params or options) depending on your specific requirements.
+
+### How to use the GRVT Exchange in CCXT?
+
+GRVT works similarly to any other CCXT DEX and only requires the l1 private key of the wallet.
+
+An example on how to instantiate the GRVT exchange:
+
+```
+exchange = ccxt.grvt({
+	'privateKey': 'XXXXXXX', // the l1 private key (hex)
+})
+```
+Note: Users who signed up via email, their wallet is powered by Privy (GRVT's embedded wallet solution). To export the private key:
+
+1. Go to https://home.privy.io
+2. Log in with the same email/Google account used to sign up on GRVT
+3. From there, you can export the private key
+
+*(If you need a help, you can visit https://support.privy.io)*
+
+CCXT is also a builder on GRVT meaning that by default users will pay 1bps (0.01%) extra for using it through CCXT, however this fee is totally optional and can be disabled by providing the option `builderFee: False` in options. Howerer, your contribution is much appreciated.
+
+```
+exchange.options['builderFee'] = False
+```
+
+### How to use the Extended Exchange in CCXT?
+
+Extended works similarly to any other CCXT DEX and only requires the StarkKey private key and the API Key, both can be retrieved using the website.
+
+- Go to this page: https://app.extended.exchange/api-management
+- Click Generate API Key
+- Copy the API Key and Stark Key Private
+
+![ApiKey](https://github-production-user-asset-6210df.s3.amazonaws.com/43336371/604986514-ed87d5e9-5a68-4db6-8463-fcb205293eec.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20260609%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260609T092018Z&X-Amz-Expires=300&X-Amz-Signature=b14cae7910f5118835e140e4e41477124ce6a8236294c331442108c07f273164&X-Amz-SignedHeaders=host&response-content-type=image%2Fpng)
+
+An example on how to instantiate the extended exchange:
+
+```
+exchange = ccxt.extended({
+  'apiKey: 'AAAA', // apiKey
+	'privateKey': 'XXXXXXX', // the star key private key
+})
+```
+
+CCXT is also a builder on Extended meaning that by default users will pay 1bps (0.01%) extra for using it through CCXT, however this fee is totally optional and can be disabled by providing the option `builderFee: False` in options. Howerer, your contribution is much appreciated.
+
+```
+exchange.options['builderFee'] = False
+```
+
+### How to use the Apex Exchange in CCXT?
+
+An example on how to instantiate the Apex exchange:
+
+```
+exchange = ccxt.apex({
+    'apiKey': 'your api Key',
+    'secret': 'your api secret',
+    'walletAddress': 'your eth address',
+    'options': {
+        'accountId': 'your account id',
+        'passphrase': 'your api passphrase',
+        'seeds': 'your zklink omni seed',
+    },
+})
+```
+
+## How to use the Prediction Exchanges in CCXT?
+
+Prediction-market exchanges (Polymarket, Kalshi, Hyperliquid, Limitless, Myriad) live in their own `prediction` namespace and work like any other CCXT exchange, with one key difference: instead of a market `symbol` you address an **outcome** — a handle of the form `MARKET:LABEL` (for example `TRUMP_WIN_2024:YES`). Wherever an outcome is accepted you can pass either the unified handle or the venue's raw `outcomeId` (a Polymarket token id, a Kalshi ticker, ...) — both resolve to the same outcome. Prices are probabilities between 0 and 1, amounts are shares, and costs are in the collateral currency (usually USDC/USD).
+
+Everything on a prediction venue is organized as a three-level hierarchy — **Event → Markets → Outcomes**:
+
+- an **event** is the real-world topic being traded ("US Presidential Election 2024")
+- each event contains one or more **markets** — a concrete yes/no or multi-choice question within the topic ("Will Trump win?")
+- each market contains its **outcomes** — the individual sides you can actually buy and sell (`YES` / `NO`, or one outcome per candidate)
+
+```text
+Event    "US Presidential Election 2024"
+├── Market    "Will Trump win?"
+│   ├── Outcome    TRUMP_WIN_2024:YES
+│   └── Outcome    TRUMP_WIN_2024:NO
+└── Market    "Will Biden win?"
+    ├── Outcome    BIDEN_WIN_2024:YES
+    └── Outcome    BIDEN_WIN_2024:NO
+```
+
+`fetchEvents` returns this full hierarchy (events carrying their markets, markets carrying their outcomes), and all trading and market-data methods operate at the bottom level — the outcome handle is what you pass wherever a regular exchange would take a symbol.
+
+The namespace per language:
+
+```Python
+import ccxt.prediction
+exchange = ccxt.prediction.polymarket({...})
+```
+```Javascript
+const exchange = new ccxt.prediction.polymarket ({...})
+```
+```PHP
+$exchange = new \ccxt\prediction\polymarket([...]);
+```
+```Go
+import ccxtprediction "github.com/ccxt/ccxt/go/v4/prediction"
+exchange := ccxtprediction.NewPolymarket(map[string]any{...})
+```
+```Java
+import io.github.ccxt.exchanges.prediction.Polymarket;
+Polymarket exchange = new Polymarket();
+```
+C# uses `new ccxt.prediction.polymarket(...)`.
+
+> **Note:** unlike regular exchanges, do **not** start with `loadMarkets()` / `fetchMarkets()` on prediction exchanges. Use `fetchEvents(params)` as the entry point instead: it searches the venue and returns full event structures, and the outcome handles it returns are resolved on demand by every unified method, no market loading required.
+
+The usual entry point is `fetchEvents`, which returns event structures (each carrying its markets and their outcomes). It must be scoped by at least one selector — `query` (free-text search), `tags`, `eventId` or `slug` — and also accepts `status`, `sort` and `limit`:
+
+```Python
+# search events by free text
+events = await exchange.fetch_events({'query': 'bitcoin', 'limit': 10})
+for event in events:
+    print(event['title'])
+    for market in event['markets']:
+        for outcome in market['outcomes']:
+            print('   ', outcome['outcome'], '->', outcome['price'])  # price = probability 0..1
+
+# or address a known event directly by its slug
+events = await exchange.fetch_events({'slug': 'will-bitcoin-hit-150k-in-2026'})
+
+# every unified method takes the outcome handle where a symbol would normally go
+outcome = events[0]['markets'][0]['outcomes'][0]['outcome']  # "MARKET:LABEL" handle
+ticker = await exchange.fetch_ticker(outcome)
+order = await exchange.create_order(outcome, 'limit', 'buy', 5, 0.02)
+```
+
+All the familiar unified methods (`fetchTicker`, `fetchOrderBook`, `fetchTrades`, `fetchOHLCV`, `createOrder`, `cancelOrder`, `fetchBalance`, `fetchPositions`, `watch*`, ...) take the outcome handle where a symbol would normally go. Complete runnable end-to-end examples for every language live under `examples/<lang>/prediction/`.
+
+### How to use the Prediction Exchange Polymarket?
+
+Polymarket requires two credentials:
+
+- `privateKey`: the private key of the EOA (the wallet you log in with) — used to derive the L2 API credentials and to sign orders
+- `walletAddress`: your **polymarket account wallet** — the proxy / deposit wallet shown in your polymarket profile, **not** the EOA itself (the EOA holds no funds; polymarket keeps your USDC in a proxy wallet it created for your account)
+
+```Python
+exchange = ccxt.prediction.polymarket({
+    'privateKey': '0x...',       # EOA private key
+    'walletAddress': '0x...',    # polymarket account wallet (profile / deposit wallet)
+})
+```
+
+You can find the account wallet address in your polymarket profile page (it is also returned as `proxyWallet` by `https://gamma-api.polymarket.com/public-profile?address=<your EOA>`).
+
+Notes:
+
+- Accounts created recently use the **deposit wallet** flow and work with the defaults shown above.
+- Older accounts (browser-wallet / Gnosis-Safe proxies) need the signature type switched: `exchange.options['signatureType'] = 2` — and if you pass your EOA as `walletAddress`, also set `exchange.options['funder']` to the proxy wallet that holds the USDC.
+- Alternatively to the `privateKey`, you can supply previously created L2 API credentials directly as `apiKey`, `secret` and `password` (the POLY passphrase).
+
+### How to use the Prediction Exchange Kalshi?
+
+Kalshi uses classic API credentials generated in the account settings (https://kalshi.com/account/profile → API keys):
+
+- `apiKey`: the access key (a UUID, sent as `KALSHI-ACCESS-KEY`)
+- `privateKey`: the RSA private key (PEM) that kalshi generates alongside the access key — requests are RSA-signed, there is no `secret`
+
+```Python
+exchange = ccxt.prediction.kalshi({
+    'apiKey': 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+    'privateKey': '-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----',
+})
+```
+
+### How to use the Prediction Exchange Hyperliquid?
+
+Hyperliquid prediction markets use exactly the same credentials as the regular hyperliquid DEX:
+
+- `walletAddress`: your wallet address
+- `privateKey`: the private key of that wallet (or of an API/agent wallet created on https://app.hyperliquid.xyz/API — in that case `walletAddress` stays your main wallet address and `privateKey` is the agent key)
+
+```Python
+exchange = ccxt.prediction.hyperliquid({
+    'walletAddress': '0x...',
+    'privateKey': '0x...',
+})
+```
+
+The id `hyperliquid` exists both as a regular crypto DEX (`ccxt.hyperliquid`) and as a prediction exchange (`ccxt.prediction.hyperliquid`) — the prediction class only exposes the prediction markets, addressed by outcome handles. Public market data works without any credentials.
+
+## How to fetch an RPI orderbook?
+
+OKX publishes a second order book that merges its regular liquidity with RPI (Retail Price Improvement) liquidity. Pass `rpi` to `fetchOrderBook` — either per call or once in `options` — and CCXT routes to that endpoint instead of the regular one. Everything else is unchanged, the returned [order book structure](Manual.md#order-book-structure) is the same.
+
+```Python
+exchange = ccxt.okx()
+
+# per call
+orderbook = exchange.fetch_order_book('BTC/USDT', 5, {'rpi': True})
+
+# or for every call
+exchange.options['fetchOrderBook'] = {'rpi': True}
+orderbook = exchange.fetch_order_book('BTC/USDT', 5)
+
+print(orderbook['bids'][0], orderbook['asks'][0])
+```
+
+The RPI book is capped at 400 entries per side, a larger `limit` is reduced to it.
+
+Binance has one too, but only for linear (USDⓈ-M) futures, and only as a per-call parameter:
+
+```Python
+exchange = ccxt.binance()
+orderbook = exchange.fetch_order_book('BTC/USDT:USDT', 5, {'rpi': True})
+```
+
+
+## Rust build is too slow and heavy, how to improve it?
+
+The `ccxt` crate compiles every exchange by default. A fresh debug build of a crate that depends on it needs about 19 GB of RAM and a few minutes; a release build needs about 50 GB, which does not complete on a 16 or 32 GB machine.
+
+Every exchange sits behind a cargo feature named after its id. Turn the defaults off and list only the exchanges you use:
+
+```toml
+[dependencies]
+ccxt = { version = "4", default-features = false, features = ["binance", "kraken", "okx"] }
+```
+
+Measured on the same machine, that brings a fresh build with three exchanges from 3m23s / 18.6 GB down to 29s / 2.5 GB (release: 7m49s / 50 GB down to 3m05s / 4.9 GB).
+
+Things to know:
+
+- `ccxt-pro` (WebSocket) and `ccxt-prediction` use the same feature names. Features are per crate, so put the list on every ccxt crate you depend on, and leave `default-features = false` on each of them, otherwise that crate's `all` brings every exchange back:
+
+  ```toml
+  ccxt     = { version = "4", default-features = false, features = ["binance"] }
+  ccxt-pro = { version = "4", default-features = false, features = ["binance"] }
+  ```
+
+- A derived exchange enables its parent on its own (`binanceus` pulls in `binance`).
+- Prediction markets that share an id with a regular exchange are separate features: `ccxt-prediction`'s `binance` is the prediction venue, `ccxt`'s `binance` the spot/derivatives one.
+- `ccxt::from_id("kraken", …)` returns `None` for an exchange that was not compiled in, so a program that picks exchanges at runtime needs them in the list.
+- If you still need everything, `debug = 0` (or `"line-tables-only"`) in `[profile.dev]` and `lto = "off"` in `[profile.release]` of your own `Cargo.toml` cut memory noticeably; `RUSTFLAGS="-C codegen-units=4"` trades build time for a lower peak.

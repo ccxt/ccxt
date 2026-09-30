@@ -18,11 +18,11 @@
         "type": "crypto",
         "name": "USDC",
         "active": true,
-        "deposit": null,
-        "withdraw": null,
+        "deposit": true,
+        "withdraw": true,
         "fee": null,
         "fees": {},
-        "networks": null,
+        "networks": {},
         "limits": {
             "deposit": {
                 "min": 1,
@@ -66,6 +66,41 @@
             },
             "withdraw": {
                 "min": 0.001,
+                "max": null
+            }
+        }
+    },
+    "LIT": {
+        "info": {
+            "asset_id": "2",
+            "symbol": "LIT",
+            "l1_decimals": "18",
+            "decimals": "8",
+            "min_transfer_amount": "0.00000001",
+            "min_withdrawal_amount": "1.00000000",
+            "margin_mode": "disabled",
+            "index_price": "0.981950",
+            "l1_address": "0x232CE3bd40fCd6f80f3d55A522d03f25Df784Ee2"
+        },
+        "id": "2",
+        "numericId": null,
+        "code": "LIT",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "LIT",
+        "active": true,
+        "deposit": false,
+        "withdraw": false,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
                 "max": null
             }
         }

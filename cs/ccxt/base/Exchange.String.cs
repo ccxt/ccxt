@@ -1,6 +1,6 @@
 namespace ccxt;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
 
@@ -9,14 +9,9 @@ public partial class Exchange
         return Guid.NewGuid().ToString().Replace("-", "");
     }
 
-    public string uuid2()
-    {
-        return Guid.NewGuid().ToString();
-    }
-
     public string uuid()
     {
-        return uuid2();
+        return Guid.NewGuid().ToString();
     }
 
     public string uuid16()
@@ -29,7 +24,9 @@ public partial class Exchange
         return BaseUID().Substring(0, 22);
     }
 
-    public object strip(object str)
+    // ((string)str).Trim() is a string on every path (a non-string box throws inside the
+    // cast, exactly where the object signature threw it)
+    public string strip(object str)
     {
         return ((string)str).Trim(); //stub
     }
@@ -37,6 +34,10 @@ public partial class Exchange
     public string capitalize(object str2)
     {
         var str = (string)str2;
+        if (str.Length == 0)
+        {
+            return str;
+        }
         return char.ToUpper(str[0]) + str.Substring(1);
     }
 

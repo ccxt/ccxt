@@ -9,21 +9,48 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"sort"
 	"strings"
 )
 
-func (this *Exchange) Fetch(url interface{}, method interface{}, headers interface{}, body interface{}) chan interface{} {
-	ch := make(chan interface{})
+// mockBodyForUrl picks the response-test body whose url fragment the request url
+// contains. Map iteration is unordered, so the no-match fallback sorts the
+// fragments and takes the first for a deterministic result.
+func mockBodyForUrl(responsesByUrl any, url any) any {
+	byUrl, ok := responsesByUrl.(map[string]any)
+	if !ok {
+		return responsesByUrl
+	}
+	urlStr, _ := url.(string)
+	fragments := make([]string, 0, len(byUrl))
+	for fragment := range byUrl {
+		fragments = append(fragments, fragment)
+	}
+	sort.Strings(fragments)
+	for _, fragment := range fragments {
+		if strings.Contains(urlStr, fragment) {
+			return byUrl[fragment]
+		}
+	}
+	if len(fragments) > 0 {
+		return byUrl[fragments[0]]
+	}
+	return nil
+}
+
+func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any) chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any])
 	go func() {
 		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				ch <- "panic:" + ToString(r)
-			}
-		}()
+		defer ReturnPanicError(ch)
+
+		if this.FetchResponseByUrl != nil {
+			ch <- AsyncResult[any]{Value: mockBodyForUrl(this.FetchResponseByUrl, url)}
+			return
+		}
 
 		if this.FetchResponse != nil {
-			ch <- this.FetchResponse
+			ch <- AsyncResult[any]{Value: this.FetchResponse}
 			return
 		}
 		this.UpdateProxySettings() // for now this needs to be here
@@ -41,9 +68,9 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		}
 
 		// Convert headers to map[string]string
-		headersMap, ok := headers.(map[string]interface{})
+		headersMap, ok := headers.(map[string]any)
 		if !ok {
-			panic("headers must be a map[string]interface{}")
+			panic("headers must be a map[string]any")
 		}
 
 		headersStrMap := make(map[string]string)
@@ -54,13 +81,13 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		headersOptions, ok := this.Options.Load("headers")
 		if ok {
 			if headersOptions != nil {
-				for key, value := range headersOptions.(map[string]interface{}) {
+				for key, value := range headersOptions.(map[string]any) {
 					if _, exists := headersStrMap[key]; !exists {
 						headersStrMap[key] = fmt.Sprintf("%v", value)
 					}
 				}
 			} else {
-				panic("headersOptions should be a map[string]interface{}")
+				panic("headersOptions should be a map[string]any")
 			}
 
 		}
@@ -140,9 +167,9 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		// }
 
 		//set default headers
-		defaultHeaders := this.Headers.(map[string]interface{})
+		defaultHeaders := this.Headers.(map[string]any)
 		for key, value := range defaultHeaders {
-			req.Header.Set(key, value.(string))
+			req.Header.Set(key, derefScalar(value).(string))
 		}
 
 		// Set headers
@@ -172,8 +199,13 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			networkError := NetworkError(fmt.Sprintf("Network error: %v", err))
 			panic(networkError)
 		}
-		this.Last_response_headers = HeaderToMap(resp.Header)
-		this.LastResponseHeaders = HeaderToMap(resp.Header)
+		respHeadersMap := HeaderToMap(resp.Header)
+		// guard the shared bookkeeping fields: concurrent requests on the same
+		// *Exchange would otherwise data-race on these writes
+		this.lastMu.Lock()
+		this.Last_response_headers = respHeadersMap
+		this.LastResponseHeaders = respHeadersMap
+		this.lastMu.Unlock()
 		if err == nil {
 			defer resp.Body.Close()
 			if resp.Header.Get("Content-Encoding") == "gzip" {
@@ -200,7 +232,7 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		responseHeaders := HeaderToMap(resp.Header)
 
 		// Use ParseJSON to handle JSON parsing with proper number normalization
-		var result interface{}
+		var result any
 		result = ParseJSON(string(respBody))
 
 		if result == nil {
@@ -208,7 +240,7 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			result = string(respBody)
 		} else {
 			if this.ReturnResponseHeaders {
-				if resultMap, ok := result.(map[string]interface{}); ok {
+				if resultMap, ok := result.(map[string]any); ok {
 					resultMap["responseHeaders"] = responseHeaders
 					result = resultMap
 				}
@@ -240,26 +272,26 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			panic(fmt.Sprintf("request failed: %v", err))
 		}
 
-		ch <- result
+		ch <- AsyncResult[any]{Value: result}
 	}()
 	return ch
 }
 
-func (this *Exchange) HandleHttpStatusCode(code interface{}, reason interface{}, url interface{}, method interface{}, body interface{}) {
+func (this *BaseExchange) HandleHttpStatusCode(code any, reason any, url any, method any, body any) {
 
 	codeString := ToString(code)
 	codeinHttpExceptions := SafeValue(this.HttpExceptions, codeString, nil)
 
 	if codeinHttpExceptions != nil {
 		errorMessage := this.Id + " " + ToString(method) + " " + ToString(url) + " " + ToString(code) + " " + ToString(reason) + " " + ToString(body)
-		functionError := codeinHttpExceptions.(func(...interface{}) error)
+		functionError := codeinHttpExceptions.(func(...any) error)
 		panic(functionError(errorMessage))
 	}
 
 }
 
-func HeaderToMap(header http.Header) map[string]interface{} {
-	result := make(map[string]interface{})
+func HeaderToMap(header http.Header) map[string]any {
+	result := make(map[string]any)
 	for key, values := range header {
 		if len(values) == 1 {
 			result[key] = values[0]

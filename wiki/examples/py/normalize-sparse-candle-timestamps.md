@@ -1,8 +1,5 @@
-- [Normalize Sparse Candle Timestamps](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -32,5 +29,5 @@ pprint([[
     candle[4],  # c
     candle[5]   # v
 ] for candle in candles])
- 
+
 ```

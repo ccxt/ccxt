@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/btcmarkets.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class btcmarkets
@@ -20,8 +20,8 @@ export default class btcmarkets extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'btcmarkets',
             'name': 'BTC Markets',
-            'countries': ['AU'],
-            'rateLimit': 1000,
+            'countries': ['AU'], // Australia
+            'rateLimit': 1000, // market data cached for 1 second (trades cached for 2 seconds)
             'version': 'v3',
             'has': {
                 'CORS': undefined,
@@ -137,53 +137,53 @@ export default class btcmarkets extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'markets',
-                        'markets/{marketId}/ticker',
-                        'markets/{marketId}/trades',
-                        'markets/{marketId}/orderbook',
-                        'markets/{marketId}/candles',
-                        'markets/tickers',
-                        'markets/orderbooks',
-                        'time',
-                    ],
+                    'get': {
+                        'markets': { 'cost': 1 },
+                        'markets/{marketId}/ticker': { 'cost': 1 },
+                        'markets/{marketId}/trades': { 'cost': 1 },
+                        'markets/{marketId}/orderbook': { 'cost': 1 },
+                        'markets/{marketId}/candles': { 'cost': 1 },
+                        'markets/tickers': { 'cost': 1 },
+                        'markets/orderbooks': { 'cost': 1 },
+                        'time': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'orders',
-                        'orders/{id}',
-                        'batchorders/{ids}',
-                        'trades',
-                        'trades/{id}',
-                        'withdrawals',
-                        'withdrawals/{id}',
-                        'deposits',
-                        'deposits/{id}',
-                        'transfers',
-                        'transfers/{id}',
-                        'addresses',
-                        'withdrawal-fees',
-                        'assets',
-                        'accounts/me/trading-fees',
-                        'accounts/me/withdrawal-limits',
-                        'accounts/me/balances',
-                        'accounts/me/transactions',
-                        'reports/{id}',
-                    ],
-                    'post': [
-                        'orders',
-                        'batchorders',
-                        'withdrawals',
-                        'reports',
-                    ],
-                    'delete': [
-                        'orders',
-                        'orders/{id}',
-                        'batchorders/{ids}',
-                    ],
-                    'put': [
-                        'orders/{id}',
-                    ],
+                    'get': {
+                        'orders': { 'cost': 1 },
+                        'orders/{id}': { 'cost': 1 },
+                        'batchorders/{ids}': { 'cost': 1 },
+                        'trades': { 'cost': 1 },
+                        'trades/{id}': { 'cost': 1 },
+                        'withdrawals': { 'cost': 1 },
+                        'withdrawals/{id}': { 'cost': 1 },
+                        'deposits': { 'cost': 1 },
+                        'deposits/{id}': { 'cost': 1 },
+                        'transfers': { 'cost': 1 },
+                        'transfers/{id}': { 'cost': 1 },
+                        'addresses': { 'cost': 1 },
+                        'withdrawal-fees': { 'cost': 1 },
+                        'assets': { 'cost': 1 },
+                        'accounts/me/trading-fees': { 'cost': 1 },
+                        'accounts/me/withdrawal-limits': { 'cost': 1 },
+                        'accounts/me/balances': { 'cost': 1 },
+                        'accounts/me/transactions': { 'cost': 1 },
+                        'reports/{id}': { 'cost': 1 },
+                    },
+                    'post': {
+                        'orders': { 'cost': 1 },
+                        'batchorders': { 'cost': 1 },
+                        'withdrawals': { 'cost': 1 },
+                        'reports': { 'cost': 1 },
+                    },
+                    'delete': {
+                        'orders': { 'cost': 1 },
+                        'orders/{id}': { 'cost': 1 },
+                        'batchorders/{ids}': { 'cost': 1 },
+                    },
+                    'put': {
+                        'orders/{id}': { 'cost': 1 },
+                    },
                 },
             },
             'timeframes': {
@@ -196,7 +196,7 @@ export default class btcmarkets extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo: check
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false,
@@ -212,7 +212,7 @@ export default class btcmarkets extends Exchange {
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
                         'marketBuyByCost': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: check
                         'trailing': false,
                         'iceberg': false,
                     },
@@ -300,7 +300,9 @@ export default class btcmarkets extends Exchange {
         });
     }
     async fetchTransactionsWithMethod(method, code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -312,7 +314,16 @@ export default class btcmarkets extends Exchange {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'privateGetTransfers') {
+            response = await this.privateGetTransfers(this.extend(request, params));
+        }
+        else if (method === 'privateGetDeposits') {
+            response = await this.privateGetDeposits(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetWithdrawals(this.extend(request, params));
+        }
         return this.parseTransactions(response, currency, since, limit);
     }
     /**
@@ -447,7 +458,7 @@ export default class btcmarkets extends Exchange {
         const currencyId = this.safeString(transaction, 'assetName');
         const code = this.safeCurrencyCode(currencyId);
         let amount = this.safeString(transaction, 'amount');
-        if (fee) {
+        if ((fee !== undefined) && (fee !== '')) {
             amount = Precise.stringSub(amount, fee);
         }
         return {
@@ -509,8 +520,11 @@ export default class btcmarkets extends Exchange {
         const id = this.safeString(market, 'marketId');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
-        const fees = this.safeValue(this.safeDict(this.options, 'fees', {}), quote, this.fees);
+        const fees = this.safeDict(this.safeDict(this.options, 'fees', {}), quote, this.fees);
         const pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'priceDecimals')));
         const minAmount = this.safeNumber(market, 'minOrderAmount');
         const maxAmount = this.safeNumber(market, 'maxOrderAmount');
@@ -519,7 +533,7 @@ export default class btcmarkets extends Exchange {
         if (quote === 'AUD') {
             minPrice = pricePrecision;
         }
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -569,7 +583,7 @@ export default class btcmarkets extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -591,13 +605,15 @@ export default class btcmarkets extends Exchange {
     parseBalance(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict(response, i);
             const currencyId = this.safeString(balance, 'assetName');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             account['used'] = this.safeString(balance, 'locked');
             account['total'] = this.safeString(balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -610,7 +626,9 @@ export default class btcmarkets extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetAccountsMeBalances(params);
         return this.parseBalance(response);
     }
@@ -627,10 +645,10 @@ export default class btcmarkets extends Exchange {
         //
         return [
             this.parse8601(this.safeString(ohlcv, 0)),
-            this.safeNumber(ohlcv, 1),
-            this.safeNumber(ohlcv, 2),
-            this.safeNumber(ohlcv, 3),
-            this.safeNumber(ohlcv, 4),
+            this.safeNumber(ohlcv, 1), // open
+            this.safeNumber(ohlcv, 2), // high
+            this.safeNumber(ohlcv, 3), // low
+            this.safeNumber(ohlcv, 4), // close
             this.safeNumber(ohlcv, 5), // volume
         ];
     }
@@ -647,7 +665,9 @@ export default class btcmarkets extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'marketId': market['id'],
@@ -672,7 +692,7 @@ export default class btcmarkets extends Exchange {
         //         ["2020-09-12T18:03:00.000000Z","14361.37","14361.37","14361.37","14361.37","0.00345221"],
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
     /**
      * @method
@@ -682,10 +702,12 @@ export default class btcmarkets extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'marketId': market['id'],
@@ -731,8 +753,8 @@ export default class btcmarkets extends Exchange {
         //     }
         //
         const marketId = this.safeString(ticker, 'marketId');
-        market = this.safeMarket(marketId, market, '-');
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market, '-');
+        const symbol = marketResolved['symbol'];
         const timestamp = this.parse8601(this.safeString(ticker, 'timestamp'));
         const last = this.safeString(ticker, 'lastPrice');
         const baseVolume = this.safeString(ticker, 'volume24h');
@@ -760,7 +782,7 @@ export default class btcmarkets extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -772,7 +794,9 @@ export default class btcmarkets extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'marketId': market['id'],
@@ -796,7 +820,9 @@ export default class btcmarkets extends Exchange {
         return this.parseTicker(response, market);
     }
     async fetchTicker2(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'id': market['id'],
@@ -833,8 +859,14 @@ export default class btcmarkets extends Exchange {
         //
         const timestamp = this.parse8601(this.safeString(trade, 'timestamp'));
         const marketId = this.safeString(trade, 'marketId');
-        market = this.safeMarket(marketId, market, '-');
-        const feeCurrencyCode = (market['quote'] === 'AUD') ? market['quote'] : market['base'];
+        const marketResolved = this.safeMarket(marketId, market, '-');
+        let feeCurrencyCode = undefined;
+        if (marketResolved['quote'] === 'AUD') {
+            feeCurrencyCode = marketResolved['quote'];
+        }
+        else {
+            feeCurrencyCode = marketResolved['base'];
+        }
         let side = this.safeString(trade, 'side');
         if (side === 'Bid') {
             side = 'buy';
@@ -861,7 +893,7 @@ export default class btcmarkets extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'order': orderId,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'side': side,
             'price': priceString,
@@ -869,7 +901,7 @@ export default class btcmarkets extends Exchange {
             'cost': undefined,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -883,7 +915,9 @@ export default class btcmarkets extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             // 'since': 59868345231,
@@ -914,7 +948,9 @@ export default class btcmarkets extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'marketId': market['id'],
@@ -930,7 +966,7 @@ export default class btcmarkets extends Exchange {
             // 'clientOrderId': this.uuid (),
         };
         const lowercaseType = type.toLowerCase();
-        const orderTypes = this.safeValue(this.options, 'orderTypes', {
+        const orderTypes = this.safeDict(this.options, 'orderTypes', {
             'limit': 'Limit',
             'market': 'Market',
             'stop': 'Stop',
@@ -966,7 +1002,6 @@ export default class btcmarkets extends Exchange {
         }
         if (triggerPriceIsRequired) {
             const triggerPrice = this.safeNumber(params, 'triggerPrice');
-            params = this.omit(params, 'triggerPrice');
             if (triggerPrice === undefined) {
                 throw new ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice parameter for a ' + type + 'order');
             }
@@ -978,8 +1013,12 @@ export default class btcmarkets extends Exchange {
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
         }
-        params = this.omit(params, 'clientOrderId');
-        const response = await this.privatePostOrders(this.extend(request, params));
+        let paramsTriggerPrice = params;
+        if (triggerPriceIsRequired) {
+            paramsTriggerPrice = this.omit(params, 'triggerPrice');
+        }
+        const paramsOmitted = this.omit(paramsTriggerPrice, 'clientOrderId');
+        const response = await this.privatePostOrders(this.extend(request, paramsOmitted));
         //
         //     {
         //         "orderId": "7524",
@@ -1007,12 +1046,14 @@ export default class btcmarkets extends Exchange {
      * @description cancel multiple orders
      * @see https://docs.btcmarkets.net/v3/#tag/Batch-Order-APIs/paths/~1v3~1batchorders~1{ids}/delete
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by btcmarkets cancelOrders ()
+     * @param {string} symbol not used by cancelOrders ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const numericIds = [];
         for (let i = 0; i < ids.length; i++) {
             // numericIds[i] = parseInt (ids[i]);
@@ -1051,12 +1092,14 @@ export default class btcmarkets extends Exchange {
      * @description cancels an open order
      * @see https://docs.btcmarkets.net/v3/#operation/cancelOrder
      * @param {string} id order id
-     * @param {string} symbol not used by btcmarket cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': id,
         };
@@ -1082,27 +1125,31 @@ export default class btcmarkets extends Exchange {
          * @param {object} params
          * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
          */
-        const market = this.markets[symbol];
+        const market = this.market(symbol);
         let currency = undefined;
         let cost = undefined;
         if (market['quote'] === 'AUD') {
-            currency = market['quote'];
+            currency = this.safeString(market, 'quote');
             const amountString = this.numberToString(amount);
             const priceString = this.numberToString(price);
             const otherUnitsAmount = Precise.stringMul(amountString, priceString);
             cost = this.costToPrecision(symbol, otherUnitsAmount);
         }
         else {
-            currency = market['base'];
+            currency = this.safeString(market, 'base');
             cost = this.amountToPrecision(symbol, amount);
         }
-        const rate = market[takerOrMaker];
+        const rate = this.safeValue(market, takerOrMaker);
         const rateCost = Precise.stringMul(this.numberToString(rate), cost);
+        let feeCost = this.feeToPrecision(symbol, rateCost);
+        if (feeCost === undefined) {
+            feeCost = '0';
+        }
         return {
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': parseFloat(this.feeToPrecision(symbol, rateCost)),
+            'cost': parseFloat(feeCost),
         };
     }
     parseOrderStatus(status) {
@@ -1141,7 +1188,7 @@ export default class btcmarkets extends Exchange {
         //
         const timestamp = this.parse8601(this.safeString(order, 'creationTime'));
         const marketId = this.safeString(order, 'marketId');
-        market = this.safeMarket(marketId, market, '-');
+        const marketResolved = this.safeMarket(marketId, market, '-');
         let side = this.safeString(order, 'side');
         if (side === 'Bid') {
             side = 'buy';
@@ -1165,7 +1212,7 @@ export default class btcmarkets extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -1180,7 +1227,7 @@ export default class btcmarkets extends Exchange {
             'status': status,
             'trades': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1193,7 +1240,9 @@ export default class btcmarkets extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': id,
         };
@@ -1212,7 +1261,9 @@ export default class btcmarkets extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'status': 'all',
         };
@@ -1272,7 +1323,9 @@ export default class btcmarkets extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1328,8 +1381,10 @@ export default class btcmarkets extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'assetName': currency['id'],
@@ -1339,10 +1394,10 @@ export default class btcmarkets extends Exchange {
             this.checkAddress(address);
             request['toAddress'] = address;
         }
-        if (tag !== undefined) {
-            request['toAddress'] = address + '?dt=' + tag;
+        if (tagWithdrawTag !== undefined) {
+            request['toAddress'] = address + '?dt=' + tagWithdrawTag;
         }
-        const response = await this.privatePostWithdrawals(this.extend(request, params));
+        const response = await this.privatePostWithdrawals(this.extend(request, paramsWithdrawTag));
         //
         //      {
         //          "id": "4126657",
@@ -1365,6 +1420,8 @@ export default class btcmarkets extends Exchange {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         let request = '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.keysort(this.omit(params, this.extractParams(path)));
         if (api === 'private') {
@@ -1373,16 +1430,16 @@ export default class btcmarkets extends Exchange {
             const secret = this.base64ToBinary(this.secret);
             let auth = method + request + nonce;
             if ((method === 'GET') || (method === 'DELETE')) {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     request += '?' + this.urlencode(query);
                 }
             }
             else {
-                body = this.json(query);
-                auth += body;
+                requestBody = this.json(query);
+                auth += requestBody;
             }
             const signature = this.hmac(this.encode(auth), secret, sha512, 'base64');
-            headers = {
+            requestHeaders = {
                 'Accept': 'application/json',
                 'Accept-Charset': 'UTF-8',
                 'Content-Type': 'application/json',
@@ -1392,12 +1449,18 @@ export default class btcmarkets extends Exchange {
             };
         }
         else if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 request += '?' + this.urlencode(query);
             }
         }
-        const url = this.urls['api'][api] + request;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + request;
+        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
+        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

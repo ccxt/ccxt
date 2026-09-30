@@ -3,6 +3,92 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "deposit address for USDT on TRC20",
+                "method": "fetchDepositAddress",
+                "url": "https://openapi.blofin.com/api/v1/asset/deposit-address?currency=USDT&chain=Tron%20%28TRC20%29",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ]
+            },
+            {
+                "description": "deposit address for USDT on OPTIMISM resolves the currency-scoped chain id",
+                "method": "fetchDepositAddress",
+                "url": "https://openapi.blofin.com/api/v1/asset/deposit-address?currency=USDT&chain=Optimism%20%28USDT0%29",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "OPTIMISM"
+                    }
+                ]
+            },
+            {
+                "description": "deposit address for USDT with the legacy OP network alias",
+                "method": "fetchDepositAddress",
+                "url": "https://openapi.blofin.com/api/v1/asset/deposit-address?currency=USDT&chain=Optimism%20%28USDT0%29",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "OP"
+                    }
+                ]
+            },
+            {
+                "description": "deposit address for ETH on OPTIMISM",
+                "method": "fetchDepositAddress",
+                "url": "https://openapi.blofin.com/api/v1/asset/deposit-address?currency=ETH&chain=Optimism",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "OPTIMISM"
+                    }
+                ]
+            },
+            {
+                "description": "deposit address for BTC with the default network",
+                "method": "fetchDepositAddress",
+                "url": "https://openapi.blofin.com/api/v1/asset/deposit-address?currency=BTC&chain=Bitcoin",
+                "input": [
+                    "BTC"
+                ]
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "deposit and withdraw fees for USDT and BTC",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://openapi.blofin.com/api/v1/asset/currencies",
+                "input": [
+                    [
+                        "USDT",
+                        "BTC"
+                    ]
+                ]
+            }
+        ],
+        "fetchWithdrawal": [
+            {
+                "description": "fetch a withdrawal by id",
+                "method": "fetchWithdrawal",
+                "url": "https://openapi.blofin.com/api/v1/asset/withdrawal-history?withdrawId=4925a43661d14db7b5a11c608d04ec8c",
+                "input": [
+                    "4925a43661d14db7b5a11c608d04ec8c"
+                ]
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "default",
+                "method": "fetchPositionsHistory",
+                "url": "https://openapi.blofin.com/api/v1/account/positions-history",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "fetch tpsl  orders",
@@ -35,23 +121,42 @@
         ],
         "createOrder": [
             {
-                "description": "regular stopLossPrice order",
+                "description": "tpsl",
                 "method": "createOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/order-tpsl",
                 "input": [
-                    "LTC/USDT:USDT",
+                    "ETH/USDT:USDT",
                     "market",
                     "sell",
-                    0.2,
-                    50,
+                    0.1,
+                    null,
                     {
-                        "stopLossPrice": 51
+                        "stopLossPrice": 2111,
+                        "takeProfitPrice": 2222,
+                        "tpsl": true
                     }
                 ],
-                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"size\":\"0.2\",\"slTriggerPrice\":\"51\",\"slOrderPrice\":\"-1\",\"marginMode\":\"cross\"}"
+                "output": "{\"instId\":\"ETH-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"reduceOnly\":true,\"size\":\"0.1\",\"slTriggerPrice\":\"2111\",\"slOrderPrice\":\"-1\",\"tpTriggerPrice\":\"2222\",\"tpOrderPrice\":\"-1\",\"marginMode\":\"cross\"}"
             },
             {
-                "description": "triger order",
+                "description": "perp, exit tp & sl combined",
+                "method": "createOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-tpsl",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "takeProfitPrice": 2555,
+                        "stopLossPrice": 2000
+                    }
+                ],
+                "output": "{\"instId\":\"ETH-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"reduceOnly\":true,\"size\":\"0.1\",\"marginMode\":\"cross\",\"slTriggerPrice\":\"2000\",\"slOrderPrice\":\"-1\",\"tpTriggerPrice\":\"2555\",\"tpOrderPrice\":\"-1\"}"
+            },
+            {
+                "description": "triger limit order",
                 "method": "createOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/order-algo",
                 "input": [
@@ -64,7 +169,7 @@
                         "triggerPrice": 91
                     }
                 ],
-                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"orderPrice\":\"90\",\"triggerPrice\":91}"
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"orderPrice\":\"90\",\"triggerPrice\":\"91\"}"
             },
             {
                 "description": "trigger market order",
@@ -83,22 +188,6 @@
                     }
                 ],
                 "output": "{\"instId\":\"ADA-USDT\",\"side\":\"sell\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"isolated\",\"triggerPrice\":\"4\",\"orderPrice\":\"-1\",\"positionSide\":\"short\"}"
-            },
-            {
-                "description": "--report",
-                "method": "createOrder",
-                "url": "https://openapi.blofin.com/api/v1/trade/order-algo",
-                "input": [
-                    "LTC/USDT:USDT",
-                    "limit",
-                    "buy",
-                    1,
-                    90,
-                    {
-                        "triggerPrice": 91
-                    }
-                ],
-                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"orderPrice\":\"90\",\"triggerPrice\":91}"
             },
             {
                 "description": "open position with tp+sl",
@@ -166,9 +255,9 @@
                 "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"market\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"reduceOnly\":\"true\"}"
             },
             {
-                "description": "create take profit (type2) order",
+                "description": "takeProfitPrice",
                 "method": "createOrder",
-                "url": "https://openapi.blofin.com/api/v1/trade/order-tpsl",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-algo",
                 "input": [
                     "LTC/USDT:USDT",
                     "market",
@@ -176,18 +265,15 @@
                     1,
                     null,
                     {
-                        "takeProfitPrice": 200,
-                        "clientOrderId": "84c4ac9afce249e0aef35631382928f6",
-                        "marginMode": "isolated",
-                        "reduceOnly": true
+                        "takeProfitPrice": 200
                     }
                 ],
-                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"size\":\"1\",\"tpTriggerPrice\":\"200\",\"tpOrderPrice\":\"-1\",\"marginMode\":\"isolated\", \"reduceOnly\":\"true\", \"clientOrderId\":\"84c4ac9afce249e0aef35631382928f6\"}"
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"triggerPrice\":\"200\",\"orderPrice\":\"-1\",\"reduceOnly\":true}"
             },
             {
-                "description": "create stop loss (type2) order",
+                "description": "stopLossPrice",
                 "method": "createOrder",
-                "url": "https://openapi.blofin.com/api/v1/trade/order-tpsl",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-algo",
                 "input": [
                     "LTC/USDT:USDT",
                     "market",
@@ -195,11 +281,10 @@
                     1,
                     null,
                     {
-                        "stopLossPrice": 50,
-                        "clientOrderId": "84c4ac9afce249e0aef35631382928f6"
+                        "stopLossPrice": 50
                     }
                 ],
-                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"size\":\"1\",\"slTriggerPrice\":\"50\",\"slOrderPrice\":\"-1\",\"marginMode\":\"cross\", \"clientOrderId\":\"84c4ac9afce249e0aef35631382928f6\"}"
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"triggerPrice\":\"50\",\"orderPrice\":\"-1\",\"reduceOnly\":true}"
             }
         ],
         "cancelOrder": [
@@ -208,7 +293,7 @@
                 "method": "cancelOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/cancel-algo",
                 "input": [
-                    61322087,
+                    "61322087",
                     "LTC/USDT:USDT",
                     {
                         "trigger": true
@@ -255,6 +340,35 @@
             }
         ],
         "fetchMyTrades": [
+            {
+                "description": "fetch my spot trades",
+                "method": "fetchMyTrades",
+                "url": "https://openapi.blofin.com/api/v1/spot/trade/fills-history?instType=SPOT",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch my spot trades for symbol (instId)",
+                "method": "fetchMyTrades",
+                "url": "https://openapi.blofin.com/api/v1/spot/trade/fills-history?instType=SPOT&instId=DOGE-USDT",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "spot",
+                        "instId": "DOGE-USDT"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "swap trades",
                 "method": "fetchMyTrades",
@@ -575,6 +689,29 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "on-chain withdrawal with a unified network code",
+                "method": "withdraw",
+                "url": "https://openapi.blofin.com/api/v1/asset/withdrawal-apply",
+                "input": ["USDT", 50, "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", null, {"network": "TRC20", "clientId": "ccxt-test-0001"}],
+                "output": "{\"currency\":\"USDT\",\"address\":\"TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6\",\"amount\":\"50\",\"dest\":\"onchain\",\"addrType\":\"1\",\"chain\":\"Tron (TRC20)\",\"clientId\":\"ccxt-test-0001\"}"
+            },
+            {
+                "description": "internal transfer to a UID",
+                "method": "withdraw",
+                "url": "https://openapi.blofin.com/api/v1/asset/withdrawal-apply",
+                "input": ["USDT", 25, "123456789", null, {"dest": "internal", "addrType": "2"}],
+                "output": "{\"currency\":\"USDT\",\"address\":\"123456789\",\"amount\":\"25\",\"dest\":\"internal\",\"addrType\":\"2\"}"
+            },
+            {
+                "description": "explicit chain takes precedence and the unified network key never reaches the wire",
+                "method": "withdraw",
+                "url": "https://openapi.blofin.com/api/v1/asset/withdrawal-apply",
+                "input": ["USDT", 50, "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", null, {"network": "TRC20", "chain": "Tron", "clientId": "ccxt-test-0001"}],
+                "output": "{\"currency\":\"USDT\",\"address\":\"TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6\",\"amount\":\"50\",\"dest\":\"onchain\",\"addrType\":\"1\",\"chain\":\"Tron\",\"clientId\":\"ccxt-test-0001\"}"
             }
         ]
     }

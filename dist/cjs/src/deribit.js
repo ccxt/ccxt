@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var deribit$1 = require('./abstract/deribit.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var totp = require('./base/functions/totp.js');
 
 // ----------------------------------------------------------------------------
@@ -20,7 +20,7 @@ class deribit extends deribit$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'deribit',
             'name': 'Deribit',
-            'countries': ['NL'],
+            'countries': ['NL'], // Netherlands
             'version': 'v2',
             'userAgent': undefined,
             // 20 requests per second for non-matching-engine endpoints, 1000ms / 20 = 50ms between requests
@@ -29,7 +29,7 @@ class deribit extends deribit$1["default"] {
             'pro': true,
             'has': {
                 'CORS': true,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': true,
                 'future': true,
@@ -142,144 +142,169 @@ class deribit extends deribit$1["default"] {
                 'public': {
                     'get': {
                         // Authentication
-                        'auth': 1,
-                        'exchange_token': 1,
-                        'fork_token': 1,
+                        'auth': { 'cost': 1 },
+                        'exchange_token': { 'cost': 1 },
+                        'fork_token': { 'cost': 1 },
                         // Session management
-                        'set_heartbeat': 1,
-                        'disable_heartbeat': 1,
+                        'set_heartbeat': { 'cost': 1 },
+                        'disable_heartbeat': { 'cost': 1 },
                         // Supporting
-                        'get_time': 1,
-                        'hello': 1,
-                        'status': 1,
-                        'test': 1,
+                        'get_time': { 'cost': 1 },
+                        'hello': { 'cost': 1 },
+                        'status': { 'cost': 1 },
+                        'test': { 'cost': 1 },
                         // Subscription management
-                        'subscribe': 1,
-                        'unsubscribe': 1,
-                        'unsubscribe_all': 1,
+                        'subscribe': { 'cost': 1 },
+                        'unsubscribe': { 'cost': 1 },
+                        'unsubscribe_all': { 'cost': 1 },
                         // Account management
-                        'get_announcements': 1,
+                        'get_announcements': { 'cost': 1 },
                         // Market data
-                        'get_book_summary_by_currency': 1,
-                        'get_book_summary_by_instrument': 1,
-                        'get_contract_size': 1,
-                        'get_currencies': 1,
-                        'get_delivery_prices': 1,
-                        'get_funding_chart_data': 1,
-                        'get_funding_rate_history': 1,
-                        'get_funding_rate_value': 1,
-                        'get_historical_volatility': 1,
-                        'get_index': 1,
-                        'get_index_price': 1,
-                        'get_index_price_names': 1,
-                        'get_instrument': 1,
-                        'get_instruments': 1,
-                        'get_last_settlements_by_currency': 1,
-                        'get_last_settlements_by_instrument': 1,
-                        'get_last_trades_by_currency': 1,
-                        'get_last_trades_by_currency_and_time': 1,
-                        'get_last_trades_by_instrument': 1,
-                        'get_last_trades_by_instrument_and_time': 1,
-                        'get_mark_price_history': 1,
-                        'get_order_book': 1,
-                        'get_trade_volumes': 1,
-                        'get_tradingview_chart_data': 1,
-                        'get_volatility_index_data': 1,
-                        'ticker': 1,
+                        'get_apr_history': { 'cost': 1 },
+                        'get_book_summary_by_currency': { 'cost': 1 },
+                        'get_book_summary_by_instrument': { 'cost': 1 },
+                        'get_contract_size': { 'cost': 1 },
+                        'get_currencies': { 'cost': 1 },
+                        'get_delivery_prices': { 'cost': 1 },
+                        'get_expirations': { 'cost': 1 },
+                        'get_funding_chart_data': { 'cost': 1 },
+                        'get_funding_rate_history': { 'cost': 1 },
+                        'get_funding_rate_value': { 'cost': 1 },
+                        'get_historical_volatility': { 'cost': 1 },
+                        'get_index': { 'cost': 1 },
+                        'get_index_chart_data': { 'cost': 1 },
+                        'get_index_price': { 'cost': 1 },
+                        'get_index_price_names': { 'cost': 1 },
+                        'get_instrument': { 'cost': 1 },
+                        'get_instruments': { 'cost': 1 },
+                        'get_last_settlements_by_currency': { 'cost': 1 },
+                        'get_last_settlements_by_instrument': { 'cost': 1 },
+                        'get_last_trades_by_currency': { 'cost': 1 },
+                        'get_last_trades_by_currency_and_time': { 'cost': 1 },
+                        'get_last_trades_by_instrument': { 'cost': 1 },
+                        'get_last_trades_by_instrument_and_time': { 'cost': 1 },
+                        'get_mark_price_history': { 'cost': 1 },
+                        'get_order_book': { 'cost': 1 },
+                        'get_supported_index_names': { 'cost': 1 },
+                        'get_trade_volumes': { 'cost': 1 },
+                        'get_tradingview_chart_data': { 'cost': 1 },
+                        'get_volatility_index_data': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
                         // Authentication
-                        'logout': 1,
+                        'logout': { 'cost': 1 },
                         // Session management
-                        'enable_cancel_on_disconnect': 1,
-                        'disable_cancel_on_disconnect': 1,
-                        'get_cancel_on_disconnect': 1,
+                        'enable_cancel_on_disconnect': { 'cost': 1 },
+                        'disable_cancel_on_disconnect': { 'cost': 1 },
+                        'get_cancel_on_disconnect': { 'cost': 1 },
                         // Subscription management
-                        'subscribe': 1,
-                        'unsubscribe': 1,
-                        'unsubscribe_all': 1,
+                        'subscribe': { 'cost': 1 },
+                        'unsubscribe': { 'cost': 1 },
+                        'unsubscribe_all': { 'cost': 1 },
                         // Account management
-                        'change_api_key_name': 1,
-                        'change_scope_in_api_key': 1,
-                        'change_subaccount_name': 1,
-                        'create_api_key': 1,
-                        'create_subaccount': 1,
-                        'disable_api_key': 1,
-                        'disable_tfa_for_subaccount': 1,
-                        'enable_affiliate_program': 1,
-                        'enable_api_key': 1,
-                        'get_access_log': 1,
-                        'get_account_summary': 1,
-                        'get_account_summaries': 1,
-                        'get_affiliate_program_info': 1,
-                        'get_email_language': 1,
-                        'get_new_announcements': 1,
-                        'get_portfolio_margins': 1,
-                        'get_position': 1,
-                        'get_positions': 1,
-                        'get_subaccounts': 1,
-                        'get_subaccounts_details': 1,
-                        'get_transaction_log': 1,
-                        'list_api_keys': 1,
-                        'remove_api_key': 1,
-                        'remove_subaccount': 1,
-                        'reset_api_key': 1,
-                        'set_announcement_as_read': 1,
-                        'set_api_key_as_default': 1,
-                        'set_email_for_subaccount': 1,
-                        'set_email_language': 1,
-                        'set_password_for_subaccount': 1,
-                        'toggle_notifications_from_subaccount': 1,
-                        'toggle_subaccount_login': 1,
+                        'change_api_key_name': { 'cost': 1 },
+                        'change_scope_in_api_key': { 'cost': 1 },
+                        'change_subaccount_name': { 'cost': 1 },
+                        'create_api_key': { 'cost': 1 },
+                        'create_subaccount': { 'cost': 1 },
+                        'disable_api_key': { 'cost': 1 },
+                        'disable_tfa_for_subaccount': { 'cost': 1 },
+                        'enable_affiliate_program': { 'cost': 1 },
+                        'enable_api_key': { 'cost': 1 },
+                        'get_access_log': { 'cost': 1 },
+                        'get_account_summary': { 'cost': 1 },
+                        'get_account_summaries': { 'cost': 1 },
+                        'get_affiliate_program_info': { 'cost': 1 },
+                        'get_currencies': { 'cost': 1 },
+                        'get_email_language': { 'cost': 1 },
+                        'get_new_announcements': { 'cost': 1 },
+                        'get_portfolio_margins': { 'cost': 1 },
+                        'get_position': { 'cost': 1 },
+                        'get_positions': { 'cost': 1 },
+                        'get_subaccounts': { 'cost': 1 },
+                        'get_subaccounts_details': { 'cost': 1 },
+                        'get_transaction_log': { 'cost': 1 },
+                        'list_api_keys': { 'cost': 1 },
+                        'remove_api_key': { 'cost': 1 },
+                        'remove_subaccount': { 'cost': 1 },
+                        'reset_api_key': { 'cost': 1 },
+                        'set_announcement_as_read': { 'cost': 1 },
+                        'set_api_key_as_default': { 'cost': 1 },
+                        'set_disabled_trading_products': { 'cost': 1 },
+                        'set_email_for_subaccount': { 'cost': 1 },
+                        'set_email_language': { 'cost': 1 },
+                        'set_password_for_subaccount': { 'cost': 1 },
+                        'simulate_portfolio': { 'cost': 1 },
+                        'toggle_notifications_from_subaccount': { 'cost': 1 },
+                        'toggle_subaccount_login': { 'cost': 1 },
                         // Block Trade
-                        'execute_block_trade': 4,
-                        'get_block_trade': 1,
-                        'get_last_block_trades_by_currency': 1,
-                        'invalidate_block_trade_signature': 1,
-                        'verify_block_trade': 4,
+                        'approve_block_trade': { 'cost': 1 },
+                        'execute_block_trade': { 'cost': 4 },
+                        'get_block_trade': { 'cost': 1 },
+                        'get_block_trade_requests': { 'cost': 1 },
+                        'get_block_trades': { 'cost': 1 },
+                        'get_last_block_trades_by_currency': { 'cost': 1 },
+                        'invalidate_block_trade_signature': { 'cost': 1 },
+                        'reject_block_trade': { 'cost': 1 },
+                        'simulate_block_trade': { 'cost': 4 },
+                        'verify_block_trade': { 'cost': 4 },
                         // Trading
-                        'buy': 4,
-                        'sell': 4,
-                        'edit': 4,
-                        'edit_by_label': 4,
-                        'cancel': 4,
-                        'cancel_all': 4,
-                        'cancel_all_by_currency': 4,
-                        'cancel_all_by_instrument': 4,
-                        'cancel_by_label': 4,
-                        'close_position': 4,
-                        'get_margins': 1,
-                        'get_mmp_config': 1,
-                        'get_open_orders_by_currency': 1,
-                        'get_open_orders_by_instrument': 1,
-                        'get_order_history_by_currency': 1,
-                        'get_order_history_by_instrument': 1,
-                        'get_order_margin_by_ids': 1,
-                        'get_order_state': 1,
-                        'get_stop_order_history': 1,
-                        'get_trigger_order_history': 1,
-                        'get_user_trades_by_currency': 1,
-                        'get_user_trades_by_currency_and_time': 1,
-                        'get_user_trades_by_instrument': 1,
-                        'get_user_trades_by_instrument_and_time': 1,
-                        'get_user_trades_by_order': 1,
-                        'reset_mmp': 1,
-                        'set_mmp_config': 1,
-                        'get_settlement_history_by_instrument': 1,
-                        'get_settlement_history_by_currency': 1,
+                        'buy': { 'cost': 4 },
+                        'sell': { 'cost': 4 },
+                        'edit': { 'cost': 4 },
+                        'edit_by_label': { 'cost': 4 },
+                        'cancel': { 'cost': 4 },
+                        'cancel_all': { 'cost': 4 },
+                        'cancel_all_by_currency': { 'cost': 4 },
+                        'cancel_all_by_instrument': { 'cost': 4 },
+                        'cancel_by_label': { 'cost': 4 },
+                        'cancel_quotes': { 'cost': 4 },
+                        'close_position': { 'cost': 4 },
+                        'get_margins': { 'cost': 1 },
+                        'get_mmp_config': { 'cost': 1 },
+                        'get_mmp_status': { 'cost': 1 },
+                        'get_open_orders': { 'cost': 1 },
+                        'get_open_orders_by_currency': { 'cost': 1 },
+                        'get_open_orders_by_instrument': { 'cost': 1 },
+                        'get_open_orders_by_label': { 'cost': 1 },
+                        'get_order_history_by_currency': { 'cost': 1 },
+                        'get_order_history_by_instrument': { 'cost': 1 },
+                        'get_order_margin_by_ids': { 'cost': 1 },
+                        'get_order_state': { 'cost': 1 },
+                        'get_order_state_by_label': { 'cost': 1 },
+                        'get_stop_order_history': { 'cost': 1 }, // deprecated
+                        'get_trigger_order_history': { 'cost': 1 },
+                        'get_user_trades_by_currency': { 'cost': 1 },
+                        'get_user_trades_by_currency_and_time': { 'cost': 1 },
+                        'get_user_trades_by_instrument': { 'cost': 1 },
+                        'get_user_trades_by_instrument_and_time': { 'cost': 1 },
+                        'get_user_trades_by_order': { 'cost': 1 },
+                        'mass_quote': { 'cost': 4 },
+                        'move_positions': { 'cost': 4 },
+                        'reset_mmp': { 'cost': 1 },
+                        'set_mmp_config': { 'cost': 1 },
+                        'get_settlement_history_by_instrument': { 'cost': 1 },
+                        'get_settlement_history_by_currency': { 'cost': 1 },
                         // Wallet
-                        'cancel_transfer_by_id': 1,
-                        'cancel_withdrawal': 1,
-                        'create_deposit_address': 1,
-                        'get_current_deposit_address': 1,
-                        'get_deposits': 1,
-                        'get_transfers': 1,
-                        'get_withdrawals': 1,
-                        'submit_transfer_to_subaccount': 1,
-                        'submit_transfer_to_user': 1,
-                        'withdraw': 1,
+                        'add_to_address_book': { 'cost': 1 },
+                        'cancel_transfer_by_id': { 'cost': 1 },
+                        'cancel_withdrawal': { 'cost': 1 },
+                        'create_deposit_address': { 'cost': 1 },
+                        'get_address_book': { 'cost': 1 },
+                        'get_current_deposit_address': { 'cost': 1 },
+                        'get_deposits': { 'cost': 1 },
+                        'get_reward_eligibility': { 'cost': 1 },
+                        'get_transfers': { 'cost': 1 },
+                        'get_withdrawals': { 'cost': 1 },
+                        'remove_from_address_book': { 'cost': 1 },
+                        'set_clearance_originator': { 'cost': 1 },
+                        'submit_transfer_to_subaccount': { 'cost': 1 },
+                        'submit_transfer_to_user': { 'cost': 1 },
+                        'update_in_address_book': { 'cost': 1 },
+                        'withdraw': { 'cost': 1 },
                     },
                 },
             },
@@ -288,7 +313,7 @@ class deribit extends deribit$1["default"] {
                     'sandbox': true,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo
                         // todo implement
                         'triggerPriceType': {
                             'last': true,
@@ -296,8 +321,8 @@ class deribit extends deribit$1["default"] {
                             'index': true,
                         },
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -307,16 +332,16 @@ class deribit extends deribit$1["default"] {
                         },
                         'hedged': false,
                         'selfTradePrevention': false,
-                        'trailing': true,
+                        'trailing': true, // todo
                         'leverage': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': true, // todo
                         'marketBuyRequiresPrice': false,
                         'iceberg': true, // todo
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 100,
+                        'limit': 100, // todo: revise
                         'daysBack': 100000,
                         'untilDays': 100000,
                         'symbolRequired': true, // todo
@@ -371,117 +396,117 @@ class deribit extends deribit$1["default"] {
             },
             'exceptions': {
                 // 0 or absent Success, No error.
-                '9999': errors.PermissionDenied,
-                '10000': errors.AuthenticationError,
-                '10001': errors.ExchangeError,
-                '10002': errors.InvalidOrder,
-                '10003': errors.InvalidOrder,
-                '10004': errors.OrderNotFound,
-                '10005': errors.InvalidOrder,
-                '10006': errors.InvalidOrder,
-                '10007': errors.InvalidOrder,
-                '10008': errors.InvalidOrder,
-                '10009': errors.InsufficientFunds,
-                '10010': errors.OrderNotFound,
-                '10011': errors.InvalidOrder,
-                '10012': errors.InvalidOrder,
-                '10013': errors.PermissionDenied,
-                '10014': errors.PermissionDenied,
-                '10015': errors.PermissionDenied,
-                '10016': errors.PermissionDenied,
-                '10017': errors.PermissionDenied,
-                '10018': errors.PermissionDenied,
-                '10019': errors.PermissionDenied,
-                '10020': errors.ExchangeError,
-                '10021': errors.InvalidOrder,
-                '10022': errors.InvalidOrder,
-                '10023': errors.InvalidOrder,
-                '10024': errors.InvalidOrder,
-                '10025': errors.InvalidOrder,
-                '10026': errors.InvalidOrder,
-                '10027': errors.InvalidOrder,
-                '10028': errors.DDoSProtection,
-                '10029': errors.OrderNotFound,
-                '10030': errors.ExchangeError,
-                '10031': errors.ExchangeError,
-                '10032': errors.InvalidOrder,
-                '10033': errors.NotSupported,
-                '10034': errors.InvalidOrder,
-                '10035': errors.InvalidOrder,
-                '10036': errors.InvalidOrder,
-                '10040': errors.ExchangeNotAvailable,
-                '10041': errors.OnMaintenance,
-                '10043': errors.InvalidOrder,
-                '10044': errors.InvalidOrder,
-                '10045': errors.InvalidOrder,
-                '10046': errors.InvalidOrder,
-                '10047': errors.DDoSProtection,
-                '10048': errors.ExchangeError,
-                '11008': errors.InvalidOrder,
-                '11029': errors.BadRequest,
-                '11030': errors.ExchangeError,
-                '11031': errors.ExchangeError,
-                '11035': errors.DDoSProtection,
-                '11036': errors.InvalidOrder,
-                '11037': errors.BadRequest,
-                '11038': errors.InvalidOrder,
-                '11039': errors.InvalidOrder,
-                '11041': errors.InvalidOrder,
-                '11042': errors.PermissionDenied,
-                '11043': errors.BadRequest,
-                '11044': errors.InvalidOrder,
-                '11045': errors.BadRequest,
-                '11046': errors.BadRequest,
-                '11047': errors.BadRequest,
-                '11048': errors.ExchangeError,
-                '11049': errors.BadRequest,
-                '11050': errors.BadRequest,
-                '11051': errors.OnMaintenance,
-                '11052': errors.ExchangeError,
-                '11053': errors.ExchangeError,
-                '11090': errors.InvalidAddress,
-                '11091': errors.InvalidAddress,
-                '11092': errors.InvalidAddress,
-                '11093': errors.DDoSProtection,
-                '11094': errors.ExchangeError,
-                '11095': errors.ExchangeError,
-                '11096': errors.ExchangeError,
-                '12000': errors.AuthenticationError,
-                '12001': errors.DDoSProtection,
-                '12002': errors.ExchangeError,
-                '12998': errors.AuthenticationError,
-                '12003': errors.AuthenticationError,
-                '12004': errors.AuthenticationError,
-                '12005': errors.AuthenticationError,
-                '12100': errors.ExchangeError,
-                '12999': errors.AuthenticationError,
-                '13000': errors.AuthenticationError,
-                '13001': errors.AuthenticationError,
-                '13002': errors.PermissionDenied,
-                '13003': errors.AuthenticationError,
-                '13004': errors.AuthenticationError,
-                '13005': errors.AuthenticationError,
-                '13006': errors.AuthenticationError,
-                '13007': errors.AuthenticationError,
-                '13008': errors.ExchangeError,
-                '13009': errors.AuthenticationError,
-                '13010': errors.BadRequest,
-                '13011': errors.BadRequest,
-                '13012': errors.PermissionDenied,
-                '13013': errors.BadRequest,
-                '13014': errors.BadRequest,
-                '13015': errors.BadRequest,
-                '13016': errors.BadRequest,
-                '13017': errors.ExchangeError,
-                '13018': errors.ExchangeError,
-                '13019': errors.ExchangeError,
-                '13020': errors.ExchangeError,
-                '13021': errors.PermissionDenied,
-                '13025': errors.ExchangeError,
-                '-32602': errors.BadRequest,
-                '-32601': errors.BadRequest,
-                '-32700': errors.BadRequest,
-                '-32000': errors.BadRequest,
+                '9999': errors.PermissionDenied, // 'api_not_enabled' User didn't enable API for the Account.
+                '10000': errors.AuthenticationError, // 'authorization_required' Authorization issue, invalid or absent signature etc.
+                '10001': errors.ExchangeError, // 'error' Some general failure, no public information available.
+                '10002': errors.InvalidOrder, // 'qty_too_low' Order quantity is too low.
+                '10003': errors.InvalidOrder, // 'order_overlap' Rejection, order overlap is found and self-trading is not enabled.
+                '10004': errors.OrderNotFound, // 'order_not_found' Attempt to operate with order that can't be found by specified id.
+                '10005': errors.InvalidOrder, // 'price_too_low <Limit>' Price is too low, <Limit> defines current limit for the operation.
+                '10006': errors.InvalidOrder, // 'price_too_low4idx <Limit>' Price is too low for current index, <Limit> defines current bottom limit for the operation.
+                '10007': errors.InvalidOrder, // 'price_too_high <Limit>' Price is too high, <Limit> defines current up limit for the operation.
+                '10008': errors.InvalidOrder, // 'price_too_high4idx <Limit>' Price is too high for current index, <Limit> defines current up limit for the operation.
+                '10009': errors.InsufficientFunds, // 'not_enough_funds' Account has not enough funds for the operation.
+                '10010': errors.OrderNotFound, // 'already_closed' Attempt of doing something with closed order.
+                '10011': errors.InvalidOrder, // 'price_not_allowed' This price is not allowed for some reason.
+                '10012': errors.InvalidOrder, // 'book_closed' Operation for instrument which order book had been closed.
+                '10013': errors.PermissionDenied, // 'pme_max_total_open_orders <Limit>' Total limit of open orders has been exceeded, it is applicable for PME users.
+                '10014': errors.PermissionDenied, // 'pme_max_future_open_orders <Limit>' Limit of count of futures' open orders has been exceeded, it is applicable for PME users.
+                '10015': errors.PermissionDenied, // 'pme_max_option_open_orders <Limit>' Limit of count of options' open orders has been exceeded, it is applicable for PME users.
+                '10016': errors.PermissionDenied, // 'pme_max_future_open_orders_size <Limit>' Limit of size for futures has been exceeded, it is applicable for PME users.
+                '10017': errors.PermissionDenied, // 'pme_max_option_open_orders_size <Limit>' Limit of size for options has been exceeded, it is applicable for PME users.
+                '10018': errors.PermissionDenied, // 'non_pme_max_future_position_size <Limit>' Limit of size for futures has been exceeded, it is applicable for non-PME users.
+                '10019': errors.PermissionDenied, // 'locked_by_admin' Trading is temporary locked by admin.
+                '10020': errors.ExchangeError, // 'invalid_or_unsupported_instrument' Instrument name is not valid.
+                '10021': errors.InvalidOrder, // 'invalid_amount' Amount is not valid.
+                '10022': errors.InvalidOrder, // 'invalid_quantity' quantity was not recognized as a valid number (for API v1).
+                '10023': errors.InvalidOrder, // 'invalid_price' price was not recognized as a valid number.
+                '10024': errors.InvalidOrder, // 'invalid_max_show' max_show parameter was not recognized as a valid number.
+                '10025': errors.InvalidOrder, // 'invalid_order_id' Order id is missing or its format was not recognized as valid.
+                '10026': errors.InvalidOrder, // 'price_precision_exceeded' Extra precision of the price is not supported.
+                '10027': errors.InvalidOrder, // 'non_integer_contract_amount' Futures contract amount was not recognized as integer.
+                '10028': errors.DDoSProtection, // 'too_many_requests' Allowed request rate has been exceeded.
+                '10029': errors.OrderNotFound, // 'not_owner_of_order' Attempt to operate with not own order.
+                '10030': errors.ExchangeError, // 'must_be_websocket_request' REST request where Websocket is expected.
+                '10031': errors.ExchangeError, // 'invalid_args_for_instrument' Some of arguments are not recognized as valid.
+                '10032': errors.InvalidOrder, // 'whole_cost_too_low' Total cost is too low.
+                '10033': errors.NotSupported, // 'not_implemented' Method is not implemented yet.
+                '10034': errors.InvalidOrder, // 'stop_price_too_high' Stop price is too high.
+                '10035': errors.InvalidOrder, // 'stop_price_too_low' Stop price is too low.
+                '10036': errors.InvalidOrder, // 'invalid_max_show_amount' Max Show Amount is not valid.
+                '10040': errors.ExchangeNotAvailable, // 'retry' Request can't be processed right now and should be retried.
+                '10041': errors.OnMaintenance, // 'settlement_in_progress' Settlement is in progress. Every day at settlement time for several seconds, the system calculates user profits and updates balances. That time trading is paused for several seconds till the calculation is completed.
+                '10043': errors.InvalidOrder, // 'price_wrong_tick' Price has to be rounded to a certain tick size.
+                '10044': errors.InvalidOrder, // 'stop_price_wrong_tick' Stop Price has to be rounded to a certain tick size.
+                '10045': errors.InvalidOrder, // 'can_not_cancel_liquidation_order' Liquidation order can't be canceled.
+                '10046': errors.InvalidOrder, // 'can_not_edit_liquidation_order' Liquidation order can't be edited.
+                '10047': errors.DDoSProtection, // 'matching_engine_queue_full' Reached limit of pending Matching Engine requests for user.
+                '10048': errors.ExchangeError, // 'not_on_this_server' The requested operation is not available on this server.
+                '11008': errors.InvalidOrder, // 'already_filled' This request is not allowed in regards to the filled order.
+                '11029': errors.BadRequest, // 'invalid_arguments' Some invalid input has been detected.
+                '11030': errors.ExchangeError, // 'other_reject <Reason>' Some rejects which are not considered as very often, more info may be specified in <Reason>.
+                '11031': errors.ExchangeError, // 'other_error <Error>' Some errors which are not considered as very often, more info may be specified in <Error>.
+                '11035': errors.DDoSProtection, // 'no_more_stops <Limit>' Allowed amount of stop orders has been exceeded.
+                '11036': errors.InvalidOrder, // 'invalid_stoppx_for_index_or_last' Invalid StopPx (too high or too low) as to current index or market.
+                '11037': errors.BadRequest, // 'outdated_instrument_for_IV_order' Instrument already not available for trading.
+                '11038': errors.InvalidOrder, // 'no_adv_for_futures' Advanced orders are not available for futures.
+                '11039': errors.InvalidOrder, // 'no_adv_postonly' Advanced post-only orders are not supported yet.
+                '11041': errors.InvalidOrder, // 'not_adv_order' Advanced order properties can't be set if the order is not advanced.
+                '11042': errors.PermissionDenied, // 'permission_denied' Permission for the operation has been denied.
+                '11043': errors.BadRequest, // 'bad_argument' Bad argument has been passed.
+                '11044': errors.InvalidOrder, // 'not_open_order' Attempt to do open order operations with the not open order.
+                '11045': errors.BadRequest, // 'invalid_event' Event name has not been recognized.
+                '11046': errors.BadRequest, // 'outdated_instrument' At several minutes to instrument expiration, corresponding advanced implied volatility orders are not allowed.
+                '11047': errors.BadRequest, // 'unsupported_arg_combination' The specified combination of arguments is not supported.
+                '11048': errors.ExchangeError, // 'wrong_max_show_for_option' Wrong Max Show for options.
+                '11049': errors.BadRequest, // 'bad_arguments' Several bad arguments have been passed.
+                '11050': errors.BadRequest, // 'bad_request' Request has not been parsed properly.
+                '11051': errors.OnMaintenance, // 'system_maintenance' System is under maintenance.
+                '11052': errors.ExchangeError, // 'subscribe_error_unsubscribed' Subscription error. However, subscription may fail without this error, please check list of subscribed channels returned, as some channels can be not subscribed due to wrong input or lack of permissions.
+                '11053': errors.ExchangeError, // 'transfer_not_found' Specified transfer is not found.
+                '11090': errors.InvalidAddress, // 'invalid_addr' Invalid address.
+                '11091': errors.InvalidAddress, // 'invalid_transfer_address' Invalid addres for the transfer.
+                '11092': errors.InvalidAddress, // 'address_already_exist' The address already exists.
+                '11093': errors.DDoSProtection, // 'max_addr_count_exceeded' Limit of allowed addresses has been reached.
+                '11094': errors.ExchangeError, // 'internal_server_error' Some unhandled error on server. Please report to admin. The details of the request will help to locate the problem.
+                '11095': errors.ExchangeError, // 'disabled_deposit_address_creation' Deposit address creation has been disabled by admin.
+                '11096': errors.ExchangeError, // 'address_belongs_to_user' Withdrawal instead of transfer.
+                '12000': errors.AuthenticationError, // 'bad_tfa' Wrong TFA code
+                '12001': errors.DDoSProtection, // 'too_many_subaccounts' Limit of subbacounts is reached.
+                '12002': errors.ExchangeError, // 'wrong_subaccount_name' The input is not allowed as name of subaccount.
+                '12998': errors.AuthenticationError, // 'tfa_over_limit' The number of failed TFA attempts is limited.
+                '12003': errors.AuthenticationError, // 'login_over_limit' The number of failed login attempts is limited.
+                '12004': errors.AuthenticationError, // 'registration_over_limit' The number of registration requests is limited.
+                '12005': errors.AuthenticationError, // 'country_is_banned' The country is banned (possibly via IP check).
+                '12100': errors.ExchangeError, // 'transfer_not_allowed' Transfer is not allowed. Possible wrong direction or other mistake.
+                '12999': errors.AuthenticationError, // 'tfa_used' TFA code is correct but it is already used. Please, use next code.
+                '13000': errors.AuthenticationError, // 'invalid_login' Login name is invalid (not allowed or it contains wrong characters).
+                '13001': errors.AuthenticationError, // 'account_not_activated' Account must be activated.
+                '13002': errors.PermissionDenied, // 'account_blocked' Account is blocked by admin.
+                '13003': errors.AuthenticationError, // 'tfa_required' This action requires TFA authentication.
+                '13004': errors.AuthenticationError, // 'invalid_credentials' Invalid credentials has been used.
+                '13005': errors.AuthenticationError, // 'pwd_match_error' Password confirmation error.
+                '13006': errors.AuthenticationError, // 'security_error' Invalid Security Code.
+                '13007': errors.AuthenticationError, // 'user_not_found' User's security code has been changed or wrong.
+                '13008': errors.ExchangeError, // 'request_failed' Request failed because of invalid input or internal failure.
+                '13009': errors.AuthenticationError, // 'unauthorized' Wrong or expired authorization token or bad signature. For example, please check scope of the token, 'connection' scope can't be reused for other connections.
+                '13010': errors.BadRequest, // 'value_required' Invalid input, missing value.
+                '13011': errors.BadRequest, // 'value_too_short' Input is too short.
+                '13012': errors.PermissionDenied, // 'unavailable_in_subaccount' Subaccount restrictions.
+                '13013': errors.BadRequest, // 'invalid_phone_number' Unsupported or invalid phone number.
+                '13014': errors.BadRequest, // 'cannot_send_sms' SMS sending failed -- phone number is wrong.
+                '13015': errors.BadRequest, // 'invalid_sms_code' Invalid SMS code.
+                '13016': errors.BadRequest, // 'invalid_input' Invalid input.
+                '13017': errors.ExchangeError, // 'subscription_failed' Subscription hailed, invalid subscription parameters.
+                '13018': errors.ExchangeError, // 'invalid_content_type' Invalid content type of the request.
+                '13019': errors.ExchangeError, // 'orderbook_closed' Closed, expired order book.
+                '13020': errors.ExchangeError, // 'not_found' Instrument is not found, invalid instrument name.
+                '13021': errors.PermissionDenied, // 'forbidden' Not enough permissions to execute the request, forbidden.
+                '13025': errors.ExchangeError, // 'method_switched_off_by_admin' API method temporarily switched off by administrator.
+                '-32602': errors.BadRequest, // 'Invalid params' see JSON-RPC spec.
+                '-32601': errors.BadRequest, // 'Method not found' see JSON-RPC spec.
+                '-32700': errors.BadRequest, // 'Parse error' see JSON-RPC spec.
+                '-32000': errors.BadRequest, // 'Missing params' see JSON-RPC spec.
                 '11054': errors.InvalidOrder, // 'post_only_reject' post order would be filled immediately
             },
             'precisionMode': number.TICK_SIZE,
@@ -523,6 +548,9 @@ class deribit extends deribit$1["default"] {
             settle = base;
         }
         let splitBase = base;
+        if (base === undefined) {
+            throw new errors.ExchangeError(this.id + ' createExpiredOptionMarket() missing base');
+        }
         if (base.indexOf('_') > -1) {
             const splitSymbol = base.split('_');
             splitBase = this.safeString(splitSymbol, 0);
@@ -531,9 +559,11 @@ class deribit extends deribit$1["default"] {
         const optionType = this.safeString(optionParts, 3);
         const datetime = this.convertExpireDate(expiry);
         const timestamp = this.parse8601(datetime);
+        const id = base + '-' + this.convertExpireDateToMarketIdDate(expiry) + '-' + strike + '-' + optionType;
+        const symbolExpired = splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType;
         return {
-            'id': base + '-' + this.convertExpireDateToMarketIdDate(expiry) + '-' + strike + '-' + optionType,
-            'symbol': splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'id': id,
+            'symbol': symbolExpired,
             'base': base,
             'quote': quote,
             'settle': settle,
@@ -578,7 +608,7 @@ class deribit extends deribit$1["default"] {
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const isOption = (marketId !== undefined) && ((marketId.endsWith('-C')) || (marketId.endsWith('-P')));
-        if (isOption && !(marketId in this.markets_by_id)) {
+        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
@@ -641,46 +671,44 @@ class deribit extends deribit$1["default"] {
         //    }
         //
         const data = this.safeList(response, 'result', []);
-        const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const currency = data[i];
-            const currencyId = this.safeString(currency, 'currency');
-            const code = this.safeCurrencyCode(currencyId);
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': this.safeString(currency, 'currency_long'),
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'type': 'crypto',
-                'fee': this.safeNumber(currency, 'withdrawal_fee'),
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+        return this.parseCurrencies(data);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'currency');
+        const code = this.safeCurrencyCode(currencyId);
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'name': this.safeString(rawCurrency, 'currency_long'),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'type': 'crypto',
+            'fee': this.safeNumber(rawCurrency, 'withdrawal_fee'),
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'networks': undefined,
-            });
-        }
-        return result;
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': undefined,
+        });
     }
     codeFromOptions(methodName, params = {}) {
-        const defaultCode = this.safeValue(this.options, 'code', 'BTC');
-        const options = this.safeValue(this.options, methodName, {});
-        const code = this.safeValue(options, 'code', defaultCode);
-        return this.safeValue(params, 'code', code);
+        const defaultCode = this.safeString(this.options, 'code', 'BTC');
+        const options = this.safeDict(this.options, methodName, {});
+        const code = this.safeString(options, 'code', defaultCode);
+        return this.safeString(params, 'code', code);
     }
     /**
      * @method
@@ -704,7 +732,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result');
+        const result = this.safeDict(response, 'result');
         const locked = this.safeString(result, 'locked');
         const updateTime = this.safeIntegerProduct(response, 'usIn', 0.001, this.milliseconds());
         return {
@@ -724,7 +752,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetGetSubaccounts(params);
         //
         //     {
@@ -760,7 +790,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', []);
+        const result = this.safeList(response, 'result', []);
         return this.parseAccounts(result);
     }
     parseAccount(account) {
@@ -798,14 +828,13 @@ class deribit extends deribit$1["default"] {
         const instrumentsResponses = [];
         const result = [];
         const parsedMarkets = {};
-        let fetchAllMarkets = undefined;
-        [fetchAllMarkets, params] = this.handleOptionAndParams(params, 'fetchMarkets', 'fetchAllMarkets', true);
+        const [fetchAllMarkets, paramsFetchAllMarkets] = this.handleOptionBoolAndParams(params, 'fetchMarkets', 'fetchAllMarkets', true);
         if (fetchAllMarkets) {
-            const instrumentsResponse = await this.publicGetGetInstruments(params);
+            const instrumentsResponse = await this.publicGetGetInstruments(paramsFetchAllMarkets);
             instrumentsResponses.push(instrumentsResponse);
         }
         else {
-            const currenciesResponse = await this.publicGetGetCurrencies(params);
+            const currenciesResponse = await this.publicGetGetCurrencies(paramsFetchAllMarkets);
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -830,13 +859,13 @@ class deribit extends deribit$1["default"] {
             //         "testnet": false
             //     }
             //
-            const currenciesResult = this.safeValue(currenciesResponse, 'result', []);
+            const currenciesResult = this.safeList(currenciesResponse, 'result', []);
             for (let i = 0; i < currenciesResult.length; i++) {
                 const currencyId = this.safeString(currenciesResult[i], 'currency');
                 const request = {
                     'currency': currencyId,
                 };
-                const instrumentsResponse = await this.publicGetGetInstruments(this.extend(request, params));
+                const instrumentsResponse = await this.publicGetGetInstruments(this.extend(request, paramsFetchAllMarkets));
                 //
                 //     {
                 //         "jsonrpc":"2.0",
@@ -914,7 +943,7 @@ class deribit extends deribit$1["default"] {
             }
         }
         for (let i = 0; i < instrumentsResponses.length; i++) {
-            const instrumentsResult = this.safeValue(instrumentsResponses[i], 'result', []);
+            const instrumentsResult = this.safeList(instrumentsResponses[i], 'result', []);
             for (let k = 0; k < instrumentsResult.length; k++) {
                 const market = instrumentsResult[k];
                 const kind = this.safeString(market, 'kind');
@@ -925,11 +954,23 @@ class deribit extends deribit$1["default"] {
                 const settleId = this.safeString(market, 'settlement_currency');
                 const base = this.safeCurrencyCode(baseId);
                 const quote = this.safeCurrencyCode(quoteId);
+                if ((base === undefined) || (quote === undefined)) {
+                    continue;
+                }
                 const settle = this.safeCurrencyCode(settleId);
-                const settlementPeriod = this.safeValue(market, 'settlement_period');
+                const settlementPeriod = this.safeString(market, 'settlement_period');
                 const swap = (settlementPeriod === 'perpetual');
+                if (kind === undefined) {
+                    throw new errors.ExchangeError(this.id + ' method() missing kind');
+                }
                 const future = !swap && (kind.indexOf('future') >= 0);
+                if (kind === undefined) {
+                    throw new errors.ExchangeError(this.id + ' method() missing kind');
+                }
                 const option = (kind.indexOf('option') >= 0);
+                if (kind === undefined) {
+                    throw new errors.ExchangeError(this.id + ' method() missing kind');
+                }
                 const isComboMarket = kind.indexOf('combo') >= 0;
                 const expiry = this.safeInteger(market, 'expiration_timestamp');
                 let strike = undefined;
@@ -964,11 +1005,13 @@ class deribit extends deribit$1["default"] {
                     inverse = (quote !== settle);
                     linear = (settle === quote);
                 }
-                const parsedMarketValue = this.safeValue(parsedMarkets, symbol);
-                if (parsedMarketValue) {
+                const parsedMarketValue = this.safeBool(parsedMarkets, symbol);
+                if (parsedMarketValue !== undefined) {
                     continue;
                 }
-                parsedMarkets[symbol] = true;
+                if (symbol !== undefined) {
+                    parsedMarkets[symbol] = true;
+                }
                 const minTradeAmount = this.safeNumber(market, 'min_trade_amount');
                 const tickSize = this.safeNumber(market, 'tick_size');
                 result.push({
@@ -986,7 +1029,7 @@ class deribit extends deribit$1["default"] {
                     'swap': swap,
                     'future': future,
                     'option': option,
-                    'active': this.safeValue(market, 'is_active'),
+                    'active': this.safeBool(market, 'is_active'),
                     'contract': !isSpot,
                     'linear': linear,
                     'inverse': inverse,
@@ -1032,20 +1075,22 @@ class deribit extends deribit$1["default"] {
         };
         let summaries = [];
         if ('summaries' in balance) {
-            summaries = this.safeList(balance, 'summaries');
+            summaries = this.safeList(balance, 'summaries', []);
         }
         else {
             summaries = [balance];
         }
         for (let i = 0; i < summaries.length; i++) {
-            const data = summaries[i];
+            const data = this.safeDict(summaries, i);
             const currencyId = this.safeString(data, 'currency');
             const currencyCode = this.safeCurrencyCode(currencyId);
             const account = this.account();
             account['free'] = this.safeString(data, 'available_funds');
             account['used'] = this.safeString(data, 'maintenance_margin');
             account['total'] = this.safeString(data, 'equity');
-            result[currencyCode] = account;
+            if (currencyCode !== undefined) {
+                result[currencyCode] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1060,19 +1105,21 @@ class deribit extends deribit$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const code = this.safeString(params, 'code');
-        params = this.omit(params, 'code');
+        const paramsOmitted = this.omit(params, 'code');
         const request = {};
         if (code !== undefined) {
             request['currency'] = this.currencyId(code);
         }
         let response = undefined;
         if (code === undefined) {
-            response = await this.privateGetGetAccountSummaries(params);
+            response = await this.privateGetGetAccountSummaries(paramsOmitted);
         }
         else {
-            response = await this.privateGetGetAccountSummary(this.extend(request, params));
+            response = await this.privateGetGetAccountSummary(this.extend(request, paramsOmitted));
         }
         //
         //     {
@@ -1129,7 +1176,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async createDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
@@ -1147,7 +1196,7 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const address = this.safeString(result, 'address');
         this.checkAddress(address);
         return {
@@ -1168,7 +1217,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
@@ -1191,7 +1242,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const address = this.safeString(result, 'address');
         this.checkAddress(address);
         return {
@@ -1253,7 +1304,7 @@ class deribit extends deribit$1["default"] {
         const marketId = this.safeString(ticker, 'instrument_name');
         const symbol = this.safeSymbol(marketId, market);
         const last = this.safeString2(ticker, 'last_price', 'last');
-        const stats = this.safeValue(ticker, 'stats', ticker);
+        const stats = this.safeDict(ticker, 'stats', ticker);
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1272,8 +1323,8 @@ class deribit extends deribit$1["default"] {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeString(stats, 'volume'),
+            'baseVolume': this.safeString(stats, 'volume'),
+            'quoteVolume': this.safeString2(stats, 'volume_notional', 'volume_usd'),
             'markPrice': this.safeString(ticker, 'mark_price'),
             'indexPrice': this.safeString(ticker, 'index_price'),
             'info': ticker,
@@ -1289,7 +1340,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
@@ -1323,7 +1376,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         return this.parseTicker(result, market);
     }
     /**
@@ -1337,20 +1390,22 @@ class deribit extends deribit$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
         let code = this.safeString2(params, 'code', 'currency');
         let type = undefined;
-        params = this.omit(params, ['code']);
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const market = this.market(symbols[i]);
+        const paramsOmitted = this.omit(params, ['code']);
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const market = this.market(symbolsNormalized[i]);
                 if (code !== undefined && code !== market['base']) {
                     throw new errors.BadRequest(this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency');
                 }
                 if (code === undefined) {
-                    code = market['base'];
-                    type = market['type'];
+                    code = this.safeString(market, 'base');
+                    type = this.safeString(market, 'type');
                 }
             }
         }
@@ -1376,7 +1431,7 @@ class deribit extends deribit$1["default"] {
                 request['kind'] = requestType;
             }
         }
-        const response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, params));
+        const response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, paramsOmitted));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -1412,9 +1467,11 @@ class deribit extends deribit$1["default"] {
         for (let i = 0; i < result.length; i++) {
             const ticker = this.parseTicker(result[i]);
             const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                tickers[symbol] = ticker;
+            }
         }
-        return this.filterByArrayTickers(tickers, 'symbol', symbols);
+        return this.filterByArrayTickers(tickers, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -1431,11 +1488,12 @@ class deribit extends deribit$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 5000);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 5000);
         }
         const market = this.market(symbol);
         const request = {
@@ -1444,29 +1502,29 @@ class deribit extends deribit$1["default"] {
         };
         const duration = this.parseTimeframe(timeframe);
         const now = this.milliseconds();
+        // at max, it provides 5000 bars, but we set generous default here
+        const windowLimit = (limit === undefined) ? 1000 : limit;
+        const limitResolved = (since === undefined) ? windowLimit : limit;
+        const sinceResolved = (since === undefined) ? undefined : Math.max(since - 1, 0);
         if (since === undefined) {
-            if (limit === undefined) {
-                limit = 1000; // at max, it provides 5000 bars, but we set generous default here
-            }
-            request['start_timestamp'] = now - (limit - 1) * duration * 1000;
+            request['start_timestamp'] = now - (windowLimit - 1) * duration * 1000;
             request['end_timestamp'] = now;
         }
         else {
-            since = Math.max(since - 1, 0);
-            request['start_timestamp'] = since;
+            request['start_timestamp'] = sinceResolved;
             if (limit === undefined) {
                 request['end_timestamp'] = now;
             }
             else {
-                request['end_timestamp'] = this.sum(since, limit * duration * 1000);
+                request['end_timestamp'] = this.sum(sinceResolved, limit * duration * 1000);
             }
         }
-        const until = this.safeInteger(params, 'until');
+        const until = this.safeInteger(paramsPaginate, 'until');
+        const paramsOmitted = (until !== undefined) ? this.omit(paramsPaginate, 'until') : paramsPaginate;
         if (until !== undefined) {
-            params = this.omit(params, 'until');
             request['end_timestamp'] = until;
         }
-        const response = await this.publicGetGetTradingviewChartData(this.extend(request, params));
+        const response = await this.publicGetGetTradingviewChartData(this.extend(request, paramsOmitted));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -1486,9 +1544,9 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const ohlcvs = this.convertTradingViewToOHLCV(result, 'ticks', 'open', 'high', 'low', 'close', 'volume', true);
-        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, sinceResolved, limitResolved);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1539,12 +1597,12 @@ class deribit extends deribit$1["default"] {
         const timestamp = this.safeInteger(trade, 'timestamp');
         const side = this.safeString(trade, 'direction');
         const priceString = this.safeString(trade, 'price');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         // Amount for inverse perpetual and futures is in USD which in ccxt is the cost
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         const amount = this.safeString(trade, 'amount');
         let cost = Precise["default"].stringMul(amount, priceString);
-        if (market['inverse']) {
+        if (marketResolved['inverse'] === true) {
             cost = Precise["default"].stringDiv(amount, priceString);
         }
         const liquidity = this.safeString(trade, 'liquidity');
@@ -1577,7 +1635,7 @@ class deribit extends deribit$1["default"] {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1593,7 +1651,9 @@ class deribit extends deribit$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
@@ -1606,16 +1666,16 @@ class deribit extends deribit$1["default"] {
             request['count'] = Math.min(limit, 1000); // default 10
         }
         const until = this.safeInteger2(params, 'until', 'end_timestamp');
+        const paramsOmitted = (until !== undefined) ? this.omit(params, ['until']) : params;
         if (until !== undefined) {
-            params = this.omit(params, ['until']);
             request['end_timestamp'] = until;
         }
         let response = undefined;
         if ((since === undefined) && !('end_timestamp' in request)) {
-            response = await this.publicGetGetLastTradesByInstrument(this.extend(request, params));
+            response = await this.publicGetGetLastTradesByInstrument(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.publicGetGetLastTradesByInstrumentAndTime(this.extend(request, params));
+            response = await this.publicGetGetLastTradesByInstrumentAndTime(this.extend(request, paramsOmitted));
         }
         //
         //      {
@@ -1642,7 +1702,7 @@ class deribit extends deribit$1["default"] {
         //          "testnet":false
         //      }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const trades = this.safeList(result, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
@@ -1655,7 +1715,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const code = this.codeFromOptions('fetchTradingFees', params);
         const currency = this.currency(code);
         const request = {
@@ -1712,8 +1774,8 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const fees = this.safeValue(result, 'fees', []);
+        const result = this.safeDict(response, 'result', {});
+        const fees = this.safeList(result, 'fees', []);
         let perpetualFee = {};
         let futureFee = {};
         let optionFee = {};
@@ -1743,8 +1805,9 @@ class deribit extends deribit$1["default"] {
             }
         }
         const parsedFees = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
             let fee = {
                 'info': market,
@@ -1754,13 +1817,13 @@ class deribit extends deribit$1["default"] {
                 'maker': market['maker'],
                 'taker': market['taker'],
             };
-            if (market['swap']) {
+            if (market['swap'] === true) {
                 fee = this.extend(fee, perpetualFee);
             }
-            else if (market['future']) {
+            else if (market['future'] === true) {
                 fee = this.extend(fee, futureFee);
             }
-            else if (market['option']) {
+            else if (market['option'] === true) {
                 fee = this.extend(fee, optionFee);
             }
             parsedFees[symbol] = fee;
@@ -1775,10 +1838,12 @@ class deribit extends deribit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
@@ -1826,7 +1891,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const timestamp = this.safeInteger(result, 'timestamp');
         const nonce = this.safeInteger(result, 'change_id');
         const orderbook = this.parseOrderBook(result, market['symbol'], timestamp);
@@ -1889,7 +1954,7 @@ class deribit extends deribit$1["default"] {
         //     }
         //
         const marketId = this.safeString(order, 'instrument_name');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(order, 'creation_timestamp');
         const lastUpdate = this.safeInteger(order, 'last_update_timestamp');
         const id = this.safeString(order, 'order_id');
@@ -1903,7 +1968,7 @@ class deribit extends deribit$1["default"] {
         const filledString = this.safeString(order, 'filled_amount');
         const amount = this.safeString(order, 'amount');
         let cost = Precise["default"].stringMul(filledString, averageString);
-        if (this.safeBool(market, 'inverse')) {
+        if (this.safeBool(marketResolved, 'inverse', false)) {
             if (averageString !== '0') {
                 cost = Precise["default"].stringDiv(amount, averageString);
             }
@@ -1923,15 +1988,15 @@ class deribit extends deribit$1["default"] {
             feeCostString = Precise["default"].stringAbs(feeCostString);
             fee = {
                 'cost': feeCostString,
-                'currency': market['base'],
+                'currency': marketResolved['base'],
             };
         }
         const rawType = this.safeString(order, 'order_type');
         const type = this.parseOrderType(rawType);
         // injected in createOrder
-        const trades = this.safeValue(order, 'trades');
+        const trades = this.safeList(order, 'trades');
         const timeInForce = this.parseTimeInForce(this.safeString(order, 'time_in_force'));
-        const postOnly = this.safeValue(order, 'post_only');
+        const postOnly = this.safeBool(order, 'post_only');
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -1939,13 +2004,13 @@ class deribit extends deribit$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
             'price': priceString,
-            'triggerPrice': this.safeValue(order, 'stop_price'),
+            'triggerPrice': this.safeNumber(order, 'stop_price'),
             'amount': amount,
             'cost': cost,
             'average': averageString,
@@ -1954,7 +2019,7 @@ class deribit extends deribit$1["default"] {
             'status': status,
             'fee': fee,
             'trades': trades,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1967,7 +2032,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'order_id': id,
         };
@@ -2004,7 +2071,7 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         return this.parseOrder(result, market);
     }
     /**
@@ -2024,7 +2091,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
@@ -2043,7 +2112,7 @@ class deribit extends deribit$1["default"] {
         };
         const trigger = this.safeString(params, 'trigger', 'last_price');
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
-        const reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only');
+        const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         // only stop loss sell orders are allowed when price crossed from above
         const stopLossPrice = this.safeValue(params, 'stopLossPrice');
         // only take profit buy orders are allowed when price crossed from below
@@ -2101,7 +2170,7 @@ class deribit extends deribit$1["default"] {
                 }
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduce_only'] = true;
         }
         if (postOnly) {
@@ -2119,13 +2188,13 @@ class deribit extends deribit$1["default"] {
                 request['time_in_force'] = 'fill_or_kill';
             }
         }
-        params = this.omit(params, ['timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'trailingAmount']);
+        const paramsOmitted = this.omit(params, ['timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'trailingAmount']);
         let response = undefined;
         if (this.capitalize(side) === 'Buy') {
-            response = await this.privateGetBuy(this.extend(request, params));
+            response = await this.privateGetBuy(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privateGetSell(this.extend(request, params));
+            response = await this.privateGetSell(this.extend(request, paramsOmitted));
         }
         //
         //     {
@@ -2179,9 +2248,9 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const order = this.safeValue(result, 'order');
-        const trades = this.safeValue(result, 'trades', []);
+        const trades = this.safeList(result, 'trades', []);
         order['trades'] = trades;
         return this.parseOrder(order, market);
     }
@@ -2204,7 +2273,9 @@ class deribit extends deribit$1["default"] {
         if (amount === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an amount argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'order_id': id,
             'amount': this.amountToPrecision(symbol, amount),
@@ -2219,14 +2290,17 @@ class deribit extends deribit$1["default"] {
         }
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'trigger_offset');
         const isTrailingAmountOrder = trailingAmount !== undefined;
+        let paramsOmitted = params;
+        if (isTrailingAmountOrder) {
+            paramsOmitted = this.omit(params, 'trigger_offset');
+        }
         if (isTrailingAmountOrder) {
             request['trigger_offset'] = this.parseToNumeric(trailingAmount);
-            params = this.omit(params, 'trigger_offset');
         }
-        const response = await this.privateGetEdit(this.extend(request, params));
-        const result = this.safeValue(response, 'result', {});
+        const response = await this.privateGetEdit(this.extend(request, paramsOmitted));
+        const result = this.safeDict(response, 'result', {});
         const order = this.safeValue(result, 'order');
-        const trades = this.safeValue(result, 'trades', []);
+        const trades = this.safeList(result, 'trades', []);
         order['trades'] = trades;
         return this.parseOrder(order);
     }
@@ -2236,12 +2310,14 @@ class deribit extends deribit$1["default"] {
      * @description cancels an open order
      * @see https://docs.deribit.com/#private-cancel
      * @param {string} id order id
-     * @param {string} symbol not used by deribit cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'order_id': id,
         };
@@ -2255,12 +2331,14 @@ class deribit extends deribit$1["default"] {
      * @description cancel all open orders
      * @see https://docs.deribit.com/#private-cancel_all
      * @see https://docs.deribit.com/#private-cancel_all_by_instrument
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let response = undefined;
         if (symbol === undefined) {
@@ -2300,7 +2378,9 @@ class deribit extends deribit$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         let response = undefined;
@@ -2331,7 +2411,9 @@ class deribit extends deribit$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         let response = undefined;
@@ -2368,7 +2450,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'order_id': id,
         };
@@ -2424,7 +2508,9 @@ class deribit extends deribit$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'include_old': true,
         };
@@ -2489,7 +2575,7 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const trades = this.safeList(result, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
@@ -2508,7 +2594,9 @@ class deribit extends deribit$1["default"] {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDeposits() requires a currency code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
@@ -2537,7 +2625,7 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const data = this.safeList(result, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
@@ -2556,7 +2644,9 @@ class deribit extends deribit$1["default"] {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawals() requires a currency code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
@@ -2589,7 +2679,7 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const data = this.safeList(result, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
@@ -2697,7 +2787,7 @@ class deribit extends deribit$1["default"] {
         //     }
         //
         const contract = this.safeString(position, 'instrument_name');
-        market = this.safeMarket(contract, market);
+        const marketResolved = this.safeMarket(contract, market);
         let side = this.safeString(position, 'direction');
         side = (side === 'buy') ? 'long' : 'short';
         const unrealizedPnl = this.safeString(position, 'floating_profit_loss');
@@ -2708,7 +2798,7 @@ class deribit extends deribit$1["default"] {
         return this.safePosition({
             'info': position,
             'id': undefined,
-            'symbol': this.safeString(market, 'symbol'),
+            'symbol': this.safeString(marketResolved, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
             'lastUpdateTimestamp': undefined,
@@ -2746,7 +2836,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
@@ -2778,7 +2870,7 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         return this.parsePosition(result);
     }
     /**
@@ -2794,15 +2886,17 @@ class deribit extends deribit$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const code = this.safeString(params, 'currency');
         const request = {};
+        const paramsOmitted = (code !== undefined) ? this.omit(params, 'currency') : params;
         if (code !== undefined) {
-            params = this.omit(params, 'currency');
             const currency = this.currency(code);
             request['currency'] = currency['id'];
         }
-        const response = await this.privateGetGetPositions(this.extend(request, params));
+        const response = await this.privateGetGetPositions(this.extend(request, paramsOmitted));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2845,7 +2939,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
      */
     async fetchVolatilityHistory(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
@@ -2882,7 +2978,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const volatilityResult = this.safeValue(volatility, 'result', []);
+        const volatilityResult = this.safeList(volatility, 'result', []);
         const result = [];
         for (let i = 0; i < volatilityResult.length; i++) {
             const timestamp = this.safeInteger(volatilityResult[i], 0);
@@ -2911,7 +3007,9 @@ class deribit extends deribit$1["default"] {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchTransfers() requires a currency code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
@@ -2953,7 +3051,7 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const transfers = this.safeList(result, 'data', []);
         return this.parseTransfers(transfers, currency, since, limit, params);
     }
@@ -2971,7 +3069,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'amount': amount,
@@ -2979,17 +3079,17 @@ class deribit extends deribit$1["default"] {
             'destination': toAccount,
         };
         let method = this.safeString(params, 'method');
-        params = this.omit(params, 'method');
+        const paramsOmitted = this.omit(params, 'method');
         if (method === undefined) {
-            const transferOptions = this.safeValue(this.options, 'transfer', {});
+            const transferOptions = this.safeDict(this.options, 'transfer', {});
             method = this.safeString(transferOptions, 'method', 'privateGetSubmitTransferToSubaccount');
         }
         let response = undefined;
         if (method === 'privateGetSubmitTransferToUser') {
-            response = await this.privateGetSubmitTransferToUser(this.extend(request, params));
+            response = await this.privateGetSubmitTransferToUser(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privateGetSubmitTransferToSubaccount(this.extend(request, params));
+            response = await this.privateGetSubmitTransferToSubaccount(this.extend(request, paramsOmitted));
         }
         //
         //     {
@@ -3025,7 +3125,7 @@ class deribit extends deribit$1["default"] {
         //         "amount": 13.456
         //     }
         //
-        const timestamp = this.safeTimestamp(transfer, 'created_timestamp');
+        const timestamp = this.safeInteger(transfer, 'created_timestamp');
         const status = this.safeString(transfer, 'state');
         const account = this.safeString(transfer, 'other_side');
         const direction = this.safeString(transfer, 'direction');
@@ -3064,13 +3164,16 @@ class deribit extends deribit$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const tagAndParams = this.handleWithdrawTagAndParams(tag, params);
+        const paramsWithdrawTag = tagAndParams[1];
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
-            'address': address,
+            'address': address, // must be in the address book
             'amount': amount,
             // 'priority': 'high', // low, mid, high, very_high, extreme_high, insane
             // 'tfa': '123456', // if enabled
@@ -3078,7 +3181,7 @@ class deribit extends deribit$1["default"] {
         if (this.twofa !== undefined) {
             request['tfa'] = totp.totp(this.twofa);
         }
-        const response = await this.privateGetWithdraw(this.extend(request, params));
+        const response = await this.privateGetWithdraw(this.extend(request, paramsWithdrawTag));
         return this.parseTransaction(response, currency);
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
@@ -3117,7 +3220,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetGetCurrencies(params);
         //
         //    {
@@ -3156,12 +3261,14 @@ class deribit extends deribit$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const time = this.milliseconds();
         const request = {
             'instrument_name': market['id'],
-            'start_timestamp': time - (8 * 60 * 60 * 1000),
+            'start_timestamp': time - (8 * 60 * 60 * 1000), // 8h ago,
             'end_timestamp': time,
         };
         const response = await this.publicGetGetFundingRateValue(this.extend(request, params));
@@ -3191,43 +3298,48 @@ class deribit extends deribit$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         const maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
         const eachItemDuration = '1h';
         if (paginate) {
             // fix for: https://github.com/ccxt/ccxt/issues/25040
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, this.extend(params, { 'isDeribitPaginationCall': true }), maxEntriesPerRequest);
+            const paginationParams = this.extend(paramsPaginate, { 'isDeribitPaginationCall': true });
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest);
         }
         const duration = this.parseTimeframe(eachItemDuration) * 1000;
-        let time = this.milliseconds();
+        const now = this.milliseconds();
         const month = 30 * 24 * 60 * 60 * 1000;
-        if (since === undefined) {
-            since = time - month;
-        }
-        else {
-            time = since + month;
-        }
+        const sinceResolved = (since === undefined) ? now - month : since;
+        const time = (since === undefined) ? now : since + month;
         const request = {
             'instrument_name': market['id'],
-            'start_timestamp': since - 1,
+            'start_timestamp': sinceResolved - 1,
         };
-        const until = this.safeInteger2(params, 'until', 'end_timestamp');
+        const until = this.safeInteger2(paramsPaginate, 'until', 'end_timestamp');
+        const paramsUntil = (until !== undefined) ? this.omit(paramsPaginate, ['until']) : paramsPaginate;
         if (until !== undefined) {
-            params = this.omit(params, ['until']);
             request['end_timestamp'] = until;
         }
         else {
             request['end_timestamp'] = time;
         }
-        if ('isDeribitPaginationCall' in params) {
-            params = this.omit(params, 'isDeribitPaginationCall');
-            const maxUntil = this.sum(since, limit * duration);
+        const isPaginationCall = ('isDeribitPaginationCall' in paramsUntil);
+        let paramsOmitted = paramsUntil;
+        if (isPaginationCall) {
+            paramsOmitted = this.omit(paramsUntil, 'isDeribitPaginationCall');
+        }
+        if (isPaginationCall) {
+            if (limit === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a limit argument');
+            }
+            const maxUntil = this.sum(sinceResolved, limit * duration);
             request['end_timestamp'] = Math.min(request['end_timestamp'], maxUntil);
         }
-        const response = await this.publicGetGetFundingRateHistory(this.extend(request, params));
+        const response = await this.publicGetGetFundingRateHistory(this.extend(request, paramsOmitted));
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -3244,13 +3356,13 @@ class deribit extends deribit$1["default"] {
         //    }
         //
         const rates = [];
-        const result = this.safeValue(response, 'result', []);
+        const result = this.safeList(response, 'result', []);
         for (let i = 0; i < result.length; i++) {
-            const fr = result[i];
+            const fr = this.safeDict(result, i);
             const rate = this.parseFundingRate(fr, market);
             rates.push(rate);
         }
-        return this.filterBySymbolSinceLimit(rates, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(rates, symbol, sinceResolved, limit);
     }
     parseFundingRate(contract, market = undefined) {
         //
@@ -3308,14 +3420,15 @@ class deribit extends deribit$1["default"] {
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchLiquidations', 'paginate');
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchLiquidations', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchLiquidations', symbol, since, limit, params, 'continuation', 'continuation', undefined);
+            return await this.fetchPaginatedCallCursor('fetchLiquidations', symbol, since, limit, paramsPaginate, 'continuation', 'continuation', undefined);
         }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new errors.NotSupported(this.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets');
         }
         const request = {
@@ -3328,7 +3441,7 @@ class deribit extends deribit$1["default"] {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const response = await this.publicGetGetLastSettlementsByInstrument(this.extend(request, params));
+        const response = await this.publicGetGetLastSettlementsByInstrument(this.extend(request, paramsPaginate));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -3353,9 +3466,9 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const cursor = this.safeString(result, 'continuation');
-        const settlements = this.safeValue(result, 'settlements', []);
+        const settlements = this.safeList(result, 'settlements', []);
         const settlementsWithCursor = this.addPaginationCursorToResult(cursor, settlements);
         return this.parseLiquidations(settlementsWithCursor, market, since, limit);
     }
@@ -3388,9 +3501,11 @@ class deribit extends deribit$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyLiquidations() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new errors.NotSupported(this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');
         }
         const request = {
@@ -3428,7 +3543,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const settlements = this.safeList(result, 'settlements', []);
         return this.parseLiquidations(settlements, market, since, limit);
     }
@@ -3468,7 +3583,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     async fetchGreeks(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
@@ -3520,7 +3637,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseGreeks(result, market);
     }
     parseGreeks(greeks, market = undefined) {
@@ -3566,7 +3683,7 @@ class deribit extends deribit$1["default"] {
         const timestamp = this.safeInteger(greeks, 'timestamp');
         const marketId = this.safeString(greeks, 'instrument_name');
         const symbol = this.safeSymbol(marketId, market);
-        const stats = this.safeValue(greeks, 'greeks', {});
+        const stats = this.safeDict(greeks, 'greeks', {});
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -3599,7 +3716,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     async fetchOption(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
@@ -3651,7 +3770,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     async fetchOptionChain(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
@@ -3718,14 +3839,14 @@ class deribit extends deribit$1["default"] {
         //     }
         //
         const marketId = this.safeString(chain, 'instrument_name');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const currencyId = this.safeString(chain, 'base_currency');
         const code = this.safeCurrencyCode(currencyId, currency);
         const timestamp = this.safeInteger(chain, 'timestamp');
         return {
             'info': chain,
             'currency': code,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'impliedVolatility': undefined,
@@ -3752,9 +3873,11 @@ class deribit extends deribit$1["default"] {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -3823,24 +3946,24 @@ class deribit extends deribit$1["default"] {
         //
         const timestamp = this.safeInteger(interest, 'creation_timestamp');
         const marketId = this.safeString(interest, 'instrument_name');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const openInterest = this.safeNumber(interest, 'open_interest');
         let openInterestAmount = undefined;
         let openInterestValue = undefined;
-        if (market['option'] || (market['future'] && market['linear'])) {
+        if ((marketResolved['option'] === true) || ((marketResolved['future'] === true) && (marketResolved['linear'] === true))) {
             openInterestAmount = openInterest;
         }
         else {
             openInterestValue = openInterest;
         }
         return this.safeOpenInterest({
-            'symbol': this.safeSymbol(marketId, market),
+            'symbol': this.safeSymbol(marketId, marketResolved),
             'openInterestAmount': openInterestAmount,
             'openInterestValue': openInterestValue,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        }, market);
+        }, marketResolved);
     }
     nonce() {
         return this.milliseconds();
@@ -3848,7 +3971,7 @@ class deribit extends deribit$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + 'api/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 request += '?' + this.urlencode(params);
             }
         }
@@ -3857,21 +3980,31 @@ class deribit extends deribit$1["default"] {
             const nonce = this.nonce().toString();
             const timestamp = this.milliseconds().toString();
             const requestBody = '';
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 request += '?' + this.urlencode(params);
             }
             const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
             const auth = timestamp + "\n" + nonce + "\n" + requestData; // eslint-disable-line quotes
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
-            headers = {
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
+            const signedHeaders = {
                 'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             };
+            const baseApiUrl = this.safeString(this.urls['api'], 'rest');
+            if (baseApiUrl === undefined) {
+                throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+            }
+            const signedUrl = baseApiUrl + request;
+            return { 'url': signedUrl, 'method': method, 'body': body, 'headers': signedHeaders };
         }
-        const url = this.urls['api']['rest'] + request;
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //
@@ -3888,7 +4021,7 @@ class deribit extends deribit$1["default"] {
         //         "usDiff": 36
         //     }
         //
-        const error = this.safeValue(response, 'error');
+        const error = this.safeDict(response, 'error');
         if (error !== undefined) {
             const errorCode = this.safeString(error, 'code');
             const feedback = this.id + ' ' + body;

@@ -28,7 +28,7 @@
                     1000,
                     0.000001
                 ],
-                "output": "{\"symbol\":\"shib-usdt\",\"side\":\"buy\",\"size\":\"1000\",\"type\":\"limit\",\"price\":\"0.000001\"}"
+                "output": { "symbol": "shib-usdt", "side": "buy", "size": "1000", "type": "limit", "price": "0.000001" }
             }
         ],
         "fetchCurrencies": [

@@ -6,7 +6,7 @@ using System.Reflection;
 using dict = Dictionary<string, object>;
 
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     // tmp most of these methods are going to be re-implemented in the future to be more generic and efficient
@@ -17,6 +17,13 @@ public partial class Exchange
             return null;
 
         if (a is int)
+        {
+            return System.Convert.ToInt64(a);
+        }
+        // large int literals (2^31..2^32-1, e.g. 2592000000 = 30 days in ms)
+        // are typed uint by the C# compiler and would fail the (Int64) casts
+        // in the arithmetic helpers
+        if (a is uint)
         {
             return System.Convert.ToInt64(a);
         }
@@ -44,6 +51,48 @@ public partial class Exchange
         {
             return null;
         }
+        return a;
+    }
+
+    // Typed counterparts for locals the transpiler declares as `int` / `Int64` / `double`
+    // (for-loop counters and numeric locals). A `ref` argument binds only to its exact
+    // type, so `ref int` never competes with the `ref object` overload above. The
+    // arithmetic is the same unchecked `+ 1` / `- 1` the `object` overload applies to an
+    // int / Int64 / double box, and the return value is the incremented value exactly as
+    // above (it is only ever discarded).
+    public static int postFixIncrement(ref int a)
+    {
+        a = a + 1;
+        return a;
+    }
+
+    public static Int64 postFixIncrement(ref Int64 a)
+    {
+        a = a + 1;
+        return a;
+    }
+
+    public static double postFixIncrement(ref double a)
+    {
+        a = a + 1;
+        return a;
+    }
+
+    public static int postFixDecrement(ref int a)
+    {
+        a = a - 1;
+        return a;
+    }
+
+    public static Int64 postFixDecrement(ref Int64 a)
+    {
+        a = a - 1;
+        return a;
+    }
+
+    public static double postFixDecrement(ref double a)
+    {
+        a = a - 1;
         return a;
     }
 
@@ -95,6 +144,28 @@ public partial class Exchange
         return a;
     }
 
+    // Typed counterparts for prefix `-x` on locals the transpiler declares as `int` /
+    // `Int64` / `double`: `a = -a` is the same unchecked negation the object overload
+    // applies to the box (wrapping at the value type's minimum), and the return value is
+    // the same boxed numeric value it returns.
+    public static int prefixUnaryNeg(ref int a)
+    {
+        a = -a;
+        return a;
+    }
+
+    public static Int64 prefixUnaryNeg(ref Int64 a)
+    {
+        a = -a;
+        return a;
+    }
+
+    public static double prefixUnaryNeg(ref double a)
+    {
+        a = -a;
+        return a;
+    }
+
     public static object prefixUnaryPlus(ref object a)
     {
         if (a.GetType() == typeof(Int64))
@@ -120,34 +191,23 @@ public partial class Exchange
         return a;
     }
 
-    public static object plusEqual(object a, object value)
+    // Same typed counterparts for prefix `+x`: `a = +a` is the identity the object
+    // overload applies to the box, with the same return value.
+    public static int prefixUnaryPlus(ref int a)
     {
+        a = +a;
+        return a;
+    }
 
-        a = normalizeIntIfNeeded(a);
-        value = normalizeIntIfNeeded(value);
+    public static Int64 prefixUnaryPlus(ref Int64 a)
+    {
+        a = +a;
+        return a;
+    }
 
-        if (value == null)
-            return null;
-        if (a.GetType() == typeof(Int64))
-        {
-            a = (Int64)a + (Int64)value;
-        }
-        else if (a.GetType() == typeof(int))
-        {
-            a = (int)a + (int)value;
-        }
-        else if (a.GetType() == typeof(double))
-        {
-            a = (double)a + (double)value;
-        }
-        else if (a.GetType() == typeof(string))
-        {
-            a = (string)a + (string)value;
-        }
-        else
-        {
-            return null;
-        }
+    public static double prefixUnaryPlus(ref double a)
+    {
+        a = +a;
         return a;
     }
 
@@ -160,6 +220,13 @@ public partial class Exchange
         // }
         // return JsonConvert.DeserializeObject<dict>((string)json);
         return JsonHelper.Deserialize((string)json);
+    }
+
+    // S58 identity twin: normalizeIntIfNeeded leaves a bool alone and the object overload then
+    // returns `(bool)value` unchanged, so a statically `bool` argument is this same value.
+    public static bool isTrue(bool value)
+    {
+        return value;
     }
 
     public static bool isTrue(object value)
@@ -373,6 +440,24 @@ public partial class Exchange
         // return add(a, b);
     }
 
+    // mod's twins mirror its numeric branch exactly -- the DOUBLE modulo converted with
+    // Convert.ToInt64 (`x % 0.0` is NaN -> OverflowException, not DivideByZeroException)
+    // -- plus the object overload's null operand -> null for the nullable twin.
+    public static Int64 mod(Int64 a, Int64 b)
+    {
+        return Convert.ToInt64(Convert.ToDouble(a) % Convert.ToDouble(b));
+    }
+
+    public static Int64 mod(double a, double b)
+    {
+        return Convert.ToInt64(Convert.ToDouble(a) % Convert.ToDouble(b));
+    }
+
+    public static Int64? mod(Int64? a, Int64? b)
+    {
+        return (a == null || b == null) ? null : Convert.ToInt64(Convert.ToDouble(a) % Convert.ToDouble(b));
+    }
+
     public static object add(object a, object b)
     {
         a = normalizeIntIfNeeded(a);
@@ -396,6 +481,17 @@ public partial class Exchange
         }
     }
 
+    // The three `add` overloads MUST agree wherever more than one is applicable, because
+    // the declared type of a generated local picks the overload at compile time:
+    //   add(object, object): null left -> null; null right -> left unchanged
+    //   add(string, string): C# concat: null on either side -> the other side ("" for both)
+    //   add(string, object): was `a + b.ToString()`, a NullReferenceException on a null right;
+    //                        now delegates to add(string, string) so the two string overloads
+    //                        are identical for every input (a string right operand's ToString()
+    //                        is itself; a null right becomes a null string)
+    // A null LEFT still differs between (object,object) [null] and (string,*) [right operand],
+    // which is why build/csharp-local-types.js keeps a string local `object` when it is the
+    // LEFT operand of `+`: only RIGHT operands may be typed (see the proof there).
     public static string add(string a, string b)
     {
         return a + b;
@@ -403,7 +499,21 @@ public partial class Exchange
 
     public static string add(string a, object b)
     {
-        return add(a, b.ToString());
+        return add(a, b?.ToString());
+    }
+
+    // S57 owns these two overloads (identical definitions expected from that unit); S31 binds
+    // them for generated locals whose `a + b` operands are all provably Int64/int/uint/double.
+    // The value is the same unchecked sum add(object, object) computes for those operands
+    // (its Int64/double branches), and a non-nullable operand can never take the null-left path.
+    public static Int64 add(Int64 a, Int64 b)
+    {
+        return a + b;
+    }
+
+    public static double add(double a, double b)
+    {
+        return a + b;
     }
 
     // public static string add(object a, string b)
@@ -467,10 +577,67 @@ public partial class Exchange
         return a - b;
     }
 
+    // subtract(double, double): the object overload's double branch for a (double,
+    // int-like/double) pair, so the box, the value and the exception are identical;
+    // its mixed (int-like, double) class is pinned at 0 sites by the bind audit.
+    public static double subtract(double a, double b)
+    {
+        return a - b;
+    }
+
     // public static float subtract(float a, float b)
     // {
     //     return a - b;
     // }
+
+    // Typed counterparts for generated operands whose static type is already an integer /
+    // double family (build/csharp-local-types.js only names an operand type when the C#
+    // value already IS that type). They exist so that a generated declaration such as
+    // `Int64 z = multiply (a, b);` is type-correct — the (object, object) overload's static
+    // return is `object`, which a typed declaration cannot receive — and they are reachable
+    // only from operands of exactly those static types, where the (object, object) overload
+    // above returns the identical result for every such input. Proven by the differential
+    // harness in the PR (object path vs typed path over int / uint / long / Int64 / double /
+    // zero / overflow, comparing value, box type and exception type):
+    //   multiply(Int64, Int64): the object overload normalizes every int / uint / long /
+    //     Int64 operand to Int64 and takes its Int64 branch, so this is the same unchecked
+    //     `a * b` boxed Int64.
+    //   divide(Int64, Int64): the object overload's Int64 branch — the same double
+    //     division `(double)a / b` (JS `/`, no truncation).
+    //   divide(double, double): whenever either operand is a double the object overload
+    //     falls through to its else branch, `Convert.ToDouble(a) / Convert.ToDouble(b)`,
+    //     which is exactly `a / b` on the converted operands.
+    // multiply(double, double) is deliberately absent: the object overload re-boxes an
+    // integer-valued double product as Int64, which a `double` return cannot reproduce.
+    // subtract(double, double) exists (above); the audit pins its mixed class at 0 sites.
+    public static Int64 multiply(Int64 a, Int64 b)
+    {
+        return a * b;
+    }
+
+    // Nullable twins: the object overload maps a null operand to null for multiply /
+    // divide / mod, so these lifted forms are the identical box; subtract has none
+    // (the object overload dereferences a null operand instead of returning null).
+    public static Int64? multiply(Int64? a, Int64? b)
+    {
+        return a * b;
+    }
+
+    // integer operands divide as doubles (JS `/`): 20 / 15 is 1.333, never truncated
+    public static double? divide(Int64? a, Int64? b)
+    {
+        return (double?)a / b;
+    }
+
+    public static double divide(Int64 a, Int64 b)
+    {
+        return (double)a / b;
+    }
+
+    public static double divide(double a, double b)
+    {
+        return a / b;
+    }
 
     public static object divide(object a, object b)
     {
@@ -484,7 +651,7 @@ public partial class Exchange
 
         if (a.GetType() == typeof(Int64) && b.GetType() == typeof(Int64))
         {
-            return (Int64)a / (Int64)b;
+            return (double)(Int64)a / (Int64)b;
         }
         else if (a.GetType() == typeof(double) && b.GetType() == typeof(double))
         {
@@ -524,6 +691,18 @@ public partial class Exchange
         }
     }
 
+    // S58 identity twins: a variable statically typed List<object>/IList<object> holds only such
+    // a list or null, so this is exactly the object overload's IList<object> branch (null -> 0).
+    public static int getArrayLength(List<object> value)
+    {
+        return (value == null) ? 0 : value.Count;
+    }
+
+    public static int getArrayLength(IList<object> value)
+    {
+        return (value == null) ? 0 : value.Count;
+    }
+
     public static int getArrayLength(object value)
     {
         if (value == null)
@@ -531,7 +710,11 @@ public partial class Exchange
             return 0;
         }
 
-        if (value is (IList<object>))
+        if (value is byte[] byteArray)
+        {
+            return byteArray.Length;
+        }
+        else if (value is (IList<object>))
         {
             return ((IList<object>)value).Count;
         }
@@ -558,6 +741,12 @@ public partial class Exchange
         else if (value is (string))
         {
             return ((string)value).Length; // fallback that should not be used
+        }
+        else if (value is System.Collections.ICollection)
+        {
+            // typed core results (List<Order>, List<OHLCV>, ...) are not IList<object>;
+            // without this they silently measured as length 0
+            return ((System.Collections.ICollection)value).Count;
         }
         else
         {
@@ -673,18 +862,24 @@ public partial class Exchange
         }
     }
 
-    public static object parseInt(object a)
+    // cs90 U35: every return path of this helper is the Convert.ToInt64 box or null (the
+    // catch), so the signature names that single box instead of `object`. A call site that
+    // keeps the value in an object context (a dict slot, a request value, an object local)
+    // is unchanged — the same box, only the static type is named. Retyping the signature
+    // lets the classifier name `Int64?` at the ~10 generated declarations it feeds
+    // (build/csharp-local-types.js CSHARP_LOCAL_BARE_RETURN_TYPES) and is what makes
+    // convertToBigIntCustom (`return parseInt (x)`) provable.
+    public static Int64? parseInt(object a)
     {
-        object parsedValue = null;
         try
         {
             var floored = Math.Floor(Convert.ToDouble(a));
-            parsedValue = (Convert.ToInt64(floored));
+            return Convert.ToInt64(floored);
         }
         catch (Exception e)
         {
+            return null;
         }
-        return parsedValue;
     }
 
     public static object parseFloat(object a)
@@ -703,6 +898,23 @@ public partial class Exchange
 
     // generic getValue to replace elementAccesses
     public object getValue(object a, object b) => GetValue(a, b);
+    // typed twin of GetValue(object, object) for a receiver the C# printer proved is a
+    // string-keyed dictionary (see build/csharp-local-types.js): its string/array branches are
+    // unreachable for such a receiver, and this is the same null-safe ContainsKey-then-indexer read.
+    public static object GetValue(IDictionary<string, object> value2, string key)
+    {
+        if (value2 == null || key == null)
+        {
+            return null;
+        }
+
+        if (value2.ContainsKey(key))
+        {
+            return value2[key];
+        }
+
+        return null;
+    }
     public static object GetValue(object value2, object key)
     {
         if (value2 == null || key == null)
@@ -813,6 +1025,18 @@ public partial class Exchange
             int parsed = Convert.ToInt32(key);
             return ((List<Int64>)value)[parsed];
         }
+        // List<T> is invariant so List<Dictionary<string, object>> is not IList<object>
+        // and not List<dict> (dict = IDictionary). Re-box through the non-generic IList
+        // the same way toArray / arraySlice do, before the reflection last-resort.
+        else if (value is System.Collections.IList genericList && !(value is System.Collections.IDictionary) && !(value is string))
+        {
+            int parsed = Convert.ToInt32(key);
+            if (parsed < 0 || parsed >= genericList.Count)
+            {
+                return null;
+            }
+            return genericList[parsed];
+        }
         // check this last, avoid reflection
         else if (key.GetType() == typeof(string) && (value.GetType()).GetProperty((string)key) != null)
         {
@@ -834,19 +1058,201 @@ public partial class Exchange
 
     public async Task<List<object>> promiseAll(object promisesObj) => await PromiseAll(promisesObj);
 
+    // A generated implicit API method declares the shape its api leaf promised,
+    // so it returns Task<Dictionary<string, object>> / Task<List<object>> /
+    // Task<string> rather than Task<object>. Task<T> is invariant, so none of
+    // those IS a Task<object>: an `is Task<object>` test returns false and a
+    // hard cast throws. Every place that filters, casts or awaits an un-awaited
+    // task whose static type has been erased to object has to come through here
+    // instead, or a narrowed endpoint is silently dropped rather than awaited.
+    public static Task<object> AsTaskOfObject(object value)
+    {
+        if (value is Task<object> already)
+        {
+            return already;
+        }
+        if (value is Task task)
+        {
+            return AwaitAsObject(task);
+        }
+        return null;
+    }
+
+    // Await any Task<T> and re-box its result as object. Reflection is the only
+    // way back to the value once T is not statically known, and it only runs
+    // after the task completed, so it costs one property read per call.
+    private static async Task<object> AwaitAsObject(Task task)
+    {
+        await task.ConfigureAwait(false);
+        var resultProperty = task.GetType().GetProperty("Result");
+        if (resultProperty == null)
+        {
+            return null; // a non-generic Task has no result to unwrap
+        }
+        // reflective callers (callDynamically, fetchPaginatedCall*, promiseAll) feed the
+        // untyped object pipeline, so any typed struct/list coming back from a typed core
+        // is de-typed here into the plain dictionaries/rows that pipeline reads keys from.
+        // FromTyped's switch is generated from the struct families only, so a core declared
+        // List<Dictionary<string, object>> falls through it untouched and the generated
+        // safeList's (List<object>) cast then throws on the invariant list - FromDictList
+        // reboxes that one shape and passes everything else through, so it composes safely.
+        return FromDictList(FromTyped(resultProperty.GetValue(task)));
+    }
+
     public static async Task<List<object>> PromiseAll(object promisesObj)
     {
         var promises = (IList<object>)promisesObj;
         var tasks = new List<Task<object>>();
         foreach (var promise in promises)
         {
-            if (promise is Task<object>)
+            var task = AsTaskOfObject(promise);
+            if (task != null)
             {
-                tasks.Add((Task<object>)promise);
+                tasks.Add(task);
             }
         }
         var results = await Task.WhenAll(tasks);
         return results.ToList();
+    }
+
+    // A typed core gathers sibling typed cores (`fetchSpotMarkets` + `fetchSwapMarkets`)
+    // in an untyped promise list, then wants the flattened typed rows back. Awaiting via
+    // AsTaskOfObject keeps Task<T> invariance out of it; ToXList re-materialises the rows.
+    public static async Task<List<T>> PromiseAllTyped<T>(object promisesObj, Func<object, List<T>> toList)
+    {
+        var results = await PromiseAll(promisesObj);
+        var flat = new List<T>();
+        foreach (var result in results)
+        {
+            var rows = toList(result);
+            if (rows != null)
+            {
+                flat.AddRange(rows);
+            }
+        }
+        return flat;
+    }
+
+    // A watch* core hands back the LIVE order book: without a copy the caller keeps
+    // mutating with the ws thread. Idempotent, so re-entering an already-typed core
+    // (a tail `return await this.watchOrderBook(...)` override) copies only once.
+    public static ccxt.pro.IOrderBook ToOrderBookSnapshot(object value)
+    {
+        return (value is ccxt.pro.IOrderBook book) ? book.Copy() : null;
+    }
+
+    public static PredictionOrderBook ToPredictionOrderBookSnapshot(object value)
+    {
+        return (value is PredictionOrderBook already) ? already : new PredictionOrderBook(ToOrderBookSnapshot(value));
+    }
+
+    public static Dictionary<string, object> ToDict(object value)
+    {
+        return value as Dictionary<string, object>;
+    }
+
+    public static List<Dictionary<string, object>> ToDictList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<Dictionary<string, object>> already)
+        {
+            return already;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<Dictionary<string, object>>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row as Dictionary<string, object>);
+        }
+        return result;
+    }
+
+    public static Int64 ToInt64Value(object value)
+    {
+        return ToInt64ArgRequired(value);
+    }
+
+    public static string ToStringValue(object value)
+    {
+        // a string-typed core may tail-return a numeric id read off user params
+        // (htx fetchAccountIdByType); stringify primitives instead of nulling them
+        if (value is string s)
+        {
+            return s;
+        }
+        if (value is Int64 || value is int || value is double || value is decimal || value is float)
+        {
+            return Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
+        }
+        return null;
+    }
+
+    // a `Promise<string[]>` core (fetchUnderlyingAssets, fetchOptionUnderlyings) hands back
+    // a `List<object>` of strings from the generated body; project it to `List<string>`
+    public static List<string> ToStringList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<string> already)
+        {
+            return already;
+        }
+        var result = new List<string>();
+        foreach (var item in (System.Collections.IEnumerable)values)
+        {
+            result.Add(ToStringValue(item));
+        }
+        return result;
+    }
+
+    // the generated helpers (getValue / getArrayLength / safeString) already read
+    // List<string> by index, so the reverse is a pass-through
+    public static List<string> FromStringList(List<string> values)
+    {
+        return values;
+    }
+
+    // typed-core boundary identities: the printer only emits these five names from
+    // typedCoreFromHelper (build/csharpTranspiler.ts), keyed on the exact core type, so every
+    // call site passes the box the signature names (108 sites audited, tools/S56)
+    public static Dictionary<string, object> FromDict(Dictionary<string, object> value)
+    {
+        return value;
+    }
+
+    public static object FromDictList(object values)
+    {
+        // getValue / getArrayLength read any IList through the non-generic interface, but the
+        // generated safeList hard-casts to List<object>, and List<T> is invariant - so a
+        // List<Dictionary<string, object>> coming off a typed core has to be reboxed row by row
+        if (values is List<Dictionary<string, object>> typed)
+        {
+            return new List<object>(typed);
+        }
+        return values;
+    }
+
+    // the typed funnel twin: the printer emits FromDictList only for a typed core declared
+    // List<Dictionary<string, object>> (typedCoreFromHelper), so the argument is always that list
+    // and the object overload reboxes it — a null argument passes through as null
+    public static List<object> FromDictList(List<Dictionary<string, object>> values)
+    {
+        return (List<object>)FromDictList((object)values);
+    }
+
+    public static Int64 FromInt64(Int64 value)
+    {
+        return value;
+    }
+
+    public static string FromStringValue(string value)
+    {
+        return value;
     }
 
     public static string toStringOrNull(object value)
@@ -863,7 +1269,7 @@ public partial class Exchange
 
     public void throwDynamicException(object exception, object message)
     {
-        var Exception = NewException((Type)exception, (string)message);
+        throw NewException((Type)exception, (string)message);
     }
 
     // This function is the salient bit here
@@ -882,6 +1288,126 @@ public partial class Exchange
         return Math.Round((double)number, (int)decimals);
     }
 
+    // Typed cores are emitted PascalCase (`CreateOrder`), but the method-name strings that drive
+    // reflective dispatch stay camelCase — they double as `has`/`describe()` capability keys.
+    // Resolve the exact name first, then fall back to a case-insensitive match.
+    public static MethodInfo ResolveMethod(Type type, string methodName)
+    {
+        const BindingFlags flags = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        var mi = type.GetMethod(methodName, flags);
+        if (mi != null)
+        {
+            return mi;
+        }
+        return type.GetMethod(methodName, flags | BindingFlags.IgnoreCase);
+    }
+
+    // reflection binds by EXACT runtime type: a boxed Int32 does not land in an `Int64?`
+    // parameter, it throws ArgumentException. The generated cores now declare typed
+    // scalars, so every reflective arg list is converted to the target parameter types
+    // first. Impossible conversions are passed through unchanged so the original
+    // ArgumentException still surfaces instead of a helper-thrown one.
+    public static object[] coerceArgs(MethodInfo mi, object[] args)
+    {
+        if (mi == null || args == null)
+        {
+            return args;
+        }
+        var ps = mi.GetParameters();
+        var n = Math.Min(ps.Length, args.Length);
+        object[] outArgs = null;
+        for (var i = 0; i < n; i++)
+        {
+            var arg = args[i];
+            if (arg == null)
+            {
+                continue;
+            }
+            var target = ps[i].ParameterType;
+            if (target.IsByRef)
+            {
+                target = target.GetElementType();
+            }
+            if (target == null || target == typeof(object) || target.IsInstanceOfType(arg))
+            {
+                continue;
+            }
+            var effective = Nullable.GetUnderlyingType(target) ?? target;
+            if (effective.IsInstanceOfType(arg))
+            {
+                continue;
+            }
+            // numeric widening (Int32 → Int64?) plus JSON numbers → string id/code
+            // (static request fixtures decode order ids as Int64)
+            var numeric = (effective.IsPrimitive || effective == typeof(decimal)) && effective != typeof(bool) && effective != typeof(char);
+            if (!numeric && effective != typeof(string))
+            {
+                continue;
+            }
+            if (!(arg is IConvertible))
+            {
+                continue;
+            }
+            try
+            {
+                var converted = Convert.ChangeType(arg, effective, System.Globalization.CultureInfo.InvariantCulture);
+                if (outArgs == null)
+                {
+                    outArgs = new object[args.Length];
+                    Array.Copy(args, outArgs, args.Length);
+                }
+                outArgs[i] = converted;
+            }
+            catch
+            {
+                // leave the original value in place; Invoke reports the real mismatch
+            }
+        }
+        return outArgs ?? args;
+    }
+
+    // a direct `(Int64?)expr` unbox-cast of a boxed Int32 throws InvalidCastException,
+    // so every generated call site feeding a narrowed numeric core parameter converts
+    // through these instead of casting. null stays null (the parameter is optional).
+    public static Int64? ToInt64Arg(object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        if (value is Int64 l)
+        {
+            return l;
+        }
+        return Convert.ToInt64(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    public static double? ToDoubleArg(object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        if (value is double d)
+        {
+            return d;
+        }
+        return Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    // required (non-optional) numeric positions: same conversion, but a missing value is
+    // a contract violation rather than an absent optional, so it surfaces as 0 like the
+    // untyped path did instead of throwing inside the helper.
+    public static double ToDoubleArgRequired(object value)
+    {
+        return (value == null) ? 0 : Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    public static Int64 ToInt64ArgRequired(object value)
+    {
+        return (value == null) ? 0 : Convert.ToInt64(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
     public static object callDynamically(object obj, object methodName, object[] args = null)
     {
         args ??= new object[] { };
@@ -889,15 +1415,26 @@ public partial class Exchange
         {
             args = new object[] { null };
         }
-        return obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
+        var mi = ResolveMethod(obj.GetType(), (string)methodName);
+        var res = mi.Invoke(obj, coerceArgs(mi, args));
+        // The transpiled callers cast this result to Task<object> (the cast is
+        // emitted by ast-transpiler), which an implicit API method's narrowed
+        // Task<Dictionary<string, object>> would fail. Normalize here so the
+        // reflective path stays shape-agnostic, exactly like PromiseAll.
+        return AsTaskOfObject(res) ?? res;
     }
 
     public static async Task<object> callDynamicallyAsync(object obj, object methodName, object[] args = null)
     {
         args ??= new object[] { };
-        var res = obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
-        return await ((Task<object>)res);
+        var mi = ResolveMethod(obj.GetType(), (string)methodName);
+        var res = mi.Invoke(obj, coerceArgs(mi, args));
+        return await AsTaskOfObject(res);
     }
+
+    // S58 identity twin: a Dictionary<string, object> is not an IList, so the object overload
+    // reaches its IDictionary branch — ContainsKey(key) behind the same null -> false guards.
+    public bool inOp(Dictionary<string, object> obj, string key) => (obj != null) && (key != null) && obj.ContainsKey(key);
 
     public bool inOp(object obj, object key) => InOp(obj, key);
 
@@ -1018,5 +1555,85 @@ public partial class Exchange
         {
             throw new InvalidOperationException("Unsupported types for concatenation.");
         }
+    }
+
+    // reverses the typed-core boundary: hands a typed candle list back to the untyped object
+    // pipeline (pagination, arrayConcat, filterBySinceLimit) as plain 6-element rows
+    public static object FromOHLCVList(object candles)
+    {
+        if (!(candles is List<OHLCV>))
+        {
+            return candles;
+        }
+        var typed = (List<OHLCV>)candles;
+        var result = new List<object>(typed.Count);
+        foreach (var candle in typed)
+        {
+            result.Add(new List<object>() { candle.timestamp, candle.open, candle.high, candle.low, candle.close, candle.volume });
+        }
+        return result;
+    }
+
+    // the typed funnel twin: FromOHLCVList is emitted only for a small OHLCV[] core, so the
+    // argument is always that candle list — null passes through as null
+    public static List<object> FromOHLCVList(List<OHLCV> candles)
+    {
+        return (List<object>)FromOHLCVList((object)candles);
+    }
+
+    // watchOHLCVForSymbols: `{ symbol: { timeframe: OHLCV[] } }`. Not a types.ts struct, so the
+    // generator has no To*/From* pair for it — these two are the hand-written equivalents,
+    // built on ToOHLCVList / FromOHLCVList (see OHLCV_DICT_TYPE in build/csharpTranspiler.ts)
+    public static Dictionary<string, Dictionary<string, List<OHLCV>>> ToOHLCVDict(object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        if (value is Dictionary<string, Dictionary<string, List<OHLCV>>> already)
+        {
+            return already;
+        }
+        var bySymbol = (IDictionary<string, object>)value;
+        var result = new Dictionary<string, Dictionary<string, List<OHLCV>>>(bySymbol.Count);
+        foreach (var symbolEntry in bySymbol)
+        {
+            var byTimeframe = new Dictionary<string, List<OHLCV>>();
+            if (symbolEntry.Value is IDictionary<string, object> timeframes)
+            {
+                foreach (var timeframeEntry in timeframes)
+                {
+                    byTimeframe[timeframeEntry.Key] = ToOHLCVList(timeframeEntry.Value);
+                }
+            }
+            result[symbolEntry.Key] = byTimeframe;
+        }
+        return result;
+    }
+
+    public static object FromOHLCVDict(object value)
+    {
+        if (!(value is Dictionary<string, Dictionary<string, List<OHLCV>>> typed))
+        {
+            return value;
+        }
+        var result = new Dictionary<string, object>(typed.Count);
+        foreach (var symbolEntry in typed)
+        {
+            var byTimeframe = new Dictionary<string, object>(symbolEntry.Value.Count);
+            foreach (var timeframeEntry in symbolEntry.Value)
+            {
+                byTimeframe[timeframeEntry.Key] = FromOHLCVList(timeframeEntry.Value);
+            }
+            result[symbolEntry.Key] = byTimeframe;
+        }
+        return result;
+    }
+
+    // the typed funnel twin: FromOHLCVDict is emitted only for the `{ symbol: { timeframe:
+    // OHLCV[] } }` core shape the dictionary's own type names — null passes through as null
+    public static Dictionary<string, object> FromOHLCVDict(Dictionary<string, Dictionary<string, List<OHLCV>>> value)
+    {
+        return (Dictionary<string, object>)FromOHLCVDict((object)value);
     }
 }

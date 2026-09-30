@@ -14,10 +14,10 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_liquidation.php';
 function test_fetch_my_liquidations($exchange, $skipped_properties, $code) {
     return Async\async(function () use ($exchange, $skipped_properties, $code) {
         $method = 'fetchMyLiquidations';
-        if (!$exchange->has['fetchMyLiquidations']) {
+        if ($exchange->has['fetchMyLiquidations'] === null || $exchange->has['fetchMyLiquidations'] === false) {
             return true;
         }
-        $items = Async\await($exchange->fetch_my_liquidations($code));
+        $items = \React\Async\await($exchange->fetch_my_liquidations($code));
         assert(gettype($items) === 'array' && array_is_list($items), $exchange->id . ' ' . $method . ' ' . $code . ' must return an array. ' . $exchange->json($items));
         // const now = exchange.milliseconds ();
         for ($i = 0; $i < count($items); $i++) {

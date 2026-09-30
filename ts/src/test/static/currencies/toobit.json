@@ -557,9 +557,9 @@
                     "allowWithdraw": true
                 }
             },
-            "ARBONE": {
+            "ARBITRUM": {
                 "id": "ARBITRUM",
-                "network": "ARBONE",
+                "network": "ARBITRUM",
                 "margin": null,
                 "deposit": "true",
                 "withdraw": "true",

@@ -3,6 +3,22 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api.bequant.io/api/3/public/currency",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api.bequant.io/api/3/public/currency",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades ",
@@ -43,7 +59,7 @@
                 "input": [
                     "LTC/USDT"
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\"}"
+                "output": { "symbol": "LTCUSDT" }
             }
         ],
         "fetchBalance": [
@@ -86,7 +102,7 @@
                     0.1,
                     50
                 ],
-                "output": "{\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"0.1\",\"symbol\":\"LTCUSDT\",\"price\":\"50\"}"
+                "output": { "type": "limit", "side": "buy", "quantity": "0.1", "symbol": "LTCUSDT", "price": "50" }
             }
         ]
     }

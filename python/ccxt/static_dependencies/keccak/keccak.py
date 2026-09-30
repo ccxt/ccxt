@@ -18,6 +18,18 @@ Some caveats about the implementation:
 [2] https://git.io/vKfkb
 """
 
+_MASK64 = (1 << 64) - 1
+
+# The pi/rho step visits the 24 non-(0,0) lanes in a fixed order, each time
+# rotating by a fixed offset. Both the order and the offsets only depend on
+# the round structure (not on the state), so they are computed once here
+# instead of being re-derived on every single call to keccak_f_1600().
+_PI_RHO_SCHEDULE = []
+_x, _y = 1, 0
+for _t in range(24):
+    _x, _y = _y, (2 * _x + 3 * _y) % 5
+    _PI_RHO_SCHEDULE.append((_x, _y, ((_t + 1) * (_t + 2) // 2) % 64))
+
 
 def keccak_f_1600(state):
     """The inner permutation for the Keccak sponge function.
@@ -54,66 +66,39 @@ def keccak_f_1600(state):
         state:  bytes permuted by Keccak-f[1600].
     """
 
-    def load64(b):
-        """
-        Saves each byte on its respective position within a 64-bit word.
-
-        Args:
-            b:  partial list of bytes from input.
-
-        Returns:
-            Sum of list with numbers shifted.
-        """
-        return sum((b[i] << (8 * i)) for i in range(8))
-
-    def store64(a):
-        """
-        Transforms a 64-bit word into a list of bytes.
-
-        Args:
-            a:  64-bit word.
-
-        Returns:
-            List of bytes separated by position on the word.
-        """
-        return list((a >> (8 * i)) % 256 for i in range(8))
-
-    def rotate(a, n):
-        """
-        Denotes the bitwise cyclic shift operation, moving bit at position
-        `i` into position `i + n` (modulo the lane size).
-
-        Args:
-            a:  lane with a 64-bit word, or elements from the state array.
-            n:  offset for rotation.
-
-        Returns:
-            The rotated lane.
-        """
-        return ((a >> (64 - (n % 64))) + (a << (n % 64))) % (1 << 64)
-
-    A = [[0 for _ in range(5)] for _ in range(5)]
-    for x in range(5):
-        for y in range(5):
-            i = 8 * (x + 5 * y)
-            A[x][y] = load64(state[i : i + 8])
+    # load64()/store64() previously built a Python-level generator and summed
+    # it byte-by-byte; int.from_bytes()/int.to_bytes() do the same job in C.
+    A = [[int.from_bytes(bytes(state[8 * (x + 5 * y):8 * (x + 5 * y) + 8]), 'little')
+          for y in range(5)] for x in range(5)]
 
     R = 1
     for _ in range(24):
         C = [A[x][0] ^ A[x][1] ^ A[x][2] ^ A[x][3] ^ A[x][4] for x in range(5)]
-        D = [C[(x - 1) % 5] ^ rotate(C[(x + 1) % 5], 1) for x in range(5)]
-        A = [[A[x][y] ^ D[x] for y in range(5)] for x in range(5)]
 
-        x, y, current = 1, 0, A[1][0]
-        for t in range(24):
-            x, y = y, (2 * x + 3 * y) % 5
-            offset = ((t + 1) * (t + 2)) // 2
-            current, A[x][y] = A[x][y], rotate(current, offset)
+        D = [0, 0, 0, 0, 0]
+        for x in range(5):
+            c = C[(x + 1) % 5]
+            D[x] = C[(x - 1) % 5] ^ (((c >> 63) | (c << 1)) & _MASK64)
+
+        for x in range(5):
+            dx = D[x]
+            row = A[x]
+            for y in range(5):
+                row[y] ^= dx
+
+        current = A[1][0]
+        for (x, y, offset) in _PI_RHO_SCHEDULE:
+            a = A[x][y]
+            A[x][y] = current if offset == 0 else (((current >> (64 - offset)) | (current << offset)) & _MASK64)
+            current = a
 
         for y in range(5):
-            T = [A[x][y] for x in range(5)]
-            for x in range(5):
-                A[x][y] = T[x] ^ ((~T[(x + 1) % 5]) & T[(x + 2) % 5])
+            t0, t1, t2, t3, t4 = A[0][y], A[1][y], A[2][y], A[3][y], A[4][y]
+            A[0][y] = t0 ^ ((~t1) & t2)
+            A[1][y] = t1 ^ ((~t2) & t3)
+            A[2][y] = t2 ^ ((~t3) & t4)
+            A[3][y] = t3 ^ ((~t4) & t0)
+            A[4][y] = t4 ^ ((~t0) & t1)
 
         for j in range(7):
             R = ((R << 1) ^ ((R >> 7) * 0x71)) % 256
@@ -123,7 +108,7 @@ def keccak_f_1600(state):
     for x in range(5):
         for y in range(5):
             i = 8 * (x + 5 * y)
-            state[i : i + 8] = store64(A[x][y])
+            state[i : i + 8] = A[x][y].to_bytes(8, 'little')
 
     return state
 

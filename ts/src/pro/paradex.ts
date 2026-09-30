@@ -5,11 +5,12 @@ import paradexRest from '../paradex.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, Trade, Order, Dict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class paradex extends paradexRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -42,13 +43,13 @@ export default class paradex extends paradexRest {
         });
     }
 
-    requestId () {
+    requestId (): number {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;
     }
 
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
@@ -69,7 +70,7 @@ export default class paradex extends paradexRest {
         return await future;
     }
 
-    handleAuthenticationMessage (client: Client, message) {
+    handleAuthenticationMessage (client: Client, message: Dict) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -98,8 +99,10 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = 'trades.';
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -115,14 +118,15 @@ export default class paradex extends paradexRest {
                 'channel': messageHash,
             },
         };
-        const trades = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: Dict): Dict {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -149,7 +153,7 @@ export default class paradex extends paradexRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             stored = new ArrayCache (this.safeInteger (this.options, 'tradesLimit', 1000));
-            this.trades[symbol] = stored;
+            this.trades[(symbol as string)] = stored;
         }
         stored.append (parsedTrade);
         client.resolve (stored, messageHash);
@@ -164,10 +168,12 @@ export default class paradex extends paradexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'order_book.' + market['id'] + '.snapshot@15@100ms';
         const url = this.urls['api']['ws'];
@@ -178,11 +184,11 @@ export default class paradex extends paradexRest {
                 'channel': messageHash,
             },
         };
-        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -221,12 +227,12 @@ export default class paradex extends paradexRest {
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
         }
-        const orderbookData = {
+        const orderbookData: Dict = {
             'bids': [],
             'asks': [],
         };
         const inserts = this.safeList (data, 'inserts');
-        for (let i = 0; i < inserts.length; i++) {
+        for (let i = 0; i < (inserts as any[]).length; i++) {
             const insert = this.safeDict (inserts, i);
             const side = this.safeString (insert, 'side');
             const price = this.safeString (insert, 'price');
@@ -254,9 +260,11 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
-        symbol = this.symbol (symbol);
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolValue: string = this.symbol (symbol);
         const channel = 'markets_summary';
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -266,7 +274,7 @@ export default class paradex extends paradexRest {
                 'channel': channel,
             },
         };
-        const messageHash = channel + '.' + symbol;
+        const messageHash = channel + '.' + symbolValue;
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
@@ -279,9 +287,11 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const channel = 'markets_summary';
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -291,22 +301,25 @@ export default class paradex extends paradexRest {
                 'channel': channel,
             },
         };
-        const messageHashes = [];
-        if (Array.isArray (symbols)) {
-            for (let i = 0; i < symbols.length; i++) {
-                const messageHash = channel + '.' + symbols[i];
+        const messageHashes: string[] = [];
+        if (symbolsNormalized !== undefined && Array.isArray (symbolsNormalized)) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const messageHash = channel + '.' + symbolsNormalized[i];
                 messageHashes.push (messageHash);
             }
         } else {
             messageHashes.push (channel);
         }
-        const newTickers = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
+        const newTicker = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newTickers['symbol']] = newTickers;
+            const newTickerSymbol = this.safeString (newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -320,16 +333,18 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         let messageHash = 'orders';
         let channel = 'orders.';
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbol = market['symbol'];
             channel += market['id'];
-            messageHash += ':' + symbol;
+            messageHash += ':' + symbolResolved;
         } else {
             channel += 'ALL';
         }
@@ -341,14 +356,15 @@ export default class paradex extends paradexRest {
                 'channel': channel,
             },
         };
-        const orders = await this.watch (url, messageHash, this.deepExtend (request, params), channel);
+        const orders: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), channel);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: Dict) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -393,7 +409,7 @@ export default class paradex extends paradexRest {
         }
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: Dict): Dict {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -424,11 +440,13 @@ export default class paradex extends paradexRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const channel = this.safeString (params, 'channel');
-        const messageHash = channel + '.' + symbol;
         const ticker = this.parseTicker (data, market);
         this.tickers[symbol] = ticker;
         client.resolve (ticker, channel);
-        client.resolve (ticker, messageHash);
+        if (channel !== undefined) {
+            const messageHash = channel + '.' + symbol;
+            client.resolve (ticker, messageHash);
+        }
         return message;
     }
 
@@ -441,9 +459,11 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
-        symbol = this.symbol (symbol);
+    override async watchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolValue: string = this.symbol (symbol);
         const channel = 'funding_data';
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -453,7 +473,7 @@ export default class paradex extends paradexRest {
                 'channel': channel,
             },
         };
-        const messageHash = channel + '.' + symbol;
+        const messageHash = channel + '.' + symbolValue;
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
@@ -466,9 +486,11 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async watchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+    override async watchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const channel = 'funding_data';
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -478,12 +500,12 @@ export default class paradex extends paradexRest {
                 'channel': channel,
             },
         };
-        const messageHashes = [];
-        if (symbols !== undefined) {
-            const symbolsLength = symbols.length;
+        const messageHashes: string[] = [];
+        if (symbolsNormalized !== undefined) {
+            const symbolsLength = symbolsNormalized.length;
             if (symbolsLength > 0) {
-                for (let i = 0; i < symbols.length; i++) {
-                    const messageHash = channel + '.' + symbols[i];
+                for (let i = 0; i < symbolsNormalized.length; i++) {
+                    const messageHash = channel + '.' + symbolsNormalized[i];
                     messageHashes.push (messageHash);
                 }
             } else {
@@ -495,13 +517,16 @@ export default class paradex extends paradexRest {
         const newFundingRates = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newFundingRates['symbol']] = newFundingRates;
+            const newFundingRatesSymbol = this.safeString (newFundingRates, 'symbol');
+            if (newFundingRatesSymbol !== undefined) {
+                result[newFundingRatesSymbol] = newFundingRates;
+            }
             return result;
         }
-        return this.filterByArray (this.fundingRates, 'symbol', symbols);
+        return this.filterByArray (this.fundingRates, 'symbol', symbolsNormalized);
     }
 
-    handleFundingRate (client: Client, message) {
+    handleFundingRate (client: Client, message: Dict) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -524,13 +549,15 @@ export default class paradex extends paradexRest {
         const data = this.safeDict (params, 'data', {});
         const fundingRate = this.parseFundingRateWs (data);
         const symbol = fundingRate['symbol'];
-        this.fundingRates[symbol] = fundingRate;
+        this.fundingRates[(symbol as string)] = fundingRate;
         const channel = this.safeString (params, 'channel');
-        const messageHash = channel + '.' + symbol;
-        client.resolve (fundingRate, messageHash);
+        if (channel !== undefined) {
+            const messageHash = channel + '.' + symbol;
+            client.resolve (fundingRate, messageHash);
+        }
     }
 
-    parseFundingRateWs (contract, market: Market = undefined): FundingRate {
+    parseFundingRateWs (contract: Dict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "market": "TRUMP-USD-PERP",
@@ -546,6 +573,10 @@ export default class paradex extends paradexRest {
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (contract, 'created_at');
         const fundingPeriod = this.safeString (contract, 'funding_period_hours');
+        let interval: Str = undefined;
+        if (fundingPeriod !== undefined) {
+            interval = fundingPeriod + 'h';
+        }
         return {
             'info': contract,
             'symbol': symbol,
@@ -564,11 +595,11 @@ export default class paradex extends paradexRest {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': fundingPeriod + 'h',
+            'interval': interval,
         } as FundingRate;
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -591,7 +622,7 @@ export default class paradex extends paradexRest {
             if (errorCode !== undefined) {
                 const feedback = this.id + ' ' + this.json (error);
                 this.throwExactlyMatchedException (this.exceptions['exact'], '-32600', feedback);
-                const messageString = this.safeValue (error, 'message');
+                const messageString = this.safeString (error, 'message');
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
                 }
@@ -600,8 +631,8 @@ export default class paradex extends paradexRest {
         }
     }
 
-    handleMessage (client: Client, message) {
-        if (!this.handleErrorMessage (client, message)) {
+    override handleMessage (client: Client, message: Dict) {
+        if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
         //
@@ -632,7 +663,7 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const result = this.safeValue (message, 'result');
+        const result = this.safeDict (message, 'result');
         if (result !== undefined) {
             this.handleAuthenticationMessage (client, message);
             return;
@@ -640,7 +671,7 @@ export default class paradex extends paradexRest {
         const data = this.safeDict (message, 'params');
         if (data !== undefined) {
             const channel = this.safeString (data, 'channel');
-            const parts = channel.split ('.');
+            const parts = (channel as string).split ('.');
             const name = this.safeString (parts, 0);
             const methods: Dict = {
                 'trades': this.handleTrade,

@@ -1,3 +1,5 @@
+// @NO_AUTO_TRANSPILE
+
 // @ts-nocheck
 // JavaScript sample Proxy with CORS support
 

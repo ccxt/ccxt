@@ -19,6 +19,7 @@
 * [createOrder](#createorder)
 * [cancelOrder](#cancelorder)
 * [fetchTransactionFee](#fetchtransactionfee)
+* [fetchDepositWithdrawFee](#fetchdepositwithdrawfee)
 * [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
 * [withdraw](#withdraw)
 * [fetchDepositAddresses](#fetchdepositaddresses)
@@ -39,7 +40,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-indodax.fetchTime ([params])
+indodax.fetchTime (params?)
 ```
 
 
@@ -59,7 +60,7 @@ retrieves data on all markets for indodax
 
 
 ```javascript
-indodax.fetchMarkets ([params])
+indodax.fetchMarkets (params?)
 ```
 
 
@@ -79,7 +80,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-indodax.fetchBalance ([params])
+indodax.fetchBalance (params?)
 ```
 
 
@@ -89,7 +90,7 @@ indodax.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>indodax</code>](#indodax)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#depth  
 
@@ -101,7 +102,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-indodax.fetchOrderBook (symbol[, limit, params])
+indodax.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -122,7 +123,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-indodax.fetchTicker (symbol[, params])
+indodax.fetchTicker (symbol, params?)
 ```
 
 
@@ -143,7 +144,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-indodax.fetchTickers (symbols[, params])
+indodax.fetchTickers (symbols, params?)
 ```
 
 
@@ -166,7 +167,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-indodax.fetchTrades (symbol[, since, limit, params])
+indodax.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -190,7 +191,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-indodax.fetchOHLCV (symbol, timeframe[, since, limit, params])
+indodax.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -212,7 +213,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-indodax.fetchOrder (id, symbol[, params])
+indodax.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -235,7 +236,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-indodax.fetchOpenOrders (symbol[, since, limit, params])
+indodax.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -258,7 +259,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-indodax.fetchClosedOrders (symbol[, since, limit, params])
+indodax.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -283,7 +284,7 @@ create a trade order
 
 
 ```javascript
-indodax.createOrder (symbol, type, side, amount[, price, params])
+indodax.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -305,7 +306,7 @@ cancels an open order
 
 
 ```javascript
-indodax.cancelOrder (id, symbol[, params])
+indodax.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -326,7 +327,28 @@ fetch the fee for a transaction
 
 
 ```javascript
-indodax.fetchTransactionFee (code[, params])
+indodax.fetchTransactionFee (code, params?)
+```
+
+
+<a name="fetchDepositWithdrawFee" id="fetchdepositwithdrawfee"></a>
+
+### fetchDepositWithdrawFee{docsify-ignore}
+fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+
+**Kind**: instance method of [<code>indodax</code>](#indodax)  
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
+
+**See**: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+indodax.fetchDepositWithdrawFee (code, params?)
 ```
 
 
@@ -349,7 +371,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-indodax.fetchDepositsWithdrawals ([code, since, limit, params])
+indodax.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -373,7 +395,7 @@ make a withdrawal
 
 
 ```javascript
-indodax.withdraw (code, amount, address, tag[, params])
+indodax.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -394,6 +416,6 @@ fetch deposit addresses for multiple currencies and chain types
 
 
 ```javascript
-indodax.fetchDepositAddresses ([codes, params])
+indodax.fetchDepositAddresses (codes?, params?)
 ```
 

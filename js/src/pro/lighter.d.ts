@@ -1,16 +1,18 @@
-import type { Dict, Int, Liquidation, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class lighter extends lighterRest {
     describe(): any;
     getMessageHash(unifiedChannel: string, symbol?: Str, extra?: Str): string;
-    subscribePublic(messageHash: any, params?: {}): Promise<any>;
-    subscribePublicMultiple(messageHashes: any, params?: {}): Promise<any>;
-    unsubscribePublic(messageHash: any, params?: {}): Promise<any>;
+    subscribePublic(messageHash: string, params?: Dict): Promise<any>;
+    subscribePublicMultiple(messageHashes: string[], params?: Dict): Promise<any>;
+    unsubscribe(messageHash: string, params?: Dict): Promise<any>;
+    subscribePrivate(messageHash: string, params?: Dict): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
-    handleOrderBook(client: Client, message: any): void;
+    handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook): WsOrderBook;
+    handleOrderBook(client: Client, message: Dict): void;
     /**
      * @method
      * @name lighter#watchOrderBook
@@ -19,9 +21,9 @@ export default class lighter extends lighterRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name lighter#unWatchOrderBook
@@ -29,51 +31,50 @@ export default class lighter extends lighterRest {
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#order-book
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
-    handleTicker(client: Client, message: any): void;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
+    handleTicker(client: Client, message: Dict): void;
     /**
      * @method
      * @name lighter#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name lighter#unWatchTicker
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name lighter#watchTickers
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name lighter#unWatchTickers
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchTickers(symbols?: Strings, params?: Dict): Promise<any>;
     /**
      * @method
      * @name lighter#watchMarkPrice
@@ -81,9 +82,9 @@ export default class lighter extends lighterRest {
      * @description watches a mark price
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
+    watchMarkPrice(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name lighter#watchMarkPrices
@@ -91,9 +92,9 @@ export default class lighter extends lighterRest {
      * @description watches mark prices
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchMarkPrices(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name lighter#unWatchMarkPrice
@@ -101,7 +102,7 @@ export default class lighter extends lighterRest {
      * @description unWatches a mark price
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
     /**
@@ -111,11 +112,11 @@ export default class lighter extends lighterRest {
      * @description unWatches mark prices
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchMarkPrices(symbols?: Strings, params?: {}): Promise<any>;
-    parseWsTrade(trade: any, market?: any): Trade;
-    handleTrades(client: Client, message: any): void;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
+    handleTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name lighter#watchTrades
@@ -125,9 +126,9 @@ export default class lighter extends lighterRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name lighter#unWatchTrades
@@ -135,11 +136,36 @@ export default class lighter extends lighterRest {
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#trade
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    parseWsLiquidation(liquidation: any, market?: any): Liquidation;
-    handleLiquidation(client: Client, message: any): void;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
+    parseWsOrderTrade(trade: Dict, market?: Market): Trade;
+    handleMyTrades(client: Client, message: Dict): boolean;
+    /**
+     * @method
+     * @name lighter#watchMyTrades
+     * @description subscribe to recent trades of an account.
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    /**
+     * @method
+     * @name lighter#unWatchMyTrades
+     * @description unsubscribe from the account trades channel
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
+     * @param {string} [symbol] not supported by lighter.unWatchMyTrades, the account trades channel covers every market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @returns {any} status of the unwatch request
+     */
+    unWatchMyTrades(symbol?: Str, params?: Dict): Promise<any>;
+    parseWsLiquidation(liquidation: Dict, market?: Market): Liquidation | undefined;
+    handleLiquidation(client: Client, message: Dict): void;
     /**
      * @method
      * @name lighter#watchLiquidations
@@ -149,13 +175,101 @@ export default class lighter extends lighterRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
-    handleErrorMessage(client: any, message: any): boolean;
-    handleMessage(client: Client, message: any): void;
-    handleSubscriptionStatus(client: Client, message: any): any;
-    handleUnSubscription(client: Client, subscription: Dict): void;
-    handlePing(client: Client, message: any): void;
-    pong(client: any, message: any): Promise<void>;
+    watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
+    /**
+     * @method
+     * @name lighter#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-assets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', default is 'swap'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    watchBalance(params?: Dict): Promise<Balances>;
+    handleBalance(client: Client, message: Dict): boolean;
+    /**
+     * @name lighter#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    /**
+     * @method
+     * @name lighter#unWatchOrders
+     * @description unWatches information on multiple orders made by the user
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    unWatchOrders(symbol?: Str, params?: Dict): Promise<any>;
+    requestId(url: string): string;
+    /**
+     * @method
+     * @name lighter#createOrderWs
+     * @description create a trade order
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
+     * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
+     * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
+     * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
+     * @param {int} [params.nonce] nonce for the account
+     * @param {int} [params.apiKeyIndex] apiKeyIndex
+     * @param {int} [params.accountIndex] accountIndex
+     * @param {int} [params.orderExpiry] orderExpiry
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
+    /**
+     * @method
+     * @name lighter#cancelOrderWs
+     * @description cancel multiple orders
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+     * @param {string} id order id
+     * @param {string} [symbol] unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    cancelOrderWs(id: string, symbol?: Str, params?: Dict): Promise<Order>;
+    /**
+     * @method
+     * @name lighter#cancelAllOrdersWs
+     * @description cancel all open orders in a market
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    cancelAllOrdersWs(symbol?: Str, params?: Dict): Promise<Order[]>;
+    handleWsSendtxApi(client: Client, message: Dict): void;
+    handleOrders(client: Client, message: Dict): boolean;
+    handleErrorMessage(client: Client, message: Dict): boolean;
+    handleMessage(client: Client, message: Dict): void;
+    handleSubscriptionStatus(client: Client, message: Dict): Dict;
+    handleUnSubscription(client: Client, message: Dict): void;
+    handleOrderBookUnSubscription(client: Client, marketId: Str): void;
+    handleTickerUnSubscription(client: Client, marketId: Str): void;
+    handleTradesUnSubscription(client: Client, marketId: Str): void;
+    handleMyTradesUnSubscription(client: Client): void;
+    handleOrdersUnSubscription(client: Client, marketId: Str): void;
+    handleAllOrdersUnSubscription(client: Client): void;
+    handlePing(client: Client, message: Dict): void;
+    pong(client: Client, message: any): Promise<void>;
 }

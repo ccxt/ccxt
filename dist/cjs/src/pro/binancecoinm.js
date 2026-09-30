@@ -12,7 +12,8 @@ class binancecoinm extends binance["default"] {
         // eslint-disable-next-line new-cap
         const restInstance = new binancecoinm$1["default"]();
         const restDescribe = restInstance.describe();
-        const extended = this.deepExtend(super.describe(), restDescribe);
+        const parentWsDescribe = super.describeData();
+        const extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',

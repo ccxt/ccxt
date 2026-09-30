@@ -7,1006 +7,1272 @@
 
 package ccxt
 
-func (this *CoinexCore) V1PublicGetAmmMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetAmmMarket", args...)
+// V1PublicGetAmmMarket returns a channel that yields a JSON object.
+func (this *Coinex) V1PublicGetAmmMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "amm/market", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PublicGetCommonCurrencyRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetCommonCurrencyRate", args...)
+// V1PublicGetCommonCurrencyRate returns a channel that yields a JSON object.
+func (this *Coinex) V1PublicGetCommonCurrencyRate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "common/currency/rate", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PublicGetCommonAssetConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetCommonAssetConfig", args...)
+// V1PublicGetCommonAssetConfig returns a channel that yields a JSON object.
+func (this *Coinex) V1PublicGetCommonAssetConfig(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "common/asset/config", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PublicGetCommonMaintainInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetCommonMaintainInfo", args...)
+// V1PublicGetCommonMaintainInfo returns a channel that yields a JSON object.
+func (this *Coinex) V1PublicGetCommonMaintainInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "common/maintain/info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PublicGetCommonTempMaintainInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetCommonTempMaintainInfo", args...)
+// V1PublicGetCommonTempMaintainInfo returns a channel that yields a JSON object.
+func (this *Coinex) V1PublicGetCommonTempMaintainInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "common/temp-maintain/info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PublicGetMarginMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetMarginMarket", args...)
+// V1PublicGetMarginMarket returns a channel that yields a JSON object.
+func (this *Coinex) V1PublicGetMarginMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "margin/market", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PublicGetMarketInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetMarketInfo", args...)
+// V1PublicGetMarketInfo returns a channel that yields a JSON object.
+func (this *Coinex) V1PublicGetMarketInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PublicGetMarketList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetMarketList", args...)
+// V1PublicGetMarketList returns a channel that yields a JSON object.
+func (this *Coinex) V1PublicGetMarketList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/list", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PublicGetMarketTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetMarketTicker", args...)
+// V1PublicGetMarketTicker returns a channel that yields a JSON object.
+func (this *Coinex) V1PublicGetMarketTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/ticker", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PublicGetMarketTickerAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetMarketTickerAll", args...)
+// V1PublicGetMarketTickerAll returns a channel that yields a JSON object.
+func (this *Coinex) V1PublicGetMarketTickerAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/ticker/all", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PublicGetMarketDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetMarketDepth", args...)
+// V1PublicGetMarketDepth returns a channel that yields a JSON object.
+func (this *Coinex) V1PublicGetMarketDepth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/depth", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PublicGetMarketDeals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetMarketDeals", args...)
+// V1PublicGetMarketDeals returns a channel that yields a JSON object.
+func (this *Coinex) V1PublicGetMarketDeals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/deals", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PublicGetMarketKline(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetMarketKline", args...)
+// V1PublicGetMarketKline returns a channel that yields a JSON object.
+func (this *Coinex) V1PublicGetMarketKline(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/kline", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PublicGetMarketDetail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetMarketDetail", args...)
+// V1PublicGetMarketDetail returns a channel that yields a JSON object.
+func (this *Coinex) V1PublicGetMarketDetail(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/detail", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PrivateGetAccountAmmBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetAccountAmmBalance", args...)
+// V1PrivateGetAccountAmmBalance returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetAccountAmmBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/amm/balance", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetAccountInvestmentBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetAccountInvestmentBalance", args...)
+// V1PrivateGetAccountInvestmentBalance returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetAccountInvestmentBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/investment/balance", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetAccountBalanceHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetAccountBalanceHistory", args...)
+// V1PrivateGetAccountBalanceHistory returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetAccountBalanceHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/balance/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetAccountMarketFee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetAccountMarketFee", args...)
+// V1PrivateGetAccountMarketFee returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetAccountMarketFee(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/market/fee", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetBalanceCoinDeposit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetBalanceCoinDeposit", args...)
+// V1PrivateGetBalanceCoinDeposit returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetBalanceCoinDeposit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "balance/coin/deposit", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetBalanceCoinWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetBalanceCoinWithdraw", args...)
+// V1PrivateGetBalanceCoinWithdraw returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetBalanceCoinWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "balance/coin/withdraw", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetBalanceInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetBalanceInfo", args...)
+// V1PrivateGetBalanceInfo returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetBalanceInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "balance/info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetBalanceDepositAddressCoinType(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetBalanceDepositAddressCoinType", args...)
+// V1PrivateGetBalanceDepositAddressCoinType returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetBalanceDepositAddressCoinType(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "balance/deposit/address/{coin_type}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetContractTransferHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetContractTransferHistory", args...)
+// V1PrivateGetContractTransferHistory returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetContractTransferHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "contract/transfer/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetCreditInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetCreditInfo", args...)
+// V1PrivateGetCreditInfo returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetCreditInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "credit/info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetCreditBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetCreditBalance", args...)
+// V1PrivateGetCreditBalance returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetCreditBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "credit/balance", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetInvestmentTransferHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetInvestmentTransferHistory", args...)
+// V1PrivateGetInvestmentTransferHistory returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetInvestmentTransferHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "investment/transfer/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetMarginAccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetMarginAccount", args...)
+// V1PrivateGetMarginAccount returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetMarginAccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "margin/account", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PrivateGetMarginConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetMarginConfig", args...)
+// V1PrivateGetMarginConfig returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetMarginConfig(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "margin/config", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PrivateGetMarginLoanHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetMarginLoanHistory", args...)
+// V1PrivateGetMarginLoanHistory returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetMarginLoanHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "margin/loan/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetMarginTransferHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetMarginTransferHistory", args...)
+// V1PrivateGetMarginTransferHistory returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetMarginTransferHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "margin/transfer/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetOrderDeals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetOrderDeals", args...)
+// V1PrivateGetOrderDeals returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetOrderDeals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/deals", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetOrderFinished(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetOrderFinished", args...)
+// V1PrivateGetOrderFinished returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetOrderFinished(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/finished", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetOrderPending(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetOrderPending", args...)
+// V1PrivateGetOrderPending returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetOrderPending(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/pending", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
-func (this *CoinexCore) V1PrivateGetOrderStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetOrderStatus", args...)
+// V1PrivateGetOrderStatus returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetOrderStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/status", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
-func (this *CoinexCore) V1PrivateGetOrderStatusBatch(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetOrderStatusBatch", args...)
+// V1PrivateGetOrderStatusBatch returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetOrderStatusBatch(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/status/batch", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
-func (this *CoinexCore) V1PrivateGetOrderUserDeals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetOrderUserDeals", args...)
+// V1PrivateGetOrderUserDeals returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetOrderUserDeals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/user/deals", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetOrderStopFinished(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetOrderStopFinished", args...)
+// V1PrivateGetOrderStopFinished returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetOrderStopFinished(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/stop/finished", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetOrderStopPending(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetOrderStopPending", args...)
+// V1PrivateGetOrderStopPending returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetOrderStopPending(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/stop/pending", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
-func (this *CoinexCore) V1PrivateGetOrderUserTradeFee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetOrderUserTradeFee", args...)
+// V1PrivateGetOrderUserTradeFee returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetOrderUserTradeFee(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/user/trade/fee", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PrivateGetOrderMarketTradeInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetOrderMarketTradeInfo", args...)
+// V1PrivateGetOrderMarketTradeInfo returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetOrderMarketTradeInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/market/trade/info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PrivateGetSubAccountBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetSubAccountBalance", args...)
+// V1PrivateGetSubAccountBalance returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetSubAccountBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub_account/balance", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PrivateGetSubAccountTransferHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetSubAccountTransferHistory", args...)
+// V1PrivateGetSubAccountTransferHistory returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetSubAccountTransferHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub_account/transfer/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetSubAccountAuthApi(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetSubAccountAuthApi", args...)
+// V1PrivateGetSubAccountAuthApi returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetSubAccountAuthApi(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub_account/auth/api", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateGetSubAccountAuthApiUserAuthId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetSubAccountAuthApiUserAuthId", args...)
+// V1PrivateGetSubAccountAuthApiUserAuthId returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateGetSubAccountAuthApiUserAuthId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub_account/auth/api/{user_auth_id}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivatePostBalanceCoinWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostBalanceCoinWithdraw", args...)
+// V1PrivatePostBalanceCoinWithdraw returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostBalanceCoinWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "balance/coin/withdraw", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivatePostContractBalanceTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostContractBalanceTransfer", args...)
+// V1PrivatePostContractBalanceTransfer returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostContractBalanceTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "contract/balance/transfer", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivatePostMarginFlat(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostMarginFlat", args...)
+// V1PrivatePostMarginFlat returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostMarginFlat(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "margin/flat", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivatePostMarginLoan(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostMarginLoan", args...)
+// V1PrivatePostMarginLoan returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostMarginLoan(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "margin/loan", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivatePostMarginTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostMarginTransfer", args...)
+// V1PrivatePostMarginTransfer returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostMarginTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "margin/transfer", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivatePostOrderLimitBatch(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostOrderLimitBatch", args...)
+// V1PrivatePostOrderLimitBatch returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostOrderLimitBatch(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/limit/batch", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivatePostOrderIoc(args ...interface{}) <-chan interface{} {
+// V1PrivatePostOrderIoc returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostOrderIoc(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivatePostOrderIoc", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostOrderLimit(args ...interface{}) <-chan interface{} {
+// V1PrivatePostOrderLimit returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostOrderLimit(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivatePostOrderLimit", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostOrderMarket(args ...interface{}) <-chan interface{} {
+// V1PrivatePostOrderMarket returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostOrderMarket(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivatePostOrderMarket", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostOrderModify(args ...interface{}) <-chan interface{} {
+// V1PrivatePostOrderModify returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostOrderModify(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivatePostOrderModify", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostOrderStopLimit(args ...interface{}) <-chan interface{} {
+// V1PrivatePostOrderStopLimit returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostOrderStopLimit(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivatePostOrderStopLimit", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostOrderStopMarket(args ...interface{}) <-chan interface{} {
+// V1PrivatePostOrderStopMarket returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostOrderStopMarket(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivatePostOrderStopMarket", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostOrderStopModify(args ...interface{}) <-chan interface{} {
+// V1PrivatePostOrderStopModify returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostOrderStopModify(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivatePostOrderStopModify", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostSubAccountTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostSubAccountTransfer", args...)
+// V1PrivatePostSubAccountTransfer returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostSubAccountTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub_account/transfer", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivatePostSubAccountRegister(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostSubAccountRegister", args...)
+// V1PrivatePostSubAccountRegister returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostSubAccountRegister(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub_account/register", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PrivatePostSubAccountUnfrozen(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostSubAccountUnfrozen", args...)
+// V1PrivatePostSubAccountUnfrozen returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostSubAccountUnfrozen(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub_account/unfrozen", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivatePostSubAccountFrozen(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostSubAccountFrozen", args...)
+// V1PrivatePostSubAccountFrozen returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostSubAccountFrozen(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub_account/frozen", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivatePostSubAccountAuthApi(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostSubAccountAuthApi", args...)
+// V1PrivatePostSubAccountAuthApi returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePostSubAccountAuthApi(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub_account/auth/api", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivatePutBalanceDepositAddressCoinType(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePutBalanceDepositAddressCoinType", args...)
+// V1PrivatePutBalanceDepositAddressCoinType returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePutBalanceDepositAddressCoinType(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "balance/deposit/address/{coin_type}", []string{"v1", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivatePutSubAccountUnfrozen(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePutSubAccountUnfrozen", args...)
+// V1PrivatePutSubAccountUnfrozen returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePutSubAccountUnfrozen(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub_account/unfrozen", []string{"v1", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivatePutSubAccountFrozen(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePutSubAccountFrozen", args...)
+// V1PrivatePutSubAccountFrozen returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePutSubAccountFrozen(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub_account/frozen", []string{"v1", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivatePutSubAccountAuthApiUserAuthId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePutSubAccountAuthApiUserAuthId", args...)
+// V1PrivatePutSubAccountAuthApiUserAuthId returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePutSubAccountAuthApiUserAuthId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub_account/auth/api/{user_auth_id}", []string{"v1", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivatePutV1AccountSettings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePutV1AccountSettings", args...)
+// V1PrivatePutV1AccountSettings returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivatePutV1AccountSettings(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/account/settings", []string{"v1", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateDeleteBalanceCoinWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateDeleteBalanceCoinWithdraw", args...)
+// V1PrivateDeleteBalanceCoinWithdraw returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateDeleteBalanceCoinWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "balance/coin/withdraw", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateDeleteOrderPendingBatch(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateDeleteOrderPendingBatch", args...)
+// V1PrivateDeleteOrderPendingBatch returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateDeleteOrderPendingBatch(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/pending/batch", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateDeleteOrderPending(args ...interface{}) <-chan interface{} {
+// V1PrivateDeleteOrderPending returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateDeleteOrderPending(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivateDeleteOrderPending", args...)
 }
 
-func (this *CoinexCore) V1PrivateDeleteOrderStopPending(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateDeleteOrderStopPending", args...)
+// V1PrivateDeleteOrderStopPending returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateDeleteOrderStopPending(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/stop/pending", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateDeleteOrderStopPendingId(args ...interface{}) <-chan interface{} {
+// V1PrivateDeleteOrderStopPendingId returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateDeleteOrderStopPendingId(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivateDeleteOrderStopPendingId", args...)
 }
 
-func (this *CoinexCore) V1PrivateDeleteOrderPendingByClientId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateDeleteOrderPendingByClientId", args...)
+// V1PrivateDeleteOrderPendingByClientId returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateDeleteOrderPendingByClientId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/pending/by_client_id", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateDeleteOrderStopPendingByClientId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateDeleteOrderStopPendingByClientId", args...)
+// V1PrivateDeleteOrderStopPendingByClientId returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateDeleteOrderStopPendingByClientId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/stop/pending/by_client_id", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateDeleteSubAccountAuthApiUserAuthId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateDeleteSubAccountAuthApiUserAuthId", args...)
+// V1PrivateDeleteSubAccountAuthApiUserAuthId returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateDeleteSubAccountAuthApiUserAuthId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub_account/auth/api/{user_auth_id}", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PrivateDeleteSubAccountAuthorizeId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateDeleteSubAccountAuthorizeId", args...)
+// V1PrivateDeleteSubAccountAuthorizeId returns a channel that yields a JSON object.
+func (this *Coinex) V1PrivateDeleteSubAccountAuthorizeId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub_account/authorize/{id}", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetPing(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPublicGetPing", args...)
+// V1PerpetualPublicGetPing returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPublicGetPing(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ping", []string{"v1", "perpetualPublic"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPublicGetTime", args...)
+// V1PerpetualPublicGetTime returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPublicGetTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "time", []string{"v1", "perpetualPublic"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetMarketList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPublicGetMarketList", args...)
+// V1PerpetualPublicGetMarketList returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPublicGetMarketList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/list", []string{"v1", "perpetualPublic"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetMarketLimitConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPublicGetMarketLimitConfig", args...)
+// V1PerpetualPublicGetMarketLimitConfig returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPublicGetMarketLimitConfig(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/limit_config", []string{"v1", "perpetualPublic"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetMarketTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPublicGetMarketTicker", args...)
+// V1PerpetualPublicGetMarketTicker returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPublicGetMarketTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/ticker", []string{"v1", "perpetualPublic"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetMarketTickerAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPublicGetMarketTickerAll", args...)
+// V1PerpetualPublicGetMarketTickerAll returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPublicGetMarketTickerAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/ticker/all", []string{"v1", "perpetualPublic"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetMarketDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPublicGetMarketDepth", args...)
+// V1PerpetualPublicGetMarketDepth returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPublicGetMarketDepth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/depth", []string{"v1", "perpetualPublic"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetMarketDeals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPublicGetMarketDeals", args...)
+// V1PerpetualPublicGetMarketDeals returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPublicGetMarketDeals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/deals", []string{"v1", "perpetualPublic"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetMarketFundingHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPublicGetMarketFundingHistory", args...)
+// V1PerpetualPublicGetMarketFundingHistory returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPublicGetMarketFundingHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/funding_history", []string{"v1", "perpetualPublic"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetMarketKline(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPublicGetMarketKline", args...)
+// V1PerpetualPublicGetMarketKline returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPublicGetMarketKline(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/kline", []string{"v1", "perpetualPublic"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetMarketUserDeals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivateGetMarketUserDeals", args...)
+// V1PerpetualPrivateGetMarketUserDeals returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivateGetMarketUserDeals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/user_deals", []string{"v1", "perpetualPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetAssetQuery(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivateGetAssetQuery", args...)
+// V1PerpetualPrivateGetAssetQuery returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivateGetAssetQuery(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "asset/query", []string{"v1", "perpetualPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetOrderPending(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivateGetOrderPending", args...)
+// V1PerpetualPrivateGetOrderPending returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivateGetOrderPending(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/pending", []string{"v1", "perpetualPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetOrderFinished(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivateGetOrderFinished", args...)
+// V1PerpetualPrivateGetOrderFinished returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivateGetOrderFinished(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/finished", []string{"v1", "perpetualPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetOrderStopFinished(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivateGetOrderStopFinished", args...)
+// V1PerpetualPrivateGetOrderStopFinished returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivateGetOrderStopFinished(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/stop_finished", []string{"v1", "perpetualPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetOrderStopPending(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivateGetOrderStopPending", args...)
+// V1PerpetualPrivateGetOrderStopPending returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivateGetOrderStopPending(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/stop_pending", []string{"v1", "perpetualPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetOrderStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivateGetOrderStatus", args...)
+// V1PerpetualPrivateGetOrderStatus returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivateGetOrderStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/status", []string{"v1", "perpetualPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetOrderStopStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivateGetOrderStopStatus", args...)
+// V1PerpetualPrivateGetOrderStopStatus returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivateGetOrderStopStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/stop_status", []string{"v1", "perpetualPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetPositionFinished(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivateGetPositionFinished", args...)
+// V1PerpetualPrivateGetPositionFinished returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivateGetPositionFinished(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "position/finished", []string{"v1", "perpetualPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetPositionPending(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivateGetPositionPending", args...)
+// V1PerpetualPrivateGetPositionPending returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivateGetPositionPending(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "position/pending", []string{"v1", "perpetualPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetPositionFunding(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivateGetPositionFunding", args...)
+// V1PerpetualPrivateGetPositionFunding returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivateGetPositionFunding(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "position/funding", []string{"v1", "perpetualPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetPositionAdlHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivateGetPositionAdlHistory", args...)
+// V1PerpetualPrivateGetPositionAdlHistory returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivateGetPositionAdlHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "position/adl_history", []string{"v1", "perpetualPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetMarketPreference(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivateGetMarketPreference", args...)
+// V1PerpetualPrivateGetMarketPreference returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivateGetMarketPreference(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/preference", []string{"v1", "perpetualPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetPositionMarginHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivateGetPositionMarginHistory", args...)
+// V1PerpetualPrivateGetPositionMarginHistory returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivateGetPositionMarginHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "position/margin_history", []string{"v1", "perpetualPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetPositionSettleHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivateGetPositionSettleHistory", args...)
+// V1PerpetualPrivateGetPositionSettleHistory returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivateGetPositionSettleHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "position/settle_history", []string{"v1", "perpetualPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostMarketAdjustLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostMarketAdjustLeverage", args...)
+// V1PerpetualPrivatePostMarketAdjustLeverage returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostMarketAdjustLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/adjust_leverage", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostMarketPositionExpect(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostMarketPositionExpect", args...)
+// V1PerpetualPrivatePostMarketPositionExpect returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostMarketPositionExpect(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/position_expect", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderPutLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostOrderPutLimit", args...)
+// V1PerpetualPrivatePostOrderPutLimit returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostOrderPutLimit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/put_limit", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderPutMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostOrderPutMarket", args...)
+// V1PerpetualPrivatePostOrderPutMarket returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostOrderPutMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/put_market", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderPutStopLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostOrderPutStopLimit", args...)
+// V1PerpetualPrivatePostOrderPutStopLimit returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostOrderPutStopLimit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/put_stop_limit", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderPutStopMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostOrderPutStopMarket", args...)
+// V1PerpetualPrivatePostOrderPutStopMarket returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostOrderPutStopMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/put_stop_market", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderModify(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostOrderModify", args...)
+// V1PerpetualPrivatePostOrderModify returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostOrderModify(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/modify", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderModifyStop(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostOrderModifyStop", args...)
+// V1PerpetualPrivatePostOrderModifyStop returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostOrderModifyStop(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/modify_stop", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancel", args...)
+// V1PerpetualPrivatePostOrderCancel returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostOrderCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/cancel", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelAll", args...)
+// V1PerpetualPrivatePostOrderCancelAll returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostOrderCancelAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/cancel_all", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelBatch(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelBatch", args...)
+// V1PerpetualPrivatePostOrderCancelBatch returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostOrderCancelBatch(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/cancel_batch", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelStop(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelStop", args...)
+// V1PerpetualPrivatePostOrderCancelStop returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostOrderCancelStop(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/cancel_stop", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelStopAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelStopAll", args...)
+// V1PerpetualPrivatePostOrderCancelStopAll returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostOrderCancelStopAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/cancel_stop_all", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCloseLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCloseLimit", args...)
+// V1PerpetualPrivatePostOrderCloseLimit returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostOrderCloseLimit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/close_limit", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCloseMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCloseMarket", args...)
+// V1PerpetualPrivatePostOrderCloseMarket returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostOrderCloseMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/close_market", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostPositionAdjustMargin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostPositionAdjustMargin", args...)
+// V1PerpetualPrivatePostPositionAdjustMargin returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostPositionAdjustMargin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "position/adjust_margin", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostPositionStopLoss(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostPositionStopLoss", args...)
+// V1PerpetualPrivatePostPositionStopLoss returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostPositionStopLoss(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "position/stop_loss", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostPositionTakeProfit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostPositionTakeProfit", args...)
+// V1PerpetualPrivatePostPositionTakeProfit returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostPositionTakeProfit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "position/take_profit", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostPositionMarketClose(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostPositionMarketClose", args...)
+// V1PerpetualPrivatePostPositionMarketClose returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostPositionMarketClose(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "position/market_close", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelByClientId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelByClientId", args...)
+// V1PerpetualPrivatePostOrderCancelByClientId returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostOrderCancelByClientId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/cancel/by_client_id", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelStopByClientId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelStopByClientId", args...)
+// V1PerpetualPrivatePostOrderCancelStopByClientId returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostOrderCancelStopByClientId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/cancel_stop/by_client_id", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostMarketPreference(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PerpetualPrivatePostMarketPreference", args...)
+// V1PerpetualPrivatePostMarketPreference returns a channel that yields a JSON object.
+func (this *Coinex) V1PerpetualPrivatePostMarketPreference(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/preference", []string{"v1", "perpetualPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V2PublicGetMaintainInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetMaintainInfo", args...)
+// V2PublicGetMaintainInfo returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetMaintainInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "maintain/info", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetPing(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetPing", args...)
+// V2PublicGetPing returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetPing(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ping", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetTime", args...)
+// V2PublicGetTime returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "time", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetSpotMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetSpotMarket", args...)
+// V2PublicGetSpotMarket returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetSpotMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/market", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetSpotTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetSpotTicker", args...)
+// V2PublicGetSpotTicker returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetSpotTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/ticker", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetSpotDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetSpotDepth", args...)
+// V2PublicGetSpotDepth returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetSpotDepth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/depth", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetSpotDeals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetSpotDeals", args...)
+// V2PublicGetSpotDeals returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetSpotDeals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/deals", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetSpotKline(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetSpotKline", args...)
+// V2PublicGetSpotKline returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetSpotKline(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/kline", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetSpotIndex(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetSpotIndex", args...)
+// V2PublicGetSpotIndex returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetSpotIndex(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/index", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetFuturesMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetFuturesMarket", args...)
+// V2PublicGetFuturesMarket returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetFuturesMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/market", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetFuturesTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetFuturesTicker", args...)
+// V2PublicGetFuturesTicker returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetFuturesTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/ticker", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetFuturesDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetFuturesDepth", args...)
+// V2PublicGetFuturesDepth returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetFuturesDepth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/depth", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetFuturesDeals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetFuturesDeals", args...)
+// V2PublicGetFuturesDeals returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetFuturesDeals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/deals", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetFuturesKline(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetFuturesKline", args...)
+// V2PublicGetFuturesKline returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetFuturesKline(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/kline", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetFuturesIndex(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetFuturesIndex", args...)
+// V2PublicGetFuturesIndex returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetFuturesIndex(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/index", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetFuturesFundingRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetFuturesFundingRate", args...)
+// V2PublicGetFuturesFundingRate returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetFuturesFundingRate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/funding-rate", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetFuturesFundingRateHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetFuturesFundingRateHistory", args...)
+// V2PublicGetFuturesFundingRateHistory returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetFuturesFundingRateHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/funding-rate-history", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetFuturesPremiumIndexHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetFuturesPremiumIndexHistory", args...)
+// V2PublicGetFuturesPremiumIndexHistory returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetFuturesPremiumIndexHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/premium-index-history", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetFuturesPositionLevel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetFuturesPositionLevel", args...)
+// V2PublicGetFuturesPositionLevel returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetFuturesPositionLevel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/position-level", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetFuturesLiquidationHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetFuturesLiquidationHistory", args...)
+// V2PublicGetFuturesLiquidationHistory returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetFuturesLiquidationHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/liquidation-history", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetFuturesBasisHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetFuturesBasisHistory", args...)
+// V2PublicGetFuturesBasisHistory returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetFuturesBasisHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/basis-history", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetAssetsDepositWithdrawConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetAssetsDepositWithdrawConfig", args...)
+// V2PublicGetAssetsDepositWithdrawConfig returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetAssetsDepositWithdrawConfig(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/deposit-withdraw-config", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PublicGetAssetsAllDepositWithdrawConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetAssetsAllDepositWithdrawConfig", args...)
+// V2PublicGetAssetsAllDepositWithdrawConfig returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetAssetsAllDepositWithdrawConfig(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/all-deposit-withdraw-config", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetAccountSubs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAccountSubs", args...)
+// V2PublicGetAssetsInfo returns a channel that yields a JSON object.
+func (this *Coinex) V2PublicGetAssetsInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/info", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetAccountSubsApiDetail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAccountSubsApiDetail", args...)
+// V2PrivateGetAccountSubs returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAccountSubs(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/subs", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetAccountSubsInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAccountSubsInfo", args...)
+// V2PrivateGetAccountSubsApiDetail returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAccountSubsApiDetail(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/subs/api-detail", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetAccountSubsApi(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAccountSubsApi", args...)
+// V2PrivateGetAccountSubsInfo returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAccountSubsInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/subs/info", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetAccountSubsTransferHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAccountSubsTransferHistory", args...)
+// V2PrivateGetAccountSubsApi returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAccountSubsApi(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/subs/api", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetAccountSubsBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAccountSubsBalance", args...)
+// V2PrivateGetAccountSubsTransferHistory returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAccountSubsTransferHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/subs/transfer-history", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetAccountSubsSpotBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAccountSubsSpotBalance", args...)
+// V2PrivateGetAccountSubsBalance returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAccountSubsBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/subs/balance", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetAccountTradeFeeRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAccountTradeFeeRate", args...)
+// V2PrivateGetAccountSubsSpotBalance returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAccountSubsSpotBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/subs/spot-balance", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetAccountFuturesMarketSettings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAccountFuturesMarketSettings", args...)
+// V2PrivateGetAccountTradeFeeRate returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAccountTradeFeeRate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/trade-fee-rate", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetAccountInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAccountInfo", args...)
+// V2PrivateGetAccountFuturesMarketSettings returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAccountFuturesMarketSettings(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/futures-market-settings", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsSpotBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAssetsSpotBalance", args...)
+// V2PrivateGetAccountInfo returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAccountInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/info", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsFuturesBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAssetsFuturesBalance", args...)
+// V2PrivateGetAssetsSpotBalance returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAssetsSpotBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/spot/balance", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsMarginBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAssetsMarginBalance", args...)
+// V2PrivateGetAssetsFuturesBalance returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAssetsFuturesBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/futures/balance", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsFinancialBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAssetsFinancialBalance", args...)
+// V2PrivateGetAssetsMarginBalance returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAssetsMarginBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/margin/balance", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsAmmLiquidity(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAssetsAmmLiquidity", args...)
+// V2PrivateGetAssetsFinancialBalance returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAssetsFinancialBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/financial/balance", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsCreditInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAssetsCreditInfo", args...)
+// V2PrivateGetAssetsAmmLiquidity returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAssetsAmmLiquidity(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/amm/liquidity", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsSpotTranscationHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAssetsSpotTranscationHistory", args...)
+// V2PrivateGetAssetsCreditInfo returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAssetsCreditInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/credit/info", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsMarginBorrowHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAssetsMarginBorrowHistory", args...)
+// V2PrivateGetAssetsSpotTranscationHistory returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAssetsSpotTranscationHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/spot/transcation-history", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsMarginInterestLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAssetsMarginInterestLimit", args...)
+// V2PrivateGetAssetsMarginBorrowHistory returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAssetsMarginBorrowHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/margin/borrow-history", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsDepositAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAssetsDepositAddress", args...)
+// V2PrivateGetAssetsMarginInterestLimit returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAssetsMarginInterestLimit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/margin/interest-limit", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsDepositHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAssetsDepositHistory", args...)
+// V2PrivateGetAssetsDepositAddress returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAssetsDepositAddress(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/deposit-address", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAssetsWithdraw", args...)
+// V2PrivateGetAssetsDepositHistory returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAssetsDepositHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/deposit-history", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsTransferHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAssetsTransferHistory", args...)
+// V2PrivateGetAssetsWithdraw returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAssetsWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/withdraw", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsAmmLiquidityPool(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAssetsAmmLiquidityPool", args...)
+// V2PrivateGetAssetsTransferHistory returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAssetsTransferHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/transfer-history", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsAmmIncomeHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetAssetsAmmIncomeHistory", args...)
+// V2PrivateGetAssetsAmmLiquidityPool returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAssetsAmmLiquidityPool(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/amm/liquidity-pool", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetSpotOrderStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetSpotOrderStatus", args...)
+// V2PrivateGetAssetsAmmIncomeHistory returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetAssetsAmmIncomeHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/amm/income-history", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetSpotBatchOrderStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetSpotBatchOrderStatus", args...)
+// V2PrivateGetSpotOrderStatus returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetSpotOrderStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/order-status", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
-func (this *CoinexCore) V2PrivateGetSpotPendingOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetSpotPendingOrder", args...)
+// V2PrivateGetSpotBatchOrderStatus returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetSpotBatchOrderStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/batch-order-status", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
-func (this *CoinexCore) V2PrivateGetSpotFinishedOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetSpotFinishedOrder", args...)
+// V2PrivateGetSpotPendingOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetSpotPendingOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/pending-order", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
-func (this *CoinexCore) V2PrivateGetSpotPendingStopOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetSpotPendingStopOrder", args...)
+// V2PrivateGetSpotFinishedOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetSpotFinishedOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/finished-order", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetSpotFinishedStopOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetSpotFinishedStopOrder", args...)
+// V2PrivateGetSpotPendingStopOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetSpotPendingStopOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/pending-stop-order", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
-func (this *CoinexCore) V2PrivateGetSpotUserDeals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetSpotUserDeals", args...)
+// V2PrivateGetSpotFinishedStopOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetSpotFinishedStopOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/finished-stop-order", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetSpotOrderDeals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetSpotOrderDeals", args...)
+// V2PrivateGetSpotUserDeals returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetSpotUserDeals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/user-deals", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesOrderStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetFuturesOrderStatus", args...)
+// V2PrivateGetSpotOrderDeals returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetSpotOrderDeals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/order-deals", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesBatchOrderStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetFuturesBatchOrderStatus", args...)
+// V2PrivateGetFuturesOrderStatus returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetFuturesOrderStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/order-status", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesPendingOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetFuturesPendingOrder", args...)
+// V2PrivateGetFuturesBatchOrderStatus returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetFuturesBatchOrderStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/batch-order-status", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesFinishedOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetFuturesFinishedOrder", args...)
+// V2PrivateGetFuturesPendingOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetFuturesPendingOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/pending-order", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesPendingStopOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetFuturesPendingStopOrder", args...)
+// V2PrivateGetFuturesFinishedOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetFuturesFinishedOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/finished-order", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesFinishedStopOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetFuturesFinishedStopOrder", args...)
+// V2PrivateGetFuturesPendingStopOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetFuturesPendingStopOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/pending-stop-order", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesUserDeals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetFuturesUserDeals", args...)
+// V2PrivateGetFuturesFinishedStopOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetFuturesFinishedStopOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/finished-stop-order", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesOrderDeals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetFuturesOrderDeals", args...)
+// V2PrivateGetFuturesUserDeals returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetFuturesUserDeals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/user-deals", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesPendingPosition(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetFuturesPendingPosition", args...)
+// V2PrivateGetFuturesOrderDeals returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetFuturesOrderDeals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/order-deals", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesFinishedPosition(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetFuturesFinishedPosition", args...)
+// V2PrivateGetFuturesPendingPosition returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetFuturesPendingPosition(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/pending-position", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesPositionMarginHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetFuturesPositionMarginHistory", args...)
+// V2PrivateGetFuturesFinishedPosition returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetFuturesFinishedPosition(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/finished-position", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesPositionFundingHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetFuturesPositionFundingHistory", args...)
+// V2PrivateGetFuturesPositionMarginHistory returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetFuturesPositionMarginHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/position-margin-history", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesPositionAdlHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetFuturesPositionAdlHistory", args...)
+// V2PrivateGetFuturesPositionFundingHistory returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetFuturesPositionFundingHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/position-funding-history", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesPositionSettleHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetFuturesPositionSettleHistory", args...)
+// V2PrivateGetFuturesPositionAdlHistory returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetFuturesPositionAdlHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/position-adl-history", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetReferReferee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetReferReferee", args...)
+// V2PrivateGetFuturesPositionSettleHistory returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetFuturesPositionSettleHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/position-settle-history", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetReferRefereeRebateRecord(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetReferRefereeRebateRecord", args...)
+// V2PrivateGetReferReferee returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetReferReferee(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "refer/referee", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetReferRefereeRebateDetail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetReferRefereeRebateDetail", args...)
+// V2PrivateGetReferRefereeRebateRecord returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetReferRefereeRebateRecord(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "refer/referee-rebate/record", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetReferAgentReferee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetReferAgentReferee", args...)
+// V2PrivateGetReferRefereeRebateDetail returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetReferRefereeRebateDetail(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "refer/referee-rebate/detail", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetReferAgentRebateRecord(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetReferAgentRebateRecord", args...)
+// V2PrivateGetReferAgentReferee returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetReferAgentReferee(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "refer/agent-referee", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivateGetReferAgentRebateDetail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivateGetReferAgentRebateDetail", args...)
+// V2PrivateGetReferAgentRebateRecord returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetReferAgentRebateRecord(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "refer/agent-rebate/record", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivatePostAccountSubs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAccountSubs", args...)
+// V2PrivateGetReferAgentRebateDetail returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivateGetReferAgentRebateDetail(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "refer/agent-rebate/detail", []string{"v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivatePostAccountSubsFrozen(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAccountSubsFrozen", args...)
+// V2PrivatePostAccountSubs returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAccountSubs(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/subs", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivatePostAccountSubsUnfrozen(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAccountSubsUnfrozen", args...)
+// V2PrivatePostAccountSubsFrozen returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAccountSubsFrozen(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/subs/frozen", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivatePostAccountSubsApi(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAccountSubsApi", args...)
+// V2PrivatePostAccountSubsUnfrozen returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAccountSubsUnfrozen(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/subs/unfrozen", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivatePostAccountSubsEditApi(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAccountSubsEditApi", args...)
+// V2PrivatePostAccountSubsApi returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAccountSubsApi(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/subs/api", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivatePostAccountSubsDeleteApi(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAccountSubsDeleteApi", args...)
+// V2PrivatePostAccountSubsEditApi returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAccountSubsEditApi(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/subs/edit-api", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivatePostAccountSubsTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAccountSubsTransfer", args...)
+// V2PrivatePostAccountSubsDeleteApi returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAccountSubsDeleteApi(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/subs/delete-api", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivatePostAccountSettings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAccountSettings", args...)
+// V2PrivatePostAccountSubsTransfer returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAccountSubsTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/subs/transfer", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivatePostAccountFuturesMarketSettings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAccountFuturesMarketSettings", args...)
+// V2PrivatePostAccountSettings returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAccountSettings(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/settings", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivatePostAssetsMarginBorrow(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAssetsMarginBorrow", args...)
+// V2PrivatePostAccountFuturesMarketSettings returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAccountFuturesMarketSettings(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/futures-market-settings", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivatePostAssetsMarginRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAssetsMarginRepay", args...)
+// V2PrivatePostAssetsMarginBorrow returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAssetsMarginBorrow(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/margin/borrow", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivatePostAssetsRenewalDepositAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAssetsRenewalDepositAddress", args...)
+// V2PrivatePostAssetsMarginRepay returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAssetsMarginRepay(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/margin/repay", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivatePostAssetsWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAssetsWithdraw", args...)
+// V2PrivatePostAssetsRenewalDepositAddress returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAssetsRenewalDepositAddress(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/renewal-deposit-address", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivatePostAssetsCancelWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAssetsCancelWithdraw", args...)
+// V2PrivatePostAssetsWithdraw returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAssetsWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/withdraw", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivatePostAssetsTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAssetsTransfer", args...)
+// V2PrivatePostAssetsCancelWithdraw returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAssetsCancelWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/cancel-withdraw", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivatePostAssetsAmmAddLiquidity(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAssetsAmmAddLiquidity", args...)
+// V2PrivatePostAssetsTransfer returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAssetsTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/transfer", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivatePostAssetsAmmRemoveLiquidity(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostAssetsAmmRemoveLiquidity", args...)
+// V2PrivatePostAssetsAmmAddLiquidity returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAssetsAmmAddLiquidity(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/amm/add-liquidity", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivatePostSpotOrder(args ...interface{}) <-chan interface{} {
+// V2PrivatePostAssetsAmmRemoveLiquidity returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostAssetsAmmRemoveLiquidity(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/amm/remove-liquidity", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V2PrivatePostSpotOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostSpotOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostSpotOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotStopOrder(args ...interface{}) <-chan interface{} {
+// V2PrivatePostSpotStopOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostSpotStopOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostSpotStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotBatchOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostSpotBatchOrder", args...)
+// V2PrivatePostSpotBatchOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostSpotBatchOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/batch-order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *CoinexCore) V2PrivatePostSpotBatchStopOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostSpotBatchStopOrder", args...)
+// V2PrivatePostSpotBatchStopOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostSpotBatchStopOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/batch-stop-order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivatePostSpotModifyOrder(args ...interface{}) <-chan interface{} {
+// V2PrivatePostSpotModifyOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostSpotModifyOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostSpotModifyOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotModifyStopOrder(args ...interface{}) <-chan interface{} {
+// V2PrivatePostSpotModifyStopOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostSpotModifyStopOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostSpotModifyStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotBatchModifyOrder(args ...interface{}) <-chan interface{} {
+// V2PrivatePostSpotBatchModifyOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostSpotBatchModifyOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostSpotBatchModifyOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotCancelAllOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostSpotCancelAllOrder", args...)
+// V2PrivatePostSpotCancelAllOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostSpotCancelAllOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/cancel-all-order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivatePostSpotCancelOrder(args ...interface{}) <-chan interface{} {
+// V2PrivatePostSpotCancelOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostSpotCancelOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostSpotCancelOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotCancelStopOrder(args ...interface{}) <-chan interface{} {
+// V2PrivatePostSpotCancelStopOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostSpotCancelStopOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostSpotCancelStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotCancelBatchOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostSpotCancelBatchOrder", args...)
+// V2PrivatePostSpotCancelBatchOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostSpotCancelBatchOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/cancel-batch-order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *CoinexCore) V2PrivatePostSpotCancelBatchStopOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostSpotCancelBatchStopOrder", args...)
+// V2PrivatePostSpotCancelBatchStopOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostSpotCancelBatchStopOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/cancel-batch-stop-order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *CoinexCore) V2PrivatePostSpotCancelOrderByClientId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostSpotCancelOrderByClientId", args...)
+// V2PrivatePostSpotCancelOrderByClientId returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostSpotCancelOrderByClientId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/cancel-order-by-client-id", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivatePostSpotCancelStopOrderByClientId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostSpotCancelStopOrderByClientId", args...)
+// V2PrivatePostSpotCancelStopOrderByClientId returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostSpotCancelStopOrderByClientId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/cancel-stop-order-by-client-id", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesOrder", args...)
+// V2PrivatePostFuturesOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesStopOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesStopOrder", args...)
+// V2PrivatePostFuturesStopOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesStopOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/stop-order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesBatchOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesBatchOrder", args...)
+// V2PrivatePostFuturesBatchOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesBatchOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/batch-order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesBatchStopOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesBatchStopOrder", args...)
+// V2PrivatePostFuturesBatchStopOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesBatchStopOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/batch-stop-order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelPositionStopLoss(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesCancelPositionStopLoss", args...)
+// V2PrivatePostFuturesCancelPositionStopLoss returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesCancelPositionStopLoss(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/cancel-position-stop-loss", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelPositionTakeProfit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesCancelPositionTakeProfit", args...)
+// V2PrivatePostFuturesCancelPositionTakeProfit returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesCancelPositionTakeProfit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/cancel-position-take-profit", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesModifyOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesModifyOrder", args...)
+// V2PrivatePostFuturesModifyOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesModifyOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/modify-order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesModifyStopOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesModifyStopOrder", args...)
+// V2PrivatePostFuturesModifyStopOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesModifyStopOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/modify-stop-order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesBatchModifyOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesBatchModifyOrder", args...)
+// V2PrivatePostFuturesBatchModifyOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesBatchModifyOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/batch-modify-order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelAllOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesCancelAllOrder", args...)
+// V2PrivatePostFuturesCancelAllOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesCancelAllOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/cancel-all-order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesCancelOrder", args...)
+// V2PrivatePostFuturesCancelOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesCancelOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/cancel-order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelStopOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesCancelStopOrder", args...)
+// V2PrivatePostFuturesCancelStopOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesCancelStopOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/cancel-stop-order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelBatchOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesCancelBatchOrder", args...)
+// V2PrivatePostFuturesCancelBatchOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesCancelBatchOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/cancel-batch-order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelBatchStopOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesCancelBatchStopOrder", args...)
+// V2PrivatePostFuturesCancelBatchStopOrder returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesCancelBatchStopOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/cancel-batch-stop-order", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelOrderByClientId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesCancelOrderByClientId", args...)
+// V2PrivatePostFuturesCancelOrderByClientId returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesCancelOrderByClientId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/cancel-order-by-client-id", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelStopOrderByClientId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesCancelStopOrderByClientId", args...)
+// V2PrivatePostFuturesCancelStopOrderByClientId returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesCancelStopOrderByClientId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/cancel-stop-order-by-client-id", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesClosePosition(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesClosePosition", args...)
+// V2PrivatePostFuturesClosePosition returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesClosePosition(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/close-position", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesAdjustPositionMargin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesAdjustPositionMargin", args...)
+// V2PrivatePostFuturesAdjustPositionMargin returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesAdjustPositionMargin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/adjust-position-margin", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesAdjustPositionLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesAdjustPositionLeverage", args...)
+// V2PrivatePostFuturesAdjustPositionLeverage returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesAdjustPositionLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/adjust-position-leverage", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesSetPositionStopLoss(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesSetPositionStopLoss", args...)
+// V2PrivatePostFuturesSetPositionStopLoss returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesSetPositionStopLoss(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/set-position-stop-loss", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesSetPositionTakeProfit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PrivatePostFuturesSetPositionTakeProfit", args...)
+// V2PrivatePostFuturesSetPositionTakeProfit returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesSetPositionTakeProfit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/set-position-take-profit", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+}
+
+// V2PrivatePostFuturesModifyPositionStopLoss returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesModifyPositionStopLoss(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/modify-position-stop-loss", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+}
+
+// V2PrivatePostFuturesModifyPositionTakeProfit returns a channel that yields a JSON object.
+func (this *Coinex) V2PrivatePostFuturesModifyPositionTakeProfit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures/modify-position-take-profit", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }

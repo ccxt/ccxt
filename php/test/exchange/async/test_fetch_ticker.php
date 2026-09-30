@@ -14,7 +14,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_ticker.php';
 function test_fetch_ticker($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchTicker';
-        $ticker = Async\await($exchange->fetch_ticker($symbol));
+        $ticker = \React\Async\await($exchange->fetch_ticker($symbol));
         test_ticker($exchange, $skipped_properties, $method, $ticker, $symbol);
         return true;
     }) ();

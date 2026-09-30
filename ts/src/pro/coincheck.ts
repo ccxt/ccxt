@@ -3,14 +3,15 @@
 
 import coincheckRest from '../coincheck.js';
 import { AuthenticationError } from '../base/errors.js';
-import type { Int, Market, OrderBook, Trade, Dict } from '../base/types.js';
+import type { Int, Market, OrderBook, Trade, Dict, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class coincheck extends coincheckRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -54,10 +55,12 @@ export default class coincheck extends coincheckRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'orderbook:' + market['symbol'];
         const url = this.urls['api']['ws'];
@@ -66,11 +69,11 @@ export default class coincheck extends coincheckRest {
             'channel': market['id'] + '-orderbook',
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message: any[]) {
         //
         //     [
         //         "btc_jpy",
@@ -92,7 +95,7 @@ export default class coincheck extends coincheckRest {
         //     ]
         //
         const symbol = this.symbol (this.safeString (message, 0));
-        const data = this.safeValue (message, 1, {});
+        const data = this.safeDict (message, 1, {});
         const timestamp = this.safeTimestamp (data, 'last_update_at');
         const snapshot = this.parseOrderBook (data, symbol, timestamp);
         let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -118,10 +121,12 @@ export default class coincheck extends coincheckRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const messageHash = 'trade:' + market['symbol'];
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -129,14 +134,15 @@ export default class coincheck extends coincheckRest {
             'channel': market['id'] + '-trades',
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any[]) {
         //
         //     [
         //         [
@@ -151,7 +157,7 @@ export default class coincheck extends coincheckRest {
         //         ]
         //     ]
         //
-        const first = this.safeValue (message, 0, []);
+        const first = this.safeList (message, 0, []);
         const symbol = this.symbol (this.safeString (first, 2));
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -168,7 +174,7 @@ export default class coincheck extends coincheckRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseWsTrade (trade: List, market: Market = undefined): Trade {
         //
         //     [
         //         "1663318663", // transaction timestamp (unix time)
@@ -203,7 +209,7 @@ export default class coincheck extends coincheckRest {
         }, market);
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any[]) {
         const data = this.safeValue (message, 0);
         if (!Array.isArray (data)) {
             this.handleOrderBook (client, message);

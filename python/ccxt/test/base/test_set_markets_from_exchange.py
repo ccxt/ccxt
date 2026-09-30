@@ -19,7 +19,7 @@ async def test_set_markets_from_exchange():
     empty_exchange = ccxt.Exchange({
         'id': 'sample0',
     })
-    assert 'GO_SKIP_START'
+    # @SKIP_START_GO
     method_name = 'setMarketsFromExchange'
     true_clause = empty_exchange.safe_string(None, None) is None
     sample_market = {
@@ -42,7 +42,7 @@ async def test_set_markets_from_exchange():
     exchange2 = ccxt.Exchange({
         'id': 'primaryEx',
     })
-    assert len(list(exchange1.markets.keys())) > 0, 'Markets should be loaded in exchange1'
+    assert (exchange1.markets is not None) and (len(list(exchange1.markets.keys())) > 0), 'Markets should be loaded in exchange1'
     # Test error case: exchanges are different
     different_exchange = ccxt.Exchange({
         'id': 'secondaryEx',
@@ -77,4 +77,5 @@ async def test_set_markets_from_exchange():
     # Should be very fast since no API call is made
     time_taken = end_time - start_time
     assert time_taken < 10, 'loadMarkets on shared markets should be fast'
-    assert 'GO_SKIP_END'
+    # @SKIP_END_GO
+    empty_exchange.describe()  # avoid unused var

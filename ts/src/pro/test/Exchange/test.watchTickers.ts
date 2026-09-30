@@ -4,6 +4,7 @@ import testTicker from '../../../test/Exchange/base/test.ticker.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { ArgumentsRequired } from '../../../base/errors.js';
 import { Exchange, Tickers } from '../../../../ccxt.js';
+import { Str, Strings } from '../../../base/types.js';
 
 async function testWatchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
     const withoutSymbol = testWatchTickersHelper (exchange, skippedProperties, undefined);
@@ -11,14 +12,17 @@ async function testWatchTickers (exchange: Exchange, skippedProperties: object, 
     await Promise.all ([ withSymbol, withoutSymbol ]);
 }
 
-async function testWatchTickersHelper (exchange: Exchange, skippedProperties: object, argSymbols: string[], argParams = {}) {
+async function testWatchTickersHelper (exchange: Exchange, skippedProperties: object, argSymbols: Strings, argParams = {}) {
     const method = 'watchTickers';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
-    while (now < ends) {
-        let response: Tickers = undefined;
+    const maxIdleTime = 5000;
+    let idle = false;
+    while ((now < ends) && !idle) {
+        let response: Tickers = {};
         let success = true;
         let shouldReturn = false;
+        const startTime = exchange.milliseconds ();
         try {
             response = await exchange.watchTickers (argSymbols, argParams);
         } catch (e) {
@@ -35,26 +39,36 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
             else if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
-            now = exchange.milliseconds ();
-            // continue;
             success = false;
         }
+        now = exchange.milliseconds ();
         if (shouldReturn) {
             return false;
         }
         if (success === true) {
-            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));
+            assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return a dictionary. ' + exchange.json (response));
             const values = Object.values (response);
-            let checkedSymbol = undefined;
+            let checkedSymbol: Str = undefined;
             if (argSymbols !== undefined && argSymbols.length === 1) {
                 checkedSymbol = argSymbols[0];
             }
             testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values, checkedSymbol);
             for (let i = 0; i < values.length; i++) {
                 const ticker = values[i];
-                testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
+                try {
+                    testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
+                } catch (ex) {
+                    let ohlcv = undefined;
+                    const tickerSymbol = ticker['symbol'];
+                    if ((tickerSymbol !== undefined) && testSharedMethods.tickerExceptionNeedsOhlcv (ex, exchange, ticker)) {
+                        ohlcv = await exchange.fetchOHLCV (tickerSymbol, '1d', undefined, 5);
+                    }
+                    testSharedMethods.validateTickerExceptionForPercentage (ex, exchange, ticker, ohlcv);
+                }
             }
-            now = exchange.milliseconds ();
+            if ((now - startTime) > maxIdleTime) {
+                idle = true;
+            }
         }
     }
     return true;

@@ -7,10 +7,12 @@
 
 package ccxt
 
-func (this *HyperliquidCore) PublicPostInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicPostInfo", args...)
+// PublicPostInfo returns a channel that yields a JSON object, a JSON array or a JSON scalar.
+func (this *Hyperliquid) PublicPostInfo(args ...any) <-chan AsyncResult[any] {
+	return this.Fetch2Async("info", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *HyperliquidCore) PrivatePostExchange(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostExchange", args...)
+// PrivatePostExchange returns a channel that yields a JSON object.
+func (this *Hyperliquid) PrivatePostExchange(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "exchange", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

@@ -7,7 +7,7 @@ import binanceusRest from '../binanceus.js';
 // ---------------------------------------------------------------------------
 
 export default class binanceus extends binance {
-    describe (): any {
+    override describe (): any {
         // eslint-disable-next-line new-cap
         const restInstance = new binanceusRest ();
         const restDescribe = restInstance.describe ();
@@ -57,7 +57,6 @@ export default class binanceus extends binance {
                 'watchPositions': false,
             },
             'options': {
-                'fetchCurrencies': false,
                 'quoteOrderQty': false,
                 'defaultType': 'spot',
                 'fetchMarkets': {

@@ -1,10 +1,11 @@
-- [Async Macd](./examples/py/)
+```python
+# -*- coding: utf-8 -*-
 
+from asyncio import gather
+from importlib import import_module
+from importlib.util import find_spec
 
- ```python
- # -*- coding: utf-8 -*-
-
-from asyncio import gather, run
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import pandas_ta as ta
 import pandas as pd
 import os
@@ -48,5 +49,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

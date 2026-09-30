@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class okxus { public okxus(object args = null) : base(args) { } }
 public partial class okxus : okx
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "okxus" },
@@ -30,7 +30,7 @@ public partial class okxus : okx
                 } },
             } },
             { "has", new Dictionary<string, object>() {
-                { "swap", false },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
             } },

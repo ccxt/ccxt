@@ -7,7 +7,7 @@
 import testSharedMethods from './test.sharedMethods.js';
 function testFundingRateHistory(exchange, skippedProperties, method, entry, symbol) {
     const format = {
-        'info': {},
+        'info': {}, // Or []
         'symbol': 'BTC/USDT:USDT',
         'timestamp': 1638230400000,
         'datetime': '2021-11-30T00:00:00.000Z',

@@ -1,8 +1,5 @@
-- [Binance Create Oco Order With Implicit Methods](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -39,5 +36,5 @@ response = exchange.private_post_order_oco({
     # 'stopIcebergQty': exchange.amount_to_precision(symbol, stop_iceberg_quantity),
     # 'newOrderRespType': 'ACK',  # ACK, RESULT, FULL
 })
-print(response) 
+print(response)
 ```

@@ -1,0 +1,677 @@
+{
+    "BTC": {
+        "info": null,
+        "id": "btc",
+        "numericId": null,
+        "code": "BTC",
+        "precision": 0.00001,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "USDC": {
+        "info": null,
+        "id": "usdc",
+        "numericId": null,
+        "code": "USDC",
+        "precision": 0.000001,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "PAXG": {
+        "info": null,
+        "id": "paxg",
+        "numericId": null,
+        "code": "PAXG",
+        "precision": 0.001,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "ETH": {
+        "info": null,
+        "id": "eth",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 0.0001,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "SOL": {
+        "info": null,
+        "id": "sol",
+        "numericId": null,
+        "code": "SOL",
+        "precision": 0.01,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "BNB": {
+        "info": null,
+        "id": "bnb",
+        "numericId": null,
+        "code": "BNB",
+        "precision": 0.001,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "HYPE": {
+        "info": null,
+        "id": "hype",
+        "numericId": null,
+        "code": "HYPE",
+        "precision": 0.01,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "USDJPY": {
+        "info": null,
+        "id": "usdjpy",
+        "numericId": null,
+        "code": "USDJPY",
+        "precision": 0.001,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "XAG": {
+        "info": null,
+        "id": "xag",
+        "numericId": null,
+        "code": "XAG",
+        "precision": 0.01,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "SUI": {
+        "info": null,
+        "id": "sui",
+        "numericId": null,
+        "code": "SUI",
+        "precision": 0.1,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "XRP": {
+        "info": null,
+        "id": "xrp",
+        "numericId": null,
+        "code": "XRP",
+        "precision": 0.01,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "ZEC": {
+        "info": null,
+        "id": "zec",
+        "numericId": null,
+        "code": "ZEC",
+        "precision": 0.01,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "TSLA": {
+        "info": null,
+        "id": "tsla",
+        "numericId": null,
+        "code": "TSLA",
+        "precision": 0.001,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "PUMP": {
+        "info": null,
+        "id": "pump",
+        "numericId": null,
+        "code": "PUMP",
+        "precision": 1,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "UNI": {
+        "info": null,
+        "id": "uni",
+        "numericId": null,
+        "code": "UNI",
+        "precision": 0.1,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "AVAX": {
+        "info": null,
+        "id": "avax",
+        "numericId": null,
+        "code": "AVAX",
+        "precision": 0.01,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "XMR": {
+        "info": null,
+        "id": "xmr",
+        "numericId": null,
+        "code": "XMR",
+        "precision": 0.01,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "AAVE": {
+        "info": null,
+        "id": "aave",
+        "numericId": null,
+        "code": "AAVE",
+        "precision": 0.01,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "ENA": {
+        "info": null,
+        "id": "ena",
+        "numericId": null,
+        "code": "ENA",
+        "precision": 1,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "LIT": {
+        "info": null,
+        "id": "lit",
+        "numericId": null,
+        "code": "LIT",
+        "precision": 0.1,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "CRV": {
+        "info": null,
+        "id": "crv",
+        "numericId": null,
+        "code": "CRV",
+        "precision": 0.1,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "NVDA": {
+        "info": null,
+        "id": "nvda",
+        "numericId": null,
+        "code": "NVDA",
+        "precision": 0.001,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "TAO": {
+        "info": null,
+        "id": "tao",
+        "numericId": null,
+        "code": "TAO",
+        "precision": 0.01,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "WLFI": {
+        "info": null,
+        "id": "wlfi",
+        "numericId": null,
+        "code": "WLFI",
+        "precision": 1,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "DOGE": {
+        "info": null,
+        "id": "doge",
+        "numericId": null,
+        "code": "DOGE",
+        "precision": 1,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "KPEPE": {
+        "info": null,
+        "id": "kpepe",
+        "numericId": null,
+        "code": "KPEPE",
+        "precision": 1,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "LTC": {
+        "info": null,
+        "id": "ltc",
+        "numericId": null,
+        "code": "LTC",
+        "precision": 0.01,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    }
+}

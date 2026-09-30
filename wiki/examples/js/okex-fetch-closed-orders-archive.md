@@ -1,8 +1,5 @@
-- [Okex Fetch Closed Orders Archive](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 
@@ -32,5 +29,5 @@ async function main () {
 
 }
 
-main () 
+main ()
 ```

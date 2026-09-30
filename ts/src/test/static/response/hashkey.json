@@ -192,7 +192,7 @@
                         "precision": null,
                         "type": "crypto",
                         "name": "Tether",
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": 0,
@@ -211,7 +211,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 8,
@@ -239,7 +239,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 1,
@@ -267,7 +267,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.3,
@@ -295,7 +295,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0,
@@ -323,7 +323,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": false,
+                                "active": null,
                                 "deposit": false,
                                 "withdraw": false,
                                 "fee": 1,
@@ -351,7 +351,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 2,
@@ -379,7 +379,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": false,
+                                "active": null,
                                 "deposit": false,
                                 "withdraw": false,
                                 "fee": 0,
@@ -407,7 +407,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.2,
@@ -1432,7 +1432,7 @@
                     "bidVolume": null,
                     "ask": 2627.78,
                     "askVolume": null,
-                    "vwap": 2.650899026632571,
+                    "vwap": 2650.899026632571,
                     "open": 2450.43,
                     "close": 2632.25,
                     "last": 2632.25,
@@ -1440,7 +1440,7 @@
                     "change": 181.82,
                     "percentage": 7.419922217733214,
                     "average": 2541.34,
-                    "baseVolume": 1561096,
+                    "baseVolume": 1561.096,
                     "quoteVolume": 4138307.86688,
                     "markPrice":  null,
                     "indexPrice": null,
@@ -1591,7 +1591,7 @@
                 "input": [
                     "USDT",
                     {
-                        "network": "ARB"
+                        "network": "ARBITRUM"
                     }
                 ],
                 "httpResponse": {
@@ -1608,7 +1608,7 @@
                     "currency": "USDT",
                     "address": "0xC38268b45F651EA74a5C0cB7531AA79EF20e138f",
                     "tag": null,
-                    "network": "ARB",
+                    "network": "ARBITRUM",
                     "info": {
                         "canDeposit": true,
                         "address": "0xC38268b45F651EA74a5C0cB7531AA79EF20e138f",
@@ -2086,7 +2086,7 @@
                     "trades": [],
                     "fee": {
                         "currency": null,
-                        "amount": null
+                        "cost": null
                     },
                     "reduceOnly": null,
                     "postOnly": false,
@@ -2110,7 +2110,6 @@
                     "fees": [
                         {
                             "currency": null,
-                            "amount": null,
                             "cost": null
                         }
                     ]
@@ -2168,7 +2167,7 @@
                     "trades": [],
                     "fee": {
                         "currency": null,
-                        "amount": null
+                        "cost": null
                     },
                     "reduceOnly": null,
                     "postOnly": false,
@@ -2192,7 +2191,6 @@
                     "fees": [
                         {
                             "currency": null,
-                            "amount": null,
                             "cost": null
                         }
                     ]
@@ -2250,7 +2248,7 @@
                     "trades": [],
                     "fee": {
                         "currency": null,
-                        "amount": null
+                        "cost": null
                     },
                     "reduceOnly": null,
                     "postOnly": false,
@@ -2274,7 +2272,6 @@
                     "fees": [
                         {
                             "currency": null,
-                            "amount": null,
                             "cost": null
                         }
                     ]
@@ -2331,7 +2328,7 @@
                     "trades": [],
                     "fee": {
                         "currency": null,
-                        "amount": null
+                        "cost": null
                     },
                     "reduceOnly": null,
                     "postOnly": false,
@@ -2355,7 +2352,6 @@
                     "fees": [
                         {
                         "currency": null,
-                        "amount": null,
                         "cost": null
                         }
                     ]
@@ -2416,7 +2412,7 @@
                     "trades": [],
                     "fee": {
                         "currency": null,
-                        "amount": null
+                        "cost": null
                     },
                     "reduceOnly": null,
                     "postOnly": false,
@@ -2440,7 +2436,6 @@
                     "fees": [
                         {
                             "currency": null,
-                            "amount": null,
                             "cost": null
                         }
                     ]
@@ -2501,7 +2496,7 @@
                     "trades": [],
                     "fee": {
                         "currency": null,
-                        "amount": null
+                        "cost": null
                     },
                     "reduceOnly": null,
                     "postOnly": true,
@@ -2525,7 +2520,6 @@
                     "fees": [
                         {
                             "currency": null,
-                            "amount": null,
                             "cost": null
                         }
                     ]
@@ -2585,7 +2579,7 @@
                     "trades": [],
                     "fee": {
                         "currency": null,
-                        "amount": null
+                        "cost": null
                     },
                     "reduceOnly": false,
                     "postOnly": false,
@@ -2611,7 +2605,6 @@
                     "fees": [
                         {
                             "currency": null,
-                            "amount": null,
                             "cost": null
                         }
                     ]
@@ -2671,7 +2664,7 @@
                     "trades": [],
                     "fee": {
                         "currency": null,
-                        "amount": null
+                        "cost": null
                     },
                     "reduceOnly": false,
                     "postOnly": false,
@@ -2697,7 +2690,6 @@
                     "fees": [
                         {
                             "currency": null,
-                            "amount": null,
                             "cost": null
                         }
                     ]
@@ -2756,7 +2748,7 @@
                     "trades": [],
                     "fee": {
                         "currency": null,
-                        "amount": null
+                        "cost": null
                     },
                     "reduceOnly": false,
                     "postOnly": false,
@@ -2778,7 +2770,6 @@
                     "fees": [
                         {
                             "currency": null,
-                            "amount": null,
                             "cost": null
                         }
                     ]
@@ -2841,7 +2832,7 @@
                     "trades": [],
                     "fee": {
                         "currency": null,
-                        "amount": null
+                        "cost": null
                     },
                     "reduceOnly": false,
                     "postOnly": true,
@@ -2867,7 +2858,6 @@
                     "fees": [
                         {
                             "currency": null,
-                            "amount": null,
                             "cost": null
                         }
                     ]
@@ -2924,7 +2914,7 @@
                     "trades": [],
                     "fee": {
                         "currency": null,
-                        "amount": null
+                        "cost": null
                     },
                     "reduceOnly": null,
                     "postOnly": false,
@@ -2948,7 +2938,6 @@
                     "fees": [
                         {
                             "currency": null,
-                            "amount": null,
                             "cost": null
                         }
                     ]
@@ -3001,7 +2990,7 @@
                     "trades": [],
                     "fee": {
                         "currency": null,
-                        "amount": null
+                        "cost": null
                     },
                     "reduceOnly": null,
                     "postOnly": false,
@@ -3022,7 +3011,6 @@
                     "fees": [
                         {
                             "currency": null,
-                            "amount": null,
                             "cost": null
                         }
                     ]
@@ -3088,7 +3076,7 @@
                     "trades": [],
                     "fee": {
                         "currency": null,
-                        "amount": null
+                        "cost": null
                     },
                     "reduceOnly": null,
                     "postOnly": true,
@@ -3122,7 +3110,6 @@
                     "fees": [
                         {
                             "currency": null,
-                            "amount": null,
                             "cost": null
                         }
                     ]
@@ -3210,7 +3197,7 @@
                         "trades": [],
                         "fee": {
                             "currency": null,
-                            "amount": null
+                            "cost": null
                         },
                         "reduceOnly": null,
                         "postOnly": true,
@@ -3241,7 +3228,6 @@
                         "fees": [
                             {
                                 "currency": null,
-                                "amount": null,
                                 "cost": null
                             }
                         ]
@@ -3271,7 +3257,7 @@
                         "trades": [],
                         "fee": {
                             "currency": null,
-                            "amount": null
+                            "cost": null
                         },
                         "reduceOnly": null,
                         "postOnly": true,
@@ -3302,7 +3288,6 @@
                         "fees": [
                             {
                                 "currency": null,
-                                "amount": null,
                                 "cost": null
                             }
                         ]
@@ -3364,7 +3349,7 @@
                         "trades": [],
                         "fee": {
                             "currency": null,
-                            "amount": null
+                            "cost": null
                         },
                         "reduceOnly": false,
                         "postOnly": false,
@@ -3392,7 +3377,6 @@
                         "fees": [
                             {
                                 "currency": null,
-                                "amount": null,
                                 "cost": null
                             }
                         ]
@@ -3458,7 +3442,7 @@
                         "trades": [],
                         "fee": {
                             "currency": null,
-                            "amount": null
+                            "cost": null
                         },
                         "reduceOnly": false,
                         "postOnly": false,
@@ -3486,7 +3470,6 @@
                         "fees": [
                             {
                                 "currency": null,
-                                "amount": null,
                                 "cost": null
                             }
                         ]
@@ -3639,7 +3622,7 @@
                         "lastPrice": 2399.67,
                         "stopLossPrice": null,
                         "takeProfitPrice": null,
-                        "percentage": null,
+                        "percentage": 83.34,
                         "info": {
                             "symbol": "ETHUSDT-PERPETUAL",
                             "side": "SHORT",
@@ -3711,6 +3694,98 @@
                     "marginMode": null,
                     "longLeverage": 5,
                     "shortLeverage": 5
+                }
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "Set margin mode to isolated",
+                "method": "setMarginMode",
+                "input": [
+                    "isolated",
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0000",
+                    "symbol": "ETHUSDT-PERPETUAL",
+                    "marginType": "ISOLATED"
+                },
+                "parsedResponse": {
+                    "code": "0000",
+                    "symbol": "ETHUSDT-PERPETUAL",
+                    "marginType": "ISOLATED"
+                }
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "Add margin",
+                "method": "addMargin",
+                "input": [
+                    "ETH/USDT:USDT",
+                    10,
+                    {
+                        "side": "long"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0000",
+                    "symbol": "ETHUSDT-PERPETUAL",
+                    "margin": "12344.345",
+                    "timestamp": "1726869763318"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0000",
+                        "symbol": "ETHUSDT-PERPETUAL",
+                        "margin": "12344.345",
+                        "timestamp": "1726869763318"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "add",
+                    "marginMode": "isolated",
+                    "amount": 10,
+                    "total": 12344.345,
+                    "code": "USDT",
+                    "status": "ok",
+                    "timestamp": 1726869763318,
+                    "datetime": "2024-09-20T22:02:43.318Z"
+                }
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "Reduce margin",
+                "method": "reduceMargin",
+                "input": [
+                    "ETH/USDT:USDT",
+                    10,
+                    {
+                        "side": "long"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0000",
+                    "symbol": "ETHUSDT-PERPETUAL",
+                    "margin": "12334.345",
+                    "timestamp": "1726869763318"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0000",
+                        "symbol": "ETHUSDT-PERPETUAL",
+                        "margin": "12334.345",
+                        "timestamp": "1726869763318"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "reduce",
+                    "marginMode": "isolated",
+                    "amount": 10,
+                    "total": 12334.345,
+                    "code": "USDT",
+                    "status": "ok",
+                    "timestamp": 1726869763318,
+                    "datetime": "2024-09-20T22:02:43.318Z"
                 }
             }
         ],

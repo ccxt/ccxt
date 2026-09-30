@@ -1,8 +1,5 @@
-- [Load All At Once](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -41,5 +38,5 @@ foreach ($exchanges as $exchange) {
 }
 
 
-?> 
+?>
 ```

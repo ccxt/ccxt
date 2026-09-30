@@ -1,8 +1,5 @@
-- [Latoken Example](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -112,5 +109,5 @@ if ($exchange->check_required_credentials(false)) {
 }
 
 ?>
- 
+
 ```

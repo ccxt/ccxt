@@ -49,7 +49,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-bittrade.fetchTime ([params])
+bittrade.fetchTime (params?)
 ```
 
 
@@ -68,7 +68,7 @@ retrieves data on all markets for huobijp
 
 
 ```javascript
-bittrade.fetchMarkets ([params])
+bittrade.fetchMarkets (params?)
 ```
 
 
@@ -78,7 +78,7 @@ bittrade.fetchMarkets ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bittrade</code>](#bittrade)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -89,7 +89,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bittrade.fetchOrderBook (symbol[, limit, params])
+bittrade.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -109,7 +109,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bittrade.fetchTicker (symbol[, params])
+bittrade.fetchTicker (symbol, params?)
 ```
 
 
@@ -129,7 +129,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bittrade.fetchTickers (symbols[, params])
+bittrade.fetchTickers (symbols, params?)
 ```
 
 
@@ -152,7 +152,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-bittrade.fetchOrderTrades (id, symbol[, since, limit, params])
+bittrade.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -174,7 +174,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bittrade.fetchMyTrades (symbol[, since, limit, params])
+bittrade.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -196,7 +196,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bittrade.fetchTrades (symbol[, since, limit, params])
+bittrade.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -219,7 +219,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bittrade.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bittrade.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -238,7 +238,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-bittrade.fetchAccounts ([params])
+bittrade.fetchAccounts (params?)
 ```
 
 
@@ -257,7 +257,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bittrade.fetchCurrencies ([params])
+bittrade.fetchCurrencies (params?)
 ```
 
 
@@ -276,7 +276,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bittrade.fetchBalance ([params])
+bittrade.fetchBalance (params?)
 ```
 
 
@@ -297,7 +297,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bittrade.fetchOrder (id, symbol[, params])
+bittrade.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -319,7 +319,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bittrade.fetchOrders (symbol[, since, limit, params])
+bittrade.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -341,7 +341,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bittrade.fetchOpenOrders (symbol[, since, limit, params])
+bittrade.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -363,7 +363,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bittrade.fetchClosedOrders (symbol[, since, limit, params])
+bittrade.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -384,7 +384,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-bittrade.createMarketBuyOrderWithCost (symbol, cost[, params])
+bittrade.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -408,7 +408,7 @@ create a trade order
 
 
 ```javascript
-bittrade.createOrder (symbol, type, side, amount[, price, params])
+bittrade.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -424,12 +424,12 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by bittrade cancelOrder () |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bittrade.cancelOrder (id, symbol[, params])
+bittrade.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -445,12 +445,12 @@ cancel multiple orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | Yes | not used by bittrade cancelOrders () |
+| symbol | <code>string</code> | Yes | not used by cancelOrders () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bittrade.cancelOrders (ids, symbol[, params])
+bittrade.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -465,12 +465,12 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bittrade.cancelAllOrders (symbol[, params])
+bittrade.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -492,7 +492,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bittrade.fetchDeposits (code[, since, limit, params])
+bittrade.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -514,7 +514,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bittrade.fetchWithdrawals (code[, since, limit, params])
+bittrade.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -537,7 +537,7 @@ make a withdrawal
 
 
 ```javascript
-bittrade.withdraw (code, amount, address, tag[, params])
+bittrade.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -557,7 +557,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bittrade.watchTicker (symbol[, params])
+bittrade.watchTicker (symbol, params?)
 ```
 
 
@@ -579,7 +579,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bittrade.watchTrades (symbol[, since, limit, params])
+bittrade.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -602,7 +602,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bittrade.watchOHLCV (symbol, timeframe[, since, limit, params])
+bittrade.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -612,7 +612,7 @@ bittrade.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bittrade</code>](#bittrade)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -623,6 +623,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bittrade.watchOrderBook (symbol[, limit, params])
+bittrade.watchOrderBook (symbol, limit?, params?)
 ```
 

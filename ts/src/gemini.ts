@@ -1,12 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha384 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/gemini.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type{ Balances, Currencies, Currency, CurrencyInterface, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, Fee, NullableDict, Endpoint, DepositAddresses } from './base/types.js';
+import type { OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +16,7 @@ import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Ord
  * @augments Exchange
  */
 export default class gemini extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'gemini',
             'name': 'Gemini',
@@ -66,6 +67,7 @@ export default class gemini extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -121,103 +123,140 @@ export default class gemini extends Exchange {
             },
             'api': {
                 'webExchange': {
-                    'get': [
-                        '',
-                    ],
+                    'get': {
+                        '': { 'cost': 1 } as Endpoint<string>,
+                    },
                 },
                 'web': {
-                    'get': [
-                        'rest-api',
-                    ],
+                    'get': {
+                        // fetchMarkets passes this through fetchWebEndpoint with
+                        // returnAsJson=false and a startRegex, i.e. it splits the
+                        // body as text: this endpoint answers with the docs page
+                        // markup, not with JSON
+                        'rest-api': { 'cost': 1 } as Endpoint<string>,
+                    },
                 },
                 'public': {
                     'get': {
-                        'v1/symbols': 5,
-                        'v1/symbols/details/{symbol}': 5,
-                        'v1/network/{token}': 5,
-                        'v1/staking/rates': 5,
-                        'v1/pubticker/{symbol}': 5,
-                        'v1/feepromos': 5,
-                        'v2/ticker/{symbol}': 5,
-                        'v2/candles/{symbol}/{timeframe}': 5,
-                        'v1/trades/{symbol}': 5,
-                        'v1/auction/{symbol}': 5,
-                        'v1/auction/{symbol}/history': 5,
-                        'v1/pricefeed': 5,
-                        'v1/fundingamount/{symbol}': 5,
-                        'v1/fundingamountreport/records.xlsx': 5,
-                        'v1/book/{symbol}': 5,
-                        'v1/earn/rates': 5,
-                        'v2/derivatives/candles/{symbol}/{time_frame}': 5,
-                        'v2/fxrate/{symbol}/{timestamp}': 5,
-                        'v1/riskstats/{symbol}': 5,
+                        'v1/symbols': { 'cost': 5 } as Endpoint<List>,
+                        'v1/symbols/details/{symbol}': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/network/{token}': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/staking/rates': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/pubticker/{symbol}': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/feepromos': { 'cost': 5 } as Endpoint<Dict>,
+                        'v2/ticker/{symbol}': { 'cost': 5 } as Endpoint<Dict>,
+                        'v2/candles/{symbol}/{timeframe}': { 'cost': 5 } as Endpoint<List>,
+                        'v1/trades/{symbol}': { 'cost': 5 } as Endpoint<List>,
+                        'v1/auction/{symbol}': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/auction/{symbol}/history': { 'cost': 5 } as Endpoint<List>,
+                        'v1/pricefeed': { 'cost': 5 } as Endpoint<List>,
+                        'v1/fundingamount/{symbol}': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/fundingamountreport/records.xlsx': { 'cost': 5 } as Endpoint<string>,
+                        'v1/book/{symbol}': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/earn/rates': { 'cost': 5 } as Endpoint<Dict>,
+                        'v2/derivatives/candles/{symbol}/{time_frame}': { 'cost': 5 } as Endpoint<List>,
+                        'v2/fxrate/{symbol}/{timestamp}': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/riskstats/{symbol}': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events/{eventTicker}': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events/{eventTicker}/strike': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events/newly-listed': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events/recently-settled': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events/upcoming': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/categories': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/volume/{date}': { 'cost': 5 } as Endpoint<List>,
+                        'v1/prediction-markets/volume/{date}/hourly': { 'cost': 5 } as Endpoint<List>,
+                        'v1/prediction-markets/terms': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/maker-rebate/rates': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/liquidity-rewards/config': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/liquidity-rewards/events': { 'cost': 5 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'v1/perpetuals/fundingpaymentreport/records.xlsx': 1,
+                        'v1/perpetuals/fundingpaymentreport/records.xlsx': { 'cost': 1 } as Endpoint<string>,
+                        'v1/prediction-markets/terms/status': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/maker-rebate/summary/total': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/liquidity-rewards/summary/daily': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/liquidity-rewards/summary/total': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/network/{token}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/networks/{network}/assets': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'v1/staking/unstake': 1,
-                        'v1/staking/stake': 1,
-                        'v1/staking/rewards': 1,
-                        'v1/staking/history': 1,
-                        'v1/order/new': 1,
-                        'v1/order/cancel': 1,
-                        'v1/wrap/{symbol}': 1,
-                        'v1/order/cancel/session': 1,
-                        'v1/order/cancel/all': 1,
-                        'v1/order/status': 1,
-                        'v1/orders': 1,
-                        'v1/mytrades': 1,
-                        'v1/notionalvolume': 1,
-                        'v1/tradevolume': 1,
-                        'v1/clearing/new': 1,
-                        'v1/clearing/status': 1,
-                        'v1/clearing/cancel': 1,
-                        'v1/clearing/confirm': 1,
-                        'v1/balances': 1,
-                        'v1/balances/staking': 1,
-                        'v1/notionalbalances/{currency}': 1,
-                        'v1/transfers': 1,
-                        'v1/addresses/{network}': 1,
-                        'v1/deposit/{network}/newAddress': 1,
-                        'v1/deposit/{currency}/newAddress': 1,
-                        'v1/withdraw/{currency}': 1,
-                        'v1/account/transfer/{currency}': 1,
-                        'v1/payments/addbank': 1,
-                        'v1/payments/methods': 1,
-                        'v1/payments/sen/withdraw': 1,
-                        'v1/balances/earn': 1,
-                        'v1/earn/interest': 1,
-                        'v1/earn/history': 1,
-                        'v1/approvedAddresses/{network}/request': 1,
-                        'v1/approvedAddresses/account/{network}': 1,
-                        'v1/approvedAddresses/{network}/remove': 1,
-                        'v1/account': 1,
-                        'v1/account/create': 1,
-                        'v1/account/list': 1,
-                        'v1/heartbeat': 1,
-                        'v1/roles': 1,
-                        'v1/custodyaccountfees': 1,
-                        'v1/withdraw/{currencyCodeLowerCase}/feeEstimate': 1,
-                        'v1/payments/addbank/cad': 1,
-                        'v1/transactions': 1,
-                        'v1/margin/account': 1,
-                        'v1/margin/rates': 1,
-                        'v1/margin/order/preview': 1,
-                        'v1/clearing/list': 1,
-                        'v1/clearing/broker/list': 1,
-                        'v1/clearing/broker/new': 1,
-                        'v1/clearing/trades': 1,
-                        'v1/instant/quote': 1,
-                        'v1/instant/execute': 1,
-                        'v1/account/rename': 1,
-                        'v1/oauth/revokeByToken': 1,
-                        'v1/margin': 1,
-                        'v1/perpetuals/fundingPayment': 1,
-                        'v1/perpetuals/fundingpaymentreport/records.json': 1,
-                        'v1/positions': 1,
+                        'v1/staking/unstake': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/staking/stake': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/staking/rewards': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/staking/history': { 'cost': 1 } as Endpoint<List>,
+                        'v1/order/new': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/wrap/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/order/cancel/session': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/order/cancel/all': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/order/status': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/orders': { 'cost': 1 } as Endpoint<List>,
+                        'v1/mytrades': { 'cost': 1 } as Endpoint<List>,
+                        'v1/notionalvolume': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/tradevolume': { 'cost': 1 } as Endpoint<List>,
+                        'v1/clearing/new': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/clearing/status': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/clearing/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/clearing/confirm': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/balances/staking': { 'cost': 1 } as Endpoint<List>,
+                        'v1/notionalbalances/{currency}': { 'cost': 1 } as Endpoint<List>,
+                        'v1/transfers': { 'cost': 1 } as Endpoint<List>,
+                        'v1/addresses/{network}': { 'cost': 1 } as Endpoint<List>,
+                        'v1/deposit/{network}/newAddress': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/deposit/{currency}/newAddress': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/withdraw/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/account/transfer/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/payments/addbank': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/payments/methods': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/payments/sen/withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/balances/earn': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/earn/interest': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/earn/history': { 'cost': 1 } as Endpoint<List>,
+                        'v1/approvedAddresses/{network}/request': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/approvedAddresses/account/{network}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/approvedAddresses/{network}/remove': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/account': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/account/create': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/account/list': { 'cost': 1 } as Endpoint<List>,
+                        'v1/heartbeat': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/roles': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/custodyaccountfees': { 'cost': 1 } as Endpoint<List>,
+                        'v1/withdraw/{currencyCodeLowerCase}/feeEstimate': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/payments/addbank/cad': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/margin/account': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/margin/rates': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/margin/order/preview': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/clearing/list': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/clearing/broker/list': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/clearing/broker/new': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/clearing/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/instant/quote': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/instant/execute': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/account/rename': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/oauth/revokeByToken': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/margin': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/perpetuals/fundingPayment': { 'cost': 1 } as Endpoint<List>,
+                        'v1/perpetuals/fundingpaymentreport/records.json': { 'cost': 1 } as Endpoint<List>,
+                        'v1/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/order/batch': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/order/batch/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/orders/active': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/orders/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/positions/settled': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/metrics/volume': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/terms/accept': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/maker-rebate/payouts': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/transfers': { 'cost': 1 } as Endpoint<List>,
+                        'v2/withdraw/{network}/{ticker}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/withdraw/{network}/{ticker}/feeEstimate': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -304,6 +343,7 @@ export default class gemini extends Exchange {
                     'webApiRetries': 5,
                     'webApiMuteFailure': true,
                 },
+                // fetchticker should use v1, confirmed that v2 is buggy ( https://github.com/ccxt/ccxt/issues/28077 )
                 'fetchTickerMethod': 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networks': {
                     'BTC': 'bitcoin',
@@ -404,7 +444,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         return await this.fetchCurrenciesFromWeb (params);
     }
 
@@ -416,7 +456,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrenciesFromWeb (params = {}) {
+    async fetchCurrenciesFromWeb (params: Dict = {}): Promise<Currencies> {
         const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGet', true, '="currencyData">', '</script>');
         if (data === undefined) {
             return {};
@@ -441,22 +481,29 @@ export default class gemini extends Exchange {
         //        ]
         //    }
         //
-        const result: Dict = {};
         this.options['tradingPairs'] = this.safeList (data, 'tradingPairs');
-        const currenciesArray = this.safeValue (data, 'currencies', []);
-        for (let i = 0; i < currenciesArray.length; i++) {
-            const currency = currenciesArray[i];
-            const id = this.safeString (currency, 0);
-            const code = this.safeCurrencyCode (id);
-            const type = this.safeString (currency, 7) ? 'fiat' : 'crypto';
-            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 5)));
-            const networks: Dict = {};
-            const networkId = this.safeString (currency, 9);
-            let networkCode = undefined;
-            if (networkId !== undefined) {
-                networkCode = this.networkIdToCode (networkId);
+        const currenciesArray = this.safeList (data, 'currencies', []);
+        return this.parseCurrencies (currenciesArray);
+    }
+
+    override parseCurrency (rawCurrency: List): CurrencyInterface {
+        const id = this.safeString (rawCurrency, 0);
+        const code = this.safeCurrencyCode (id);
+        const fiatFlag = this.safeString (rawCurrency, 7);
+        const isFiat = (fiatFlag !== undefined) && (fiatFlag !== '');
+        let type: Str = 'crypto';
+        if (isFiat) {
+            type = 'fiat';
+        }
+        const precision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 5)));
+        const networks: Dict = {};
+        const networkId = this.safeString (rawCurrency, 9);
+        let networkCode: Str = undefined;
+        if (networkId !== undefined) {
+            networkCode = this.networkIdToCode (networkId, code);
+            if (networkCode !== undefined) {
                 networks[networkCode] = {
-                    'info': currency,
+                    'info': rawCurrency,
                     'id': networkId,
                     'network': networkCode,
                     'active': undefined,
@@ -476,31 +523,30 @@ export default class gemini extends Exchange {
                     },
                 };
             }
-            result[code] = this.safeCurrencyStructure ({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': this.safeString (currency, 1),
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'type': type,
-                'precision': precision,
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': networks,
-            });
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'info': rawCurrency,
+            'id': id,
+            'code': code,
+            'name': this.safeString (rawCurrency, 1),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'type': type,
+            'precision': precision,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        });
     }
 
     /**
@@ -511,10 +557,10 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
-        const method = this.safeValue (this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
+        const method = this.safeString (this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         if (method === 'fetch_markets_from_web') {
-            const promises = [];
+            const promises: List = [];
             promises.push (this.fetchMarketsFromWeb (params)); // get usd markets
             promises.push (this.fetchUSDTMarkets (params)); // get usdt markets
             const promisesResult = await Promise.all (promises);
@@ -523,7 +569,7 @@ export default class gemini extends Exchange {
         return await this.fetchMarketsFromAPI (params);
     }
 
-    async fetchMarketsFromWeb (params = {}) {
+    async fetchMarketsFromWeb (params: Dict = {}): Promise<Market[]> {
         const data = await this.fetchWebEndpoint ('fetchMarkets', 'webGetRestApi', false, '<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
         const error = this.id + ' fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.';
         const tables = data.split ('tbody>');
@@ -536,7 +582,7 @@ export default class gemini extends Exchange {
         if (numRows < 2) {
             throw new NotSupported (error);
         }
-        const result = [];
+        const result: List = [];
         // skip the first element (empty string)
         for (let i = 1; i < numRows; i++) {
             const row = rows[i];
@@ -568,6 +614,9 @@ export default class gemini extends Exchange {
             const baseId = this.safeStringLower (amountPrecisionParts, 1, marketId.replace (quoteId, ''));
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             result.push ({
                 'id': marketId,
                 'symbol': base + '/' + quote,
@@ -621,7 +670,7 @@ export default class gemini extends Exchange {
         return result;
     }
 
-    parseMarketActive (status) {
+    parseMarketActive (status: Str): Bool {
         const statuses: Dict = {
             'open': true,
             'closed': false,
@@ -635,14 +684,14 @@ export default class gemini extends Exchange {
         return this.safeBool (statuses, status, true);
     }
 
-    async fetchUSDTMarkets (params = {}) {
+    async fetchUSDTMarkets (params: Dict = {}): Promise<Market[]> {
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
         if ('test' in this.urls) {
             return []; // sandbox does not have usdt markets
         }
-        const fetchUsdtMarkets = this.safeValue (this.options, 'fetchUsdtMarkets', []);
-        const result = [];
+        const fetchUsdtMarkets: string[] = this.safeList (this.options, 'fetchUsdtMarkets', []);
+        const result: List = [];
         for (let i = 0; i < fetchUsdtMarkets.length; i++) {
             const marketId = fetchUsdtMarkets[i];
             const request: Dict = {
@@ -650,12 +699,15 @@ export default class gemini extends Exchange {
             };
             // don't use Promise.all here, for some reason the exchange can't handle it and crashes
             const rawResponse = await this.publicGetV1SymbolsDetailsSymbol (this.extend (request, params));
-            result.push (this.parseMarket (rawResponse));
+            const parsed = this.parseMarket (rawResponse);
+            if (parsed !== undefined) {
+                result.push (parsed);
+            }
         }
         return result;
     }
 
-    async fetchMarketsFromAPI (params = {}) {
+    async fetchMarketsFromAPI (params: Dict = {}): Promise<Market[]> {
         const marketIdsRaw = await this.publicGetV1Symbols (params);
         //
         //     [
@@ -664,17 +716,21 @@ export default class gemini extends Exchange {
         //         ...
         //     ]
         //
-        const result = [];
+        const result: List = [];
         const options = this.safeDict (this.options, 'fetchMarketsFromAPI', {});
         const brokenPairs = this.safeList (this.options, 'brokenPairs', []);
-        const marketIds = [];
-        for (let i = 0; i < marketIdsRaw.length; i++) {
-            if (!this.inArray (marketIdsRaw[i], brokenPairs)) {
-                marketIds.push (marketIdsRaw[i]);
+        const marketIds: List = [];
+        let allMarketIds: string[] = [];
+        if (Array.isArray (marketIdsRaw)) {
+            allMarketIds = marketIdsRaw;
+        }
+        for (let i = 0; i < allMarketIds.length; i++) {
+            if (!this.inArray (allMarketIds[i], brokenPairs)) {
+                marketIds.push (allMarketIds[i]);
             }
         }
         if (this.safeBool (options, 'fetchDetailsForAllSymbols', false)) {
-            const promises = [];
+            const promises: List = [];
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
                 const request: Dict = {
@@ -696,7 +752,10 @@ export default class gemini extends Exchange {
             }
             const responses = await Promise.all (promises);
             for (let i = 0; i < responses.length; i++) {
-                result.push (this.parseMarket (responses[i]));
+                const parsed = this.parseMarket (responses[i]);
+                if (parsed !== undefined) {
+                    result.push (parsed);
+                }
             }
         } else {
             // use trading-pairs info, if it was fetched
@@ -707,13 +766,19 @@ export default class gemini extends Exchange {
                     const marketId = marketIds[i];
                     const pairInfo = this.safeList (indexedTradingPairs, marketId.toUpperCase ());
                     if (pairInfo !== undefined && !this.inArray (marketId, brokenPairs)) {
-                        result.push (this.parseMarket (pairInfo));
+                        const parsed = this.parseMarket (pairInfo);
+                        if (parsed !== undefined) {
+                            result.push (parsed);
+                        }
                     }
                 }
             } else {
                 for (let i = 0; i < marketIds.length; i++) {
                     if (!this.inArray (marketIds[i], brokenPairs)) {
-                        result.push (this.parseMarket (marketIds[i]));
+                        const parsed = this.parseMarket (marketIds[i]);
+                        if (parsed !== undefined) {
+                            result.push (parsed);
+                        }
                     }
                 }
             }
@@ -721,7 +786,7 @@ export default class gemini extends Exchange {
         return result;
     }
 
-    parseMarket (response): Market {
+    override parseMarket (response: Dict | List | string): Market {
         //
         // response might be:
         //
@@ -754,18 +819,18 @@ export default class gemini extends Exchange {
         //         "contract_price_currency": "GUSD"
         //     }
         //
-        let marketId = undefined;
-        let baseId = undefined;
-        let quoteId = undefined;
-        let settleId = undefined;
-        let tickSize = undefined;
-        let amountPrecision = undefined;
-        let minSize = undefined;
-        let status = undefined;
+        let marketId: Str = undefined;
+        let baseId: Str = undefined;
+        let quoteId: Str = undefined;
+        let settleId: Str = undefined;
+        let tickSize: Num = undefined;
+        let amountPrecision: Num = undefined;
+        let minSize: Num = undefined;
+        let status: Bool = undefined;
         let swap = false;
-        let contractSize = undefined;
-        let linear = undefined;
-        let inverse = undefined;
+        let contractSize: Num = undefined;
+        let linear: Bool = undefined;
+        let inverse: Bool = undefined;
         const isString = (typeof response === 'string');
         const isArray = (Array.isArray (response));
         if (!isString && !isArray) {
@@ -787,7 +852,7 @@ export default class gemini extends Exchange {
                 amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber (response, 3); // quantityMinimum
             }
-            const marketIdUpper = marketId.toUpperCase ();
+            const marketIdUpper = (marketId as string).toUpperCase ();
             const isPerp = (marketIdUpper.indexOf ('PERP') >= 0);
             const marketIdWithoutPerp = marketIdUpper.replace ('PERP', '');
             const conflictingMarkets = this.safeDict (this.options, 'conflictingMarkets', {});
@@ -817,6 +882,9 @@ export default class gemini extends Exchange {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
         if (settleId !== undefined) {
@@ -826,8 +894,12 @@ export default class gemini extends Exchange {
             linear = true; // always linear
             inverse = false;
         }
-        const type = swap ? 'swap' : 'spot';
-        return {
+        let type: Str = 'spot';
+        if (swap) {
+            type = 'swap';
+        }
+        const isSpot = !swap;
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -837,7 +909,7 @@ export default class gemini extends Exchange {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': !swap,
+            'spot': isSpot,
             'margin': false,
             'swap': swap,
             'future': false,
@@ -875,7 +947,7 @@ export default class gemini extends Exchange {
             },
             'created': undefined,
             'info': response,
-        };
+        });
     }
 
     /**
@@ -886,10 +958,12 @@ export default class gemini extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -902,8 +976,10 @@ export default class gemini extends Exchange {
         return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
-    async fetchTickerV1 (symbol: string, params = {}) {
-        await this.loadMarkets ();
+    async fetchTickerV1 (symbol: string, params: Dict = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -924,8 +1000,10 @@ export default class gemini extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickerV2 (symbol: string, params = {}) {
-        await this.loadMarkets ();
+    async fetchTickerV2 (symbol: string, params: Dict = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -947,7 +1025,7 @@ export default class gemini extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickerV1AndV2 (symbol: string, params = {}) {
+    async fetchTickerV1AndV2 (symbol: string, params: Dict = {}): Promise<Ticker> {
         const tickerPromiseA = this.fetchTickerV1 (symbol, params);
         const tickerPromiseB = this.fetchTickerV2 (symbol, params);
         const [ tickerA, tickerB ] = await Promise.all ([ tickerPromiseA, tickerPromiseB ]);
@@ -973,8 +1051,8 @@ export default class gemini extends Exchange {
      * @param {object} [params.fetchTickerMethod] 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        const method = this.safeValue (this.options, 'fetchTickerMethod', 'fetchTickerV1');
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        const method = this.safeString (this.options, 'fetchTickerMethod', 'fetchTickerV1');
         if (method === 'fetchTickerV1') {
             return await this.fetchTickerV1 (symbol, params);
         }
@@ -984,7 +1062,7 @@ export default class gemini extends Exchange {
         return await this.fetchTickerV1AndV2 (symbol, params);
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // fetchTickers
         //
@@ -1021,16 +1099,16 @@ export default class gemini extends Exchange {
         //         "ask":"9115.87"
         //     }
         //
-        const volume = this.safeValue (ticker, 'volume', {});
+        const volume = this.safeDict (ticker, 'volume', {});
         const timestamp = this.safeInteger (volume, 'timestamp');
-        let symbol = undefined;
+        let symbol: Str = undefined;
         const marketId = this.safeStringLower (ticker, 'pair');
-        market = this.safeMarket (marketId, market);
-        let baseId = undefined;
-        let quoteId = undefined;
-        let base = undefined;
-        let quote = undefined;
-        if ((marketId !== undefined) && (market === undefined)) {
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        let baseId: Str = undefined;
+        let quoteId: Str = undefined;
+        let base: Str = undefined;
+        let quote: Str = undefined;
+        if ((marketId !== undefined) && (marketResolved === undefined)) {
             const idLength = marketId.length - 0;
             if (idLength === 7) {
                 baseId = marketId.slice (0, 4);
@@ -1041,12 +1119,14 @@ export default class gemini extends Exchange {
             }
             base = this.safeCurrencyCode (baseId);
             quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
+            if ((base !== undefined) && (quote !== undefined)) {
+                symbol = base + '/' + quote;
+            }
         }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-            baseId = this.safeStringUpper (market, 'baseId');
-            quoteId = this.safeStringUpper (market, 'quoteId');
+        if ((symbol === undefined) && (marketResolved !== undefined)) {
+            symbol = marketResolved['symbol'];
+            baseId = this.safeStringUpper (marketResolved, 'baseId');
+            quoteId = this.safeStringUpper (marketResolved, 'quoteId');
         }
         const price = this.safeString (ticker, 'price');
         const last = this.safeString2 (ticker, 'last', 'close', price);
@@ -1075,7 +1155,7 @@ export default class gemini extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1087,8 +1167,10 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.publicGetV1Pricefeed (params);
         //
         //     [
@@ -1109,7 +1191,7 @@ export default class gemini extends Exchange {
         return this.removeKeysFromDict (result, brokenPairs);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -1184,8 +1266,10 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1213,16 +1297,18 @@ export default class gemini extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
             account['total'] = this.safeString (balance, 'amount');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1235,8 +1321,10 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
-        await this.loadMarkets ();
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostV1Notionalvolume (params);
         //
         //      {
@@ -1273,8 +1361,9 @@ export default class gemini extends Exchange {
         const maker = this.parseNumber (makerString);
         const taker = this.parseNumber (takerString);
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1295,13 +1384,15 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostV1Balances (params);
         return this.parseBalance (response);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder (private)
         //
@@ -1405,10 +1496,10 @@ export default class gemini extends Exchange {
         const remaining = this.safeString (order, 'remaining_amount');
         const filled = this.safeString (order, 'executed_amount');
         let status = 'closed';
-        if (order['is_live']) {
+        if (this.safeBool (order, 'is_live', false)) {
             status = 'open';
         }
-        if (order['is_cancelled']) {
+        if (this.safeBool (order, 'is_cancelled', false)) {
             status = 'canceled';
         }
         const price = this.safeString (order, 'price');
@@ -1419,7 +1510,7 @@ export default class gemini extends Exchange {
         } else if (type === 'market buy' || type === 'market sell') {
             type = 'market';
         } else {
-            type = order['type'];
+            type = this.safeString (order, 'type');
         }
         const fee = undefined;
         const marketId = this.safeString (order, 'symbol');
@@ -1427,7 +1518,7 @@ export default class gemini extends Exchange {
         const id = this.safeString (order, 'order_id');
         const side = this.safeStringLower (order, 'side');
         const clientOrderId = this.safeString (order, 'client_order_id');
-        const optionsArray = this.safeValue (order, 'options', []);
+        const optionsArray = this.safeList (order, 'options', []);
         const option = this.safeString (optionsArray, 0);
         let timeInForce = 'GTC';
         let postOnly = false;
@@ -1476,8 +1567,10 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'order_id': id,
         };
@@ -1519,8 +1612,10 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostV1Orders (params);
         //
         //      [
@@ -1547,7 +1642,7 @@ export default class gemini extends Exchange {
         //          }
         //      ]
         //
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol); // throws on non-existent symbol
         }
@@ -1567,13 +1662,14 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (type !== 'limit') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         let clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
-        params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId === undefined) {
             clientOrderId = this.milliseconds ().toString ();
         }
@@ -1589,12 +1685,14 @@ export default class gemini extends Exchange {
             'type': 'exchange limit', // gemini allows limit orders only
             // 'options': [], one of:  maker-or-cancel, immediate-or-cancel, fill-or-kill, auction-only, indication-of-interest
         };
-        type = this.safeString (params, 'type', type);
-        params = this.omit (params, 'type');
+        const typeValue: OrderType = this.safeString (params, 'type', type);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stop_price', 'stopPrice' ]);
-        params = this.omit (params, [ 'triggerPrice', 'stop_price', 'stopPrice', 'type' ]);
-        if (type === 'stopLimit') {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + type + ' orders');
+        // timeInForce and postOnly are consumed only by non-trigger orders
+        const omitKeys: string[] = [ 'clientOrderId', 'client_order_id', 'type', 'triggerPrice', 'stop_price', 'stopPrice' ];
+        const optionKeys: string[] = (triggerPrice === undefined) ? [ 'timeInForce', 'postOnly' ] : [];
+        const paramsOmitted: Dict = this.omit (params, this.arrayConcat (omitKeys, optionKeys));
+        if (typeValue === 'stopLimit') {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + typeValue + ' orders');
         }
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
@@ -1602,7 +1700,6 @@ export default class gemini extends Exchange {
         } else {
             // No options can be applied to stop-limit orders at this time.
             const timeInForce = this.safeString (params, 'timeInForce');
-            params = this.omit (params, 'timeInForce');
             if (timeInForce !== undefined) {
                 if ((timeInForce === 'IOC') || (timeInForce === 'immediate-or-cancel')) {
                     request['options'] = [ 'immediate-or-cancel' ];
@@ -1613,8 +1710,7 @@ export default class gemini extends Exchange {
                 }
             }
             const postOnly = this.safeBool (params, 'postOnly', false);
-            params = this.omit (params, 'postOnly');
-            if (postOnly) {
+            if (postOnly === true) {
                 request['options'] = [ 'maker-or-cancel' ];
             }
             // allowing override for auction-only and indication-of-interest order options
@@ -1623,7 +1719,7 @@ export default class gemini extends Exchange {
                 request['options'] = [ options ];
             }
         }
-        const response = await this.privatePostV1OrderNew (this.extend (request, params));
+        const response = await this.privatePostV1OrderNew (this.extend (request, paramsOmitted));
         //
         //      {
         //          "order_id":"106027397702",
@@ -1660,8 +1756,10 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'order_id': id,
         };
@@ -1704,11 +1802,13 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1735,17 +1835,20 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+        const tagAndParams = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTag: Dict = tagAndParams[1];
         this.checkAddress (address);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
         };
-        const response = await this.privatePostV1WithdrawCurrency (this.extend (request, params));
+        const response = await this.privatePostV1WithdrawCurrency (this.extend (request, paramsWithdrawTag));
         //
         //   for BTC
         //     {
@@ -1776,7 +1879,7 @@ export default class gemini extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    nonce () {
+    override nonce (): number {
         const nonceMethod = this.safeString (this.options, 'nonce', 'milliseconds');
         if (nonceMethod === 'milliseconds') {
             return this.milliseconds ();
@@ -1795,8 +1898,10 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         if (limit !== undefined) {
             request['limit_transfers'] = limit;
@@ -1808,7 +1913,7 @@ export default class gemini extends Exchange {
         return this.parseTransactions (response);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -1834,7 +1939,7 @@ export default class gemini extends Exchange {
         const type = this.safeStringLower (transaction, 'type');
         // if status field is available, then it's complete
         const statusRaw = this.safeString (transaction, 'status');
-        let fee = undefined;
+        let fee: Fee = undefined;
         const feeAmount = this.safeNumber (transaction, 'feeAmount');
         if (feeAmount !== undefined) {
             fee = {
@@ -1871,10 +1976,10 @@ export default class gemini extends Exchange {
             'Advanced': 'ok',
             'Complete': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //      {
         //          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
@@ -1903,13 +2008,13 @@ export default class gemini extends Exchange {
      * @param {string} [params.network]  *required* The chain of currency
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
-        const groupedByNetwork = await this.fetchDepositAddressesByNetwork (code, params);
-        let networkCode = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const networkGroup = this.indexBy (this.safeValue (groupedByNetwork, networkCode), 'currency');
-        return this.safeValue (networkGroup, code) as DepositAddress;
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const indexedByNetwork = await this.fetchDepositAddressesByNetwork (code, params);
+        const networkCode = this.handleNetworkCodeAndParams (params)[0];
+        return this.safeValue (indexedByNetwork, networkCode) as DepositAddress;
     }
 
     /**
@@ -1922,60 +2027,72 @@ export default class gemini extends Exchange {
      * @param {string} [params.network]  *required* The chain of currency
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
-        await this.loadMarkets ();
+    override async fetchDepositAddressesByNetwork (code: string, params: Dict = {}): Promise<DepositAddresses> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
-        code = currency['code'];
-        let networkCode = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const codeValue: string = currency['code'];
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses() requires a network parameter');
         }
-        const networkId = this.networkCodeToId (networkCode);
+        const networkId = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         const request: Dict = {
             'network': networkId,
         };
-        const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
-        const results = this.parseDepositAddresses (response, [ code ], false, { 'network': networkCode, 'currency': code });
-        return this.groupBy (results, 'network') as DepositAddress[];
+        const response = await this.privatePostV1AddressesNetwork (this.extend (request, paramsNetworkCode));
+        const results = this.parseDepositAddresses (response, [ codeValue ], false, { 'network': networkCode, 'currency': codeValue });
+        // one address structure per network, like every other venue (the endpoint is scoped to a
+        // single network, so the last address the venue lists for it wins — same as before)
+        return this.indexBy (results, 'network') as DepositAddresses;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
+        let headersSigned: NullableDict = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const apiKey = this.apiKey;
             if (apiKey.indexOf ('account') < 0) {
                 throw new AuthenticationError (this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
-            const nonce = this.nonce ().toString ();
+            // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
+            const nonce = this.incrementingNonce ().toString ();
+            const finalUrl = url;
             const request = this.extend ({
-                'request': url,
+                'request': finalUrl,
                 'nonce': nonce,
             }, query);
             let payload = this.json (request);
             payload = this.stringToBase64 (payload);
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
-            headers = {
+            headersSigned = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': this.apiKey,
                 'X-GEMINI-PAYLOAD': payload,
                 'X-GEMINI-SIGNATURE': signature,
             };
         } else {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         }
-        url = this.urls['api'][api] + url;
-        if ((method === 'POST') || (method === 'DELETE')) {
-            body = this.json (query);
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const fullUrl = apiUrl + url;
+        const headersResolved = (api === 'private') ? headersSigned : headers;
+        let bodyResolved = body;
+        if ((method === 'POST') || (method === 'DELETE')) {
+            bodyResolved = this.json (query);
+        }
+        return { 'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             if (typeof body === 'string') {
                 const feedback = this.id + ' ' + body;
@@ -2012,8 +2129,10 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
+    override async createDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
@@ -2042,8 +2161,10 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
@@ -2058,7 +2179,11 @@ export default class gemini extends Exchange {
         //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        let candles: List = [];
+        if (Array.isArray (response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     /**
@@ -2070,8 +2195,10 @@ export default class gemini extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    async fetchOpenInterest (symbol: string, params = {}) {
-        await this.loadMarkets ();
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2089,7 +2216,7 @@ export default class gemini extends Exchange {
         return this.parseOpenInterest (response, market);
     }
 
-    parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         //    {
         //        product_type: 'PerpetualSwapContract',

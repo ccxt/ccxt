@@ -1,0 +1,4 @@
+requests
+opencv-python
+pyzbar
+Pillow

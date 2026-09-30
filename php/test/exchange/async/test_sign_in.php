@@ -13,8 +13,8 @@ use React\Promise;
 function test_sign_in($exchange, $skipped_properties) {
     return Async\async(function () use ($exchange, $skipped_properties) {
         $method = 'signIn';
-        if ($exchange->has[$method]) {
-            Async\await($exchange->sign_in());
+        if ($exchange->has[$method] !== null && $exchange->has[$method] !== false) {
+            \React\Async\await($exchange->sign_in());
         }
         return true;
     }) ();

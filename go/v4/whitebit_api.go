@@ -7,442 +7,687 @@
 
 package ccxt
 
-func (this *WhitebitCore) WebGetV1Healthcheck(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("webGetV1Healthcheck", args...)
+// WebGetV1Healthcheck returns a channel that yields a JSON object.
+func (this *Whitebit) WebGetV1Healthcheck(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/healthcheck", "web", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V1PublicGetMarkets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetMarkets", args...)
+// V1PublicGetMarkets returns a channel that yields a JSON object.
+func (this *Whitebit) V1PublicGetMarkets(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "markets", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V1PublicGetTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetTickers", args...)
+// V1PublicGetTickers returns a channel that yields a JSON object.
+func (this *Whitebit) V1PublicGetTickers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tickers", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V1PublicGetTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetTicker", args...)
+// V1PublicGetTicker returns a channel that yields a JSON object.
+func (this *Whitebit) V1PublicGetTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ticker", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V1PublicGetSymbols(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetSymbols", args...)
+// V1PublicGetSymbols returns a channel that yields a JSON object.
+func (this *Whitebit) V1PublicGetSymbols(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "symbols", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V1PublicGetDepthResult(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetDepthResult", args...)
+// V1PublicGetDepthResult returns a channel that yields a JSON object.
+func (this *Whitebit) V1PublicGetDepthResult(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "depth/result", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V1PublicGetHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetHistory", args...)
+// V1PublicGetHistory returns a channel that yields a JSON object.
+func (this *Whitebit) V1PublicGetHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V1PublicGetKline(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetKline", args...)
+// V1PublicGetKline returns a channel that yields a JSON object.
+func (this *Whitebit) V1PublicGetKline(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "kline", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V1PrivatePostAccountBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostAccountBalance", args...)
+// V1PrivatePostAccountBalance returns a channel that yields a JSON object.
+func (this *Whitebit) V1PrivatePostAccountBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/balance", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V1PrivatePostOrderNew(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostOrderNew", args...)
+// V1PrivatePostOrderNew returns a channel that yields a JSON object.
+func (this *Whitebit) V1PrivatePostOrderNew(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/new", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V1PrivatePostOrderCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostOrderCancel", args...)
+// V1PrivatePostOrderCancel returns a channel that yields a JSON object.
+func (this *Whitebit) V1PrivatePostOrderCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/cancel", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V1PrivatePostOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostOrders", args...)
+// V1PrivatePostOrders returns a channel that yields a JSON object.
+func (this *Whitebit) V1PrivatePostOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V1PrivatePostAccountOrderHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostAccountOrderHistory", args...)
+// V1PrivatePostAccountOrderHistory returns a channel that yields a JSON object.
+func (this *Whitebit) V1PrivatePostAccountOrderHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/order_history", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V1PrivatePostAccountExecutedHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostAccountExecutedHistory", args...)
+// V1PrivatePostAccountExecutedHistory returns a channel that yields a JSON object.
+func (this *Whitebit) V1PrivatePostAccountExecutedHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/executed_history", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V1PrivatePostAccountExecutedHistoryAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostAccountExecutedHistoryAll", args...)
+// V1PrivatePostAccountExecutedHistoryAll returns a channel that yields a JSON object.
+func (this *Whitebit) V1PrivatePostAccountExecutedHistoryAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/executed_history/all", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V1PrivatePostAccountOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostAccountOrder", args...)
+// V1PrivatePostAccountOrder returns a channel that yields a JSON object.
+func (this *Whitebit) V1PrivatePostAccountOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/order", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V2PublicGetMarkets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetMarkets", args...)
+// V2PublicGetMarkets returns a channel that yields a JSON object.
+func (this *Whitebit) V2PublicGetMarkets(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "markets", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V2PublicGetTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetTicker", args...)
+// V2PublicGetTicker returns a channel that yields a JSON object.
+func (this *Whitebit) V2PublicGetTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ticker", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V2PublicGetAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetAssets", args...)
+// V2PublicGetAssets returns a channel that yields a JSON object.
+func (this *Whitebit) V2PublicGetAssets(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V2PublicGetFee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetFee", args...)
+// V2PublicGetFee returns a channel that yields a JSON object.
+func (this *Whitebit) V2PublicGetFee(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "fee", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V2PublicGetDepthMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetDepthMarket", args...)
+// V2PublicGetDepthMarket returns a channel that yields a JSON object.
+func (this *Whitebit) V2PublicGetDepthMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "depth/{market}", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V2PublicGetTradesMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v2PublicGetTradesMarket", args...)
+// V2PublicGetTradesMarket returns a channel that yields a JSON object.
+func (this *Whitebit) V2PublicGetTradesMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trades/{market}", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PublicGetAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PublicGetAssets", args...)
+// V4PublicGetAssets returns a channel that yields a JSON object.
+func (this *Whitebit) V4PublicGetAssets(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets", []string{"v4", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PublicGetCollateralMarkets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PublicGetCollateralMarkets", args...)
+// V4PublicGetCollateralMarkets returns a channel that yields a JSON object.
+func (this *Whitebit) V4PublicGetCollateralMarkets(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "collateral/markets", []string{"v4", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PublicGetFee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PublicGetFee", args...)
+// V4PublicGetFee returns a channel that yields a JSON object.
+func (this *Whitebit) V4PublicGetFee(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "fee", []string{"v4", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PublicGetOrderbookDepthMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PublicGetOrderbookDepthMarket", args...)
+// V4PublicGetFundingHistoryMarket returns a channel that yields a JSON array.
+func (this *Whitebit) V4PublicGetFundingHistoryMarket(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "funding-history/{market}", []string{"v4", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PublicGetOrderbookMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PublicGetOrderbookMarket", args...)
+// V4PublicGetOrderbookDepthMarket returns a channel that yields a JSON object.
+func (this *Whitebit) V4PublicGetOrderbookDepthMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orderbook/depth/{market}", []string{"v4", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PublicGetTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PublicGetTicker", args...)
+// V4PublicGetOrderbookMarket returns a channel that yields a JSON object.
+func (this *Whitebit) V4PublicGetOrderbookMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orderbook/{market}", []string{"v4", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PublicGetTradesMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PublicGetTradesMarket", args...)
+// V4PublicGetTicker returns a channel that yields a JSON object.
+func (this *Whitebit) V4PublicGetTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ticker", []string{"v4", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PublicGetTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PublicGetTime", args...)
+// V4PublicGetTradesMarket returns a channel that yields a JSON array.
+func (this *Whitebit) V4PublicGetTradesMarket(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "trades/{market}", []string{"v4", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PublicGetPing(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PublicGetPing", args...)
+// V4PublicGetTime returns a channel that yields a JSON object.
+func (this *Whitebit) V4PublicGetTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "time", []string{"v4", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PublicGetMarkets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PublicGetMarkets", args...)
+// V4PublicGetPing returns a channel that yields a JSON array.
+func (this *Whitebit) V4PublicGetPing(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "ping", []string{"v4", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PublicGetFutures(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PublicGetFutures", args...)
+// V4PublicGetMarkets returns a channel that yields a JSON array.
+func (this *Whitebit) V4PublicGetMarkets(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "markets", []string{"v4", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PublicGetPlatformStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PublicGetPlatformStatus", args...)
+// V4PublicGetFutures returns a channel that yields a JSON object.
+func (this *Whitebit) V4PublicGetFutures(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "futures", []string{"v4", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PublicGetMiningPool(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PublicGetMiningPool", args...)
+// V4PublicGetPlatformStatus returns a channel that yields a JSON object.
+func (this *Whitebit) V4PublicGetPlatformStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "platform/status", []string{"v4", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostCollateralAccountBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostCollateralAccountBalance", args...)
+// V4PublicGetMiningPool returns a channel that yields a JSON object.
+func (this *Whitebit) V4PublicGetMiningPool(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "mining-pool", []string{"v4", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostCollateralAccountBalanceSummary(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostCollateralAccountBalanceSummary", args...)
+// V4PrivatePostCollateralAccountBalance returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostCollateralAccountBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "collateral-account/balance", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostCollateralAccountPositionsHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostCollateralAccountPositionsHistory", args...)
+// V4PrivatePostCollateralAccountBalanceSummary returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostCollateralAccountBalanceSummary(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "collateral-account/balance-summary", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostCollateralAccountLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostCollateralAccountLeverage", args...)
+// V4PrivatePostCollateralAccountPositionsHistory returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostCollateralAccountPositionsHistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "collateral-account/positions/history", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostCollateralAccountPositionsOpen(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostCollateralAccountPositionsOpen", args...)
+// V4PrivatePostCollateralAccountLeverage returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostCollateralAccountLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "collateral-account/leverage", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostCollateralAccountSummary(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostCollateralAccountSummary", args...)
+// V4PrivatePostCollateralAccountPositionsOpen returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostCollateralAccountPositionsOpen(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "collateral-account/positions/open", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostCollateralAccountFundingHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostCollateralAccountFundingHistory", args...)
+// V4PrivatePostCollateralAccountPositionsClosedPnl returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostCollateralAccountPositionsClosedPnl(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "collateral-account/positions/closed-pnl", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountAddress", args...)
+// V4PrivatePostCollateralAccountSummary returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostCollateralAccountSummary(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "collateral-account/summary", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountBalance", args...)
+// V4PrivatePostCollateralAccountFundingHistory returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostCollateralAccountFundingHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "collateral-account/funding-history", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountCreateNewAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountCreateNewAddress", args...)
+// V4PrivatePostMainAccountAddress returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountAddress(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/address", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountCodes(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountCodes", args...)
+// V4PrivatePostMainAccountBalance returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/balance", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountCodesApply(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountCodesApply", args...)
+// V4PrivatePostMainAccountCreateNewAddress returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountCreateNewAddress(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/create-new-address", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountCodesMy(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountCodesMy", args...)
+// V4PrivatePostMainAccountCodes returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountCodes(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/codes", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountCodesHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountCodesHistory", args...)
+// V4PrivatePostMainAccountCodesApply returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountCodesApply(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/codes/apply", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountFiatDepositUrl(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountFiatDepositUrl", args...)
+// V4PrivatePostMainAccountCodesMy returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountCodesMy(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/codes/my", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountHistory", args...)
+// V4PrivatePostMainAccountCodesHistory returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountCodesHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/codes/history", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountWithdraw", args...)
+// V4PrivatePostMainAccountFiatDepositUrl returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountFiatDepositUrl(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/fiat-deposit-url", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountWithdrawPay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountWithdrawPay", args...)
+// V4PrivatePostMainAccountHistory returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/history", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountTransfer", args...)
+// V4PrivatePostMainAccountWithdraw returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/withdraw", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountSmartPlans(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountSmartPlans", args...)
+// V4PrivatePostMainAccountWithdrawPay returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostMainAccountWithdrawPay(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "main-account/withdraw-pay", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountSmartInvestment(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountSmartInvestment", args...)
+// V4PrivatePostMainAccountExpressWithdrawToken returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountExpressWithdrawToken(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/express-withdraw/token", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountSmartInvestmentClose(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountSmartInvestmentClose", args...)
+// V4PrivatePostMainAccountTransfer returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostMainAccountTransfer(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "main-account/transfer", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountSmartInvestments(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountSmartInvestments", args...)
+// V4PrivatePostMainAccountSmartPlans returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostMainAccountSmartPlans(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "main-account/smart/plans", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountFee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountFee", args...)
+// V4PrivatePostMainAccountSmartInvestment returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountSmartInvestment(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/smart/investment", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountSmartInterestPaymentHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMainAccountSmartInterestPaymentHistory", args...)
+// V4PrivatePostMainAccountSmartInvestmentClose returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountSmartInvestmentClose(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/smart/investment/close", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostTradeAccountBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostTradeAccountBalance", args...)
+// V4PrivatePostMainAccountSmartInvestments returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountSmartInvestments(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/smart/investments", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostTradeAccountExecutedHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostTradeAccountExecutedHistory", args...)
+// V4PrivatePostMainAccountFee returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostMainAccountFee(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "main-account/fee", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostTradeAccountOrderHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostTradeAccountOrderHistory", args...)
+// V4PrivatePostMainAccountSmartInterestPaymentHistory returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountSmartInterestPaymentHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/smart/interest-payment-history", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostTradeAccountOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostTradeAccountOrder", args...)
+// V4PrivatePostMainAccountSmartFlexPlans returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostMainAccountSmartFlexPlans(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "main-account/smart-flex/plans", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderCollateralLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderCollateralLimit", args...)
+// V4PrivatePostMainAccountSmartFlexInvestments returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountSmartFlexInvestments(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/smart-flex/investments", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderCollateralMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderCollateralMarket", args...)
+// V4PrivatePostMainAccountSmartFlexInvestmentsHistory returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountSmartFlexInvestmentsHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/smart-flex/investments/history", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderCollateralStopLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderCollateralStopLimit", args...)
+// V4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/smart-flex/investments/payment-history", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderCollateralTriggerMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderCollateralTriggerMarket", args...)
+// V4PrivatePostMainAccountSmartFlexInvestmentsInvest returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountSmartFlexInvestmentsInvest(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/smart-flex/investments/invest", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderCollateralBulk(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderCollateralBulk", args...)
+// V4PrivatePostMainAccountSmartFlexInvestmentsWithdraw returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountSmartFlexInvestmentsWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/smart-flex/investments/withdraw", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderNew(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderNew", args...)
+// V4PrivatePostMainAccountSmartFlexInvestmentsClose returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountSmartFlexInvestmentsClose(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/smart-flex/investments/close", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderMarket", args...)
+// V4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "main-account/smart-flex/investments/auto-invest", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderStockMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderStockMarket", args...)
+// V4PrivatePostTradeAccountBalance returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostTradeAccountBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade-account/balance", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderStopLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderStopLimit", args...)
+// V4PrivatePostTradeAccountExecutedHistory returns a channel that yields a JSON object or a JSON array.
+func (this *Whitebit) V4PrivatePostTradeAccountExecutedHistory(args ...any) <-chan AsyncResult[any] {
+	return this.Fetch2Async("trade-account/executed-history", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderStopMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderStopMarket", args...)
+// V4PrivatePostTradeAccountOrderHistory returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostTradeAccountOrderHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade-account/order/history", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderCancel", args...)
+// V4PrivatePostTradeAccountOrderHistoryQuery returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostTradeAccountOrderHistoryQuery(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "trade-account/order/history/query", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderCancelAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderCancelAll", args...)
+// V4PrivatePostTradeAccountOrder returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostTradeAccountOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade-account/order", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderKillSwitch(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderKillSwitch", args...)
+// V4PrivatePostOrderCollateralLimit returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostOrderCollateralLimit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/collateral/limit", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderKillSwitchStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderKillSwitchStatus", args...)
+// V4PrivatePostOrderCollateralMarket returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostOrderCollateralMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/collateral/market", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderBulk(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderBulk", args...)
+// V4PrivatePostOrderCollateralStopLimit returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostOrderCollateralStopLimit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/collateral/stop-limit", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderModify(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderModify", args...)
+// V4PrivatePostOrderCollateralTriggerMarket returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostOrderCollateralTriggerMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/collateral/trigger-market", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderConditionalCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderConditionalCancel", args...)
+// V4PrivatePostOrderCollateralBulk returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostOrderCollateralBulk(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "order/collateral/bulk", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrders", args...)
+// V4PrivatePostOrderNew returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostOrderNew(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/new", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOcoOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOcoOrders", args...)
+// V4PrivatePostOrderMarket returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostOrderMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/market", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderCollateralOco(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderCollateralOco", args...)
+// V4PrivatePostOrderStockMarket returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostOrderStockMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/stock_market", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderOcoCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderOcoCancel", args...)
+// V4PrivatePostOrderStopLimit returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostOrderStopLimit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/stop_limit", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderOtoCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostOrderOtoCancel", args...)
+// V4PrivatePostOrderStopMarket returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostOrderStopMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/stop_market", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostProfileWebsocketToken(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostProfileWebsocketToken", args...)
+// V4PrivatePostOrderCancel returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostOrderCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/cancel", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostConvertEstimate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostConvertEstimate", args...)
+// V4PrivatePostOrderCancelAll returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostOrderCancelAll(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "order/cancel/all", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostConvertConfirm(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostConvertConfirm", args...)
+// V4PrivatePostOrderCancelBulk returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostOrderCancelBulk(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "order/cancel/bulk", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostConvertHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostConvertHistory", args...)
+// V4PrivatePostOrderKillSwitch returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostOrderKillSwitch(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/kill-switch", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountCreate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountCreate", args...)
+// V4PrivatePostOrderKillSwitchStatus returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostOrderKillSwitchStatus(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "order/kill-switch/status", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountDelete(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountDelete", args...)
+// V4PrivatePostOrderBulk returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostOrderBulk(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "order/bulk", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountEdit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountEdit", args...)
+// V4PrivatePostOrderModify returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostOrderModify(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/modify", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountList", args...)
+// V4PrivatePostOrderConditionalCancel returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostOrderConditionalCancel(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "order/conditional-cancel", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountTransfer", args...)
+// V4PrivatePostOrders returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "orders", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountBlock(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountBlock", args...)
+// V4PrivatePostOcoOrders returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostOcoOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "oco-orders", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountUnblock(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountUnblock", args...)
+// V4PrivatePostOrderCollateralOco returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostOrderCollateralOco(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/collateral/oco", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountBalances(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountBalances", args...)
+// V4PrivatePostOrderOcoCancel returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostOrderOcoCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/oco-cancel", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountTransferHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountTransferHistory", args...)
+// V4PrivatePostOrderOtoCancel returns a channel that yields a JSON array.
+func (this *Whitebit) V4PrivatePostOrderOtoCancel(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "order/oto-cancel", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyCreate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyCreate", args...)
+// V4PrivatePostProfileWebsocketToken returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostProfileWebsocketToken(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "profile/websocket_token", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyEdit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyEdit", args...)
+// V4PrivatePostConvertEstimate returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostConvertEstimate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "convert/estimate", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyDelete(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyDelete", args...)
+// V4PrivatePostConvertConfirm returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostConvertConfirm(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "convert/confirm", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyList", args...)
+// V4PrivatePostConvertHistory returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostConvertHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "convert/history", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyReset(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyReset", args...)
+// V4PrivatePostSubAccountCreate returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountCreate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/create", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyIpAddressList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyIpAddressList", args...)
+// V4PrivatePostSubAccountDelete returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountDelete(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/delete", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyIpAddressCreate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyIpAddressCreate", args...)
+// V4PrivatePostSubAccountEdit returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountEdit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/edit", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyIpAddressDelete(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyIpAddressDelete", args...)
+// V4PrivatePostSubAccountList returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/list", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMiningRewards(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMiningRewards", args...)
+// V4PrivatePostSubAccountTransfer returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/transfer", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostMarketFee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostMarketFee", args...)
+// V4PrivatePostSubAccountBlock returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountBlock(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/block", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *WhitebitCore) V4PrivatePostConditionalOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostConditionalOrders", args...)
+// V4PrivatePostSubAccountUnblock returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountUnblock(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/unblock", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostSubAccountBalances returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountBalances(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/balances", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostSubAccountTransferHistory returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountTransferHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/transfer/history", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostSubAccountApiKeyCreate returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountApiKeyCreate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/api-key/create", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostSubAccountApiKeyEdit returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountApiKeyEdit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/api-key/edit", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostSubAccountApiKeyDelete returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountApiKeyDelete(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/api-key/delete", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostSubAccountApiKeyList returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountApiKeyList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/api-key/list", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostSubAccountApiKeyReset returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountApiKeyReset(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/api-key/reset", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostSubAccountApiKeyIpAddressList returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountApiKeyIpAddressList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/api-key/ip-address/list", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostSubAccountApiKeyIpAddressCreate returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountApiKeyIpAddressCreate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/api-key/ip-address/create", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostSubAccountApiKeyIpAddressDelete returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostSubAccountApiKeyIpAddressDelete(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sub-account/api-key/ip-address/delete", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostMiningRewards returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMiningRewards(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "mining/rewards", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostMiningHashrate returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMiningHashrate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "mining/hashrate", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostMiningPayoutDestination returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMiningPayoutDestination(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "mining/payout-destination", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostMiningPayoutDestinationEdit returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMiningPayoutDestinationEdit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "mining/payout-destination/edit", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostMiningMinersInfo returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMiningMinersInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "mining/miners/info", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostMiningWorkersNames returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMiningWorkersNames(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "mining/workers/names", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostMiningWorkersHashrate returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMiningWorkersHashrate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "mining/workers/hashrate", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostMiningWatcherLinksCreate returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMiningWatcherLinksCreate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "mining/watcher-links/create", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostMiningWatcherLinksList returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMiningWatcherLinksList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "mining/watcher-links/list", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostMiningAccountsCreate returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMiningAccountsCreate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "mining/accounts/create", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostMiningAccounts returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMiningAccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "mining/accounts", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostMarketFee returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMarketFee(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/fee", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostMarketFeeSingle returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostMarketFeeSingle(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/fee/single", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostConditionalOrders returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostConditionalOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "conditional-orders", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostTravelRuleVasps returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostTravelRuleVasps(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "travel-rule/vasps", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostTravelRuleDepositVerification returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostTravelRuleDepositVerification(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "travel-rule/deposit/verification", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V4PrivatePostJwt returns a channel that yields a JSON object.
+func (this *Whitebit) V4PrivatePostJwt(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "jwt", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

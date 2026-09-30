@@ -22,12 +22,13 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.42'
+__version__ = '4.5.84'
 
 # ----------------------------------------------------------------------------
 
 from ccxt.base.exchange import Exchange                     # noqa: F401
 from ccxt.base.precise import Precise                       # noqa: F401
+from ccxt.base.order_router import OrderRouter              # noqa: F401
 
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
 from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401
@@ -84,12 +85,8 @@ from ccxt.base.errors import CancelPending                            # noqa: F4
 from ccxt.base.errors import UnsubscribeError                         # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
-from ccxt.aftermath import aftermath                                  # noqa: F401
-from ccxt.alp import alp                                              # noqa: F401
 from ccxt.alpaca import alpaca                                        # noqa: F401
 from ccxt.apex import apex                                            # noqa: F401
-from ccxt.arkham import arkham                                        # noqa: F401
-from ccxt.ascendex import ascendex                                    # noqa: F401
 from ccxt.aster import aster                                          # noqa: F401
 from ccxt.backpack import backpack                                    # noqa: F401
 from ccxt.bequant import bequant                                      # noqa: F401
@@ -106,8 +103,6 @@ from ccxt.bitfinex import bitfinex                                    # noqa: F4
 from ccxt.bitflyer import bitflyer                                    # noqa: F401
 from ccxt.bitget import bitget                                        # noqa: F401
 from ccxt.bithumb import bithumb                                      # noqa: F401
-from ccxt.bitmart import bitmart                                      # noqa: F401
-from ccxt.bitmex import bitmex                                        # noqa: F401
 from ccxt.bitopro import bitopro                                      # noqa: F401
 from ccxt.bitrue import bitrue                                        # noqa: F401
 from ccxt.bitso import bitso                                          # noqa: F401
@@ -120,43 +115,42 @@ from ccxt.blofin import blofin                                        # noqa: F4
 from ccxt.btcbox import btcbox                                        # noqa: F401
 from ccxt.btcmarkets import btcmarkets                                # noqa: F401
 from ccxt.btcturk import btcturk                                      # noqa: F401
+from ccxt.btse import btse                                            # noqa: F401
 from ccxt.bullish import bullish                                      # noqa: F401
 from ccxt.bybit import bybit                                          # noqa: F401
+from ccxt.bybiteu import bybiteu                                      # noqa: F401
+from ccxt.bybitid import bybitid                                      # noqa: F401
 from ccxt.bydfi import bydfi                                          # noqa: F401
 from ccxt.cex import cex                                              # noqa: F401
 from ccxt.coinbase import coinbase                                    # noqa: F401
-from ccxt.coinbaseadvanced import coinbaseadvanced                    # noqa: F401
 from ccxt.coinbaseexchange import coinbaseexchange                    # noqa: F401
 from ccxt.coinbaseinternational import coinbaseinternational          # noqa: F401
-from ccxt.coincatch import coincatch                                  # noqa: F401
 from ccxt.coincheck import coincheck                                  # noqa: F401
 from ccxt.coinex import coinex                                        # noqa: F401
 from ccxt.coinmate import coinmate                                    # noqa: F401
-from ccxt.coinmetro import coinmetro                                  # noqa: F401
 from ccxt.coinone import coinone                                      # noqa: F401
 from ccxt.coinsph import coinsph                                      # noqa: F401
 from ccxt.coinspot import coinspot                                    # noqa: F401
 from ccxt.cryptocom import cryptocom                                  # noqa: F401
 from ccxt.cryptomus import cryptomus                                  # noqa: F401
 from ccxt.deepcoin import deepcoin                                    # noqa: F401
-from ccxt.defx import defx                                            # noqa: F401
 from ccxt.delta import delta                                          # noqa: F401
 from ccxt.deribit import deribit                                      # noqa: F401
 from ccxt.derive import derive                                        # noqa: F401
 from ccxt.digifinex import digifinex                                  # noqa: F401
 from ccxt.dydx import dydx                                            # noqa: F401
-from ccxt.exmo import exmo                                            # noqa: F401
+from ccxt.extended import extended                                    # noqa: F401
 from ccxt.fmfwio import fmfwio                                        # noqa: F401
 from ccxt.foxbit import foxbit                                        # noqa: F401
 from ccxt.gate import gate                                            # noqa: F401
-from ccxt.gateio import gateio                                        # noqa: F401
+from ccxt.gateeu import gateeu                                        # noqa: F401
 from ccxt.gemini import gemini                                        # noqa: F401
+from ccxt.grvt import grvt                                            # noqa: F401
 from ccxt.hashkey import hashkey                                      # noqa: F401
 from ccxt.hibachi import hibachi                                      # noqa: F401
 from ccxt.hitbtc import hitbtc                                        # noqa: F401
 from ccxt.hollaex import hollaex                                      # noqa: F401
 from ccxt.htx import htx                                              # noqa: F401
-from ccxt.huobi import huobi                                          # noqa: F401
 from ccxt.hyperliquid import hyperliquid                              # noqa: F401
 from ccxt.independentreserve import independentreserve                # noqa: F401
 from ccxt.indodax import indodax                                      # noqa: F401
@@ -171,39 +165,34 @@ from ccxt.luno import luno                                            # noqa: F4
 from ccxt.mercado import mercado                                      # noqa: F401
 from ccxt.mexc import mexc                                            # noqa: F401
 from ccxt.modetrade import modetrade                                  # noqa: F401
+from ccxt.mudrex import mudrex                                        # noqa: F401
 from ccxt.myokx import myokx                                          # noqa: F401
+from ccxt.nado import nado                                            # noqa: F401
 from ccxt.ndax import ndax                                            # noqa: F401
-from ccxt.novadax import novadax                                      # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
 from ccxt.okxus import okxus                                          # noqa: F401
 from ccxt.onetrading import onetrading                                # noqa: F401
-from ccxt.oxfun import oxfun                                          # noqa: F401
 from ccxt.p2b import p2b                                              # noqa: F401
+from ccxt.pacifica import pacifica                                    # noqa: F401
 from ccxt.paradex import paradex                                      # noqa: F401
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
 from ccxt.poloniex import poloniex                                    # noqa: F401
-from ccxt.timex import timex                                          # noqa: F401
+from ccxt.revolutx import revolutx                                    # noqa: F401
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
 from ccxt.toobit import toobit                                        # noqa: F401
 from ccxt.upbit import upbit                                          # noqa: F401
-from ccxt.wavesexchange import wavesexchange                          # noqa: F401
+from ccxt.weex import weex                                            # noqa: F401
 from ccxt.whitebit import whitebit                                    # noqa: F401
 from ccxt.woo import woo                                              # noqa: F401
 from ccxt.woofipro import woofipro                                    # noqa: F401
 from ccxt.xt import xt                                                # noqa: F401
-from ccxt.yobit import yobit                                          # noqa: F401
 from ccxt.zaif import zaif                                            # noqa: F401
 from ccxt.zebpay import zebpay                                        # noqa: F401
-from ccxt.zonda import zonda                                          # noqa: F401
 
 exchanges = [
-    'aftermath',
-    'alp',
     'alpaca',
     'apex',
-    'arkham',
-    'ascendex',
     'aster',
     'backpack',
     'bequant',
@@ -220,8 +209,6 @@ exchanges = [
     'bitflyer',
     'bitget',
     'bithumb',
-    'bitmart',
-    'bitmex',
     'bitopro',
     'bitrue',
     'bitso',
@@ -234,43 +221,42 @@ exchanges = [
     'btcbox',
     'btcmarkets',
     'btcturk',
+    'btse',
     'bullish',
     'bybit',
+    'bybiteu',
+    'bybitid',
     'bydfi',
     'cex',
     'coinbase',
-    'coinbaseadvanced',
     'coinbaseexchange',
     'coinbaseinternational',
-    'coincatch',
     'coincheck',
     'coinex',
     'coinmate',
-    'coinmetro',
     'coinone',
     'coinsph',
     'coinspot',
     'cryptocom',
     'cryptomus',
     'deepcoin',
-    'defx',
     'delta',
     'deribit',
     'derive',
     'digifinex',
     'dydx',
-    'exmo',
+    'extended',
     'fmfwio',
     'foxbit',
     'gate',
-    'gateio',
+    'gateeu',
     'gemini',
+    'grvt',
     'hashkey',
     'hibachi',
     'hitbtc',
     'hollaex',
     'htx',
-    'huobi',
     'hyperliquid',
     'independentreserve',
     'indodax',
@@ -285,31 +271,30 @@ exchanges = [
     'mercado',
     'mexc',
     'modetrade',
+    'mudrex',
     'myokx',
+    'nado',
     'ndax',
-    'novadax',
     'okx',
     'okxus',
     'onetrading',
-    'oxfun',
     'p2b',
+    'pacifica',
     'paradex',
     'paymium',
     'phemex',
     'poloniex',
-    'timex',
+    'revolutx',
     'tokocrypto',
     'toobit',
     'upbit',
-    'wavesexchange',
+    'weex',
     'whitebit',
     'woo',
     'woofipro',
     'xt',
-    'yobit',
     'zaif',
     'zebpay',
-    'zonda',
 ]
 
 base = [

@@ -7,210 +7,373 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 
 func TestSortBy1() {
 	// todo: other argument checks
+
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var arr interface{} = []interface{}{map[string]interface{}{
+	}, map[string]any{}, exchange)
+	var arr []any = []any{map[string]any{
 		"x": 5,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 2,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 4,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 0,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 3,
 	}}
-	var newArray interface{} = exchange.SortBy(arr, "x")
-	AssertDeepEqual(exchange, nil, "sortBy", newArray, []interface{}{map[string]interface{}{
+	var newArray []any = exchange.SortBy(arr, "x")
+	AssertDeepEqual(exchange, nil, "sortBy", newArray, []any{map[string]any{
 		"x": 0,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 2,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 3,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 4,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 5,
 	}})
-	var newArrayDescending interface{} = exchange.SortBy(arr, "x", true)
-	AssertDeepEqual(exchange, nil, "sortBy", newArrayDescending, []interface{}{map[string]interface{}{
+	var newArrayDescending []any = exchange.SortBy(arr, "x", true)
+	AssertDeepEqual(exchange, nil, "sortBy", newArrayDescending, []any{map[string]any{
 		"x": 5,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 4,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 3,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 2,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 0,
 	}})
-	var emptyArray interface{} = exchange.SortBy([]interface{}{}, "x")
-	AssertDeepEqual(exchange, nil, "sortBy", emptyArray, []interface{}{})
+	var emptyArray []any = exchange.SortBy([]any{}, "x")
+	AssertDeepEqual(exchange, nil, "sortBy", emptyArray, []any{})
+	// regression: keys crossing a digit-count boundary must sort numerically, a lexicographic comparison yields 1, 10, 2 .. 9
+	var arrTwoDigits []any = []any{map[string]any{
+		"x": 10,
+	}, map[string]any{
+		"x": 1,
+	}, map[string]any{
+		"x": 3,
+	}, map[string]any{
+		"x": 7,
+	}, map[string]any{
+		"x": 2,
+	}, map[string]any{
+		"x": 9,
+	}, map[string]any{
+		"x": 5,
+	}, map[string]any{
+		"x": 8,
+	}, map[string]any{
+		"x": 4,
+	}, map[string]any{
+		"x": 6,
+	}}
+	var sortedTwoDigits []any = exchange.SortBy(arrTwoDigits, "x")
+	AssertDeepEqual(exchange, nil, "sortBy", sortedTwoDigits, []any{map[string]any{
+		"x": 1,
+	}, map[string]any{
+		"x": 2,
+	}, map[string]any{
+		"x": 3,
+	}, map[string]any{
+		"x": 4,
+	}, map[string]any{
+		"x": 5,
+	}, map[string]any{
+		"x": 6,
+	}, map[string]any{
+		"x": 7,
+	}, map[string]any{
+		"x": 8,
+	}, map[string]any{
+		"x": 9,
+	}, map[string]any{
+		"x": 10,
+	}})
+	// immutability - original array should not be modified (ascending)
+	var original []any = []any{map[string]any{
+		"x": 5,
+	}, map[string]any{
+		"x": 2,
+	}, map[string]any{
+		"x": 4,
+	}, map[string]any{
+		"x": 0,
+	}, map[string]any{
+		"x": 1,
+	}, map[string]any{
+		"x": 3,
+	}}
+	exchange.SortBy(original, "x")
+	AssertDeepEqual(exchange, nil, "sortBy", original, []any{map[string]any{
+		"x": 5,
+	}, map[string]any{
+		"x": 2,
+	}, map[string]any{
+		"x": 4,
+	}, map[string]any{
+		"x": 0,
+	}, map[string]any{
+		"x": 1,
+	}, map[string]any{
+		"x": 3,
+	}})
+	// immutability - original array should not be modified (descending)
+	var originalDescending []any = []any{map[string]any{
+		"x": 5,
+	}, map[string]any{
+		"x": 2,
+	}, map[string]any{
+		"x": 4,
+	}, map[string]any{
+		"x": 0,
+	}, map[string]any{
+		"x": 1,
+	}, map[string]any{
+		"x": 3,
+	}}
+	exchange.SortBy(originalDescending, "x", true)
+	AssertDeepEqual(exchange, nil, "sortBy", originalDescending, []any{map[string]any{
+		"x": 5,
+	}, map[string]any{
+		"x": 2,
+	}, map[string]any{
+		"x": 4,
+	}, map[string]any{
+		"x": 0,
+	}, map[string]any{
+		"x": 1,
+	}, map[string]any{
+		"x": 3,
+	}})
+	// immutability - array rows (orderbook-style numeric keys) should not be modified
+	var originalRows []any = []any{[]any{3000.5, 1}, []any{2900.5, 2}, []any{2950.5, 3}}
+	exchange.SortBy(originalRows, 0)
+	AssertDeepEqual(exchange, nil, "sortBy", originalRows, []any{[]any{3000.5, 1}, []any{2900.5, 2}, []any{2950.5, 3}})
+	exchange.SortBy(originalRows, 0, true)
+	AssertDeepEqual(exchange, nil, "sortBy", originalRows, []any{[]any{3000.5, 1}, []any{2900.5, 2}, []any{2950.5, 3}})
 }
 func TestSortBy2() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	// sort ascending by key1, then key2 (key1 values are all distinct here)
-	var arr interface{} = []interface{}{map[string]interface{}{
+	var arr []any = []any{map[string]any{
 		"x": 3,
 		"y": 1,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 2,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 2,
 		"y": 3,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 0,
 		"y": 4,
 	}}
-	var sorted interface{} = exchange.SortBy2(arr, "x", "y")
-	AssertDeepEqual(exchange, nil, "sortBy2", sorted, []interface{}{map[string]interface{}{
+	var sorted []any = exchange.SortBy2(arr, "x", "y")
+	AssertDeepEqual(exchange, nil, "sortBy2", sorted, []any{map[string]any{
 		"x": 0,
 		"y": 4,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 2,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 2,
 		"y": 3,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 3,
 		"y": 1,
 	}})
 	// sort descending by key1
-	var arr2 interface{} = []interface{}{map[string]interface{}{
+	var arr2 []any = []any{map[string]any{
 		"x": 3,
 		"y": 1,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 2,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 2,
 		"y": 3,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 0,
 		"y": 4,
 	}}
-	var sortedDescending interface{} = exchange.SortBy2(arr2, "x", "y", true)
-	AssertDeepEqual(exchange, nil, "sortBy2", sortedDescending, []interface{}{map[string]interface{}{
+	var sortedDescending []any = exchange.SortBy2(arr2, "x", "y", true)
+	AssertDeepEqual(exchange, nil, "sortBy2", sortedDescending, []any{map[string]any{
 		"x": 3,
 		"y": 1,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 2,
 		"y": 3,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 2,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 0,
 		"y": 4,
 	}})
 	// when key1 values are equal, sort by key2 ascending
-	var arr3 interface{} = []interface{}{map[string]interface{}{
+	var arr3 []any = []any{map[string]any{
 		"x": 1,
 		"y": 5,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 2,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 9,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 1,
 	}}
-	var sortedByKey2 interface{} = exchange.SortBy2(arr3, "x", "y")
-	AssertDeepEqual(exchange, nil, "sortBy2", sortedByKey2, []interface{}{map[string]interface{}{
+	var sortedByKey2 []any = exchange.SortBy2(arr3, "x", "y")
+	AssertDeepEqual(exchange, nil, "sortBy2", sortedByKey2, []any{map[string]any{
 		"x": 1,
 		"y": 1,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 2,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 5,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 9,
 	}})
 	// when key1 values are equal, sort by key2 descending
-	var arr4 interface{} = []interface{}{map[string]interface{}{
+	var arr4 []any = []any{map[string]any{
 		"x": 1,
 		"y": 5,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 2,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 9,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 1,
 	}}
-	var sortedByKey2Descending interface{} = exchange.SortBy2(arr4, "x", "y", true)
-	AssertDeepEqual(exchange, nil, "sortBy2", sortedByKey2Descending, []interface{}{map[string]interface{}{
+	var sortedByKey2Descending []any = exchange.SortBy2(arr4, "x", "y", true)
+	AssertDeepEqual(exchange, nil, "sortBy2", sortedByKey2Descending, []any{map[string]any{
 		"x": 1,
 		"y": 9,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 5,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 2,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 1,
 	}})
 	// mixed: sort by key1 first, then key2 as tiebreaker
-	var arr5 interface{} = []interface{}{map[string]interface{}{
+	var arr5 []any = []any{map[string]any{
 		"x": 2,
 		"y": 3,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 5,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 2,
 		"y": 1,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 2,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 2,
 		"y": 2,
 	}}
-	var sortedMixed interface{} = exchange.SortBy2(arr5, "x", "y")
-	AssertDeepEqual(exchange, nil, "sortBy2", sortedMixed, []interface{}{map[string]interface{}{
+	var sortedMixed []any = exchange.SortBy2(arr5, "x", "y")
+	AssertDeepEqual(exchange, nil, "sortBy2", sortedMixed, []any{map[string]any{
 		"x": 1,
 		"y": 2,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 1,
 		"y": 5,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 2,
 		"y": 1,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 2,
 		"y": 2,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"x": 2,
 		"y": 3,
 	}})
 	// empty array
-	var emptyArray interface{} = exchange.SortBy2([]interface{}{}, "x", "y")
-	AssertDeepEqual(exchange, nil, "sortBy2", emptyArray, []interface{}{})
+	var emptyArray []any = exchange.SortBy2([]any{}, "x", "y")
+	AssertDeepEqual(exchange, nil, "sortBy2", emptyArray, []any{})
+	// immutability - original array should not be modified (ascending)
+	var original []any = []any{map[string]any{
+		"x": 3,
+		"y": 1,
+	}, map[string]any{
+		"x": 1,
+		"y": 2,
+	}, map[string]any{
+		"x": 2,
+		"y": 3,
+	}, map[string]any{
+		"x": 0,
+		"y": 4,
+	}}
+	exchange.SortBy2(original, "x", "y")
+	AssertDeepEqual(exchange, nil, "sortBy2", original, []any{map[string]any{
+		"x": 3,
+		"y": 1,
+	}, map[string]any{
+		"x": 1,
+		"y": 2,
+	}, map[string]any{
+		"x": 2,
+		"y": 3,
+	}, map[string]any{
+		"x": 0,
+		"y": 4,
+	}})
+	// immutability - original array should not be modified (descending)
+	var originalDescending []any = []any{map[string]any{
+		"x": 3,
+		"y": 1,
+	}, map[string]any{
+		"x": 1,
+		"y": 2,
+	}, map[string]any{
+		"x": 2,
+		"y": 3,
+	}, map[string]any{
+		"x": 0,
+		"y": 4,
+	}}
+	exchange.SortBy2(originalDescending, "x", "y", true)
+	AssertDeepEqual(exchange, nil, "sortBy2", originalDescending, []any{map[string]any{
+		"x": 3,
+		"y": 1,
+	}, map[string]any{
+		"x": 1,
+		"y": 2,
+	}, map[string]any{
+		"x": 2,
+		"y": 3,
+	}, map[string]any{
+		"x": 0,
+		"y": 4,
+	}})
 }
 func TestSortBy() {
 	TestSortBy1()

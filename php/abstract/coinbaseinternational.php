@@ -7,214 +7,700 @@ namespace ccxt\abstract;
 
 
 abstract class coinbaseinternational extends \ccxt\Exchange {
+    /**
+     * @return list<mixed>
+     */
     public function v1_public_get_assets($params = array()) {
-        return $this->request('assets', array('v1', 'public'), 'GET', $params, null, null, array());
+        return $this->request('assets', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_public_get_assets_assets($params = array()) {
-        return $this->request('assets/{assets}', array('v1', 'public'), 'GET', $params, null, null, array());
+        return $this->request('assets/{assets}', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function v1_public_get_assets_asset_networks($params = array()) {
-        return $this->request('assets/{asset}/networks', array('v1', 'public'), 'GET', $params, null, null, array());
+        return $this->request('assets/{asset}/networks', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function v1_public_get_instruments($params = array()) {
-        return $this->request('instruments', array('v1', 'public'), 'GET', $params, null, null, array());
+        return $this->request('instruments', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_public_get_instruments_instrument($params = array()) {
-        return $this->request('instruments/{instrument}', array('v1', 'public'), 'GET', $params, null, null, array());
+        return $this->request('instruments/{instrument}', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_public_get_instruments_instrument_quote($params = array()) {
-        return $this->request('instruments/{instrument}/quote', array('v1', 'public'), 'GET', $params, null, null, array());
+        return $this->request('instruments/{instrument}/quote', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_public_get_instruments_instrument_funding($params = array()) {
-        return $this->request('instruments/{instrument}/funding', array('v1', 'public'), 'GET', $params, null, null, array());
+        return $this->request('instruments/{instrument}/funding', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_public_get_instruments_instrument_candles($params = array()) {
-        return $this->request('instruments/{instrument}/candles', array('v1', 'public'), 'GET', $params, null, null, array());
+        return $this->request('instruments/{instrument}/candles', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_public_get_instruments_volumes_daily($params = array()) {
+        return $this->request('instruments/volumes/daily', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_public_get_position_offsets($params = array()) {
+        return $this->request('position-offsets', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function v1_public_get_fee_rate_tiers($params = array()) {
+        return $this->request('fee-rate-tiers', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function v1_private_get_address_book($params = array()) {
+        return $this->request('address-book', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_get_orders($params = array()) {
-        return $this->request('orders', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('orders', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_get_orders_id($params = array()) {
-        return $this->request('orders/{id}', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('orders/{id}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_get_index_index_composition($params = array()) {
+        return $this->request('index/{index}/composition', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_get_index_index_composition_history($params = array()) {
+        return $this->request('index/{index}/composition-history', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_get_index_index_price($params = array()) {
+        return $this->request('index/{index}/price', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_get_index_index_candles($params = array()) {
+        return $this->request('index/{index}/candles', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function v1_private_get_portfolios($params = array()) {
-        return $this->request('portfolios', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_get_portfolios_portfolio($params = array()) {
-        return $this->request('portfolios/{portfolio}', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_get_portfolios_portfolio_detail($params = array()) {
-        return $this->request('portfolios/{portfolio}/detail', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}/detail', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_get_portfolios_portfolio_summary($params = array()) {
-        return $this->request('portfolios/{portfolio}/summary', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}/summary', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function v1_private_get_portfolios_portfolio_balances($params = array()) {
-        return $this->request('portfolios/{portfolio}/balances', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}/balances', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_get_portfolios_portfolio_balances_asset($params = array()) {
-        return $this->request('portfolios/{portfolio}/balances/{asset}', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}/balances/{asset}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function v1_private_get_portfolios_portfolio_positions($params = array()) {
-        return $this->request('portfolios/{portfolio}/positions', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}/positions', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_get_portfolios_portfolio_positions_instrument($params = array()) {
-        return $this->request('portfolios/{portfolio}/positions/{instrument}', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}/positions/{instrument}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_get_portfolios_portfolio_position_limits($params = array()) {
+        return $this->request('portfolios/{portfolio}/position-limits', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function v1_private_get_portfolios_portfolio_position_limits_positions($params = array()) {
+        return $this->request('portfolios/{portfolio}/position-limits/positions', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_get_portfolios_portfolio_position_limits_positions_instrument($params = array()) {
+        return $this->request('portfolios/{portfolio}/position-limits/positions/{instrument}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_get_portfolios_fills($params = array()) {
-        return $this->request('portfolios/fills', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/fills', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_get_portfolios_portfolio_fills($params = array()) {
-        return $this->request('portfolios/{portfolio}/fills', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}/fills', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
+    public function v1_private_get_portfolios_fee_rates($params = array()) {
+        return $this->request('portfolios/fee-rates', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function v1_private_get_portfolios_portfolio_loans($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_get_portfolios_portfolio_loans_asset($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans/{asset}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_get_portfolios_portfolio_loans_asset_availability($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans/{asset}/availability', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_get_portfolios_portfolio_margin_call_status($params = array()) {
+        return $this->request('portfolios/{portfolio}/margin-call-status', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_get_transfers($params = array()) {
-        return $this->request('transfers', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('transfers', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_get_transfers_transfer_uuid($params = array()) {
-        return $this->request('transfers/{transfer_uuid}', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('transfers/{transfer_uuid}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_get_transfers_withdraw_portfolio_asset_counterparty_withdrawal_limit($params = array()) {
+        return $this->request('transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_post_orders($params = array()) {
-        return $this->request('orders', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('orders', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_post_portfolios($params = array()) {
-        return $this->request('portfolios', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('portfolios', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_post_portfolios_margin($params = array()) {
-        return $this->request('portfolios/margin', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('portfolios/margin', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_post_portfolios_portfolio_cross_collateral_enabled($params = array()) {
+        return $this->request('portfolios/{portfolio}/cross-collateral-enabled', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_post_portfolios_portfolio_auto_margin_enabled($params = array()) {
+        return $this->request('portfolios/{portfolio}/auto-margin-enabled', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_post_portfolios_portfolio_loans_asset($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans/{asset}', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_post_portfolios_portfolio_loans_asset_preview($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans/{asset}/preview', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_post_portfolios_transfer($params = array()) {
-        return $this->request('portfolios/transfer', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('portfolios/transfer', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_post_portfolios_transfer_position($params = array()) {
+        return $this->request('portfolios/transfer-position', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_post_transfers_withdraw($params = array()) {
-        return $this->request('transfers/withdraw', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('transfers/withdraw', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_post_transfers_address($params = array()) {
-        return $this->request('transfers/address', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('transfers/address', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_post_transfers_create_counterparty_id($params = array()) {
-        return $this->request('transfers/create-counterparty-id', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('transfers/create-counterparty-id', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_post_transfers_validate_counterparty_id($params = array()) {
-        return $this->request('transfers/validate-counterparty-id', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('transfers/validate-counterparty-id', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_post_transfers_withdraw_counterparty($params = array()) {
-        return $this->request('transfers/withdraw/counterparty', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('transfers/withdraw/counterparty', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_put_orders_id($params = array()) {
-        return $this->request('orders/{id}', array('v1', 'private'), 'PUT', $params, null, null, array());
+        return $this->request('orders/{id}', array('v1', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_put_portfolios_portfolio($params = array()) {
-        return $this->request('portfolios/{portfolio}', array('v1', 'private'), 'PUT', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}', array('v1', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function v1_private_delete_orders($params = array()) {
-        return $this->request('orders', array('v1', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('orders', array('v1', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_delete_orders_id($params = array()) {
-        return $this->request('orders/{id}', array('v1', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('orders/{id}', array('v1', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_patch_portfolios_portfolio($params = array()) {
+        return $this->request('portfolios/{portfolio}', array('v1', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function v1PublicGetAssets($params = array()) {
-        return $this->request('assets', array('v1', 'public'), 'GET', $params, null, null, array());
+        return $this->request('assets', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PublicGetAssetsAssets($params = array()) {
-        return $this->request('assets/{assets}', array('v1', 'public'), 'GET', $params, null, null, array());
+        return $this->request('assets/{assets}', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function v1PublicGetAssetsAssetNetworks($params = array()) {
-        return $this->request('assets/{asset}/networks', array('v1', 'public'), 'GET', $params, null, null, array());
+        return $this->request('assets/{asset}/networks', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function v1PublicGetInstruments($params = array()) {
-        return $this->request('instruments', array('v1', 'public'), 'GET', $params, null, null, array());
+        return $this->request('instruments', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PublicGetInstrumentsInstrument($params = array()) {
-        return $this->request('instruments/{instrument}', array('v1', 'public'), 'GET', $params, null, null, array());
+        return $this->request('instruments/{instrument}', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PublicGetInstrumentsInstrumentQuote($params = array()) {
-        return $this->request('instruments/{instrument}/quote', array('v1', 'public'), 'GET', $params, null, null, array());
+        return $this->request('instruments/{instrument}/quote', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PublicGetInstrumentsInstrumentFunding($params = array()) {
-        return $this->request('instruments/{instrument}/funding', array('v1', 'public'), 'GET', $params, null, null, array());
+        return $this->request('instruments/{instrument}/funding', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PublicGetInstrumentsInstrumentCandles($params = array()) {
-        return $this->request('instruments/{instrument}/candles', array('v1', 'public'), 'GET', $params, null, null, array());
+        return $this->request('instruments/{instrument}/candles', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PublicGetInstrumentsVolumesDaily($params = array()) {
+        return $this->request('instruments/volumes/daily', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PublicGetPositionOffsets($params = array()) {
+        return $this->request('position-offsets', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function v1PublicGetFeeRateTiers($params = array()) {
+        return $this->request('fee-rate-tiers', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function v1PrivateGetAddressBook($params = array()) {
+        return $this->request('address-book', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivateGetOrders($params = array()) {
-        return $this->request('orders', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('orders', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivateGetOrdersId($params = array()) {
-        return $this->request('orders/{id}', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('orders/{id}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivateGetIndexIndexComposition($params = array()) {
+        return $this->request('index/{index}/composition', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivateGetIndexIndexCompositionHistory($params = array()) {
+        return $this->request('index/{index}/composition-history', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivateGetIndexIndexPrice($params = array()) {
+        return $this->request('index/{index}/price', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivateGetIndexIndexCandles($params = array()) {
+        return $this->request('index/{index}/candles', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function v1PrivateGetPortfolios($params = array()) {
-        return $this->request('portfolios', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivateGetPortfoliosPortfolio($params = array()) {
-        return $this->request('portfolios/{portfolio}', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivateGetPortfoliosPortfolioDetail($params = array()) {
-        return $this->request('portfolios/{portfolio}/detail', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}/detail', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivateGetPortfoliosPortfolioSummary($params = array()) {
-        return $this->request('portfolios/{portfolio}/summary', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}/summary', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function v1PrivateGetPortfoliosPortfolioBalances($params = array()) {
-        return $this->request('portfolios/{portfolio}/balances', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}/balances', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivateGetPortfoliosPortfolioBalancesAsset($params = array()) {
-        return $this->request('portfolios/{portfolio}/balances/{asset}', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}/balances/{asset}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function v1PrivateGetPortfoliosPortfolioPositions($params = array()) {
-        return $this->request('portfolios/{portfolio}/positions', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}/positions', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivateGetPortfoliosPortfolioPositionsInstrument($params = array()) {
-        return $this->request('portfolios/{portfolio}/positions/{instrument}', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}/positions/{instrument}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivateGetPortfoliosPortfolioPositionLimits($params = array()) {
+        return $this->request('portfolios/{portfolio}/position-limits', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function v1PrivateGetPortfoliosPortfolioPositionLimitsPositions($params = array()) {
+        return $this->request('portfolios/{portfolio}/position-limits/positions', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument($params = array()) {
+        return $this->request('portfolios/{portfolio}/position-limits/positions/{instrument}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivateGetPortfoliosFills($params = array()) {
-        return $this->request('portfolios/fills', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/fills', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivateGetPortfoliosPortfolioFills($params = array()) {
-        return $this->request('portfolios/{portfolio}/fills', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}/fills', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
+    public function v1PrivateGetPortfoliosFeeRates($params = array()) {
+        return $this->request('portfolios/fee-rates', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function v1PrivateGetPortfoliosPortfolioLoans($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivateGetPortfoliosPortfolioLoansAsset($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans/{asset}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivateGetPortfoliosPortfolioLoansAssetAvailability($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans/{asset}/availability', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivateGetPortfoliosPortfolioMarginCallStatus($params = array()) {
+        return $this->request('portfolios/{portfolio}/margin-call-status', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivateGetTransfers($params = array()) {
-        return $this->request('transfers', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('transfers', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivateGetTransfersTransferUuid($params = array()) {
-        return $this->request('transfers/{transfer_uuid}', array('v1', 'private'), 'GET', $params, null, null, array());
+        return $this->request('transfers/{transfer_uuid}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit($params = array()) {
+        return $this->request('transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivatePostOrders($params = array()) {
-        return $this->request('orders', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('orders', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivatePostPortfolios($params = array()) {
-        return $this->request('portfolios', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('portfolios', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivatePostPortfoliosMargin($params = array()) {
-        return $this->request('portfolios/margin', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('portfolios/margin', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled($params = array()) {
+        return $this->request('portfolios/{portfolio}/cross-collateral-enabled', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivatePostPortfoliosPortfolioAutoMarginEnabled($params = array()) {
+        return $this->request('portfolios/{portfolio}/auto-margin-enabled', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivatePostPortfoliosPortfolioLoansAsset($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans/{asset}', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivatePostPortfoliosPortfolioLoansAssetPreview($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans/{asset}/preview', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivatePostPortfoliosTransfer($params = array()) {
-        return $this->request('portfolios/transfer', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('portfolios/transfer', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivatePostPortfoliosTransferPosition($params = array()) {
+        return $this->request('portfolios/transfer-position', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivatePostTransfersWithdraw($params = array()) {
-        return $this->request('transfers/withdraw', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('transfers/withdraw', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivatePostTransfersAddress($params = array()) {
-        return $this->request('transfers/address', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('transfers/address', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivatePostTransfersCreateCounterpartyId($params = array()) {
-        return $this->request('transfers/create-counterparty-id', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('transfers/create-counterparty-id', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivatePostTransfersValidateCounterpartyId($params = array()) {
-        return $this->request('transfers/validate-counterparty-id', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('transfers/validate-counterparty-id', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivatePostTransfersWithdrawCounterparty($params = array()) {
-        return $this->request('transfers/withdraw/counterparty', array('v1', 'private'), 'POST', $params, null, null, array());
+        return $this->request('transfers/withdraw/counterparty', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivatePutOrdersId($params = array()) {
-        return $this->request('orders/{id}', array('v1', 'private'), 'PUT', $params, null, null, array());
+        return $this->request('orders/{id}', array('v1', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivatePutPortfoliosPortfolio($params = array()) {
-        return $this->request('portfolios/{portfolio}', array('v1', 'private'), 'PUT', $params, null, null, array());
+        return $this->request('portfolios/{portfolio}', array('v1', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function v1PrivateDeleteOrders($params = array()) {
-        return $this->request('orders', array('v1', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('orders', array('v1', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivateDeleteOrdersId($params = array()) {
-        return $this->request('orders/{id}', array('v1', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('orders/{id}', array('v1', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivatePatchPortfoliosPortfolio($params = array()) {
+        return $this->request('portfolios/{portfolio}', array('v1', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
     }
 }

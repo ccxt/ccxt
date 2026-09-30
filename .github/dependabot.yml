@@ -1,0 +1,7 @@
+# .github/dependabot.yml
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/go/v4"
+    schedule:
+      interval: "weekly"

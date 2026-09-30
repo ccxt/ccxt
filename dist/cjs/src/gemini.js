@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var gemini$1 = require('./abstract/gemini.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -66,6 +66,7 @@ class gemini extends gemini$1["default"] {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -121,103 +122,140 @@ class gemini extends gemini$1["default"] {
             },
             'api': {
                 'webExchange': {
-                    'get': [
-                        '',
-                    ],
+                    'get': {
+                        '': { 'cost': 1 },
+                    },
                 },
                 'web': {
-                    'get': [
-                        'rest-api',
-                    ],
+                    'get': {
+                        // fetchMarkets passes this through fetchWebEndpoint with
+                        // returnAsJson=false and a startRegex, i.e. it splits the
+                        // body as text: this endpoint answers with the docs page
+                        // markup, not with JSON
+                        'rest-api': { 'cost': 1 },
+                    },
                 },
                 'public': {
                     'get': {
-                        'v1/symbols': 5,
-                        'v1/symbols/details/{symbol}': 5,
-                        'v1/network/{token}': 5,
-                        'v1/staking/rates': 5,
-                        'v1/pubticker/{symbol}': 5,
-                        'v1/feepromos': 5,
-                        'v2/ticker/{symbol}': 5,
-                        'v2/candles/{symbol}/{timeframe}': 5,
-                        'v1/trades/{symbol}': 5,
-                        'v1/auction/{symbol}': 5,
-                        'v1/auction/{symbol}/history': 5,
-                        'v1/pricefeed': 5,
-                        'v1/fundingamount/{symbol}': 5,
-                        'v1/fundingamountreport/records.xlsx': 5,
-                        'v1/book/{symbol}': 5,
-                        'v1/earn/rates': 5,
-                        'v2/derivatives/candles/{symbol}/{time_frame}': 5,
-                        'v2/fxrate/{symbol}/{timestamp}': 5,
-                        'v1/riskstats/{symbol}': 5,
+                        'v1/symbols': { 'cost': 5 },
+                        'v1/symbols/details/{symbol}': { 'cost': 5 },
+                        'v1/network/{token}': { 'cost': 5 },
+                        'v1/staking/rates': { 'cost': 5 },
+                        'v1/pubticker/{symbol}': { 'cost': 5 },
+                        'v1/feepromos': { 'cost': 5 },
+                        'v2/ticker/{symbol}': { 'cost': 5 },
+                        'v2/candles/{symbol}/{timeframe}': { 'cost': 5 },
+                        'v1/trades/{symbol}': { 'cost': 5 },
+                        'v1/auction/{symbol}': { 'cost': 5 },
+                        'v1/auction/{symbol}/history': { 'cost': 5 },
+                        'v1/pricefeed': { 'cost': 5 },
+                        'v1/fundingamount/{symbol}': { 'cost': 5 },
+                        'v1/fundingamountreport/records.xlsx': { 'cost': 5 },
+                        'v1/book/{symbol}': { 'cost': 5 },
+                        'v1/earn/rates': { 'cost': 5 },
+                        'v2/derivatives/candles/{symbol}/{time_frame}': { 'cost': 5 },
+                        'v2/fxrate/{symbol}/{timestamp}': { 'cost': 5 },
+                        'v1/riskstats/{symbol}': { 'cost': 5 },
+                        'v1/prediction-markets/events': { 'cost': 5 },
+                        'v1/prediction-markets/events/{eventTicker}': { 'cost': 5 },
+                        'v1/prediction-markets/events/{eventTicker}/strike': { 'cost': 5 },
+                        'v1/prediction-markets/events/newly-listed': { 'cost': 5 },
+                        'v1/prediction-markets/events/recently-settled': { 'cost': 5 },
+                        'v1/prediction-markets/events/upcoming': { 'cost': 5 },
+                        'v1/prediction-markets/categories': { 'cost': 5 },
+                        'v1/prediction-markets/volume/{date}': { 'cost': 5 },
+                        'v1/prediction-markets/volume/{date}/hourly': { 'cost': 5 },
+                        'v1/prediction-markets/terms': { 'cost': 5 },
+                        'v1/prediction-markets/maker-rebate/rates': { 'cost': 5 },
+                        'v1/prediction-markets/liquidity-rewards/config': { 'cost': 5 },
+                        'v1/prediction-markets/liquidity-rewards/events': { 'cost': 5 },
                     },
                 },
                 'private': {
                     'get': {
-                        'v1/perpetuals/fundingpaymentreport/records.xlsx': 1,
+                        'v1/perpetuals/fundingpaymentreport/records.xlsx': { 'cost': 1 },
+                        'v1/prediction-markets/terms/status': { 'cost': 1 },
+                        'v1/prediction-markets/maker-rebate/summary/total': { 'cost': 1 },
+                        'v1/prediction-markets/liquidity-rewards/summary/daily': { 'cost': 1 },
+                        'v1/prediction-markets/liquidity-rewards/summary/total': { 'cost': 1 },
+                        'v2/network/{token}': { 'cost': 1 },
+                        'v2/networks/{network}/assets': { 'cost': 1 },
                     },
                     'post': {
-                        'v1/staking/unstake': 1,
-                        'v1/staking/stake': 1,
-                        'v1/staking/rewards': 1,
-                        'v1/staking/history': 1,
-                        'v1/order/new': 1,
-                        'v1/order/cancel': 1,
-                        'v1/wrap/{symbol}': 1,
-                        'v1/order/cancel/session': 1,
-                        'v1/order/cancel/all': 1,
-                        'v1/order/status': 1,
-                        'v1/orders': 1,
-                        'v1/mytrades': 1,
-                        'v1/notionalvolume': 1,
-                        'v1/tradevolume': 1,
-                        'v1/clearing/new': 1,
-                        'v1/clearing/status': 1,
-                        'v1/clearing/cancel': 1,
-                        'v1/clearing/confirm': 1,
-                        'v1/balances': 1,
-                        'v1/balances/staking': 1,
-                        'v1/notionalbalances/{currency}': 1,
-                        'v1/transfers': 1,
-                        'v1/addresses/{network}': 1,
-                        'v1/deposit/{network}/newAddress': 1,
-                        'v1/deposit/{currency}/newAddress': 1,
-                        'v1/withdraw/{currency}': 1,
-                        'v1/account/transfer/{currency}': 1,
-                        'v1/payments/addbank': 1,
-                        'v1/payments/methods': 1,
-                        'v1/payments/sen/withdraw': 1,
-                        'v1/balances/earn': 1,
-                        'v1/earn/interest': 1,
-                        'v1/earn/history': 1,
-                        'v1/approvedAddresses/{network}/request': 1,
-                        'v1/approvedAddresses/account/{network}': 1,
-                        'v1/approvedAddresses/{network}/remove': 1,
-                        'v1/account': 1,
-                        'v1/account/create': 1,
-                        'v1/account/list': 1,
-                        'v1/heartbeat': 1,
-                        'v1/roles': 1,
-                        'v1/custodyaccountfees': 1,
-                        'v1/withdraw/{currencyCodeLowerCase}/feeEstimate': 1,
-                        'v1/payments/addbank/cad': 1,
-                        'v1/transactions': 1,
-                        'v1/margin/account': 1,
-                        'v1/margin/rates': 1,
-                        'v1/margin/order/preview': 1,
-                        'v1/clearing/list': 1,
-                        'v1/clearing/broker/list': 1,
-                        'v1/clearing/broker/new': 1,
-                        'v1/clearing/trades': 1,
-                        'v1/instant/quote': 1,
-                        'v1/instant/execute': 1,
-                        'v1/account/rename': 1,
-                        'v1/oauth/revokeByToken': 1,
-                        'v1/margin': 1,
-                        'v1/perpetuals/fundingPayment': 1,
-                        'v1/perpetuals/fundingpaymentreport/records.json': 1,
-                        'v1/positions': 1,
+                        'v1/staking/unstake': { 'cost': 1 },
+                        'v1/staking/stake': { 'cost': 1 },
+                        'v1/staking/rewards': { 'cost': 1 },
+                        'v1/staking/history': { 'cost': 1 },
+                        'v1/order/new': { 'cost': 1 },
+                        'v1/order/cancel': { 'cost': 1 },
+                        'v1/wrap/{symbol}': { 'cost': 1 },
+                        'v1/order/cancel/session': { 'cost': 1 },
+                        'v1/order/cancel/all': { 'cost': 1 },
+                        'v1/order/status': { 'cost': 1 },
+                        'v1/orders': { 'cost': 1 },
+                        'v1/mytrades': { 'cost': 1 },
+                        'v1/notionalvolume': { 'cost': 1 },
+                        'v1/tradevolume': { 'cost': 1 },
+                        'v1/clearing/new': { 'cost': 1 },
+                        'v1/clearing/status': { 'cost': 1 },
+                        'v1/clearing/cancel': { 'cost': 1 },
+                        'v1/clearing/confirm': { 'cost': 1 },
+                        'v1/balances': { 'cost': 1 },
+                        'v1/balances/staking': { 'cost': 1 },
+                        'v1/notionalbalances/{currency}': { 'cost': 1 },
+                        'v1/transfers': { 'cost': 1 },
+                        'v1/addresses/{network}': { 'cost': 1 },
+                        'v1/deposit/{network}/newAddress': { 'cost': 1 },
+                        'v1/deposit/{currency}/newAddress': { 'cost': 1 },
+                        'v1/withdraw/{currency}': { 'cost': 1 },
+                        'v1/account/transfer/{currency}': { 'cost': 1 },
+                        'v1/payments/addbank': { 'cost': 1 },
+                        'v1/payments/methods': { 'cost': 1 },
+                        'v1/payments/sen/withdraw': { 'cost': 1 },
+                        'v1/balances/earn': { 'cost': 1 },
+                        'v1/earn/interest': { 'cost': 1 },
+                        'v1/earn/history': { 'cost': 1 },
+                        'v1/approvedAddresses/{network}/request': { 'cost': 1 },
+                        'v1/approvedAddresses/account/{network}': { 'cost': 1 },
+                        'v1/approvedAddresses/{network}/remove': { 'cost': 1 },
+                        'v1/account': { 'cost': 1 },
+                        'v1/account/create': { 'cost': 1 },
+                        'v1/account/list': { 'cost': 1 },
+                        'v1/heartbeat': { 'cost': 1 },
+                        'v1/roles': { 'cost': 1 },
+                        'v1/custodyaccountfees': { 'cost': 1 },
+                        'v1/withdraw/{currencyCodeLowerCase}/feeEstimate': { 'cost': 1 },
+                        'v1/payments/addbank/cad': { 'cost': 1 },
+                        'v1/transactions': { 'cost': 1 },
+                        'v1/margin/account': { 'cost': 1 },
+                        'v1/margin/rates': { 'cost': 1 },
+                        'v1/margin/order/preview': { 'cost': 1 },
+                        'v1/clearing/list': { 'cost': 1 },
+                        'v1/clearing/broker/list': { 'cost': 1 },
+                        'v1/clearing/broker/new': { 'cost': 1 },
+                        'v1/clearing/trades': { 'cost': 1 },
+                        'v1/instant/quote': { 'cost': 1 },
+                        'v1/instant/execute': { 'cost': 1 },
+                        'v1/account/rename': { 'cost': 1 },
+                        'v1/oauth/revokeByToken': { 'cost': 1 },
+                        'v1/margin': { 'cost': 1 },
+                        'v1/perpetuals/fundingPayment': { 'cost': 1 },
+                        'v1/perpetuals/fundingpaymentreport/records.json': { 'cost': 1 },
+                        'v1/positions': { 'cost': 1 },
+                        'v1/prediction-markets/order': { 'cost': 1 },
+                        'v1/prediction-markets/order/batch': { 'cost': 1 },
+                        'v1/prediction-markets/order/cancel': { 'cost': 1 },
+                        'v1/prediction-markets/order/batch/cancel': { 'cost': 1 },
+                        'v1/prediction-markets/orders/active': { 'cost': 1 },
+                        'v1/prediction-markets/orders/history': { 'cost': 1 },
+                        'v1/prediction-markets/positions': { 'cost': 1 },
+                        'v1/prediction-markets/positions/settled': { 'cost': 1 },
+                        'v1/prediction-markets/metrics/volume': { 'cost': 1 },
+                        'v1/prediction-markets/terms/accept': { 'cost': 1 },
+                        'v1/prediction-markets/maker-rebate/payouts': { 'cost': 1 },
+                        'v2/transfers': { 'cost': 1 },
+                        'v2/withdraw/{network}/{ticker}': { 'cost': 1 },
+                        'v2/withdraw/{network}/{ticker}/feeEstimate': { 'cost': 1 },
                     },
                 },
             },
@@ -229,13 +267,13 @@ class gemini extends gemini$1["default"] {
                 },
             },
             'httpExceptions': {
-                '400': errors.BadRequest,
-                '403': errors.PermissionDenied,
-                '404': errors.OrderNotFound,
-                '406': errors.InsufficientFunds,
-                '429': errors.RateLimitExceeded,
-                '500': errors.ExchangeError,
-                '502': errors.ExchangeNotAvailable,
+                '400': errors.BadRequest, // Auction not open or paused, ineligible timing, market not open, or the request was malformed, in the case of a private API request, missing or malformed Gemini private API authentication headers
+                '403': errors.PermissionDenied, // The API key is missing the role necessary to access this private API endpoint
+                '404': errors.OrderNotFound, // Unknown API entry point or Order not found
+                '406': errors.InsufficientFunds, // Insufficient Funds
+                '429': errors.RateLimitExceeded, // Rate Limiting was applied
+                '500': errors.ExchangeError, // The server encountered an error
+                '502': errors.ExchangeNotAvailable, // Technical issues are preventing the request from being satisfied
                 '503': errors.OnMaintenance, // The exchange is down for maintenance
             },
             'timeframes': {
@@ -249,62 +287,63 @@ class gemini extends gemini$1["default"] {
             },
             'exceptions': {
                 'exact': {
-                    'AuctionNotOpen': errors.BadRequest,
-                    'ClientOrderIdTooLong': errors.BadRequest,
-                    'ClientOrderIdMustBeString': errors.BadRequest,
-                    'ConflictingOptions': errors.BadRequest,
-                    'EndpointMismatch': errors.BadRequest,
-                    'EndpointNotFound': errors.BadRequest,
-                    'IneligibleTiming': errors.BadRequest,
-                    'InsufficientFunds': errors.InsufficientFunds,
-                    'InvalidJson': errors.BadRequest,
-                    'InvalidNonce': errors.InvalidNonce,
-                    'InvalidApiKey': errors.AuthenticationError,
-                    'InvalidOrderType': errors.InvalidOrder,
-                    'InvalidPrice': errors.InvalidOrder,
-                    'InvalidQuantity': errors.InvalidOrder,
-                    'InvalidSide': errors.InvalidOrder,
-                    'InvalidSignature': errors.AuthenticationError,
-                    'InvalidSymbol': errors.BadRequest,
-                    'InvalidTimestampInPayload': errors.BadRequest,
-                    'Maintenance': errors.OnMaintenance,
-                    'MarketNotOpen': errors.InvalidOrder,
-                    'MissingApikeyHeader': errors.AuthenticationError,
-                    'MissingOrderField': errors.InvalidOrder,
-                    'MissingRole': errors.AuthenticationError,
-                    'MissingPayloadHeader': errors.AuthenticationError,
-                    'MissingSignatureHeader': errors.AuthenticationError,
-                    'NoSSL': errors.AuthenticationError,
-                    'OptionsMustBeArray': errors.BadRequest,
-                    'OrderNotFound': errors.OrderNotFound,
-                    'RateLimit': errors.RateLimitExceeded,
-                    'System': errors.ExchangeError,
+                    'AuctionNotOpen': errors.BadRequest, // Failed to place an auction-only order because there is no current auction open for this symbol
+                    'ClientOrderIdTooLong': errors.BadRequest, // The Client Order ID must be under 100 characters
+                    'ClientOrderIdMustBeString': errors.BadRequest, // The Client Order ID must be a string
+                    'ConflictingOptions': errors.BadRequest, // New orders using a combination of order execution options are not supported
+                    'EndpointMismatch': errors.BadRequest, // The request was submitted to an endpoint different than the one in the payload
+                    'EndpointNotFound': errors.BadRequest, // No endpoint was specified
+                    'IneligibleTiming': errors.BadRequest, // Failed to place an auction order for the current auction on this symbol because the timing is not eligible, new orders may only be placed before the auction begins.
+                    'InsufficientFunds': errors.InsufficientFunds, // The order was rejected because of insufficient funds
+                    'InvalidJson': errors.BadRequest, // The JSON provided is invalid
+                    'InvalidNonce': errors.InvalidNonce, // The nonce was not greater than the previously used nonce, or was not present
+                    'InvalidApiKey': errors.AuthenticationError, // Invalid API key
+                    'InvalidOrderType': errors.InvalidOrder, // An unknown order type was provided
+                    'InvalidPrice': errors.InvalidOrder, // For new orders, the price was invalid
+                    'InvalidQuantity': errors.InvalidOrder, // A negative or otherwise invalid quantity was specified
+                    'InvalidSide': errors.InvalidOrder, // For new orders, and invalid side was specified
+                    'InvalidSignature': errors.AuthenticationError, // The signature did not match the expected signature
+                    'InvalidSymbol': errors.BadRequest, // An invalid symbol was specified
+                    'InvalidTimestampInPayload': errors.BadRequest, // The JSON payload contained a timestamp parameter with an unsupported value.
+                    'Maintenance': errors.OnMaintenance, // The system is down for maintenance
+                    'MarketNotOpen': errors.InvalidOrder, // The order was rejected because the market is not accepting new orders
+                    'MissingApikeyHeader': errors.AuthenticationError, // The X-GEMINI-APIKEY header was missing
+                    'MissingOrderField': errors.InvalidOrder, // A required order_id field was not specified
+                    'MissingRole': errors.AuthenticationError, // The API key used to access this endpoint does not have the required role assigned to it
+                    'MissingPayloadHeader': errors.AuthenticationError, // The X-GEMINI-PAYLOAD header was missing
+                    'MissingSignatureHeader': errors.AuthenticationError, // The X-GEMINI-SIGNATURE header was missing
+                    'NoSSL': errors.AuthenticationError, // You must use HTTPS to access the API
+                    'OptionsMustBeArray': errors.BadRequest, // The options parameter must be an array.
+                    'OrderNotFound': errors.OrderNotFound, // The order specified was not found
+                    'RateLimit': errors.RateLimitExceeded, // Requests were made too frequently. See Rate Limits below.
+                    'System': errors.ExchangeError, // We are experiencing technical issues
                     'UnsupportedOption': errors.BadRequest, // This order execution option is not supported.
                 },
                 'broad': {
-                    'The Gemini Exchange is currently undergoing maintenance.': errors.OnMaintenance,
-                    'We are investigating technical issues with the Gemini Exchange.': errors.ExchangeNotAvailable,
+                    'The Gemini Exchange is currently undergoing maintenance.': errors.OnMaintenance, // The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
+                    'We are investigating technical issues with the Gemini Exchange.': errors.ExchangeNotAvailable, // We are investigating technical issues with the Gemini Exchange. Please check https://status.gemini.com/ for more information.
                     'Internal Server Error': errors.ExchangeNotAvailable,
                 },
             },
             'options': {
-                'fetchMarketsMethod': 'fetch_markets_from_api',
+                'fetchMarketsMethod': 'fetch_markets_from_api', // fetch_markets_from_api, fetch_markets_from_web
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
                     'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'USDC'],
                 },
                 'fetchMarkets': {
-                    'webApiEnable': true,
+                    'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 10,
                 },
-                'fetchUsdtMarkets': ['btcusdt', 'ethusdt'],
+                'fetchUsdtMarkets': ['btcusdt', 'ethusdt'], // this is only used if markets-fetch is set from "web"; keep this list updated (not available trough web api)
                 'fetchCurrencies': {
-                    'webApiEnable': true,
+                    'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 5,
                     'webApiMuteFailure': true,
                 },
-                'fetchTickerMethod': 'fetchTickerV1',
+                // fetchticker should use v1, confirmed that v2 is buggy ( https://github.com/ccxt/ccxt/issues/28077 )
+                'fetchTickerMethod': 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networks': {
                     'BTC': 'bitcoin',
                     'ERC20': 'ethereum',
@@ -319,7 +358,7 @@ class gemini extends gemini$1["default"] {
                     'ATOM': 'cosmos',
                     'DOT': 'polkadot',
                 },
-                'nonce': 'milliseconds',
+                'nonce': 'milliseconds', // if getting a Network 400 error change to seconds,
                 'conflictingMarkets': {
                     'paxgusd': {
                         'base': 'PAXG',
@@ -336,8 +375,8 @@ class gemini extends gemini$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -375,7 +414,7 @@ class gemini extends gemini$1["default"] {
                         'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo: implement
                     'fetchOHLCV': {
                         'limit': undefined,
                     },
@@ -439,22 +478,28 @@ class gemini extends gemini$1["default"] {
         //        ]
         //    }
         //
-        const result = {};
         this.options['tradingPairs'] = this.safeList(data, 'tradingPairs');
-        const currenciesArray = this.safeValue(data, 'currencies', []);
-        for (let i = 0; i < currenciesArray.length; i++) {
-            const currency = currenciesArray[i];
-            const id = this.safeString(currency, 0);
-            const code = this.safeCurrencyCode(id);
-            const type = this.safeString(currency, 7) ? 'fiat' : 'crypto';
-            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 5)));
-            const networks = {};
-            const networkId = this.safeString(currency, 9);
-            let networkCode = undefined;
-            if (networkId !== undefined) {
-                networkCode = this.networkIdToCode(networkId);
+        const currenciesArray = this.safeList(data, 'currencies', []);
+        return this.parseCurrencies(currenciesArray);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 0);
+        const code = this.safeCurrencyCode(id);
+        const fiatFlag = this.safeString(rawCurrency, 7);
+        const isFiat = (fiatFlag !== undefined) && (fiatFlag !== '');
+        let type = 'crypto';
+        if (isFiat) {
+            type = 'fiat';
+        }
+        const precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
+        const networks = {};
+        const networkId = this.safeString(rawCurrency, 9);
+        let networkCode = undefined;
+        if (networkId !== undefined) {
+            networkCode = this.networkIdToCode(networkId, code);
+            if (networkCode !== undefined) {
                 networks[networkCode] = {
-                    'info': currency,
+                    'info': rawCurrency,
                     'id': networkId,
                     'network': networkCode,
                     'active': undefined,
@@ -474,31 +519,30 @@ class gemini extends gemini$1["default"] {
                     },
                 };
             }
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': this.safeString(currency, 1),
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'type': type,
-                'precision': precision,
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': networks,
-            });
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'id': id,
+            'code': code,
+            'name': this.safeString(rawCurrency, 1),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'type': type,
+            'precision': precision,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -509,7 +553,7 @@ class gemini extends gemini$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const method = this.safeValue(this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
+        const method = this.safeString(this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         if (method === 'fetch_markets_from_web') {
             const promises = [];
             promises.push(this.fetchMarketsFromWeb(params)); // get usd markets
@@ -564,6 +608,9 @@ class gemini extends gemini$1["default"] {
             const baseId = this.safeStringLower(amountPrecisionParts, 1, marketId.replace(quoteId, ''));
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             result.push({
                 'id': marketId,
                 'symbol': base + '/' + quote,
@@ -635,7 +682,7 @@ class gemini extends gemini$1["default"] {
         if ('test' in this.urls) {
             return []; // sandbox does not have usdt markets
         }
-        const fetchUsdtMarkets = this.safeValue(this.options, 'fetchUsdtMarkets', []);
+        const fetchUsdtMarkets = this.safeList(this.options, 'fetchUsdtMarkets', []);
         const result = [];
         for (let i = 0; i < fetchUsdtMarkets.length; i++) {
             const marketId = fetchUsdtMarkets[i];
@@ -644,7 +691,10 @@ class gemini extends gemini$1["default"] {
             };
             // don't use Promise.all here, for some reason the exchange can't handle it and crashes
             const rawResponse = await this.publicGetV1SymbolsDetailsSymbol(this.extend(request, params));
-            result.push(this.parseMarket(rawResponse));
+            const parsed = this.parseMarket(rawResponse);
+            if (parsed !== undefined) {
+                result.push(parsed);
+            }
         }
         return result;
     }
@@ -661,9 +711,13 @@ class gemini extends gemini$1["default"] {
         const options = this.safeDict(this.options, 'fetchMarketsFromAPI', {});
         const brokenPairs = this.safeList(this.options, 'brokenPairs', []);
         const marketIds = [];
-        for (let i = 0; i < marketIdsRaw.length; i++) {
-            if (!this.inArray(marketIdsRaw[i], brokenPairs)) {
-                marketIds.push(marketIdsRaw[i]);
+        let allMarketIds = [];
+        if (Array.isArray(marketIdsRaw)) {
+            allMarketIds = marketIdsRaw;
+        }
+        for (let i = 0; i < allMarketIds.length; i++) {
+            if (!this.inArray(allMarketIds[i], brokenPairs)) {
+                marketIds.push(allMarketIds[i]);
             }
         }
         if (this.safeBool(options, 'fetchDetailsForAllSymbols', false)) {
@@ -689,7 +743,10 @@ class gemini extends gemini$1["default"] {
             }
             const responses = await Promise.all(promises);
             for (let i = 0; i < responses.length; i++) {
-                result.push(this.parseMarket(responses[i]));
+                const parsed = this.parseMarket(responses[i]);
+                if (parsed !== undefined) {
+                    result.push(parsed);
+                }
             }
         }
         else {
@@ -701,14 +758,20 @@ class gemini extends gemini$1["default"] {
                     const marketId = marketIds[i];
                     const pairInfo = this.safeList(indexedTradingPairs, marketId.toUpperCase());
                     if (pairInfo !== undefined && !this.inArray(marketId, brokenPairs)) {
-                        result.push(this.parseMarket(pairInfo));
+                        const parsed = this.parseMarket(pairInfo);
+                        if (parsed !== undefined) {
+                            result.push(parsed);
+                        }
                     }
                 }
             }
             else {
                 for (let i = 0; i < marketIds.length; i++) {
                     if (!this.inArray(marketIds[i], brokenPairs)) {
-                        result.push(this.parseMarket(marketIds[i]));
+                        const parsed = this.parseMarket(marketIds[i]);
+                        if (parsed !== undefined) {
+                            result.push(parsed);
+                        }
                     }
                 }
             }
@@ -814,6 +877,9 @@ class gemini extends gemini$1["default"] {
         }
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode(settleId);
         let symbol = base + '/' + quote;
         if (settleId !== undefined) {
@@ -823,8 +889,12 @@ class gemini extends gemini$1["default"] {
             linear = true; // always linear
             inverse = false;
         }
-        const type = swap ? 'swap' : 'spot';
-        return {
+        let type = 'spot';
+        if (swap) {
+            type = 'swap';
+        }
+        const isSpot = !swap;
+        return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -834,7 +904,7 @@ class gemini extends gemini$1["default"] {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': !swap,
+            'spot': isSpot,
             'margin': false,
             'swap': swap,
             'future': false,
@@ -872,7 +942,7 @@ class gemini extends gemini$1["default"] {
             },
             'created': undefined,
             'info': response,
-        };
+        });
     }
     /**
      * @method
@@ -882,10 +952,12 @@ class gemini extends gemini$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -898,7 +970,9 @@ class gemini extends gemini$1["default"] {
         return this.parseOrderBook(response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
     async fetchTickerV1(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -919,7 +993,9 @@ class gemini extends gemini$1["default"] {
         return this.parseTicker(response, market);
     }
     async fetchTickerV2(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -966,7 +1042,7 @@ class gemini extends gemini$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        const method = this.safeValue(this.options, 'fetchTickerMethod', 'fetchTickerV1');
+        const method = this.safeString(this.options, 'fetchTickerMethod', 'fetchTickerV1');
         if (method === 'fetchTickerV1') {
             return await this.fetchTickerV1(symbol, params);
         }
@@ -1012,16 +1088,16 @@ class gemini extends gemini$1["default"] {
         //         "ask":"9115.87"
         //     }
         //
-        const volume = this.safeValue(ticker, 'volume', {});
+        const volume = this.safeDict(ticker, 'volume', {});
         const timestamp = this.safeInteger(volume, 'timestamp');
         let symbol = undefined;
         const marketId = this.safeStringLower(ticker, 'pair');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         let baseId = undefined;
         let quoteId = undefined;
         let base = undefined;
         let quote = undefined;
-        if ((marketId !== undefined) && (market === undefined)) {
+        if ((marketId !== undefined) && (marketResolved === undefined)) {
             const idLength = marketId.length - 0;
             if (idLength === 7) {
                 baseId = marketId.slice(0, 4);
@@ -1033,12 +1109,14 @@ class gemini extends gemini$1["default"] {
             }
             base = this.safeCurrencyCode(baseId);
             quote = this.safeCurrencyCode(quoteId);
-            symbol = base + '/' + quote;
+            if ((base !== undefined) && (quote !== undefined)) {
+                symbol = base + '/' + quote;
+            }
         }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-            baseId = this.safeStringUpper(market, 'baseId');
-            quoteId = this.safeStringUpper(market, 'quoteId');
+        if ((symbol === undefined) && (marketResolved !== undefined)) {
+            symbol = marketResolved['symbol'];
+            baseId = this.safeStringUpper(marketResolved, 'baseId');
+            quoteId = this.safeStringUpper(marketResolved, 'quoteId');
         }
         const price = this.safeString(ticker, 'price');
         const last = this.safeString2(ticker, 'last', 'close', price);
@@ -1060,14 +1138,14 @@ class gemini extends gemini$1["default"] {
             'open': open,
             'close': last,
             'last': last,
-            'previousClose': undefined,
+            'previousClose': undefined, // previous day close
             'change': undefined,
             'percentage': percentage,
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1079,7 +1157,9 @@ class gemini extends gemini$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetV1Pricefeed(params);
         //
         //     [
@@ -1174,7 +1254,9 @@ class gemini extends gemini$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1204,13 +1286,15 @@ class gemini extends gemini$1["default"] {
     parseBalance(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict(response, i);
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             account['free'] = this.safeString(balance, 'available');
             account['total'] = this.safeString(balance, 'amount');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1223,7 +1307,9 @@ class gemini extends gemini$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostV1Notionalvolume(params);
         //
         //      {
@@ -1260,8 +1346,9 @@ class gemini extends gemini$1["default"] {
         const maker = this.parseNumber(makerString);
         const taker = this.parseNumber(takerString);
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1282,7 +1369,9 @@ class gemini extends gemini$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostV1Balances(params);
         return this.parseBalance(response);
     }
@@ -1390,10 +1479,10 @@ class gemini extends gemini$1["default"] {
         const remaining = this.safeString(order, 'remaining_amount');
         const filled = this.safeString(order, 'executed_amount');
         let status = 'closed';
-        if (order['is_live']) {
+        if (this.safeBool(order, 'is_live', false)) {
             status = 'open';
         }
-        if (order['is_cancelled']) {
+        if (this.safeBool(order, 'is_cancelled', false)) {
             status = 'canceled';
         }
         const price = this.safeString(order, 'price');
@@ -1406,7 +1495,7 @@ class gemini extends gemini$1["default"] {
             type = 'market';
         }
         else {
-            type = order['type'];
+            type = this.safeString(order, 'type');
         }
         const fee = undefined;
         const marketId = this.safeString(order, 'symbol');
@@ -1414,7 +1503,7 @@ class gemini extends gemini$1["default"] {
         const id = this.safeString(order, 'order_id');
         const side = this.safeStringLower(order, 'side');
         const clientOrderId = this.safeString(order, 'client_order_id');
-        const optionsArray = this.safeValue(order, 'options', []);
+        const optionsArray = this.safeList(order, 'options', []);
         const option = this.safeString(optionsArray, 0);
         let timeInForce = 'GTC';
         let postOnly = false;
@@ -1440,7 +1529,7 @@ class gemini extends gemini$1["default"] {
             'status': status,
             'symbol': symbol,
             'type': type,
-            'timeInForce': timeInForce,
+            'timeInForce': timeInForce, // default set to GTC
             'postOnly': postOnly,
             'side': side,
             'price': price,
@@ -1465,7 +1554,9 @@ class gemini extends gemini$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'order_id': id,
         };
@@ -1507,7 +1598,9 @@ class gemini extends gemini$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostV1Orders(params);
         //
         //      [
@@ -1554,12 +1647,13 @@ class gemini extends gemini$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (type !== 'limit') {
             throw new errors.ExchangeError(this.id + ' createOrder() allows limit orders only');
         }
         let clientOrderId = this.safeString2(params, 'clientOrderId', 'client_order_id');
-        params = this.omit(params, ['clientOrderId', 'client_order_id']);
         if (clientOrderId === undefined) {
             clientOrderId = this.milliseconds().toString();
         }
@@ -1575,12 +1669,14 @@ class gemini extends gemini$1["default"] {
             'type': 'exchange limit', // gemini allows limit orders only
             // 'options': [], one of:  maker-or-cancel, immediate-or-cancel, fill-or-kill, auction-only, indication-of-interest
         };
-        type = this.safeString(params, 'type', type);
-        params = this.omit(params, 'type');
+        const typeValue = this.safeString(params, 'type', type);
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price', 'stopPrice']);
-        params = this.omit(params, ['triggerPrice', 'stop_price', 'stopPrice', 'type']);
-        if (type === 'stopLimit') {
-            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + type + ' orders');
+        // timeInForce and postOnly are consumed only by non-trigger orders
+        const omitKeys = ['clientOrderId', 'client_order_id', 'type', 'triggerPrice', 'stop_price', 'stopPrice'];
+        const optionKeys = (triggerPrice === undefined) ? ['timeInForce', 'postOnly'] : [];
+        const paramsOmitted = this.omit(params, this.arrayConcat(omitKeys, optionKeys));
+        if (typeValue === 'stopLimit') {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + typeValue + ' orders');
         }
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
@@ -1589,7 +1685,6 @@ class gemini extends gemini$1["default"] {
         else {
             // No options can be applied to stop-limit orders at this time.
             const timeInForce = this.safeString(params, 'timeInForce');
-            params = this.omit(params, 'timeInForce');
             if (timeInForce !== undefined) {
                 if ((timeInForce === 'IOC') || (timeInForce === 'immediate-or-cancel')) {
                     request['options'] = ['immediate-or-cancel'];
@@ -1602,8 +1697,7 @@ class gemini extends gemini$1["default"] {
                 }
             }
             const postOnly = this.safeBool(params, 'postOnly', false);
-            params = this.omit(params, 'postOnly');
-            if (postOnly) {
+            if (postOnly === true) {
                 request['options'] = ['maker-or-cancel'];
             }
             // allowing override for auction-only and indication-of-interest order options
@@ -1612,7 +1706,7 @@ class gemini extends gemini$1["default"] {
                 request['options'] = [options];
             }
         }
-        const response = await this.privatePostV1OrderNew(this.extend(request, params));
+        const response = await this.privatePostV1OrderNew(this.extend(request, paramsOmitted));
         //
         //      {
         //          "order_id":"106027397702",
@@ -1649,7 +1743,9 @@ class gemini extends gemini$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'order_id': id,
         };
@@ -1695,7 +1791,9 @@ class gemini extends gemini$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1722,16 +1820,19 @@ class gemini extends gemini$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const tagAndParams = this.handleWithdrawTagAndParams(tag, params);
+        const paramsWithdrawTag = tagAndParams[1];
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
         };
-        const response = await this.privatePostV1WithdrawCurrency(this.extend(request, params));
+        const response = await this.privatePostV1WithdrawCurrency(this.extend(request, paramsWithdrawTag));
         //
         //   for BTC
         //     {
@@ -1780,7 +1881,9 @@ class gemini extends gemini$1["default"] {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (limit !== undefined) {
             request['limit_transfers'] = limit;
@@ -1835,10 +1938,10 @@ class gemini extends gemini$1["default"] {
             'address': address,
             'addressTo': undefined,
             'addressFrom': undefined,
-            'tag': undefined,
+            'tag': undefined, // or is it defined?
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': type,
+            'type': type, // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeNumber(transaction, 'amount'),
             'currency': code,
             'status': this.parseTransactionStatus(statusRaw),
@@ -1884,12 +1987,12 @@ class gemini extends gemini$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
-        const groupedByNetwork = await this.fetchDepositAddressesByNetwork(code, params);
-        let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
-        const networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), 'currency');
-        return this.safeValue(networkGroup, code);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const indexedByNetwork = await this.fetchDepositAddressesByNetwork(code, params);
+        const networkCode = this.handleNetworkCodeAndParams(params)[0];
+        return this.safeValue(indexedByNetwork, networkCode);
     }
     /**
      * @method
@@ -1902,40 +2005,46 @@ class gemini extends gemini$1["default"] {
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
     async fetchDepositAddressesByNetwork(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
-        code = currency['code'];
-        let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        const codeValue = currency['code'];
+        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
         if (networkCode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddresses() requires a network parameter');
         }
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, this.safeString(currency, 'code'));
         const request = {
             'network': networkId,
         };
-        const response = await this.privatePostV1AddressesNetwork(this.extend(request, params));
-        const results = this.parseDepositAddresses(response, [code], false, { 'network': networkCode, 'currency': code });
-        return this.groupBy(results, 'network');
+        const response = await this.privatePostV1AddressesNetwork(this.extend(request, paramsNetworkCode));
+        const results = this.parseDepositAddresses(response, [codeValue], false, { 'network': networkCode, 'currency': codeValue });
+        // one address structure per network, like every other venue (the endpoint is scoped to a
+        // single network, so the last address the venue lists for it wins — same as before)
+        return this.indexBy(results, 'network');
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
+        let headersSigned = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials();
             const apiKey = this.apiKey;
             if (apiKey.indexOf('account') < 0) {
                 throw new errors.AuthenticationError(this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
-            const nonce = this.nonce().toString();
+            // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
+            const nonce = this.incrementingNonce().toString();
+            const finalUrl = url;
             const request = this.extend({
-                'request': url,
+                'request': finalUrl,
                 'nonce': nonce,
             }, query);
             let payload = this.json(request);
             payload = this.stringToBase64(payload);
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384);
-            headers = {
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha384);
+            headersSigned = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': this.apiKey,
                 'X-GEMINI-PAYLOAD': payload,
@@ -1943,15 +2052,21 @@ class gemini extends gemini$1["default"] {
             };
         }
         else {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
-        url = this.urls['api'][api] + url;
-        if ((method === 'POST') || (method === 'DELETE')) {
-            body = this.json(query);
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const fullUrl = apiUrl + url;
+        const headersResolved = (api === 'private') ? headersSigned : headers;
+        let bodyResolved = body;
+        if ((method === 'POST') || (method === 'DELETE')) {
+            bodyResolved = this.json(query);
+        }
+        return { 'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
@@ -1990,7 +2105,9 @@ class gemini extends gemini$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async createDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
@@ -2019,7 +2136,9 @@ class gemini extends gemini$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
         const request = {
@@ -2034,7 +2153,11 @@ class gemini extends gemini$1["default"] {
         //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        let candles = [];
+        if (Array.isArray(response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     /**
      * @method
@@ -2046,7 +2169,9 @@ class gemini extends gemini$1["default"] {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],

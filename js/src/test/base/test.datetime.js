@@ -6,10 +6,9 @@
 
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
-import { ROUND_DOWN, ROUND_UP } from '../../base/functions/number.js';
-function testDatetime() {
+function testIso8601() {
     const exchange = new ccxt.Exchange({
-        'id': 'regirock',
+        'id': 'sampleexchange',
     });
     assert(exchange.iso8601(514862627000) === '1986-04-26T01:23:47.000Z');
     assert(exchange.iso8601(514862627559) === '1986-04-26T01:23:47.559Z');
@@ -22,12 +21,71 @@ function testDatetime() {
     assert(exchange.iso8601('') === undefined);
     assert(exchange.iso8601('a') === undefined);
     assert(exchange.iso8601({}) === undefined);
-    // ----------------------------------------------------------------------------
+    // NB: every assert below must hold byte-for-byte in every language. Timestamps stay within the
+    // year 1970-9999 range, the only range where all the native date implementations agree.
+    // 1ms after epoch is asserted above
+    assert(exchange.iso8601(1000) === '1970-01-01T00:00:01.000Z');
+    assert(exchange.iso8601(1001) === '1970-01-01T00:00:01.001Z');
+    assert(exchange.iso8601(86399999) === '1970-01-01T23:59:59.999Z');
+    assert(exchange.iso8601(86400000) === '1970-01-02T00:00:00.000Z');
+    // millisecond zero-padding
+    assert(exchange.iso8601(1755432123005) === '2025-08-17T12:02:03.005Z');
+    assert(exchange.iso8601(1755432123050) === '2025-08-17T12:02:03.050Z');
+    assert(exchange.iso8601(1755432123099) === '2025-08-17T12:02:03.099Z');
+    assert(exchange.iso8601(1755432123500) === '2025-08-17T12:02:03.500Z');
+    assert(exchange.iso8601(1755432123999) === '2025-08-17T12:02:03.999Z');
+    // year rollovers, incl. out of a 366-day leap year
+    assert(exchange.iso8601(1704067199999) === '2023-12-31T23:59:59.999Z');
+    assert(exchange.iso8601(1704067200000) === '2024-01-01T00:00:00.000Z');
+    assert(exchange.iso8601(1735689599999) === '2024-12-31T23:59:59.999Z');
+    assert(exchange.iso8601(1735689600000) === '2025-01-01T00:00:00.000Z');
+    // month lengths and boundaries
+    assert(exchange.iso8601(1706702400000) === '2024-01-31T12:00:00.000Z');
+    assert(exchange.iso8601(1706788800000) === '2024-02-01T12:00:00.000Z');
+    assert(exchange.iso8601(1677585600000) === '2023-02-28T12:00:00.000Z');
+    assert(exchange.iso8601(1677672000000) === '2023-03-01T12:00:00.000Z');
+    assert(exchange.iso8601(1714521599999) === '2024-04-30T23:59:59.999Z');
+    assert(exchange.iso8601(1714521600000) === '2024-05-01T00:00:00.000Z');
+    // leap days: regular leap years, leap centuries and non-leap centuries
+    assert(exchange.iso8601(68169600000) === '1972-02-29T00:00:00.000Z');
+    assert(exchange.iso8601(1709164799999) === '2024-02-28T23:59:59.999Z');
+    assert(exchange.iso8601(1709164800000) === '2024-02-29T00:00:00.000Z');
+    assert(exchange.iso8601(1709251199999) === '2024-02-29T23:59:59.999Z');
+    assert(exchange.iso8601(1709251200000) === '2024-03-01T00:00:00.000Z');
+    assert(exchange.iso8601(951782400000) === '2000-02-29T00:00:00.000Z');
+    assert(exchange.iso8601(951868800000) === '2000-03-01T00:00:00.000Z');
+    assert(exchange.iso8601(4107499200000) === '2100-02-28T12:00:00.000Z');
+    assert(exchange.iso8601(4107585600000) === '2100-03-01T12:00:00.000Z');
+    // others
+    // zero is a valid timestamp
+    assert(exchange.iso8601(0) === '1970-01-01T00:00:00.000Z');
+    // plain-integer strings are accepted
+    assert(exchange.iso8601('1755432123456') === '2025-08-17T12:02:03.456Z');
+    // strings that are not a plain integer are rejected
+    assert(exchange.iso8601('123abc') === undefined);
+    // non-integer numbers are floored
+    assert(exchange.iso8601(514862627559.9) === '1986-04-26T01:23:47.559Z');
+    // last representable millisecond of year 9999
+    assert(exchange.iso8601(253402300799999) === '9999-12-31T23:59:59.999Z');
+    // one millisecond past the maximum supported range yields undefined
+    assert(exchange.iso8601(8640000000000001) === undefined);
+    // absurdly large / non-finite magnitudes are rejected too. NaN/Infinity
+    // literals don't survive transpilation, but 1e300 does and it exercises the
+    // same > 8.64e15 guard in every port (incl. PHP's is_finite branch)
+    assert(exchange.iso8601(1e300) === undefined);
+}
+function testParse8601() {
+    const exchange = new ccxt.Exchange({
+        'id': 'sampleexchange',
+    });
     assert(exchange.parse8601('1986-04-26T01:23:47.000Z') === 514862627000);
     assert(exchange.parse8601('1986-04-26T01:23:47.559Z') === 514862627559);
     assert(exchange.parse8601('1986-04-26T01:23:47.062Z') === 514862627062);
     assert(exchange.parse8601('1986-04-26T01:23:47.06Z') === 514862627060);
     assert(exchange.parse8601('1986-04-26T01:23:47.6Z') === 514862627600);
+    // a negative offset is a zone like any other
+    assert(exchange.parse8601('1986-04-26T01:23:47.559-04:00') === 514877027559);
+    assert(exchange.parse8601('1986-04-26T01:23:47.559+00:00') === 514862627559);
     assert(exchange.parse8601('1977-13-13T00:00:00.000Z') === undefined);
     assert(exchange.parse8601('1986-04-26T25:71:47.000Z') === undefined);
     assert(exchange.parse8601('3333') === undefined);
@@ -39,6 +97,11 @@ function testDatetime() {
     assert(exchange.parse8601({}) === undefined);
     assert(exchange.parse8601(33) === undefined);
     // ----------------------------------------------------------------------------
+}
+function testParseDate() {
+    const exchange = new ccxt.Exchange({
+        'id': 'sampleexchange',
+    });
     assert(exchange.parseDate('1986-04-26 00:00:00') === 514857600000);
     assert(exchange.parseDate('1986-04-26T01:23:47.000Z') === 514862627000);
     assert(exchange.parseDate('1986-13-13 00:00:00') === undefined);
@@ -48,39 +111,102 @@ function testDatetime() {
     // assert (exchange.parseDate ('Sun, 29 Dec 2024 01:01:10 GMT') === 1735434070000);
     // assert (exchange.parseDate ('Sun, 29 Dec 2024 02:11:10 GMT') === 1735438270000);
     // assert (exchange.parseDate ('Sun, 08 Dec 2024 02:03:04 GMT') === 1733623384000);
-    assert(exchange.roundTimeframe('5m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === exchange.parse8601('2019-08-12 13:20:00'));
-    assert(exchange.roundTimeframe('10m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === exchange.parse8601('2019-08-12 13:20:00'));
-    assert(exchange.roundTimeframe('30m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === exchange.parse8601('2019-08-12 13:00:00'));
-    assert(exchange.roundTimeframe('1d', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === exchange.parse8601('2019-08-12 00:00:00'));
-    assert(exchange.roundTimeframe('5m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) === exchange.parse8601('2019-08-12 13:25:00'));
-    assert(exchange.roundTimeframe('10m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) === exchange.parse8601('2019-08-12 13:30:00'));
-    assert(exchange.roundTimeframe('30m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) === exchange.parse8601('2019-08-12 13:30:00'));
-    assert(exchange.roundTimeframe('1h', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) === exchange.parse8601('2019-08-12 14:00:00'));
-    assert(exchange.roundTimeframe('1d', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) === exchange.parse8601('2019-08-13 00:00:00'));
-    // todo:
-    // $this->assertSame(null, Exchange::iso8601(null));
-    // $this->assertSame(null, Exchange::iso8601(false));
-    // $this->assertSame(null, Exchange::iso8601([]));
-    // $this->assertSame(null, Exchange::iso8601('abracadabra'));
-    // $this->assertSame(null, Exchange::iso8601('1.2'));
-    // $this->assertSame(null, Exchange::iso8601(-1));
-    // $this->assertSame(null, Exchange::iso8601('-1'));
-    // $this->assertSame('1970-01-01T00:00:00.000+00:00', Exchange::iso8601(0));
-    // $this->assertSame('1970-01-01T00:00:00.000+00:00', Exchange::iso8601('0'));
-    // $this->assertSame('1986-04-25T21:23:47.000+00:00', Exchange::iso8601(514848227000));
-    // $this->assertSame('1986-04-25T21:23:47.000+00:00', Exchange::iso8601('514848227000'));
-    // $this->assertSame(null, Exchange::parse_date(null));
-    // $this->assertSame(null, Exchange::parse_date(0));
-    // $this->assertSame(null, Exchange::parse_date('0'));
-    // $this->assertSame(null, Exchange::parse_date('+1 day'));
-    // $this->assertSame(null, Exchange::parse_date('1986-04-25T21:23:47+00:00 + 1 week'));
-    // $this->assertSame(null, Exchange::parse_date('1 february'));
-    // $this->assertSame(null, Exchange::parse_date('1986-04-26'));
-    // $this->assertSame(0, Exchange::parse_date('1970-01-01T00:00:00.000+00:00'));
-    // $this->assertSame(514848227000, Exchange::parse_date('1986-04-25T21:23:47+00:00'));
-    // $this->assertSame(514848227000, Exchange::parse_date('1986-04-26T01:23:47+04:00'));
-    // $this->assertSame(514848227000, Exchange::parse_date('25 Apr 1986 21:23:47 GMT'));
-    // $this->assertSame(514862627000, Exchange::parse_date('1986-04-26T01:23:47.000Z'));
-    // $this->assertSame(514862627123, Exchange::parse_date('1986-04-26T01:23:47.123Z'));
+}
+function testMicroseconds() {
+    const exchange = new ccxt.Exchange({
+        'id': 'sampleexchange',
+    });
+    const value = exchange.microseconds();
+    const valueString = value.toString();
+    assert(value > 0);
+    assert(valueString.length === 16);
+}
+function testMilliseconds() {
+    const exchange = new ccxt.Exchange({
+        'id': 'sampleexchange',
+    });
+    const value = exchange.milliseconds();
+    const valueString = value.toString();
+    assert(value > 0);
+    assert(valueString.length === 13);
+}
+function testSeconds() {
+    const exchange = new ccxt.Exchange({
+        'id': 'sampleexchange',
+    });
+    const value = exchange.seconds();
+    const valueString = value.toString();
+    assert(value > 0);
+    assert(valueString.length === 10);
+}
+function testConvertExpireDate() {
+    const exchange = new ccxt.Exchange({
+        'id': 'sampleexchange',
+    });
+    // callers write this into expiryDatetime, which types.ts documents with milliseconds
+    assert(exchange.convertExpireDate('260503') === '2026-05-03T00:00:00.000Z');
+    assert(exchange.convertExpireDate('240426') === '2024-04-26T00:00:00.000Z');
+    // both spellings of midnight parse to the same instant
+    assert(exchange.parse8601(exchange.convertExpireDate('260503')) === 1777766400000);
+    assert(exchange.parse8601('2026-05-03T00:00:00Z') === exchange.parse8601(exchange.convertExpireDate('260503')));
+    // the notation is now a fixed point of iso8601 (parse8601 (x)) - this is the
+    // invariant the change exists to establish, and it fails on the old spelling
+    assert(exchange.convertExpireDate('260503') === exchange.iso8601(exchange.parse8601(exchange.convertExpireDate('260503'))));
+    assert(exchange.convertExpireDate(undefined) === undefined);
+}
+function testYymmdd() {
+    const exchange = new ccxt.Exchange({
+        'id': 'sampleexchange',
+    });
+    const testMs = 1750123456789; // 17 June 2025
+    const value = exchange.yymmdd(testMs, '_');
+    assert(value === '25_06_17');
+    const value2 = exchange.yymmdd(exchange.milliseconds());
+    assert(value2.length === 6);
+    const intNum = exchange.parseToInt(value2);
+    assert(intNum > 260000 && intNum < 360000); // date between 2026 and 2036
+}
+function testYyyymmdd() {
+    const exchange = new ccxt.Exchange({
+        'id': 'sampleexchange',
+    });
+    const testMs = 1750123456789; // 17 June 2025
+    const value = exchange.yyyymmdd(testMs, '_');
+    assert(value === '2025_06_17');
+    const value2 = exchange.yyyymmdd(exchange.milliseconds());
+    assert(value2.length === 10);
+    const intNum = exchange.parseToInt((value2.replace('-', '')).replace('-', ''));
+    assert(intNum > 20260000 && intNum < 20360000); // date between 2026 and 2036
+}
+function testYmd() {
+    const exchange = new ccxt.Exchange({
+        'id': 'sampleexchange',
+    });
+    const testMs = 1750123456789; // 17 June 2025
+    const value = exchange.ymd(testMs, '_');
+    assert(value === '2025_06_17');
+}
+function testYmdhms() {
+    const exchange = new ccxt.Exchange({
+        'id': 'sampleexchange',
+    });
+    const testMs = 1750123456789; // 17 June 2025
+    const value = exchange.ymdhms(testMs, '_');
+    assert(value === '2025-06-17_01:24:16' || value === '2025-06-17_01:24:17'); // todo: php/py rounds up to 17
+}
+function testDatetime() {
+    testIso8601();
+    testParse8601();
+    testParseDate();
+    // @SKIP_START_GO
+    testYmd();
+    testYmdhms();
+    // @SKIP_END_GO
+    testMicroseconds();
+    testMilliseconds();
+    testSeconds();
+    testYymmdd();
+    testYyyymmdd();
+    testConvertExpireDate();
 }
 export default testDatetime;

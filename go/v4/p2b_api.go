@@ -7,74 +7,92 @@
 
 package ccxt
 
-func (this *P2bCore) PublicGetMarkets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarkets", args...)
+// PublicGetMarkets returns a channel that yields a JSON object.
+func (this *P2b) PublicGetMarkets(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "markets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PublicGetMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarket", args...)
+// PublicGetMarket returns a channel that yields a JSON object.
+func (this *P2b) PublicGetMarket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PublicGetTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTickers", args...)
+// PublicGetTickers returns a channel that yields a JSON object.
+func (this *P2b) PublicGetTickers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tickers", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTicker", args...)
+// PublicGetTicker returns a channel that yields a JSON object.
+func (this *P2b) PublicGetTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ticker", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PublicGetBook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetBook", args...)
+// PublicGetBook returns a channel that yields a JSON object.
+func (this *P2b) PublicGetBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "book", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PublicGetHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetHistory", args...)
+// PublicGetHistory returns a channel that yields a JSON object.
+func (this *P2b) PublicGetHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PublicGetDepthResult(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetDepthResult", args...)
+// PublicGetDepthResult returns a channel that yields a JSON object.
+func (this *P2b) PublicGetDepthResult(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "depth/result", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PublicGetMarketKline(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketKline", args...)
+// PublicGetMarketKline returns a channel that yields a JSON object.
+func (this *P2b) PublicGetMarketKline(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/kline", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PrivatePostAccountBalances(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountBalances", args...)
+// PrivatePostAccountBalances returns a channel that yields a JSON object.
+func (this *P2b) PrivatePostAccountBalances(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/balances", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PrivatePostAccountBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountBalance", args...)
+// PrivatePostAccountBalance returns a channel that yields a JSON object.
+func (this *P2b) PrivatePostAccountBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/balance", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PrivatePostOrderNew(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOrderNew", args...)
+// PrivatePostOrderNew returns a channel that yields a JSON object.
+func (this *P2b) PrivatePostOrderNew(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/new", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PrivatePostOrderCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOrderCancel", args...)
+// PrivatePostOrderCancel returns a channel that yields a JSON object.
+func (this *P2b) PrivatePostOrderCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PrivatePostOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOrders", args...)
+// PrivatePostOrders returns a channel that yields a JSON object.
+func (this *P2b) PrivatePostOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PrivatePostAccountMarketOrderHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountMarketOrderHistory", args...)
+// PrivatePostAccountMarketOrderHistory returns a channel that yields a JSON object.
+func (this *P2b) PrivatePostAccountMarketOrderHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/market_order_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PrivatePostAccountMarketDealHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountMarketDealHistory", args...)
+// PrivatePostAccountMarketDealHistory returns a channel that yields a JSON object.
+func (this *P2b) PrivatePostAccountMarketDealHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/market_deal_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PrivatePostAccountOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountOrder", args...)
+// PrivatePostAccountOrder returns a channel that yields a JSON object.
+func (this *P2b) PrivatePostAccountOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PrivatePostAccountOrderHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountOrderHistory", args...)
+// PrivatePostAccountOrderHistory returns a channel that yields a JSON object.
+func (this *P2b) PrivatePostAccountOrderHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/order_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *P2bCore) PrivatePostAccountExecutedHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountExecutedHistory", args...)
+// PrivatePostAccountExecutedHistory returns a channel that yields a JSON object.
+func (this *P2b) PrivatePostAccountExecutedHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/executed_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var gemini$1 = require('../gemini.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
-var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
@@ -27,7 +27,6 @@ class gemini extends gemini$1["default"] {
                 'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
             },
-            'hostname': 'api.gemini.com',
             'urls': {
                 'api': {
                     'ws': 'wss://api.gemini.com',
@@ -50,10 +49,15 @@ class gemini extends gemini$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'trades:' + market['symbol'];
         const marketId = market['id'];
+        if (marketId === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' watchTrades() marketId is required');
+        }
         const request = {
             'type': 'subscribe',
             'subscriptions': [
@@ -66,12 +70,17 @@ class gemini extends gemini$1["default"] {
             ],
         };
         const subscribeHash = 'l2:' + market['symbol'];
-        const url = this.urls['api']['ws'] + '/v2/marketdata';
-        const trades = await this.watch(url, messageHash, request, subscribeHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit(market['symbol'], limit);
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' watchTrades() has no websocket url');
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        const url = wsUrl + '/v2/marketdata';
+        const trades = await this.watch(url, messageHash, request, subscribeHash);
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit(market['symbol'], limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
@@ -86,12 +95,13 @@ class gemini extends gemini$1["default"] {
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         const trades = await this.helperForWatchMultipleConstruct('trades', symbols, params);
+        const first = this.safeList(trades, 0);
+        const tradeSymbol = this.safeString(first, 'symbol');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeList(trades, 0);
-            const tradeSymbol = this.safeString(first, 'symbol');
-            limit = trades.getLimit(tradeSymbol, limit);
+            limitResolved = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     parseWsTrade(trade, market = undefined) {
         //
@@ -168,7 +178,9 @@ class gemini extends gemini$1["default"] {
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             stored = new Cache.ArrayCache(tradesLimit);
-            this.trades[symbol] = stored;
+            if (symbol !== undefined) {
+                this.trades[symbol] = stored;
+            }
         }
         stored.append(trade);
         const messageHash = 'trades:' + symbol;
@@ -214,7 +226,7 @@ class gemini extends gemini$1["default"] {
         //
         const marketId = this.safeStringLower(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const trades = this.safeValue(message, 'trades');
+        const trades = this.safeList(message, 'trades');
         if (trades !== undefined) {
             const symbol = market['symbol'];
             const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -272,7 +284,9 @@ class gemini extends gemini$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
         const request = {
@@ -281,18 +295,23 @@ class gemini extends gemini$1["default"] {
                 {
                     'name': 'candles_' + timeframeId,
                     'symbols': [
-                        market['id'].toUpperCase(),
+                        this.safeStringUpper(market, 'id'),
                     ],
                 },
             ],
         };
         const messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId;
-        const url = this.urls['api']['ws'] + '/v2/marketdata';
-        const ohlcv = await this.watch(url, messageHash, request, messageHash);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' watchOHLCV() has no websocket url');
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        const url = wsUrl + '/v2/marketdata';
+        const ohlcv = await this.watch(url, messageHash, request, messageHash);
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit(symbol, limit);
+        }
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -327,17 +346,19 @@ class gemini extends gemini$1["default"] {
         const marketId = this.safeString(message, 'symbol', '').toLowerCase();
         const market = this.safeMarket(marketId);
         const symbol = this.safeSymbol(marketId, market);
-        const changes = this.safeValue(message, 'changes', []);
+        const changes = this.safeList(message, 'changes', []);
         const timeframe = this.findTimeframe(timeframeId);
-        const ohlcvsBySymbol = this.safeValue(this.ohlcvs, symbol);
+        const ohlcvsBySymbol = this.safeDict(this.ohlcvs, symbol);
         if (ohlcvsBySymbol === undefined) {
             this.ohlcvs[symbol] = {};
         }
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            if (symbol !== undefined && timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
         const changesLength = changes.length;
         // reverse order of array to store candles in ascending order
@@ -358,13 +379,18 @@ class gemini extends gemini$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'orderbook:' + market['symbol'];
         const marketId = market['id'];
+        if (marketId === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' watchOrderBook() marketId is required');
+        }
         const request = {
             'type': 'subscribe',
             'subscriptions': [
@@ -377,12 +403,17 @@ class gemini extends gemini$1["default"] {
             ],
         };
         const subscribeHash = 'l2:' + market['symbol'];
-        const url = this.urls['api']['ws'] + '/v2/marketdata';
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' watchOrderBook() has no websocket url');
+        }
+        const url = wsUrl + '/v2/marketdata';
         const orderbook = await this.watch(url, messageHash, request, subscribeHash);
         return orderbook.limit();
     }
     handleOrderBook(client, message) {
-        const changes = this.safeValue(message, 'changes', []);
+        const isInitial = ('auction_events' in message) && ('trades' in message) && ('changes' in message);
+        const changes = this.safeList(message, 'changes', []);
         const marketId = this.safeStringLower(message, 'symbol');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
@@ -391,12 +422,19 @@ class gemini extends gemini$1["default"] {
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook();
         }
+        else if (isInitial) {
+            // handle https://github.com/ccxt/ccxt/issues/29210
+            if (symbol in this.orderbooks) {
+                delete this.orderbooks[symbol];
+            }
+            this.orderbooks[symbol] = this.orderBook();
+        }
         const orderbook = this.orderbooks[symbol];
         for (let i = 0; i < changes.length; i++) {
             const delta = changes[i];
             const price = this.safeNumber(delta, 1);
             const size = this.safeNumber(delta, 2);
-            const side = (delta[0] === 'buy') ? 'bids' : 'asks';
+            const side = (this.safeString(delta, 0) === 'buy') ? 'bids' : 'asks';
             const bookside = orderbook[side];
             bookside.store(price, size);
             orderbook[side] = bookside;
@@ -413,7 +451,7 @@ class gemini extends gemini$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         const orderbook = await this.helperForWatchMultipleConstruct('orderbook', symbols, params);
@@ -428,8 +466,8 @@ class gemini extends gemini$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchBidsAsks(symbols = undefined, params = {}) {
-        return await this.helperForWatchMultipleConstruct('bidsasks', symbols, params);
+    watchBidsAsks(symbols = undefined, params = {}) {
+        return this.helperForWatchMultipleConstruct('bidsasks', symbols, params);
     }
     handleBidsAsksForMultidata(client, rawBidAskChanges, timestamp, nonce) {
         //
@@ -470,7 +508,7 @@ class gemini extends gemini$1["default"] {
         const messageHash = 'bidsasks:' + symbol;
         // last update always overwrites the previous state and is the latest state
         for (let i = 0; i < rawBidAskChanges.length; i++) {
-            const entry = rawBidAskChanges[i];
+            const entry = this.safeDict(rawBidAskChanges, i);
             const rawSide = this.safeString(entry, 'side');
             const price = this.safeNumber(entry, 'price');
             const sizeString = this.safeString(entry, 'remaining');
@@ -496,26 +534,32 @@ class gemini extends gemini$1["default"] {
         client.resolve(bidsAsksDict, messageHash);
     }
     async helperForWatchMultipleConstruct(itemHashName, symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbols === undefined) {
             throw new errors.NotSupported(this.id + ' watchMultiple requires at least one symbol');
         }
-        symbols = this.marketSymbols(symbols, undefined, false, true, true);
-        const firstMarket = this.market(symbols[0]);
-        if (!firstMarket['spot'] && !firstMarket['linear']) {
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
+        const firstMarket = this.market(symbolsNormalized[0]);
+        if ((firstMarket['spot'] !== true) && (firstMarket['linear'] !== true)) {
             throw new errors.NotSupported(this.id + ' watchMultiple supports only spot or linear-swap symbols');
         }
         const messageHashes = [];
         const marketIds = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const messageHash = itemHashName + ':' + symbol;
             messageHashes.push(messageHash);
             const market = this.market(symbol);
             marketIds.push(market['id']);
         }
         const queryStr = marketIds.join(',');
-        let url = this.urls['api']['ws'] + '/v1/multimarketdata?symbols=' + queryStr + '&heartbeat=true&';
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' helperForWatchMultipleConstruct() has no websocket url');
+        }
+        let url = wsUrl + '/v1/multimarketdata?symbols=' + queryStr + '&heartbeat=true&';
         if (itemHashName === 'orderbook') {
             url += 'trades=false&bids=true&offers=true';
         }
@@ -555,7 +599,7 @@ class gemini extends gemini$1["default"] {
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
         for (let i = 0; i < rawOrderBookChanges.length; i++) {
-            const entry = rawOrderBookChanges[i];
+            const entry = this.safeDict(rawOrderBookChanges, i);
             const price = this.safeNumber(entry, 'price');
             const size = this.safeNumber(entry, 'remaining');
             const rawSide = this.safeString(entry, 'side');
@@ -628,22 +672,30 @@ class gemini extends gemini$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const url = this.urls['api']['ws'] + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
-        await this.loadMarkets();
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' watchOrders() has no websocket url');
+        }
+        const url = wsUrl + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const authParams = {
             'url': url,
         };
         await this.authenticate(authParams);
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market(symbol);
-            symbol = market['symbol'];
+            market = this.market(symbol);
         }
+        const symbolResolved = (market !== undefined) ? this.safeString(market, 'symbol') : undefined;
         const messageHash = 'orders';
         const orders = await this.watch(url, messageHash, undefined, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     handleHeartbeat(client, message) {
         //
@@ -863,6 +915,9 @@ class gemini extends gemini$1["default"] {
             const ts = this.safeInteger(message, 'timestampms', this.milliseconds());
             const eventId = this.safeInteger(message, 'eventId');
             const events = this.safeList(message, 'events');
+            if (events === undefined) {
+                return;
+            }
             const orderBookItems = [];
             const bidaskItems = [];
             const collectedEventsOfTrades = [];
@@ -899,6 +954,9 @@ class gemini extends gemini$1["default"] {
     }
     async authenticate(params = {}) {
         const url = this.safeString(params, 'url');
+        if (url === undefined) {
+            return;
+        }
         if ((this.clients !== undefined) && (url in this.clients)) {
             return;
         }
@@ -910,10 +968,10 @@ class gemini extends gemini$1["default"] {
         const request = url.slice(startIndex, endIndex);
         const payload = {
             'request': request,
-            'nonce': this.nonce(),
+            'nonce': this.incrementingNonce(), // must be greater than the previously used nonce, shared with the REST counter
         };
         const b64 = this.stringToBase64(this.json(payload));
-        const signature = this.hmac(this.encode(b64), this.encode(this.secret), sha512.sha384, 'hex');
+        const signature = this.hmac(this.encode(b64), this.encode(this.secret), sha2_js.sha384, 'hex');
         const defaultOptions = {
             'ws': {
                 'options': {

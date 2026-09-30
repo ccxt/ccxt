@@ -31,12 +31,29 @@ class Future(asyncio.Future):
 
         callbacks = {}  # future -> callback
 
+        def _swallow(f):
+            # the loser futures of a settled race linger in client.futures and may be
+            # rejected later (unsubscribe / close) with no awaiter - retrieving the
+            # exception here marks it consumed so asyncio does not log a
+            # "Future exception was never retrieved" warning
+            if not f.cancelled():
+                f.exception()
+
         def detach_all():
             for f, cb in list(callbacks.items()):
                 try:
                     f.remove_done_callback(cb)
                 except Exception:
                     pass
+                # losers may already be done when a broadcast reject settles all
+                # raced futures at once, swallow those immediately, still-pending
+                # losers get the swallow for their eventual rejection, otherwise
+                # every broadcast reject leaves unretrieved exceptions that asyncio
+                # dumps at gc as "Future exception was never retrieved" walls
+                if f.done():
+                    _swallow(f)
+                else:
+                    f.add_done_callback(_swallow)
             callbacks.clear()
 
         def settle_from(f):

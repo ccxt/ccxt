@@ -1,11 +1,11 @@
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/foxbit.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
-import { DECIMAL_PLACES } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int } from './base/types.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict, Status, Endpoint, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
  * @augments Exchange
  */
 export default class foxbit extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'foxbit',
             'name': 'Foxbit',
@@ -40,7 +40,8 @@ export default class foxbit extends Exchange {
                 'createMarketBuyOrder': true,
                 'createMarketSellOrder': true,
                 'createOrder': true,
-                'fecthOrderBook': true,
+                'createOrders': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -54,7 +55,10 @@ export default class foxbit extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrdersByStatus': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -94,7 +98,7 @@ export default class foxbit extends Exchange {
                     'https://docs.foxbit.com.br',
                 ],
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     // https://docs.foxbit.com.br/rest/v3/#tag/API-Codes/Errors
@@ -139,42 +143,46 @@ export default class foxbit extends Exchange {
                 'v3': {
                     'public': {
                         'get': {
-                            'currencies': 5, // 6 requests per second
-                            'markets': 5, // 6 requests per second
-                            'markets/ticker/24hr': 60, // 1 request per 2 seconds
-                            'markets/{market}/orderbook': 6, // 10 requests per 2 seconds
-                            'markets/{market}/candlesticks': 12, // 5 requests per 2 seconds
-                            'markets/{market}/trades/history': 12, // 5 requests per 2 seconds
-                            'markets/{market}/ticker/24hr': 15, // 4 requests per 2 seconds
+                            'currencies': { 'cost': 5 } as Endpoint<Dict>, // 6 requests per second
+                            'markets': { 'cost': 5 } as Endpoint<Dict>, // 6 requests per second
+                            'markets/ticker/24hr': { 'cost': 60 } as Endpoint<Dict>, // 1 request per 2 seconds
+                            'markets/{market}/orderbook': { 'cost': 6 } as Endpoint<Dict>, // 10 requests per 2 seconds
+                            'markets/{market}/candlesticks': { 'cost': 12 } as Endpoint<List>, // 5 requests per 2 seconds
+                            'markets/{market}/trades/history': { 'cost': 12 } as Endpoint<Dict>, // 5 requests per 2 seconds
+                            'markets/{market}/ticker/24hr': { 'cost': 15 } as Endpoint<Dict>, // 4 requests per 2 seconds
+                            'markets/sparkline/{window}': { 'cost': 20 } as Endpoint<Dict>, // 3 requests per 2 seconds
+                            'travel_rule/operation_reasons': { 'cost': 30 } as Endpoint<Dict>, // 2 requests per 2 seconds
                         },
                     },
                     'private': {
                         'get': {
-                            'accounts': 2, // 15 requests per second
-                            'accounts/{symbol}/transactions': 60, // 1 requests per 2 seconds
-                            'orders': 2, // 30 requests per 2 seconds
-                            'orders/by-order-id/{id}': 2, // 30 requests per 2 seconds
-                            'trades': 6, // 5 orders per second
-                            'deposits/address': 10, // 3 requests per second
-                            'deposits': 10, // 3 requests per second
-                            'withdrawals': 10, // 3 requests per second
-                            'me/fees/trading': 60, // 1 requests per 2 seconds
+                            'accounts': { 'cost': 2 } as Endpoint<Dict>, // 15 requests per second
+                            'accounts/{symbol}/transactions': { 'cost': 60 } as Endpoint<Dict>, // 1 requests per 2 seconds
+                            'orders': { 'cost': 2 } as Endpoint<Dict>, // 30 requests per 2 seconds
+                            'orders/by-order-id/{id}': { 'cost': 2 } as Endpoint<Dict>, // 30 requests per 2 seconds
+                            'trades': { 'cost': 6 } as Endpoint<Dict>, // 5 orders per second
+                            'deposits/address': { 'cost': 10 } as Endpoint<Dict>, // 3 requests per second
+                            'deposits': { 'cost': 10 } as Endpoint<Dict>, // 3 requests per second
+                            'withdrawals': { 'cost': 10 } as Endpoint<Dict>, // 3 requests per second
+                            'me/fees/trading': { 'cost': 60 } as Endpoint<Dict>, // 1 requests per 2 seconds
+                            'prime_desk/executions/{quote_id}': { 'cost': 10 } as Endpoint<Dict>, // 6 requests per 2 seconds
                         },
                         'post': {
-                            'orders': 2, // 30 requests per 2 seconds
-                            'orders/batch': 7.5, // 8 requests per 2 seconds
-                            'orders/cancel-replace': 3, // 20 requests per 2 seconds
-                            'withdrawals': 10, // 3 requests per second
+                            'orders': { 'cost': 2 } as Endpoint<Dict>, // 30 requests per 2 seconds
+                            'orders/batch': { 'cost': 7.5 } as Endpoint<Dict>, // 8 requests per 2 seconds
+                            'orders/cancel-replace': { 'cost': 3 } as Endpoint<Dict>, // 20 requests per 2 seconds
+                            'withdrawals': { 'cost': 10 } as Endpoint<Dict>, // 3 requests per second
+                            'deposits/{deposit_sn}/travel_rule': { 'cost': 30 } as Endpoint<Dict>, // 2 requests per 2 seconds
                         },
                         'put': {
-                            'orders/cancel': 2, // 30 requests per 2 seconds
+                            'orders/cancel': { 'cost': 2 } as Endpoint<Dict>, // 30 requests per 2 seconds
                         },
                     },
                 },
                 'status': {
                     'public': {
                         'get': {
-                            'status': 30, // 1 request per second
+                            'status': { 'cost': 30 } as Endpoint<Dict>, // 1 request per second
                         },
                     },
                 },
@@ -327,7 +335,7 @@ export default class foxbit extends Exchange {
         });
     }
 
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.v3PublicGetCurrencies (params);
         // {
         //   "data": [
@@ -367,35 +375,36 @@ export default class foxbit extends Exchange {
         //   ]
         // }
         const data = this.safeList (response, 'data', []);
-        const result: Dict = {};
-        for (let i = 0; i < data.length; i++) {
-            const currency = data[i];
-            const precision = this.safeInteger (currency, 'precision');
-            const currencyId = this.safeString (currency, 'symbol');
-            const name = this.safeString (currency, 'name');
-            const code = this.safeCurrencyCode (currencyId);
-            const depositInfo = this.safeDict (currency, 'deposit_info');
-            const withdrawInfo = this.safeDict (currency, 'withdraw_info');
-            const networks = this.safeList (currency, 'networks', []);
-            const type = this.safeStringLower (currency, 'type');
-            const parsedNetworks: Dict = {};
-            for (let j = 0; j < networks.length; j++) {
-                const network = networks[j];
-                const networkId = this.safeString (network, 'code');
-                const networkCode = this.networkIdToCode (networkId, code);
-                const networkWithdrawInfo = this.safeDict (network, 'withdraw_info');
-                const networkDepositInfo = this.safeDict (network, 'deposit_info');
-                const isWithdrawEnabled = this.safeString (networkWithdrawInfo, 'status') === 'ENABLED';
-                const isDepositEnabled = this.safeString (networkDepositInfo, 'status') === 'ENABLED';
+        return this.parseCurrencies (data);
+    }
+
+    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
+        const currencyId = this.safeString (rawCurrency, 'symbol');
+        const name = this.safeString (rawCurrency, 'name');
+        const code = this.safeCurrencyCode (currencyId);
+        const depositInfo = this.safeDict (rawCurrency, 'deposit_info');
+        const withdrawInfo = this.safeDict (rawCurrency, 'withdraw_info');
+        const networks: Dict[] = this.safeList (rawCurrency, 'networks', []);
+        const type = this.safeStringLower (rawCurrency, 'type');
+        const parsedNetworks: Dict = {};
+        for (let j = 0; j < networks.length; j++) {
+            const network = this.safeDict (networks, j);
+            const networkId = this.safeString (network, 'code');
+            const networkCode = this.networkIdToCode (networkId, code);
+            const networkWithdrawInfo = this.safeDict (network, 'withdraw_info');
+            const networkDepositInfo = this.safeDict (network, 'deposit_info');
+            const isWithdrawEnabled = this.safeString (networkWithdrawInfo, 'status') === 'ENABLED';
+            const isDepositEnabled = this.safeString (networkDepositInfo, 'status') === 'ENABLED';
+            if (networkCode !== undefined) {
                 parsedNetworks[networkCode] = {
-                    'info': currency,
+                    'info': rawCurrency,
                     'id': networkId,
                     'network': networkCode,
                     'name': this.safeString (network, 'name'),
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'active': true,
-                    'precision': precision,
+                    'precision': undefined,
                     'fee': this.safeNumber (networkWithdrawInfo, 'fee'),
                     'limits': {
                         'amount': {
@@ -413,37 +422,34 @@ export default class foxbit extends Exchange {
                     },
                 };
             }
-            if (this.safeDict (result, code) === undefined) {
-                result[code] = this.safeCurrencyStructure ({
-                    'id': currencyId,
-                    'code': code,
-                    'info': currency,
-                    'name': name,
-                    'active': true,
-                    'type': type,
-                    'deposit': this.safeBool (depositInfo, 'enabled', false),
-                    'withdraw': this.safeBool (withdrawInfo, 'enabled', false),
-                    'fee': this.safeNumber (withdrawInfo, 'fee'),
-                    'precision': precision,
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber (depositInfo, 'min_amount'),
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': this.safeNumber (withdrawInfo, 'min_amount'),
-                            'max': undefined,
-                        },
-                    },
-                    'networks': parsedNetworks,
-                });
-            }
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': currencyId,
+            'code': code,
+            'info': rawCurrency,
+            'name': name,
+            'active': true,
+            'type': type,
+            'deposit': this.safeBool (depositInfo, 'enabled', false),
+            'withdraw': this.safeBool (withdrawInfo, 'enabled', false),
+            'fee': this.safeNumber (withdrawInfo, 'fee'),
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision'))),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': this.safeNumber (depositInfo, 'min_amount'),
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber (withdrawInfo, 'min_amount'),
+                    'max': undefined,
+                },
+            },
+            'networks': parsedNetworks,
+        });
     }
 
     /**
@@ -454,7 +460,7 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.v3PublicGetMarkets (params);
         // {
         //     "data": [
@@ -563,8 +569,10 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -615,9 +623,11 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.v3PublicGetMarketsTicker24hr (params);
         //  {
         //    "data": [
@@ -640,8 +650,8 @@ export default class foxbit extends Exchange {
         //      }
         //    ]
         //  }
-        const data = this.safeList (response, 'data', []);
-        return this.parseTickers (data, symbols);
+        const data: Dict[] = this.safeList (response, 'data', []);
+        return this.parseTickers (data, symbolsNormalized);
     }
 
     /**
@@ -652,8 +662,10 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
-        await this.loadMarkets ();
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v3PrivateGetMeFeesTrading (params);
         // [
         //     {
@@ -662,8 +674,8 @@ export default class foxbit extends Exchange {
         //         "taker": "0.005"
         //     }
         // ]
-        const data = this.safeList (response, 'data', []);
-        const result = {};
+        const data: Dict[] = this.safeList (response, 'data', []);
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString (entry, 'market_symbol');
@@ -682,10 +694,12 @@ export default class foxbit extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, the maximum is 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const defaultLimit = 20;
         const request: Dict = {
@@ -732,8 +746,10 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -754,7 +770,7 @@ export default class foxbit extends Exchange {
         //     }
         // ]
         const response = await this.v3PublicGetMarketsMarketTradesHistory (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -770,8 +786,10 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
@@ -803,7 +821,7 @@ export default class foxbit extends Exchange {
         //         "15466.34096391" // taker buy quote volume
         //     ]
         // ]
-        return this.parseOHLCVs (response, market, interval, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, interval, since, limit);
     }
 
     /**
@@ -814,8 +832,10 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v3PrivateGetAccounts (params);
         // {
         //     "data": [
@@ -827,12 +847,12 @@ export default class foxbit extends Exchange {
         //         }
         //     ]
         // }
-        const accounts = this.safeList (response, 'data', []);
+        const accounts: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {
             'info': response,
         };
         for (let i = 0; i < accounts.length; i++) {
-            const account = accounts[i];
+            const account = this.safeDict (accounts, i);
             const currencyId = this.safeString (account, 'currency_symbol');
             const currencyCode = this.safeCurrencyCode (currencyId);
             const total = this.safeString (account, 'balance');
@@ -843,7 +863,9 @@ export default class foxbit extends Exchange {
                 'used': used,
                 'total': total,
             };
-            result[currencyCode] = balanceObj;
+            if (currencyCode !== undefined) {
+                result[currencyCode] = balanceObj;
+            }
         }
         return this.safeBalance (result);
     }
@@ -859,7 +881,7 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersByStatus ('ACTIVE', symbol, since, limit, params);
     }
 
@@ -874,17 +896,19 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersByStatus ('FILLED', symbol, since, limit, params);
     }
 
-    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersByStatus ('CANCELED', symbol, since, limit, params);
     }
 
-    async fetchOrdersByStatus (status: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        let market = undefined;
+    async fetchOrdersByStatus (status: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         const request: Dict = {
             'state': status,
         };
@@ -923,24 +947,27 @@ export default class foxbit extends Exchange {
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        type = type.toUpperCase ();
-        if (type !== 'LIMIT' && type !== 'MARKET' && type !== 'STOP_MARKET' && type !== 'STOP_LIMIT' && type !== 'INSTANT') {
-            throw new InvalidOrder ('Invalid order type: ' + type + '. Must be one of: limit, market, stop_market, stop_limit, instant.');
+        const typeValue: OrderType = type.toUpperCase ();
+        if (typeValue !== 'LIMIT' && typeValue !== 'MARKET' && typeValue !== 'STOP_MARKET' && typeValue !== 'STOP_LIMIT' && typeValue !== 'INSTANT') {
+            throw new InvalidOrder ('Invalid order type: ' + typeValue + '. Must be one of: limit, market, stop_market, stop_limit, instant.');
         }
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const postOnly = this.safeBool (params, 'postOnly', false);
         const triggerPrice = this.safeNumber (params, 'triggerPrice');
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const request: Dict = {
             'market_symbol': market['id'],
             'side': side.toUpperCase (),
-            'type': type,
+            'type': typeValue,
         };
-        if (type === 'STOP_MARKET' || type === 'STOP_LIMIT') {
+        if (typeValue === 'STOP_MARKET' || typeValue === 'STOP_LIMIT') {
             if (triggerPrice === undefined) {
-                throw new InvalidOrder ('Invalid order type: ' + type + '. Must have triggerPrice.');
+                throw new InvalidOrder ('Invalid order type: ' + typeValue + '. Must have triggerPrice.');
             }
         }
         if (timeInForce !== undefined) {
@@ -950,26 +977,26 @@ export default class foxbit extends Exchange {
                 request['time_in_force'] = timeInForce;
             }
         }
-        if (postOnly) {
+        if (postOnly === true) {
             request['post_only'] = true;
         }
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
         }
-        if (type === 'INSTANT') {
+        if (typeValue === 'INSTANT') {
             request['amount'] = this.priceToPrecision (symbol, amount);
         } else {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
-        if (type === 'LIMIT' || type === 'STOP_LIMIT') {
+        if (typeValue === 'LIMIT' || typeValue === 'STOP_LIMIT') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'timeInForce', 'postOnly', 'triggerPrice', 'clientOrderId' ]);
-        const response = await this.v3PrivatePostOrders (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, [ 'timeInForce', 'postOnly', 'triggerPrice', 'clientOrderId' ]);
+        const response = await this.v3PrivatePostOrders (this.extend (request, paramsOmitted));
         // {
         //     "id": 1234567890,
         //     "sn": "OKMAKSDHRVVREK",
@@ -987,9 +1014,11 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrders (orders: OrderRequest[], params = {}) {
-        await this.loadMarkets ();
-        const ordersRequests = [];
+    override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const ordersRequests: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const order = this.safeDict (orders, i);
             const symbol = this.safeString (order, 'symbol');
@@ -1020,7 +1049,7 @@ export default class foxbit extends Exchange {
                 }
                 delete orderParams['timeInForce'];
             }
-            if (postOnly) {
+            if (postOnly === true) {
                 request['post_only'] = true;
                 delete orderParams['postOnly'];
             }
@@ -1069,8 +1098,10 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'id': this.parseNumber (id),
             'type': 'ID',
@@ -1094,12 +1125,14 @@ export default class foxbit extends Exchange {
      * @name foxbit#cancelAllOrders
      * @description Cancel all open orders or all open orders for a specific market.
      * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
-     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'type': 'ALL',
         };
@@ -1132,8 +1165,10 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'id': id,
         };
@@ -1157,7 +1192,7 @@ export default class foxbit extends Exchange {
         //     "remark": "A remarkable note for the order.",
         //     "funds_received": "290.0"
         // }
-        return this.parseOrder (response, undefined);
+        return this.parseOrder (response);
     }
 
     /**
@@ -1173,9 +1208,11 @@ export default class foxbit extends Exchange {
      * @param {string} [params.side] Enum: BUY, SELL
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        let market = undefined;
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1214,7 +1251,7 @@ export default class foxbit extends Exchange {
         //         }
         //     ]
         // }
-        const list = this.safeList (response, 'data', []);
+        const list: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (list, market, since, limit);
     }
 
@@ -1229,13 +1266,15 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market_symbol': market['id'],
         };
         if (since !== undefined) {
@@ -1262,7 +1301,7 @@ export default class foxbit extends Exchange {
         //         "created_at": "2021-02-15T22:06:32.999Z"
         //     ]
         // }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1276,8 +1315,10 @@ export default class foxbit extends Exchange {
      * @param {string} [params.networkCode] the blockchain network to create a deposit address on
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'currency_symbol': currency['id'],
@@ -1311,10 +1352,12 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1344,7 +1387,7 @@ export default class foxbit extends Exchange {
         //         }
         //     ]
         // }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1359,10 +1402,12 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1407,7 +1452,7 @@ export default class foxbit extends Exchange {
         //         }
         //     ]
         // }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1423,7 +1468,7 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         const withdrawals = await this.fetchWithdrawals (code, since, limit, params);
         const deposits = await this.fetchDeposits (code, since, limit, params);
         const allTransactions = this.arrayConcat (withdrawals, deposits);
@@ -1439,7 +1484,7 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    async fetchStatus (params = {}) {
+    override async fetchStatus (params: Dict = {}): Promise<Status> {
         const response = await this.statusPublicGetStatus (params);
         // {
         //     "data": {
@@ -1464,7 +1509,7 @@ export default class foxbit extends Exchange {
         };
         return {
             'status': this.safeString (statusMap, statusRaw, statusRaw),
-            'updated': this.safeString (attributes, 'updatedAt'),
+            'updated': this.parse8601 (this.safeString (attributes, 'updatedAt')),
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -1485,16 +1530,17 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        this.checkRequiredArgument ('editOrder', symbol, 'symbol');
+        const typeValue: OrderType = type.toUpperCase ();
+        if (typeValue !== 'LIMIT' && typeValue !== 'MARKET' && typeValue !== 'STOP_MARKET' && typeValue !== 'INSTANT') {
+            throw new InvalidOrder ('Invalid order type: ' + typeValue + '. Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.');
         }
-        type = type.toUpperCase ();
-        if (type !== 'LIMIT' && type !== 'MARKET' && type !== 'STOP_MARKET' && type !== 'INSTANT') {
-            throw new InvalidOrder ('Invalid order type: ' + type + '. Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.');
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
         }
-        await this.loadMarkets ();
         const market = this.market (symbol);
+        this.checkRequiredArgument ('editOrder', side, 'side');
         const request: Dict = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
@@ -1502,22 +1548,22 @@ export default class foxbit extends Exchange {
                 'id': this.parseNumber (id),
             },
             'create': {
-                'type': type,
+                'type': typeValue,
                 'side': side.toUpperCase (),
                 'market_symbol': market['id'],
             },
         };
-        if (type === 'LIMIT' || type === 'MARKET') {
+        if (typeValue === 'LIMIT' || typeValue === 'MARKET') {
             request['create']['quantity'] = this.amountToPrecision (symbol, amount);
-            if (type === 'LIMIT') {
+            if (typeValue === 'LIMIT') {
                 request['create']['price'] = this.priceToPrecision (symbol, price);
             }
         }
-        if (type === 'STOP_MARKET') {
+        if (typeValue === 'STOP_MARKET') {
             request['create']['stop_price'] = this.priceToPrecision (symbol, price);
             request['create']['quantity'] = this.amountToPrecision (symbol, amount);
         }
-        if (type === 'INSTANT') {
+        if (typeValue === 'INSTANT') {
             request['create']['amount'] = this.priceToPrecision (symbol, amount);
         }
         const response = await this.v3PrivatePostOrdersCancelReplace (this.extend (request, params));
@@ -1530,7 +1576,8 @@ export default class foxbit extends Exchange {
         //         "client_order_id": "451637946501"
         //     }
         // }
-        return this.parseOrder (response['create'], market);
+        const created = this.safeDict (response, 'create', {});
+        return this.parseOrder (created, market);
     }
 
     /**
@@ -1545,24 +1592,25 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        await this.loadMarkets ();
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'currency_symbol': currency['id'],
             'amount': this.numberToString (amount),
             'destination_address': address,
         };
-        if (tag !== undefined) {
-            request['destination_tag'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['destination_tag'] = tagWithdrawTag;
         }
-        let networkCode = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode !== undefined) {
-            request['network_code'] = this.networkCodeToId (networkCode);
+            request['network_code'] = this.networkCodeToId (networkCode, code);
         }
-        const response = await this.v3PrivatePostWithdrawals (this.extend (request, params));
+        const response = await this.v3PrivatePostWithdrawals (this.extend (request, paramsNetworkCode));
         // {
         //     "amount": "2",
         //     "currency_symbol": "xrp",
@@ -1584,8 +1632,10 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-structure}
      */
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLedger() requires a code argument');
@@ -1602,11 +1652,11 @@ export default class foxbit extends Exchange {
         const currency = this.currency (code);
         request['symbol'] = currency['id'];
         const response = await this.v3PrivateGetAccountsSymbolTransactions (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseLedger (data, currency, since, limit);
     }
 
-    parseMarket (market: Dict): Market {
+    override parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol');
         const baseAssets = this.safeDict (market, 'base');
         const baseId = this.safeString (baseAssets, 'symbol');
@@ -1614,6 +1664,9 @@ export default class foxbit extends Exchange {
         const quoteId = this.safeString (quoteAssets, 'symbol');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         const fees = this.safeDict (market, 'default_fees');
         return this.safeMarketStructure ({
@@ -1646,9 +1699,8 @@ export default class foxbit extends Exchange {
             'tierBased': false,
             'feeSide': 'get',
             'precision': {
-                'price': this.safeInteger (quoteAssets, 'precision'),
-                'amount': this.safeInteger (baseAssets, 'precision'),
-                'cost': this.safeInteger (quoteAssets, 'precision'),
+                'price': this.safeNumber (market, 'price_increment'),
+                'amount': this.safeNumber (market, 'quantity_increment'),
             },
             'limits': {
                 'amount': {
@@ -1675,7 +1727,7 @@ export default class foxbit extends Exchange {
     parseTradingFee (entry: Dict, market: Market = undefined): TradingFeeInterface {
         return {
             'info': entry,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'maker': this.safeNumber (entry, 'maker'),
             'taker': this.safeNumber (entry, 'taker'),
             'percentage': true,
@@ -1683,14 +1735,14 @@ export default class foxbit extends Exchange {
         };
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 'market_symbol');
         const symbol = this.safeSymbol (marketId, market, undefined, 'spot');
-        const rolling_24h = ticker['rolling_24h'];
+        const rolling_24h = this.safeDict (ticker, 'rolling_24h');
         const best = this.safeDict (ticker, 'best');
         const bestAsk = this.safeDict (best, 'ask');
         const bestBid = this.safeDict (best, 'bid');
-        const lastTrade = ticker['last_trade'];
+        const lastTrade = this.safeDict (ticker, 'last_trade');
         const lastPrice = this.safeString (lastTrade, 'price');
         return this.safeTicker ({
             'symbol': symbol,
@@ -1716,7 +1768,7 @@ export default class foxbit extends Exchange {
         }, market);
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -1727,7 +1779,7 @@ export default class foxbit extends Exchange {
         ];
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         const timestamp = this.parseDate (this.safeString (trade, 'created_at'));
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'volume', this.safeString (trade, 'quantity'));
@@ -1744,7 +1796,7 @@ export default class foxbit extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'order': undefined,
             'type': undefined,
             'side': side,
@@ -1768,33 +1820,34 @@ export default class foxbit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         let symbol = this.safeString (order, 'market_symbol');
-        if (market === undefined && symbol !== undefined) {
-            market = this.market (symbol);
+        let marketResolved: Market = market;
+        if ((market === undefined) && (symbol !== undefined)) {
+            marketResolved = this.market (symbol);
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
+        if (marketResolved !== undefined) {
+            symbol = this.safeString (marketResolved, 'symbol');
         }
         const timestamp = this.parseDate (this.safeString (order, 'created_at'));
         const price = this.safeString (order, 'price');
         const filled = this.safeString (order, 'quantity_executed');
         const remaining = this.safeString (order, 'quantity');
         // TODO: validate logic of amount here, should this be calculated?
-        let amount = undefined;
+        let amount: Str = undefined;
         if (remaining !== undefined && filled !== undefined) {
             amount = Precise.stringAdd (remaining, filled);
         }
         let cost = this.safeString (order, 'funds_received');
-        if (!cost) {
+        if ((cost === undefined) || (cost === '')) {
             const priceAverage = this.safeString (order, 'price_avg');
             const priceToCalculate = this.safeString (order, 'price', priceAverage);
             cost = Precise.stringMul (priceToCalculate, amount);
         }
         const side = this.safeStringLower (order, 'side');
-        let feeCurrency = this.safeStringUpper (market, 'quoteId');
+        let feeCurrency = this.safeStringUpper (marketResolved, 'quoteId');
         if (side === 'buy') {
-            feeCurrency = this.safeStringUpper (market, 'baseId');
+            feeCurrency = this.safeStringUpper (marketResolved, 'baseId');
         }
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
@@ -1804,7 +1857,7 @@ export default class foxbit extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': this.parseOrderStatus (this.safeString (order, 'state')),
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'type': this.safeString (order, 'type'),
             'timeInForce': this.safeString (order, 'time_in_force'),
             'postOnly': this.safeBool (order, 'post_only'),
@@ -1827,7 +1880,7 @@ export default class foxbit extends Exchange {
         });
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         const network = this.safeDict (depositAddress, 'network');
         const networkId = this.safeString (network, 'code');
         const currencyCode = this.safeCurrencyCode (undefined, currency);
@@ -1862,7 +1915,7 @@ export default class foxbit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined): Transaction {
+    override parseTransaction (transaction: any, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined): Transaction {
         const cryptoDetails = this.safeDict (transaction, 'details_crypto');
         const address = this.safeString2 (cryptoDetails, 'receiving_address', 'destination_address');
         const sn = this.safeString (transaction, 'sn');
@@ -1913,7 +1966,7 @@ export default class foxbit extends Exchange {
         };
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: Str): Str {
         const types: Dict = {
             'DEPOSITING': 'transaction',
             'WITHDRAWING': 'transaction',
@@ -1921,10 +1974,10 @@ export default class foxbit extends Exchange {
             'INTERNAL_TRANSFERING': 'transfer',
             'OTHERS': 'transaction',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
+    override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         // {
         //     "uuid": "f8e9f2d6-3c1e-4f2d-8f8e-9f2d6c1e4f2d",
         //     "amount": "0.0001",
@@ -1951,9 +2004,21 @@ export default class foxbit extends Exchange {
             'cost': this.safeNumber (item, 'fee'),
             'currency': currencySymbol,
         };
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
+        }
         if (amount < 0) {
             direction = 'out';
+            if (amount === undefined) {
+                throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
+            }
             realAmount = amount * -1;
+        }
+        if (balance === undefined) {
+            throw new ExchangeError (this.id + ' parseLedgerEntry() missing balance');
+        }
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
         }
         return {
             'id': id,
@@ -1974,7 +2039,7 @@ export default class foxbit extends Exchange {
         };
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    override sign (path: string, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const version = api[0];
         let urlPath = api[1];
         let fullPath = '/rest/' + version + '/' + this.implodeParams (path, params);
@@ -1982,21 +2047,25 @@ export default class foxbit extends Exchange {
             fullPath = '/status';
             urlPath = 'status';
         }
-        let url = this.urls['api'][urlPath] + fullPath;
-        params = this.omit (params, this.extractParams (path));
+        const apiUrl = this.safeString (this.urls['api'], urlPath);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + fullPath;
+        const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         const timestamp = this.milliseconds ();
         let query = '';
         let signatureQuery = '';
         if (method === 'GET') {
-            const paramKeys = Object.keys (params);
+            const paramKeys = Object.keys (paramsOmitted);
             const paramKeysLength = paramKeys.length;
             if (paramKeysLength > 0) {
-                query = this.urlencode (params);
+                query = this.urlencode (paramsOmitted);
                 url += '?' + query;
             }
             for (let i = 0; i < paramKeys.length; i++) {
                 const key = paramKeys[i];
-                const value = this.safeString (params, key);
+                const value = this.safeString (paramsOmitted, key);
                 if (value !== undefined) {
                     signatureQuery += key + '=' + value;
                 }
@@ -2005,28 +2074,31 @@ export default class foxbit extends Exchange {
                 }
             }
         }
+        let requestBody = body;
         if (method === 'POST' || method === 'PUT') {
-            body = this.json (params);
+            requestBody = this.json (paramsOmitted);
         }
         let bodyToSignature = '';
-        if (body !== undefined) {
-            bodyToSignature = body;
+        if (requestBody !== undefined) {
+            bodyToSignature = requestBody;
         }
-        headers = {
+        const headersValue: NullableDict = {
             'Content-Type': 'application/json',
+            'X-FB-CLIENT': 'ccxt',
+            'X-FB-CLIENT-VERSION': this.getCcxtVersion (),
         };
         if (urlPath === 'private') {
             this.checkRequiredCredentials ();
             const preHash = this.numberToString (timestamp) + method + fullPath + signatureQuery + bodyToSignature;
             const signature = this.hmac (this.encode (preHash), this.encode (this.secret), sha256, 'hex');
-            headers['X-FB-ACCESS-KEY'] = this.apiKey;
-            headers['X-FB-ACCESS-TIMESTAMP'] = this.numberToString (timestamp);
-            headers['X-FB-ACCESS-SIGNATURE'] = signature;
+            headersValue['X-FB-ACCESS-KEY'] = this.apiKey;
+            headersValue['X-FB-ACCESS-TIMESTAMP'] = this.numberToString (timestamp);
+            headersValue['X-FB-ACCESS-SIGNATURE'] = signature;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }
@@ -2035,7 +2107,7 @@ export default class foxbit extends Exchange {
         const details = this.safeList (error, 'details');
         const message = this.safeString (error, 'message');
         let detailsString = '';
-        if (details) {
+        if (details !== undefined) {
             for (let i = 0; i < details.length; i++) {
                 detailsString = detailsString + details[i] + ' ';
             }

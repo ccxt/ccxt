@@ -12,7 +12,6 @@ sys.path.append(root + '/python')
 # ----------------------------------------------------------------------------
 
 
-# AUTO-TRANSPILE #
 print('CCXT Version:', ccxt.version)
 
 

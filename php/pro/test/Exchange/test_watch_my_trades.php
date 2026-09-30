@@ -18,9 +18,9 @@ function test_watch_my_trades($exchange, $skipped_properties, $symbol) {
         $ends = $now + 15000;
         while ($now < $ends) {
             $success = true;
-            $response = null;
+            $response = [];
             try {
-                $response = Async\await($exchange->watch_my_trades($symbol));
+                $response = \React\Async\await($exchange->watch_my_trades($symbol));
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;
@@ -33,7 +33,7 @@ function test_watch_my_trades($exchange, $skipped_properties, $symbol) {
                 assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
                 $now = $exchange->milliseconds();
                 for ($i = 0; $i < count($response); $i++) {
-                    test_trade($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);
+                    test_trade($exchange, $skipped_properties, $method, $response[$i], $symbol, $now, false);
                 }
                 assert_timestamp_order($exchange, $method, $symbol, $response);
             }

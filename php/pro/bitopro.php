@@ -7,11 +7,12 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class bitopro extends \ccxt\async\bitopro {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -50,235 +51,268 @@ class bitopro extends \ccxt\async\bitopro {
         ));
     }
 
-    public function watch_public($path, $messageHash, $marketId) {
-        return Async\async(function () use ($path, $messageHash, $marketId) {
-            $url = $this->urls['ws']['public'] . '/' . $path . '/' . $marketId;
-            return Async\await($this->watch($url, $messageHash, null, $messageHash));
-        }) ();
+    public function watch_public(string $path, string $messageHash, ?string $marketId) {
+        return Async\async(self::do_watch_public(...))($path, $messageHash, $marketId);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/order_book_stream.md
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
-             */
-            if ($limit !== null) {
-                if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 50) && ($limit !== 100) && ($limit !== 500) && ($limit !== 1000)) {
-                    throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10, 20, 50, 100, 500 or 1000');
-                }
+    private function do_watch_public(string $path, string $messageHash, ?string $marketId) {
+        $wsUrl = $this->safe_string($this->urls['ws'], 'public');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchPublic() has no public websocket url');
+        }
+        $url = $wsUrl . '/' . $path . '/' . $marketId;
+        return Async\await($this->watch($url, $messageHash, null, $messageHash));
+    }
+
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/order_book_stream.md
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($limit !== null) {
+            if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 50) && ($limit !== 100) && ($limit !== 500) && ($limit !== 1000)) {
+                throw new ExchangeError($this->id . ' watchOrderBook limit argument must be null, 5, 10, 20, 50, 100, 500 or 1000');
             }
+        }
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'ORDER_BOOK' . ':' . $symbol;
-            $endPart = null;
-            if ($limit === null) {
-                $endPart = $market['id'];
-            } else {
-                $endPart = $market['id'] . ':' . $this->number_to_string($limit);
-            }
-            $orderbook = Async\await($this->watch_public('order-books', $messageHash, $endPart));
-            return $orderbook->limit ();
-        }) ();
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $messageHash = 'ORDER_BOOK' . ':' . $symbolValue;
+        $endPart = null;
+        if ($limit === null) {
+            $endPart = $market['id'];
+        } else {
+            $endPart = $market['id'] . ':' . $this->number_to_string($limit);
+        }
+        $orderbook = Async\await($this->watch_public('order-books', $messageHash, $endPart));
+        return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
-        //         "event" => "ORDER_BOOK",
-        //         "timestamp" => 1650121915308,
-        //         "datetime" => "2022-04-16T15:11:55.308Z",
-        //         "pair" => "BTC_TWD",
-        //         "limit" => 5,
-        //         "scale" => 0,
-        //         "bids" => array(
-        //             array( price => "1188178", amount => '0.0425', count => 1, total => "0.0425" ),
-        //         ),
-        //         "asks" => array(
-        //             array(
-        //                 "price" => "1190740",
-        //                 "amount" => "0.40943964",
-        //                 "count" => 1,
-        //                 "total" => "0.40943964"
-        //             ),
-        //         )
+        //         "event": "ORDER_BOOK",
+        //         "timestamp": 1650121915308,
+        //         "datetime": "2022-04-16T15:11:55.308Z",
+        //         "pair": "BTC_TWD",
+        //         "limit": 5,
+        //         "scale": 0,
+        //         "bids": [
+        //             { price: "1188178", amount: '0.0425', count: 1, total: "0.0425" },
+        //         ],
+        //         "asks": [
+        //             {
+        //                 "price": "1190740",
+        //                 "amount": "0.40943964",
+        //                 "count": 1,
+        //                 "total": "0.40943964"
+        //             },
+        //         ]
         //     }
         //
         $marketId = $this->safe_string($message, 'pair');
         $market = $this->safe_market($marketId, null, '_');
         $symbol = $market['symbol'];
         $event = $this->safe_string($message, 'event');
-        $messageHash = $event . ':' . $symbol;
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
             $orderbook = $this->order_book(array());
         }
         $timestamp = $this->safe_integer($message, 'timestamp');
         $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
-        $orderbook->reset ($snapshot);
-        $client->resolve ($orderbook, $messageHash);
+        $orderbook->reset($snapshot);
+        if ($event !== null) {
+            $messageHash = $event . ':' . $symbol;
+            $client->resolve($orderbook, $messageHash);
+        }
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a particular $symbol
-             *
-             * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/trade_stream.md
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         *
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/trade_stream.md
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'TRADE' . ':' . $symbol;
-            $trades = Async\await($this->watch_public('trades', $messageHash, $market['id']));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $messageHash = 'TRADE' . ':' . $symbolValue;
+        $trades = Async\await($this->watch_public('trades', $messageHash, $market['id']));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
-    public function handle_trade(Client $client, $message) {
+    public function handle_trade(Client $client, array $message) {
         //
         //     {
-        //         "event" => "TRADE",
-        //         "timestamp" => 1650116346665,
-        //         "datetime" => "2022-04-16T13:39:06.665Z",
-        //         "pair" => "BTC_TWD",
-        //         "data" => array(
-        //             array(
-        //                 "event" => '',
-        //                 "datetime" => '',
-        //                 "pair" => '',
-        //                 "timestamp" => 1650116227,
-        //                 "price" => "1189429",
-        //                 "amount" => "0.0153127",
-        //                 "isBuyer" => true
-        //             ),
-        //         )
+        //         "event": "TRADE",
+        //         "timestamp": 1650116346665,
+        //         "datetime": "2022-04-16T13:39:06.665Z",
+        //         "pair": "BTC_TWD",
+        //         "data": [
+        //             {
+        //                 "event": '',
+        //                 "datetime": '',
+        //                 "pair": '',
+        //                 "timestamp": 1650116227,
+        //                 "price": "1189429",
+        //                 "amount": "0.0153127",
+        //                 "isBuyer": true
+        //             },
+        //         ]
         //     }
         //
         $marketId = $this->safe_string($message, 'pair');
         $market = $this->safe_market($marketId, null, '_');
         $symbol = $market['symbol'];
         $event = $this->safe_string($message, 'event');
-        $messageHash = $event . ':' . $symbol;
-        $rawData = $this->safe_value($message, 'data', array());
+        $rawData = $this->safe_list($message, 'data', array());
         $trades = $this->parse_trades($rawData, $market);
         $tradesCache = $this->safe_value($this->trades, $symbol);
         if ($tradesCache === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $tradesCache = new ArrayCache ($limit);
+            $tradesCache = new ArrayCache($limit);
         }
         for ($i = 0; $i < count($trades); $i++) {
-            $tradesCache->append ($trades[$i]);
+            $tradesCache->append($trades[$i]);
         }
         $this->trades[$symbol] = $tradesCache;
-        $client->resolve ($tradesCache, $messageHash);
+        if ($event !== null) {
+            $messageHash = $event . ':' . $symbol;
+            $client->resolve($tradesCache, $messageHash);
+        }
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made by the user
-             *
-             * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/matches_stream.md
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            $this->check_required_credentials();
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made by the user
+         *
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/matches_stream.md
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        $this->check_required_credentials();
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $messageHash = 'USER_TRADE';
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $messageHash = $messageHash . ':' . $market['symbol'];
-            }
-            $url = $this->urls['ws']['private'] . '/' . 'user-trades';
-            $this->authenticate($url);
-            $trades = Async\await($this->watch($url, $messageHash, null, $messageHash));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        }
+        $messageHash = 'USER_TRADE';
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $messageHash = $messageHash . ':' . $market['symbol'];
+        }
+        $wsUrl = $this->safe_string($this->urls['ws'], 'private');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchMyTrades() has no private websocket url');
+        }
+        $url = $wsUrl . '/' . 'user-trades';
+        $this->authenticate($url);
+        $trades = Async\await($this->watch($url, $messageHash, null, $messageHash));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
-    public function handle_my_trade(Client $client, $message) {
+    public function handle_my_trade(Client $client, array $message) {
         //
         //     {
-        //         "event" => "USER_TRADE",
-        //         "timestamp" => 1694667358782,
-        //         "datetime" => "2023-09-14T12:55:58.782Z",
-        //         "data" => {
-        //             "base" => "usdt",
-        //             "quote" => "twd",
-        //             "side" => "ask",
-        //             "price" => "32.039",
-        //             "volume" => "1",
-        //             "fee" => "6407800",
-        //             "feeCurrency" => "twd",
-        //             "transactionTimestamp" => 1694667358,
-        //             "eventTimestamp" => 1694667358,
-        //             "orderID" => 390733918,
-        //             "orderType" => "LIMIT",
-        //             "matchID" => "bd07673a-94b1-419e-b5ee-d7b723261a5d",
-        //             "isMarket" => false,
-        //             "isMaker" => false
+        //         "event": "USER_TRADE",
+        //         "timestamp": 1694667358782,
+        //         "datetime": "2023-09-14T12:55:58.782Z",
+        //         "data": {
+        //             "base": "usdt",
+        //             "quote": "twd",
+        //             "side": "ask",
+        //             "price": "32.039",
+        //             "volume": "1",
+        //             "fee": "6407800",
+        //             "feeCurrency": "twd",
+        //             "transactionTimestamp": 1694667358,
+        //             "eventTimestamp": 1694667358,
+        //             "orderID": 390733918,
+        //             "orderType": "LIMIT",
+        //             "matchID": "bd07673a-94b1-419e-b5ee-d7b723261a5d",
+        //             "isMarket": false,
+        //             "isMaker": false
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $baseId = $this->safe_string($data, 'base');
         $quoteId = $this->safe_string($data, 'quote');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return;
+        }
         $symbol = $this->symbol($base . '/' . $quote);
         $messageHash = $this->safe_string($message, 'event');
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $this->myTrades = new ArrayCacheBySymbolById ($limit);
+            $this->myTrades = new ArrayCacheBySymbolById($limit);
         }
         $trades = $this->myTrades;
         $parsed = $this->parse_ws_trade($data);
-        $trades->append ($parsed);
-        $client->resolve ($trades, $messageHash);
-        $client->resolve ($trades, $messageHash . ':' . $symbol);
+        $trades->append($parsed);
+        $client->resolve($trades, $messageHash);
+        if ($messageHash !== null) {
+            $client->resolve($trades, $messageHash . ':' . $symbol);
+        }
     }
 
     public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
-        //         "base" => "usdt",
-        //         "quote" => "twd",
-        //         "side" => "ask",
-        //         "price" => "32.039",
-        //         "volume" => "1",
-        //         "fee" => "6407800",
-        //         "feeCurrency" => "twd",
-        //         "transactionTimestamp" => 1694667358,
-        //         "eventTimestamp" => 1694667358,
-        //         "orderID" => 390733918,
-        //         "orderType" => "LIMIT",
-        //         "matchID" => "bd07673a-94b1-419e-b5ee-d7b723261a5d",
-        //         "isMarket" => false,
-        //         "isMaker" => false
+        //         "base": "usdt",
+        //         "quote": "twd",
+        //         "side": "ask",
+        //         "price": "32.039",
+        //         "volume": "1",
+        //         "fee": "6407800",
+        //         "feeCurrency": "twd",
+        //         "transactionTimestamp": 1694667358,
+        //         "eventTimestamp": 1694667358,
+        //         "orderID": 390733918,
+        //         "orderType": "LIMIT",
+        //         "matchID": "bd07673a-94b1-419e-b5ee-d7b723261a5d",
+        //         "isMarket": false,
+        //         "isMaker": false
         //     }
         //
         $id = $this->safe_string($trade, 'matchID');
@@ -288,8 +322,11 @@ class bitopro extends \ccxt\async\bitopro {
         $quoteId = $this->safe_string($trade, 'quote');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $this->symbol($base . '/' . $quote);
-        $market = $this->safe_market($symbol, $market);
+        $symbol = null;
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $this->symbol($base . '/' . $quote);
+        }
+        $marketResolved = $this->safe_market($symbol, $market);
         $price = $this->safe_string($trade, 'price');
         $type = $this->safe_string_lower($trade, 'orderType');
         $side = $this->safe_string($trade, 'side');
@@ -311,10 +348,10 @@ class bitopro extends \ccxt\async\bitopro {
                 'rate' => null,
             );
         }
-        $isMaker = $this->safe_value($trade, 'isMaker');
+        $isMaker = $this->safe_bool($trade, 'isMaker');
         $takerOrMaker = null;
         if ($isMaker !== null) {
-            if ($isMaker) {
+            if ($isMaker === true) {
                 $takerOrMaker = 'maker';
             } else {
                 $takerOrMaker = 'taker';
@@ -334,64 +371,73 @@ class bitopro extends \ccxt\async\bitopro {
             'amount' => $amount,
             'cost' => null,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/ticker_stream.md
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/ticker_stream.md
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'TICKER' . ':' . $symbol;
-            return Async\await($this->watch_public('tickers', $messageHash, $market['id']));
-        }) ();
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $messageHash = 'TICKER' . ':' . $symbolValue;
+        return Async\await($this->watch_public('tickers', $messageHash, $market['id']));
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
-        //         "event" => "TICKER",
-        //         "timestamp" => 1650119165710,
-        //         "datetime" => "2022-04-16T14:26:05.710Z",
-        //         "pair" => "BTC_TWD",
-        //         "lastPrice" => "1189110",
-        //         "lastPriceUSD" => "40919.1328",
-        //         "lastPriceTWD" => "1189110",
-        //         "isBuyer" => true,
-        //         "priceChange24hr" => "1.23",
-        //         "volume24hr" => "7.2090",
-        //         "volume24hrUSD" => "294985.5375",
-        //         "volume24hrTWD" => "8572279",
-        //         "high24hr" => "1193656",
-        //         "low24hr" => "1179321"
+        //         "event": "TICKER",
+        //         "timestamp": 1650119165710,
+        //         "datetime": "2022-04-16T14:26:05.710Z",
+        //         "pair": "BTC_TWD",
+        //         "lastPrice": "1189110",
+        //         "lastPriceUSD": "40919.1328",
+        //         "lastPriceTWD": "1189110",
+        //         "isBuyer": true,
+        //         "priceChange24hr": "1.23",
+        //         "volume24hr": "7.2090",
+        //         "volume24hrUSD": "294985.5375",
+        //         "volume24hrTWD": "8572279",
+        //         "high24hr": "1193656",
+        //         "low24hr": "1179321"
         //     }
         //
-        $marketId = $this->safe_string($message, 'pair');
-        // $market-ids are lowercase in REST API and uppercase in WS API
-        $market = $this->safe_market(strtolower($marketId), null, '_');
+        $marketId = $this->safe_string_lower($message, 'pair');
+        if ($marketId === null) {
+            return; // some TICKER frames arrive without a pair - nothing to resolve them against
+        }
+        // market-ids are lowercase in REST API and uppercase in WS API
+        $market = $this->safe_market($marketId, null, '_');
         $symbol = $market['symbol'];
         $event = $this->safe_string($message, 'event');
-        $messageHash = $event . ':' . $symbol;
         $result = $this->parse_ticker($message, $market);
-        $result['symbol'] = $this->safe_string($market, 'symbol'); // $symbol returned from REST's parseTicker is distorted for WS, so re-set it from $market object
+        $result['symbol'] = $this->safe_string($market, 'symbol'); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         $timestamp = $this->safe_integer($message, 'timestamp');
         $result['timestamp'] = $timestamp;
-        $result['datetime'] = $this->iso8601($timestamp); // we shouldn't set "datetime" string provided by server, values are obviously wrong offset from UTC
+        $result['datetime'] = $this->iso8601($timestamp); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         $this->tickers[$symbol] = $result;
-        $client->resolve ($result, $messageHash);
+        if ($event !== null) {
+            $messageHash = $event . ':' . $symbol;
+            $client->resolve($result, $messageHash);
+        }
     }
 
-    public function authenticate($url) {
-        if (($this->clients !== null) && (is_array($this->clients) && array_key_exists($url, $this->clients))) {
+    public function authenticate(string $url) {
+        if (($this->clients !== null) && (is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
             return;
         }
         $this->check_required_credentials();
@@ -409,7 +455,7 @@ class bitopro extends \ccxt\async\bitopro {
                 ),
             ),
         );
-        // $this->options = $this->extend($defaultOptions, $this->options);
+        // this.options = this.extend (defaultOptions, this.options);
         $this->extend_exchange_options($defaultOptions);
         $originalHeaders = $this->options['ws']['options']['headers'];
         $headers = array(
@@ -424,44 +470,52 @@ class bitopro extends \ccxt\async\bitopro {
         $this->options['ws']['options']['headers'] = $originalHeaders;
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * watch balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/user_balance_stream.md
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            $this->check_required_credentials();
-            Async\await($this->load_markets());
-            $messageHash = 'ACCOUNT_BALANCE';
-            $url = $this->urls['ws']['private'] . '/' . 'account-balance';
-            $this->authenticate($url);
-            return Async\await($this->watch($url, $messageHash, null, $messageHash));
-        }) ();
+    public function watch_balance($params = array()): PromiseInterface {
+        return Async\async(self::do_watch_balance(...))($params);
     }
 
-    public function handle_balance(Client $client, $message) {
+    private function do_watch_balance($params = array()) {
+        /**
+         * watch balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/user_balance_stream.md
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        $this->check_required_credentials();
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $messageHash = 'ACCOUNT_BALANCE';
+        $wsUrl = $this->safe_string($this->urls['ws'], 'private');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchBalance() has no private websocket url');
+        }
+        $url = $wsUrl . '/' . 'account-balance';
+        $this->authenticate($url);
+        return Async\await($this->watch($url, $messageHash, null, $messageHash));
+    }
+
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
-        //         "event" => "ACCOUNT_BALANCE",
-        //         "timestamp" => 1650450505715,
-        //         "datetime" => "2022-04-20T10:28:25.715Z",
-        //         "data" => {
-        //           "ADA" => array(
-        //             "currency" => "ADA",
-        //             "amount" => "0",
-        //             "available" => "0",
-        //             "stake" => "0",
-        //             "tradable" => true
-        //           ),
+        //         "event": "ACCOUNT_BALANCE",
+        //         "timestamp": 1650450505715,
+        //         "datetime": "2022-04-20T10:28:25.715Z",
+        //         "data": {
+        //           "ADA": {
+        //             "currency": "ADA",
+        //             "amount": "0",
+        //             "available": "0",
+        //             "stake": "0",
+        //             "tradable": true
+        //           },
         //         }
         //     }
         //
         $event = $this->safe_string($message, 'event');
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data', array());
         $timestamp = $this->safe_integer($message, 'timestamp');
         $datetime = $this->safe_string($message, 'datetime');
         $currencies = is_array($data) ? array_keys($data) : array();
@@ -472,19 +526,21 @@ class bitopro extends \ccxt\async\bitopro {
         );
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $this->safe_string($currencies, $i);
-            $balance = $this->safe_value($data, $currency);
+            $balance = $this->safe_dict($data, $currency, array());
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'available');
             $account['total'] = $this->safe_string($balance, 'amount');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         $this->balance = $this->safe_balance($result);
-        $client->resolve ($this->balance, $event);
+        $client->resolve($this->balance, $event);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, array $message) {
         $methods = array(
             'TRADE' => array($this, 'handle_trade'),
             'TICKER' => array($this, 'handle_ticker'),

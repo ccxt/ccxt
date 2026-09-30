@@ -1,8 +1,5 @@
-- [Coinone Markets](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -16,5 +13,5 @@ var_dump($markets);
 echo "\n" . $exchange->name . " supports " . count($markets) . " pairs\n";
 
 ?>
- 
+
 ```

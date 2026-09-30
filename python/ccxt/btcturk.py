@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.btcturk import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Any, Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
-from typing import List
+from ccxt.base.types import Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -19,7 +18,7 @@ from ccxt.base.precise import Precise
 
 class btcturk(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(btcturk, self).describe(), {
             'id': 'btcturk',
             'name': 'BTCTurk',
@@ -129,7 +128,7 @@ class btcturk(Exchange, ImplicitAPI):
                 '1y': '1 y',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/10e0a238-9f60-4b06-9dda-edfc7602f1d6',
+                'logo': 'https://github.com/user-attachments/assets/710711ff-1278-4e7a-9b03-b5503dd85b59',
                 'api': {
                     'public': 'https://api.btcturk.com/api/v2',
                     'private': 'https://api.btcturk.com/api/v1',
@@ -141,34 +140,40 @@ class btcturk(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'orderbook': 1,
-                        'ticker': 0.1,
-                        'trades': 1,   # ?last=COUNT(max 50)
-                        'ohlc': 1,
-                        'server/exchangeinfo': 1,
+                        'orderbook': {'cost': 1},
+                        'ticker': {'cost': 0.1},
+                        'ticker/currency': {'cost': 0.1},
+                        'trades': {'cost': 1},   # ?last=COUNT (max 50)
+                        'ohlc': {'cost': 1},
+                        'server/exchangeinfo': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'users/balances': 1,
-                        'openOrders': 1,
-                        'allOrders': 1,
-                        'users/transactions/trade': 1,
+                        'users/balances': {'cost': 1},
+                        'openOrders': {'cost': 1},
+                        'allOrders': {'cost': 1},
+                        'order/{orderId}': {'cost': 1},
+                        'users/transactions/trade': {'cost': 1},
+                        'users/transactions/crypto': {'cost': 1},
+                        'users/transactions/fiat': {'cost': 1},
+                        'crypto-deposit-declarations': {'cost': 1},
                     },
                     'post': {
-                        'users/transactions/crypto': 1,
-                        'users/transactions/fiat': 1,
-                        'order': 1,
-                        'cancelOrder': 1,
+                        'users/transactions/crypto': {'cost': 1},
+                        'users/transactions/fiat': {'cost': 1},
+                        'order': {'cost': 1},
+                        'cancelOrder': {'cost': 1},
+                        'crypto-deposit-declarations/confirm': {'cost': 1},
                     },
                     'delete': {
-                        'order': 1,
+                        'order': {'cost': 1},
                     },
                 },
                 'graph': {
                     'get': {
-                        'ohlcs': 1,
-                        'klines/history': 1,
+                        'ohlcs': {'cost': 1},
+                        'klines/history': {'cost': 1},
                     },
                 },
             },
@@ -252,7 +257,7 @@ class btcturk(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for btcturk
 
@@ -277,7 +282,7 @@ class btcturk(Exchange, ImplicitAPI):
         #                    "denominator": "TRY",
         #                    "numeratorScale": "8",
         #                    "denominatorScale": "2",
-        #                    "hasFraction": False,
+        #                    "hasFraction": false,
         #                    "filters": [
         #                        {
         #                            "filterType": "PRICE_FILTER",
@@ -296,9 +301,9 @@ class btcturk(Exchange, ImplicitAPI):
         #                        "STOP_LIMIT"
         #                    ],
         #                    "displayFormat": "#,###",
-        #                    "commissionFromNumerator": False,
+        #                    "commissionFromNumerator": false,
         #                    "order": "1000",
-        #                    "priceRounding": False
+        #                    "priceRounding": false
         #                },
         #                ...
         #            },
@@ -309,12 +314,14 @@ class btcturk(Exchange, ImplicitAPI):
         markets = self.safe_list(data, 'symbols', [])
         return self.parse_markets(markets)
 
-    def parse_market(self, entry) -> Market:
+    def parse_market(self, entry: dict) -> Market:
         id = self.safe_string(entry, 'name')
         baseId = self.safe_string(entry, 'numerator')
         quoteId = self.safe_string(entry, 'denominator')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         filters = self.safe_list(entry, 'filters', [])
         minPrice = None
         maxPrice = None
@@ -322,7 +329,7 @@ class btcturk(Exchange, ImplicitAPI):
         maxAmount = None
         minCost = None
         for j in range(0, len(filters)):
-            filter = filters[j]
+            filter = self.safe_dict(filters, j)
             filterType = self.safe_string(filter, 'filterType')
             if filterType == 'PRICE_FILTER':
                 minPrice = self.safe_number(filter, 'minPrice')
@@ -331,7 +338,7 @@ class btcturk(Exchange, ImplicitAPI):
                 maxAmount = self.safe_number(filter, 'maxAmount')
                 minCost = self.safe_number(filter, 'minExchangeValue')
         status = self.safe_string(entry, 'status')
-        return {
+        return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -379,27 +386,28 @@ class btcturk(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': entry,
-        }
+        })
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         data = self.safe_list(response, 'data', [])
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
         }
         for i in range(0, len(data)):
-            entry = data[i]
+            entry = self.safe_dict(data, i)
             currencyId = self.safe_string(entry, 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['total'] = self.safe_string(entry, 'balance')
             account['free'] = self.safe_string(entry, 'free')
             account['used'] = self.safe_string(entry, 'locked')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -408,7 +416,8 @@ class btcturk(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetUsersBalances(params)
         #
         #     {
@@ -428,7 +437,7 @@ class btcturk(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -437,11 +446,12 @@ class btcturk(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pairSymbol': market['id'],
         }
         response = self.publicGetOrderbook(self.extend(request, params))
@@ -482,10 +492,20 @@ class btcturk(Exchange, ImplicitAPI):
         #   }
         #
         marketId = self.safe_string(ticker, 'pair')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_string(ticker, 'last')
+        open = self.safe_string(ticker, 'open')
+        change = self.safe_string(ticker, 'daily')
+        percentage = self.safe_string(ticker, 'dailyPercent')
+        average = self.safe_string(ticker, 'average')
+        if (open is not None) and (last is not None) and not Precise.string_eq(open, '0'):
+            # The reported daily fields can disagree with last - open.
+            # Let safeTicker derive the unified change, percentage and average from these prices.
+            change = None
+            percentage = None
+            average = None
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -497,19 +517,19 @@ class btcturk(Exchange, ImplicitAPI):
             'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_string(ticker, 'open'),
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_string(ticker, 'daily'),
-            'percentage': self.safe_string(ticker, 'dailyPercent'),
-            'average': self.safe_string(ticker, 'average'),
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -519,12 +539,13 @@ class btcturk(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.publicGetTicker(params)
         tickers = self.safe_list(response, 'data')
         return self.parse_tickers(tickers, symbols)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -534,9 +555,11 @@ class btcturk(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         tickers = self.fetch_tickers([symbol], params)
-        return self.safe_value(tickers, symbol)
+        ticker = self.safe_dict(tickers, symbol)
+        return ticker
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -599,7 +622,7 @@ class btcturk(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -611,10 +634,11 @@ class btcturk(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        # maxCount = 50
-        request: dict = {
+        # let maxCount = 50;
+        request = {
             'pairSymbol': market['id'],
         }
         if limit is not None:
@@ -638,9 +662,12 @@ class btcturk(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data')
-        return self.parse_trades(data, market, since, limit)
+        dataList = []
+        if data is not None:
+            dataList = data
+        return self.parse_trades(dataList, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #    {
         #        "timestamp": 1661990400,
@@ -660,7 +687,7 @@ class btcturk(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1h', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1h', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -672,26 +699,28 @@ class btcturk(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
-            'resolution': self.safe_value(self.timeframes, timeframe, timeframe),  # allows the user to pass custom timeframes if needed
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),  # allows the user to pass custom timeframes if needed
         }
         until = self.safe_integer(params, 'until', self.milliseconds())
         request['to'] = self.parse_to_int((until / 1000))
         if since is not None:
             request['from'] = self.parse_to_int(since / 1000)
-        elif limit is None:  # since will also be None
-            limit = 100  # default value
-        if limit is not None:
-            limit = min(limit, 11000)  # max 11000 candles diapason can be covered
+        limitDefaulted = limit
+        if (since is None) and (limit is None):
+            limitDefaulted = 100  # default value
+        limitResolved = min(limitDefaulted, 11000) if (limitDefaulted is not None) else None  # max 11000 candles diapason can be covered
+        if limitResolved is not None:
             if timeframe == '1y':  # difficult with leap years
-                raise BadRequest(self.id + ' fetchOHLCV() does not accept a limit parameter when timeframe == "1y"')
+                raise BadRequest(self.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"')
             seconds = self.parse_timeframe(timeframe)
-            limitSeconds = seconds * (limit - 1)
+            limitSeconds = seconds * (limitResolved - 1)
             if since is not None:
                 to = self.parse_to_int(since / 1000) + limitSeconds
                 request['to'] = min(request['to'], to)
@@ -733,9 +762,9 @@ class btcturk(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limitResolved)
 
-    def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since: Int = None, limit: Int = None, tail: Bool = False):
+    def parse_ohlcvs(self, ohlcvs: object, market: object = None, timeframe='1m', since: Int = None, limit: Int = None, tail: Bool = False):
         results = []
         timestamp = self.safe_list(ohlcvs, 't', [])
         high = self.safe_list(ohlcvs, 'h', [])
@@ -744,7 +773,7 @@ class btcturk(Exchange, ImplicitAPI):
         close = self.safe_list(ohlcvs, 'c', [])
         volume = self.safe_list(ohlcvs, 'v', [])
         for i in range(0, len(timestamp)):
-            ohlcv: dict = {
+            ohlcv = {
                 'timestamp': self.safe_integer(timestamp, i),
                 'high': self.safe_number(high, i),
                 'open': self.safe_number(open, i),
@@ -756,7 +785,7 @@ class btcturk(Exchange, ImplicitAPI):
         sorted = self.sort_by(results, 0)
         return self.filter_by_since_limit(sorted, since, limit, 0, tail)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -770,9 +799,10 @@ class btcturk(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'orderType': side,
             'orderMethod': type,
             'pairSymbol': market['id'],
@@ -785,27 +815,27 @@ class btcturk(Exchange, ImplicitAPI):
         elif not ('newClientOrderId' in params):
             request['newClientOrderId'] = self.uuid()
         response = self.privatePostOrder(self.extend(request, params))
-        data = self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
         https://docs.btcturk.com/private-endpoints/cancel-order
 
         :param str id: order id
-        :param str symbol: not used by btcturk cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'id': id,
         }
         response = self.privateDeleteOrder(self.extend(request, params))
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "message": "SUCCESS",
         #        "code": 0
         #    }
@@ -814,7 +844,7 @@ class btcturk(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -826,8 +856,9 @@ class btcturk(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -838,7 +869,7 @@ class btcturk(Exchange, ImplicitAPI):
         asks = self.safe_list(data, 'asks', [])
         return self.parse_orders(self.array_concat(bids, asks), market, since, limit)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -850,9 +881,10 @@ class btcturk(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pairSymbol': market['id'],
         }
         if limit is not None:
@@ -885,7 +917,7 @@ class btcturk(Exchange, ImplicitAPI):
         return self.parse_orders(data, market, since, limit)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'Untouched': 'open',
             'Partial': 'open',
             'Canceled': 'canceled',
@@ -959,7 +991,7 @@ class btcturk(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -971,7 +1003,8 @@ class btcturk(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -992,43 +1025,57 @@ class btcturk(Exchange, ImplicitAPI):
         #           "tax": "0"
         #         }
         #       ],
-        #       "success": True,
+        #       "success": true,
         #       "message": "SUCCESS",
         #       "code": "0"
         #     }
         #
         data = self.safe_list(response, 'data')
-        return self.parse_trades(data, market, since, limit)
+        dataList = []
+        if data is not None:
+            dataList = data
+        return self.parse_trades(dataList, market, since, limit)
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         if self.id == 'btctrader':
             raise ExchangeError(self.id + ' is an abstract base API for BTCExchange, BTCTurk')
-        url = self.urls['api'][api] + '/' + path
-        if (method == 'GET') or (method == 'DELETE'):
-            if params:
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + path
+        isQueryMethod = (method == 'GET') or (method == 'DELETE')
+        if isQueryMethod:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
+        requestBody = None
+        if isQueryMethod:
+            requestBody = body
         else:
-            body = self.json(params)
+            requestBody = self.json(params)
+        privateHeaders = None
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             secret = self.base64_to_binary(self.secret)
             auth = self.apiKey + nonce
-            headers = {
+            privateHeaders = {
                 'X-PCK': self.apiKey,
                 'X-Stamp': nonce,
                 'X-Signature': self.hmac(self.encode(auth), secret, hashlib.sha256, 'base64'),
                 'Content-Type': 'application/json',
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        requestHeaders = privateHeaders if (privateHeaders is not None) else headers
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         errorCode = self.safe_string(response, 'code', '0')
         message = self.safe_string(response, 'message')
-        output = body if (message is None) else message
+        output = message
+        if message is None:
+            output = body
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + output)
         if (errorCode != '0') and (errorCode != 'SUCCESS'):
             raise ExchangeError(self.id + ' ' + output)

@@ -7,14 +7,14 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchOrders(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchOrders(BaseExchange exchange, object skippedProperties, object symbol)
     {
-        object method = "fetchOrders";
-        object orders = await exchange.fetchOrders(symbol);
+        string method = "fetchOrders";
+        object orders = await invokeExchangeDynamically(exchange, "fetchOrders", symbol);
         assert(((orders is IList<object>) || (orders.GetType().IsGenericType && orders.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(orders)));
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol);
-        object now = exchange.milliseconds();
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        Int64 now = exchange.milliseconds();
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             testOrder(exchange, skippedProperties, method, getValue(orders, i), symbol, now);
         }

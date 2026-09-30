@@ -1,4 +1,5 @@
 using Google.Protobuf;
+using System.Collections;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
@@ -13,12 +14,14 @@ namespace ccxt;
 
 using dict = Dictionary<string, object>;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     protected readonly object idLock = new object();
 
-    public Exchange(object userConfig2 = null)
+    protected readonly object lastNonceLock = new object();
+
+    public BaseExchange(object userConfig2 = null)
     {
         var userConfig = (dict)userConfig2;
         this.initializeProperties(userConfig);
@@ -56,7 +59,7 @@ public partial class Exchange
         }
     }
 
-    private void transformApiNew(dict api, List<string> paths = null)
+    private void transformApiNew(Dictionary<string, object> api, List<string> paths = null)
     {
         if (api == null)
             return;
@@ -141,7 +144,10 @@ public partial class Exchange
         }
     }
 
-    public void handleHttpStatusCode(object code, object reason, object url, object method, object body)
+    // params are concretely typed: the only call site (in fetch below) passes an int
+    // status code, the reason/url/method strings it already resolved from `as String` casts,
+    // and the raw response body string — every use in the body behaves identically
+    public void handleHttpStatusCode(int code, string? reason, string? url, string? method, string body)
     {
         var codeString = code.ToString();
         var codeInHttpExceptions = safeValue(this.httpExceptions, codeString);
@@ -155,6 +161,27 @@ public partial class Exchange
 
     public async virtual Task<object> fetch(object url2, object method2 = null, object headers2 = null, object body2 = null)
     {
+
+        if (fetchResponseByUrl != null)
+        {
+            var mockUrl = Convert.ToString(url2);
+            var byUrl = fetchResponseByUrl as dict;
+            object firstBody = null;
+            var isFirst = true;
+            foreach (var entry in byUrl)
+            {
+                if (isFirst)
+                {
+                    firstBody = entry.Value;
+                    isFirst = false;
+                }
+                if (mockUrl.Contains(entry.Key))
+                {
+                    return entry.Value;
+                }
+            }
+            return firstBody;
+        }
 
         if (fetchResponse != null)
         {
@@ -394,6 +421,66 @@ public partial class Exchange
         throw new Exception("Endpoint not found!");
     }
 
+    /// <summary>
+    /// Calls one implicit API endpoint by its generated name, narrowed to the
+    /// shape that endpoint's api leaf declares.
+    /// </summary>
+    /// <remarks>
+    /// The type argument is the shape the api leaf declares in TypeScript
+    /// (<c>{ 'cost': 1 } as Endpoint&lt;List&gt;</c>). <c>res</c> is already a
+    /// decoded JSON value (Dictionary / List / string / null). Never answers
+    /// default(T) for a useful body that merely fails to match T — that silent
+    /// null emptied balances/tickers under STATIC_RESPONSE; a hard shape
+    /// disagreement throws instead so the leaf can be corrected.
+    /// </remarks>
+    public async virtual Task<T> callAsync<T>(object implicitEndpoint2, object parameters = null)
+    {
+        var res = await this.callAsync(implicitEndpoint2, parameters);
+        return NarrowResponse<T>(this.id + " " + Convert.ToString(implicitEndpoint2), res);
+    }
+
+    /// <summary>
+    /// Narrows one already-decoded implicit API body to the shape its api leaf declares.
+    /// </summary>
+    public static T NarrowResponse<T>(object endpoint, object res)
+    {
+        if (res is T typed)
+        {
+            return typed;
+        }
+        if (res == null)
+        {
+            return default(T);
+        }
+        // declared leaf and body disagree — name both so the Endpoint<> is fixed
+        throw new ExchangeError(
+            "implicit API endpoint " + Convert.ToString(endpoint) + " is declared as " + DescribeShape(typeof(T))
+            + " but answered with " + DescribeShape(res.GetType())
+            + " — correct the Endpoint<...> assertion on its api leaf in ts/src, or call the untyped callAsync overload");
+    }
+
+    // the api-leaf spelling of a runtime/declared type, for the message above
+    private static string DescribeShape(Type type)
+    {
+        if (type == typeof(Dictionary<string, object>) || type == typeof(IDictionary<string, object>))
+        {
+            return "a JSON object (Dict)";
+        }
+        if (type == typeof(List<object>) || type == typeof(IList<object>))
+        {
+            return "a JSON array (List)";
+        }
+        if (type == typeof(string))
+        {
+            return "a JSON scalar (string)";
+        }
+        if (type == typeof(object))
+        {
+            return "a JSON value (object)";
+        }
+        return type.Name;
+    }
+
     public async virtual Task<object> callAsync(object implicitEndpoint2, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -416,7 +503,7 @@ public partial class Exchange
     }
 
 
-    public void handleErrors(int statusCode, string statusText, string url, string method, dict responseHeaders, dict responseBody, dict response, dict requestHeaders, dict requestBody)
+    public void handleErrors(int statusCode, string statusText, string url, string method, Dictionary<string, object> responseHeaders, Dictionary<string, object> responseBody, Dictionary<string, object> response, Dictionary<string, object> requestHeaders, Dictionary<string, object> requestBody)
     {
         // it is a stub method that must be virtuald in the derived exchange classes
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
@@ -437,7 +524,9 @@ public partial class Exchange
     {
         return getArrayLength(binary);
     }
-    public virtual dict sign(object path, object api, string method = "GET", dict headers = null, object body2 = null, object parameters2 = null)
+    // Spelled out (never the `dict` alias) so the generated overrides aligned to this signature copy
+    // the same C# type token the classifier's type tables name.
+    public virtual Dictionary<string, object> sign(object path, object api, string method = "GET", Dictionary<string, object> headers = null, object body2 = null, object parameters2 = null)
     {
         api ??= "public";
         headers ??= new dict();
@@ -468,16 +557,16 @@ public partial class Exchange
         return Convert.ToInt64(res);
     }
 
-    public async virtual Task<object> loadMarketsHelper(bool reload = false, dict parameters = null)
+    public async virtual Task<IDictionary<string, object>> loadMarketsHelper(bool reload = false, Dictionary<string, object> parameters = null)
     {
         if (!reload && this.markets != null)
         {
             if (this.markets_by_id == null)
             {
-                return this.setMarkets(this.markets);
+                return ((IDictionary<string, object>)((object)(this.setMarkets(this.markets))));
             }
             // return Task.FromResult(this.markets);
-            return this.markets;
+            return ((IDictionary<string, object>)((object)(this.markets)));
         }
 
         object currencies = null;
@@ -487,15 +576,14 @@ public partial class Exchange
             currencies = await this.fetchCurrencies();
             this.options.TryAdd("cachedCurrencies", currencies);
         }
-        var markets = await this.fetchMarkets();
+        var markets = await this.FetchMarkets();
         this.options.TryRemove("cachedCurrencies", out _);
-        return this.setMarkets(markets, currencies);
+        return ((IDictionary<string, object>)((object)(this.setMarkets(markets, currencies))));
     }
 
-    public virtual Task<object> loadMarkets(object reload2 = null, object parameters2 = null)
+    public virtual Task<IDictionary<string, object>> loadMarkets(bool? reload2 = null, object parameters2 = null)
     {
-        reload2 ??= false;
-        var reload = (bool)reload2;
+        var reload = reload2 == true;
         parameters2 ??= new dict();
         var parameters = (dict)parameters2;
         if ((reload && !this.reloadingMarkets) || this.marketsLoading == null)
@@ -511,19 +599,19 @@ public partial class Exchange
         return marketsLoading;
     }
 
-    public virtual async Task<object> fetchMarkets(object parameters = null)
+    public virtual async Task<List<MarketInterface>> FetchMarkets(object parameters = null)
     {
-        return this.toArray(this.markets);
+        return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
-    public virtual async Task<object> fetchMarketsWs(object parameters = null)
+    public virtual async Task<List<MarketInterface>> FetchMarketsWs(object parameters = null)
     {
-        return this.toArray(this.markets);
+        return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
-    public virtual async Task<object> fetchCurrencies(object parameters = null)
+    public virtual async Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
-        return this.currencies;
+        return ((IDictionary<string, object>)((object)(this.currencies)));
     }
 
     public async Task<Currencies> FetchCurrencies(object parameters = null)
@@ -532,9 +620,9 @@ public partial class Exchange
         return new Currencies(res);
     }
 
-    public virtual async Task<object> fetchCurrenciesWs(object parameters = null)
+    public virtual async Task<IDictionary<string, object>> fetchCurrenciesWs(object parameters = null)
     {
-        return this.currencies;
+        return ((IDictionary<string, object>)((object)(this.currencies)));
     }
 
     public async Task<Currencies> FetchCurrenciesWs(object parameters = null)
@@ -560,7 +648,15 @@ public partial class Exchange
 
     public List<string> unique(object obj)
     {
-        return (obj as List<string>).ToList();
+        if (obj is List<string> stringList)
+        {
+            return stringList.Distinct().ToList();
+        }
+        if (obj is List<object> objectList)
+        {
+             return objectList.Select(x => x.ToString()).Distinct().ToList();
+        }
+        return new List<string>();
     }
 
     public int parseTimeframe(object timeframe2)
@@ -611,6 +707,21 @@ public partial class Exchange
 
     public object clone(object o)
     {
+        if (o is dict srcDict)
+        {
+            var result = new dict(srcDict.Count);
+            foreach (var kvp in srcDict)
+                result[kvp.Key] = clone(kvp.Value);
+            return result;
+        }
+        if (o is List<object> srcList)
+        {
+            var result = new List<object>(srcList.Count);
+            foreach (var item in srcList)
+                result.Add(clone(item));
+            return result;
+        }
+        // scalars (string, number, bool, null) are immutable – return as-is
         return o;
     }
 
@@ -671,8 +782,10 @@ public partial class Exchange
         this.clients.TryRemove(key, out _);
     }
 
-    public async Task Close()
+    public async Task Close(bool cleanInstanceCache = false)
     {
+        // ##### language-specific cleanup of WS & REST resources #####
+        // [WS]
         var tasks = new List<Task>();
         if (this.clients.Keys.Count > 0)
         {
@@ -685,6 +798,13 @@ public partial class Exchange
             }
             await Task.WhenAll(tasks);
         }
+        if (cleanInstanceCache) {
+            this.cleanWsData();
+        }
+        // [REST]
+        if (cleanInstanceCache) {
+            this.cleanRestData();
+        }
     }
 
     public async Task close()
@@ -692,10 +812,15 @@ public partial class Exchange
         await this.Close();
     }
 
-    public virtual object parseNumber(object value, object defaultValue = null)
+    // TS `parseNumber (value, d)`: returns the parsed number, or `d` when the value is
+    // missing/does not parse. The C# signature is `double?` — the box every successful
+    // path already produces (Convert.ToDouble) — so a TS-valid `Num` default is
+    // converted the same way SafeFloatN converts its default; returning the default
+    // unchanged would erase the declared type (and box an Int64 default).
+    public virtual double? parseNumber(object value, object defaultValue = null)
     {
         if (value == null || (value.GetType() == typeof(string) && value.ToString().Trim() == ""))
-            return defaultValue;
+            return ParseNumberDefault(defaultValue);
 
 
         try
@@ -704,7 +829,7 @@ public partial class Exchange
         }
         catch (Exception e)
         {
-            return defaultValue;
+            return ParseNumberDefault(defaultValue);
         }
         // if (this.number.GetType() == typeof(float).GetType())
         // {
@@ -713,13 +838,31 @@ public partial class Exchange
         // return value;
     }
 
+    private static double? ParseNumberDefault(object defaultValue)
+    {
+        return (defaultValue == null) ? null : Convert.ToDouble(defaultValue, CultureInfo.InvariantCulture);
+    }
+
     public object convertToBigInt(object value)
     {
-        if (value.GetType() == typeof(float).GetType())
+        // mirrors TS BigInt(value): produce a real big integer so ABI/eth encoders receive a
+        // numeric value (a decimal string would otherwise be misparsed as hex and overflow)
+        if (value is BigInteger)
         {
-            return Convert.ToInt64(value);
+            return value;
         }
-        return value;
+        if (value is string)
+        {
+            var str = (string)value;
+            if (str.StartsWith("0x") || str.StartsWith("0X"))
+            {
+                // hex strings pass through unchanged — the stark/eth helpers parse hex
+                // themselves (extended's pedersen chain expects the string form)
+                return value;
+            }
+            return BigInteger.Parse(str);
+        }
+        return new BigInteger(Convert.ToInt64(value));
     }
 
     public bool valueIsDefined(object value)
@@ -749,7 +892,23 @@ public partial class Exchange
             return byteArray[firstInt..secondInt2];
         }
 
-        var parsedArray = ((IList<object>)array);
+        // a typed core hands back List<Dictionary<string, object>> / List<string> / List<T>;
+        // List<T> is invariant so none of those IS an IList<object> - re-box through the
+        // non-generic IList instead of throwing InvalidCastException
+        IList<object> parsedArray;
+        if (array is IList<object> objectList)
+        {
+            parsedArray = objectList;
+        }
+        else
+        {
+            var boxed = new List<object>();
+            foreach (var item in (System.Collections.IList)array)
+            {
+                boxed.Add(item);
+            }
+            parsedArray = boxed;
+        }
         var isArrayCache = array is ccxt.pro.ArrayCache;
         // var typedArray = (array is ArrayCache) ? (ArrayCache)array : (IList<object>array);
         if (second == null)
@@ -794,10 +953,12 @@ public partial class Exchange
         }
     }
 
-    public object stringToCharsArray(object str)
+    // every path returns the one-char string list built below; List<object> is the box the
+    // generated consumers already read (getValue / getArrayLength / `(string)` element casts)
+    public List<object> stringToCharsArray(object str)
     {
         var step = str.ToString().ToCharArray();
-        var res = new List<string>();
+        var res = new List<object>();
         foreach (var item in step)
         {
             res.Add(item.ToString());
@@ -819,12 +980,22 @@ public partial class Exchange
     {
         if (a == null)
             return true;
-        if (a.GetType() == typeof(string))
-            return a.ToString().Length == 0;
+        if (a is String)
+            return false; // disregard strings
         if (a is IList<object>)
             return ((IList<object>)a).Count == 0;
         if (a is IDictionary<string, object>)
             return ((IDictionary<string, object>)a).Count == 0;
+        // This catches List<T>, Dictionary<K,V>, Arrays, etc. without needing to know the specific T, K, or V.
+        if (a is ICollection collection)
+            return collection.Count == 0;
+
+        // This catches specialized collections that only implement IEnumerable 
+        if (a is IEnumerable enumerable) {
+            var enumerator = enumerable.GetEnumerator();
+            return !enumerator.MoveNext(); 
+        }
+
         return false;
     }
 
@@ -863,6 +1034,43 @@ public partial class Exchange
         var bigIntKey = BigInteger.Parse(privateKeyString, System.Globalization.NumberStyles.HexNumber); ;
         var res = ECDSA.Sign(bigIntHash, bigIntKey);
         return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
+    }
+
+    public object extendedStarknetSign(object msgHash, object privateKey)
+    {
+        var privateKeyString = privateKey.ToString();
+        var msgHashStr = msgHash.ToString();
+        var bigIntHash = extendedParseStarknetBigInteger(msgHashStr);
+        var bigIntKey = extendedParseStarknetBigInteger(privateKeyString);
+        var res = ECDSA.Sign(bigIntHash, bigIntKey);
+        return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
+    }
+
+    public BigInteger extendedParseStarknetBigInteger(string value)
+    {
+        if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+        {
+            return BigInteger.Parse("00" + value[2..], System.Globalization.NumberStyles.AllowHexSpecifier);
+        }
+        for (var i = 0; i < value.Length; i++)
+        {
+            var c = value[i];
+            if ((c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
+            {
+                return BigInteger.Parse("00" + value, System.Globalization.NumberStyles.AllowHexSpecifier);
+            }
+        }
+        return BigInteger.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    public object extendedStarknetGetSelectorFromName(object name)
+    {
+        return StarknetOps.CalculateFunctionSelector(name.ToString());
+    }
+
+    public object extendedStarknetComputePoseidonHashOnElements(object data)
+    {
+        return StarknetPoseidon.HashMany(data).ToString();
     }
 
     public object starknetEncodeStructuredData(object domain2, object messageTypes2, object messageData2, object address)
@@ -973,16 +1181,6 @@ public partial class Exchange
         return encodedFromRaw;
     }
 
-    public ECDSA.ECSignature Stark()
-    {
-        // debug only remove later
-        var msgHash = "111111";
-        var bytes = Exchange.StringToByteArray(msgHash);
-        var bigInt = new BigInteger(bytes);
-        var res = ECDSA.Sign(bigInt, bigInt);
-        return res;
-    }
-
     public object spawn(object action, object[] args = null)
     {
         // stub to implement later
@@ -997,9 +1195,13 @@ public partial class Exchange
             try
             {
                 var invokedAction = DynamicInvoker.InvokeMethod(action, args);
-                if (invokedAction is Task<object>)
+                // Task<T> is invariant, so a narrowed implicit API method
+                // (Task<Dictionary<string, object>>) is not a Task<object> —
+                // normalize before testing, or its result never resolves.
+                var invokedTask = Exchange.AsTaskOfObject(invokedAction);
+                if (invokedTask != null)
                 {
-                    var res = (Task<object>)invokedAction;
+                    var res = invokedTask;
                     res.Wait();
                     future.resolve(res.Result);
                     return;
@@ -1055,8 +1257,21 @@ public partial class Exchange
     public object getProperty(object obj, object property, object defaultValue = null)
     {
         var type = obj.GetType();
-        var prop = type.GetProperty(property.ToString());
-        return (prop != null) ? prop.GetValue(obj) : defaultValue;
+        var name = property.ToString();
+
+        var prop = type.GetProperty(name);
+        if (prop != null) 
+        {
+            return prop.GetValue(obj);
+        }
+
+        var field = type.GetField(name);
+        if (field != null) 
+        {
+            return field.GetValue(obj);
+        }
+
+        return defaultValue;
     }
 
     public object fixStringifiedJsonMembers(object content2)
@@ -1149,9 +1364,51 @@ public partial class Exchange
         return new System.Collections.Concurrent.ConcurrentDictionary<string, object>((IDictionary<string, object>)obj);
     }
 
-    public IDictionary<string, object> createSafeDictionary()
+    // a present option value of another type is a user error: throw instead of coercing
+    public string checkOptionString(object methodName, object optionName, object value)
     {
-        return new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+        if (value == null || value is string)
+        {
+            return value as string;
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a string");
+    }
+
+    public bool? checkOptionBool(object methodName, object optionName, object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        if (value is bool b)
+        {
+            return b;
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a boolean");
+    }
+
+    // any JS number box (int, Int64, double) with an integral value reads as Int64; fractions, strings and others throw
+    public Int64? checkOptionInteger(object methodName, object optionName, object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        switch (value)
+        {
+            case Int64 l:
+                return l;
+            case int i:
+                return i;
+            case double d when Math.Floor(d) == d && !double.IsInfinity(d):
+                return Convert.ToInt64(d);
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be an integer");
+    }
+
+    public IDictionary<string, object> createSafeDictionary(bool isWs = false)
+    {
+        return !isWs ? new System.Collections.Concurrent.ConcurrentDictionary<string, object>() : new ccxt.pro.CustomConcurrentDictionary<string, object>();;
     }
 
     public IDictionary<string, object> mapToSafeMap(object obj)
@@ -1218,7 +1475,10 @@ public partial class Exchange
         throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
     }
 
-    public object retrieveDydxCredentials(object entropy)
+    // U37: the body is a single throw (no return path), so the declared type is free; the
+    // Dictionary spelling is what lets dydx#retrieveCredentials's `credentials` local join
+    // its safeDict initializer (IDictionary) with this write.
+    public Dictionary<string, object> retrieveDydxCredentials(object entropy)
     {
         throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
     }
@@ -1288,6 +1548,16 @@ public partial class Exchange
     public void unlockId()
     {
         Monitor.Exit(this.idLock);
+    }
+
+    public void lockLastNonce()
+    {
+        Monitor.Enter(this.lastNonceLock);
+    }
+
+    public void unlockLastNonce()
+    {
+        Monitor.Exit(this.lastNonceLock);
     }
 
 

@@ -45,7 +45,9 @@ class dydx extends dydx$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws'];
         const market = this.market(symbol);
         const messageHash = 'trade:' + market['symbol'];
@@ -55,10 +57,11 @@ class dydx extends dydx$1["default"] {
             'id': market['id'],
         };
         const trades = await this.watch(url, messageHash, this.extend(request, params), messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
@@ -70,7 +73,9 @@ class dydx extends dydx$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTrades(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws'];
         const market = this.market(symbol);
         const messageHash = 'trade:' + market['symbol'];
@@ -160,10 +165,12 @@ class dydx extends dydx$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws'];
         const market = this.market(symbol);
         const messageHash = 'orderbook:' + market['symbol'];
@@ -182,10 +189,12 @@ class dydx extends dydx$1["default"] {
      * @see https://docs.dydx.xyz/indexer-client/websockets#orders
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws'];
         const market = this.market(symbol);
         const messageHash = 'orderbook:' + market['symbol'];
@@ -245,7 +254,7 @@ class dydx extends dydx$1["default"] {
             bookside.store(price, amount);
         }
         else {
-            const bidAsk = this.parseBidAsk(delta, 'price', 'size');
+            const bidAsk = this.parseOrderBookBidAsk(delta, 'price', 'size');
             bookside.storeArray(bidAsk);
         }
     }
@@ -262,7 +271,9 @@ class dydx extends dydx$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws'];
         const market = this.market(symbol);
         const messageHash = 'ohlcv:' + market['symbol'];
@@ -273,10 +284,11 @@ class dydx extends dydx$1["default"] {
             'id': market['id'] + '/' + resolution,
         };
         const ohlcv = await this.watch(url, messageHash, this.extend(request, params), messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     /**
      * @method
@@ -290,7 +302,9 @@ class dydx extends dydx$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws'];
         const market = this.market(symbol);
         const messageHash = 'ohlcv:' + market['symbol'];
@@ -354,7 +368,7 @@ class dydx extends dydx$1["default"] {
         //     }
         // }
         //
-        const id = this.safeString(message, 'id');
+        const id = this.safeString(message, 'id', '');
         const part = id.split('/');
         const interval = this.safeString(part, 1);
         const timeframe = this.findTimeframe(interval);
@@ -366,7 +380,7 @@ class dydx extends dydx$1["default"] {
         const messageHash = 'ohlcv:' + symbol;
         const ohlcv = this.safeDict(candles, 0, content);
         const parsed = this.parseOHLCV(ohlcv, market);
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);

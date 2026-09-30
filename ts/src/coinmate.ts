@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinmate.js';
 import { ExchangeError, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, List, Int, Market, NullableDict, FeeString, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, Orde
  * @augments Exchange
  */
 export default class coinmate extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinmate',
             'name': 'CoinMate',
@@ -97,6 +97,7 @@ export default class coinmate extends Exchange {
                 'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
@@ -133,73 +134,78 @@ export default class coinmate extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'orderBook',
-                        'ticker',
-                        'tickerAll',
-                        'products',
-                        'transactions',
-                        'tradingPairs',
-                        'system/time',
-                    ],
+                    'get': {
+                        'orderBook': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickerAll': { 'cost': 1 } as Endpoint<Dict>,
+                        'products': { 'cost': 1 } as Endpoint<Dict>,
+                        'transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradingPairs': { 'cost': 1 } as Endpoint<Dict>,
+                        'system/time': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'currencies',
-                        'balances',
-                        'bitcoinCashWithdrawal',
-                        'bitcoinCashDepositAddresses',
-                        'bitcoinDepositAddresses',
-                        'bitcoinWithdrawal',
-                        'bitcoinWithdrawalFees',
-                        'buyInstant',
-                        'buyLimit',
-                        'cancelOrder',
-                        'cancelOrderWithInfo',
-                        'createVoucher',
-                        'dashDepositAddresses',
-                        'dashWithdrawal',
-                        'ethereumWithdrawal',
-                        'ethereumDepositAddresses',
-                        'litecoinWithdrawal',
-                        'litecoinDepositAddresses',
-                        'openOrders',
-                        'order',
-                        'orderHistory',
-                        'orderById',
-                        'pusherAuth',
-                        'redeemVoucher',
-                        'replaceByBuyLimit',
-                        'replaceByBuyInstant',
-                        'replaceBySellLimit',
-                        'replaceBySellInstant',
-                        'rippleDepositAddresses',
-                        'rippleWithdrawal',
-                        'sellInstant',
-                        'sellLimit',
-                        'transactionHistory',
-                        'traderFees',
-                        'tradeHistory',
-                        'transfer',
-                        'transferHistory',
-                        'unconfirmedBitcoinDeposits',
-                        'unconfirmedBitcoinCashDeposits',
-                        'unconfirmedDashDeposits',
-                        'unconfirmedEthereumDeposits',
-                        'unconfirmedLitecoinDeposits',
-                        'unconfirmedRippleDeposits',
-                        'cancelAllOpenOrders',
-                        'withdrawVirtualCurrency',
-                        'virtualCurrencyDepositAddresses',
-                        'unconfirmedVirtualCurrencyDeposits',
-                        'adaWithdrawal',
-                        'adaDepositAddresses',
-                        'unconfirmedAdaDeposits',
-                        'solWithdrawal',
-                        'solDepositAddresses',
-                        'unconfirmedSolDeposits',
-                        'bankWireWithdrawal',
-                    ],
+                    'post': {
+                        'currencies': { 'cost': 1 } as Endpoint<Dict>,
+                        'balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'bitcoinCashWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'bitcoinCashDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'bitcoinDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'bitcoinWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'bitcoinWithdrawalFees': { 'cost': 1 } as Endpoint<Dict>,
+                        'buyInstant': { 'cost': 1 } as Endpoint<Dict>,
+                        'buyLimit': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelOrderWithInfo': { 'cost': 1 } as Endpoint<Dict>,
+                        'createVoucher': { 'cost': 1 } as Endpoint<Dict>,
+                        'dashDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'dashWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'ethereumWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'ethereumDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'litecoinWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'litecoinDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'openOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderHistory': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderById': { 'cost': 1 } as Endpoint<Dict>,
+                        'pusherAuth': { 'cost': 1 } as Endpoint<Dict>,
+                        'redeemVoucher': { 'cost': 1 } as Endpoint<Dict>,
+                        'replaceByBuyLimit': { 'cost': 1 } as Endpoint<Dict>,
+                        'replaceByBuyInstant': { 'cost': 1 } as Endpoint<Dict>,
+                        'replaceBySellLimit': { 'cost': 1 } as Endpoint<Dict>,
+                        'replaceBySellInstant': { 'cost': 1 } as Endpoint<Dict>,
+                        'rippleDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'rippleWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'sellInstant': { 'cost': 1 } as Endpoint<Dict>,
+                        'sellLimit': { 'cost': 1 } as Endpoint<Dict>,
+                        'transactionHistory': { 'cost': 1 } as Endpoint<Dict>,
+                        'traderFees': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradeHistory': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'transferHistory': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedBitcoinDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedBitcoinCashDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedDashDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedEthereumDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedLitecoinDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedRippleDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelAllOpenOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawVirtualCurrency': { 'cost': 1 } as Endpoint<Dict>,
+                        'virtualCurrencyDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedVirtualCurrencyDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'adaWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'adaDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedAdaDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'daiWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'daiDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedDaiDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'solWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'solDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'unconfirmedSolDeposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'bankWireWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'lightningDeposit': { 'cost': 1 } as Endpoint<Dict>,
+                        'lightningWithdraw': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -335,12 +341,12 @@ export default class coinmate extends Exchange {
     /**
      * @method
      * @name coinmate#fetchTime
-     * @description fetches the current integer timestamp in milliseconds from the bingx server
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
      * @see https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int} the current integer timestamp in milliseconds from the bingx server
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.publicGetSystemTime (params);
         //
         //     {
@@ -358,7 +364,7 @@ export default class coinmate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetTradingPairs (params);
         //
         //     {
@@ -379,8 +385,8 @@ export default class coinmate extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const result = [];
+        const data: Dict[] = this.safeList (response, 'data', []);
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'name');
@@ -388,6 +394,9 @@ export default class coinmate extends Exchange {
             const quoteId = this.safeString (market, 'secondCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -442,19 +451,19 @@ export default class coinmate extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
-        const balances = this.safeValue (response, 'data', {});
+    override parseBalance (response: any): Balances {
+        const balances = this.safeDict (response, 'data', {});
         const result: Dict = { 'info': response };
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeValue (balances, currencyId);
+            const balance = this.safeDict (balances, currencyId);
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'reserved');
             account['total'] = this.safeString (balance, 'balance');
-            result[code] = account;
+            result[code as string] = account;
         }
         return this.safeBalance (result);
     }
@@ -467,8 +476,10 @@ export default class coinmate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostBalances (params);
         return this.parseBalance (response);
     }
@@ -481,17 +492,19 @@ export default class coinmate extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'currencyPair': market['id'],
             'groupByPriceLimit': 'False',
         };
         const response = await this.publicGetOrderBook (this.extend (request, params));
-        const orderbook = response['data'];
+        const orderbook = this.safeDict (response, 'data', {});
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
@@ -505,8 +518,10 @@ export default class coinmate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'currencyPair': market['id'],
@@ -529,7 +544,7 @@ export default class coinmate extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data') as Dict;
         return this.parseTicker (data, market);
     }
 
@@ -542,9 +557,11 @@ export default class coinmate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetTickerAll (params);
         //
         //     {
@@ -565,7 +582,7 @@ export default class coinmate extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const keys = Object.keys (data);
         const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
@@ -573,10 +590,10 @@ export default class coinmate extends Exchange {
             const ticker = this.parseTicker (this.safeValue (data, keys[i]), market);
             result[market['symbol']] = ticker;
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "last": "0.001337",
@@ -593,7 +610,7 @@ export default class coinmate extends Exchange {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const last = this.safeNumber (ticker, 'last');
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber (ticker, 'high'),
@@ -627,8 +644,10 @@ export default class coinmate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'limit': 1000,
         };
@@ -643,7 +662,7 @@ export default class coinmate extends Exchange {
             request['currency'] = currency['id'];
         }
         const response = await this.privatePostTransferHistory (this.extend (request, params));
-        const items = response['data'];
+        const items: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (items, undefined, since, limit);
     }
 
@@ -657,10 +676,10 @@ export default class coinmate extends Exchange {
             'NEW': 'pending',
             'CANCELED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // deposits
         //
@@ -749,13 +768,15 @@ export default class coinmate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
-        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
-        const methods = this.safeValue (withdrawOptions, 'methods', {});
+        const withdrawOptions = this.safeDict (this.options, 'withdraw', {});
+        const methods = this.safeDict (withdrawOptions, 'methods', {});
         const method = this.safeString (methods, code);
         if (method === undefined) {
             const allowedCurrencies = Object.keys (methods);
@@ -765,10 +786,32 @@ export default class coinmate extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
             'address': address,
         };
-        if (tag !== undefined) {
-            request['destinationTag'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['destinationTag'] = tagWithdrawTag;
         }
-        const response = await this[method] (this.extend (request, params));
+        const requestParams = this.extend (request, paramsWithdrawTag);
+        let response = undefined;
+        if (method === 'privatePostBitcoinWithdrawal') {
+            response = await this.privatePostBitcoinWithdrawal (requestParams);
+        } else if (method === 'privatePostLitecoinWithdrawal') {
+            response = await this.privatePostLitecoinWithdrawal (requestParams);
+        } else if (method === 'privatePostBitcoinCashWithdrawal') {
+            response = await this.privatePostBitcoinCashWithdrawal (requestParams);
+        } else if (method === 'privatePostEthereumWithdrawal') {
+            response = await this.privatePostEthereumWithdrawal (requestParams);
+        } else if (method === 'privatePostRippleWithdrawal') {
+            response = await this.privatePostRippleWithdrawal (requestParams);
+        } else if (method === 'privatePostDashWithdrawal') {
+            response = await this.privatePostDashWithdrawal (requestParams);
+        } else if (method === 'privatePostDaiWithdrawal') {
+            response = await this.privatePostDaiWithdrawal (requestParams);
+        } else if (method === 'privatePostAdaWithdrawal') {
+            response = await this.privatePostAdaWithdrawal (requestParams);
+        } else if (method === 'privatePostSolWithdrawal') {
+            response = await this.privatePostSolWithdrawal (requestParams);
+        } else {
+            throw new ExchangeError (this.id + ' withdraw() does not support the ' + method + ' method');
+        }
         //
         //     {
         //         "error": false,
@@ -778,14 +821,14 @@ export default class coinmate extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         const transaction = this.parseTransaction (data, currency);
         const fillResponseFromRequest = this.safeBool (withdrawOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transaction['amount'] = amount;
             transaction['currency'] = code;
             transaction['address'] = address;
-            transaction['tag'] = tag;
+            transaction['tag'] = tagWithdrawTag;
             transaction['type'] = 'withdrawal';
             transaction['status'] = 'pending';
         }
@@ -803,13 +846,13 @@ export default class coinmate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        if (limit === undefined) {
-            limit = 1000;
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
         }
+        const limitResolved: Int = (limit === undefined) ? 1000 : limit;
         const request: Dict = {
-            'limit': limit,
+            'limit': limitResolved,
         };
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -819,11 +862,11 @@ export default class coinmate extends Exchange {
             request['timestampFrom'] = since;
         }
         const response = await this.privatePostTradeHistory (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
-        return this.parseTrades (data, undefined, since, limit);
+        const data = this.safeList (response, 'data', []) as List;
+        return this.parseTrades (data, undefined, since, limitResolved);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchMyTrades (private)
         //
@@ -852,7 +895,7 @@ export default class coinmate extends Exchange {
         //     }
         //
         const marketId = this.safeString (trade, 'currencyPair');
-        market = this.safeMarket (marketId, market, '_');
+        const marketResolved: Market = this.safeMarket (marketId, market, '_');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const side = this.safeStringLower2 (trade, 'type', 'tradeType');
@@ -860,12 +903,12 @@ export default class coinmate extends Exchange {
         const orderId = this.safeString (trade, 'orderId');
         const id = this.safeString (trade, 'transactionId');
         const timestamp = this.safeInteger2 (trade, 'timestamp', 'createdTimestamp');
-        let fee = undefined;
+        let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         }
         let takerOrMaker = this.safeString (trade, 'feeType');
@@ -875,7 +918,7 @@ export default class coinmate extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'side': side,
             'order': orderId,
@@ -884,7 +927,7 @@ export default class coinmate extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -898,8 +941,10 @@ export default class coinmate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'currencyPair': market['id'],
@@ -922,7 +967,7 @@ export default class coinmate extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -935,8 +980,10 @@ export default class coinmate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
-        await this.loadMarkets ();
+    override async fetchTradingFee (symbol: string, params: Dict = {}): Promise<TradingFeeInterface> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'currencyPair': market['id'],
@@ -949,7 +996,7 @@ export default class coinmate extends Exchange {
         //         "data": { maker: '0.3', taker: "0.35", timestamp: "1646253217815" }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const makerString = this.safeString (data, 'maker');
         const takerString = this.safeString (data, 'taker');
         const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
@@ -975,10 +1022,11 @@ export default class coinmate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const response = await this.privatePostOpenOrders (this.extend ({}, params));
         const extension: Dict = { 'status': 'open' };
-        return this.parseOrders (response['data'], undefined, since, limit, extension);
+        const data: Dict[] = this.safeList (response, 'data', []);
+        return this.parseOrders (data, undefined, since, limit, extension);
     }
 
     /**
@@ -992,11 +1040,13 @@ export default class coinmate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'currencyPair': market['id'],
@@ -1006,7 +1056,8 @@ export default class coinmate extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privatePostOrderHistory (this.extend (request, params));
-        return this.parseOrders (response['data'], market, since, limit);
+        const data: Dict[] = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     parseOrderStatus (status: Str) {
@@ -1016,7 +1067,7 @@ export default class coinmate extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'OPEN': 'open',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrderType (type: Str) {
@@ -1024,10 +1075,10 @@ export default class coinmate extends Exchange {
             'LIMIT': 'limit',
             'MARKET': 'market',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, type as string, type);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // limit sell
         //
@@ -1130,8 +1181,10 @@ export default class coinmate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let method = 'privatePost' + this.capitalize (side);
         const market = this.market (symbol);
         const request: Dict = {
@@ -1149,7 +1202,19 @@ export default class coinmate extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
             method += this.capitalize (type);
         }
-        const response = await this[method] (this.extend (request, params));
+        const requestParams = this.extend (request, params);
+        let response = undefined;
+        if (method === 'privatePostBuyInstant') {
+            response = await this.privatePostBuyInstant (requestParams);
+        } else if (method === 'privatePostSellInstant') {
+            response = await this.privatePostSellInstant (requestParams);
+        } else if (method === 'privatePostBuyLimit') {
+            response = await this.privatePostBuyLimit (requestParams);
+        } else if (method === 'privatePostSellLimit') {
+            response = await this.privatePostSellLimit (requestParams);
+        } else {
+            throw new InvalidOrder (this.id + ' createOrder() does not support order type ' + type);
+        }
         const id = this.safeString (response, 'data');
         return this.safeOrder ({
             'info': response,
@@ -1168,17 +1233,19 @@ export default class coinmate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'orderId': id,
         };
-        let market = undefined;
-        if (symbol) {
+        let market: Market = undefined;
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market (symbol);
         }
         const response = await this.privatePostOrderById (this.extend (request, params));
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data') as Dict;
         return this.parseOrder (data, market);
     }
 
@@ -1188,11 +1255,11 @@ export default class coinmate extends Exchange {
      * @description cancels an open order
      * @see https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
      * @param {string} id order id
-     * @param {string} symbol not used by coinmate cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         //   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
         const request: Dict = { 'orderId': id };
         const response = await this.privatePostCancelOrderWithInfo (this.extend (request, params));
@@ -1206,39 +1273,48 @@ export default class coinmate extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data') as Dict;
         return this.parseOrder (data);
     }
 
-    nonce () {
+    override nonce (): number {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['rest'] + '/' + path;
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let bodySigned: Str = undefined;
+        let headersSigned: NullableDict = undefined;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + path;
         if (api === 'public') {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
+            // coinmate requires each nonce to be greater than the previous one for the key
+            const nonce = this.incrementingNonce ().toString ();
             const auth = nonce + this.uid + this.apiKey;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            body = this.urlencode (this.extend ({
+            bodySigned = this.urlencode (this.extend ({
                 'clientId': this.uid,
                 'nonce': nonce,
                 'publicKey': this.apiKey,
                 'signature': signature.toUpperCase (),
             }, params));
-            headers = {
+            headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved: NullableDict = (headersSigned === undefined) ? headers : headersSigned;
+        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

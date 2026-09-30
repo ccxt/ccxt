@@ -7,158 +7,277 @@
 
 package ccxt
 
-func (this *KrakenfuturesCore) PublicGetFeeschedules(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetFeeschedules", args...)
+// PublicGetFeeschedules returns a channel that yields a JSON object.
+func (this *Krakenfutures) PublicGetFeeschedules(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "feeschedules", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PublicGetInstruments(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetInstruments", args...)
+// PublicGetInstruments returns a channel that yields a JSON object.
+func (this *Krakenfutures) PublicGetInstruments(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "instruments", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PublicGetOrderbook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOrderbook", args...)
+// PublicGetInstrumentsStatus returns a channel that yields a JSON object.
+func (this *Krakenfutures) PublicGetInstrumentsStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "instruments/status", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PublicGetTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTickers", args...)
+// PublicGetInstrumentsSymbolStatus returns a channel that yields a JSON object.
+func (this *Krakenfutures) PublicGetInstrumentsSymbolStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "instruments/{symbol}/status", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PublicGetHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetHistory", args...)
+// PublicGetOrderbook returns a channel that yields a JSON object.
+func (this *Krakenfutures) PublicGetOrderbook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orderbook", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PublicGetHistoricalfundingrates(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetHistoricalfundingrates", args...)
+// PublicGetTickers returns a channel that yields a JSON object.
+func (this *Krakenfutures) PublicGetTickers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tickers", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivateGetFeeschedulesVolumes(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetFeeschedulesVolumes", args...)
+// PublicGetTickersSymbol returns a channel that yields a JSON object.
+func (this *Krakenfutures) PublicGetTickersSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tickers/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivateGetOpenpositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenpositions", args...)
+// PublicGetHistory returns a channel that yields a JSON object.
+func (this *Krakenfutures) PublicGetHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivateGetNotifications(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetNotifications", args...)
+// PublicGetHistoricalfundingrates returns a channel that yields a JSON object.
+func (this *Krakenfutures) PublicGetHistoricalfundingrates(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "historicalfundingrates", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivateGetAccounts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccounts", args...)
+// PrivateGetFeeschedulesVolumes returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetFeeschedulesVolumes(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "feeschedules/volumes", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivateGetOpenorders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenorders", args...)
+// PrivateGetOpenpositions returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetOpenpositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "openpositions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivateGetRecentorders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetRecentorders", args...)
+// PrivateGetNotifications returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetNotifications(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "notifications", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivateGetFills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetFills", args...)
+// PrivateGetAccounts returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetAccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "accounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivateGetTransfers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTransfers", args...)
+// PrivateGetOpenorders returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetOpenorders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "openorders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivateGetLeveragepreferences(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetLeveragepreferences", args...)
+// PrivateGetRecentorders returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetRecentorders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "recentorders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivateGetPnlpreferences(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetPnlpreferences", args...)
+// PrivateGetFills returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetFills(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "fills", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivateGetAssignmentprogramCurrent(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAssignmentprogramCurrent", args...)
+// PrivateGetTransfers returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetTransfers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "transfers", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivateGetAssignmentprogramHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAssignmentprogramHistory", args...)
+// PrivateGetLeveragepreferences returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetLeveragepreferences(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "leveragepreferences", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivateGetOrdersStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOrdersStatus", args...)
+// PrivateGetPnlpreferences returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetPnlpreferences(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "pnlpreferences", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivatePostSendorder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostSendorder", args...)
+// PrivateGetAssignmentprogramCurrent returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetAssignmentprogramCurrent(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assignmentprogram/current", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivatePostEditorder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostEditorder", args...)
+// PrivateGetAssignmentprogramHistory returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetAssignmentprogramHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assignmentprogram/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivatePostCancelorder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelorder", args...)
+// PrivateGetOrdersStatus returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetOrdersStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders/status", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivatePostTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTransfer", args...)
+// PrivateGetUnwindqueue returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetUnwindqueue(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "unwindqueue", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivatePostBatchorder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostBatchorder", args...)
+// PrivateGetSelfTradeStrategy returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetSelfTradeStrategy(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "self-trade-strategy", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivatePostCancelallorders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelallorders", args...)
+// PrivateGetSubaccounts returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetSubaccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "subaccounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivatePostCancelallordersafter(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelallordersafter", args...)
+// PrivateGetSubaccountUidTradingEnabled returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetSubaccountUidTradingEnabled(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "subaccount/{uid}/trading-enabled", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivatePostWithdrawal(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostWithdrawal", args...)
+// PrivateGetRfqAssignmentMaxLeverage returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetRfqAssignmentMaxLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "rfq-assignment/max-leverage", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivatePostAssignmentprogramAdd(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAssignmentprogramAdd", args...)
+// PrivatePostSendorder returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePostSendorder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sendorder", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivatePostAssignmentprogramDelete(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAssignmentprogramDelete", args...)
+// PrivatePostEditorder returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePostEditorder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "editorder", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivatePutLeveragepreferences(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePutLeveragepreferences", args...)
+// PrivatePostCancelorder returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePostCancelorder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancelorder", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) PrivatePutPnlpreferences(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePutPnlpreferences", args...)
+// PrivatePostTransfer returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePostTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) ChartsGetPriceTypeSymbolInterval(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("chartsGetPriceTypeSymbolInterval", args...)
+// PrivatePostTransferSubaccount returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePostTransferSubaccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "transfer/subaccount", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) HistoryGetOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("historyGetOrders", args...)
+// PrivatePostBatchorder returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePostBatchorder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "batchorder", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) HistoryGetExecutions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("historyGetExecutions", args...)
+// PrivatePostCancelallorders returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePostCancelallorders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancelallorders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) HistoryGetTriggers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("historyGetTriggers", args...)
+// PrivatePostCancelallordersafter returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePostCancelallordersafter(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancelallordersafter", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) HistoryGetAccountlogcsv(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("historyGetAccountlogcsv", args...)
+// PrivatePostWithdrawal returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePostWithdrawal(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "withdrawal", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) HistoryGetAccountLog(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("historyGetAccountLog", args...)
+// PrivatePostAssignmentprogramAdd returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePostAssignmentprogramAdd(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assignmentprogram/add", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) HistoryGetMarketSymbolOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("historyGetMarketSymbolOrders", args...)
+// PrivatePostAssignmentprogramDelete returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePostAssignmentprogramDelete(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assignmentprogram/delete", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *KrakenfuturesCore) HistoryGetMarketSymbolExecutions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("historyGetMarketSymbolExecutions", args...)
+// PrivatePutLeveragepreferences returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePutLeveragepreferences(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "leveragepreferences", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePutPnlpreferences returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePutPnlpreferences(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "pnlpreferences", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePutSelfTradeStrategy returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePutSelfTradeStrategy(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "self-trade-strategy", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePutSubaccountUidTradingEnabled returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePutSubaccountUidTradingEnabled(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "subaccount/{uid}/trading-enabled", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePutRfqAssignmentMaxLeverage returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePutRfqAssignmentMaxLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "rfq-assignment/max-leverage", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateDeleteRfqAssignmentMaxLeverage returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateDeleteRfqAssignmentMaxLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "rfq-assignment/max-leverage", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// ChartsGetPriceTypeSymbolInterval returns a channel that yields a JSON object.
+func (this *Krakenfutures) ChartsGetPriceTypeSymbolInterval(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "{price_type}/{symbol}/{interval}", "charts", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// ChartsGetAnalyticsLiquidityPool returns a channel that yields a JSON object.
+func (this *Krakenfutures) ChartsGetAnalyticsLiquidityPool(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "analytics/liquidity-pool", "charts", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// HistoryGetOrders returns a channel that yields a JSON object.
+func (this *Krakenfutures) HistoryGetOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders", "history", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// HistoryGetExecutions returns a channel that yields a JSON object.
+func (this *Krakenfutures) HistoryGetExecutions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "executions", "history", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// HistoryGetTriggers returns a channel that yields a JSON object.
+func (this *Krakenfutures) HistoryGetTriggers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "triggers", "history", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// HistoryGetAccountlogcsv returns a channel that yields a JSON scalar.
+func (this *Krakenfutures) HistoryGetAccountlogcsv(args ...any) <-chan EndpointResult[string] {
+	return Fetch2Result[string](this, "accountlogcsv", "history", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// HistoryGetAccountLog returns a channel that yields a JSON object.
+func (this *Krakenfutures) HistoryGetAccountLog(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account-log", "history", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// HistoryGetMarketSymbolOrders returns a channel that yields a JSON object.
+func (this *Krakenfutures) HistoryGetMarketSymbolOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/{symbol}/orders", "history", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// HistoryGetMarketSymbolExecutions returns a channel that yields a JSON object.
+func (this *Krakenfutures) HistoryGetMarketSymbolExecutions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/{symbol}/executions", "history", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// HistoryGetMarketSymbolPrice returns a channel that yields a JSON object.
+func (this *Krakenfutures) HistoryGetMarketSymbolPrice(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/{symbol}/price", "history", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// HistoryGetPositions returns a channel that yields a JSON object.
+func (this *Krakenfutures) HistoryGetPositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "positions", "history", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

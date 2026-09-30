@@ -7,10 +7,10 @@ namespace Tests;
 
 public partial class BaseTest
 {
-        public void testDatetime()
+        public void testIso8601()
         {
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
-                { "id", "regirock" },
+                { "id", "sampleexchange" },
             });
             Assert(isEqual(exchange.iso8601(514862627000), "1986-04-26T01:23:47.000Z"));
             Assert(isEqual(exchange.iso8601(514862627559), "1986-04-26T01:23:47.559Z"));
@@ -23,12 +23,72 @@ public partial class BaseTest
             Assert(isEqual(exchange.iso8601(""), null));
             Assert(isEqual(exchange.iso8601("a"), null));
             Assert(isEqual(exchange.iso8601(new Dictionary<string, object>() {}), null));
-            // ----------------------------------------------------------------------------
+            // NB: every Assert below must hold byte-for-byte in every language. Timestamps stay within the
+            // year 1970-9999 range, the only range where all the native date implementations agree.
+            // 1ms after epoch is Asserted above
+            Assert(isEqual(exchange.iso8601(1000), "1970-01-01T00:00:01.000Z"));
+            Assert(isEqual(exchange.iso8601(1001), "1970-01-01T00:00:01.001Z"));
+            Assert(isEqual(exchange.iso8601(86399999), "1970-01-01T23:59:59.999Z"));
+            Assert(isEqual(exchange.iso8601(86400000), "1970-01-02T00:00:00.000Z"));
+            // millisecond zero-padding
+            Assert(isEqual(exchange.iso8601(1755432123005), "2025-08-17T12:02:03.005Z"));
+            Assert(isEqual(exchange.iso8601(1755432123050), "2025-08-17T12:02:03.050Z"));
+            Assert(isEqual(exchange.iso8601(1755432123099), "2025-08-17T12:02:03.099Z"));
+            Assert(isEqual(exchange.iso8601(1755432123500), "2025-08-17T12:02:03.500Z"));
+            Assert(isEqual(exchange.iso8601(1755432123999), "2025-08-17T12:02:03.999Z"));
+            // year rollovers, incl. out of a 366-day leap year
+            Assert(isEqual(exchange.iso8601(1704067199999), "2023-12-31T23:59:59.999Z"));
+            Assert(isEqual(exchange.iso8601(1704067200000), "2024-01-01T00:00:00.000Z"));
+            Assert(isEqual(exchange.iso8601(1735689599999), "2024-12-31T23:59:59.999Z"));
+            Assert(isEqual(exchange.iso8601(1735689600000), "2025-01-01T00:00:00.000Z"));
+            // month lengths and boundaries
+            Assert(isEqual(exchange.iso8601(1706702400000), "2024-01-31T12:00:00.000Z"));
+            Assert(isEqual(exchange.iso8601(1706788800000), "2024-02-01T12:00:00.000Z"));
+            Assert(isEqual(exchange.iso8601(1677585600000), "2023-02-28T12:00:00.000Z"));
+            Assert(isEqual(exchange.iso8601(1677672000000), "2023-03-01T12:00:00.000Z"));
+            Assert(isEqual(exchange.iso8601(1714521599999), "2024-04-30T23:59:59.999Z"));
+            Assert(isEqual(exchange.iso8601(1714521600000), "2024-05-01T00:00:00.000Z"));
+            // leap days: regular leap years, leap centuries and non-leap centuries
+            Assert(isEqual(exchange.iso8601(68169600000), "1972-02-29T00:00:00.000Z"));
+            Assert(isEqual(exchange.iso8601(1709164799999), "2024-02-28T23:59:59.999Z"));
+            Assert(isEqual(exchange.iso8601(1709164800000), "2024-02-29T00:00:00.000Z"));
+            Assert(isEqual(exchange.iso8601(1709251199999), "2024-02-29T23:59:59.999Z"));
+            Assert(isEqual(exchange.iso8601(1709251200000), "2024-03-01T00:00:00.000Z"));
+            Assert(isEqual(exchange.iso8601(951782400000), "2000-02-29T00:00:00.000Z"));
+            Assert(isEqual(exchange.iso8601(951868800000), "2000-03-01T00:00:00.000Z"));
+            Assert(isEqual(exchange.iso8601(4107499200000), "2100-02-28T12:00:00.000Z"));
+            Assert(isEqual(exchange.iso8601(4107585600000), "2100-03-01T12:00:00.000Z"));
+            // others
+            // zero is a valid timestamp
+            Assert(isEqual(exchange.iso8601(0), "1970-01-01T00:00:00.000Z"));
+            // plain-integer strings are accepted
+            Assert(isEqual(exchange.iso8601("1755432123456"), "2025-08-17T12:02:03.456Z"));
+            // strings that are not a plain integer are rejected
+            Assert(isEqual(exchange.iso8601("123abc"), null));
+            // non-integer numbers are floored
+            Assert(isEqual(exchange.iso8601(514862627559.9), "1986-04-26T01:23:47.559Z"));
+            // last representable millisecond of year 9999
+            Assert(isEqual(exchange.iso8601(253402300799999), "9999-12-31T23:59:59.999Z"));
+            // one millisecond past the maximum supported range yields undefined
+            Assert(isEqual(exchange.iso8601(8640000000000001), null));
+            // absurdly large / non-finite magnitudes are rejected too. NaN/Infinity
+            // literals don't survive transpilation, but 1e300 does and it exercises the
+            // same > 8.64e15 guard in every port (incl. PHP's is_finite branch)
+            Assert(isEqual(exchange.iso8601(1e+300), null));
+        }
+        public void testParse8601()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
             Assert(isEqual(exchange.parse8601("1986-04-26T01:23:47.000Z"), 514862627000));
             Assert(isEqual(exchange.parse8601("1986-04-26T01:23:47.559Z"), 514862627559));
             Assert(isEqual(exchange.parse8601("1986-04-26T01:23:47.062Z"), 514862627062));
             Assert(isEqual(exchange.parse8601("1986-04-26T01:23:47.06Z"), 514862627060));
             Assert(isEqual(exchange.parse8601("1986-04-26T01:23:47.6Z"), 514862627600));
+            // a negative offset is a zone like any other
+            Assert(isEqual(exchange.parse8601("1986-04-26T01:23:47.559-04:00"), 514877027559));
+            Assert(isEqual(exchange.parse8601("1986-04-26T01:23:47.559+00:00"), 514862627559));
             Assert(isEqual(exchange.parse8601("1977-13-13T00:00:00.000Z"), null));
             Assert(isEqual(exchange.parse8601("1986-04-26T25:71:47.000Z"), null));
             Assert(isEqual(exchange.parse8601("3333"), null));
@@ -39,24 +99,120 @@ public partial class BaseTest
             Assert(isEqual(exchange.parse8601(null), null));
             Assert(isEqual(exchange.parse8601(new Dictionary<string, object>() {}), null));
             Assert(isEqual(exchange.parse8601(33), null));
-            // ----------------------------------------------------------------------------
+        }
+        public void testParseDate()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
             Assert(isEqual(exchange.parseDate("1986-04-26 00:00:00"), 514857600000));
             Assert(isEqual(exchange.parseDate("1986-04-26T01:23:47.000Z"), 514862627000));
             Assert(isEqual(exchange.parseDate("1986-13-13 00:00:00"), null));
-            // GMT formats (todo: bugs in php)
-            // Assert (exchange.parseDate ('Mon, 29 Apr 2024 14:00:17 GMT') === 1714399217000);
-            // Assert (exchange.parseDate ('Mon, 29 Apr 2024 14:09:17 GMT') === 1714399757000);
-            // Assert (exchange.parseDate ('Sun, 29 Dec 2024 01:01:10 GMT') === 1735434070000);
-            // Assert (exchange.parseDate ('Sun, 29 Dec 2024 02:11:10 GMT') === 1735438270000);
-            // Assert (exchange.parseDate ('Sun, 08 Dec 2024 02:03:04 GMT') === 1733623384000);
-            Assert(isEqual(exchange.roundTimeframe("5m", exchange.parse8601("2019-08-12 13:22:08"), ROUND_DOWN), exchange.parse8601("2019-08-12 13:20:00")));
-            Assert(isEqual(exchange.roundTimeframe("10m", exchange.parse8601("2019-08-12 13:22:08"), ROUND_DOWN), exchange.parse8601("2019-08-12 13:20:00")));
-            Assert(isEqual(exchange.roundTimeframe("30m", exchange.parse8601("2019-08-12 13:22:08"), ROUND_DOWN), exchange.parse8601("2019-08-12 13:00:00")));
-            Assert(isEqual(exchange.roundTimeframe("1d", exchange.parse8601("2019-08-12 13:22:08"), ROUND_DOWN), exchange.parse8601("2019-08-12 00:00:00")));
-            Assert(isEqual(exchange.roundTimeframe("5m", exchange.parse8601("2019-08-12 13:22:08"), ROUND_UP), exchange.parse8601("2019-08-12 13:25:00")));
-            Assert(isEqual(exchange.roundTimeframe("10m", exchange.parse8601("2019-08-12 13:22:08"), ROUND_UP), exchange.parse8601("2019-08-12 13:30:00")));
-            Assert(isEqual(exchange.roundTimeframe("30m", exchange.parse8601("2019-08-12 13:22:08"), ROUND_UP), exchange.parse8601("2019-08-12 13:30:00")));
-            Assert(isEqual(exchange.roundTimeframe("1h", exchange.parse8601("2019-08-12 13:22:08"), ROUND_UP), exchange.parse8601("2019-08-12 14:00:00")));
-            Assert(isEqual(exchange.roundTimeframe("1d", exchange.parse8601("2019-08-12 13:22:08"), ROUND_UP), exchange.parse8601("2019-08-13 00:00:00")));
+        }
+        public void testMicroseconds()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
+            Int64 value = exchange.microseconds();
+            string valueString = ((object)value).ToString();
+            Assert(value > 0);
+            Assert((valueString.Length == 16));
+        }
+        public void testMilliseconds()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
+            Int64 value = exchange.milliseconds();
+            string valueString = ((object)value).ToString();
+            Assert(value > 0);
+            Assert((valueString.Length == 13));
+        }
+        public void testSeconds()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
+            Int64 value = exchange.seconds();
+            string valueString = ((object)value).ToString();
+            Assert(value > 0);
+            Assert((valueString.Length == 10));
+        }
+        public void testConvertExpireDate()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
+            // callers write this into expiryDatetime, which types.ts documents with milliseconds
+            Assert(isEqual(exchange.convertExpireDate("260503"), "2026-05-03T00:00:00.000Z"));
+            Assert(isEqual(exchange.convertExpireDate("240426"), "2024-04-26T00:00:00.000Z"));
+            // both spellings of midnight parse to the same instant
+            Assert(isEqual(exchange.parse8601(exchange.convertExpireDate("260503")), 1777766400000));
+            Assert(isEqual(exchange.parse8601("2026-05-03T00:00:00Z"), exchange.parse8601(exchange.convertExpireDate("260503"))));
+            // the notation is now a fixed point of iso8601 (parse8601 (x)) - this is the
+            // invariant the change exists to establish, and it fails on the old spelling
+            Assert(isEqual(exchange.convertExpireDate("260503"), exchange.iso8601(exchange.parse8601(exchange.convertExpireDate("260503")))));
+            Assert(isEqual(exchange.convertExpireDate(null), null));
+        }
+        public void testYymmdd()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
+            object testMs = 1750123456789; // 17 June 2025
+            string? value = exchange.yymmdd(testMs, "_");
+            Assert(value == "25_06_17");
+            string? value2 = exchange.yymmdd(exchange.milliseconds());
+            Assert((value2.Length == 6));
+            Int64? intNum = exchange.parseToInt(value2);
+            Assert((intNum > 260000) && ((intNum == null || intNum < 360000))); // date between 2026 and 2036
+        }
+        public void testYyyymmdd()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
+            object testMs = 1750123456789; // 17 June 2025
+            string? value = exchange.yyyymmdd(testMs, "_");
+            Assert(value == "2025_06_17");
+            string? value2 = exchange.yyyymmdd(exchange.milliseconds());
+            Assert((value2.Length == 10));
+            Int64? intNum = exchange.parseToInt(((string)(value2.Replace((string)"-", (string)""))).Replace((string)"-", (string)""));
+            Assert((intNum > 20260000) && ((intNum == null || intNum < 20360000))); // date between 2026 and 2036
+        }
+        public void testYmd()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
+            object testMs = 1750123456789; // 17 June 2025
+            object value = exchange.ymd(testMs, "_");
+            Assert(isEqual(value, "2025_06_17"));
+        }
+        public void testYmdhms()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
+            object testMs = 1750123456789; // 17 June 2025
+            string? value = exchange.ymdhms(testMs, "_");
+            Assert(value == "2025-06-17_01:24:16" || value == "2025-06-17_01:24:17"); // todo: php/py rounds up to 17
+        }
+        public void testDatetime()
+        {
+            testIso8601();
+            testParse8601();
+            testParseDate();
+            // @SKIP_START_GO
+            testYmd();
+            testYmdhms();
+            // @SKIP_END_GO
+            testMicroseconds();
+            testMilliseconds();
+            testSeconds();
+            testYymmdd();
+            testYyyymmdd();
+            testConvertExpireDate();
         }
 }

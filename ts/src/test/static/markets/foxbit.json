@@ -1,11 +1,14 @@
 {
     "BTC/BRL": {
         "id": "btcbrl",
+        "lowercaseId": null,
         "symbol": "BTC/BRL",
         "base": "BTC",
         "quote": "BRL",
+        "settle": null,
         "baseId": "btc",
         "quoteId": "brl",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -15,44 +18,63 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.005,
         "maker": 0.0025,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "price": 2,
-            "amount": 8,
-            "cost": 2
+            "price": 1,
+            "amount": 1e-8
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.00000165
+                "min": 0.00000103,
+                "max": null
             },
             "price": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
-            "cost": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base": {
                 "name": "Bitcoin",
-                "precision": "8",
+                "precision": 8,
                 "symbol": "btc",
                 "type": "CRYPTO"
             },
             "quote": {
                 "name": "Real",
-                "precision": "2",
+                "precision": 2,
                 "symbol": "brl",
                 "type": "FIAT"
             },
             "symbol": "btcbrl",
-            "quantity_min": "0.00000165",
+            "quantity_min": "0.00000103",
             "quantity_increment": "0.00000001",
-            "quantity_precision": "8",
+            "quantity_precision": 8,
             "price_min": "0.0001",
             "price_increment": "1.0",
-            "price_precision": "0",
+            "price_precision": 0,
             "default_fees": {
                 "maker": "0.0025",
                 "taker": "0.005"
@@ -71,11 +93,14 @@
     },
     "ETH/BRL": {
         "id": "ethbrl",
+        "lowercaseId": null,
         "symbol": "ETH/BRL",
         "base": "ETH",
         "quote": "BRL",
+        "settle": null,
         "baseId": "eth",
         "quoteId": "brl",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -85,44 +110,63 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.005,
         "maker": 0.0025,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "price": 2,
-            "amount": 8,
-            "cost": 2
+            "price": 0.1,
+            "amount": 1e-8
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.00008311
+                "min": 0.00003308,
+                "max": null
             },
             "price": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
-            "cost": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base": {
                 "name": "Ethereum",
-                "precision": "8",
+                "precision": 8,
                 "symbol": "eth",
                 "type": "CRYPTO"
             },
             "quote": {
                 "name": "Real",
-                "precision": "2",
+                "precision": 2,
                 "symbol": "brl",
                 "type": "FIAT"
             },
             "symbol": "ethbrl",
-            "quantity_min": "0.00008311",
+            "quantity_min": "0.00003308",
             "quantity_increment": "0.00000001",
-            "quantity_precision": "8",
+            "quantity_precision": 8,
             "price_min": "0.0001",
-            "price_increment": "1.0",
-            "price_precision": "0",
+            "price_increment": "0.1",
+            "price_precision": 1,
             "default_fees": {
                 "maker": "0.0025",
                 "taker": "0.005"
@@ -141,11 +185,14 @@
     },
     "USDT/BRL": {
         "id": "usdtbrl",
+        "lowercaseId": null,
         "symbol": "USDT/BRL",
         "base": "USDT",
         "quote": "BRL",
+        "settle": null,
         "baseId": "usdt",
         "quoteId": "brl",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -155,44 +202,63 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.005,
         "maker": 0.0025,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "price": 2,
-            "amount": 8,
-            "cost": 2
+            "price": 0.0001,
+            "amount": 0.00001
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.13547611
+                "min": 0.08718565,
+                "max": null
             },
             "price": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
-            "cost": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base": {
                 "name": "Tether",
-                "precision": "8",
+                "precision": 8,
                 "symbol": "usdt",
                 "type": "CRYPTO"
             },
             "quote": {
                 "name": "Real",
-                "precision": "2",
+                "precision": 2,
                 "symbol": "brl",
                 "type": "FIAT"
             },
             "symbol": "usdtbrl",
-            "quantity_min": "0.13547611",
-            "quantity_increment": "0.00000001",
-            "quantity_precision": "8",
+            "quantity_min": "0.08718565",
+            "quantity_increment": "0.00001",
+            "quantity_precision": 5,
             "price_min": "0.0001",
             "price_increment": "0.0001",
-            "price_precision": "4",
+            "price_precision": 4,
             "default_fees": {
                 "maker": "0.0025",
                 "taker": "0.005"
@@ -211,11 +277,14 @@
     },
     "BTC/USDT": {
         "id": "btcusdt",
+        "lowercaseId": null,
         "symbol": "BTC/USDT",
         "base": "BTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "btc",
         "quoteId": "usdt",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -225,53 +294,71 @@
         "index": false,
         "active": true,
         "contract": false,
-        "taker": 0.005,
-        "maker": 0.0025,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.0015,
+        "maker": 0.0002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "price": 8,
-            "amount": 8,
-            "cost": 8
+            "price": 0.01,
+            "amount": 1e-8
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.00000956
+                "min": 0.00000539,
+                "max": null
             },
             "price": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
-            "cost": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base": {
                 "name": "Bitcoin",
-                "precision": "8",
+                "precision": 8,
                 "symbol": "btc",
                 "type": "CRYPTO"
             },
             "quote": {
                 "name": "Tether",
-                "precision": "8",
+                "precision": 8,
                 "symbol": "usdt",
                 "type": "CRYPTO"
             },
             "symbol": "btcusdt",
-            "quantity_min": "0.00000956",
+            "quantity_min": "0.00000539",
             "quantity_increment": "0.00000001",
-            "quantity_precision": "8",
+            "quantity_precision": 8,
             "price_min": "0.0001",
-            "price_increment": "1.0",
-            "price_precision": "0",
+            "price_increment": "0.01",
+            "price_precision": 2,
             "default_fees": {
-                "maker": "0.0025",
-                "taker": "0.005"
+                "maker": "0.0002",
+                "taker": "0.0015"
             },
             "order_type": [
                 "MARKET",
                 "LIMIT",
                 "INSTANT",
-                "STOP_MARKET",
                 "STOP_LIMIT"
             ]
         },
@@ -309,9 +396,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "price": 2,
-            "amount": 6,
-            "cost": 2
+            "price": 0.001,
+            "amount": 0.000001
         },
         "limits": {
             "leverage": {
@@ -319,7 +405,7 @@
                 "max": null
             },
             "amount": {
-                "min": 0.02306746,
+                "min": 0.05521472,
                 "max": null
             },
             "price": {
@@ -339,23 +425,23 @@
         "info": {
             "base": {
                 "name": "XRP",
-                "precision": "6",
+                "precision": 6,
                 "symbol": "xrp",
                 "type": "CRYPTO"
             },
             "quote": {
                 "name": "Real",
-                "precision": "2",
+                "precision": 2,
                 "symbol": "brl",
                 "type": "FIAT"
             },
             "symbol": "xrpbrl",
-            "quantity_min": "0.02306746",
+            "quantity_min": "0.05521472",
             "quantity_increment": "0.000001",
-            "quantity_precision": "6",
+            "quantity_precision": 6,
             "price_min": "0.001",
             "price_increment": "0.001",
-            "price_precision": "3",
+            "price_precision": 3,
             "default_fees": {
                 "maker": "0.0025",
                 "taker": "0.005"

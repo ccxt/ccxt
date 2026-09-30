@@ -1,8 +1,5 @@
-- [Balance Coinbasepro](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -10,7 +7,7 @@ import sys
 
 import ccxt  # noqa: E402
 
-exchange = ccxt.coinbasepro({
+exchange = ccxt.coinbaseexchange({
     'apiKey': "YOUR_API_KEY",
     'secret': "YOUR_SECRET",
     'password': 'zdmj8o7byla',
@@ -21,5 +18,5 @@ exchange = ccxt.coinbasepro({
 exchange.urls['api'] = exchange.urls['test']
 
 print(exchange.fetch_balance())
- 
+
 ```

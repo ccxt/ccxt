@@ -7,42 +7,73 @@ namespace Tests;
 
 public partial class BaseTest
 {
-        async public Task baseTestsInit()
+        async public Task<object> baseTestsInit()
         {
-            testLanguageSpecific();
+            await testLanguageSpecific();
             testConstants();
             testAfterConstructor();
+            testAggregate();
             testExtend();
             testDeepExtend();
             testCryptography();
+            testBinaryToBase16();
+            testBase16ToBinary();
             testBinaryToBase64();
+            testBase64ToBinary();
             testDatetime();
+            testNumberToBE();
             testDecimalToPrecision();
             testCapitalize();
+            testIncrementingNonce();
+            testIsDictionary();
             testNumberToString();
             testPrecise();
             testSafeMethods();
             testSafeTicker();
+            testMergeBalanceAccount();
+            testBase58ToBinary();
+            testToArray();
+            testBinaryToBase58();
             testJson();
             testSortBy();
             testSum();
             testUrlencodeBase64();
+            testStringToBase64();
+            testUrlencode();
             testOmit();
             testGroupBy();
+            testClone();
             testIndexBy();
+            testInArray();
             testFilterBy();
             testHandleMethods();
+            testHandleHttpStatusCode();
+            testNetworkMethods();
             testRemoveRepeatedElementsFromArray();
+            testIsEmpty();
+            testBinaryConcat();
+            testUrlencodeWithArrayRepeat();
             testParsePrecision();
             testPrecisionFromString();
+            testTimeframes();
+            testStrip();
+            testRawencode();
+            testStringToBase16();
             testExtractParams();
+            testArrayConcat();
             testArraysConcat();
             testUuid();
             await testSetMarketsFromExchange();
             testEthMethods();
             testKeysort();
+            testImplodeParams();
             testUnique();
+            testUrlencodeNested();
             await testSleep();
+            await testFetchHistory();
             testIo();
+            testIsJsonEncodedObject();
+            testEncodeDecode();
+            return true;
         }
 }

@@ -15,7 +15,7 @@ import ccxt  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
-exchange = ccxt.okex()
+exchange = ccxt.okx()
 exchange.load_markets()
 for symbol in exchange.markets:
     market = exchange.markets[symbol]

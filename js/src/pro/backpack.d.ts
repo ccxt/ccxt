@@ -1,10 +1,11 @@
 import backpackRest from '../backpack.js';
 import type { Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class backpack extends backpackRest {
     describe(): any;
-    watchPublic(topics: any, messageHashes: any, params?: {}, unwatch?: boolean): Promise<any>;
-    watchPrivate(topics: any, messageHashes: any, params?: {}, unwatch?: boolean): Promise<any>;
+    watchPublic(topics: string[], messageHashes: string[], params?: Dict, unwatch?: boolean): Promise<any>;
+    watchPrivate(topics: string[], messageHashes: string[], params?: Dict, unwatch?: boolean): Promise<any>;
     handleUnsubscriptions(url: string, messageHashes: string[], message: Dict): void;
     /**
      * @method
@@ -15,7 +16,7 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name backpack#unWatchTicker
@@ -35,7 +36,7 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name backpack#unWatchTickers
@@ -45,8 +46,8 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
-    handleTicker(client: Client, message: any): void;
+    unWatchTickers(symbols?: Strings, params?: Dict): Promise<any>;
+    handleTicker(client: Client, message: Dict): void;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -57,7 +58,7 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name backpack#unWatchBidsAsks
@@ -66,9 +67,9 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
-    handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: any): Ticker;
+    unWatchBidsAsks(symbols?: Strings, params?: Dict): Promise<any>;
+    handleBidAsk(client: Client, message: Dict): void;
+    parseWsBidAsk(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name backpack#watchOHLCV
@@ -81,7 +82,7 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name backpack#unWatchOHLCV
@@ -104,7 +105,7 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
+    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: Dict): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
     /**
      * @method
      * @name backpack#unWatchOHLCVForSymbols
@@ -114,9 +115,9 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
-    handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: Dict): Promise<any>;
+    handleOHLCV(client: Client, message: Dict): void;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
      * @name backpack#watchTrades
@@ -128,7 +129,7 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name backpack#unWatchTrades
@@ -150,7 +151,7 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name backpack#unWatchTradesForSymbols
@@ -160,9 +161,9 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
-    handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    unWatchTradesForSymbols(symbols: string[], params?: Dict): Promise<any>;
+    handleTrades(client: Client, message: Dict): void;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
      * @name backpack#watchOrderBook
@@ -171,9 +172,9 @@ export default class backpack extends backpackRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name backpack#watchOrderBookForSymbols
@@ -183,16 +184,16 @@ export default class backpack extends backpackRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name backpack#unWatchOrderBook
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     /**
@@ -202,13 +203,13 @@ export default class backpack extends backpackRest {
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
-    handleOrderBook(client: Client, message: any): void;
-    handleDelta(orderbook: any, delta: any): void;
-    handleBidAsks(bookSide: any, bidAsks: any): void;
-    getCacheIndex(orderbook: any, cache: any): any;
+    unWatchOrderBookForSymbols(symbols: string[], params?: Dict): Promise<any>;
+    handleOrderBook(client: Client, message: Dict): void;
+    handleBookDelta(orderbook: WsOrderBook, delta: any): void;
+    handleBidAsks(bookSide: any, bidAsks: any[]): void;
+    getCacheIndex(orderbook: any, cache: any): number;
     /**
      * @method
      * @name backpack#watchOrders
@@ -220,7 +221,7 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name backpack#unWatchOrders
@@ -230,11 +231,11 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
-    handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
-    parseWsOrderStatus(status: any, market?: any): string;
-    parseWsOrderSide(side: Str): string;
+    unWatchOrders(symbol?: Str, params?: Dict): Promise<any>;
+    handleOrder(client: Client, message: Dict): void;
+    parseWsOrder(order: Dict, market?: Market): Order;
+    parseWsOrderStatus(status: Str, market?: Market): Str;
+    parseWsOrderSide(side: Str): Str;
     /**
      * @method
      * @name backpack#watchPositions
@@ -246,7 +247,7 @@ export default class backpack extends backpackRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     /**
      * @method
      * @name backpack#unWatchPositions
@@ -256,9 +257,9 @@ export default class backpack extends backpackRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    unWatchPositions(symbols?: Strings, params?: {}): Promise<any[]>;
-    handlePositions(client: any, message: any): void;
-    parseWsPosition(position: any, market?: any): Position;
+    unWatchPositions(symbols?: Strings, params?: Dict): Promise<any>;
+    handlePositions(client: Client, message: Dict): void;
+    parseWsPosition(position: Dict, market?: Market): Position;
     handleMessage(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): Bool;
+    handleErrorMessage(client: Client, message: Dict): Bool;
 }

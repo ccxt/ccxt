@@ -1,8 +1,5 @@
-- [Kucoin Fetch All Deposit Addresses By Network](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -26,5 +23,5 @@ try:
     pprint(depositAddresses)
 except Exception as err:
     print(err)
- 
+
 ```

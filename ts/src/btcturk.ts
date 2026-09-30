@@ -1,12 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/btcturk.js';
 import { BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, NullableDict, FeeString, Endpoint, List } from './base/types.js';
+
+;
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +17,7 @@ import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, O
  * @augments Exchange
  */
 export default class btcturk extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'btcturk',
             'name': 'BTCTurk',
@@ -125,7 +127,7 @@ export default class btcturk extends Exchange {
                 '1y': '1 y',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/10e0a238-9f60-4b06-9dda-edfc7602f1d6',
+                'logo': 'https://github.com/user-attachments/assets/710711ff-1278-4e7a-9b03-b5503dd85b59',
                 'api': {
                     'public': 'https://api.btcturk.com/api/v2',
                     'private': 'https://api.btcturk.com/api/v1',
@@ -137,34 +139,40 @@ export default class btcturk extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'orderbook': 1,
-                        'ticker': 0.1,
-                        'trades': 1,   // ?last=COUNT (max 50)
-                        'ohlc': 1,
-                        'server/exchangeinfo': 1,
+                        'orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'ticker/currency': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<Dict>,   // ?last=COUNT (max 50)
+                        'ohlc': { 'cost': 1 } as Endpoint<Dict>,
+                        'server/exchangeinfo': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'users/balances': 1,
-                        'openOrders': 1,
-                        'allOrders': 1,
-                        'users/transactions/trade': 1,
+                        'users/balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'openOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'allOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/transactions/trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/transactions/crypto': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/transactions/fiat': { 'cost': 1 } as Endpoint<Dict>,
+                        'crypto-deposit-declarations': { 'cost': 1 } as Endpoint<List>,
                     },
                     'post': {
-                        'users/transactions/crypto': 1,
-                        'users/transactions/fiat': 1,
-                        'order': 1,
-                        'cancelOrder': 1,
+                        'users/transactions/crypto': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/transactions/fiat': { 'cost': 1 } as Endpoint<Dict>,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'crypto-deposit-declarations/confirm': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'order': 1,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'graph': {
                     'get': {
-                        'ohlcs': 1,
-                        'klines/history': 1,
+                        'ohlcs': { 'cost': 1 } as Endpoint<List>,
+                        'klines/history': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -257,7 +265,7 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetServerExchangeinfo (params);
         //
         //    {
@@ -307,20 +315,23 @@ export default class btcturk extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (entry): Market {
+    override parseMarket (entry: Dict): Market {
         const id = this.safeString (entry, 'name');
         const baseId = this.safeString (entry, 'numerator');
         const quoteId = this.safeString (entry, 'denominator');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const filters = this.safeList (entry, 'filters', []);
-        let minPrice = undefined;
-        let maxPrice = undefined;
-        let minAmount = undefined;
-        let maxAmount = undefined;
-        let minCost = undefined;
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
+        const filters: Dict[] = this.safeList (entry, 'filters', []);
+        let minPrice: Num = undefined;
+        let maxPrice: Num = undefined;
+        let minAmount: Num = undefined;
+        let maxAmount: Num = undefined;
+        let minCost: Num = undefined;
         for (let j = 0; j < filters.length; j++) {
-            const filter = filters[j];
+            const filter = this.safeDict (filters, j);
             const filterType = this.safeString (filter, 'filterType');
             if (filterType === 'PRICE_FILTER') {
                 minPrice = this.safeNumber (filter, 'minPrice');
@@ -331,7 +342,7 @@ export default class btcturk extends Exchange {
             }
         }
         const status = this.safeString (entry, 'status');
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -379,25 +390,27 @@ export default class btcturk extends Exchange {
             },
             'created': undefined,
             'info': entry,
-        };
+        });
     }
 
-    parseBalance (response): Balances {
-        const data = this.safeList (response, 'data', []);
+    override parseBalance (response: any): Balances {
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+            const entry = this.safeDict (data, i);
             const currencyId = this.safeString (entry, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['total'] = this.safeString (entry, 'balance');
             account['free'] = this.safeString (entry, 'free');
             account['used'] = this.safeString (entry, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -410,8 +423,10 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privateGetUsersBalances (params);
         //
         //     {
@@ -440,10 +455,12 @@ export default class btcturk extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'pairSymbol': market['id'],
@@ -465,7 +482,7 @@ export default class btcturk extends Exchange {
         return this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //   {
         //     "pair": "BTCTRY",
@@ -487,10 +504,21 @@ export default class btcturk extends Exchange {
         //   }
         //
         const marketId = this.safeString (ticker, 'pair');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeString (ticker, 'last');
+        const open = this.safeString (ticker, 'open');
+        let change = this.safeString (ticker, 'daily');
+        let percentage = this.safeString (ticker, 'dailyPercent');
+        let average = this.safeString (ticker, 'average');
+        if ((open !== undefined) && (last !== undefined) && !Precise.stringEq (open, '0')) {
+            // The reported daily fields can disagree with last - open.
+            // Let safeTicker derive the unified change, percentage and average from these prices.
+            change = undefined;
+            percentage = undefined;
+            average = undefined;
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -502,17 +530,17 @@ export default class btcturk extends Exchange {
             'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString (ticker, 'open'),
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString (ticker, 'daily'),
-            'percentage': this.safeString (ticker, 'dailyPercent'),
-            'average': this.safeString (ticker, 'average'),
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -524,8 +552,10 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.publicGetTicker (params);
         const tickers = this.safeList (response, 'data');
         return this.parseTickers (tickers, symbols);
@@ -540,13 +570,16 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const tickers = await this.fetchTickers ([ symbol ], params);
-        return this.safeValue (tickers, symbol) as Ticker;
+        const ticker = this.safeDict (tickers, symbol);
+        return ticker as Ticker;
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //     {
@@ -583,7 +616,7 @@ export default class btcturk extends Exchange {
         const marketId = this.safeString (trade, 'pair');
         const symbol = this.safeSymbol (marketId, market);
         const side = this.safeString2 (trade, 'side', 'orderType');
-        let fee = undefined;
+        let fee: FeeString = undefined;
         const feeAmountString = this.safeString (trade, 'fee');
         if (feeAmountString !== undefined) {
             const feeCurrency = this.safeString (trade, 'denominatorSymbol');
@@ -620,8 +653,10 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         // let maxCount = 50;
         const request: Dict = {
@@ -649,10 +684,14 @@ export default class btcturk extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        return this.parseTrades (data, market, since, limit);
+        let dataList: Dict[] = [];
+        if (data !== undefined) {
+            dataList = data;
+        }
+        return this.parseTrades (dataList, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //    {
         //        "timestamp": 1661990400,
@@ -686,27 +725,31 @@ export default class btcturk extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1h', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async fetchOHLCV (symbol: string, timeframe: string = '1h', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
-            'resolution': this.safeValue (this.timeframes, timeframe, timeframe), // allows the user to pass custom timeframes if needed
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe), // allows the user to pass custom timeframes if needed
         };
         const until = this.safeInteger (params, 'until', this.milliseconds ());
         request['to'] = this.parseToInt ((until / 1000));
         if (since !== undefined) {
             request['from'] = this.parseToInt (since / 1000);
-        } else if (limit === undefined) { // since will also be undefined
-            limit = 100; // default value
         }
-        if (limit !== undefined) {
-            limit = Math.min (limit, 11000); // max 11000 candles diapason can be covered
+        let limitDefaulted = limit;
+        if ((since === undefined) && (limit === undefined)) {
+            limitDefaulted = 100; // default value
+        }
+        const limitResolved = (limitDefaulted !== undefined) ? Math.min (limitDefaulted, 11000) : undefined; // max 11000 candles diapason can be covered
+        if (limitResolved !== undefined) {
             if (timeframe === '1y') { // difficult with leap years
                 throw new BadRequest (this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             const seconds = this.parseTimeframe (timeframe);
-            const limitSeconds = seconds * (limit - 1);
+            const limitSeconds = seconds * (limitResolved - 1);
             if (since !== undefined) {
                 const to = this.parseToInt (since / 1000) + limitSeconds;
                 request['to'] = Math.min (request['to'], to);
@@ -750,11 +793,11 @@ export default class btcturk extends Exchange {
         //        ]
         //    }
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limitResolved);
     }
 
-    parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false) {
-        const results = [];
+    override parseOHLCVs (ohlcvs: any, market: any = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false) {
+        const results: OHLCV[] = [];
         const timestamp = this.safeList (ohlcvs, 't', []);
         const high = this.safeList (ohlcvs, 'h', []);
         const open = this.safeList (ohlcvs, 'o', []);
@@ -789,8 +832,10 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'orderType': side,
@@ -807,7 +852,7 @@ export default class btcturk extends Exchange {
             request['newClientOrderId'] = this.uuid ();
         }
         const response = await this.privatePostOrder (this.extend (request, params));
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -817,11 +862,11 @@ export default class btcturk extends Exchange {
      * @description cancels an open order
      * @see https://docs.btcturk.com/private-endpoints/cancel-order
      * @param {string} id order id
-     * @param {string} symbol not used by btcturk cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const request: Dict = {
             'id': id,
         };
@@ -849,10 +894,12 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pairSymbol'] = market['id'];
@@ -875,8 +922,10 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'pairSymbol': market['id'],
@@ -923,7 +972,7 @@ export default class btcturk extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // fetchOrders / fetchOpenOrders
         //     {
@@ -1001,9 +1050,11 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1030,44 +1081,62 @@ export default class btcturk extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        return this.parseTrades (data, market, since, limit);
+        let dataList: Dict[] = [];
+        if (data !== undefined) {
+            dataList = data;
+        }
+        return this.parseTrades (dataList, market, since, limit);
     }
 
-    nonce () {
+    override nonce (): number {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         if (this.id === 'btctrader') {
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }
-        let url = this.urls['api'][api] + '/' + path;
-        if ((method === 'GET') || (method === 'DELETE')) {
-            if (Object.keys (params).length) {
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + path;
+        const isQueryMethod = (method === 'GET') || (method === 'DELETE');
+        if (isQueryMethod) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
-        } else {
-            body = this.json (params);
         }
+        let requestBody = undefined;
+        if (isQueryMethod) {
+            requestBody = body;
+        } else {
+            requestBody = this.json (params);
+        }
+        let privateHeaders: NullableDict = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const secret = this.base64ToBinary (this.secret);
             const auth = this.apiKey + nonce;
-            headers = {
+            privateHeaders = {
                 'X-PCK': this.apiKey,
                 'X-Stamp': nonce,
                 'X-Signature': this.hmac (this.encode (auth), secret, sha256, 'base64'),
                 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const requestHeaders = (privateHeaders !== undefined) ? privateHeaders : headers;
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         const errorCode = this.safeString (response, 'code', '0');
         const message = this.safeString (response, 'message');
-        const output = (message === undefined) ? body : message;
+        let output: Str = message;
+        if (message === undefined) {
+            output = body;
+        }
         this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + output);
         if ((errorCode !== '0') && (errorCode !== 'SUCCESS')) {
             throw new ExchangeError (this.id + ' ' + output);

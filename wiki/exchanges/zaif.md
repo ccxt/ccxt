@@ -32,7 +32,7 @@ retrieves data on all markets for zaif
 
 
 ```javascript
-zaif.fetchMarkets ([params])
+zaif.fetchMarkets (params?)
 ```
 
 
@@ -52,7 +52,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-zaif.fetchBalance ([params])
+zaif.fetchBalance (params?)
 ```
 
 
@@ -62,7 +62,7 @@ zaif.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>zaif</code>](#zaif)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id34  
 
@@ -74,7 +74,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-zaif.fetchOrderBook (symbol[, limit, params])
+zaif.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -95,7 +95,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-zaif.fetchTicker (symbol[, params])
+zaif.fetchTicker (symbol, params?)
 ```
 
 
@@ -118,7 +118,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-zaif.fetchTrades (symbol[, since, limit, params])
+zaif.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -143,7 +143,7 @@ create a trade order
 
 
 ```javascript
-zaif.createOrder (symbol, type, side, amount[, price, params])
+zaif.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -160,12 +160,12 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by zaif cancelOrder () |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-zaif.cancelOrder (id, symbol[, params])
+zaif.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -188,7 +188,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-zaif.fetchOpenOrders (symbol[, since, limit, params])
+zaif.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -211,7 +211,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-zaif.fetchClosedOrders (symbol[, since, limit, params])
+zaif.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -235,6 +235,6 @@ make a withdrawal
 
 
 ```javascript
-zaif.withdraw (code, amount, address, tag[, params])
+zaif.withdraw (code, amount, address, tag, params?)
 ```
 

@@ -89,7 +89,7 @@ fetches the current integer timestamp in milliseconds from the bingx server
 
 
 ```javascript
-bingx.fetchTime ([params])
+bingx.fetchTime (params?)
 ```
 
 
@@ -109,7 +109,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bingx.fetchCurrencies ([params])
+bingx.fetchCurrencies (params?)
 ```
 
 
@@ -134,7 +134,7 @@ retrieves data on all markets for bingx
 
 
 ```javascript
-bingx.fetchMarkets ([params])
+bingx.fetchMarkets (params?)
 ```
 
 
@@ -159,14 +159,14 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch (max 1000 for inverse swaps, 1440 otherwise) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
-bingx.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bingx.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -193,7 +193,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bingx.fetchTrades (symbol[, since, limit, params])
+bingx.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -203,7 +203,7 @@ bingx.fetchTrades (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -215,12 +215,12 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return (max 1000) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bingx.fetchOrderBook (symbol[, limit, params])
+bingx.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -245,7 +245,7 @@ fetch the current funding rate
 
 
 ```javascript
-bingx.fetchFundingRate (symbol[, params])
+bingx.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -271,7 +271,7 @@ fetch the current funding rate for multiple symbols
 
 
 ```javascript
-bingx.fetchFundingRates ([symbols, params])
+bingx.fetchFundingRates (symbols?, params?)
 ```
 
 
@@ -287,16 +287,16 @@ fetches historical funding rate prices
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for, inverse (Coin-M) markets are not supported |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch (max 1000) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate to fetch |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
-bingx.fetchFundingRateHistory (symbol[, since, limit, params])
+bingx.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -312,15 +312,16 @@ fetches historical funding received
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding history for |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding history for, inverse (Coin-M) markets are not supported |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding to fetch |
 | limit | <code>int</code> | No | the maximum amount of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding to fetch |
 
 
 ```javascript
-bingx.fetchFundingHistory (symbol[, since, limit, params])
+bingx.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -345,7 +346,7 @@ retrieves the open interest of a trading pair
 
 
 ```javascript
-bingx.fetchOpenInterest (symbol[, params])
+bingx.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -371,7 +372,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bingx.fetchTicker (symbol[, params])
+bingx.fetchTicker (symbol, params?)
 ```
 
 
@@ -397,7 +398,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bingx.fetchTickers (symbols[, params])
+bingx.fetchTickers (symbols, params?)
 ```
 
 
@@ -422,7 +423,7 @@ fetches mark prices for the market
 
 
 ```javascript
-bingx.fetchMarkPrice (symbol[, params])
+bingx.fetchMarkPrice (symbol, params?)
 ```
 
 
@@ -447,7 +448,7 @@ fetches mark prices for multiple markets
 
 
 ```javascript
-bingx.fetchMarkPrices ([symbols, params])
+bingx.fetchMarkPrices (symbols?, params?)
 ```
 
 
@@ -475,7 +476,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bingx.fetchBalance ([params])
+bingx.fetchBalance (params?)
 ```
 
 
@@ -494,12 +495,12 @@ fetches historical positions
 | symbol | <code>string</code> | Yes | unified contract symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch positions for |
 | limit | <code>int</code> | No | the maximum amount of records to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch positions for |
 
 
 ```javascript
-bingx.fetchPositionHistory (symbol[, since, limit, params])
+bingx.fetchPositionHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -526,7 +527,7 @@ fetch all open positions
 
 
 ```javascript
-bingx.fetchPositions (symbols[, params])
+bingx.fetchPositions (symbols, params?)
 ```
 
 
@@ -551,14 +552,14 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-bingx.fetchPosition (symbol[, params])
+bingx.fetchPosition (symbol, params?)
 ```
 
 
 <a name="createMarketOrderWithCost" id="createmarketorderwithcost"></a>
 
 ### createMarketOrderWithCost{docsify-ignore}
-create a market order by providing the symbol, side and cost
+create a spot market order by providing the symbol, side and cost
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
@@ -573,14 +574,14 @@ create a market order by providing the symbol, side and cost
 
 
 ```javascript
-bingx.createMarketOrderWithCost (symbol, side, cost[, params])
+bingx.createMarketOrderWithCost (symbol, side, cost, params?)
 ```
 
 
 <a name="createMarketBuyOrderWithCost" id="createmarketbuyorderwithcost"></a>
 
 ### createMarketBuyOrderWithCost{docsify-ignore}
-create a market buy order by providing the symbol and cost
+create a spot market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
@@ -594,14 +595,14 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-bingx.createMarketBuyOrderWithCost (symbol, cost[, params])
+bingx.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
 <a name="createMarketSellOrderWithCost" id="createmarketsellorderwithcost"></a>
 
 ### createMarketSellOrderWithCost{docsify-ignore}
-create a market sell order by providing the symbol and cost
+create a spot market sell order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
@@ -615,7 +616,7 @@ create a market sell order by providing the symbol and cost
 
 
 ```javascript
-bingx.createMarketSellOrderWithCost (symbol, cost[, params])
+bingx.createMarketSellOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -650,20 +651,22 @@ create a trade order
 | params.triggerPrice | <code>float</code> | No | triggerPrice at which the attached take profit / stop loss order will be triggered |
 | params.stopLossPrice | <code>float</code> | No | stop loss trigger price |
 | params.takeProfitPrice | <code>float</code> | No | take profit trigger price |
-| params.cost | <code>float</code> | No | the quote quantity that can be used as an alternative for the amount |
+| params.cost | <code>float</code> | No | *spot only* the quote quantity that can be used as an alternative for the amount |
+| params.quoteOrderQty | <code>float</code> | No | *spot only* the quote quantity, an alternative to params.cost |
 | params.trailingAmount | <code>float</code> | No | *swap only* the quote amount to trail away from the current market price |
 | params.trailingPercent | <code>float</code> | No | *swap only* the percent to trail away from the current market price |
 | params.takeProfit | <code>object</code> | No | *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered |
 | params.takeProfit.triggerPrice | <code>float</code> | No | take profit trigger price |
 | params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered |
 | params.stopLoss.triggerPrice | <code>float</code> | No | stop loss trigger price |
-| params.test | <code>boolean</code> | No | *swap only* whether to use the test endpoint or not, default is false |
+| params.test | <code>boolean</code> | No | *linear swap only* whether to use the test endpoint or not, default is false |
 | params.positionSide | <code>string</code> | No | *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode |
 | params.hedged | <code>boolean</code> | No | *swap only* whether the order is in hedged mode or one way mode |
+| params.closePosition | <code>bool</code> | No | *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent |
 
 
 ```javascript
-bingx.createOrder (symbol, type, side, amount[, price, params])
+bingx.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -683,13 +686,13 @@ create a list of trade orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
+| orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params, linear swap and spot only |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.sync | <code>boolean</code> | No | *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type |
 
 
 ```javascript
-bingx.createOrders (orders[, params])
+bingx.createOrders (orders, params?)
 ```
 
 
@@ -718,7 +721,7 @@ cancels an open order
 
 
 ```javascript
-bingx.cancelOrder (id, symbol[, params])
+bingx.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -746,7 +749,7 @@ cancel all open orders
 
 
 ```javascript
-bingx.cancelAllOrders ([symbol, params])
+bingx.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -767,13 +770,13 @@ cancel multiple orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | Yes | unified market symbol, default is undefined |
+| symbol | <code>string</code> | Yes | unified market symbol, inverse (Coin-M) markets are not supported |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderIds | <code>Array&lt;string&gt;</code> | No | client order ids |
 
 
 ```javascript
-bingx.cancelOrders (ids, symbol[, params])
+bingx.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -796,10 +799,11 @@ dead man's switch, cancel all orders after the given timeout
 | timeout | <code>number</code> | Yes | time in milliseconds, 0 represents cancel the timer |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | spot or swap market |
+| params.subType | <code>string</code> | No | 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported |
 
 
 ```javascript
-bingx.cancelAllOrdersAfter (timeout[, params])
+bingx.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -828,7 +832,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bingx.fetchOrder (id, symbol[, params])
+bingx.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -848,7 +852,7 @@ fetches information on multiple orders made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| symbol | <code>string</code> | No | unified market symbol of the market orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -857,7 +861,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bingx.fetchOrders (symbol[, since, limit, params])
+bingx.fetchOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -887,7 +891,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bingx.fetchOpenOrders (symbol[, since, limit, params])
+bingx.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -909,7 +913,7 @@ fetches information on multiple closed orders made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the closed orders |
+| symbol | <code>string</code> | No | unified market symbol of the closed orders |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the max number of closed orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -918,7 +922,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bingx.fetchClosedOrders (symbol[, since, limit, params])
+bingx.fetchClosedOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -940,7 +944,7 @@ fetches information on multiple canceled orders made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the canceled orders |
+| symbol | <code>string</code> | No | unified market symbol of the canceled orders |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the max number of canceled orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -949,7 +953,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-bingx.fetchCanceledOrders (symbol[, since, limit, params])
+bingx.fetchCanceledOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -982,7 +986,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bingx.fetchCanceledAndClosedOrders ([symbol, since, limit, params])
+bingx.fetchCanceledAndClosedOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1006,7 +1010,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-bingx.transfer (code, amount, fromAccount, toAccount[, params])
+bingx.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -1026,13 +1030,15 @@ fetch a history of internal transfers made on an account
 | since | <code>int</code> | No | the earliest time in ms to fetch transfers for |
 | limit | <code>int</code> | No | the maximum number of transfers structures to retrieve (default 10, max 100) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.fromAccount | <code>string</code> | Yes | (mandatory) transfer from (spot, swap (linear or inverse), future, or funding) |
-| params.toAccount | <code>string</code> | Yes | (mandatory) transfer to (spot, swap(linear or inverse), future, or funding) |
+| params.fromAccount | <code>string</code> | No | transfer from (spot, swap (linear or inverse), future, or funding), required unless transferId is provided |
+| params.toAccount | <code>string</code> | No | transfer to (spot, swap(linear or inverse), future, or funding), required unless transferId is provided |
+| params.transferId | <code>string</code> | No | the transfer ID, either transferId or both fromAccount and toAccount are required |
+| params.until | <code>int</code> | No | the latest time in ms to fetch transfers for |
 | params.paginate | <code>boolean</code> | No | whether to paginate the results (default false) |
 
 
 ```javascript
-bingx.fetchTransfers ([code, since, limit, params])
+bingx.fetchTransfers (code?, since?, limit?, params?)
 ```
 
 
@@ -1053,7 +1059,7 @@ fetch the deposit addresses for a currency associated with this account
 
 
 ```javascript
-bingx.fetchDepositAddressesByNetwork (code[, params])
+bingx.fetchDepositAddressesByNetwork (code, params?)
 ```
 
 
@@ -1075,7 +1081,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bingx.fetchDepositAddress (code[, params])
+bingx.fetchDepositAddress (code, params?)
 ```
 
 
@@ -1095,10 +1101,11 @@ fetch all deposits made to an account
 | since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
 | limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch deposits for |
 
 
 ```javascript
-bingx.fetchDeposits ([code, since, limit, params])
+bingx.fetchDeposits (code?, since?, limit?, params?)
 ```
 
 
@@ -1118,10 +1125,11 @@ fetch all withdrawals made from an account
 | since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
 | limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch withdrawals for |
 
 
 ```javascript
-bingx.fetchWithdrawals ([code, since, limit, params])
+bingx.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -1147,7 +1155,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-bingx.setMarginMode (marginMode, symbol[, params])
+bingx.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -1165,11 +1173,11 @@ Either adds or reduces margin in an isolated position in order to set the margin
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market to set margin in |
 | amount | <code>float</code> | Yes | the amount to set the margin to |
-| params | <code>object</code> | No | parameters specific to the bingx api endpoint |
+| params | <code>object</code> | No | parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bingx.setMargin (symbol, amount[, params])
+bingx.setMargin (symbol, amount, params?)
 ```
 
 
@@ -1194,7 +1202,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-bingx.fetchLeverage (symbol[, params])
+bingx.fetchLeverage (symbol, params?)
 ```
 
 
@@ -1221,7 +1229,7 @@ set the level of leverage for a market
 
 
 ```javascript
-bingx.setLeverage (leverage, symbol[, params])
+bingx.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -1252,7 +1260,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bingx.fetchMyTrades ([symbol, since, limit, params])
+bingx.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1273,7 +1281,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-bingx.fetchDepositWithdrawFees (codes[, params])
+bingx.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -1298,7 +1306,7 @@ make a withdrawal
 
 
 ```javascript
-bingx.withdraw (code, amount, address[, tag, params])
+bingx.withdraw (code, amount, address, tag?, params?)
 ```
 
 
@@ -1320,13 +1328,13 @@ retrieves the users liquidated positions
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | No | unified CCXT market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
-| limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve (max 100) |
 | params | <code>object</code> | No | exchange specific parameters for the bingx api endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest liquidation |
 
 
 ```javascript
-bingx.fetchMyLiquidations ([symbol, since, limit, params])
+bingx.fetchMyLiquidations (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1349,12 +1357,12 @@ closes open positions for a market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | No | not used by bingx |
-| params | <code>object</code> | No | extra parameters specific to the bingx api endpoint |
-| params.positionId | <code>string</code>, <code>undefined</code> | No | the id of the position you would like to close |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.positionId | <code>string</code>, <code>undefined</code> | No | the id of the position you would like to close, only supported for linear swap |
 
 
 ```javascript
-bingx.closePosition (symbol[, side, params])
+bingx.closePosition (symbol, side?, params?)
 ```
 
 
@@ -1370,12 +1378,12 @@ fetchs the position mode, hedged or one way, hedged for binance is set identical
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| symbol | <code>string</code> | Yes | unified market symbol, inverse (Coin-M) markets are not supported |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bingx.fetchPositionMode (symbol[, params])
+bingx.fetchPositionMode (symbol, params?)
 ```
 
 
@@ -1392,12 +1400,12 @@ set hedged to true or false for a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | hedged | <code>bool</code> | Yes | set to true to use dualSidePosition |
-| symbol | <code>string</code> | Yes | not used by bingx setPositionMode () |
+| symbol | <code>string</code> | Yes | unified market symbol, inverse (Coin-M) markets are not supported |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bingx.setPositionMode (hedged, symbol[, params])
+bingx.setPositionMode (hedged, symbol, params?)
 ```
 
 
@@ -1418,7 +1426,7 @@ cancels an order and places a new order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in, inverse (Coin-M) markets are not supported |
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of the currency you want to trade in units of the base currency |
@@ -1441,7 +1449,7 @@ cancels an order and places a new order
 
 
 ```javascript
-bingx.editOrder (id, symbol, type, side, amount[, price, params])
+bingx.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -1466,7 +1474,7 @@ fetches the margin mode of the trading pair
 
 
 ```javascript
-bingx.fetchMarginMode (symbol[, params])
+bingx.fetchMarginMode (symbol, params?)
 ```
 
 
@@ -1492,7 +1500,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-bingx.fetchTradingFee (symbol[, params])
+bingx.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -1508,12 +1516,12 @@ retrieve information on the maximum leverage, for different trade sizes for a si
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | Yes | unified market symbol, inverse (Coin-M) markets are not supported |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bingx.fetchMarketLeverageTiers (symbol[, params])
+bingx.fetchMarketLeverageTiers (symbol, params?)
 ```
 
 
@@ -1539,7 +1547,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bingx.watchTicker (symbol[, params])
+bingx.watchTicker (symbol, params?)
 ```
 
 
@@ -1565,7 +1573,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-bingx.unWatchTicker (symbol[, params])
+bingx.unWatchTicker (symbol, params?)
 ```
 
 
@@ -1593,7 +1601,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-bingx.watchTrades (symbol[, since, limit, params])
+bingx.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1620,7 +1628,7 @@ unsubscribes from the trades channel
 
 
 ```javascript
-bingx.unWatchTrades (symbol[, params])
+bingx.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1630,7 +1638,7 @@ bingx.unWatchTrades (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1647,7 +1655,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bingx.watchOrderBook (symbol[, limit, params])
+bingx.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1657,7 +1665,7 @@ bingx.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1673,7 +1681,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-bingx.unWatchOrderBook (symbol[, params])
+bingx.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1702,7 +1710,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bingx.watchOHLCV (symbol, timeframe[, since, limit, params])
+bingx.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1729,7 +1737,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-bingx.unWatchOHLCV (symbol, timeframe[, params])
+bingx.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -1757,7 +1765,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bingx.watchOrders ([symbol, since, limit, params])
+bingx.watchOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1785,7 +1793,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-bingx.watchMyTrades ([symbol, since, limit, params])
+bingx.watchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1810,7 +1818,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bingx.watchBalance ([params])
+bingx.watchBalance (params?)
 ```
 
 
@@ -1833,6 +1841,6 @@ watch all open positions
 
 
 ```javascript
-bingx.watchPositions ([symbols, since, limit, params])
+bingx.watchPositions (symbols?, since?, limit?, params?)
 ```
 

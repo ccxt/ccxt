@@ -20,7 +20,7 @@ function test_watch_position($exchange, $skipped_properties, $symbol) {
             $response = null;
             $success = true;
             try {
-                $response = Async\await($exchange->watch_position($symbol));
+                $response = \React\Async\await($exchange->watch_position($symbol));
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;
@@ -29,10 +29,10 @@ function test_watch_position($exchange, $skipped_properties, $symbol) {
                 // continue;
                 $success = false;
             }
-            if ($success === true) {
-                assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($response));
+            if (($success === true) && ($response !== null)) {
+                assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return a dictionary. ' . $exchange->json($response));
                 $now = $exchange->milliseconds();
-                test_position($exchange, $skipped_properties, $method, $response, null, $now);
+                test_position($exchange, $skipped_properties, $method, $response, $symbol, $now);
             }
         }
         return true;

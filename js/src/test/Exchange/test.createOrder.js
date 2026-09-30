@@ -14,19 +14,24 @@ function tcoDebug(exchange, symbol, message) {
     const debugCreateOrder = true;
     if (debugCreateOrder) {
         // for c# fix, extra step to convert them to string
-        console.log(' >>>>> testCreateOrder [', (exchange['id']).toString(), ' : ', symbol, '] ', message);
+        const msg = ' >>>>> testCreateOrder [' + (exchange['id']).toString() + ' : ' + symbol + '] ' + message;
+        console.log(msg);
     }
     return true;
 }
 // ----------------------------------------------------------------------------
 async function testCreateOrder(exchange, skippedProperties, symbol) {
     const logPrefix = testSharedMethods.logTemplate(exchange, 'createOrder', [symbol]);
-    assert(exchange.has['cancelOrder'] || exchange.has['cancelOrders'] || exchange.has['cancelAllOrders'], logPrefix + ' does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test...');
+    const hasCancelOrder = (exchange.has['cancelOrder'] !== undefined) && (exchange.has['cancelOrder'] !== false);
+    const hasCancelOrders = (exchange.has['cancelOrders'] !== undefined) && (exchange.has['cancelOrders'] !== false);
+    const hasCancelAllOrders = (exchange.has['cancelAllOrders'] !== undefined) && (exchange.has['cancelAllOrders'] !== false);
+    assert(hasCancelOrder || hasCancelOrders || hasCancelAllOrders, logPrefix + ' does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test...');
     // pre-define some coefficients, which will be used down below
     const limitPriceSafetyMultiplierFromMedian = 1.045; // todo: when this https://github.com/ccxt/ccxt/issues/22442 is implemented, we'll remove hardcoded value. atm 5% is enough
     const market = exchange.market(symbol);
-    const isSwapFuture = market['swap'] || market['future'];
-    assert(exchange.has['fetchBalance'], logPrefix + ' does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test...');
+    const isSwapFuture = (market['swap'] === true) || (market['future'] === true);
+    const hasFetchBalance = (exchange.has['fetchBalance'] !== undefined) && (exchange.has['fetchBalance'] !== false);
+    assert(hasFetchBalance, logPrefix + ' does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test...');
     const balance = await exchange.fetchBalance();
     const initialBaseBalance = balance[market['base']]['free'];
     const initialQuoteBalance = balance[market['quote']]['free'];
@@ -36,19 +41,19 @@ async function testCreateOrder(exchange, skippedProperties, symbol) {
     // **************** [Scenario 1 - START] **************** //
     tcoDebug(exchange, symbol, '### SCENARIO 1 ###');
     // create a "limit order" which IS GUARANTEED not to have a fill (i.e. being far from the real price)
-    await tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy', undefined);
+    await tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy');
     if (isSwapFuture) {
         // for swap markets, we test sell orders too
-        await tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'sell', undefined);
+        await tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'sell');
     }
     tcoDebug(exchange, symbol, '### SCENARIO 1 PASSED ###');
     // **************** [Scenario 2 - START] **************** //
     tcoDebug(exchange, symbol, '### SCENARIO 2 ###');
     // create an order which IS GUARANTEED to have a fill (full or partial)
-    await tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy', undefined);
+    await tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy');
     if (isSwapFuture) {
         // for swap markets, we test sell orders too
-        await tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'sell', undefined);
+        await tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'sell');
     }
     tcoDebug(exchange, symbol, '### SCENARIO 2 PASSED ###');
     // **************** [Scenario 3 - START] **************** //
@@ -76,7 +81,7 @@ async function tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProp
         if (maximumPrice !== undefined && limitSellPrice_nonFillable > maximumPrice) {
             limitSellPrice_nonFillable = maximumPrice;
         }
-        let createdOrder = undefined;
+        let createdOrder;
         if (buyOrSell === 'buy') {
             const orderAmount = tcoGetMinimumAmountForLimitPrice(exchange, market, limitBuyPrice_nonFillable, predefinedAmount);
             createdOrder = await tcoCreateOrderSafe(exchange, symbol, 'limit', 'buy', orderAmount, limitBuyPrice_nonFillable, {}, skippedProperties);
@@ -105,7 +110,7 @@ async function tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProp
 }
 async function tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, buyOrSellString, predefinedAmount = undefined) {
     try {
-        const isSwapFuture = market['swap'] || market['future'];
+        const isSwapFuture = (market['swap'] === true) || (market['future'] === true);
         const isBuy = (buyOrSellString === 'buy');
         const entrySide = isBuy ? 'buy' : 'sell';
         const exitSide = isBuy ? 'sell' : 'buy';
@@ -130,7 +135,8 @@ async function tcoCreateFillableOrder(exchange, market, logPrefix, skippedProper
         if (isSwapFuture) {
             params['reduceOnly'] = true;
         }
-        const exitorderFilled = await tcoCreateOrderSafe(exchange, symbol, 'market', exitSide, amountToClose, (market['spot'] ? undefined : exitorderPrice), params, skippedProperties);
+        const exitorderPriceArg = (market['spot'] === true) ? undefined : exitorderPrice;
+        const exitorderFilled = await tcoCreateOrderSafe(exchange, symbol, 'market', exitSide, amountToClose, exitorderPriceArg, params, skippedProperties);
         const exitorderFetched = await testSharedMethods.fetchOrder(exchange, symbol, exitorderFilled['id'], skippedProperties);
         tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
     }
@@ -164,15 +170,15 @@ async function tcoCancelOrder(exchange, symbol, orderId = undefined) {
     const logPrefix = testSharedMethods.logTemplate(exchange, 'createOrder', [symbol]);
     let usedMethod = '';
     let cancelResult = undefined;
-    if (exchange.has['cancelOrder'] && orderId !== undefined) {
+    if ((exchange.has['cancelOrder'] !== undefined) && (exchange.has['cancelOrder'] !== false) && (orderId !== undefined)) {
         usedMethod = 'cancelOrder';
         cancelResult = await exchange.cancelOrder(orderId, symbol);
     }
-    else if (exchange.has['cancelAllOrders']) {
+    else if ((exchange.has['cancelAllOrders'] !== undefined) && (exchange.has['cancelAllOrders'] !== false)) {
         usedMethod = 'cancelAllOrders';
         cancelResult = await exchange.cancelAllOrders(symbol);
     }
-    else if (exchange.has['cancelOrders']) {
+    else if ((exchange.has['cancelOrders'] !== undefined) && (exchange.has['cancelOrders'] !== false)) {
         // todo: uncomment after cancelOrders unification: https://github.com/ccxt/ccxt/pull/22199
         // usedMethod = 'cancelOrders';
         // if (orderId === undefined) {
@@ -252,9 +258,12 @@ function tcoGetMinimumAmountForLimitPrice(exchange, market, price, predefinedAmo
 }
 async function tcoTryCancelOrder(exchange, symbol, order, skippedProperties) {
     const orderFetched = await testSharedMethods.fetchOrder(exchange, symbol, order['id'], skippedProperties);
+    if (orderFetched === undefined) {
+        return true;
+    }
     const needsCancel = exchange.inArray(orderFetched['status'], ['open', 'pending', undefined]);
     // if it was not reported as closed/filled, then try to cancel it
-    if (needsCancel) {
+    if (needsCancel === true) {
         tcoDebug(exchange, symbol, 'trying to cancel the remaining amount of partially filled order...');
         try {
             await tcoCancelOrder(exchange, symbol, order['id']);
