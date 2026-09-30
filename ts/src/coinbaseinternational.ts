@@ -821,29 +821,30 @@ export default class coinbaseinternational extends Exchange {
             'instrument_name': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
+        let limitResolved: Int = limit;
         const duration = this.parseTimeframe (timeframe);
         const now = this.milliseconds ();
         if (since === undefined) {
-            if (limit === undefined) {
-                limit = 100;
+            if (limitResolved === undefined) {
+                limitResolved = 100;
             }
-            request['start_timestamp'] = this.sum (now, -limit * duration * 1000);
+            request['start_timestamp'] = this.sum (now, -limitResolved * duration * 1000);
             request['end_timestamp'] = now;
         } else {
             since = Math.max (since - 1, 0);
             request['start_timestamp'] = since;
-            if (limit === undefined) {
+            if (limitResolved === undefined) {
                 request['end_timestamp'] = now;
             } else {
-                request['end_timestamp'] = this.sum (since, limit * duration * 1000);
+                request['end_timestamp'] = this.sum (since, limitResolved * duration * 1000);
             }
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsPaginate, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['end_timestamp'] = until;
         }
-        const response = await this.publicGetGetTradingviewChartData (this.extend (request, params));
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (paramsPaginate, 'until') : paramsPaginate;
+        const response = await this.publicGetGetTradingviewChartData (this.extend (request, paramsOmitted));
         //
         //     {
         //         "usOut": 1788853501919338,
@@ -919,10 +920,10 @@ export default class coinbaseinternational extends Exchange {
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['end_timestamp'] = until;
         }
-        const response = await this.publicGetGetFundingRateHistory (this.extend (request, params));
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
+        const response = await this.publicGetGetFundingRateHistory (this.extend (request, paramsOmitted));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -1512,11 +1513,11 @@ export default class coinbaseinternational extends Exchange {
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['end_timestamp'] = until;
         }
         await this.authenticateV2 ();
-        const response = await this.privateGetGetTransactionLog (this.extend (request, params));
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
+        const response = await this.privateGetGetTransactionLog (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": 4,
@@ -1803,14 +1804,14 @@ export default class coinbaseinternational extends Exchange {
         };
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['end_timestamp'] = until;
         }
         if (limit !== undefined) {
             request['count'] = limit;
         }
         await this.authenticateV2 ();
-        const response = await this.privateGetGetTransactionLog (this.extend (request, params));
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
+        const response = await this.privateGetGetTransactionLog (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": 4,

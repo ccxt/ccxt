@@ -5,6 +5,7 @@ import { ExchangeError, NotSupported, ArgumentsRequired } from '../base/errors.j
 import { Ticker, Int, Str, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool, Balances, Order, Position, OrderType, OrderSide, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1066,7 +1067,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         orderbook['datetime'] = this.iso8601 (timestamp);
         this.orderbooks[symbol] = orderbook;
         if (channel !== undefined) {
-            client.resolve (orderbook, channel);bol);
+            client.resolve (orderbook, channel);
         }
     }
 
