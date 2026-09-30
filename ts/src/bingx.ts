@@ -3421,8 +3421,8 @@ export default class bingx extends Exchange {
      * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
      * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
      * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
-     * @param {float} [params.stopLossPrice] stop loss trigger price
-     * @param {float} [params.takeProfitPrice] take profit trigger price
+     * @param {float} [params.stopLossPrice] stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
+     * @param {float} [params.takeProfitPrice] take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
      * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
      * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
@@ -3992,7 +3992,12 @@ export default class bingx extends Exchange {
         const marketId = this.safeString2 (orderData, 'symbol', 's');
         const marketResolved: Market = this.safeMarket ((market === undefined) ? marketId : undefined, market, undefined, marketType);
         const side = this.safeStringLower2 (orderData, 'side', 'S');
-        const timestamp = this.safeIntegerN (orderData, [ 'time', 'transactTime', 'E', 'createdTime' ]);
+        let timestamp = this.safeIntegerN (orderData, [ 'time', 'transactTime', 'E', 'createdTime' ]);
+        const transactTime = this.safeString (orderData, 'transactTime', '') as string;
+        if (transactTime.length === 10) {
+            // spot conditional orders are created with transactTime in seconds
+            timestamp = this.safeTimestamp (orderData, 'transactTime');
+        }
         const lastTradeTimestamp = this.safeInteger2 (orderData, 'updateTime', 'T');
         const statusId = this.safeStringUpperN (orderData, [ 'status', 'X', 'orderStatus' ]);
         let feeCurrencyCode = this.safeString2 (orderData, 'feeAsset', 'N');
