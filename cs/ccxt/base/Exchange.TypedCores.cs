@@ -4462,6 +4462,39 @@ public partial class BaseExchange
         {
             result["tiers"] = typed.tiers;
         }
+        if (typed.market != null)
+        {
+            result["market"] = typed.market;
+        }
+        if (typed.marketType != null)
+        {
+            result["marketType"] = typed.marketType;
+        }
+        if (typed.executionModel != null)
+        {
+            result["executionModel"] = typed.executionModel;
+        }
+        if (typed.collateral != null)
+        {
+            result["collateral"] = typed.collateral;
+        }
+        if (typed.resolved != null)
+        {
+            result["resolved"] = typed.resolved;
+        }
+        if (typed.resolvedOutcome != null)
+        {
+            result["resolvedOutcome"] = typed.resolvedOutcome;
+        }
+        if (typed.outcomes != null)
+        {
+            var outcomesRows = new List<object>();
+            foreach (var item in typed.outcomes)
+            {
+                outcomesRows.Add(FromPredictionOutcome(item));
+            }
+            result["outcomes"] = outcomesRows;
+        }
         return result;
     }
 

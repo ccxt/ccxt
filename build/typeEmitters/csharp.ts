@@ -384,6 +384,9 @@ export function csExprOf (idiom: string, recv: string, key: string, elem: string
     if (idiom === 'containsSelectToList') {
         return recv + '.ContainsKey(' + k + ') && ' + recv + '[' + k + '] != null ? ((IEnumerable<object>)' + recv + '[' + k + ']).Select(x => new ' + elem + '(x)).ToList() : null';
     }
+    if (idiom === 'safeValueSelectToList') {
+        return 'Exchange.SafeValue(' + recv + ', ' + k + ') != null ? ((IEnumerable<object>)Exchange.SafeValue(' + recv + ', ' + k + ')).Select(x => new ' + elem + '(x)).ToList() : null';
+    }
     if (idiom === 'stringList') {
         return recv + '.ContainsKey(' + k + ') && ' + recv + '[' + k + '] != null ? ((IEnumerable<object>)' + recv + '[' + k + ']).Select(x => (string)x).ToList() : null';
     }

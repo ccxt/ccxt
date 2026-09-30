@@ -250,6 +250,12 @@ public struct Market
     public string? id2;
     public Int64? instIdCode;
     public Dictionary<string, object>? tiers;
+    public string? market;
+    public string? marketType;
+    public string? executionModel;
+    public string? collateral;
+    public bool? resolved;
+    public string? resolvedOutcome;
     public Market(object market2)
     {
         var market = (Dictionary<string, object>)market2;
@@ -292,6 +298,12 @@ public struct Market
         id2 = Exchange.SafeString(market, "id2");
         instIdCode = Exchange.SafeInteger(market, "instIdCode");
         tiers = Exchange.SafeValue(market, "tiers") != null ? (Dictionary<string, object>)Exchange.SafeValue(market, "tiers") : null;
+        this.market = Exchange.SafeString(market, "market");
+        marketType = Exchange.SafeString(market, "marketType");
+        executionModel = Exchange.SafeString(market, "executionModel");
+        collateral = Exchange.SafeString(market, "collateral");
+        resolved = market.ContainsKey("resolved") && market["resolved"] != null ? (bool)market["resolved"] : null;
+        resolvedOutcome = Exchange.SafeString(market, "resolvedOutcome");
     }
 }
 
@@ -1946,6 +1958,13 @@ public struct MarketInterface
     public string? id2;
     public Int64? instIdCode;
     public Dictionary<string, object>? tiers;
+    public string? market;
+    public string? marketType;
+    public string? executionModel;
+    public string? collateral;
+    public bool? resolved;
+    public string? resolvedOutcome;
+    public List<PredictionOutcome>? outcomes;
     public MarketInterface(object market)
     {
         info = Helper.GetInfo(market);
@@ -1994,6 +2013,13 @@ public struct MarketInterface
         id2 = Exchange.SafeString(market, "id2");
         instIdCode = Exchange.SafeInteger(market, "instIdCode");
         tiers = Exchange.SafeValue(market, "tiers") != null ? (Dictionary<string, object>)Exchange.SafeValue(market, "tiers") : null;
+        this.market = Exchange.SafeString(market, "market");
+        marketType = Exchange.SafeString(market, "marketType");
+        executionModel = Exchange.SafeString(market, "executionModel");
+        collateral = Exchange.SafeString(market, "collateral");
+        resolved = Exchange.SafeValue(market, "resolved") != null ? (bool)Exchange.SafeValue(market, "resolved") : null;
+        resolvedOutcome = Exchange.SafeString(market, "resolvedOutcome");
+        outcomes = Exchange.SafeValue(market, "outcomes") != null ? ((IEnumerable<object>)Exchange.SafeValue(market, "outcomes")).Select(x => new PredictionOutcome(x)).ToList() : null;
     }
 
 }

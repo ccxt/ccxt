@@ -143,6 +143,13 @@ export interface MarketInterface {
     instIdCode?: Int;             // venue numeric instrument code (okx)
     tiers?: Dict;                 // fee tiers (weex)
     info: any;
+    // prediction venues: fetchMarkets rows are PredictionMarket-shaped
+    market?: Str;
+    marketType?: Str;
+    executionModel?: Str;
+    collateral?: Str;
+    resolved?: Bool;
+    resolvedOutcome?: Str;
     outcomes?: PredictionOutcome[];
 }
 

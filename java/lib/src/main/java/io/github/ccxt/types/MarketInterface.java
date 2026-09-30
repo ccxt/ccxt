@@ -53,6 +53,12 @@ public final class MarketInterface extends TypedMap {
     public Long instIdCode;
     public Map<String, Object> tiers;
     public List<PredictionOutcome> outcomes;
+    public String market;
+    public String marketType;
+    public String executionModel;
+    public String collateral;
+    public Boolean resolved;
+    public String resolvedOutcome;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
@@ -111,6 +117,12 @@ public final class MarketInterface extends TypedMap {
         if (outcomesRaw instanceof List<?> outcomesList) {
             this.outcomes = ((List<Object>) outcomesList).stream().map(PredictionOutcome::new).collect(Collectors.toList());
         }
+        this.market = TypeHelper.safeString(data, "market");
+        this.marketType = TypeHelper.safeString(data, "marketType");
+        this.executionModel = TypeHelper.safeString(data, "executionModel");
+        this.collateral = TypeHelper.safeString(data, "collateral");
+        this.resolved = TypeHelper.safeBool(data, "resolved");
+        this.resolvedOutcome = TypeHelper.safeString(data, "resolvedOutcome");
         this.info = TypeHelper.getInfo(data);
     }
 }

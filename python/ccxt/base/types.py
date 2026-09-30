@@ -490,6 +490,12 @@ class MarketInterface(TypedDict):
     instIdCode: Int
     tiers: dict[str, Any]
     info: dict[str, Any]
+    market: Str
+    marketType: Str
+    executionModel: Str
+    collateral: Str
+    resolved: Bool
+    resolvedOutcome: Str
     outcomes: list['PredictionOutcome']
 
 class Limit(TypedDict):

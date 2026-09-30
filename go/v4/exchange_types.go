@@ -194,52 +194,58 @@ func listValueToTypedSlice(value any) []any {
 
 // MarketInterface struct
 type MarketInterface struct {
-	Info           map[string]any
-	Id             *string
-	UppercaseId    *string
-	LowercaseId    *string
-	Symbol         *string
-	BaseCurrency   *string
-	QuoteCurrency  *string
-	BaseId         *string
-	QuoteId        *string
-	Active         *bool
-	Type           *string
-	Spot           *bool
-	Margin         *bool
-	Swap           *bool
-	Future         *bool
-	Option         *bool
-	Index          *bool
-	Stock          *bool
-	Contract       *bool
-	Settle         *string
-	SettleId       *string
-	ContractSize   *float64
-	Linear         *bool
-	Inverse        *bool
-	Quanto         *bool
-	Expiry         *int64
-	ExpiryDatetime *string
-	Strike         *float64
-	OptionType     *string
-	Taker          *float64
-	Maker          *float64
-	Precision      Precision
-	Limits         Limits
-	Created        *int64
-	BaseName       *string
-	Id2            *string
-	InstIdCode     *int64
-	Tiers          map[string]any
-	NumericId      *float64
-	SubType        *string
-	Prediction     *bool
-	Percentage     *bool
-	TierBased      *bool
-	FeeSide        *string
-	MarginModes    *MarketMarginModes
-	Outcomes       []PredictionOutcome
+	Info            map[string]any
+	Market          *string
+	MarketType      *string
+	ExecutionModel  *string
+	Collateral      *string
+	Resolved        *bool
+	ResolvedOutcome *string
+	Id              *string
+	UppercaseId     *string
+	LowercaseId     *string
+	Symbol          *string
+	BaseCurrency    *string
+	QuoteCurrency   *string
+	BaseId          *string
+	QuoteId         *string
+	Active          *bool
+	Type            *string
+	Spot            *bool
+	Margin          *bool
+	Swap            *bool
+	Future          *bool
+	Option          *bool
+	Index           *bool
+	Stock           *bool
+	Contract        *bool
+	Settle          *string
+	SettleId        *string
+	ContractSize    *float64
+	Linear          *bool
+	Inverse         *bool
+	Quanto          *bool
+	Expiry          *int64
+	ExpiryDatetime  *string
+	Strike          *float64
+	OptionType      *string
+	Taker           *float64
+	Maker           *float64
+	Precision       Precision
+	Limits          Limits
+	Created         *int64
+	BaseName        *string
+	Id2             *string
+	InstIdCode      *int64
+	Tiers           map[string]any
+	NumericId       *float64
+	SubType         *string
+	Prediction      *bool
+	Percentage      *bool
+	TierBased       *bool
+	FeeSide         *string
+	MarginModes     *MarketMarginModes
+	Outcomes        []PredictionOutcome
 }
 
 // CreateMarketInterface initializes the MarketInterface struct
@@ -272,52 +278,58 @@ func NewMarketInterface(data any) MarketInterface {
 	}
 
 	return MarketInterface{
-		Info:           m,
-		Id:             SafeStringTyped(m, "id"),
-		UppercaseId:    SafeStringTyped(m, "uppercaseId"),
-		LowercaseId:    SafeStringTyped(m, "lowercaseId"),
-		Symbol:         SafeStringTyped(m, "symbol"),
-		BaseCurrency:   SafeStringTyped(m, "base"),
-		QuoteCurrency:  SafeStringTyped(m, "quote"),
-		BaseId:         SafeStringTyped(m, "baseId"),
-		QuoteId:        SafeStringTyped(m, "quoteId"),
-		Active:         SafeBoolTyped(m, "active"),
-		Type:           SafeStringTyped(m, "type"),
-		Spot:           SafeBoolTyped(m, "spot"),
-		Margin:         SafeBoolTyped(m, "margin"),
-		Swap:           SafeBoolTyped(m, "swap"),
-		Future:         SafeBoolTyped(m, "future"),
-		Option:         SafeBoolTyped(m, "option"),
-		Index:          SafeBoolTyped(m, "index"),
-		Stock:          SafeBoolTyped(m, "stock"),
-		Contract:       SafeBoolTyped(m, "contract"),
-		Settle:         SafeStringTyped(m, "settle"),
-		SettleId:       SafeStringTyped(m, "settleId"),
-		ContractSize:   SafeFloatTyped(m, "contractSize"),
-		Linear:         SafeBoolTyped(m, "linear"),
-		Inverse:        SafeBoolTyped(m, "inverse"),
-		Quanto:         SafeBoolTyped(m, "quanto"),
-		Expiry:         SafeInt64Typed(m, "expiry"),
-		ExpiryDatetime: SafeStringTyped(m, "expiryDatetime"),
-		Strike:         SafeFloatTyped(m, "strike"),
-		OptionType:     SafeStringTyped(m, "optionType"),
-		Taker:          SafeFloatTyped(m, "taker"),
-		Maker:          SafeFloatTyped(m, "maker"),
-		Precision:      precision,
-		Limits:         limits,
-		Created:        SafeInt64Typed(m, "created"),
-		BaseName:       SafeStringTyped(m, "baseName"),
-		Id2:            SafeStringTyped(m, "id2"),
-		InstIdCode:     SafeInt64Typed(m, "instIdCode"),
-		Tiers:          SafeMapTyped(m, "tiers"),
-		NumericId:      SafeFloatTyped(m, "numericId"),
-		SubType:        SafeStringTyped(m, "subType"),
-		Prediction:     SafeBoolTyped(m, "prediction"),
-		Percentage:     SafeBoolTyped(m, "percentage"),
-		TierBased:      SafeBoolTyped(m, "tierBased"),
-		FeeSide:        SafeStringTyped(m, "feeSide"),
-		MarginModes:    marginModes,
-		Outcomes:       NewPredictionOutcomeArray(m["outcomes"]),
+		Info:            m,
+		Market:          SafeStringTyped(m, "market"),
+		MarketType:      SafeStringTyped(m, "marketType"),
+		ExecutionModel:  SafeStringTyped(m, "executionModel"),
+		Collateral:      SafeStringTyped(m, "collateral"),
+		Resolved:        SafeBoolTyped(m, "resolved"),
+		ResolvedOutcome: SafeStringTyped(m, "resolvedOutcome"),
+		Id:              SafeStringTyped(m, "id"),
+		UppercaseId:     SafeStringTyped(m, "uppercaseId"),
+		LowercaseId:     SafeStringTyped(m, "lowercaseId"),
+		Symbol:          SafeStringTyped(m, "symbol"),
+		BaseCurrency:    SafeStringTyped(m, "base"),
+		QuoteCurrency:   SafeStringTyped(m, "quote"),
+		BaseId:          SafeStringTyped(m, "baseId"),
+		QuoteId:         SafeStringTyped(m, "quoteId"),
+		Active:          SafeBoolTyped(m, "active"),
+		Type:            SafeStringTyped(m, "type"),
+		Spot:            SafeBoolTyped(m, "spot"),
+		Margin:          SafeBoolTyped(m, "margin"),
+		Swap:            SafeBoolTyped(m, "swap"),
+		Future:          SafeBoolTyped(m, "future"),
+		Option:          SafeBoolTyped(m, "option"),
+		Index:           SafeBoolTyped(m, "index"),
+		Stock:           SafeBoolTyped(m, "stock"),
+		Contract:        SafeBoolTyped(m, "contract"),
+		Settle:          SafeStringTyped(m, "settle"),
+		SettleId:        SafeStringTyped(m, "settleId"),
+		ContractSize:    SafeFloatTyped(m, "contractSize"),
+		Linear:          SafeBoolTyped(m, "linear"),
+		Inverse:         SafeBoolTyped(m, "inverse"),
+		Quanto:          SafeBoolTyped(m, "quanto"),
+		Expiry:          SafeInt64Typed(m, "expiry"),
+		ExpiryDatetime:  SafeStringTyped(m, "expiryDatetime"),
+		Strike:          SafeFloatTyped(m, "strike"),
+		OptionType:      SafeStringTyped(m, "optionType"),
+		Taker:           SafeFloatTyped(m, "taker"),
+		Maker:           SafeFloatTyped(m, "maker"),
+		Precision:       precision,
+		Limits:          limits,
+		Created:         SafeInt64Typed(m, "created"),
+		BaseName:        SafeStringTyped(m, "baseName"),
+		Id2:             SafeStringTyped(m, "id2"),
+		InstIdCode:      SafeInt64Typed(m, "instIdCode"),
+		Tiers:           SafeMapTyped(m, "tiers"),
+		NumericId:       SafeFloatTyped(m, "numericId"),
+		SubType:         SafeStringTyped(m, "subType"),
+		Prediction:      SafeBoolTyped(m, "prediction"),
+		Percentage:      SafeBoolTyped(m, "percentage"),
+		TierBased:       SafeBoolTyped(m, "tierBased"),
+		FeeSide:         SafeStringTyped(m, "feeSide"),
+		MarginModes:     marginModes,
+		Outcomes:        NewPredictionOutcomeArray(m["outcomes"]),
 	}
 }
 

@@ -60,6 +60,7 @@ NEST_CK = re.compile(ASSIGN + r'(?P<v>\w+)\.ContainsKey\("(?P<k>[^"]+)"\) \? new
 NEST_SV = re.compile(ASSIGN + r'Exchange\.SafeValue\(\w+, "(?P<k>[^"]+)"\) != null \? new (?P<t>\w+)\(Exchange\.SafeValue\(\w+, "(?P=k)"\)\) : null;$')
 NEST_AS = re.compile(ASSIGN + r'\((?P<v>\w+) as IDictionary<string, object>\)\.ContainsKey\("(?P<k>[^"]+)"\) \? new (?P<t>\w+)\(\((?P=v) as IDictionary<string, object>\)\["(?P=k)"\]\) : null;$')
 LIST_ST = re.compile(ASSIGN + r'(?P<v>\w+)\.ContainsKey\("(?P<k>[^"]+)"\)(?: && (?P=v)\["(?P=k)"\] != null)? \? \(\(IEnumerable<object>\)(?P=v)\["(?P=k)"\]\)\.Select\(x => new (?P<t>\w+)\(x\)\)(?:\.ToList\(\))? : null;$')
+LIST_SV = re.compile(ASSIGN + r'Exchange\.SafeValue\(\w+, "(?P<k>[^"]+)"\) != null \? \(\(IEnumerable<object>\)Exchange\.SafeValue\(\w+, "(?P=k)"\)\)\.Select\(x => new (?P<t>\w+)\(x\)\)\.ToList\(\) : null;$')
 LIST_STR = re.compile(ASSIGN + r'(?P<v>\w+)\.ContainsKey\("(?P<k>[^"]+)"\)(?: && (?P=v)\["(?P=k)"\] != null)? \? \(\(IEnumerable<object>\)(?P=v)\["(?P=k)"\]\)\.Select\(x => \(string\)x\)\.ToList\(\) : null;$')
 ALIAS = re.compile(r'^var \w+ = \(I?Dictionary<string, object>\)\w+;$')
 # safeOrder()/safeTrade() attach a `fees` list next to `fee`; Helper.GetFees returns null
@@ -223,7 +224,7 @@ def parse_struct(name, body, ctor_param):
         m = LIST_STR.match(line)
         if m:
             fields.append(('strlist', m.group('f'), m.group('k'), None)); continue
-        m = LIST_ST.match(line)
+        m = LIST_ST.match(line) or LIST_SV.match(line)
         if m:
             fields.append(('structlist', m.group('f'), m.group('k'), m.group('t'))); continue
         return None, 'unsupported constructor line: %s' % line
