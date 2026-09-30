@@ -3688,7 +3688,12 @@ export default class bingx extends Exchange {
             'stop_limit': 'limit',
             'stop_market': 'market',
             'take_profit_market': 'market',
+            'take_profit': 'limit',
             'stop': 'limit',
+            'take_stop_limit': 'limit',
+            'take_stop_market': 'market',
+            'trailing_stop_market': 'market',
+            'trailing_tp_sl': 'market',
         };
         return this.safeString (types, (type as string), type);
     }
@@ -4030,7 +4035,9 @@ export default class bingx extends Exchange {
         const rawType = this.safeStringLower2 (orderData, 'type', 'o') as string;
         const stopPrice = this.omitZero (this.safeString2 (orderData, 'StopPrice', 'stopPrice'));
         let triggerPrice = stopPrice;
-        if (stopPrice !== undefined) {
+        // spot TAKE_STOP_* is a plain conditional order, the venue does not say whether it protects a position
+        const isTakeStop = (rawType !== undefined) && (rawType.indexOf ('take_stop') > -1);
+        if ((stopPrice !== undefined) && !isTakeStop) {
             if ((rawType.indexOf ('stop') > -1) && (stopLossPrice === undefined)) {
                 stopLossPrice = stopPrice;
                 triggerPrice = undefined;
