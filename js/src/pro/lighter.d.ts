@@ -1,7 +1,7 @@
 import type { Balances, Dict, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class lighter extends lighterRest {
     describe(): any;
     getMessageHash(unifiedChannel: string, symbol?: Str, extra?: Str): string;
@@ -11,7 +11,7 @@ export default class lighter extends lighterRest {
     subscribePrivate(messageHash: string, params?: Dict): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBookMessage(client: Client, message: Dict, orderbook: Ob): Ob;
+    handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook): WsOrderBook;
     handleOrderBook(client: Client, message: Dict): void;
     /**
      * @method

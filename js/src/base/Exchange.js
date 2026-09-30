@@ -23,7 +23,7 @@ import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
-import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
+import { WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 import { totp } from './functions/totp.js';
 import { abiEncode, TypedDataEncoder } from './functions/ethabi.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';

@@ -3429,7 +3429,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             'markPrice': undefined,
             'lastPrice': this.safeNumber(position, 'executionPrice'),
             'collateral': undefined,
-            'marginType': marginType,
+            'marginMode': marginType,
             'side': side,
             'percentage': undefined,
         };

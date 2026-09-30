@@ -1,7 +1,7 @@
 import binanceRest from '../binance.js';
 import type { Balances, Dict, Int, Liquidation, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class binance extends binanceRest {
     describe(): any;
     describeData(): {
@@ -350,7 +350,7 @@ export default class binance extends binanceRest {
     fetchOrderBookSnapshot(client: Client, message: any, subscription: any): Promise<void>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBookMessage(client: Client, message: Dict, orderbook: Ob): Ob;
+    handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook): WsOrderBook;
     handleOrderBook(client: Client, message: any): void;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;

@@ -1531,10 +1531,9 @@ export default class blofin extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
-        const stopLossTriggerPrice = this.safeNumber(order, 'slTriggerPrice');
-        const stopLossPrice = this.safeNumber(order, 'slOrderPrice');
-        const takeProfitTriggerPrice = this.safeNumber(order, 'tpTriggerPrice');
-        const takeProfitPrice = this.safeNumber(order, 'tpOrderPrice');
+        // unified stopLossPrice/takeProfitPrice are the trigger prices (createOrder sends them as sl/tpTriggerPrice)
+        const stopLossPrice = this.safeNumber(order, 'slTriggerPrice');
+        const takeProfitPrice = this.safeNumber(order, 'tpTriggerPrice');
         const reduceOnlyRaw = this.safeString(order, 'reduceOnly');
         const reduceOnly = (reduceOnlyRaw === 'true');
         return this.safeOrder({
@@ -1551,8 +1550,6 @@ export default class blofin extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopLossTriggerPrice': stopLossTriggerPrice,
-            'takeProfitTriggerPrice': takeProfitTriggerPrice,
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': average,

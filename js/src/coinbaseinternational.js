@@ -594,7 +594,14 @@ export default class coinbaseinternational extends Exchange {
         return this.parseFundingRateHistories(rawRates, market, since, limit);
     }
     parseFundingRateHistory(info, market = undefined) {
-        return this.parseFundingRate(info, market);
+        const fundingRate = this.parseFundingRate(info, market);
+        return {
+            'info': info,
+            'symbol': fundingRate['symbol'],
+            'fundingRate': fundingRate['fundingRate'],
+            'timestamp': fundingRate['timestamp'],
+            'datetime': fundingRate['datetime'],
+        };
     }
     parseFundingRate(contract, market = undefined) {
         //
