@@ -39,7 +39,7 @@ import { Precise } from './Precise.js';
 import WsClient from './ws/WsClient.js';
 import type Client from './ws/Client.js';
 import { Future, type FutureInterface } from './ws/Future.js';
-import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
+import { WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 // ----------------------------------------------------------------------------
 //
 // import types
@@ -286,7 +286,7 @@ export class BaseExchange {
 
     balance: Dict = {};
     liquidations: any = undefined;
-    orderbooks: Dictionary<Ob> = {};
+    orderbooks: Dictionary<WsOrderBook> = {};
     tickers: Dictionary<Ticker> = {};
     fundingRates: Dictionary<FundingRate> = {};
     bidsasks: Dictionary<Ticker> = {};
@@ -3360,13 +3360,13 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' handleDelta not supported yet');
     }
 
-    handleBookDeltas (orderbook: Ob, deltas: any) {
+    handleBookDeltas (orderbook: WsOrderBook, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleBookDelta (orderbook, deltas[i]);
         }
     }
 
-    handleBookDelta (orderbook: Ob, delta: any) {
+    handleBookDelta (orderbook: WsOrderBook, delta: any) {
         throw new NotSupported (this.id + ' handleBookDelta not supported yet');
     }
 
@@ -9867,10 +9867,16 @@ export default class Exchange extends BaseExchange {
         // same broken state - previously the catch invoked loadOrderBook again,
         // recursing endlessly when the snapshot request kept failing, see
         // https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
-        // instead, reject the watcher and drop the connection and the cached
+        // instead, reject the watcher, close and drop the connection and the cached
         // orderbook, so the next watchOrderBook () call resubscribes cleanly
         client.reject (error, messageHash);
-        delete this.clients[client.url];
+        if (client.error === undefined) {
+            client.error = error; // onClose must not treat this as a server disconnect
+        }
+        client.close ();
+        if (this.clients[client.url] === client) {
+            delete this.clients[client.url];
+        }
         this.orderbooks[symbol] = this.orderBook (); // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
     }
 

@@ -7,7 +7,7 @@ import { BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import Precise from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -861,7 +861,7 @@ export default class weex extends weexRest {
         const subscription: Dict = {
             'limit': limit,
         };
-        const orderbook: Ob = await this.subscribePublic (messageHashes, channels, isContract, paramsDepth, subscription);
+        const orderbook: WsOrderBook = await this.subscribePublic (messageHashes, channels, isContract, paramsDepth, subscription);
         return orderbook.limit ();
     }
 

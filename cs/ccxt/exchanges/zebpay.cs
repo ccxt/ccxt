@@ -2068,7 +2068,7 @@ public partial class zebpay : Exchange
             { "liquidationPrice", this.safeNumber(position, "liquidationPrice") },
             { "markPrice", null },
             { "collateral", null },
-            { "marginType", "isolated" },
+            { "marginMode", "isolated" },
             { "side", this.safeString(position, "side") },
             { "percentage", null },
         };

@@ -6,7 +6,7 @@ import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.j
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -595,7 +595,7 @@ export default class deribit extends deribitRest {
         if (useDepthEndpoint) {
             paramsResolved = paramsGroup;
         }
-        const orderbook: Ob = await this.watchMultipleWrapper ('book', descriptor, symbols, paramsResolved);
+        const orderbook: WsOrderBook = await this.watchMultipleWrapper ('book', descriptor, symbols, paramsResolved);
         return orderbook.limit ();
     }
 

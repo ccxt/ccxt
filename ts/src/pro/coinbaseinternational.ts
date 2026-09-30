@@ -1065,7 +1065,55 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         this.orderbooks[symbol] = orderbook;
-        client.resolve (orderbook, channel);
+        if (channel !== undefined) {
+            client.resolve (orderbook, channel);bol);
+        }
+    }
+
+    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
+        const rawSide = this.safeStringLower (delta, 0);
+        let side: 'asks' | 'bids' = 'asks';
+        if (rawSide === 'buy') {
+            side = 'bids';
+        }
+        const price = this.safeFloat (delta, 1);
+        const amount = this.safeFloat (delta, 2);
+        const bookside = orderbook[side];
+        bookside.store (price, amount);
+    }
+
+    override handleBookDeltas (orderbook: WsOrderBook, deltas: any) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleBookDelta (orderbook, deltas[i]);
+        }
+    }
+
+    handleSubscriptionStatus (client: Client, message: Dict): Dict {
+        //
+        //    {
+        //       "channels": [
+        //           {
+        //               "name": "MATCH",
+        //               "product_ids": [
+        //                   "BTC-PERP",
+        //                   "ETH-PERP"
+        //               ]
+        //           },
+        //           {
+        //               "name": "INSTRUMENTS",
+        //               "product_ids": [
+        //                   "BTC-PERP",
+        //                   "ETH-PERP"
+        //               ]
+        //           }
+        //       ],
+        //       "authenticated": true,
+        //       "channel": "SUBSCRIPTIONS",
+        //       "type": "SNAPSHOT",
+        //       "time": "2023-05-30T16:53:46.847Z"
+        //    }
+        //
+        return message;
     }
 
     async resubscribeOrderBook (channel: string) {

@@ -963,7 +963,7 @@ export function goChan3SelfTest (): string[] {
     ok (pro.includes ('<-chan ccxt.AsyncResult[int64] {') && pro.includes ('make(chan ccxt.AsyncResult[int64], 1)') && pro.includes ('ch <- ccxt.AsyncResult[int64]{Value: this.ParseToInt(a)}') && pro.includes ('(ch chan ccxt.AsyncResult[int64]'), 'pro qualification: ' + pro);
     // unprovable sends throw
     ok (throws ('package ccxt\n' + core ('X', '\tvar r any = nil\n\tch <- AsyncResult[any]{Value: r}\n\treturn nil\n')), 'any local throws');
-    ok (throws ('package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: this.ParseOrder(a)}\n\treturn nil\n')), 'any call throws');
+    ok (throws ('package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: this.ParseThing(a)}\n\treturn nil\n')), 'any call throws');
     ok (throws ('package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: nil}\n\treturn nil\n', 'GetN')), 'nil into scalar throws');
     ok (throws ('package ccxt\n' + core ('X', '\tvar b bool = true\n\tch <- AsyncResult[any]{Value: b}\n\treturn nil\n')), 'wrong type throws');
     ok (throws ('package ccxt\n' + core ('X', '\tgo func() { ch <- AsyncResult[any]{} }()\n\treturn nil\n')), 'escaping channel throws');
@@ -1012,8 +1012,8 @@ export function goChan3SelfTest (): string[] {
     ok (run (consumer, new Map ()) === consumer, 'empty table no-op');
     // audit
     const seen: string[] = [];
-    goChan3Cores ('package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: this.ParseOrder(a)}\n\treturn nil\n'), goChanMask ('package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: this.ParseOrder(a)}\n\treturn nil\n')), new Map (), (mm, rr, reason) => seen.push (mm + ':' + reason));
-    ok (seen.length === 1 && seen[0] === 'SetX:call-send:ParseOrder', 'audit reason: ' + seen.join (';'));
+    goChan3Cores ('package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: this.ParseThing(a)}\n\treturn nil\n'), goChanMask ('package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: this.ParseThing(a)}\n\treturn nil\n')), new Map (), (mm, rr, reason) => seen.push (mm + ':' + reason));
+    ok (seen.length === 1 && seen[0] === 'SetX:call-send:ParseThing', 'audit reason: ' + seen.join (';'));
     // endpoint-joined locals
     goChan3SetStubsForTest (new Map ([ [ 'PubGetA', 'map[string]any' ], [ 'PubGetL', '[]any' ] ]));
     const joined = run ('package ccxt\n' + core ('X', '\tvar response any = nil\n\tif a == nil {\n\n\t\tr := <-this.PubGetA(a)\n\t\tif r.Err != nil {\n\t\t\tpanic(r.Err)\n\t\t}\n\t\tresponse = r.Raw\n\t} else {\n\n\t\tr1 := <-this.PubGetA(a)\n\t\tif r1.Err != nil {\n\t\t\tpanic(r1.Err)\n\t\t}\n\t\tresponse = r1.Raw\n\t}\n\tif response == nil {\n\t\tpanic(\"x\")\n\t}\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n'));

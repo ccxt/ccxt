@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadReques
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, List, Fee, Market } from '../base/types.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
@@ -808,7 +808,7 @@ export default class kraken extends krakenRest {
                 throw new NotSupported (this.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only');
             }
         }
-        const orderbook: Ob = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, this.extend (requiredParams, params));
+        const orderbook: WsOrderBook = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, this.extend (requiredParams, params));
         return orderbook.limit ();
     }
 
@@ -967,9 +967,9 @@ export default class kraken extends krakenRest {
         const b = this.safeList (first, 'bids', []);
         const c = this.safeInteger (first, 'checksum');
         const messageHash = this.getMessageHash ('orderbook', undefined, symbol);
-        let orderbook: Ob | undefined = undefined;
+        let orderbook: WsOrderBook | undefined = undefined;
         if (type === 'update') {
-            orderbook = this.orderbooks[symbol] as Ob;
+            orderbook = this.orderbooks[symbol] as WsOrderBook;
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
             if (a !== undefined) {
@@ -986,7 +986,7 @@ export default class kraken extends krakenRest {
             // snapshot
             const depth = a.length;
             this.orderbooks[symbol] = this.orderBook ({}, depth);
-            orderbook = this.orderbooks[symbol] as Ob;
+            orderbook = this.orderbooks[symbol] as WsOrderBook;
             const keys = [ 'asks', 'bids' ];
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];

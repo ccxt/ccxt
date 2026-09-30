@@ -7,7 +7,7 @@ import { ArgumentsRequired, ExchangeError, NotSupported } from '../base/errors.j
 import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {
@@ -416,7 +416,7 @@ export default class gemini extends geminiRest {
             throw new ExchangeError (this.id + ' watchOrderBook() has no websocket url');
         }
         const url = wsUrl + '/v2/marketdata';
-        const orderbook: Ob = await this.watch (url, messageHash, request, subscribeHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, request, subscribeHash);
         return orderbook.limit ();
     }
 
@@ -463,7 +463,7 @@ export default class gemini extends geminiRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        const orderbook: Ob = await this.helperForWatchMultipleConstruct ('orderbook', symbols, params);
+        const orderbook: WsOrderBook = await this.helperForWatchMultipleConstruct ('orderbook', symbols, params);
         return orderbook.limit ();
     }
 

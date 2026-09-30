@@ -5353,7 +5353,7 @@ public class Binance extends BinanceApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object parsed = this.parseMarket((markets == null || i < 0 || i >= markets.size() ? null : markets.get(i)));
+                MarketInterface parsed = this.parseMarket((markets == null || i < 0 || i >= markets.size() ? null : markets.get(i)));
                 if (!java.util.Objects.equals(parsed, null))
                 {
                     ((List<Object>)result).add(parsed);
@@ -11174,7 +11174,7 @@ public class Binance extends BinanceApi
             {
                 HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
                 mapLiteral7.put("info", response);
-                Object order = this.safeOrder(mapLiteral7, (Map<String, Object>) null);
+                Order order = this.safeOrder(mapLiteral7, (Map<String, Object>) null);
                 return new ArrayList<Object>(Arrays.asList(order));
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -14205,7 +14205,6 @@ public class Binance extends BinanceApi
         mapLiteral9.put("marginRatio", marginRatio);
         mapLiteral9.put("datetime", this.iso8601(timestamp));
         mapLiteral9.put("marginMode", marginMode);
-        mapLiteral9.put("marginType", marginMode);
         mapLiteral9.put("side", side);
         mapLiteral9.put("hedged", hedged);
         mapLiteral9.put("percentage", percentage);
@@ -14507,7 +14506,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbolsNormalized, null))

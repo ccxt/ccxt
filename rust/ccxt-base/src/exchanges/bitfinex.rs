@@ -1462,7 +1462,6 @@ impl BitfinexCore {
         let mut response: Value = self.public_get_conf_config(&[__ws_arg_0]).await;
         let mut spotMarketsInfo: Value = self.safe_list(response.clone(), Value::Int(0), &[Value::from(vec![])]);
         let mut futuresMarketsInfo: Value = self.safe_list(response.clone(), Value::Int(1), &[Value::from(vec![])]);
-        let mut securitiesMarketsIds: Value = self.safe_list(response.clone(), Value::Int(2), &[Value::from(vec![])]);
         let mut marginIds: Value = self.safe_list(response, Value::Int(3), &[Value::from(vec![])]);
         let mut markets: Value = self.array_concat(spotMarketsInfo, futuresMarketsInfo);
         let mut result: Value = Value::from(vec![]);
@@ -1528,7 +1527,6 @@ impl BitfinexCore {
                     m.insert("settleId".to_string(), settleId);
                     m.insert("type".to_string(), type_var);
                     m.insert("spot".to_string(), spot.clone());
-                    m.insert("tradfi".to_string(), self.in_array(id.clone(), securitiesMarketsIds.clone()));
                     m.insert("margin".to_string(), Value::Bool((spot.as_bool() == Some(true) && self.in_array(id, marginIds.clone()).as_bool() == Some(true))));
                     m.insert("swap".to_string(), swap.clone());
                     m.insert("future".to_string(), Value::Bool(false));
@@ -4819,26 +4817,13 @@ impl BitfinexCore {
         // ]
         //
         let mut timestamp: Value = self.safe_integer(contract.clone(), Value::Int(0), &[]);
-        let mut nextFundingTimestamp: Value = self.safe_integer(contract.clone(), Value::Int(7), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market]));
-        m.insert("markPrice".to_string(), self.safe_number(contract.clone(), Value::Int(14), &[]));
-        m.insert("indexPrice".to_string(), self.safe_number(contract.clone(), Value::Int(2), &[]));
-        m.insert("interestRate".to_string(), Value::Null);
-        m.insert("estimatedSettlePrice".to_string(), Value::Null);
+        m.insert("fundingRate".to_string(), self.safe_number(contract, Value::Int(11), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("fundingRate".to_string(), self.safe_number(contract.clone(), Value::Int(11), &[]));
-        m.insert("fundingTimestamp".to_string(), Value::Null);
-        m.insert("fundingDatetime".to_string(), Value::Null);
-        m.insert("nextFundingRate".to_string(), self.safe_number(contract, Value::Int(8), &[]));
-        m.insert("nextFundingTimestamp".to_string(), nextFundingTimestamp.clone());
-        m.insert("nextFundingDatetime".to_string(), self.iso8601(nextFundingTimestamp));
-        m.insert("previousFundingRate".to_string(), Value::Null);
-        m.insert("previousFundingTimestamp".to_string(), Value::Null);
-        m.insert("previousFundingDatetime".to_string(), Value::Null);
     m
 });
 

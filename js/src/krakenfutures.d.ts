@@ -382,7 +382,7 @@ export default class krakenfutures extends Exchange {
         markPrice: undefined;
         lastPrice: Num;
         collateral: undefined;
-        marginType: string;
+        marginMode: string;
         side: Str;
         percentage: undefined;
     };

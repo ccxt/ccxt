@@ -1676,7 +1676,7 @@ public class Zebpay extends ZebpayApi
         String timeInForce = this.safeString(order, "timeInForce");
         String status = this.safeStringLower(order, "status");
         String orderId = this.safeString(order, "orderId");
-        Object parsedOrder = this.safeOrder(new HashMap<String, Object>() {{
+        Order parsedOrder = this.safeOrder(new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "symbol", symbol );
@@ -2219,7 +2219,7 @@ public class Zebpay extends ZebpayApi
             put( "liquidationPrice", Zebpay.this.safeNumber(position, "liquidationPrice", (Object) null) );
             put( "markPrice", null );
             put( "collateral", null );
-            put( "marginType", "isolated" );
+            put( "marginMode", "isolated" );
             put( "side", Zebpay.this.safeString(position, "side") );
             put( "percentage", null );
         }};

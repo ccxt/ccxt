@@ -946,8 +946,8 @@ public partial class mexc : Exchange
                 { "trading", new Dictionary<string, object>() {
                     { "tierBased", false },
                     { "percentage", true },
-                    { "maker", this.parseNumber("0.002") },
-                    { "taker", this.parseNumber("0.002") },
+                    { "maker", this.parseNumber("0.00") },
+                    { "taker", this.parseNumber("0.0005") },
                 } },
             } },
             { "options", new Dictionary<string, object>() {

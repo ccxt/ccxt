@@ -8,7 +8,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBy
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, List, OrderType, OrderSide, Num, Market, OrderRequest, Bool, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -484,7 +484,7 @@ export default class gate extends gateRest {
             'symbol': symbolValue,
             'limit': limitResolved,
         };
-        const orderbook: Ob = await this.subscribePublic (url, messageHash, payload, channel, query, subscription);
+        const orderbook: WsOrderBook = await this.subscribePublic (url, messageHash, payload, channel, query, subscription);
         return orderbook.limit ();
     }
 
@@ -745,7 +745,7 @@ export default class gate extends gateRest {
         }
     }
 
-    override handleBookDelta (orderbook: Ob, delta: any) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
         const timestamp = this.safeInteger (delta, 't');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);

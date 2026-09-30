@@ -494,8 +494,8 @@ class mexc(Exchange, ImplicitAPI):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': self.parse_number('0.002'),  # maker / taker
-                    'taker': self.parse_number('0.002'),
+                    'maker': self.parse_number('0.00'),
+                    'taker': self.parse_number('0.0005'),
                 },
             },
             'options': {

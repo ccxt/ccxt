@@ -3655,9 +3655,7 @@ public class Grvt extends GrvtApi
         }
         Long timestamp = this.safeIntegerProduct(metadata, "create_time", 0.000001);
         // const triggerDetails = this.safeDict (metadata, 'trigger', {});
-        Integer legsLength = ((List<?>)legs).size();
         HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("isMultiLeg", ((legsLength != null && legsLength > 1)));
         mapLiteral5.put("id", this.safeString(order, "order_id"));
         mapLiteral5.put("clientOrderId", this.safeString(metadata, "client_order_id"));
         mapLiteral5.put("timestamp", timestamp);

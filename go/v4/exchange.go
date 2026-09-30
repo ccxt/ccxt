@@ -169,13 +169,13 @@ type BaseExchange struct {
 	// WS - updated to use thread-safe sync.Map (except cache objects)
 	Ohlcvs         *sync.Map
 	Trades         any // map[string]*ArrayCache
-	Tickers        *sync.Map
+	Tickers        *TickerCache
 	Orders         any // *ArrayCache  // cache object, not a map
 	MyTrades       any // *ArrayCache  // cache object, not a map
 	Orderbooks     *sync.Map
 	Liquidations   any // *ArrayCacheBySymbolBySide
 	FundingRates   *sync.Map
-	Bidsasks       *sync.Map
+	Bidsasks       *TickerCache
 	TriggerOrders  any // *ArrayCache
 	Transactions   *sync.Map
 	MyLiquidations any // *ArrayCacheBySymbolBySide
@@ -263,7 +263,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	// Initialize WebSocket data structures with thread-safe sync.Map
 	// this.Trades = make(map[string]*ArrayCache)
 	this.Trades = &sync.Map{}
-	this.Tickers = &sync.Map{}
+	this.Tickers = &TickerCache{}
 	this.Orderbooks = &sync.Map{}
 	// this.Ohlcvs = make(map[string]map[string]*ArrayCacheByTimestamp)
 	this.Ohlcvs = &sync.Map{}
@@ -285,7 +285,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	this.Currencies = &sync.Map{}
 	// this.FundingRates = make(map[string]any)
 	this.FundingRates = &sync.Map{}
-	this.Bidsasks = &sync.Map{}
+	this.Bidsasks = &TickerCache{}
 	this.ProxyDictionaries = make(map[string]any)
 	this.AccountsById = make(map[string]any)
 	this.Accounts = make([]any, 0)
@@ -2191,8 +2191,20 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 			tries++
 		}
 		errorMsg := fmt.Sprintf("%s nonce is behind the cache after %v tries.", this.Id, maxRetries)
-		client.(ClientInterface).Reject(ExchangeError(errorMsg), messageHash)
-		delete(this.Clients, client.(ClientInterface).GetUrl())
+		err := ExchangeError(errorMsg)
+		client.(ClientInterface).Reject(err, messageHash)
+		// close the dropped connection, otherwise its read and ping loops keep running
+		if client.(ClientInterface).GetError() == nil {
+			client.(ClientInterface).SetError(fmt.Errorf("%v", err))
+		}
+		if wsClient, ok := client.(*WSClient); ok {
+			wsClient.Close()
+		}
+		this.WsClientsMu.Lock()
+		if c, ok := this.Clients[client.(ClientInterface).GetUrl()]; ok && c == client {
+			delete(this.Clients, client.(ClientInterface).GetUrl())
+		}
+		this.WsClientsMu.Unlock()
 		// clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753 (parity with the other ports, see #29399)
 		this.Orderbooks.Store(symbol.(string), this.OrderBook())
 	} else {

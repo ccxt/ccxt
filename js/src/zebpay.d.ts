@@ -340,7 +340,7 @@ export default class zebpay extends Exchange {
         liquidationPrice: Num;
         markPrice: undefined;
         collateral: undefined;
-        marginType: string;
+        marginMode: string;
         side: Str;
         percentage: undefined;
     };

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.blofin import ImplicitAPI
 import hashlib
-from ccxt.base.types import ADL, Balances, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import ADL, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -75,15 +75,15 @@ class blofin(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
-                'fetchCurrencies': False,
-                'fetchDeposit': False,
-                'fetchDepositAddress': False,
+                'fetchCurrencies': True,
+                'fetchDeposit': True,
+                'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': False,
                 'fetchDepositWithdrawFee': 'emulated',
-                'fetchDepositWithdrawFees': False,
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -140,7 +140,7 @@ class blofin(Exchange, ImplicitAPI):
                 'fetchTransfers': False,
                 'fetchUnderlyingAssets': False,
                 'fetchVolatilityHistory': False,
-                'fetchWithdrawal': False,
+                'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
                 'reduceMargin': False,
@@ -376,6 +376,9 @@ class blofin(Exchange, ImplicitAPI):
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                     'createOrder': {
                         'marginMode': False,
                         'triggerPrice': False,
@@ -542,8 +545,13 @@ class blofin(Exchange, ImplicitAPI):
                     'MATIC': 'Polygon POS',
                     'AVAXC': 'AVAX C-Chain',
                     'ARBITRUM': 'Arbitrum One',
-                    'OP': 'Optimism',
+                    'OPTIMISM': 'Optimism',
                     'KAIA': 'KAIA',
+                    'PLASMA': 'Plasma',
+                },
+                'networkCodeAliases': {
+                    # legacy codes accepted on input, resolved to the unified code
+                    'OP': 'OPTIMISM',
                 },
                 'networkPrefixes': {
                     # code -> the display-name prefix; the venue id is
@@ -572,8 +580,9 @@ class blofin(Exchange, ImplicitAPI):
                     'Polygon POS': 'MATIC',
                     'AVAX C-Chain': 'AVAXC',
                     'Arbitrum One': 'ARBITRUM',
-                    'Optimism': 'OP',
+                    'Optimism': 'OPTIMISM',
                     'BSC': 'BEP20',
+                    'Plasma': 'PLASMA',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -1476,10 +1485,9 @@ class blofin(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(order, 'clientOrderId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
-        stopLossTriggerPrice = self.safe_number(order, 'slTriggerPrice')
-        stopLossPrice = self.safe_number(order, 'slOrderPrice')
-        takeProfitTriggerPrice = self.safe_number(order, 'tpTriggerPrice')
-        takeProfitPrice = self.safe_number(order, 'tpOrderPrice')
+        # unified stopLossPrice/takeProfitPrice are the trigger prices (createOrder sends them as sl/tpTriggerPrice)
+        stopLossPrice = self.safe_number(order, 'slTriggerPrice')
+        takeProfitPrice = self.safe_number(order, 'tpTriggerPrice')
         reduceOnlyRaw = self.safe_string(order, 'reduceOnly')
         reduceOnly = (reduceOnlyRaw == 'true')
         return self.safe_order({
@@ -1496,8 +1504,6 @@ class blofin(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopLossTriggerPrice': stopLossTriggerPrice,
-            'takeProfitTriggerPrice': takeProfitTriggerPrice,
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': average,
@@ -1871,21 +1877,31 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, paramsUntil)
 
-    def network_code_to_chain_id(self, networkCode: str) -> Str:
+    def network_code_to_chain_id(self, networkCode: str, currency: Currency = None) -> Str:
+        aliases = self.safe_dict(self.options, 'networkCodeAliases', {})
+        unifiedCode = self.safe_string(aliases, networkCode, networkCode)
+        # prefer the exact chain id from the currencies registry when it is
+        # loaded, since some ids are currency-specific (USDT on Optimism)
+        if currency is not None:
+            currencyNetworks = self.safe_dict(currency, 'networks', {})
+            currencyNetwork = self.safe_dict(currencyNetworks, unifiedCode)
+            currencyNetworkId = self.safe_string(currencyNetwork, 'id')
+            if currencyNetworkId is not None:
+                return currencyNetworkId
         # the live venue identifies chains by display names; the suffix
         # family is built here as prefix + space + parenthesized suffix
         # because such literals are not transpiler-safe in source
         networks = self.safe_dict(self.options, 'networks', {})
-        direct = self.safe_string(networks, networkCode)
+        direct = self.safe_string(networks, unifiedCode)
         if direct is not None:
             return direct
         prefixes = self.safe_dict(self.options, 'networkPrefixes', {})
-        prefix = self.safe_string(prefixes, networkCode)
+        prefix = self.safe_string(prefixes, unifiedCode)
         if prefix is not None:
             suffixes = self.safe_dict(self.options, 'networkSuffixes', {})
-            suffix = self.safe_string(suffixes, networkCode, networkCode)
+            suffix = self.safe_string(suffixes, unifiedCode, unifiedCode)
             return prefix + ' ' + '(' + suffix + ')'
-        return networkCode
+        return unifiedCode
 
     def chain_id_to_network_code(self, chainId: Str) -> Str:
         # live history rows and the currencies registry carry display-name
@@ -1903,11 +1919,305 @@ class blofin(Exchange, ImplicitAPI):
             tailParts = tail.split(')')
             suffix = self.safe_string(tailParts, 0)
             bySuffix = self.safe_dict(self.options, 'networkCodesBySuffix', {})
-            return self.safe_string(bySuffix, suffix, suffix)
+            suffixCode = self.safe_string(bySuffix, suffix)
+            if suffixCode is not None:
+                return suffixCode
+            prefixes = self.safe_dict(self.options, 'networkPrefixes', {})
+            if (suffix is not None) and (suffix in prefixes):
+                return suffix
+            # the suffix is not always a chain: 'Optimism (USDT0)' carries
+            # the token name (verified live 2026-09-30), resolve by prefix
+            head = self.safe_string(parts, 0, '')
+            return self.network_id_to_code(head.strip())
         # delegate the paren-free branch to the base resolver so the
         # currency-scoped networks and the deprecated-network-code aliases
         # keep applying alongside options['networksById']
         return self.network_id_to_code(chainId)
+
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
+        """
+        fetches all available currencies on an exchange
+
+        https://docs.blofin.com/index.html#get-currencies
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        # GET /asset/currencies is a private endpoint, while fetchCurrencies
+        # is invoked from loadMarkets - skip it when no credentials are set
+        # and on the demo host, which has no funding account
+        if not self.check_required_credentials(False) or self.isSandboxModeEnabled:
+            return {}
+        response = await self.privateGetAssetCurrencies(params)
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "currency": "USDT",
+        #                 "chain": "TRC20",
+        #                 "depositMinAmount": "1",
+        #                 "depositUnsafeConfirmation": 1,
+        #                 "depositConfirmation": 20,
+        #                 "withdrawMinAmount": "10",
+        #                 "withdrawFee": "1",
+        #                 "withdrawPrecision": 8,
+        #                 "supportMemo": 0,
+        #                 "isDepositAvailable": 1,
+        #                 "isWithdrawAvailable": 1,
+        #                 "recoveryEtaDeposit": 0,
+        #                 "recoveryEtaWithdraw": 0,
+        #                 "logo": "https://example.com/usdt.png"
+        #             }
+        #         ]
+        #     }
+        #
+        # one row per currency + chain pair, group them per currency
+        data = self.safe_list(response, 'data', [])
+        dataByCurrencyId = self.group_by(data, 'currency')
+        currencies = list(dataByCurrencyId.values())
+        return self.parse_currencies(currencies)
+
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
+        chains = currency
+        firstChain = self.safe_dict(chains, 0, {})
+        currencyId = self.safe_string(firstChain, 'currency')
+        code = self.safe_currency_code(currencyId)
+        networks = {}
+        chainsLength = len(chains)
+        for i in range(0, chainsLength):
+            chain = self.safe_dict(chains, i)
+            networkId = self.safe_string(chain, 'chain')
+            networkCode = self.chain_id_to_network_code(networkId)
+            if networkCode is None:
+                continue
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'active': None,
+                'deposit': self.safe_integer(chain, 'isDepositAvailable') == 1,
+                'withdraw': self.safe_integer(chain, 'isWithdrawAvailable') == 1,
+                'fee': self.safe_number(chain, 'withdrawFee'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawPrecision'))),
+                'limits': {
+                    'deposit': {
+                        'min': self.safe_number(chain, 'depositMinAmount'),
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.safe_number(chain, 'withdrawMinAmount'),
+                        'max': None,
+                    },
+                },
+                'info': chain,
+            }
+        return self.safe_currency_structure({
+            'info': chains,
+            'code': code,
+            'id': currencyId,
+            'name': None,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': None,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'type': 'crypto',
+            'networks': networks,
+        })
+
+    async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
+        """
+        fetch the deposit address for a currency associated with self account
+
+        https://docs.blofin.com/index.html#get-deposit-address
+
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: unified network code, required unless the currency has a single network or a default in options['defaultNetworks']
+        :param str [params.chain]: the exchange-specific chain id, takes precedence over params.network
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        networkCode = None
+        query = None
+        networkCode, query = self.handle_network_code_and_params(params)
+        chain = self.safe_string(query, 'chain')
+        if chain is None:
+            if networkCode is None:
+                networks = self.safe_dict(currency, 'networks', {})
+                networkKeys = list(networks.keys())
+                networkKeysLength = len(networkKeys)
+                if networkKeysLength == 1:
+                    networkCode = self.safe_string(networkKeys, 0)
+                else:
+                    defaultNetworks = self.safe_dict(self.options, 'defaultNetworks', {})
+                    networkCode = self.safe_string(defaultNetworks, currency['code'])
+            if networkCode is None:
+                raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a params["network"] or params["chain"] for ' + code)
+            # the same display-name chain ids that withdrawal-apply and the currencies registry use
+            request['chain'] = self.network_code_to_chain_id(networkCode, currency)
+        response = await self.privateGetAssetDepositAddress(self.extend(request, query))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "currency": "USDT",
+        #                 "chain": "TRC20",
+        #                 "address": "THmWeEJKyb976L76MvrTjeYMyNgiS9aKTu",
+        #                 "tag": ""
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        first = self.safe_dict(data, 0)
+        if first is None:
+            raise InvalidAddress(self.id + ' fetchDepositAddress() returned no address for ' + code + ' on ' + self.safe_string(request, 'chain', chain))
+        return self.parse_deposit_address(first, currency)
+
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
+        address = self.safe_string(depositAddress, 'address')
+        currencyId = self.safe_string(depositAddress, 'currency')
+        networkId = self.safe_string(depositAddress, 'chain')
+        tag = self.safe_string(depositAddress, 'tag')
+        if tag == '':
+            tag = None
+        self.check_address(address)
+        return {
+            'info': depositAddress,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'network': self.chain_id_to_network_code(networkId),
+            'address': address,
+            'tag': tag,
+        }
+
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
+        """
+        fetch deposit and withdraw fees
+
+        https://docs.blofin.com/index.html#get-currencies
+
+        :param str[] [codes]: list of unified currency codes
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.privateGetAssetCurrencies(params)
+        data = self.safe_list(response, 'data', [])
+        dataByCurrencyId = self.group_by(data, 'currency')
+        return self.parse_deposit_withdraw_fees(dataByCurrencyId, codes)
+
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+        #
+        # a list of GET /asset/currencies rows for one currency, see fetchCurrencies
+        #
+        result = self.deposit_withdraw_fee(fee)
+        chainsLength = len(fee)
+        for i in range(0, chainsLength):
+            chain = self.safe_dict(fee, i)
+            networkCode = self.chain_id_to_network_code(self.safe_string(chain, 'chain'))
+            if networkCode is None:
+                continue
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': self.safe_number(chain, 'withdrawFee'),
+                    'percentage': False,
+                },
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+            }
+        if chainsLength == 1:
+            # a single network means the currency-level fee is unambiguous
+            networkKeys = list(result['networks'].keys())
+            onlyNetwork = self.safe_string(networkKeys, 0)
+            if onlyNetwork is not None:
+                result['withdraw'] = result['networks'][onlyNetwork]['withdraw']
+        return result
+
+    async def fetch_deposit(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
+        """
+        fetch information on a deposit
+
+        https://docs.blofin.com/index.html#get-deposit-history
+
+        :param str id: deposit id
+        :param str [code]: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'depositId': id,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = await self.privateGetAssetDepositHistory(self.extend(request, params))
+        data = self.safe_list(response, 'data', [])
+        # only accept a row that matches the requested id, in case the
+        # venue ignores the filter and returns the latest records instead
+        dataLength = len(data)
+        for i in range(0, dataLength):
+            entry = data[i]
+            if self.safe_string(entry, 'depositId') == id:
+                return self.parse_transaction(entry, currency)
+        raise ExchangeError(self.id + ' fetchDeposit() could not find deposit ' + id)
+
+    async def fetch_withdrawal(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
+        """
+        fetch data on a currency withdrawal via the withdrawal id
+
+        https://docs.blofin.com/index.html#get-withdraw-history
+
+        :param str id: withdrawal id
+        :param str [code]: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientId]: look up by the client-supplied id instead, with id set to None
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        clientId = self.safe_string(params, 'clientId')
+        if (id is None) and (clientId is None):
+            raise ArgumentsRequired(self.id + ' fetchWithdrawal() requires an id argument or a params["clientId"]')
+        await self.load_markets()
+        request = {}
+        if id is not None:
+            request['withdrawId'] = id
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = await self.privateGetAssetWithdrawalHistory(self.extend(request, params))
+        data = self.safe_list(response, 'data', [])
+        # only accept a row that matches the requested id (or clientId), in
+        # case the venue ignores the filter and returns the latest records
+        dataLength = len(data)
+        for i in range(0, dataLength):
+            entry = data[i]
+            matches = False
+            if id is not None:
+                matches = (self.safe_string(entry, 'withdrawId') == id)
+            else:
+                matches = (self.safe_string(entry, 'clientId') == clientId)
+            if matches:
+                return self.parse_transaction(entry, currency)
+        reference = id if (id is not None) else clientId
+        raise ExchangeError(self.id + ' fetchWithdrawal() could not find withdrawal ' + reference)
 
     async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
@@ -1967,7 +2277,7 @@ class blofin(Exchange, ImplicitAPI):
         chain = self.safe_string(query, 'chain')
         if chain is None:
             if networkCode is not None:
-                request['chain'] = self.network_code_to_chain_id(networkCode)
+                request['chain'] = self.network_code_to_chain_id(networkCode, currency)
             elif dest == 'onchain':
                 # required for on-chain withdrawals, optional for internal transfers
                 raise ArgumentsRequired(self.id + ' withdraw() requires a params["network"] or params["chain"] for on-chain withdrawals')

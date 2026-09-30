@@ -47,6 +47,15 @@ type IFetchOrderWithClientOrderId interface {
 type IFetchPositions interface {
 	FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 }
+type IFetchTicker interface {
+	FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+}
+type IWatchTicker interface {
+	WatchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+}
+type IWatchTickers interface {
+	WatchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
+}
 type IFetchTickers interface {
 	FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any]
 }
@@ -215,7 +224,6 @@ type ICoreExchange interface {
 	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
-	FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	ParseOpenInterest(interest any, optionalArgs ...any) map[string]any
 	FetchMyLiquidationsAsync(optionalArgs ...any) <-chan AsyncResult[any]
@@ -369,8 +377,6 @@ type ICoreExchange interface {
 	WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface]
 	WatchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
-	WatchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	WatchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	WatchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]any]
 	WithdrawWsAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[any]
 	Close(cleanInstanceCache ...any) []error
@@ -389,8 +395,8 @@ type IDerivedExchange interface {
 	HandleBookDelta(orderbook any, delta any)
 	HandleBookDeltas(orderbook any, deltas any)
 	ParseLeverage(leverage any, optionalArgs ...any) map[string]any
-	ParseOHLCV(ohlcv any, optionalArgs ...any) any
-	ParseTrade(trade any, optionalArgs ...any) any
+	ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV
+	ParseTrade(trade any, optionalArgs ...any) Trade
 	ParseTrades(trades any, optionalArgs ...any) []any
 	ParseGreeks(greeks any, optionalArgs ...any) map[string]any
 	ParseMarket(market any) any
@@ -400,8 +406,8 @@ type IDerivedExchange interface {
 	ParseAccount(account any) any
 	ParseLedgerEntry(item any, optionalArgs ...any) map[string]any
 	ParseLastPrice(item any, optionalArgs ...any) any
-	ParseOrder(order any, optionalArgs ...any) map[string]any
-	ParseTicker(ticker any, optionalArgs ...any) map[string]any
+	ParseOrder(order any, optionalArgs ...any) Order
+	ParseTicker(ticker any, optionalArgs ...any) Ticker
 	ParseTickers(tickers any, optionalArgs ...any) map[string]any
 	ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) map[string]any
 	ParsePosition(position any, optionalArgs ...any) any

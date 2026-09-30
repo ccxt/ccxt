@@ -3431,7 +3431,7 @@ class krakenfutures extends Exchange {
             'markPrice' => null,
             'lastPrice' => $this->safe_number($position, 'executionPrice'),
             'collateral' => null,
-            'marginType' => $marginType,
+            'marginMode' => $marginType,
             'side' => $side,
             'percentage' => null,
         );

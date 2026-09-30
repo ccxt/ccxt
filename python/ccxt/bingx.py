@@ -5772,7 +5772,7 @@ class bingx(Exchange, ImplicitAPI):
         paramsTrades = None
         subType, paramsSubType = self.handle_sub_type_and_params('fetchMyTrades', market, params)
         if subType == 'inverse':
-            paramsTrades = paramsSubType
+            paramsTrades = self.omit(paramsSubType, 'orderId')
             orderId = self.safe_string(paramsSubType, 'orderId')
             if orderId is None:
                 raise ArgumentsRequired(self.id + ' fetchMyTrades() requires an orderId argument for inverse swap trades')

@@ -1,6 +1,6 @@
 import mexcRest from '../mexc.js';
 import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, Tickers, Strings, FundingRate, Market } from '../base/types.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 export default class mexc extends mexcRest {
     describe(): any;
@@ -77,7 +77,7 @@ export default class mexc extends mexcRest {
     getCacheIndex(orderbook: any, cache: any): number;
     handleOrderBook(client: Client, message: Dict): void;
     handleBooksideDelta(bookside: any, bidasks: any[]): void;
-    handleBookDelta(orderbook: Ob, delta: any): void;
+    handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     /**
      * @method
      * @name mexc#watchTrades

@@ -3055,9 +3055,7 @@ export default class grvt extends Exchange {
         }
         const timestamp = this.safeIntegerProduct (metadata, 'create_time', 0.000001);
         // const triggerDetails = this.safeDict (metadata, 'trigger', {});
-        const legsLength = legs.length;
         return this.safeOrder ({
-            'isMultiLeg': (legsLength > 1),
             'id': this.safeString (order, 'order_id'),
             'clientOrderId': this.safeString (metadata, 'client_order_id'),
             'timestamp': timestamp,

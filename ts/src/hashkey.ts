@@ -3779,7 +3779,7 @@ export default class hashkey extends Exchange {
             'trades': undefined,
             'fee': {
                 'currency': this.safeCurrencyCode (feeCurrncyId),
-                'amount': this.omitZero (this.safeString (order, 'feeAmount') as string),
+                'cost': this.omitZero (this.safeString (order, 'feeAmount') as string),
             },
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,

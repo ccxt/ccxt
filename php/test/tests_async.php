@@ -1518,7 +1518,7 @@ class testMainClass {
     }
 
     public function is_vacant_value($exchange, $value) {
-        // C# only. The unified types are structs, so the two sides of the comparison
+        // C# and Go only. The unified types are structs, so the two sides of the comparison
         // carry different key sets for reasons that are structural, not behavioural:
         //   - a struct field the venue never populated is still a field, and comes
         //     back as an explicit null the fixture may not carry (Balance.debt);
@@ -1565,6 +1565,21 @@ class testMainClass {
         return $count;
     }
 
+    public function effective_skip_keys($exchange, $exchange_data, $entry) {
+        // 'forceCheckKeys' re-enables the full comparison (both presence and value)
+        // for the listed keys in this one entry, overriding the file-level 'skipKeys'
+        $raw_skip_keys = $exchange->safe_list($exchange_data, 'skipKeys', []);
+        $force_check_keys = $exchange->safe_list($entry, 'forceCheckKeys', []);
+        $skip_keys = [];
+        for ($i = 0; $i < count($raw_skip_keys); $i++) {
+            $key = $raw_skip_keys[$i];
+            if (!($exchange->in_array($key, $force_check_keys))) {
+                $skip_keys[] = $key;
+            }
+        }
+        return $skip_keys;
+    }
+
     public function assert_new_and_stored_output_inner($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true, $asserting_key = null) {
         if (is_null_value($new_output) && is_null_value($stored_output)) {
             return true;
@@ -1574,7 +1589,7 @@ class testMainClass {
         if ($new_output_is_empty && $stored_output_is_empty) {
             return true;
         }
-        if ($this->lang === 'C#') {
+        if (($this->lang === 'C#') || ($this->lang === 'GO')) {
             // a struct is never null: an absent `fee` comes back as a Fee whose every
             // field is null, and an absent `fees` as []. The stored fixture writes the
             // same thing as a bare null. Treat "carries no data" as equal on both
@@ -1593,7 +1608,7 @@ class testMainClass {
             $new_output_keys = is_array($new_output) ? array_keys($new_output) : array();
             $stored_keys_length = count($stored_output_keys);
             $new_keys_length = count($new_output_keys);
-            if ($this->lang === 'C#') {
+            if (($this->lang === 'C#') || ($this->lang === 'GO')) {
                 // the unified types are structs there, so an unpopulated field still
                 // comes back (as an explicit null) and a unified key with no struct
                 // field cannot come back at all; count only the keys that carry data
@@ -1604,14 +1619,14 @@ class testMainClass {
             // iterate over the keys
             for ($i = 0; $i < count($stored_output_keys); $i++) {
                 $key = $stored_output_keys[$i];
-                if ($exchange->in_array($key, $skip_keys)) {
-                    continue;
-                }
                 if (!($exchange->in_array($key, $new_output_keys))) {
-                    if (($this->lang === 'C#') && $this->is_vacant_value($exchange, $stored_output[$key])) {
+                    if ((($this->lang === 'C#') || ($this->lang === 'GO')) && $this->is_vacant_value($exchange, $stored_output[$key])) {
                         continue;
                     }
                     $this->assert_static_error(false, 'output key missing: ' . $key, $stored_output, $new_output);
+                }
+                if ($exchange->in_array($key, $skip_keys)) {
+                    continue;
                 }
                 $stored_value = $stored_output[$key];
                 $new_value = $new_output[$key];
@@ -1655,12 +1670,12 @@ class testMainClass {
                 $is_computed_undefined = ($sanitized_new_output === null);
                 $is_stored_undefined = ($sanitized_stored_output === null);
                 $should_be_same = ($is_computed_bool === $is_stored_bool) && ($is_computed_string === $is_stored_string) && ($is_computed_undefined === $is_stored_undefined);
-                if (!$should_be_same && (($this->lang === 'PY') || ($this->lang === 'C#')) && !$is_computed_bool && !$is_stored_bool && !$is_computed_undefined && !$is_stored_undefined) {
+                if (!$should_be_same && (($this->lang === 'PY') || ($this->lang === 'C#') || ($this->lang === 'GO')) && !$is_computed_bool && !$is_stored_bool && !$is_computed_undefined && !$is_stored_undefined) {
                     // python parses json numbers natively (arbitrary-precision ints), while fixtures
                     // captured under number-quoting store them as strings - compare numerically like C#/GO
                     // c#: a typed core returns the unified `Num` fields as a real double, whereas the
                     // fixture was captured through the untyped path and kept the venue's quoted string
-                    // (cost "0.02" vs 0.02) - same value, different json spelling
+                    // (cost "0.02" vs 0.02) - same value, different json spelling; go structs likewise
                     // pass the sanitized VALUES, not their string forms: C# renders a small
                     // double as "6.79E-05", which parseToNumeric cannot parse. And only the
                     // STRING side needs parsing - parseToNumeric round-trips a double through
@@ -2089,7 +2104,7 @@ class testMainClass {
                     $exchange->extend_exchange_options($global_options);
                     $test_exchange_options = $exchange->safe_value($result, 'options', array());
                     $exchange->extend_exchange_options($test_exchange_options);
-                    $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
+                    $skip_keys = $this->effective_skip_keys($exchange, $exchange_data, $result);
                     \React\Async\await($this->test_ws_statically($exchange, $method, $skip_keys, $result));
                     if (!is_sync()) {
                         \React\Async\await(close($exchange));
@@ -2278,7 +2293,7 @@ class testMainClass {
                         continue;
                     }
                     $type = $exchange->safe_string($exchange_data, 'outputType');
-                    $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
+                    $skip_keys = $this->effective_skip_keys($exchange, $exchange_data, $result);
                     \React\Async\await($this->test_request_statically($exchange, $method, $result, $type, $skip_keys));
                     // reset options
                     $exchange->options = $exchange->convert_to_safe_dictionary($exchange->deep_extend($old_exchange_options, array()));
@@ -2353,7 +2368,7 @@ class testMainClass {
                     if (($is_disabled_java === true) && ($this->lang === 'java')) {
                         continue;
                     }
-                    $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
+                    $skip_keys = $this->effective_skip_keys($exchange, $exchange_data, $result);
                     \React\Async\await($this->test_response_statically($exchange, $method, $skip_keys, $result));
                     // reset options
                     // exchange.options = exchange.deepExtend (oldExchangeOptions, {});

@@ -1669,6 +1669,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         });
 
     }
+    // don't remove the future from the .futures cache
     public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
     {
         return this.unWatchTrades(symbol, (Object) (parameters));

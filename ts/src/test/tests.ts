@@ -1611,7 +1611,7 @@ class testMainClass {
     }
 
     isVacantValue (exchange: Exchange, value: any) {
-        // C# only. The unified types are structs, so the two sides of the comparison
+        // C# and Go only. The unified types are structs, so the two sides of the comparison
         // carry different key sets for reasons that are structural, not behavioural:
         //   - a struct field the venue never populated is still a field, and comes
         //     back as an explicit null the fixture may not carry (Balance.debt);
@@ -1658,6 +1658,21 @@ class testMainClass {
         return count;
     }
 
+    effectiveSkipKeys (exchange: Exchange, exchangeData: object, entry: object) {
+        // 'forceCheckKeys' re-enables the full comparison (both presence and value)
+        // for the listed keys in this one entry, overriding the file-level 'skipKeys'
+        const rawSkipKeys = exchange.safeList (exchangeData, 'skipKeys', []);
+        const forceCheckKeys = exchange.safeList (entry, 'forceCheckKeys', []);
+        const skipKeys = [];
+        for (let i = 0; i < rawSkipKeys.length; i++) {
+            const key = rawSkipKeys[i];
+            if (!(exchange.inArray (key, forceCheckKeys))) {
+                skipKeys.push (key);
+            }
+        }
+        return skipKeys;
+    }
+
     assertNewAndStoredOutputInner (exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck = true, assertingKey: Str = undefined) {
         if (isNullValue (newOutput) && isNullValue (storedOutput)) {
             return true;
@@ -1669,7 +1684,7 @@ class testMainClass {
             return true;
             // c# requirement
         }
-        if (this.lang === 'C#') {
+        if ((this.lang === 'C#') || (this.lang === 'GO')) {
             // a struct is never null: an absent `fee` comes back as a Fee whose every
             // field is null, and an absent `fees` as []. The stored fixture writes the
             // same thing as a bare null. Treat "carries no data" as equal on both
@@ -1690,7 +1705,7 @@ class testMainClass {
             const newOutputKeys = Object.keys (newOutput);
             let storedKeysLength = storedOutputKeys.length;
             let newKeysLength = newOutputKeys.length;
-            if (this.lang === 'C#') {
+            if ((this.lang === 'C#') || (this.lang === 'GO')) {
                 // the unified types are structs there, so an unpopulated field still
                 // comes back (as an explicit null) and a unified key with no struct
                 // field cannot come back at all; count only the keys that carry data
@@ -1701,14 +1716,14 @@ class testMainClass {
             // iterate over the keys
             for (let i = 0; i < storedOutputKeys.length; i++) {
                 const key = storedOutputKeys[i];
-                if (exchange.inArray (key, skipKeys)) {
-                    continue;
-                }
                 if (!(exchange.inArray (key, newOutputKeys))) {
-                    if ((this.lang === 'C#') && this.isVacantValue (exchange, storedOutput[key])) {
+                    if (((this.lang === 'C#') || (this.lang === 'GO')) && this.isVacantValue (exchange, storedOutput[key])) {
                         continue; // the struct has no field for it and it carries no data
                     }
                     this.assertStaticError (false, 'output key missing: ' + key, storedOutput, newOutput);
+                }
+                if (exchange.inArray (key, skipKeys)) {
+                    continue; // the key must be present (asserted above), but its value is not compared
                 }
                 const storedValue = storedOutput[key];
                 const newValue = newOutput[key];
@@ -1755,12 +1770,12 @@ class testMainClass {
                 const isComputedUndefined = (sanitizedNewOutput === undefined);
                 const isStoredUndefined = (sanitizedStoredOutput === undefined);
                 const shouldBeSame = (isComputedBool === isStoredBool) && (isComputedString === isStoredString) && (isComputedUndefined === isStoredUndefined);
-                if (!shouldBeSame && ((this.lang === 'PY') || (this.lang === 'C#')) && !isComputedBool && !isStoredBool && !isComputedUndefined && !isStoredUndefined) {
+                if (!shouldBeSame && ((this.lang === 'PY') || (this.lang === 'C#') || (this.lang === 'GO')) && !isComputedBool && !isStoredBool && !isComputedUndefined && !isStoredUndefined) {
                     // python parses json numbers natively (arbitrary-precision ints), while fixtures
                     // captured under number-quoting store them as strings - compare numerically like C#/GO
                     // c#: a typed core returns the unified `Num` fields as a real double, whereas the
                     // fixture was captured through the untyped path and kept the venue's quoted string
-                    // (cost "0.02" vs 0.02) - same value, different json spelling
+                    // (cost "0.02" vs 0.02) - same value, different json spelling; go structs likewise
                     // pass the sanitized VALUES, not their string forms: C# renders a small
                     // double as "6.79E-05", which parseToNumeric cannot parse. And only the
                     // STRING side needs parsing - parseToNumeric round-trips a double through
@@ -2193,7 +2208,7 @@ class testMainClass {
                 exchange.extendExchangeOptions (globalOptions);
                 const testExchangeOptions = exchange.safeValue (result, 'options', {});
                 exchange.extendExchangeOptions (testExchangeOptions);
-                const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
+                const skipKeys = this.effectiveSkipKeys (exchange, exchangeData, result);
                 await this.testWsStatically (exchange, method, skipKeys, result);
                 if (!isSync ()) {
                     await close (exchange);
@@ -2392,7 +2407,7 @@ class testMainClass {
                     continue;
                 }
                 const type = exchange.safeString (exchangeData, 'outputType');
-                const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
+                const skipKeys = this.effectiveSkipKeys (exchange, exchangeData, result);
                 await this.testRequestStatically (exchange, method, result, type, skipKeys);
                 // reset options
                 exchange.options = exchange.convertToSafeDictionary (exchange.deepExtend (oldExchangeOptions, {}));
@@ -2471,7 +2486,7 @@ class testMainClass {
                 if ((isDisabledJava === true) && (this.lang === 'java')) {
                     continue;
                 }
-                const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
+                const skipKeys = this.effectiveSkipKeys (exchange, exchangeData, result);
                 await this.testResponseStatically (exchange, method, skipKeys, result);
                 // reset options
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, {});

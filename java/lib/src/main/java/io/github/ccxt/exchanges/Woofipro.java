@@ -4154,7 +4154,6 @@ public class Woofipro extends WoofiproApi
         mapLiteral7.put("lastPrice", null);
         mapLiteral7.put("collateral", null);
         mapLiteral7.put("marginMode", "cross");
-        mapLiteral7.put("marginType", null);
         mapLiteral7.put("side", side);
         mapLiteral7.put("percentage", null);
         mapLiteral7.put("hedged", null);
