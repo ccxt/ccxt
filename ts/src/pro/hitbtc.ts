@@ -8,7 +8,7 @@ import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict, Lis
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -259,7 +259,7 @@ export default class hitbtc extends hitbtcRest {
                 'symbols': [ market['id'] ],
             },
         };
-        const orderbook: Ob = await this.subscribePublic (name, 'orderbooks', [ symbol ], this.deepExtend (request, paramsOmitted));
+        const orderbook: WsOrderBook = await this.subscribePublic (name, 'orderbooks', [ symbol ], this.deepExtend (request, paramsOmitted));
         return orderbook.limit ();
     }
 

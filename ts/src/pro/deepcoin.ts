@@ -6,7 +6,7 @@ import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.j
 import type { Dict, FeeString, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -695,7 +695,7 @@ export default class deepcoin extends deepcoinRest {
         const market = this.market (symbol);
         const messageHash = 'orderbook' + '::' + market['symbol'];
         const [ suffix, paramsValue ] = this.orderBookSuffix (market, 'watchOrderBook', params);
-        const orderbook: Ob = await this.watchPublic (market, messageHash, '25', paramsValue, suffix);
+        const orderbook: WsOrderBook = await this.watchPublic (market, messageHash, '25', paramsValue, suffix);
         return orderbook.limit ();
     }
 
@@ -831,7 +831,7 @@ export default class deepcoin extends deepcoinRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBookMessage (client: Client, message: Dict, orderbook: Ob) {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: WsOrderBook) {
         //     {
         //         "a": "PMO",
         //         "t": "i", // i - update, f - snapshot
@@ -857,7 +857,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    override handleBookDelta (orderbook: Ob, entry: any) {
+    override handleBookDelta (orderbook: WsOrderBook, entry: any) {
         const data = this.safeDict (entry, 'd', {});
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];

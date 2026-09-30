@@ -5,7 +5,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCach
 import { Balances, Bool, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -165,7 +165,7 @@ export default class xt extends xtRest {
         return cache.length;
     }
 
-    override handleBookDelta (orderbook: Ob, delta: any) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
         orderbook['nonce'] = this.safeInteger2 (delta, 'i', 'u');
         const obAsks: Dict[] = this.safeList (delta, 'a', []);
         const obBids: Dict[] = this.safeList (delta, 'b', []);
@@ -532,7 +532,7 @@ export default class xt extends xtRest {
         if (levels !== undefined) {
             name = 'depth@' + market['id'] + ',' + levels;
         }
-        const orderbook: Ob = await this.subscribe (name, 'public', 'watchOrderBook', market, undefined, paramsOmitted);
+        const orderbook: WsOrderBook = await this.subscribe (name, 'public', 'watchOrderBook', market, undefined, paramsOmitted);
         return orderbook.limit ();
     }
 
@@ -1388,8 +1388,8 @@ export default class xt extends xtRest {
             'side': this.safeStringLower2 (order, 'sd', 'orderSide'),
             'price': this.safeNumber2 (order, 'p', 'price'),
             'stopPrice': undefined,
-            'stopLoss': undefined,
-            'takeProfit': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
             'amount': this.safeString2 (order, 'oq', 'origQty'),
             'filled': this.safeString2 (order, 'eq', 'executedQty'),
             'remaining': this.safeString (order, 'lq'),

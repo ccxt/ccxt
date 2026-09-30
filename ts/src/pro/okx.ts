@@ -7,7 +7,7 @@ import { ArgumentsRequired, BadRequest, ExchangeError, AuthenticationError, Inva
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, List, Liquidation, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1318,7 +1318,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl (depth, 'public');
-        const orderbook: Ob = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const orderbook: WsOrderBook = await this.watchMultiple (url, messageHashes, request, messageHashes);
         return orderbook.limit ();
     }
 
@@ -1410,7 +1410,7 @@ export default class okx extends okxRest {
         }
     }
 
-    handleOrderBookMessage (client: Client, message: Dict, orderbook: Ob, messageHash: string, market: Market = undefined) {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: WsOrderBook, messageHash: string, market: Market = undefined) {
         //
         //     {
         //         "asks": [
