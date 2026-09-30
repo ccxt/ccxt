@@ -2182,7 +2182,7 @@ export default class blofin extends Exchange {
                 const networkKeys = Object.keys (networks);
                 const networkKeysLength = networkKeys.length;
                 if (networkKeysLength === 1) {
-                    networkCode = networkKeys[0];
+                    networkCode = this.safeString (networkKeys, 0);
                 } else {
                     const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
                     networkCode = this.safeString (defaultNetworks, currency['code']);
