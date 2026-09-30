@@ -2173,8 +2173,9 @@ export default class blofin extends Exchange {
             'currency': currency['id'],
         };
         let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const chain = this.safeString (params, 'chain');
+        let query = undefined;
+        [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        const chain = this.safeString (query, 'chain');
         if (chain === undefined) {
             if (networkCode === undefined) {
                 const networks = this.safeDict (currency, 'networks', {});
@@ -2193,7 +2194,7 @@ export default class blofin extends Exchange {
             // the same display-name chain ids that withdrawal-apply and the currencies registry use
             request['chain'] = this.networkCodeToChainId (networkCode, currency);
         }
-        const response = await this.privateGetAssetDepositAddress (this.extend (request, params));
+        const response = await this.privateGetAssetDepositAddress (this.extend (request, query));
         //
         //     {
         //         "code": "0",
