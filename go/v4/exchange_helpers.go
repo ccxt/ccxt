@@ -3420,3 +3420,11 @@ func GetValueBool(v any, index int, def bool) bool {
 	}
 	return def
 }
+
+// MapOrEmpty is the dict a typed constructor reads: nil or a non-map value gives an empty map
+func MapOrEmpty(v any) map[string]any {
+	if m := SafeMapTyped(map[string]any{"v": v}, "v"); m != nil {
+		return m
+	}
+	return map[string]any{}
+}

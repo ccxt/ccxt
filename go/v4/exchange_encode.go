@@ -338,26 +338,32 @@ func (e *BaseExchange) Rawencode(params ...any) string {
 	return strings.Join(outList, "&")
 }
 
+// rfc3986Escape matches the JS urlencode encoder: QueryEscape already escapes
+// !'()* but renders a space as "+", where JS emits "%20".
+func rfc3986Escape(s string) string {
+	return strings.ReplaceAll(url.QueryEscape(s), "+", "%20")
+}
+
 func (e *BaseExchange) UrlencodeWithArrayRepeat(parameters2 any) string {
 	parameters := parameters2.(map[string]any)
 	encodeValue := func(value any) string {
 		value = derefScalar(value)
 		if IsNumber(value) {
-			return url.QueryEscape(NumberToString(value))
+			return rfc3986Escape(NumberToString(value))
 		}
 		if boolVal, ok := value.(bool); ok {
 			return strings.ToLower(fmt.Sprintf("%v", boolVal))
 		}
-		return url.QueryEscape(ToString(value))
+		return rfc3986Escape(ToString(value))
 	}
 	var outList []string
 	for key, value := range parameters {
 		if values, ok := value.([]any); ok {
 			for _, item := range values {
-				outList = append(outList, fmt.Sprintf("%s=%s", url.QueryEscape(key), encodeValue(item)))
+				outList = append(outList, fmt.Sprintf("%s=%s", rfc3986Escape(key), encodeValue(item)))
 			}
 		} else {
-			outList = append(outList, fmt.Sprintf("%s=%s", url.QueryEscape(key), encodeValue(value)))
+			outList = append(outList, fmt.Sprintf("%s=%s", rfc3986Escape(key), encodeValue(value)))
 		}
 	}
 	return strings.Join(outList, "&")
@@ -451,7 +457,7 @@ func (e *BaseExchange) Urlencode(params ...any) string {
 	var queryString []string
 	for _, key := range keys {
 		value := derefScalar(parameters[key])
-		encodedKey := url.QueryEscape(key)
+		encodedKey := rfc3986Escape(key)
 		finalValue := ""
 
 		if IsNumber(value) {
@@ -463,9 +469,9 @@ func (e *BaseExchange) Urlencode(params ...any) string {
 			finalValue = strings.ToLower(fmt.Sprintf("%v", boolVal))
 		}
 		if strings.ToLower(key) == "timestamp" {
-			finalValue = strings.ToUpper(url.QueryEscape(finalValue))
+			finalValue = strings.ToUpper(rfc3986Escape(finalValue))
 		} else {
-			finalValue = url.QueryEscape(finalValue)
+			finalValue = rfc3986Escape(finalValue)
 		}
 		queryString = append(queryString, fmt.Sprintf("%s=%s", encodedKey, finalValue))
 	}
