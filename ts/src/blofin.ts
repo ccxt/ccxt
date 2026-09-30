@@ -6,7 +6,7 @@ import Exchange from './abstract/blofin.js';
 import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds, NullResponse, PermissionDenied, InvalidNonce, InvalidAddress, OrderNotFound, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, List, NullableDict, IndexType, PositionModeInfo, Endpoint } from './base/types.js';
+import type { Bool, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Currencies, CurrencyInterface, DepositAddress, DepositWithdrawFees, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, List, NullableDict, IndexType, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -63,15 +63,15 @@ export default class blofin extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
-                'fetchDeposit': false,
-                'fetchDepositAddress': false,
+                'fetchCurrencies': true,
+                'fetchDeposit': true,
+                'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
-                'fetchDepositWithdrawFees': false,
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -128,7 +128,7 @@ export default class blofin extends Exchange {
                 'fetchTransfers': false,
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
-                'fetchWithdrawal': false,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
@@ -364,6 +364,9 @@ export default class blofin extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'marginMode': false,
                         'triggerPrice': false,
@@ -530,8 +533,13 @@ export default class blofin extends Exchange {
                     'MATIC': 'Polygon POS',
                     'AVAXC': 'AVAX C-Chain',
                     'ARBITRUM': 'Arbitrum One',
-                    'OP': 'Optimism',
+                    'OPTIMISM': 'Optimism',
                     'KAIA': 'KAIA',
+                    'PLASMA': 'Plasma',
+                },
+                'networkCodeAliases': {
+                    // legacy codes accepted on input, resolved to the unified code
+                    'OP': 'OPTIMISM',
                 },
                 'networkPrefixes': {
                     // code -> the display-name prefix; the venue id is
@@ -560,8 +568,9 @@ export default class blofin extends Exchange {
                     'Polygon POS': 'MATIC',
                     'AVAX C-Chain': 'AVAXC',
                     'Arbitrum One': 'ARBITRUM',
-                    'Optimism': 'OP',
+                    'Optimism': 'OPTIMISM',
                     'BSC': 'BEP20',
+                    'Plasma': 'PLASMA',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -1976,23 +1985,35 @@ export default class blofin extends Exchange {
         return this.parseTransactions (data, currency, since, limit, paramsUntil);
     }
 
-    networkCodeToChainId (networkCode: string): Str {
+    networkCodeToChainId (networkCode: string, currency: Currency = undefined): Str {
+        const aliases = this.safeDict (this.options, 'networkCodeAliases', {});
+        const unifiedCode = this.safeString (aliases, networkCode, networkCode);
+        // prefer the exact chain id from the currencies registry when it is
+        // loaded, since some ids are currency-specific (USDT on Optimism)
+        if (currency !== undefined) {
+            const currencyNetworks = this.safeDict (currency, 'networks', {});
+            const currencyNetwork = this.safeDict (currencyNetworks, unifiedCode);
+            const currencyNetworkId = this.safeString (currencyNetwork, 'id');
+            if (currencyNetworkId !== undefined) {
+                return currencyNetworkId;
+            }
+        }
         // the live venue identifies chains by display names; the suffix
         // family is built here as prefix + space + parenthesized suffix
         // because such literals are not transpiler-safe in source
         const networks = this.safeDict (this.options, 'networks', {});
-        const direct = this.safeString (networks, networkCode);
+        const direct = this.safeString (networks, unifiedCode);
         if (direct !== undefined) {
             return direct;
         }
         const prefixes = this.safeDict (this.options, 'networkPrefixes', {});
-        const prefix = this.safeString (prefixes, networkCode);
+        const prefix = this.safeString (prefixes, unifiedCode);
         if (prefix !== undefined) {
             const suffixes = this.safeDict (this.options, 'networkSuffixes', {});
-            const suffix = this.safeString (suffixes, networkCode, networkCode);
+            const suffix = this.safeString (suffixes, unifiedCode, unifiedCode);
             return prefix + ' ' + '(' + suffix + ')';
         }
-        return networkCode;
+        return unifiedCode;
     }
 
     chainIdToNetworkCode (chainId: Str): Str {
@@ -2012,12 +2033,338 @@ export default class blofin extends Exchange {
             const tailParts = tail.split (')');
             const suffix = this.safeString (tailParts, 0);
             const bySuffix = this.safeDict (this.options, 'networkCodesBySuffix', {});
-            return this.safeString (bySuffix, suffix, suffix);
+            const suffixCode = this.safeString (bySuffix, suffix);
+            if (suffixCode !== undefined) {
+                return suffixCode;
+            }
+            const prefixes = this.safeDict (this.options, 'networkPrefixes', {});
+            if ((suffix !== undefined) && (suffix in prefixes)) {
+                return suffix;
+            }
+            // the suffix is not always a chain: 'Optimism (USDT0)' carries
+            // the token name (verified live 2026-09-30), resolve by prefix
+            const head = this.safeString (parts, 0, '');
+            return this.networkIdToCode (head.trim ());
         }
         // delegate the paren-free branch to the base resolver so the
         // currency-scoped networks and the deprecated-network-code aliases
         // keep applying alongside options['networksById']
         return this.networkIdToCode (chainId);
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.blofin.com/index.html#get-currencies
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
+        // GET /asset/currencies is a private endpoint, while fetchCurrencies
+        // is invoked from loadMarkets - skip it when no credentials are set
+        // and on the demo host, which has no funding account
+        if (!this.checkRequiredCredentials (false) || this.isSandboxModeEnabled) {
+            return {};
+        }
+        const response = await this.privateGetAssetCurrencies (params);
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "currency": "USDT",
+        //                 "chain": "TRC20",
+        //                 "depositMinAmount": "1",
+        //                 "depositUnsafeConfirmation": 1,
+        //                 "depositConfirmation": 20,
+        //                 "withdrawMinAmount": "10",
+        //                 "withdrawFee": "1",
+        //                 "withdrawPrecision": 8,
+        //                 "supportMemo": 0,
+        //                 "isDepositAvailable": 1,
+        //                 "isWithdrawAvailable": 1,
+        //                 "recoveryEtaDeposit": 0,
+        //                 "recoveryEtaWithdraw": 0,
+        //                 "logo": "https://example.com/usdt.png"
+        //             }
+        //         ]
+        //     }
+        //
+        // one row per currency + chain pair, group them per currency
+        const data = this.safeList (response, 'data', []);
+        const dataByCurrencyId = this.groupBy (data, 'currency');
+        const currencies = Object.values (dataByCurrencyId);
+        return this.parseCurrencies (currencies);
+    }
+
+    override parseCurrency (currency: Dict): CurrencyInterface {
+        const chains = currency;
+        const firstChain = this.safeDict (chains, 0, {});
+        const currencyId = this.safeString (firstChain, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const networks: Dict = {};
+        const chainsLength = (chains as List).length;
+        for (let i = 0; i < chainsLength; i++) {
+            const chain = this.safeDict (chains, i);
+            const networkId = this.safeString (chain, 'chain');
+            const networkCode = this.chainIdToNetworkCode (networkId);
+            if (networkCode === undefined) {
+                continue;
+            }
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'active': undefined,
+                'deposit': this.safeInteger (chain, 'isDepositAvailable') === 1,
+                'withdraw': this.safeInteger (chain, 'isWithdrawAvailable') === 1,
+                'fee': this.safeNumber (chain, 'withdrawFee'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawPrecision'))),
+                'limits': {
+                    'deposit': {
+                        'min': this.safeNumber (chain, 'depositMinAmount'),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber (chain, 'withdrawMinAmount'),
+                        'max': undefined,
+                    },
+                },
+                'info': chain,
+            };
+        }
+        return this.safeCurrencyStructure ({
+            'info': chains,
+            'code': code,
+            'id': currencyId,
+            'name': undefined,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'type': 'crypto',
+            'networks': networks,
+        });
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://docs.blofin.com/index.html#get-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] unified network code, required unless the currency has a single network or a default in options['defaultNetworks']
+     * @param {string} [params.chain] the exchange-specific chain id, takes precedence over params.network
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        let networkCode: Str = undefined;
+        let query = undefined;
+        [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        const chain = this.safeString (query, 'chain');
+        if (chain === undefined) {
+            if (networkCode === undefined) {
+                const networks = this.safeDict (currency, 'networks', {});
+                const networkKeys = Object.keys (networks);
+                const networkKeysLength = networkKeys.length;
+                if (networkKeysLength === 1) {
+                    networkCode = this.safeString (networkKeys, 0);
+                } else {
+                    const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
+                    networkCode = this.safeString (defaultNetworks, currency['code']);
+                }
+            }
+            if (networkCode === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a params["network"] or params["chain"] for ' + code);
+            }
+            // the same display-name chain ids that withdrawal-apply and the currencies registry use
+            request['chain'] = this.networkCodeToChainId (networkCode, currency);
+        }
+        const response = await this.privateGetAssetDepositAddress (this.extend (request, query));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "currency": "USDT",
+        //                 "chain": "TRC20",
+        //                 "address": "THmWeEJKyb976L76MvrTjeYMyNgiS9aKTu",
+        //                 "tag": ""
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0);
+        if (first === undefined) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() returned no address for ' + code + ' on ' + this.safeString (request, 'chain', chain));
+        }
+        return this.parseDepositAddress (first, currency);
+    }
+
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
+        const address = this.safeString (depositAddress, 'address');
+        const currencyId = this.safeString (depositAddress, 'currency');
+        const networkId = this.safeString (depositAddress, 'chain');
+        let tag = this.safeString (depositAddress, 'tag');
+        if (tag === '') {
+            tag = undefined;
+        }
+        this.checkAddress (address);
+        return {
+            'info': depositAddress,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'network': this.chainIdToNetworkCode (networkId),
+            'address': address,
+            'tag': tag,
+        } as DepositAddress;
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://docs.blofin.com/index.html#get-currencies
+     * @param {string[]} [codes] list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params: Dict = {}): Promise<DepositWithdrawFees> {
+        await this.loadMarkets ();
+        const response = await this.privateGetAssetCurrencies (params);
+        const data = this.safeList (response, 'data', []);
+        const dataByCurrencyId = this.groupBy (data, 'currency');
+        return this.parseDepositWithdrawFees (dataByCurrencyId, codes) as DepositWithdrawFees;
+    }
+
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+        //
+        // a list of GET /asset/currencies rows for one currency, see fetchCurrencies
+        //
+        const result = this.depositWithdrawFee (fee);
+        const chainsLength = (fee as List).length;
+        for (let i = 0; i < chainsLength; i++) {
+            const chain = this.safeDict (fee, i);
+            const networkCode = this.chainIdToNetworkCode (this.safeString (chain, 'chain'));
+            if (networkCode === undefined) {
+                continue;
+            }
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': this.safeNumber (chain, 'withdrawFee'),
+                    'percentage': false,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
+        }
+        if (chainsLength === 1) {
+            // a single network means the currency-level fee is unambiguous
+            const networkKeys = Object.keys (result['networks']);
+            const onlyNetwork = this.safeString (networkKeys, 0);
+            if (onlyNetwork !== undefined) {
+                result['withdraw'] = result['networks'][onlyNetwork]['withdraw'];
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchDeposit
+     * @description fetch information on a deposit
+     * @see https://docs.blofin.com/index.html#get-deposit-history
+     * @param {string} id deposit id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDeposit (id: string, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'depositId': id,
+        };
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        // only accept a row that matches the requested id, in case the
+        // venue ignores the filter and returns the latest records instead
+        const dataLength = (data as List).length;
+        for (let i = 0; i < dataLength; i++) {
+            const entry = data[i];
+            if (this.safeString (entry, 'depositId') === id) {
+                return this.parseTransaction (entry, currency);
+            }
+        }
+        throw new ExchangeError (this.id + ' fetchDeposit() could not find deposit ' + id);
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id
+     * @see https://docs.blofin.com/index.html#get-withdraw-history
+     * @param {string} id withdrawal id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchWithdrawal (id: string, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
+        const clientId = this.safeString (params, 'clientId');
+        if ((id === undefined) && (clientId === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawal() requires an id argument or a params["clientId"]');
+        }
+        await this.loadMarkets ();
+        const request: Dict = {};
+        if (id !== undefined) {
+            request['withdrawId'] = id;
+        }
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privateGetAssetWithdrawalHistory (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        // only accept a row that matches the requested id (or clientId), in
+        // case the venue ignores the filter and returns the latest records
+        const dataLength = (data as List).length;
+        for (let i = 0; i < dataLength; i++) {
+            const entry = data[i];
+            let matches = false;
+            if (id !== undefined) {
+                matches = (this.safeString (entry, 'withdrawId') === id);
+            } else {
+                matches = (this.safeString (entry, 'clientId') === clientId);
+            }
+            if (matches) {
+                return this.parseTransaction (entry, currency);
+            }
+        }
+        const reference = (id !== undefined) ? id : clientId;
+        throw new ExchangeError (this.id + ' fetchWithdrawal() could not find withdrawal ' + reference);
     }
 
     /**
@@ -2080,7 +2427,7 @@ export default class blofin extends Exchange {
         const chain = this.safeString (query, 'chain');
         if (chain === undefined) {
             if (networkCode !== undefined) {
-                request['chain'] = this.networkCodeToChainId (networkCode);
+                request['chain'] = this.networkCodeToChainId (networkCode, currency);
             } else if (dest === 'onchain') {
                 // required for on-chain withdrawals, optional for internal transfers
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a params["network"] or params["chain"] for on-chain withdrawals');

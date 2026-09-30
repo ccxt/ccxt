@@ -9867,10 +9867,16 @@ export default class Exchange extends BaseExchange {
         // same broken state - previously the catch invoked loadOrderBook again,
         // recursing endlessly when the snapshot request kept failing, see
         // https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
-        // instead, reject the watcher and drop the connection and the cached
+        // instead, reject the watcher, close and drop the connection and the cached
         // orderbook, so the next watchOrderBook () call resubscribes cleanly
         client.reject (error, messageHash);
-        delete this.clients[client.url];
+        if (client.error === undefined) {
+            client.error = error; // onClose must not treat this as a server disconnect
+        }
+        client.close ();
+        if (this.clients[client.url] === client) {
+            delete this.clients[client.url];
+        }
         this.orderbooks[symbol] = this.orderBook (); // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
     }
 
