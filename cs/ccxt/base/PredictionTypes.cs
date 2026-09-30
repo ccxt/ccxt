@@ -374,6 +374,8 @@ public struct PredictionOutcome
     public Precision? precision;
     public Dictionary<string, object> info;
 
+    public string? id;
+    public bool? negRisk;
     public PredictionOutcome(object outcome2)
     {
         var outcomeDict = (Dictionary<string, object>)outcome2;
@@ -391,6 +393,8 @@ public struct PredictionOutcome
         settleFraction = Exchange.SafeFloat(outcomeDict, "settleFraction");
         precision = Exchange.SafeValue(outcomeDict, "precision") != null ? new Precision(Exchange.SafeValue(outcomeDict, "precision")) : null;
         info = Helper.GetInfo(outcomeDict);
+        id = Exchange.SafeString(outcomeDict, "id");
+        negRisk = Exchange.SafeBool(outcomeDict, "negRisk");
     }
 }
 
@@ -428,6 +432,33 @@ public struct PredictionMarket
     public string? image;
     public Dictionary<string, object> info;
 
+    public string? baseCurrency;
+    public string? quote;
+    public string? settle;
+    public string? baseId;
+    public string? quoteId;
+    public string? settleId;
+    public string? type;
+    public bool? spot;
+    public bool? margin;
+    public bool? swap;
+    public bool? future;
+    public bool? option;
+    public bool? prediction;
+    public bool? contract;
+    public bool? linear;
+    public bool? inverse;
+    public double? contractSize;
+    public Int64? expiry;
+    public string? expiryDatetime;
+    public double? strike;
+    public string? optionType;
+    public double? taker;
+    public double? maker;
+    public bool? percentage;
+    public bool? tierBased;
+    public string? feeSide;
+    public Precision? precision;
     public PredictionMarket(object market2)
     {
         var marketDict = (Dictionary<string, object>)market2;
@@ -462,6 +493,33 @@ public struct PredictionMarket
         resolutionSource = Exchange.SafeString(marketDict, "resolutionSource");
         image = Exchange.SafeString(marketDict, "image");
         info = Helper.GetInfo(marketDict);
+        baseCurrency = Exchange.SafeString(marketDict, "base");
+        quote = Exchange.SafeString(marketDict, "quote");
+        settle = Exchange.SafeString(marketDict, "settle");
+        baseId = Exchange.SafeString(marketDict, "baseId");
+        quoteId = Exchange.SafeString(marketDict, "quoteId");
+        settleId = Exchange.SafeString(marketDict, "settleId");
+        type = Exchange.SafeString(marketDict, "type");
+        spot = Exchange.SafeBool(marketDict, "spot");
+        margin = Exchange.SafeBool(marketDict, "margin");
+        swap = Exchange.SafeBool(marketDict, "swap");
+        future = Exchange.SafeBool(marketDict, "future");
+        option = Exchange.SafeBool(marketDict, "option");
+        prediction = Exchange.SafeBool(marketDict, "prediction");
+        contract = Exchange.SafeBool(marketDict, "contract");
+        linear = Exchange.SafeBool(marketDict, "linear");
+        inverse = Exchange.SafeBool(marketDict, "inverse");
+        contractSize = Exchange.SafeFloat(marketDict, "contractSize");
+        expiry = Exchange.SafeInteger(marketDict, "expiry");
+        expiryDatetime = Exchange.SafeString(marketDict, "expiryDatetime");
+        strike = Exchange.SafeFloat(marketDict, "strike");
+        optionType = Exchange.SafeString(marketDict, "optionType");
+        taker = Exchange.SafeFloat(marketDict, "taker");
+        maker = Exchange.SafeFloat(marketDict, "maker");
+        percentage = Exchange.SafeBool(marketDict, "percentage");
+        tierBased = Exchange.SafeBool(marketDict, "tierBased");
+        feeSide = Exchange.SafeString(marketDict, "feeSide");
+        precision = Exchange.SafeValue(marketDict, "precision") != null ? new Precision(Exchange.SafeValue(marketDict, "precision")) : null;
     }
 }
 
@@ -488,6 +546,9 @@ public struct PredictionEvent
     public string? url;
     public Dictionary<string, object> info;
 
+    public string? resolutionSource;
+    public Int64? lastUpdatedAt;
+    public string? lastUpdatedAtDatetime;
     public PredictionEvent(object event2)
     {
         var eventDict = (Dictionary<string, object>)event2;
@@ -511,6 +572,9 @@ public struct PredictionEvent
         image = Exchange.SafeString(eventDict, "image");
         url = Exchange.SafeString(eventDict, "url");
         info = Helper.GetInfo(eventDict);
+        resolutionSource = Exchange.SafeString(eventDict, "resolutionSource");
+        lastUpdatedAt = Exchange.SafeInteger(eventDict, "lastUpdatedAt");
+        lastUpdatedAtDatetime = Exchange.SafeString(eventDict, "lastUpdatedAtDatetime");
     }
 }
 

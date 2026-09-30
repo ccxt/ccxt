@@ -730,6 +730,8 @@ class PredictionOutcome(TypedDict):
     winner: Bool         # resolved True (the settleFraction == 1 case)
     settleFraction: Num  # 0..1 fractional settlement
     precision: Precision  # outcome-level price/amount precision
+    id: Str
+    negRisk: Bool
 
 
 class PredictionMarket(TypedDict):
@@ -764,6 +766,33 @@ class PredictionMarket(TypedDict):
     fees: PredictionFees
     resolutionSource: Str
     image: Str
+    base: Str
+    quote: Str
+    settle: Str
+    baseId: Str
+    quoteId: Str
+    settleId: Str
+    type: Str
+    spot: Bool
+    margin: Bool
+    swap: Bool
+    future: Bool
+    option: Bool
+    prediction: Bool
+    contract: Bool
+    linear: Bool
+    inverse: Bool
+    contractSize: Num
+    expiry: Int
+    expiryDatetime: Str
+    strike: Num
+    optionType: Str
+    taker: Num
+    maker: Num
+    percentage: Bool
+    tierBased: Bool
+    feeSide: Str
+    precision: Precision
 
 
 class PredictionEvent(TypedDict):
@@ -787,6 +816,9 @@ class PredictionEvent(TypedDict):
     endDatetime: Str
     image: Str
     url: Str
+    resolutionSource: Str
+    lastUpdatedAt: Int
+    lastUpdatedAtDatetime: Str
 
 
 # Native dedicated prediction-market trading types. They inherit their base unified

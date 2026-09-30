@@ -5783,6 +5783,18 @@ public partial class BaseExchange
         {
             result["info"] = typed.info;
         }
+        if (typed.resolutionSource != null)
+        {
+            result["resolutionSource"] = typed.resolutionSource;
+        }
+        if (typed.lastUpdatedAt != null)
+        {
+            result["lastUpdatedAt"] = typed.lastUpdatedAt;
+        }
+        if (typed.lastUpdatedAtDatetime != null)
+        {
+            result["lastUpdatedAtDatetime"] = typed.lastUpdatedAtDatetime;
+        }
         return result;
     }
 
@@ -6003,6 +6015,114 @@ public partial class BaseExchange
         if (typed.info != null)
         {
             result["info"] = typed.info;
+        }
+        if (typed.baseCurrency != null)
+        {
+            result["base"] = typed.baseCurrency;
+        }
+        if (typed.quote != null)
+        {
+            result["quote"] = typed.quote;
+        }
+        if (typed.settle != null)
+        {
+            result["settle"] = typed.settle;
+        }
+        if (typed.baseId != null)
+        {
+            result["baseId"] = typed.baseId;
+        }
+        if (typed.quoteId != null)
+        {
+            result["quoteId"] = typed.quoteId;
+        }
+        if (typed.settleId != null)
+        {
+            result["settleId"] = typed.settleId;
+        }
+        if (typed.type != null)
+        {
+            result["type"] = typed.type;
+        }
+        if (typed.spot != null)
+        {
+            result["spot"] = typed.spot;
+        }
+        if (typed.margin != null)
+        {
+            result["margin"] = typed.margin;
+        }
+        if (typed.swap != null)
+        {
+            result["swap"] = typed.swap;
+        }
+        if (typed.future != null)
+        {
+            result["future"] = typed.future;
+        }
+        if (typed.option != null)
+        {
+            result["option"] = typed.option;
+        }
+        if (typed.prediction != null)
+        {
+            result["prediction"] = typed.prediction;
+        }
+        if (typed.contract != null)
+        {
+            result["contract"] = typed.contract;
+        }
+        if (typed.linear != null)
+        {
+            result["linear"] = typed.linear;
+        }
+        if (typed.inverse != null)
+        {
+            result["inverse"] = typed.inverse;
+        }
+        if (typed.contractSize != null)
+        {
+            result["contractSize"] = typed.contractSize;
+        }
+        if (typed.expiry != null)
+        {
+            result["expiry"] = typed.expiry;
+        }
+        if (typed.expiryDatetime != null)
+        {
+            result["expiryDatetime"] = typed.expiryDatetime;
+        }
+        if (typed.strike != null)
+        {
+            result["strike"] = typed.strike;
+        }
+        if (typed.optionType != null)
+        {
+            result["optionType"] = typed.optionType;
+        }
+        if (typed.taker != null)
+        {
+            result["taker"] = typed.taker;
+        }
+        if (typed.maker != null)
+        {
+            result["maker"] = typed.maker;
+        }
+        if (typed.percentage != null)
+        {
+            result["percentage"] = typed.percentage;
+        }
+        if (typed.tierBased != null)
+        {
+            result["tierBased"] = typed.tierBased;
+        }
+        if (typed.feeSide != null)
+        {
+            result["feeSide"] = typed.feeSide;
+        }
+        if (typed.precision != null)
+        {
+            result["precision"] = FromPrecision(typed.precision);
         }
         return result;
     }
@@ -6478,6 +6598,14 @@ public partial class BaseExchange
         if (typed.info != null)
         {
             result["info"] = typed.info;
+        }
+        if (typed.id != null)
+        {
+            result["id"] = typed.id;
+        }
+        if (typed.negRisk != null)
+        {
+            result["negRisk"] = typed.negRisk;
         }
         return result;
     }

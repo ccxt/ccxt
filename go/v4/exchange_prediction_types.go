@@ -311,6 +311,8 @@ type PredictionOutcome struct {
 	Winner         *bool
 	SettleFraction *float64
 	Precision      *Precision
+	Id             *string
+	NegRisk        *bool
 }
 
 func NewPredictionOutcome(data any) PredictionOutcome {
@@ -335,6 +337,8 @@ func NewPredictionOutcome(data any) PredictionOutcome {
 		Winner:         SafeBoolTyped(m, "winner"),
 		SettleFraction: SafeFloatTyped(m, "settleFraction"),
 		Precision:      precision,
+		Id:             SafeStringTyped(m, "id"),
+		NegRisk:        SafeBoolTyped(m, "negRisk"),
 	}
 }
 
@@ -384,6 +388,33 @@ type PredictionMarket struct {
 	Fees             *PredictionFees
 	ResolutionSource *string
 	Image            *string
+	Base             *string
+	Quote            *string
+	Settle           *string
+	BaseId           *string
+	QuoteId          *string
+	SettleId         *string
+	Type             *string
+	Spot             *bool
+	Margin           *bool
+	Swap             *bool
+	Future           *bool
+	Option           *bool
+	Prediction       *bool
+	Contract         *bool
+	Linear           *bool
+	Inverse          *bool
+	ContractSize     *float64
+	Expiry           *int64
+	ExpiryDatetime   *string
+	Strike           *float64
+	OptionType       *string
+	Taker            *float64
+	Maker            *float64
+	Percentage       *bool
+	TierBased        *bool
+	FeeSide          *string
+	Precision        Precision
 }
 
 func NewPredictionMarket(data any) PredictionMarket {
@@ -429,6 +460,33 @@ func NewPredictionMarket(data any) PredictionMarket {
 		Fees:             fees,
 		ResolutionSource: SafeStringTyped(m, "resolutionSource"),
 		Image:            SafeStringTyped(m, "image"),
+		Base:             SafeStringTyped(m, "base"),
+		Quote:            SafeStringTyped(m, "quote"),
+		Settle:           SafeStringTyped(m, "settle"),
+		BaseId:           SafeStringTyped(m, "baseId"),
+		QuoteId:          SafeStringTyped(m, "quoteId"),
+		SettleId:         SafeStringTyped(m, "settleId"),
+		Type:             SafeStringTyped(m, "type"),
+		Spot:             SafeBoolTyped(m, "spot"),
+		Margin:           SafeBoolTyped(m, "margin"),
+		Swap:             SafeBoolTyped(m, "swap"),
+		Future:           SafeBoolTyped(m, "future"),
+		Option:           SafeBoolTyped(m, "option"),
+		Prediction:       SafeBoolTyped(m, "prediction"),
+		Contract:         SafeBoolTyped(m, "contract"),
+		Linear:           SafeBoolTyped(m, "linear"),
+		Inverse:          SafeBoolTyped(m, "inverse"),
+		ContractSize:     SafeFloatTyped(m, "contractSize"),
+		Expiry:           SafeInt64Typed(m, "expiry"),
+		ExpiryDatetime:   SafeStringTyped(m, "expiryDatetime"),
+		Strike:           SafeFloatTyped(m, "strike"),
+		OptionType:       SafeStringTyped(m, "optionType"),
+		Taker:            SafeFloatTyped(m, "taker"),
+		Maker:            SafeFloatTyped(m, "maker"),
+		Percentage:       SafeBoolTyped(m, "percentage"),
+		TierBased:        SafeBoolTyped(m, "tierBased"),
+		FeeSide:          SafeStringTyped(m, "feeSide"),
+		Precision:        NewPrecision(MapOrEmpty(SafeValue(m, "precision", map[string]any{}))),
 	}
 }
 
@@ -447,26 +505,29 @@ func NewPredictionMarketArray(data any) []PredictionMarket {
 }
 
 type PredictionEvent struct {
-	Info              map[string]any
-	Id                *string
-	Event             *string
-	Title             *string
-	Description       *string
-	Slug              *string
-	Category          *string
-	Tags              []string
-	Markets           []PredictionMarket
-	MutuallyExclusive *bool
-	Active            *bool
-	Resolved          *bool
-	Volume            *float64
-	Liquidity         *float64
-	Created           *int64
-	CreatedDatetime   *string
-	End               *int64
-	EndDatetime       *string
-	Image             *string
-	Url               *string
+	Info                  map[string]any
+	Id                    *string
+	Event                 *string
+	Title                 *string
+	Description           *string
+	Slug                  *string
+	Category              *string
+	Tags                  []string
+	Markets               []PredictionMarket
+	MutuallyExclusive     *bool
+	Active                *bool
+	Resolved              *bool
+	Volume                *float64
+	Liquidity             *float64
+	Created               *int64
+	CreatedDatetime       *string
+	End                   *int64
+	EndDatetime           *string
+	Image                 *string
+	Url                   *string
+	ResolutionSource      *string
+	LastUpdatedAt         *int64
+	LastUpdatedAtDatetime *string
 }
 
 func NewPredictionEvent(data any) PredictionEvent {
@@ -482,26 +543,29 @@ func NewPredictionEvent(data any) PredictionEvent {
 	}
 	markets := NewPredictionMarketArray(m["markets"])
 	return PredictionEvent{
-		Info:              GetInfo(m),
-		Id:                SafeStringTyped(m, "id"),
-		Event:             SafeStringTyped(m, "event"),
-		Title:             SafeStringTyped(m, "title"),
-		Description:       SafeStringTyped(m, "description"),
-		Slug:              SafeStringTyped(m, "slug"),
-		Category:          SafeStringTyped(m, "category"),
-		Tags:              tags,
-		Markets:           markets,
-		MutuallyExclusive: SafeBoolTyped(m, "mutuallyExclusive"),
-		Active:            SafeBoolTyped(m, "active"),
-		Resolved:          SafeBoolTyped(m, "resolved"),
-		Volume:            SafeFloatTyped(m, "volume"),
-		Liquidity:         SafeFloatTyped(m, "liquidity"),
-		Created:           SafeInt64Typed(m, "created"),
-		CreatedDatetime:   SafeStringTyped(m, "createdDatetime"),
-		End:               SafeInt64Typed(m, "end"),
-		EndDatetime:       SafeStringTyped(m, "endDatetime"),
-		Image:             SafeStringTyped(m, "image"),
-		Url:               SafeStringTyped(m, "url"),
+		Info:                  GetInfo(m),
+		Id:                    SafeStringTyped(m, "id"),
+		Event:                 SafeStringTyped(m, "event"),
+		Title:                 SafeStringTyped(m, "title"),
+		Description:           SafeStringTyped(m, "description"),
+		Slug:                  SafeStringTyped(m, "slug"),
+		Category:              SafeStringTyped(m, "category"),
+		Tags:                  tags,
+		Markets:               markets,
+		MutuallyExclusive:     SafeBoolTyped(m, "mutuallyExclusive"),
+		Active:                SafeBoolTyped(m, "active"),
+		Resolved:              SafeBoolTyped(m, "resolved"),
+		Volume:                SafeFloatTyped(m, "volume"),
+		Liquidity:             SafeFloatTyped(m, "liquidity"),
+		Created:               SafeInt64Typed(m, "created"),
+		CreatedDatetime:       SafeStringTyped(m, "createdDatetime"),
+		End:                   SafeInt64Typed(m, "end"),
+		EndDatetime:           SafeStringTyped(m, "endDatetime"),
+		Image:                 SafeStringTyped(m, "image"),
+		Url:                   SafeStringTyped(m, "url"),
+		ResolutionSource:      SafeStringTyped(m, "resolutionSource"),
+		LastUpdatedAt:         SafeInt64Typed(m, "lastUpdatedAt"),
+		LastUpdatedAtDatetime: SafeStringTyped(m, "lastUpdatedAtDatetime"),
 	}
 }
 

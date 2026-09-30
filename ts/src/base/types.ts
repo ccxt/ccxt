@@ -179,6 +179,9 @@ export interface PredictionEvent {
     endDatetime?: Str;
     image?: Str;
     url?: Str;
+    resolutionSource?: Str;
+    lastUpdatedAt?: Int;
+    lastUpdatedAtDatetime?: Str;
 }
 
 export interface PredictionMarket {
@@ -213,6 +216,34 @@ export interface PredictionMarket {
     fees?: PredictionFees;
     resolutionSource?: Str;
     image?: Str;
+    // market-row keys: parseMarket rows are cached in this.markets next to regular markets
+    base?: Str;
+    quote?: Str;
+    settle?: Str;
+    baseId?: Str;
+    quoteId?: Str;
+    settleId?: Str;
+    type?: MarketType;
+    spot?: Bool;
+    margin?: Bool;
+    swap?: Bool;
+    future?: Bool;
+    option?: Bool;
+    prediction?: Bool;
+    contract?: Bool;
+    linear?: Bool;
+    inverse?: Bool;
+    contractSize?: Num;
+    expiry?: Int;
+    expiryDatetime?: Str;
+    strike?: Num;
+    optionType?: Str;
+    taker?: Num;
+    maker?: Num;
+    percentage?: Bool;
+    tierBased?: Bool;
+    feeSide?: Str;
+    precision?: Precision;
 }
 
 export interface PredictionOutcome {
@@ -230,6 +261,8 @@ export interface PredictionOutcome {
     winner?: Bool;               // resolved true (the settleFraction === 1 case)
     settleFraction?: Num;        // 0..1 fractional settlement
     precision?: Precision;       // outcome-level price/amount precision
+    id?: Str;                    // same value as outcomeId, read by order/trade parsers
+    negRisk?: Bool;              // polymarket neg-risk exchange flag, read by createOrder
 }
 
 // a cached outcome token as held in ex.outcomes: market-shaped so it can be passed where a
