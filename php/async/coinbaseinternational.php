@@ -622,7 +622,14 @@ class coinbaseinternational extends Exchange {
     }
 
     public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
-        return $this->parse_funding_rate($info, $market);
+        $fundingRate = $this->parse_funding_rate($info, $market);
+        return array(
+            'info' => $info,
+            'symbol' => $fundingRate['symbol'],
+            'fundingRate' => $fundingRate['fundingRate'],
+            'timestamp' => $fundingRate['timestamp'],
+            'datetime' => $fundingRate['datetime'],
+        );
     }
 
     public function parse_funding_rate(mixed $contract, ?array $market = null) {

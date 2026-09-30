@@ -1535,10 +1535,9 @@ class blofin extends Exchange {
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null; // fix empty clientOrderId string
         }
-        $stopLossTriggerPrice = $this->safe_number($order, 'slTriggerPrice');
-        $stopLossPrice = $this->safe_number($order, 'slOrderPrice');
-        $takeProfitTriggerPrice = $this->safe_number($order, 'tpTriggerPrice');
-        $takeProfitPrice = $this->safe_number($order, 'tpOrderPrice');
+        // unified stopLossPrice/takeProfitPrice are the trigger prices (createOrder sends them as sl/tpTriggerPrice)
+        $stopLossPrice = $this->safe_number($order, 'slTriggerPrice');
+        $takeProfitPrice = $this->safe_number($order, 'tpTriggerPrice');
         $reduceOnlyRaw = $this->safe_string($order, 'reduceOnly');
         $reduceOnly = ($reduceOnlyRaw === 'true');
         return $this->safe_order(array(
@@ -1555,8 +1554,6 @@ class blofin extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopLossTriggerPrice' => $stopLossTriggerPrice,
-            'takeProfitTriggerPrice' => $takeProfitTriggerPrice,
             'stopLossPrice' => $stopLossPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'average' => $average,

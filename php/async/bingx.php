@@ -6277,7 +6277,7 @@ class bingx extends Exchange {
         $paramsTrades = null;
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchMyTrades', $market, $params);
         if ($subType === 'inverse') {
-            $paramsTrades = $paramsSubType;
+            $paramsTrades = $this->omit($paramsSubType, 'orderId');
             $orderId = $this->safe_string($paramsSubType, 'orderId');
             if ($orderId === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires an orderId argument for inverse swap trades');
