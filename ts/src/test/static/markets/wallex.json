@@ -232,5 +232,86 @@
             "quoteAsset_png_icon": "https://api.wallex.ir/coins/USDT.png",
             "quoteAsset_svg_icon": "https://api.wallex.ir/coins/USDT.svg"
         }
+    },
+    "BTC/IRT": {
+        "id": "BTCTMN",
+        "symbol": "BTC/IRT",
+        "base": "BTC",
+        "quote": "IRT",
+        "baseId": "BTC",
+        "quoteId": "TMN",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1e-8
+            },
+            "price": {},
+            "cost": {
+                "min": 50000
+            }
+        },
+        "marginModes": {},
+        "created": 1585699200000,
+        "info": {
+            "symbol": "BTCTMN",
+            "baseAsset": "BTC",
+            "baseAssetPrecision": 8,
+            "quoteAsset": "TMN",
+            "quotePrecision": 0,
+            "faName": "بیت کوین - تومان",
+            "enName": "Bitcoin - Toman",
+            "faBaseAsset": "بیت کوین",
+            "enBaseAsset": "Bitcoin",
+            "faQuoteAsset": "تومان",
+            "enQuoteAsset": "Toman",
+            "stepSize": 8,
+            "tickSize": 0,
+            "minQty": 1e-8,
+            "minNotional": 50000,
+            "stats": {
+                "bidPrice": "21125565389.0000000000000000",
+                "askPrice": "21160000000.0000000000000000",
+                "lastPrice": "21140622030.0000000000000000",
+                "lastQty": "21140622030.0000000000000000",
+                "lastTradeSide": "SELL",
+                "bidVolume": "0.09139423",
+                "askVolume": "0.42040324",
+                "bidCount": 50,
+                "askCount": 50,
+                "direction": {
+                    "SELL": 48,
+                    "BUY": 52
+                },
+                "24h_ch": 0.91,
+                "7d_ch": 7.57,
+                "24h_volume": "5.9460584600000000",
+                "7d_volume": "27.3550192800000000",
+                "24h_quoteVolume": "126011304607.9013841600000000",
+                "24h_highPrice": "21619999999.0000000000000000",
+                "24h_lowPrice": "20760340677.0000000000000000",
+                "24h_tmnVolume": "126011304607.9013841600000000"
+            },
+            "createdAt": "2020-04-01T00:00:00Z",
+            "isNew": false,
+            "isZeroFee": false,
+            "isMarketTypeEnable": true,
+            "baseAsset_png_icon": "https://api.wallex.ir/coins/BTC.png",
+            "baseAsset_svg_icon": "https://api.wallex.ir/coins/BTC.svg",
+            "quoteAsset_png_icon": "https://api.wallex.ir/coins/TMN.png",
+            "quoteAsset_svg_icon": "https://api.wallex.ir/coins/TMN.svg"
+        }
     }
 }
