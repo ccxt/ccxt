@@ -9,7 +9,7 @@ import Exchange from './abstract/coinbaseinternational.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, Endpoint } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, Endpoint, Leverage } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -182,6 +182,7 @@ export default class coinbaseinternational extends Exchange {
                         'subscribe': { 'cost': 1 } as Endpoint<Dict>,
                         'test': { 'cost': 1 } as Endpoint<Dict>,
                         'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers_by_currency': { 'cost': 1 } as Endpoint<Dict>,
                         'unsubscribe': { 'cost': 1 } as Endpoint<Dict>,
                         'unsubscribe_all': { 'cost': 1 } as Endpoint<Dict>,
                     },
@@ -227,7 +228,9 @@ export default class coinbaseinternational extends Exchange {
                         'get_broker_trades': { 'cost': 1 } as Endpoint<Dict>,
                         'get_cancel_on_disconnect': { 'cost': 1 } as Endpoint<Dict>,
                         'get_leg_prices': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_leverage': { 'cost': 1 } as Endpoint<Dict>,
                         'get_margins': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_max_order_size': { 'cost': 1 } as Endpoint<Dict>,
                         'get_open_orders': { 'cost': 1 } as Endpoint<Dict>,
                         'get_open_orders_by_currency': { 'cost': 1 } as Endpoint<Dict>,
                         'get_open_orders_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
@@ -237,12 +240,18 @@ export default class coinbaseinternational extends Exchange {
                         'get_order_margin_by_ids': { 'cost': 1 } as Endpoint<Dict>,
                         'get_order_state': { 'cost': 1 } as Endpoint<Dict>,
                         'get_order_state_by_label': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_pme_params': { 'cost': 1 } as Endpoint<Dict>,
                         'get_position': { 'cost': 1 } as Endpoint<Dict>,
                         'get_positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_risk_profile': { 'cost': 1 } as Endpoint<Dict>,
                         'get_settlement_history_by_currency': { 'cost': 1 } as Endpoint<Dict>,
                         'get_settlement_history_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_subaccounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_subaccounts_details': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_trading_limits': { 'cost': 1 } as Endpoint<Dict>,
                         'get_transaction_log': { 'cost': 10 } as Endpoint<Dict>, // 1 request per second
                         'get_trigger_order_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_user_locks': { 'cost': 1 } as Endpoint<Dict>,
                         'get_user_trades_by_currency': { 'cost': 1 } as Endpoint<Dict>,
                         'get_user_trades_by_currency_and_time': { 'cost': 1 } as Endpoint<Dict>,
                         'get_user_trades_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
@@ -253,9 +262,11 @@ export default class coinbaseinternational extends Exchange {
                         'pme/simulate': { 'cost': 1 } as Endpoint<Dict>,
                         'reject_block_trade': { 'cost': 1 } as Endpoint<Dict>,
                         'sell': { 'cost': 1 } as Endpoint<Dict>,
+                        'set_leverage': { 'cost': 1 } as Endpoint<Dict>,
                         'simulate_block_trade': { 'cost': 1 } as Endpoint<Dict>,
                         'simulate_portfolio': { 'cost': 1 } as Endpoint<Dict>,
                         'subscribe': { 'cost': 1 } as Endpoint<Dict>,
+                        'submit_transfer_between_subaccounts': { 'cost': 1 } as Endpoint<Dict>,
                         'unsubscribe': { 'cost': 1 } as Endpoint<Dict>,
                         'unsubscribe_all': { 'cost': 1 } as Endpoint<Dict>,
                         'verify_block_trade': { 'cost': 1 } as Endpoint<Dict>,
@@ -831,12 +842,12 @@ export default class coinbaseinternational extends Exchange {
             request['start_timestamp'] = this.sum (now, -limitResolved * duration * 1000);
             request['end_timestamp'] = now;
         } else {
-            since = Math.max (since - 1, 0);
-            request['start_timestamp'] = since;
+            const sinceResolved = Math.max (since - 1, 0);
+            request['start_timestamp'] = sinceResolved;
             if (limitResolved === undefined) {
                 request['end_timestamp'] = now;
             } else {
-                request['end_timestamp'] = this.sum (since, limitResolved * duration * 1000);
+                request['end_timestamp'] = this.sum (sinceResolved, limitResolved * duration * 1000);
             }
         }
         const until = this.safeInteger (paramsPaginate, 'until');
@@ -906,16 +917,17 @@ export default class coinbaseinternational extends Exchange {
         const market = this.market (symbol);
         const duration = this.parseTimeframe ('1h') * 1000;
         const now = this.milliseconds ();
-        if (since === undefined) {
-            since = now - (30 * 24 * 60 * 60 * 1000);
+        let sinceResolved: Int = since;
+        if (sinceResolved === undefined) {
+            sinceResolved = now - (30 * 24 * 60 * 60 * 1000);
         }
         const request: Dict = {
             'instrument_name': market['id'],
-            'start_timestamp': since,
+            'start_timestamp': sinceResolved,
             'end_timestamp': now,
         };
         if (limit !== undefined) {
-            const endTimestamp = this.sum (since, limit * duration);
+            const endTimestamp = this.sum (sinceResolved, limit * duration);
             request['end_timestamp'] = endTimestamp;
         }
         const until = this.safeInteger (params, 'until');
@@ -1004,20 +1016,20 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        if (symbols === undefined) {
+        const symbolsResolved = this.marketSymbols (symbols);
+        if (symbolsResolved === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires a symbols argument');
         }
         const tickers: Dict = {};
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = this.safeString (symbols, i);
+        for (let i = 0; i < symbolsResolved.length; i++) {
+            const symbol = this.safeString (symbolsResolved, i);
             if (symbol === undefined) {
                 continue;
             }
             const ticker = await this.fetchTicker (symbol, params);
             tickers[symbol] = ticker;
         }
-        return this.filterByArray (tickers, 'symbol', symbols, true);
+        return this.filterByArray (tickers, 'symbol', symbolsResolved, true);
     }
 
     /**
@@ -1499,12 +1511,13 @@ export default class coinbaseinternational extends Exchange {
         }
         const currency = this.currency (code);
         const now = this.milliseconds ();
-        if (since === undefined) {
-            since = now - (30 * 24 * 60 * 60 * 1000);
+        let sinceResolved: Int = since;
+        if (sinceResolved === undefined) {
+            sinceResolved = now - (30 * 24 * 60 * 60 * 1000);
         }
         const request: Dict = {
             'currency': currency['id'],
-            'start_timestamp': since,
+            'start_timestamp': sinceResolved,
             'end_timestamp': now,
             'query': 'transfer',
         };
@@ -1794,12 +1807,13 @@ export default class coinbaseinternational extends Exchange {
         }
         const currency = this.currency (code);
         const now = this.milliseconds ();
-        if (since === undefined) {
-            since = now - (30 * 24 * 60 * 60 * 1000);
+        let sinceResolved: Int = since;
+        if (sinceResolved === undefined) {
+            sinceResolved = now - (30 * 24 * 60 * 60 * 1000);
         }
         const request: Dict = {
             'currency': currency['id'],
-            'start_timestamp': since,
+            'start_timestamp': sinceResolved,
             'end_timestamp': now,
         };
         const until = this.safeInteger (params, 'until');
@@ -2029,13 +2043,13 @@ export default class coinbaseinternational extends Exchange {
                 request['label'] = brokerId + '-' + this.uuid22 ();
             }
         }
-        params = this.omit (params, [ 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'tif', 'timeInForce', 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        const paramsResolved = this.omit (params, [ 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'tif', 'timeInForce', 'triggerPrice', 'stopPrice', 'stop_price' ]);
         await this.authenticateV2 ();
         let response = undefined;
         if (side === 'buy') {
-            response = await this.privateGetBuy (this.extend (request, params));
+            response = await this.privateGetBuy (this.extend (request, paramsResolved));
         } else {
-            response = await this.privateGetSell (this.extend (request, params));
+            response = await this.privateGetSell (this.extend (request, paramsResolved));
         }
         //
         //     {
@@ -2373,9 +2387,9 @@ export default class coinbaseinternational extends Exchange {
         if (triggerPrice !== undefined) {
             request['trigger_price'] = triggerPrice;
         }
-        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        const paramsResolved = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         await this.authenticateV2 ();
-        const response = await this.privateGetEdit (this.extend (request, params));
+        const response = await this.privateGetEdit (this.extend (request, paramsResolved));
         //
         //     {
         //         "id": 9,
@@ -2703,6 +2717,89 @@ export default class coinbaseinternational extends Exchange {
             'cost': cost,
             'fee': fee,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.isolated] set to true for isolated margin
+     * @param {int} [params.subaccount_id] The user id for the subaccount, available to retail broker callers, defaults to the authenticated account
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    override async fetchLeverage (symbol: string, params: Dict = {}): Promise<Leverage> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'instrument_name': market['id'],
+        };
+        await this.authenticateV2 ();
+        const response = await this.privateGetGetLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1,
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "instrument_name": "BTC-PERPETUAL",
+        //             "leverage": 25,
+        //             "max_leverage": 100
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseLeverage (result, market);
+    }
+
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const bothLeverage = this.safeInteger (leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeString (market, 'instrument_name'),
+            'marginMode': undefined,
+            'longLeverage': bothLeverage,
+            'shortLeverage': bothLeverage,
+        } as Leverage;
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-set_leverage
+     * @param {int} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.isolated] set to true for isolated margin
+     * @param {int} [params.subaccount_id] The user id for the subaccount, available to retail broker callers, defaults to the authenticated account
+     * @returns {object} response from the exchange
+     */
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'instrument_name': market['id'],
+            'leverage': this.numberToString (leverage),
+        };
+        await this.authenticateV2 ();
+        const response = await this.privateGetSetLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1,
+        //         "jsonrpc": "2.0",
+        //         "result": 50
+        //     }
+        //
+        return response;
     }
 
     createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined, useEddsa = false) {
