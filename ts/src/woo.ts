@@ -3136,7 +3136,7 @@ export default class woo extends Exchange {
         const currencyRows = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
         const currency = this.safeValue (currencyRows, 0);
         const rows: Dict[] = this.safeList (currencyRows, 1, []);
-        return this.parseTransactions (rows, currency, since, limit, params);
+        return this.parseTransactions (rows, currency, since, limit, this.omit (params, 'tokenSide'));
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

@@ -1485,10 +1485,9 @@ class blofin(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(order, 'clientOrderId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
-        stopLossTriggerPrice = self.safe_number(order, 'slTriggerPrice')
-        stopLossPrice = self.safe_number(order, 'slOrderPrice')
-        takeProfitTriggerPrice = self.safe_number(order, 'tpTriggerPrice')
-        takeProfitPrice = self.safe_number(order, 'tpOrderPrice')
+        # unified stopLossPrice/takeProfitPrice are the trigger prices (createOrder sends them as sl/tpTriggerPrice)
+        stopLossPrice = self.safe_number(order, 'slTriggerPrice')
+        takeProfitPrice = self.safe_number(order, 'tpTriggerPrice')
         reduceOnlyRaw = self.safe_string(order, 'reduceOnly')
         reduceOnly = (reduceOnlyRaw == 'true')
         return self.safe_order({
@@ -1505,8 +1504,6 @@ class blofin(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopLossTriggerPrice': stopLossTriggerPrice,
-            'takeProfitTriggerPrice': takeProfitTriggerPrice,
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': average,

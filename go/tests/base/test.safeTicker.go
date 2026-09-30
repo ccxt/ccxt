@@ -19,7 +19,7 @@ func TestSafeTicker() {
 		"open":   5,
 		"change": 1,
 	}
-	var result1 any = exchange.SafeTicker(ticker1)
+	var result1 any = ccxt.TickerToMap(exchange.SafeTicker(ticker1))
 	Assert(PreciseEqualStr(exchange, result1, "percentage", "20.0"))
 	Assert(PreciseEqualStr(exchange, result1, "average", "5.5"))
 	Assert(PreciseEqualStr(exchange, result1, "close", "6.0"))
@@ -29,7 +29,7 @@ func TestSafeTicker() {
 		"open":       5,
 		"percentage": 20,
 	}
-	var result2 any = exchange.SafeTicker(ticker2)
+	var result2 any = ccxt.TickerToMap(exchange.SafeTicker(ticker2))
 	Assert(PreciseEqualStr(exchange, result2, "change", "1.0"))
 	Assert(PreciseEqualStr(exchange, result2, "average", "5.5"))
 	Assert(PreciseEqualStr(exchange, result2, "close", "6.0"))
@@ -39,7 +39,7 @@ func TestSafeTicker() {
 		"close":  6,
 		"change": 1,
 	}
-	var result3 any = exchange.SafeTicker(ticker3)
+	var result3 any = ccxt.TickerToMap(exchange.SafeTicker(ticker3))
 	Assert(PreciseEqualStr(exchange, result3, "open", "5.0"))
 	Assert(PreciseEqualStr(exchange, result3, "percentage", "20.0"))
 	Assert(PreciseEqualStr(exchange, result3, "average", "5.5"))
@@ -49,7 +49,7 @@ func TestSafeTicker() {
 		"close":      6,
 		"percentage": 20,
 	}
-	var result4 any = exchange.SafeTicker(ticker4)
+	var result4 any = ccxt.TickerToMap(exchange.SafeTicker(ticker4))
 	Assert(PreciseEqualStr(exchange, result4, "open", "5.0"))
 	Assert(PreciseEqualStr(exchange, result4, "change", "1.0"))
 	Assert(PreciseEqualStr(exchange, result4, "average", "5.5"))
@@ -59,7 +59,7 @@ func TestSafeTicker() {
 		"average":    5.5,
 		"percentage": 20,
 	}
-	var result5 any = exchange.SafeTicker(ticker5)
+	var result5 any = ccxt.TickerToMap(exchange.SafeTicker(ticker5))
 	Assert(PreciseEqualStr(exchange, result5, "open", "5.0"))
 	Assert(PreciseEqualStr(exchange, result5, "change", "1.0"))
 	Assert(PreciseEqualStr(exchange, result5, "close", "6.0"))
@@ -69,7 +69,7 @@ func TestSafeTicker() {
 		"average": 5.5,
 		"change":  1,
 	}
-	var result6 any = exchange.SafeTicker(ticker6)
+	var result6 any = ccxt.TickerToMap(exchange.SafeTicker(ticker6))
 	Assert(PreciseEqualStr(exchange, result6, "open", "5.0"))
 	Assert(PreciseEqualStr(exchange, result6, "percentage", "20.0"))
 	Assert(PreciseEqualStr(exchange, result6, "close", "6.0"))
@@ -79,7 +79,7 @@ func TestSafeTicker() {
 		"open":  5,
 		"close": 6,
 	}
-	var result7 any = exchange.SafeTicker(ticker7)
+	var result7 any = ccxt.TickerToMap(exchange.SafeTicker(ticker7))
 	Assert(PreciseEqualStr(exchange, result7, "change", "1.0"))
 	Assert(PreciseEqualStr(exchange, result7, "percentage", "20.0"))
 	Assert(PreciseEqualStr(exchange, result7, "average", "5.5"))
@@ -106,7 +106,7 @@ func TestSafeTicker() {
 		"markPrice":     5.9,
 		"info":          map[string]any{},
 	}
-	var result8 any = exchange.SafeTicker(ticker8)
+	var result8 any = ccxt.TickerToMap(exchange.SafeTicker(ticker8))
 	Assert(PreciseEqualStr(exchange, result8, "open", "5.0"))
 	Assert(PreciseEqualStr(exchange, result8, "high", "6.5"))
 	Assert(PreciseEqualStr(exchange, result8, "low", "4.5"))
@@ -134,7 +134,7 @@ func TestSafeTicker() {
 		"change":     0,
 		"percentage": 0,
 	}
-	var result9 any = exchange.SafeTicker(ticker9)
+	var result9 any = ccxt.TickerToMap(exchange.SafeTicker(ticker9))
 	Assert(PreciseEqualStr(exchange, result9, "change", "0"))
 	Assert(PreciseEqualStr(exchange, result9, "percentage", "0"))
 	Assert(PreciseEqualStr(exchange, result9, "open", "6.0"))
@@ -144,7 +144,7 @@ func TestSafeTicker() {
 		"open":    5,
 		"average": 5.5,
 	}
-	var result10 any = exchange.SafeTicker(ticker10)
+	var result10 any = ccxt.TickerToMap(exchange.SafeTicker(ticker10))
 	Assert(PreciseEqualStr(exchange, result10, "close", "6.0"))
 	Assert(PreciseEqualStr(exchange, result10, "last", "6.0"))
 	// the supplied average must survive untouched, and this path deliberately

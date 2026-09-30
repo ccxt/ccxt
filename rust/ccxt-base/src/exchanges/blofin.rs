@@ -2424,10 +2424,9 @@ impl BlofinCore {
         if (clientOrderId != Value::Null) && (((clientOrderId.len() as i64) as f64) < ((1i64) as f64)) {
             clientOrderId = Value::Null; // fix empty clientOrderId string
         }
-        let mut stopLossTriggerPrice: Value = self.safe_number_k(order.clone(), "slTriggerPrice", &[]);
-        let mut stopLossPrice: Value = self.safe_number_k(order.clone(), "slOrderPrice", &[]);
-        let mut takeProfitTriggerPrice: Value = self.safe_number_k(order.clone(), "tpTriggerPrice", &[]);
-        let mut takeProfitPrice: Value = self.safe_number_k(order.clone(), "tpOrderPrice", &[]);
+        // unified stopLossPrice/takeProfitPrice are the trigger prices (createOrder sends them as sl/tpTriggerPrice)
+        let mut stopLossPrice: Value = self.safe_number_k(order.clone(), "slTriggerPrice", &[]);
+        let mut takeProfitPrice: Value = self.safe_number_k(order.clone(), "tpTriggerPrice", &[]);
         let mut reduceOnlyRaw: Option<String> = self.safe_string_k(order.clone(), "reduceOnly", &[]).as_str().map(str::to_owned);
         let mut reduceOnly: Value = (Value::Bool(reduceOnlyRaw.as_deref() == Some("true")));
         return self.safe_order(Value::Map({
@@ -2445,8 +2444,6 @@ impl BlofinCore {
         m.insert("postOnly".to_string(), postOnly);
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price);
-        m.insert("stopLossTriggerPrice".to_string(), stopLossTriggerPrice);
-        m.insert("takeProfitTriggerPrice".to_string(), takeProfitTriggerPrice);
         m.insert("stopLossPrice".to_string(), stopLossPrice);
         m.insert("takeProfitPrice".to_string(), takeProfitPrice);
         m.insert("average".to_string(), average);

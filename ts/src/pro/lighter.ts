@@ -6,7 +6,7 @@ import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -129,7 +129,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleOrderBookMessage (client: Client, message: Dict, orderbook: Ob) {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: WsOrderBook) {
         const data = this.safeDict (message, 'order_book', {});
         this.handleDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
         this.handleDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
@@ -209,7 +209,7 @@ export default class lighter extends lighterRest {
             'channel': 'order_book/' + market['id'],
         };
         const messageHash = this.getMessageHash ('orderbook', symbolValue);
-        const orderbook: Ob = await this.subscribePublic (messageHash, this.extend (request, params));
+        const orderbook: WsOrderBook = await this.subscribePublic (messageHash, this.extend (request, params));
         return orderbook.limit ();
     }
 

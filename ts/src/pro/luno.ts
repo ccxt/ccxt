@@ -5,7 +5,7 @@ import { ExchangeError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -183,7 +183,7 @@ export default class luno extends lunoRest {
             'api_key_secret': this.secret,
         };
         const request = this.deepExtend (subscribe, params);
-        const orderbook: Ob = await this.watch (url, messageHash, request, subscriptionHash, subscription);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, request, subscriptionHash, subscription);
         return orderbook.limit ();
     }
 
@@ -275,7 +275,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    override handleBookDelta (orderbook: Ob, message: any) {
+    override handleBookDelta (orderbook: WsOrderBook, message: any) {
         //
         //  create
         //     {

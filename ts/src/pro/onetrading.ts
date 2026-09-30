@@ -7,7 +7,7 @@ import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, List, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -348,7 +348,7 @@ export default class onetrading extends onetradingRest {
                 },
             ],
         };
-        const orderbook: Ob = await this.watchMany (messageHash, request, subscriptionHash, [ symbolValue ], params);
+        const orderbook: WsOrderBook = await this.watchMany (messageHash, request, subscriptionHash, [ symbolValue ], params);
         return orderbook.limit ();
     }
 
@@ -407,7 +407,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (orderbook, channel);
     }
 
-    override handleBookDelta (orderbook: Ob, delta: any) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
@@ -424,7 +424,7 @@ export default class onetrading extends onetradingRest {
         }
     }
 
-    override handleBookDeltas (orderbook: Ob, deltas: any) {
+    override handleBookDeltas (orderbook: WsOrderBook, deltas: any) {
         //
         //    [
         //       [ 'BUY', "0.053593", "0" ],

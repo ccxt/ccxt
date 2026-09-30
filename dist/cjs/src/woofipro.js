@@ -3325,7 +3325,6 @@ class woofipro extends woofipro$1["default"] {
             'lastPrice': undefined,
             'collateral': undefined,
             'marginMode': 'cross',
-            'marginType': undefined,
             'side': side,
             'percentage': undefined,
             'hedged': undefined,

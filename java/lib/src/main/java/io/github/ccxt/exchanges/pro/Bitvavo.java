@@ -1830,21 +1830,6 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         });
 
     }
-    //                market: '1INCH-EUR',
-    //                status: 'trading',
-    //                base: '1INCH',
-    //                quote: 'EUR',
-    //                pricePrecision: 5,
-    //                minOrderInBaseAsset: '2',
-    //                minOrderInQuoteAsset: '5',
-    //                maxOrderInBaseAsset: '1000000000',
-    //                maxOrderInQuoteAsset: '1000000000',
-    //                orderTypes: [Array]
-    //            },
-    //            ...
-    //        ]
-    //    }
-    //
     public CompletableFuture<Object> fetchMarketsWs(Map<String, Object> parameters)
     {
         return this.fetchMarketsWs((Object) (parameters));

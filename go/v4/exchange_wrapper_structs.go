@@ -974,7 +974,6 @@ type Fetch2OptionsStruct struct {
 	Params  *map[string]any
 	Headers *any
 	Body    *any
-	Config  *map[string]any
 }
 
 type Fetch2Options func(opts *Fetch2OptionsStruct)
@@ -1006,12 +1005,6 @@ func WithFetch2Headers(headers any) Fetch2Options {
 func WithFetch2Body(body any) Fetch2Options {
 	return func(opts *Fetch2OptionsStruct) {
 		opts.Body = &body
-	}
-}
-
-func WithFetch2Config(config map[string]any) Fetch2Options {
-	return func(opts *Fetch2OptionsStruct) {
-		opts.Config = &config
 	}
 }
 

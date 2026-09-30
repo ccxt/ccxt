@@ -8,7 +8,7 @@ import type{ Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, Bool, Order,
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, BadRequest, ExchangeError } from '../base/errors.js';
 import { jwt } from '../base/functions/rsa.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 //  ---------------------------------------------------------------------------
 
 export default class bithumb extends bithumbRest {
@@ -400,7 +400,7 @@ export default class bithumb extends bithumbRest {
         } else {
             request = this.extend (request, paramsGeneration);
         }
-        const orderbook: Ob = await this.watch (url, messageHash, request, messageHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, request, messageHash);
         return orderbook.limit ();
     }
 
@@ -521,7 +521,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleBookDelta (orderbook: Ob, delta: any) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
         //
         //    {
         //        symbol: "ETH_BTC",
@@ -541,7 +541,7 @@ export default class bithumb extends bithumbRest {
         orderbookSide.storeArray (bidAsk);
     }
 
-    override handleBookDeltas (orderbook: Ob, deltas: any) {
+    override handleBookDeltas (orderbook: WsOrderBook, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleBookDelta (orderbook, deltas[i]);
         }

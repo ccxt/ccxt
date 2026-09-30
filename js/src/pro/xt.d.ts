@@ -1,7 +1,7 @@
 import xtRest from '../xt.js';
 import { Balances, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class xt extends xtRest {
     describe(): any;
     /**
@@ -15,7 +15,7 @@ export default class xt extends xtRest {
      */
     getListenKey(isContract: boolean): Promise<Str>;
     getCacheIndex(orderbook: any, cache: any): number;
-    handleBookDelta(orderbook: Ob, delta: any): void;
+    handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     /**
      * @ignore
      * @method

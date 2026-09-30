@@ -2769,7 +2769,7 @@ impl HyperliquidCore {
 })]);
         let mut underlying: Value = self.safe_string_k(desc.clone(), "underlying", &[]);
         let mut targetPrice: Value = self.safe_string_k(desc.clone(), "targetPrice", &[]);
-        let mut expiryRaw: Value = self.safe_string_k(desc.clone(), "expiry", &[]);
+        let mut expiryRaw: Value = self.safe_string_k(desc, "expiry", &[]);
         let mut expiryMs: Value = Value::Null;
         let mut expiryDatetime: Value = Value::Null;
         if (expiryRaw != Value::Null) && (expiryRaw.as_str() != Some("")) {
@@ -2799,8 +2799,6 @@ impl HyperliquidCore {
             title = Value::Str(format!("{}{}", underlying, titleSuffix).into());
         }
         let mut endValue: Value = (if (expiryMs != Value::Null) { expiryMs } else { firstExpiry });
-        let __ws_arg_13 = self.safe_string_k(desc.clone(), "class", &[]);
-        let __ws_arg_14 = self.safe_string_k(desc, "period", &[]);
         return self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), parentSymbol.clone());
@@ -2808,10 +2806,6 @@ impl HyperliquidCore {
         m.insert("event".to_string(), parentSymbol);
         m.insert("title".to_string(), title);
         m.insert("markets".to_string(), markets);
-        m.insert("underlying".to_string(), underlying);
-        m.insert("targetPrice".to_string(), targetPrice);
-        m.insert("class".to_string(), __ws_arg_13);
-        m.insert("period".to_string(), __ws_arg_14);
         m.insert("url".to_string(), Value::Null);
         m.insert("image".to_string(), Value::Null);
         m.insert("created".to_string(), Value::Null);

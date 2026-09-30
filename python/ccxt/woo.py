@@ -2966,7 +2966,7 @@ class woo(Exchange, ImplicitAPI):
         currencyRows = self.get_asset_history_rows(code, since, limit, self.extend(request, params))
         currency = self.safe_value(currencyRows, 0)
         rows = self.safe_list(currencyRows, 1, [])
-        return self.parse_transactions(rows, currency, since, limit, params)
+        return self.parse_transactions(rows, currency, since, limit, self.omit(params, 'tokenSide'))
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #

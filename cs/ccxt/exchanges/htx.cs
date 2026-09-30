@@ -4372,6 +4372,10 @@ public partial class htx : Exchange
     public override string? networkIdToCode(object networkId = null, object currencyCode = null)
     {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        if ((networkId == null))
+        {
+            return null;
+        }
         List<object> keys = new List<object>(((IDictionary<string,object>)(this.options.ContainsKey("networkNamesByChainIds") ? this.options["networkNamesByChainIds"] : null)).Keys);
         int keysLength = keys.Count;
         if ((keysLength == 0))
@@ -8010,7 +8014,7 @@ public partial class htx : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(transaction, "created-at");
-        string? code = this.safeCurrencyCode(this.safeString(transaction, "currency"));
+        string? code = this.safeCurrencyCode(this.safeString(transaction, "currency"), currency);
         string? type = this.safeString(transaction, "type");
         if (type == "withdraw")
         {
@@ -8023,11 +8027,9 @@ public partial class htx : Exchange
         }
         string? networkId = this.safeString(transaction, "chain");
         string? txHash = this.safeString(transaction, "tx-hash");
-        if ((txHash == null))
-        {
-            throw new ExchangeError ((this.id + " parseTransaction() missing txHash")) ;
-        }
-        if (networkId == "ETH" && txHash.IndexOf("0x", StringComparison.Ordinal) < 0)
+        // a freshly created withdrawal has no tx-hash yet, the create
+        // endpoint returns only { "status": "ok", "data": "<id>" }
+        if (((txHash != null)) && (networkId == "ETH") && (txHash.IndexOf("0x", StringComparison.Ordinal) < 0))
         {
             txHash = ("0x" + txHash);
         }

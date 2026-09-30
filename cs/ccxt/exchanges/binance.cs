@@ -13938,7 +13938,6 @@ public partial class binance : Exchange
             { "marginRatio", marginRatio },
             { "datetime", this.iso8601(timestamp) },
             { "marginMode", marginMode },
-            { "marginType", marginMode },
             { "side", side },
             { "hedged", hedged },
             { "percentage", percentage },

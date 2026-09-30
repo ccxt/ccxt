@@ -1,7 +1,7 @@
 import htxRest from '../htx.js';
 import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class htx extends htxRest {
     describe(): any;
     requestId(): string;
@@ -112,7 +112,7 @@ export default class htx extends htxRest {
      */
     unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     handleOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): void;
-    watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<Ob | undefined>;
+    watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<WsOrderBook | undefined>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: Client, message: Dict): void;

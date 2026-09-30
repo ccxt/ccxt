@@ -3352,6 +3352,9 @@ class htx extends Exchange {
 
     public function network_id_to_code(?string $networkId = null, ?string $currencyCode = null): ?string {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        if ($networkId === null) {
+            return null;
+        }
         $keys = is_array($this->options['networkNamesByChainIds']) ? array_keys($this->options['networkNamesByChainIds']) : array();
         $keysLength = count($keys);
         if ($keysLength === 0) {
@@ -6653,7 +6656,7 @@ class htx extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($transaction, 'created-at');
-        $code = $this->safe_currency_code($this->safe_string($transaction, 'currency'));
+        $code = $this->safe_currency_code($this->safe_string($transaction, 'currency'), $currency);
         $type = $this->safe_string($transaction, 'type');
         if ($type === 'withdraw') {
             $type = 'withdrawal';
@@ -6664,10 +6667,9 @@ class htx extends Exchange {
         }
         $networkId = $this->safe_string($transaction, 'chain');
         $txHash = $this->safe_string($transaction, 'tx-hash');
-        if ($txHash === null) {
-            throw new ExchangeError($this->id . ' parseTransaction() missing txHash');
-        }
-        if ($networkId === 'ETH' && mb_strpos($txHash, '0x') === false) {
+        // a freshly created withdrawal has no tx-hash yet, the create
+        // endpoint returns only { "status": "ok", "data": "<id>" }
+        if (($txHash !== null) && ($networkId === 'ETH') && (mb_strpos($txHash, '0x') === false)) {
             $txHash = '0x' . $txHash;
         }
         $subType = $this->safe_string($transaction, 'sub-type');

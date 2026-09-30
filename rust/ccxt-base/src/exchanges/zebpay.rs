@@ -2594,7 +2594,7 @@ impl ZebpayCore {
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidationPrice", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("marginType".to_string(), Value::Str("isolated".into()));
+        m.insert("marginMode".to_string(), Value::Str("isolated".into()));
         m.insert("side".to_string(), self.safe_string_k(position, "side", &[]));
         m.insert("percentage".to_string(), Value::Null);
     m

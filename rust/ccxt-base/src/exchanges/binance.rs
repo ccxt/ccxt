@@ -15828,8 +15828,7 @@ impl BinanceCore {
         m.insert("maintenanceMarginPercentage".to_string(), maintenanceMarginPercentage);
         m.insert("marginRatio".to_string(), marginRatio);
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("marginMode".to_string(), marginMode.clone());
-        m.insert("marginType".to_string(), marginMode);
+        m.insert("marginMode".to_string(), marginMode);
         m.insert("side".to_string(), side);
         m.insert("hedged".to_string(), hedged);
         m.insert("percentage".to_string(), percentage);

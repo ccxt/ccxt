@@ -1230,7 +1230,7 @@ class testMainClass:
         return (value <= 0) and (value >= 0)
 
     def is_vacant_value(self, exchange, value):
-        # C# only. The unified types are structs, so the two sides of the comparison
+        # C# and Go only. The unified types are structs, so the two sides of the comparison
         # carry different key sets for reasons that are structural, not behavioural:
         #   - a struct field the venue never populated is still a field, and comes
         #     back as an explicit null the fixture may not carry (Balance.debt);
@@ -1285,7 +1285,7 @@ class testMainClass:
         stored_output_is_empty = self.is_empty_output_value(exchange, stored_output)
         if new_output_is_empty and stored_output_is_empty:
             return True
-        if self.lang == 'C#':
+        if (self.lang == 'C#') or (self.lang == 'GO'):
             # a struct is never null: an absent `fee` comes back as a Fee whose every
             # field is null, and an absent `fees` as []. The stored fixture writes the
             # same thing as a bare null. Treat "carries no data" as equal on both
@@ -1301,7 +1301,7 @@ class testMainClass:
             new_output_keys = list(new_output.keys())
             stored_keys_length = len(stored_output_keys)
             new_keys_length = len(new_output_keys)
-            if self.lang == 'C#':
+            if (self.lang == 'C#') or (self.lang == 'GO'):
                 # the unified types are structs there, so an unpopulated field still
                 # comes back (as an explicit null) and a unified key with no struct
                 # field cannot come back at all; count only the keys that carry data
@@ -1312,7 +1312,7 @@ class testMainClass:
             for i in range(0, len(stored_output_keys)):
                 key = stored_output_keys[i]
                 if not (exchange.in_array(key, new_output_keys)):
-                    if (self.lang == 'C#') and self.is_vacant_value(exchange, stored_output[key]):
+                    if ((self.lang == 'C#') or (self.lang == 'GO')) and self.is_vacant_value(exchange, stored_output[key]):
                         continue
                     self.assert_static_error(False, 'output key missing: ' + key, stored_output, new_output)
                 if exchange.in_array(key, skip_keys):
@@ -1357,12 +1357,12 @@ class testMainClass:
                 is_computed_undefined = (sanitized_new_output is None)
                 is_stored_undefined = (sanitized_stored_output is None)
                 should_be_same = (is_computed_bool == is_stored_bool) and (is_computed_string == is_stored_string) and (is_computed_undefined == is_stored_undefined)
-                if not should_be_same and ((self.lang == 'PY') or (self.lang == 'C#')) and not is_computed_bool and not is_stored_bool and not is_computed_undefined and not is_stored_undefined:
+                if not should_be_same and ((self.lang == 'PY') or (self.lang == 'C#') or (self.lang == 'GO')) and not is_computed_bool and not is_stored_bool and not is_computed_undefined and not is_stored_undefined:
                     # python parses json numbers natively (arbitrary-precision ints), while fixtures
                     # captured under number-quoting store them as strings - compare numerically like C#/GO
                     # c#: a typed core returns the unified `Num` fields as a real double, whereas the
                     # fixture was captured through the untyped path and kept the venue's quoted string
-                    # (cost "0.02" vs 0.02) - same value, different json spelling
+                    # (cost "0.02" vs 0.02) - same value, different json spelling; go structs likewise
                     # pass the sanitized VALUES, not their string forms: C# renders a small
                     # double as "6.79E-05", which parseToNumeric cannot parse. And only the
                     # STRING side needs parsing - parseToNumeric round-trips a double through
