@@ -507,6 +507,7 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
+                                'swap/trace/currentTrack': { 'cost': 2 } as Endpoint<Dict>,
                                 'PFutures/traderDetail': { 'cost': 2 } as Endpoint<Dict>,
                                 'PFutures/profitHistorySummarys': { 'cost': 2 } as Endpoint<Dict>,
                                 'PFutures/profitDetail': { 'cost': 2 } as Endpoint<Dict>,
@@ -517,6 +518,7 @@ export default class bingx extends Exchange {
                                 'spot/historyOrder': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'post': {
+                                'swap/trace/closeTrackOrder': { 'cost': 2 } as Endpoint<Dict>,
                                 'swap/trace/setTPSL': { 'cost': 2 } as Endpoint<Dict>,
                                 'PFutures/setCommission': { 'cost': 2 } as Endpoint<Dict>,
                                 'spot/trader/sellOrder': { 'cost': 10 } as Endpoint<Dict>,

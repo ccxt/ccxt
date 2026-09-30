@@ -885,7 +885,7 @@ export default class bingx extends bingxRest {
         const marketOptions = this.safeDict (this.options, marketType);
         const timeframes = this.safeDict (marketOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
-        if (this.safeValue (this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
+        if (this.safeValue (this.ohlcvs[symbol], rawTimeframe) === undefined) {
             const subscriptionHash = dataType;
             const subscription = this.safeDict (client.subscriptions, subscriptionHash);
             // subscription.limit is only set when watchOHLCV registers the subscription;
