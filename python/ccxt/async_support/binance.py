@@ -10968,7 +10968,6 @@ class binance(Exchange, ImplicitAPI):
             'marginRatio': marginRatio,
             'datetime': self.iso8601(timestamp),
             'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
