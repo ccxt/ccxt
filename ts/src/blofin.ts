@@ -1987,12 +1987,12 @@ export default class blofin extends Exchange {
 
     networkCodeToChainId (networkCode: string, currency: Currency = undefined): Str {
         const aliases = this.safeDict (this.options, 'networkCodeAliases', {});
-        networkCode = this.safeString (aliases, networkCode, networkCode);
+        const unifiedCode = this.safeString (aliases, networkCode, networkCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if (currency !== undefined) {
             const currencyNetworks = this.safeDict (currency, 'networks', {});
-            const currencyNetwork = this.safeDict (currencyNetworks, networkCode);
+            const currencyNetwork = this.safeDict (currencyNetworks, unifiedCode);
             const currencyNetworkId = this.safeString (currencyNetwork, 'id');
             if (currencyNetworkId !== undefined) {
                 return currencyNetworkId;
@@ -2002,18 +2002,18 @@ export default class blofin extends Exchange {
         // family is built here as prefix + space + parenthesized suffix
         // because such literals are not transpiler-safe in source
         const networks = this.safeDict (this.options, 'networks', {});
-        const direct = this.safeString (networks, networkCode);
+        const direct = this.safeString (networks, unifiedCode);
         if (direct !== undefined) {
             return direct;
         }
         const prefixes = this.safeDict (this.options, 'networkPrefixes', {});
-        const prefix = this.safeString (prefixes, networkCode);
+        const prefix = this.safeString (prefixes, unifiedCode);
         if (prefix !== undefined) {
             const suffixes = this.safeDict (this.options, 'networkSuffixes', {});
-            const suffix = this.safeString (suffixes, networkCode, networkCode);
+            const suffix = this.safeString (suffixes, unifiedCode, unifiedCode);
             return prefix + ' ' + '(' + suffix + ')';
         }
-        return networkCode;
+        return unifiedCode;
     }
 
     chainIdToNetworkCode (chainId: Str): Str {
