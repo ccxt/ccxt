@@ -6676,10 +6676,9 @@ export default class htx extends Exchange {
         }
         const networkId = this.safeString (transaction, 'chain');
         let txHash = this.safeString (transaction, 'tx-hash');
-        if (txHash === undefined) {
-            throw new ExchangeError (this.id + ' parseTransaction() missing txHash');
-        }
-        if (networkId === 'ETH' && txHash.indexOf ('0x') < 0) {
+        // a freshly created withdrawal has no tx-hash yet, the create
+        // endpoint returns only { "status": "ok", "data": "<id>" }
+        if ((txHash !== undefined) && (networkId === 'ETH') && (txHash.indexOf ('0x') < 0)) {
             txHash = '0x' + txHash;
         }
         const subType = this.safeString (transaction, 'sub-type');

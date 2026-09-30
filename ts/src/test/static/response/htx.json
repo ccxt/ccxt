@@ -5176,6 +5176,54 @@
                     }
                 ]
             }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw USDT on ERC20, create response carries only the withdrawal id",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    50,
+                    "0x5f3a9c27e84b61d0a7c2e9b4d18f6a3c0e72b5d9",
+                    null,
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "data": "118420736"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "ok",
+                        "data": "118420736"
+                    },
+                    "id": "118420736",
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "network": null,
+                    "address": null,
+                    "addressTo": null,
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": null,
+                    "amount": null,
+                    "currency": null,
+                    "status": null,
+                    "updated": null,
+                    "comment": null,
+                    "internal": false,
+                    "fee": {
+                        "currency": null,
+                        "cost": null,
+                        "rate": null
+                    }
+                }
+            }
         ]
     }
 }
