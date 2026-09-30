@@ -6665,7 +6665,7 @@ export default class htx extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (transaction, 'created-at');
-        const code = this.safeCurrencyCode (this.safeString (transaction, 'currency'));
+        const code = this.safeCurrencyCode (this.safeString (transaction, 'currency'), currency);
         let type = this.safeString (transaction, 'type');
         if (type === 'withdraw') {
             type = 'withdrawal';

@@ -5212,13 +5212,13 @@
                     "tagFrom": null,
                     "type": null,
                     "amount": null,
-                    "currency": null,
+                    "currency": "USDT",
                     "status": null,
                     "updated": null,
                     "comment": null,
                     "internal": false,
                     "fee": {
-                        "currency": null,
+                        "currency": "USDT",
                         "cost": null,
                         "rate": null
                     }
