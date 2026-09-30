@@ -976,6 +976,10 @@ export default class gate extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                    'withdraw': {
+                        'selectableFeeInclusion': false,
+                        'feeIncluded': true,
+                    },
                 },
                 'forDerivatives': {
                     'extends': 'spot',
