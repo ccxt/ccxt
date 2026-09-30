@@ -2561,8 +2561,7 @@ class testMainClass {
                 $spot_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
             }
             $client_order_id = $spot_order_request['newClientOrderId'];
-            $spot_id_string = ((string) $spot_id);
-            assert(str_starts_with($client_order_id, $spot_id_string) === true, 'binance - spot clientOrderId: ' . $client_order_id . ' does not start with spotId' . $spot_id_string);
+            assert(str_starts_with($client_order_id, $spot_id) === true, 'binance - spot clientOrderId: ' . $client_order_id . ' does not start with spotId' . $spot_id);
             $swap_order_request = array();
             try {
                 \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
@@ -2577,8 +2576,7 @@ class testMainClass {
             }
             // linear swap
             $client_order_id_swap = $swap_order_request['newClientOrderId'];
-            $swap_id_string = ((string) $swap_id);
-            assert(str_starts_with($client_order_id_swap, $swap_id_string) === true, 'binance - swap clientOrderId: ' . $client_order_id_swap . ' does not start with swapId' . $swap_id_string);
+            assert(str_starts_with($client_order_id_swap, $swap_id) === true, 'binance - swap clientOrderId: ' . $client_order_id_swap . ' does not start with swapId' . $swap_id);
             // inverse swap
             $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
             assert(str_starts_with($client_order_id_inverse, $inverse_swap_id) === true, 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $inverse_swap_id);
@@ -2593,7 +2591,7 @@ class testMainClass {
             }
             $client_algo_id_swap = $swap_algo_order_request['clientAlgoId'];
             assert($client_algo_id_swap !== null, 'binance - swap conditional order must send clientAlgoId');
-            assert(str_starts_with($client_algo_id_swap, $swap_id_string) === true, 'binance - swap clientAlgoId: ' . $client_algo_id_swap . ' does not start with swapId' . $swap_id_string);
+            assert(str_starts_with($client_algo_id_swap, $swap_id) === true, 'binance - swap clientAlgoId: ' . $client_algo_id_swap . ' does not start with swapId' . $swap_id);
             // inverse swap conditional order
             $inverse_algo_order_request = array();
             try {
@@ -2628,7 +2626,7 @@ class testMainClass {
             for ($i = 0; $i < count($batch_orders); $i++) {
                 $current = $batch_orders[$i];
                 $current_client_order_id = $current['newClientOrderId'];
-                assert(str_starts_with($current_client_order_id, $swap_id_string) === true, 'binance createOrders - clientOrderId: ' . $current_client_order_id . ' does not start with swapId' . $swap_id_string);
+                assert(str_starts_with($current_client_order_id, $swap_id) === true, 'binance createOrders - clientOrderId: ' . $current_client_order_id . ' does not start with swapId' . $swap_id);
             }
             // linear conditional orders cannot be batched
             $linear_conditional_batch_not_supported = false;
@@ -2673,6 +2671,81 @@ class testMainClass {
             $inverse_conditional_client_order_id = $exchange->safe_string($inverse_conditional_batch_order, 'newClientOrderId');
             assert($inverse_conditional_client_order_id !== null, 'binance createOrders - inverse conditional order must send newClientOrderId');
             assert(str_starts_with($inverse_conditional_client_order_id, $inverse_swap_id) === true, 'binance createOrders - inverse conditional clientOrderId: ' . $inverse_conditional_client_order_id . ' does not start with inverseSwapId' . $inverse_swap_id);
+            // quarterly futures use the prefix of their fapi/dapi side, not the inverse one
+            $linear_future_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('ETH/USDT:USDT-261225', 'limit', 'buy', 1, 2000));
+            } catch(\Throwable $e) {
+                $linear_future_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            }
+            $client_order_id_linear_future = $linear_future_order_request['newClientOrderId'];
+            assert(str_starts_with($client_order_id_linear_future, $swap_id) === true, 'binance - linear future clientOrderId: ' . $client_order_id_linear_future . ' does not start with swapId' . $swap_id);
+            $inverse_future_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('ETH/USD:ETH-261225', 'limit', 'buy', 1, 2000));
+            } catch(\Throwable $e) {
+                $inverse_future_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            }
+            $client_order_id_inverse_future = $inverse_future_order_request['newClientOrderId'];
+            assert(str_starts_with($client_order_id_inverse_future, $inverse_swap_id) === true, 'binance - inverse future clientOrderId: ' . $client_order_id_inverse_future . ' does not start with inverseSwapId' . $inverse_swap_id);
+            // the implicit order endpoints inject the broker id of their api section
+            // skipped in the sync flavours: callExchangeMethodDynamically is async-only there
+            if (!is_sync()) {
+                $implicit_dapi_order_request = array();
+                try {
+                    \React\Async\await(call_exchange_method_dynamically($exchange, 'dapiPrivatePostOrder', [array(
+    'symbol' => 'ETHUSD_PERP',
+    'side' => 'SELL',
+    'type' => 'LIMIT',
+    'quantity' => '1',
+    'price' => '4100',
+    'timeInForce' => 'GTC',
+)]));
+                } catch(\Throwable $e) {
+                    $implicit_dapi_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+                }
+                $implicit_dapi_client_order_id = $implicit_dapi_order_request['newClientOrderId'];
+                assert(str_starts_with($implicit_dapi_client_order_id, $inverse_swap_id) === true, 'binance - implicit dapi clientOrderId: ' . $implicit_dapi_client_order_id . ' does not start with inverseSwapId' . $inverse_swap_id);
+                $implicit_dapi_batch_request = array();
+                try {
+                    \React\Async\await(call_exchange_method_dynamically($exchange, 'dapiPrivatePostBatchOrders', [array(
+    'batchOrders' => [array(
+    'symbol' => 'ETHUSD_PERP',
+    'side' => 'SELL',
+    'type' => 'LIMIT',
+    'quantity' => '1',
+    'price' => '4100',
+    'timeInForce' => 'GTC',
+)],
+)]));
+                } catch(\Throwable $e) {
+                    $implicit_dapi_batch_request = $this->urlencoded_to_dict($exchange->last_request_body);
+                }
+                $implicit_dapi_batch_orders = $exchange->safe_list($implicit_dapi_batch_request, 'batchOrders', []);
+                $implicit_dapi_batch_order = $exchange->safe_dict($implicit_dapi_batch_orders, 0, array());
+                $implicit_dapi_batch_client_order_id = $exchange->safe_string($implicit_dapi_batch_order, 'newClientOrderId');
+                assert($implicit_dapi_batch_client_order_id !== null, 'binance - implicit dapi batch order must inject newClientOrderId');
+                assert(str_starts_with($implicit_dapi_batch_client_order_id, $inverse_swap_id) === true, 'binance - implicit dapi batch clientOrderId: ' . $implicit_dapi_batch_client_order_id . ' does not start with inverseSwapId' . $inverse_swap_id);
+                // the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
+                $implicit_fapi_algo_order_request = array();
+                try {
+                    \React\Async\await(call_exchange_method_dynamically($exchange, 'fapiPrivatePostAlgoOrder', [array(
+    'symbol' => 'ETHUSDT',
+    'side' => 'SELL',
+    'type' => 'STOP',
+    'algoType' => 'CONDITIONAL',
+    'quantity' => '1',
+    'price' => '4100',
+    'triggerPrice' => '4200',
+    'timeInForce' => 'GTC',
+)]));
+                } catch(\Throwable $e) {
+                    $implicit_fapi_algo_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+                }
+                $implicit_fapi_client_algo_id = $exchange->safe_string($implicit_fapi_algo_order_request, 'clientAlgoId');
+                assert($implicit_fapi_client_algo_id !== null, 'binance - implicit fapi algo order must inject clientAlgoId');
+                assert(str_starts_with($implicit_fapi_client_algo_id, $swap_id) === true, 'binance - implicit fapi clientAlgoId: ' . $implicit_fapi_client_algo_id . ' does not start with swapId' . $swap_id);
+            }
             if (!is_sync()) {
                 \React\Async\await(close($exchange));
             }

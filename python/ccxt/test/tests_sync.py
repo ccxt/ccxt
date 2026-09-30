@@ -2074,8 +2074,7 @@ class testMainClass:
         except Exception as e:
             spot_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         client_order_id = spot_order_request['newClientOrderId']
-        spot_id_string = str(spot_id)
-        assert client_order_id.startswith(spot_id_string), 'binance - spot clientOrderId: ' + client_order_id + ' does not start with spotId' + spot_id_string
+        assert client_order_id.startswith(spot_id), 'binance - spot clientOrderId: ' + client_order_id + ' does not start with spotId' + spot_id
         swap_order_request = {}
         try:
             exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
@@ -2088,8 +2087,7 @@ class testMainClass:
             swap_inverse_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         # linear swap
         client_order_id_swap = swap_order_request['newClientOrderId']
-        swap_id_string = str(swap_id)
-        assert client_order_id_swap.startswith(swap_id_string), 'binance - swap clientOrderId: ' + client_order_id_swap + ' does not start with swapId' + swap_id_string
+        assert client_order_id_swap.startswith(swap_id), 'binance - swap clientOrderId: ' + client_order_id_swap + ' does not start with swapId' + swap_id
         # inverse swap
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
         assert client_order_id_inverse.startswith(inverse_swap_id), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + inverse_swap_id
@@ -2103,7 +2101,7 @@ class testMainClass:
             swap_algo_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         client_algo_id_swap = swap_algo_order_request['clientAlgoId']
         assert client_algo_id_swap is not None, 'binance - swap conditional order must send clientAlgoId'
-        assert client_algo_id_swap.startswith(swap_id_string), 'binance - swap clientAlgoId: ' + client_algo_id_swap + ' does not start with swapId' + swap_id_string
+        assert client_algo_id_swap.startswith(swap_id), 'binance - swap clientAlgoId: ' + client_algo_id_swap + ' does not start with swapId' + swap_id
         # inverse swap conditional order
         inverse_algo_order_request = {}
         try:
@@ -2136,7 +2134,7 @@ class testMainClass:
         for i in range(0, len(batch_orders)):
             current = batch_orders[i]
             current_client_order_id = current['newClientOrderId']
-            assert current_client_order_id.startswith(swap_id_string), 'binance createOrders - clientOrderId: ' + current_client_order_id + ' does not start with swapId' + swap_id_string
+            assert current_client_order_id.startswith(swap_id), 'binance createOrders - clientOrderId: ' + current_client_order_id + ' does not start with swapId' + swap_id
         # linear conditional orders cannot be batched
         linear_conditional_batch_not_supported = False
         try:
@@ -2178,6 +2176,75 @@ class testMainClass:
         inverse_conditional_client_order_id = exchange.safe_string(inverse_conditional_batch_order, 'newClientOrderId')
         assert inverse_conditional_client_order_id is not None, 'binance createOrders - inverse conditional order must send newClientOrderId'
         assert inverse_conditional_client_order_id.startswith(inverse_swap_id), 'binance createOrders - inverse conditional clientOrderId: ' + inverse_conditional_client_order_id + ' does not start with inverseSwapId' + inverse_swap_id
+        # quarterly futures use the prefix of their fapi/dapi side, not the inverse one
+        linear_future_order_request = {}
+        try:
+            exchange.create_order('ETH/USDT:USDT-261225', 'limit', 'buy', 1, 2000)
+        except Exception as e:
+            linear_future_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+        client_order_id_linear_future = linear_future_order_request['newClientOrderId']
+        assert client_order_id_linear_future.startswith(swap_id), 'binance - linear future clientOrderId: ' + client_order_id_linear_future + ' does not start with swapId' + swap_id
+        inverse_future_order_request = {}
+        try:
+            exchange.create_order('ETH/USD:ETH-261225', 'limit', 'buy', 1, 2000)
+        except Exception as e:
+            inverse_future_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+        client_order_id_inverse_future = inverse_future_order_request['newClientOrderId']
+        assert client_order_id_inverse_future.startswith(inverse_swap_id), 'binance - inverse future clientOrderId: ' + client_order_id_inverse_future + ' does not start with inverseSwapId' + inverse_swap_id
+        # the implicit order endpoints inject the broker id of their api section
+        # skipped in the sync flavours: callExchangeMethodDynamically is async-only there
+        if not is_sync():
+            implicit_dapi_order_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'dapiPrivatePostOrder', [{
+    'symbol': 'ETHUSD_PERP',
+    'side': 'SELL',
+    'type': 'LIMIT',
+    'quantity': '1',
+    'price': '4100',
+    'timeInForce': 'GTC',
+}])
+            except Exception as e:
+                implicit_dapi_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            implicit_dapi_client_order_id = implicit_dapi_order_request['newClientOrderId']
+            assert implicit_dapi_client_order_id.startswith(inverse_swap_id), 'binance - implicit dapi clientOrderId: ' + implicit_dapi_client_order_id + ' does not start with inverseSwapId' + inverse_swap_id
+            implicit_dapi_batch_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'dapiPrivatePostBatchOrders', [{
+    'batchOrders': [{
+    'symbol': 'ETHUSD_PERP',
+    'side': 'SELL',
+    'type': 'LIMIT',
+    'quantity': '1',
+    'price': '4100',
+    'timeInForce': 'GTC',
+}],
+}])
+            except Exception as e:
+                implicit_dapi_batch_request = self.urlencoded_to_dict(exchange.last_request_body)
+            implicit_dapi_batch_orders = exchange.safe_list(implicit_dapi_batch_request, 'batchOrders', [])
+            implicit_dapi_batch_order = exchange.safe_dict(implicit_dapi_batch_orders, 0, {})
+            implicit_dapi_batch_client_order_id = exchange.safe_string(implicit_dapi_batch_order, 'newClientOrderId')
+            assert implicit_dapi_batch_client_order_id is not None, 'binance - implicit dapi batch order must inject newClientOrderId'
+            assert implicit_dapi_batch_client_order_id.startswith(inverse_swap_id), 'binance - implicit dapi batch clientOrderId: ' + implicit_dapi_batch_client_order_id + ' does not start with inverseSwapId' + inverse_swap_id
+            # the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
+            implicit_fapi_algo_order_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'fapiPrivatePostAlgoOrder', [{
+    'symbol': 'ETHUSDT',
+    'side': 'SELL',
+    'type': 'STOP',
+    'algoType': 'CONDITIONAL',
+    'quantity': '1',
+    'price': '4100',
+    'triggerPrice': '4200',
+    'timeInForce': 'GTC',
+}])
+            except Exception as e:
+                implicit_fapi_algo_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            implicit_fapi_client_algo_id = exchange.safe_string(implicit_fapi_algo_order_request, 'clientAlgoId')
+            assert implicit_fapi_client_algo_id is not None, 'binance - implicit fapi algo order must inject clientAlgoId'
+            assert implicit_fapi_client_algo_id.startswith(swap_id), 'binance - implicit fapi clientAlgoId: ' + implicit_fapi_client_algo_id + ' does not start with swapId' + swap_id
         if not is_sync():
             close(exchange)
         return True

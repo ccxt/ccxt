@@ -3155,8 +3155,7 @@ public class TestMain extends BaseTest
                 spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
             }
             Object clientOrderId = ((Map<String, Object>)spotOrderRequest).get("newClientOrderId");
-            String spotIdString = String.valueOf(spotId);
-            Assert(java.util.Objects.equals(((String)clientOrderId).startsWith(spotIdString), true), ((("binance - spot clientOrderId: " + clientOrderId) + " does not start with spotId") + spotIdString));
+            Assert(java.util.Objects.equals(((String)clientOrderId).startsWith(spotId), true), ((("binance - spot clientOrderId: " + clientOrderId) + " does not start with spotId") + spotId));
             Object swapOrderRequest = new HashMap<String, Object>() {{}};
             try
             {
@@ -3175,8 +3174,7 @@ public class TestMain extends BaseTest
             }
             // linear swap
             Object clientOrderIdSwap = ((Map<String, Object>)swapOrderRequest).get("newClientOrderId");
-            String swapIdString = String.valueOf(swapId);
-            Assert(java.util.Objects.equals(((String)clientOrderIdSwap).startsWith(swapIdString), true), ((("binance - swap clientOrderId: " + clientOrderIdSwap) + " does not start with swapId") + swapIdString));
+            Assert(java.util.Objects.equals(((String)clientOrderIdSwap).startsWith(swapId), true), ((("binance - swap clientOrderId: " + clientOrderIdSwap) + " does not start with swapId") + swapId));
             // inverse swap
             Object clientOrderIdInverse = ((Map<String, Object>)swapInverseOrderRequest).get("newClientOrderId");
             Assert(java.util.Objects.equals(((String)clientOrderIdInverse).startsWith(inverseSwapId), true), ((("binance - swap clientOrderIdInverse: " + clientOrderIdInverse) + " does not start with swapId") + inverseSwapId));
@@ -3193,7 +3191,7 @@ public class TestMain extends BaseTest
             }
             Object clientAlgoIdSwap = ((Map<String, Object>)swapAlgoOrderRequest).get("clientAlgoId");
             Assert(!java.util.Objects.equals(clientAlgoIdSwap, null), "binance - swap conditional order must send clientAlgoId");
-            Assert(java.util.Objects.equals(((String)clientAlgoIdSwap).startsWith(swapIdString), true), ((("binance - swap clientAlgoId: " + clientAlgoIdSwap) + " does not start with swapId") + swapIdString));
+            Assert(java.util.Objects.equals(((String)clientAlgoIdSwap).startsWith(swapId), true), ((("binance - swap clientAlgoId: " + clientAlgoIdSwap) + " does not start with swapId") + swapId));
             // inverse swap conditional order
             Object inverseAlgoOrderRequest = new HashMap<String, Object>() {{}};
             try
@@ -3233,7 +3231,7 @@ public class TestMain extends BaseTest
             {
                 Object current = Helpers.GetValue(batchOrders, i);
                 Object currentClientOrderId = Helpers.GetValue(current, "newClientOrderId");
-                Assert(java.util.Objects.equals(((String)currentClientOrderId).startsWith(swapIdString), true), ((("binance createOrders - clientOrderId: " + currentClientOrderId) + " does not start with swapId") + swapIdString));
+                Assert(java.util.Objects.equals(((String)currentClientOrderId).startsWith(swapId), true), ((("binance createOrders - clientOrderId: " + currentClientOrderId) + " does not start with swapId") + swapId));
             }
             // linear conditional orders cannot be batched
             Boolean linearConditionalBatchNotSupported = false;
@@ -3282,6 +3280,92 @@ public class TestMain extends BaseTest
             String inverseConditionalClientOrderId = exchange.safeString(inverseConditionalBatchOrder, "newClientOrderId");
             Assert(!java.util.Objects.equals(inverseConditionalClientOrderId, null), "binance createOrders - inverse conditional order must send newClientOrderId");
             Assert(java.util.Objects.equals(inverseConditionalClientOrderId.startsWith(((String)inverseSwapId)), true), ((("binance createOrders - inverse conditional clientOrderId: " + inverseConditionalClientOrderId) + " does not start with inverseSwapId") + inverseSwapId));
+            // quarterly futures use the prefix of their fapi/dapi side, not the inverse one
+            Object linearFutureOrderRequest = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"ETH/USDT:USDT-261225", "limit", "buy", 1, 2000, new HashMap<String, Object>() {{}}})).join();
+            } catch(Exception e)
+            {
+                linearFutureOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            Object clientOrderIdLinearFuture = ((Map<String, Object>)linearFutureOrderRequest).get("newClientOrderId");
+            Assert(java.util.Objects.equals(((String)clientOrderIdLinearFuture).startsWith(swapId), true), ((("binance - linear future clientOrderId: " + clientOrderIdLinearFuture) + " does not start with swapId") + swapId));
+            Object inverseFutureOrderRequest = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"ETH/USD:ETH-261225", "limit", "buy", 1, 2000, new HashMap<String, Object>() {{}}})).join();
+            } catch(Exception e)
+            {
+                inverseFutureOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            Object clientOrderIdInverseFuture = ((Map<String, Object>)inverseFutureOrderRequest).get("newClientOrderId");
+            Assert(java.util.Objects.equals(((String)clientOrderIdInverseFuture).startsWith(inverseSwapId), true), ((("binance - inverse future clientOrderId: " + clientOrderIdInverseFuture) + " does not start with inverseSwapId") + inverseSwapId));
+            // the implicit order endpoints inject the broker id of their api section
+            // skipped in the sync flavours: callExchangeMethodDynamically is async-only there
+            if (!Helpers.isTrue(isSync()))
+            {
+                Object implicitDapiOrderRequest = new HashMap<String, Object>() {{}};
+                try
+                {
+                    (callExchangeMethodDynamically(exchange, "dapiPrivatePostOrder", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+        put( "symbol", "ETHUSD_PERP" );
+        put( "side", "SELL" );
+        put( "type", "LIMIT" );
+        put( "quantity", "1" );
+        put( "price", "4100" );
+        put( "timeInForce", "GTC" );
+    }})))).join();
+                } catch(Exception e)
+                {
+                    implicitDapiOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                }
+                Object implicitDapiClientOrderId = ((Map<String, Object>)implicitDapiOrderRequest).get("newClientOrderId");
+                Assert(java.util.Objects.equals(((String)implicitDapiClientOrderId).startsWith(inverseSwapId), true), ((("binance - implicit dapi clientOrderId: " + implicitDapiClientOrderId) + " does not start with inverseSwapId") + inverseSwapId));
+                Object implicitDapiBatchRequest = new HashMap<String, Object>() {{}};
+                try
+                {
+                    (callExchangeMethodDynamically(exchange, "dapiPrivatePostBatchOrders", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+        put( "batchOrders", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+        put( "symbol", "ETHUSD_PERP" );
+        put( "side", "SELL" );
+        put( "type", "LIMIT" );
+        put( "quantity", "1" );
+        put( "price", "4100" );
+        put( "timeInForce", "GTC" );
+    }})) );
+    }})))).join();
+                } catch(Exception e)
+                {
+                    implicitDapiBatchRequest = this.urlencodedToDict(exchange.last_request_body);
+                }
+                Object implicitDapiBatchOrders = exchange.safeList(implicitDapiBatchRequest, "batchOrders", new ArrayList<Object>(Arrays.asList()));
+                Object implicitDapiBatchOrder = exchange.safeDict(implicitDapiBatchOrders, 0, new HashMap<String, Object>() {{}});
+                String implicitDapiBatchClientOrderId = exchange.safeString(implicitDapiBatchOrder, "newClientOrderId");
+                Assert(!java.util.Objects.equals(implicitDapiBatchClientOrderId, null), "binance - implicit dapi batch order must inject newClientOrderId");
+                Assert(java.util.Objects.equals(implicitDapiBatchClientOrderId.startsWith(((String)inverseSwapId)), true), ((("binance - implicit dapi batch clientOrderId: " + implicitDapiBatchClientOrderId) + " does not start with inverseSwapId") + inverseSwapId));
+                // the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
+                Object implicitFapiAlgoOrderRequest = new HashMap<String, Object>() {{}};
+                try
+                {
+                    (callExchangeMethodDynamically(exchange, "fapiPrivatePostAlgoOrder", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+        put( "symbol", "ETHUSDT" );
+        put( "side", "SELL" );
+        put( "type", "STOP" );
+        put( "algoType", "CONDITIONAL" );
+        put( "quantity", "1" );
+        put( "price", "4100" );
+        put( "triggerPrice", "4200" );
+        put( "timeInForce", "GTC" );
+    }})))).join();
+                } catch(Exception e)
+                {
+                    implicitFapiAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                }
+                String implicitFapiClientAlgoId = exchange.safeString(implicitFapiAlgoOrderRequest, "clientAlgoId");
+                Assert(!java.util.Objects.equals(implicitFapiClientAlgoId, null), "binance - implicit fapi algo order must inject clientAlgoId");
+                Assert(java.util.Objects.equals(implicitFapiClientAlgoId.startsWith(((String)swapId)), true), ((("binance - implicit fapi clientAlgoId: " + implicitFapiClientAlgoId) + " does not start with swapId") + swapId));
+            }
             if (!Helpers.isTrue(isSync()))
             {
                 (close(exchange)).join();

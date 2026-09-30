@@ -5843,15 +5843,6 @@ async function runMain() {
     }
 }
 
-if (isMainEntry(metaUrl)) {
-    // Deliberately not `await runMain()`: build/java-worker.ts imports this module
-    // for patchJavaLocalTypes, and piscina loads worker modules through tsx's CJS
-    // require hook, whose esbuild transform rejects top-level await ("not supported
-    // with the cjs output format"). A rejection is still fatal here — an unhandled
-    // rejection exits 1, exactly like the awaited form did.
-    runMain();
-}
-
 // ===== H2K-j01: native top-level newMap (declaration initializer / return value) =====
 // `Map<String, Object> x = Helpers.newMap("k", v, ...);` -> `new HashMap` + one put per pair, and
 // `return Helpers.newMap(...);` -> a block filling a file-unique temp. Helpers.newMap is exactly a
@@ -6818,4 +6809,14 @@ export function nativeJavaNestedNewMaps (content: string): string {
         content = r.content;
         from = r.next;
     }
+}
+
+// after the pass constants above: they are consts, so the entry must not run before their initialization
+if (isMainEntry(metaUrl)) {
+    // Deliberately not `await runMain()`: build/java-worker.ts imports this module
+    // for patchJavaLocalTypes, and piscina loads worker modules through tsx's CJS
+    // require hook, whose esbuild transform rejects top-level await ("not supported
+    // with the cjs output format"). A rejection is still fatal here — an unhandled
+    // rejection exits 1, exactly like the awaited form did.
+    runMain();
 }

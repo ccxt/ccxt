@@ -3063,8 +3063,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             spotOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        let mut spotIdString: Value = to_string_val(&spotId);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &spotIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - spot clientOrderId: ".into()), &clientOrderId), Value::Str(" does not start with spotId".into())).into()), spotIdString).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &spotId)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - spot clientOrderId: ".into()), &clientOrderId), Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
         let mut swapOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3087,8 +3086,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // linear swap
         let mut clientOrderIdSwap: Value = swapOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        let mut swapIdString: Value = to_string_val(&swapId);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdSwap, &swapIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderId: ".into()), &clientOrderIdSwap), Value::Str(" does not start with swapId".into())).into()), swapIdString).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdSwap, &swapId)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderId: ".into()), &clientOrderIdSwap), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
         // inverse swap
         let mut clientOrderIdInverse: Value = swapInverseOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
         assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdInverse, &inverseSwapId)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderIdInverse: ".into()), &clientOrderIdInverse), Value::Str(" does not start with swapId".into())).into()), inverseSwapId).into())]);
@@ -3109,7 +3107,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut clientAlgoIdSwap: Value = swapAlgoOrderRequest.as_map().and_then(|__m| __m.get("clientAlgoId")).cloned().unwrap_or(Value::Null);
         assert((clientAlgoIdSwap != Value::Null), &[Value::Str("binance - swap conditional order must send clientAlgoId".into())]);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientAlgoIdSwap, &swapIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientAlgoId: ".into()), &clientAlgoIdSwap), Value::Str(" does not start with swapId".into())).into()), swapIdString).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientAlgoIdSwap, &swapId)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientAlgoId: ".into()), &clientAlgoIdSwap), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
         // inverse swap conditional order
         let mut inverseAlgoOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3161,7 +3159,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_1619 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1619 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&batchOrders).as_f64().unwrap_or(f64::NAN) } {
             let mut current: Value = get_value(&batchOrders, &i);
             let mut currentClientOrderId: Value = get_value(&current, &Value::Str("newClientOrderId".into()));
-            assert(Value::Bool(is_equal(&Value::Bool(starts_with(&currentClientOrderId, &swapIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance createOrders - clientOrderId: ".into()), &currentClientOrderId), Value::Str(" does not start with swapId".into())).into()), swapIdString).into())]);
+            assert(Value::Bool(is_equal(&Value::Bool(starts_with(&currentClientOrderId, &swapId)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance createOrders - clientOrderId: ".into()), &currentClientOrderId), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
         }
         }
         // linear conditional orders cannot be batched
@@ -3223,6 +3221,112 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut inverseConditionalClientOrderId: Value = exchange.safe_string(inverseConditionalBatchOrder.clone(), Value::Str("newClientOrderId".into()), &[]);
         assert((inverseConditionalClientOrderId != Value::Null), &[Value::Str("binance createOrders - inverse conditional order must send newClientOrderId".into())]);
         assert((Value::Bool(starts_with(&inverseConditionalClientOrderId, &inverseSwapId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance createOrders - inverse conditional clientOrderId: ".into()), inverseConditionalClientOrderId).into()), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+        // quarterly futures use the prefix of their fapi/dapi side, not the inverse one
+        let mut linearFutureOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("ETH/USDT:USDT-261225".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(2000)]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            linearFutureOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
+        }
+        let mut clientOrderIdLinearFuture: Value = linearFutureOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdLinearFuture, &swapId)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - linear future clientOrderId: ".into()), &clientOrderIdLinearFuture), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+        let mut inverseFutureOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("ETH/USD:ETH-261225".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(2000)]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            inverseFutureOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
+        }
+        let mut clientOrderIdInverseFuture: Value = inverseFutureOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdInverseFuture, &inverseSwapId)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - inverse future clientOrderId: ".into()), &clientOrderIdInverseFuture), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+        // the implicit order endpoints inject the broker id of their api section
+        // skipped in the sync flavours: callExchangeMethodDynamically is async-only there
+        if !is_true(&isSync()) {
+            let mut implicitDapiOrderRequest: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+            let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+                callExchangeMethodDynamically(&mut exchange, Value::Str("dapiPrivatePostOrder".into()), Value::from(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), Value::Str("ETHUSD_PERP".into()));
+        m.insert("side".to_string(), Value::Str("SELL".into()));
+        m.insert("type".to_string(), Value::Str("LIMIT".into()));
+        m.insert("quantity".to_string(), Value::Str("1".into()));
+        m.insert("price".to_string(), Value::Str("4100".into()));
+        m.insert("timeInForce".to_string(), Value::Str("GTC".into()));
+    m
+})])).await;
+             #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+                implicitDapiOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
+            }
+            let mut implicitDapiClientOrderId: Value = implicitDapiOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
+            assert(Value::Bool(is_equal(&Value::Bool(starts_with(&implicitDapiClientOrderId, &inverseSwapId)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - implicit dapi clientOrderId: ".into()), &implicitDapiClientOrderId), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+            let mut implicitDapiBatchRequest: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+            let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+                callExchangeMethodDynamically(&mut exchange, Value::Str("dapiPrivatePostBatchOrders".into()), Value::from(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("batchOrders".to_string(), Value::from(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), Value::Str("ETHUSD_PERP".into()));
+        m.insert("side".to_string(), Value::Str("SELL".into()));
+        m.insert("type".to_string(), Value::Str("LIMIT".into()));
+        m.insert("quantity".to_string(), Value::Str("1".into()));
+        m.insert("price".to_string(), Value::Str("4100".into()));
+        m.insert("timeInForce".to_string(), Value::Str("GTC".into()));
+    m
+})]));
+    m
+})])).await;
+             #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+                implicitDapiBatchRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
+            }
+            let mut implicitDapiBatchOrders: Value = exchange.safe_list(implicitDapiBatchRequest.clone(), Value::Str("batchOrders".into()), &[Value::from(vec![])]);
+            let mut implicitDapiBatchOrder: Value = exchange.safe_dict(implicitDapiBatchOrders.clone(), Value::Int(0), &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
+            let mut implicitDapiBatchClientOrderId: Value = exchange.safe_string(implicitDapiBatchOrder.clone(), Value::Str("newClientOrderId".into()), &[]);
+            assert((implicitDapiBatchClientOrderId != Value::Null), &[Value::Str("binance - implicit dapi batch order must inject newClientOrderId".into())]);
+            assert((Value::Bool(starts_with(&implicitDapiBatchClientOrderId, &inverseSwapId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit dapi batch clientOrderId: ".into()), implicitDapiBatchClientOrderId).into()), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+            // the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
+            let mut implicitFapiAlgoOrderRequest: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+            let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+                callExchangeMethodDynamically(&mut exchange, Value::Str("fapiPrivatePostAlgoOrder".into()), Value::from(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), Value::Str("ETHUSDT".into()));
+        m.insert("side".to_string(), Value::Str("SELL".into()));
+        m.insert("type".to_string(), Value::Str("STOP".into()));
+        m.insert("algoType".to_string(), Value::Str("CONDITIONAL".into()));
+        m.insert("quantity".to_string(), Value::Str("1".into()));
+        m.insert("price".to_string(), Value::Str("4100".into()));
+        m.insert("triggerPrice".to_string(), Value::Str("4200".into()));
+        m.insert("timeInForce".to_string(), Value::Str("GTC".into()));
+    m
+})])).await;
+             #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+                implicitFapiAlgoOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
+            }
+            let mut implicitFapiClientAlgoId: Value = exchange.safe_string(implicitFapiAlgoOrderRequest.clone(), Value::Str("clientAlgoId".into()), &[]);
+            assert((implicitFapiClientAlgoId != Value::Null), &[Value::Str("binance - implicit fapi algo order must inject clientAlgoId".into())]);
+            assert((Value::Bool(starts_with(&implicitFapiClientAlgoId, &swapId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit fapi clientAlgoId: ".into()), implicitFapiClientAlgoId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+        }
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
