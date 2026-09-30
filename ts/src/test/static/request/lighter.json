@@ -94,6 +94,33 @@
         ],
         "createOrder": [
             {
+                "description": "swap limit buy with attached stopLoss and takeProfit",
+                "options": {
+                    "builderFee": false
+                },
+                "method": "createOrder",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
+                "input": [
+                    "LTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.2,
+                    56,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": 53
+                        },
+                        "takeProfit": {
+                            "triggerPrice": 78
+                        }
+                    }
+                ],
+                "output": {
+                    "tx_type": 28,
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":30,\"GroupingType\":3,\"Orders\":[{\"MarketIndex\":35,\"ClientOrderIndex\":0,\"BaseAmount\":200,\"Price\":56000,\"IsAsk\":0,\"Type\":0,\"TimeInForce\":1,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":1793018979378},{\"MarketIndex\":35,\"ClientOrderIndex\":0,\"BaseAmount\":0,\"Price\":53000,\"IsAsk\":1,\"Type\":3,\"TimeInForce\":1,\"ReduceOnly\":1,\"TriggerPrice\":53000,\"OrderExpiry\":1793018979378},{\"MarketIndex\":35,\"ClientOrderIndex\":0,\"BaseAmount\":0,\"Price\":78000,\"IsAsk\":1,\"Type\":5,\"TimeInForce\":1,\"ReduceOnly\":1,\"TriggerPrice\":78000,\"OrderExpiry\":1793018979378}],\"ExpiredAt\":1790600378378,\"Nonce\":1790599779377,\"Sig\":\"8MlPSZpz2CsyFBiLik6zhrLJeq+ASfAgsomgn72q+pd6Yk9uVusU7uBXqVaA3FKachM8+tpLB/13MtWSwKM0zqDfiewXTT+6rIs7U3w8/+M=\",\"L2TxAttributes\":{\"4\":1}}"
+                }
+            },
+            {
                 "description": "swap limit",
                 "method": "createOrder",
                 "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
