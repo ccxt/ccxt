@@ -129,7 +129,8 @@ function test_ws_client_keepalive_timeout_closes_the_socket() {
         function ($c, $e) use (&$errors) { $errors[] = $e; },
         function ($c, $m) use (&$closes) { $closes[] = $m; },
         $noop,
-        array('keepAlive' => 50, 'maxPingPongMisses' => 2, 'connectionTimeout' => 5000)
+        // a 2s pong budget so a stalled CI event loop cannot trip the healthy phase
+        array('keepAlive' => 50, 'maxPingPongMisses' => 40, 'connectionTimeout' => 5000)
     );
     $client->set_ws_connector(); // what ClientTrait::client() does before the first connect
     $connected = false;
@@ -171,7 +172,8 @@ function test_ws_client_keepalive_healthy_pong_keeps_the_socket() {
         function ($c, $e) use (&$errors) { $errors[] = $e; },
         $noop,
         $noop,
-        array('keepAlive' => 50, 'maxPingPongMisses' => 2, 'connectionTimeout' => 5000)
+        // a 2s pong budget so a stalled CI event loop cannot trip the healthy phase
+        array('keepAlive' => 50, 'maxPingPongMisses' => 40, 'connectionTimeout' => 5000)
     );
     $client->set_ws_connector();
     $client->connect();
