@@ -827,7 +827,7 @@ export default class coinbaseinternational extends Exchange {
             if (limit === undefined) {
                 limit = 100;
             }
-            request['start_timestamp'] = now - (limit - 1) * duration * 1000;
+            request['start_timestamp'] = this.sum (now, -limit * duration * 1000);
             request['end_timestamp'] = now;
         } else {
             since = Math.max (since - 1, 0);
