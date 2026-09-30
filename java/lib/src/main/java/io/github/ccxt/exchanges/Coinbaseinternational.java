@@ -778,7 +778,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     public Object parseFundingRateHistory(Object info, Map<String, Object> market)
     {
-        return this.parseFundingRate(info, market);
+        Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(info, market);
+        return new HashMap<String, Object>() {{
+            put( "info", info );
+            put( "symbol", fundingRate.get("symbol") );
+            put( "fundingRate", fundingRate.get("fundingRate") );
+            put( "timestamp", fundingRate.get("timestamp") );
+            put( "datetime", fundingRate.get("datetime") );
+        }};
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)

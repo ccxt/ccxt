@@ -3956,7 +3956,7 @@ public class Krakenfutures extends KrakenfuturesApi
             h2kMap2.put("markPrice", null);
             h2kMap2.put("lastPrice", this.safeNumber(position, "executionPrice", (Object) null));
             h2kMap2.put("collateral", null);
-            h2kMap2.put("marginType", marginType);
+            h2kMap2.put("marginMode", marginType);
             h2kMap2.put("side", side);
             h2kMap2.put("percentage", null);
             return h2kMap2;

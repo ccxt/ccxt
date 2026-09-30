@@ -3634,7 +3634,6 @@ public class Modetrade extends ModetradeApi
         mapLiteral9.put("lastPrice", null);
         mapLiteral9.put("collateral", null);
         mapLiteral9.put("marginMode", "cross");
-        mapLiteral9.put("marginType", null);
         mapLiteral9.put("side", side);
         mapLiteral9.put("percentage", null);
         mapLiteral9.put("hedged", null);

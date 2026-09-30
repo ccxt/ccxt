@@ -927,7 +927,6 @@ public class Bitfinex extends BitfinexApi
             List<Object> response = (this.publicGetConfConfig(this.extend(request, parameters))).join();
             List<Object> spotMarketsInfo = (List<Object>) this.safeList(response, 0, new ArrayList<Object>(Arrays.asList()));
             List<Object> futuresMarketsInfo = (List<Object>) this.safeList(response, 1, new ArrayList<Object>(Arrays.asList()));
-            List<Object> securitiesMarketsIds = (List<Object>) this.safeList(response, 2, new ArrayList<Object>(Arrays.asList()));
             List<Object> marginIds = (List<Object>) this.safeList(response, 3, new ArrayList<Object>(Arrays.asList()));
             List<Object> markets = (List<Object>) this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -993,7 +992,6 @@ public class Bitfinex extends BitfinexApi
                     "settleId", settleId,
                     "type", type,
                     "spot", spot,
-                    "tradfi", this.inArray(id, securitiesMarketsIds),
                     "margin", (Boolean.TRUE.equals(spot) && this.inArray(id, marginIds)),
                     "swap", swap,
                     "future", false,
@@ -4178,25 +4176,12 @@ public class Bitfinex extends BitfinexApi
         // ]
         //
         Long timestamp = this.safeInteger(contract, 0);
-        Long nextFundingTimestamp = this.safeInteger(contract, 7);
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", Bitfinex.this.safeSymbol(null, market, (String) null, (String) null) );
-            put( "markPrice", Bitfinex.this.safeNumber(contract, 14, (Object) null) );
-            put( "indexPrice", Bitfinex.this.safeNumber(contract, 2, (Object) null) );
-            put( "interestRate", null );
-            put( "estimatedSettlePrice", null );
+            put( "fundingRate", Bitfinex.this.safeNumber(contract, 11, (Object) null) );
             put( "timestamp", timestamp );
             put( "datetime", Bitfinex.this.iso8601(timestamp) );
-            put( "fundingRate", Bitfinex.this.safeNumber(contract, 11, (Object) null) );
-            put( "fundingTimestamp", null );
-            put( "fundingDatetime", null );
-            put( "nextFundingRate", Bitfinex.this.safeNumber(contract, 8, (Object) null) );
-            put( "nextFundingTimestamp", nextFundingTimestamp );
-            put( "nextFundingDatetime", Bitfinex.this.iso8601(nextFundingTimestamp) );
-            put( "previousFundingRate", null );
-            put( "previousFundingTimestamp", null );
-            put( "previousFundingDatetime", null );
         }};
     }
 

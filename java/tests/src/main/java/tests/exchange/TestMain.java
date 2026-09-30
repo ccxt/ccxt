@@ -1851,7 +1851,7 @@ public class TestMain extends BaseTest
 
     public Object isVacantValue(BaseExchange exchange, Object value)
     {
-        // C# only. The unified types are structs, so the two sides of the comparison
+        // C# and Go only. The unified types are structs, so the two sides of the comparison
         // carry different key sets for reasons that are structural, not behavioural:
         //   - a struct field the venue never populated is still a field, and comes
         //     back as an explicit null the fixture may not carry (Balance.debt);
@@ -1938,7 +1938,7 @@ public class TestMain extends BaseTest
         {
             return true;
         }
-        if (java.util.Objects.equals(this.lang, "C#"))
+        if ((java.util.Objects.equals(this.lang, "C#")) || (java.util.Objects.equals(this.lang, "GO")))
         {
             // a struct is never null: an absent `fee` comes back as a Fee whose every
             // field is null, and an absent `fees` as []. The stored fixture writes the
@@ -1961,7 +1961,7 @@ public class TestMain extends BaseTest
             List<Object> newOutputKeys = Helpers.objectKeys(newOutput);
             Object storedKeysLength = ((List<?>)storedOutputKeys).size();
             Object newKeysLength = ((List<?>)newOutputKeys).size();
-            if (java.util.Objects.equals(this.lang, "C#"))
+            if ((java.util.Objects.equals(this.lang, "C#")) || (java.util.Objects.equals(this.lang, "GO")))
             {
                 // the unified types are structs there, so an unpopulated field still
                 // comes back (as an explicit null) and a unified key with no struct
@@ -1976,7 +1976,7 @@ public class TestMain extends BaseTest
                 Object key = (storedOutputKeys == null || i < 0 || i >= storedOutputKeys.size() ? null : storedOutputKeys.get(i));
                 if (!Helpers.isTrue((exchange.inArray(key, newOutputKeys))))
                 {
-                    if ((java.util.Objects.equals(this.lang, "C#")) && Boolean.TRUE.equals(this.isVacantValue(exchange, Helpers.GetValue(storedOutput, key))))
+                    if (((java.util.Objects.equals(this.lang, "C#")) || (java.util.Objects.equals(this.lang, "GO"))) && Boolean.TRUE.equals(this.isVacantValue(exchange, Helpers.GetValue(storedOutput, key))))
                     {
                         continue;
                     }
@@ -2033,13 +2033,13 @@ public class TestMain extends BaseTest
                 Boolean isComputedUndefined = (java.util.Objects.equals(sanitizedNewOutput, null));
                 Boolean isStoredUndefined = (java.util.Objects.equals(sanitizedStoredOutput, null));
                 Boolean shouldBeSame = (java.util.Objects.equals(isComputedBool, isStoredBool)) && (java.util.Objects.equals(isComputedString, isStoredString)) && (java.util.Objects.equals(isComputedUndefined, isStoredUndefined));
-                if (!Boolean.TRUE.equals(shouldBeSame) && ((java.util.Objects.equals(this.lang, "PY")) || (java.util.Objects.equals(this.lang, "C#"))) && !Boolean.TRUE.equals(isComputedBool) && !Boolean.TRUE.equals(isStoredBool) && !Boolean.TRUE.equals(isComputedUndefined) && !Boolean.TRUE.equals(isStoredUndefined))
+                if (!Boolean.TRUE.equals(shouldBeSame) && ((java.util.Objects.equals(this.lang, "PY")) || (java.util.Objects.equals(this.lang, "C#")) || (java.util.Objects.equals(this.lang, "GO"))) && !Boolean.TRUE.equals(isComputedBool) && !Boolean.TRUE.equals(isStoredBool) && !Boolean.TRUE.equals(isComputedUndefined) && !Boolean.TRUE.equals(isStoredUndefined))
                 {
                     // python parses json numbers natively (arbitrary-precision ints), while fixtures
                     // captured under number-quoting store them as strings - compare numerically like C#/GO
                     // c#: a typed core returns the unified `Num` fields as a real double, whereas the
                     // fixture was captured through the untyped path and kept the venue's quoted string
-                    // (cost "0.02" vs 0.02) - same value, different json spelling
+                    // (cost "0.02" vs 0.02) - same value, different json spelling; go structs likewise
                     // pass the sanitized VALUES, not their string forms: C# renders a small
                     // double as "6.79E-05", which parseToNumeric cannot parse. And only the
                     // STRING side needs parsing - parseToNumeric round-trips a double through

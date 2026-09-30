@@ -4845,8 +4845,8 @@ public class Xt extends XtApi
         mapLiteral11.put("side", side);
         mapLiteral11.put("price", this.safeNumber(order, "price", (Object) null));
         mapLiteral11.put("triggerPrice", this.safeNumber(order, "stopPrice", (Object) null));
-        mapLiteral11.put("stopLoss", this.safeNumber(order, "triggerStopPrice", (Object) null));
-        mapLiteral11.put("takeProfit", this.safeNumber(order, "triggerProfitPrice", (Object) null));
+        mapLiteral11.put("stopLossPrice", this.safeNumber(order, "triggerStopPrice", (Object) null));
+        mapLiteral11.put("takeProfitPrice", this.safeNumber(order, "triggerProfitPrice", (Object) null));
         mapLiteral11.put("amount", amount);
         mapLiteral11.put("filled", filled);
         mapLiteral11.put("remaining", this.safeNumber(order, "leavingQty", (Object) null));
@@ -7125,7 +7125,7 @@ public class Xt extends XtApi
             return h2kMap2;
         }
     }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body) //                     "triggerStopPrice": "20000",
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         return this.sign(path, api, method, parameters, headers, (Object) (body));
     }

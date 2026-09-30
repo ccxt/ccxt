@@ -3990,7 +3990,7 @@ public class Hashkey extends HashkeyApi
         mapLiteral10.put("trades", null);
         HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
         mapLiteral11.put("currency", this.safeCurrencyCode(feeCurrncyId, (Map<String, Object>) null));
-        mapLiteral11.put("amount", this.omitZero(this.safeString(order, "feeAmount")));
+        mapLiteral11.put("cost", this.omitZero(this.safeString(order, "feeAmount")));
         mapLiteral10.put("fee", mapLiteral11);
         mapLiteral10.put("reduceOnly", reduceOnly);
         mapLiteral10.put("postOnly", postOnly);
