@@ -1759,7 +1759,7 @@ public partial class testMainClass
 
     public virtual object isVacantValue(BaseExchange exchange, object value)
     {
-        // C# only. The unified types are structs, so the two sides of the comparison
+        // C# and Go only. The unified types are structs, so the two sides of the comparison
         // carry different key sets for reasons that are structural, not behavioural:
         //   - a struct field the venue never populated is still a field, and comes
         //     back as an explicit null the fixture may not carry (Balance.debt);
@@ -1847,7 +1847,7 @@ public partial class testMainClass
         {
             return true;
         }
-        if (isEqual(this.lang, "C#"))
+        if ((isEqual(this.lang, "C#")) || (isEqual(this.lang, "GO")))
         {
             // a struct is never null: an absent `fee` comes back as a Fee whose every
             // field is null, and an absent `fees` as []. The stored fixture writes the
@@ -1870,7 +1870,7 @@ public partial class testMainClass
             List<object> newOutputKeys = new List<object>(((IDictionary<string,object>)newOutput).Keys);
             object storedKeysLength = storedOutputKeys.Count;
             object newKeysLength = newOutputKeys.Count;
-            if (isEqual(this.lang, "C#"))
+            if ((isEqual(this.lang, "C#")) || (isEqual(this.lang, "GO")))
             {
                 // the unified types are structs there, so an unpopulated field still
                 // comes back (as an explicit null) and a unified key with no struct
@@ -1885,7 +1885,7 @@ public partial class testMainClass
                 object key = storedOutputKeys[i];
                 if (!isTrue((exchange.inArray(key, newOutputKeys))))
                 {
-                    if ((isEqual(this.lang, "C#")) && isTrue(this.isVacantValue(exchange, getValue(storedOutput, key))))
+                    if (((isEqual(this.lang, "C#")) || (isEqual(this.lang, "GO"))) && isTrue(this.isVacantValue(exchange, getValue(storedOutput, key))))
                     {
                         continue;
                     }
@@ -1942,13 +1942,13 @@ public partial class testMainClass
                 bool isComputedUndefined = ((sanitizedNewOutput == null));
                 bool isStoredUndefined = ((sanitizedStoredOutput == null));
                 bool shouldBeSame = ((isComputedBool == isStoredBool)) && ((isComputedString == isStoredString)) && ((isComputedUndefined == isStoredUndefined));
-                if (!shouldBeSame && ((isEqual(this.lang, "PY")) || (isEqual(this.lang, "C#"))) && !isComputedBool && !isStoredBool && !isComputedUndefined && !isStoredUndefined)
+                if (!shouldBeSame && ((isEqual(this.lang, "PY")) || (isEqual(this.lang, "C#")) || (isEqual(this.lang, "GO"))) && !isComputedBool && !isStoredBool && !isComputedUndefined && !isStoredUndefined)
                 {
                     // python parses json numbers natively (arbitrary-precision ints), while fixtures
                     // captured under number-quoting store them as strings - compare numerically like C#/GO
                     // c#: a typed core returns the unified `Num` fields as a real double, whereas the
                     // fixture was captured through the untyped path and kept the venue's quoted string
-                    // (cost "0.02" vs 0.02) - same value, different json spelling
+                    // (cost "0.02" vs 0.02) - same value, different json spelling; go structs likewise
                     // pass the sanitized VALUES, not their string forms: C# renders a small
                     // double as "6.79E-05", which parseToNumeric cannot parse. And only the
                     // STRING side needs parsing - parseToNumeric round-trips a double through

@@ -6298,7 +6298,7 @@ public partial class bingx : Exchange
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
         if ((subType == "inverse"))
         {
-            paramsTrades = paramsSubType;
+            paramsTrades = this.omit(paramsSubType, "orderId");
             string? orderId = this.safeString(paramsSubType, "orderId");
             if ((orderId == null))
             {

@@ -1814,10 +1814,9 @@ public partial class blofin : Exchange
         {
             clientOrderId = null; // fix empty clientOrderId string
         }
-        double? stopLossTriggerPrice = this.safeNumber(order, "slTriggerPrice");
-        double? stopLossPrice = this.safeNumber(order, "slOrderPrice");
-        double? takeProfitTriggerPrice = this.safeNumber(order, "tpTriggerPrice");
-        double? takeProfitPrice = this.safeNumber(order, "tpOrderPrice");
+        // unified stopLossPrice/takeProfitPrice are the trigger prices (createOrder sends them as sl/tpTriggerPrice)
+        double? stopLossPrice = this.safeNumber(order, "slTriggerPrice");
+        double? takeProfitPrice = this.safeNumber(order, "tpTriggerPrice");
         string? reduceOnlyRaw = this.safeString(order, "reduceOnly");
         bool reduceOnly = (reduceOnlyRaw == "true");
         return this.safeOrder(new Dictionary<string, object>() {
@@ -1834,8 +1833,6 @@ public partial class blofin : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopLossTriggerPrice", stopLossTriggerPrice },
-            { "takeProfitTriggerPrice", takeProfitTriggerPrice },
             { "stopLossPrice", stopLossPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "average", average },
