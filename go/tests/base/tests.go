@@ -3604,8 +3604,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 
 	}
 	var clientOrderId any = GetValue(spotOrderRequest, "newClientOrderId")
-	var spotIdString string = spotId
-	Assert(IsEqual(StartsWith(clientOrderId, spotIdString), true), Add(Add(Add("binance - spot clientOrderId: ", clientOrderId), " does not start with spotId"), spotIdString))
+	Assert(IsEqual(StartsWith(clientOrderId, spotId), true), Add(Add(Add("binance - spot clientOrderId: ", clientOrderId), " does not start with spotId"), spotId))
 	var swapOrderRequest any = map[string]any{}
 
 	{
@@ -3660,8 +3659,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 	}
 	// linear swap
 	var clientOrderIdSwap any = GetValue(swapOrderRequest, "newClientOrderId")
-	var swapIdString string = swapId
-	Assert(IsEqual(StartsWith(clientOrderIdSwap, swapIdString), true), Add(Add(Add("binance - swap clientOrderId: ", clientOrderIdSwap), " does not start with swapId"), swapIdString))
+	Assert(IsEqual(StartsWith(clientOrderIdSwap, swapId), true), Add(Add(Add("binance - swap clientOrderId: ", clientOrderIdSwap), " does not start with swapId"), swapId))
 	// inverse swap
 	var clientOrderIdInverse any = GetValue(swapInverseOrderRequest, "newClientOrderId")
 	Assert(IsEqual(StartsWith(clientOrderIdInverse, inverseSwapId), true), Add(Add(Add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), inverseSwapId))
@@ -3696,7 +3694,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 	}
 	var clientAlgoIdSwap any = GetValue(swapAlgoOrderRequest, "clientAlgoId")
 	Assert(!IsEqual(clientAlgoIdSwap, nil), "binance - swap conditional order must send clientAlgoId")
-	Assert(IsEqual(StartsWith(clientAlgoIdSwap, swapIdString), true), Add(Add(Add("binance - swap clientAlgoId: ", clientAlgoIdSwap), " does not start with swapId"), swapIdString))
+	Assert(IsEqual(StartsWith(clientAlgoIdSwap, swapId), true), Add(Add(Add("binance - swap clientAlgoId: ", clientAlgoIdSwap), " does not start with swapId"), swapId))
 	// inverse swap conditional order
 	var inverseAlgoOrderRequest any = map[string]any{}
 
@@ -3771,7 +3769,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 	for i := 0; i < GetArrayLength(batchOrders); i++ {
 		var current map[string]any = MapTyped(GetValue(batchOrders, i))
 		var currentClientOrderId any = current["newClientOrderId"]
-		Assert(IsEqual(StartsWith(currentClientOrderId, swapIdString), true), Add(Add(Add("binance createOrders - clientOrderId: ", currentClientOrderId), " does not start with swapId"), swapIdString))
+		Assert(IsEqual(StartsWith(currentClientOrderId, swapId), true), Add(Add(Add("binance createOrders - clientOrderId: ", currentClientOrderId), " does not start with swapId"), swapId))
 	}
 	// linear conditional orders cannot be batched
 	var linearConditionalBatchNotSupported bool = false
@@ -3856,6 +3854,181 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 	var inverseConditionalClientOrderId any = ccxt.DerefScalar(exchange.SafeString(inverseConditionalBatchOrder, "newClientOrderId"))
 	Assert(!IsEqual(inverseConditionalClientOrderId, nil), "binance createOrders - inverse conditional order must send newClientOrderId")
 	Assert(IsEqual(StartsWith(inverseConditionalClientOrderId, inverseSwapId), true), Add(Add(Add("binance createOrders - inverse conditional clientOrderId: ", inverseConditionalClientOrderId), " does not start with inverseSwapId"), inverseSwapId))
+	// quarterly futures use the prefix of their fapi/dapi side, not the inverse one
+	var linearFutureOrderRequest any = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						linearFutureOrderRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r8 := <-exchange.CreateOrderAsync("ETH/USDT:USDT-261225", "limit", "buy", 1, 2000)
+			if r8.Err != nil {
+				panic(r8.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	var clientOrderIdLinearFuture any = GetValue(linearFutureOrderRequest, "newClientOrderId")
+	Assert(IsEqual(StartsWith(clientOrderIdLinearFuture, swapId), true), Add(Add(Add("binance - linear future clientOrderId: ", clientOrderIdLinearFuture), " does not start with swapId"), swapId))
+	var inverseFutureOrderRequest any = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						inverseFutureOrderRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r9 := <-exchange.CreateOrderAsync("ETH/USD:ETH-261225", "limit", "buy", 1, 2000)
+			if r9.Err != nil {
+				panic(r9.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	var clientOrderIdInverseFuture any = GetValue(inverseFutureOrderRequest, "newClientOrderId")
+	Assert(IsEqual(StartsWith(clientOrderIdInverseFuture, inverseSwapId), true), Add(Add(Add("binance - inverse future clientOrderId: ", clientOrderIdInverseFuture), " does not start with inverseSwapId"), inverseSwapId))
+	// the implicit order endpoints inject the broker id of their api section
+	// skipped in the sync flavours: callExchangeMethodDynamically is async-only there
+	if !EvalTruthy(IsSync()) {
+		var implicitDapiOrderRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitDapiOrderRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r10 := <-CallExchangeMethodDynamically(exchange, "dapiPrivatePostOrder", []any{map[string]any{
+					"symbol":      "ETHUSD_PERP",
+					"side":        "SELL",
+					"type":        "LIMIT",
+					"quantity":    "1",
+					"price":       "4100",
+					"timeInForce": "GTC",
+				}})
+				if r10.Err != nil {
+					panic(r10.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var implicitDapiClientOrderId any = GetValue(implicitDapiOrderRequest, "newClientOrderId")
+		Assert(IsEqual(StartsWith(implicitDapiClientOrderId, inverseSwapId), true), Add(Add(Add("binance - implicit dapi clientOrderId: ", implicitDapiClientOrderId), " does not start with inverseSwapId"), inverseSwapId))
+		var implicitDapiBatchRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitDapiBatchRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r11 := <-CallExchangeMethodDynamically(exchange, "dapiPrivatePostBatchOrders", []any{map[string]any{
+					"batchOrders": []any{map[string]any{
+						"symbol":      "ETHUSD_PERP",
+						"side":        "SELL",
+						"type":        "LIMIT",
+						"quantity":    "1",
+						"price":       "4100",
+						"timeInForce": "GTC",
+					}},
+				}})
+				if r11.Err != nil {
+					panic(r11.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var implicitDapiBatchOrders any = exchange.SafeList(implicitDapiBatchRequest, "batchOrders", []any{})
+		var implicitDapiBatchOrder any = exchange.SafeDict(implicitDapiBatchOrders, 0, map[string]any{})
+		var implicitDapiBatchClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitDapiBatchOrder, "newClientOrderId"))
+		Assert(!IsEqual(implicitDapiBatchClientOrderId, nil), "binance - implicit dapi batch order must inject newClientOrderId")
+		Assert(IsEqual(StartsWith(implicitDapiBatchClientOrderId, inverseSwapId), true), Add(Add(Add("binance - implicit dapi batch clientOrderId: ", implicitDapiBatchClientOrderId), " does not start with inverseSwapId"), inverseSwapId))
+		// the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
+		var implicitFapiAlgoOrderRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitFapiAlgoOrderRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r12 := <-CallExchangeMethodDynamically(exchange, "fapiPrivatePostAlgoOrder", []any{map[string]any{
+					"symbol":       "ETHUSDT",
+					"side":         "SELL",
+					"type":         "STOP",
+					"algoType":     "CONDITIONAL",
+					"quantity":     "1",
+					"price":        "4100",
+					"triggerPrice": "4200",
+					"timeInForce":  "GTC",
+				}})
+				if r12.Err != nil {
+					panic(r12.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var implicitFapiClientAlgoId any = ccxt.DerefScalar(exchange.SafeString(implicitFapiAlgoOrderRequest, "clientAlgoId"))
+		Assert(!IsEqual(implicitFapiClientAlgoId, nil), "binance - implicit fapi algo order must inject clientAlgoId")
+		Assert(IsEqual(StartsWith(implicitFapiClientAlgoId, swapId), true), Add(Add(Add("binance - implicit fapi clientAlgoId: ", implicitFapiClientAlgoId), " does not start with swapId"), swapId))
+	}
 	if !EvalTruthy(IsSync()) {
 
 		<-Close(exchange)
