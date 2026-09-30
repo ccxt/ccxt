@@ -2357,6 +2357,16 @@ impl BinanceusdmCore {
         self.call_method(Value::Str("dapi_private_get_open_algo_orders".into()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `dapiPrivateGetAlgoOrder` implicit endpoint.
+    pub async fn dapi_private_get_algo_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("dapi_private_get_algo_order".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `dapiPrivateGetAllAlgoOrders` implicit endpoint.
+    pub async fn dapi_private_get_all_algo_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("dapi_private_get_all_algo_orders".into()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `dapiPrivateGetAllOrders` implicit endpoint.
     pub async fn dapi_private_get_all_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_private_get_all_orders".into()), optional_args).await
@@ -2520,6 +2530,11 @@ impl BinanceusdmCore {
     /// Auto-generated wrapper for the `dapiPrivateDeleteAlgoOrder` implicit endpoint.
     pub async fn dapi_private_delete_algo_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_private_delete_algo_order".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `dapiPrivateDeleteAlgoOpenOrders` implicit endpoint.
+    pub async fn dapi_private_delete_algo_open_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("dapi_private_delete_algo_open_orders".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiPrivateDeleteAllOpenOrders` implicit endpoint.
