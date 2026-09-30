@@ -84,6 +84,7 @@ import bybitid from  './src/bybitid.js'
 import bydfi from  './src/bydfi.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
+import coinbasederibit from  './src/coinbasederibit.js'
 import coinbaseexchange from  './src/coinbaseexchange.js'
 import coinbaseinternational from  './src/coinbaseinternational.js'
 import coincheck from  './src/coincheck.js'
@@ -180,6 +181,7 @@ import bybitidPro from  './src/pro/bybitid.js'
 import bydfiPro from  './src/pro/bydfi.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
+import coinbasederibitPro from  './src/pro/coinbasederibit.js'
 import coinbaseexchangePro from  './src/pro/coinbaseexchange.js'
 import coinbaseinternationalPro from  './src/pro/coinbaseinternational.js'
 import coincheckPro from  './src/pro/coincheck.js'
@@ -279,6 +281,7 @@ const exchanges = {
     'bydfi':                  bydfi,
     'cex':                    cex,
     'coinbase':               coinbase,
+    'coinbasederibit':        coinbasederibit,
     'coinbaseexchange':       coinbaseexchange,
     'coinbaseinternational':  coinbaseinternational,
     'coincheck':              coincheck,
@@ -375,6 +378,7 @@ const pro = {
     'bydfi':                  bydfiPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
+    'coinbasederibit':        coinbasederibitPro,
     'coinbaseexchange':       coinbaseexchangePro,
     'coinbaseinternational':  coinbaseinternationalPro,
     'coincheck':              coincheckPro,
@@ -648,6 +652,7 @@ export {
     bydfi,
     cex,
     coinbase,
+    coinbasederibit,
     coinbaseexchange,
     coinbaseinternational,
     coincheck,

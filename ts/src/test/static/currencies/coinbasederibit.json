@@ -1,0 +1,131 @@
+{
+    "BTC": {
+        "info": {
+            "decimals": 8,
+            "currency": "BTC",
+            "apr": 0,
+            "withdrawal_fee": 0.00001,
+            "min_withdrawal_fee": 0.00001,
+            "coinbase_networks": [
+                {
+                    "display_name": "Bitcoin",
+                    "resource_name": "networks/bitcoin-mainnet"
+                }
+            ],
+            "network_fee": 0.000003072,
+            "coin_type": "BTC",
+            "withdrawal_priorities": [],
+            "network_currency": "BTC",
+            "min_confirmations": 1,
+            "currency_long": "Bitcoin",
+            "in_cross_collateral_pool": true,
+            "onchain_operations_precision": 8,
+            "currency_uuid": "5b71fc48-3dd3-540c-809b-f8c94d0e68b5"
+        },
+        "id": "BTC",
+        "code": "BTC",
+        "type": "crypto",
+        "name": "Bitcoin",
+        "fee": 0.00001,
+        "fees": {},
+        "limits": {
+            "amount": {},
+            "withdraw": {},
+            "deposit": {}
+        }
+    },
+    "ETH": {
+        "info": {
+            "decimals": 6,
+            "currency": "ETH",
+            "apr": 0,
+            "withdrawal_fee": 0.001,
+            "min_withdrawal_fee": 0.001,
+            "coinbase_networks": [
+                {
+                    "display_name": "Ethereum",
+                    "resource_name": "networks/ethereum-mainnet"
+                }
+            ],
+            "network_fee": 0.000007518080219999999,
+            "coin_type": "ETH",
+            "withdrawal_priorities": [],
+            "network_currency": "ETH",
+            "min_confirmations": 50,
+            "currency_long": "Ethereum",
+            "in_cross_collateral_pool": true,
+            "onchain_operations_precision": 6,
+            "currency_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4"
+        },
+        "id": "ETH",
+        "code": "ETH",
+        "type": "crypto",
+        "name": "Ethereum",
+        "fee": 0.001,
+        "fees": {},
+        "limits": {
+            "amount": {},
+            "withdraw": {},
+            "deposit": {}
+        }
+    },
+    "USDC": {
+        "info": {
+            "decimals": 8,
+            "currency": "USDC",
+            "apr": 3.3999999999999995,
+            "withdrawal_fee": 5,
+            "min_withdrawal_fee": 5,
+            "coinbase_networks": [
+                {
+                    "display_name": "Arbitrum",
+                    "resource_name": "networks/arbitrum-mainnet"
+                },
+                {
+                    "display_name": "Avalanche C-Chain",
+                    "resource_name": "networks/avacchain-mainnet"
+                },
+                {
+                    "display_name": "Base",
+                    "resource_name": "networks/base-mainnet"
+                },
+                {
+                    "display_name": "Ethereum",
+                    "resource_name": "networks/ethereum-mainnet"
+                },
+                {
+                    "display_name": "Optimism",
+                    "resource_name": "networks/optimism-mainnet"
+                },
+                {
+                    "display_name": "Polygon",
+                    "resource_name": "networks/polygon-mainnet"
+                },
+                {
+                    "display_name": "Solana",
+                    "resource_name": "networks/solana-mainnet"
+                }
+            ],
+            "network_fee": 0.000012493326150000001,
+            "coin_type": "USDC",
+            "withdrawal_priorities": [],
+            "network_currency": "ETH",
+            "min_confirmations": 50,
+            "currency_long": "USD Coin",
+            "in_cross_collateral_pool": true,
+            "onchain_operations_precision": 6,
+            "currency_uuid": "2b92315d-eab7-5bef-84fa-089a131333f5"
+        },
+        "id": "USDC",
+        "code": "USDC",
+        "type": "crypto",
+        "name": "USD Coin",
+        "fee": 5,
+        "fees": {},
+        "limits": {
+            "amount": {},
+            "withdraw": {},
+            "deposit": {}
+        }
+    }
+}

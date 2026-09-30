@@ -6,6 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
+import { jwt } from './base/functions/rsa.js';
 import type { Balances, Bool, Currency, CurrencyInterface, Fee, FeeString, FundingRateHistory, Greeks, Int, Liquidation, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, OpenInterest, Account, Option, OptionChain, Currencies, TradingFees, Dict, NullableDict, int, FundingRate, DepositAddress, Position, DepositWithdrawFees, Status, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -511,6 +512,10 @@ export default class deribit extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'code': 'BTC',
+                'accessTokenRefreshRatio': 0.8, // coinbasederibit: refresh the bearer token after 80% of expires_in
+                'fetchMarkets': {
+                    'spot': true, // coinbasederibit: false, spot instruments are listed but not served by the gateway
+                },
                 'fetchBalance': {
                     'code': 'BTC',
                 },
@@ -519,6 +524,163 @@ export default class deribit extends Exchange {
                 },
             },
         });
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name deribit#isCoinbaseGateway
+     * @description whether this exchange authenticates with a Coinbase CDP API key (coinbasederibit) instead of native Deribit keys
+     * @returns {boolean} true for coinbasederibit
+     */
+    isCoinbaseGateway (): boolean {
+        // decided from instance data, not a subclass override: Go does not dispatch overridden exchange-specific methods
+        return this.id === 'coinbasederibit';
+    }
+
+    /**
+     * @method
+     * @name deribit#setSandboxMode
+     * @description enables or disables the testnet; coinbasederibit has no sandbox environment
+     * @param {boolean} enable true to use the testnet urls
+     */
+    override setSandboxMode (enable: boolean) {
+        if (enable && this.isCoinbaseGateway ()) {
+            throw new NotSupported (this.id + ' does not have a sandbox environment');
+        }
+        super.setSandboxMode (enable);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name deribit#getRestBaseUrl
+     * @description the REST host of this deployment
+     * @returns {string} base url without a trailing slash
+     */
+    getRestBaseUrl (): string {
+        const baseUrl = this.safeString (this.urls['api'], 'rest');
+        if (baseUrl === undefined) {
+            throw new ExchangeError (this.id + ' has no REST API URL configured');
+        }
+        return baseUrl;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name deribit#createCoinbaseAuthToken
+     * @description sign a short-lived CDP JWT that public/auth exchanges for a gateway access token
+     * @see https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
+     * @returns {string} signed JWT (EdDSA for Ed25519 keys, ES256 for ECDSA PEM keys)
+     */
+    createCoinbaseAuthToken (): string {
+        this.checkRequiredCredentials ();
+        const seconds = this.seconds ();
+        // no uri claim: the token authorizes the key at public/auth, not a single request
+        const payload: Dict = {
+            'sub': this.apiKey,
+            'iss': 'cdp',
+            'nbf': seconds,
+            'exp': seconds + 120,
+        };
+        const nonce = this.randomBytes (16);
+        const isEcdsaKey = this.secret.indexOf ('BEGIN') >= 0;
+        if (isEcdsaKey) {
+            return jwt (payload, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+        }
+        const byteArray = this.base64ToBinary (this.secret);
+        const seed = this.arraySlice (byteArray, 0, 32);
+        return jwt (payload, seed, sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'EdDSA' });
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name deribit#authenticateRest
+     * @description exchange a CDP JWT for a gateway bearer token via public/auth (grant_type coinbase_cdp), cached in memory until it is due for refresh
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/technical
+     * @param {object} [params] extra parameters
+     * @param {boolean} [params.forceRefresh] ignore the cached token and exchange a new one
+     * @returns {string} bearer access token
+     */
+    async authenticateRest (params: Dict = {}): Promise<Str> {
+        const forceRefresh = this.safeBool (params, 'forceRefresh', false) === true;
+        const now = this.milliseconds ();
+        const cachedToken = this.safeString (this.options, 'accessToken');
+        const refreshAt = this.safeInteger (this.options, 'accessTokenRefreshAt');
+        if (!forceRefresh && (cachedToken !== undefined) && (refreshAt !== undefined) && (now < refreshAt)) {
+            return cachedToken;
+        }
+        const url = this.getRestBaseUrl () + '/api/' + this.version + '/public/auth';
+        const request: Dict = {
+            'jsonrpc': '2.0',
+            'id': this.nonce (),
+            'method': 'public/auth',
+            'params': {
+                'grant_type': 'coinbase_cdp',
+                'token': this.createCoinbaseAuthToken (),
+            },
+        };
+        if (this.enableRateLimit) {
+            await this.throttle (1);
+        }
+        // POST body keeps the JWT out of the url; fetch() directly so this does not recurse through request()
+        const response = await this.fetch (url, 'POST', { 'Content-Type': 'application/json' }, this.json (request));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "access_token": "...",
+        //             "expires_in": 899,
+        //             "scope": "...",
+        //             "token_type": "bearer"
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const accessToken = this.safeString (result, 'access_token');
+        const expiresIn = this.safeInteger (result, 'expires_in');
+        if ((accessToken === undefined) || (expiresIn === undefined)) {
+            throw new AuthenticationError (this.id + ' authenticateRest() did not return an access token');
+        }
+        this.options['accessToken'] = accessToken;
+        this.options['accessTokenRefreshAt'] = this.coinbaseRefreshAt (now, expiresIn);
+        return accessToken;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name deribit#coinbaseRefreshAt
+     * @description when a Coinbase gateway token or websocket session is due for refresh
+     * @param {int} issuedAt timestamp in ms when the token was issued
+     * @param {int} expiresIn token lifetime in seconds
+     * @returns {int} timestamp in ms, issuedAt plus options.accessTokenRefreshRatio of the lifetime
+     */
+    coinbaseRefreshAt (issuedAt: int, expiresIn: int): int {
+        const ratio = this.safeNumber (this.options, 'accessTokenRefreshRatio');
+        const refreshRatio = (ratio === undefined) ? 0.8 : ratio;
+        return this.sum (issuedAt, this.parseToInt (expiresIn * 1000 * refreshRatio));
+    }
+
+    override async fetch2 (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}): Promise<any> {
+        // fetch2 (not request) is the hook every language routes implicit endpoints through
+        if (!this.isCoinbaseGateway () || (api !== 'private')) {
+            return await super.fetch2 (path, api, method, params, headers, body, config);
+        }
+        await this.authenticateRest ();
+        try {
+            return await super.fetch2 (path, api, method, params, headers, body, config);
+        } catch (e) {
+            // a rejected token is retried once, and only for reads: writes are never replayed
+            const isRead = path.indexOf ('get_') === 0;
+            if ((e instanceof AuthenticationError) && isRead) {
+                await this.authenticateRest ({ 'forceRefresh': true });
+                return await super.fetch2 (path, api, method, params, headers, body, config);
+            }
+            throw e;
+        }
     }
 
     override createExpiredOptionMarket (symbol: string): MarketInterface {
@@ -948,12 +1110,17 @@ export default class deribit extends Exchange {
                 instrumentsResponses.push (instrumentsResponse);
             }
         }
+        const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets', {});
+        const includeSpot = this.safeBool (fetchMarketsOptions, 'spot', true) === true;
         for (let i = 0; i < instrumentsResponses.length; i++) {
             const instrumentsResult: Dict[] = this.safeList (instrumentsResponses[i], 'result', []);
             for (let k = 0; k < instrumentsResult.length; k++) {
                 const market = instrumentsResult[k];
                 const kind = this.safeString (market, 'kind');
                 const isSpot = (kind === 'spot');
+                if (isSpot && !includeSpot) {
+                    continue;
+                }
                 const id = this.safeString (market, 'instrument_name');
                 const baseId = this.safeString (market, 'base_currency');
                 const quoteId = this.safeString (market, 'counter_currency');
@@ -4004,38 +4171,34 @@ export default class deribit extends Exchange {
 
     override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let request = '/' + 'api/' + this.version + '/' + api + '/' + path;
-        if (api === 'public') {
-            if (Object.keys (params).length > 0) {
-                request += '?' + this.urlencode (params);
-            }
+        if (Object.keys (params).length > 0) {
+            request += '?' + this.urlencode (params);
         }
+        let requestHeaders: NullableDict = headers;
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            const timestamp = this.milliseconds ().toString ();
-            const requestBody = '';
-            if (Object.keys (params).length > 0) {
-                request += '?' + this.urlencode (params);
+            if (this.isCoinbaseGateway ()) {
+                const accessToken = this.safeString (this.options, 'accessToken');
+                if (accessToken === undefined) {
+                    throw new AuthenticationError (this.id + ' missing Coinbase gateway access token, call authenticateRest() first');
+                }
+                requestHeaders = {
+                    'Authorization': 'Bearer ' + accessToken,
+                };
+            } else {
+                const nonce = this.nonce ().toString ();
+                const timestamp = this.milliseconds ().toString ();
+                const requestBody = '';
+                const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
+                const auth = timestamp + "\n" + nonce + "\n" + requestData; // eslint-disable-line quotes
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+                requestHeaders = {
+                    'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
+                };
             }
-            const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
-            const auth = timestamp + "\n" + nonce + "\n" + requestData; // eslint-disable-line quotes
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            const signedHeaders: Dict = {
-                'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
-            };
-            const baseApiUrl = this.safeString (this.urls['api'], 'rest');
-            if (baseApiUrl === undefined) {
-                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
-            }
-            const signedUrl = baseApiUrl + request;
-            return { 'url': signedUrl, 'method': method, 'body': body, 'headers': signedHeaders };
         }
-        const apiUrl = this.safeString (this.urls['api'], 'rest');
-        if (apiUrl === undefined) {
-            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
-        }
-        const url = apiUrl + request;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const url = this.getRestBaseUrl () + request;
+        return { 'url': url, 'method': method, 'body': body, 'headers': requestHeaders };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

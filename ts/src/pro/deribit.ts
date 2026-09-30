@@ -12,7 +12,12 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 export default class deribit extends deribitRest {
     override describe (): any {
-        return this.deepExtend (super.describe (), {
+        const superDescribe = super.describe ();
+        return this.deepExtend (superDescribe, this.describeData ());
+    }
+
+    describeData (): any {
+        return {
             'has': {
                 'ws': true,
                 'watchBalance': true,
@@ -69,13 +74,59 @@ export default class deribit extends deribitRest {
             },
             'exceptions': {
             },
-        });
+        };
+    }
+
+    override ping (client: Client): Dict | Str {
+        if (!this.isCoinbaseGateway ()) {
+            return undefined; // native deribit: websocket protocol ping frames
+        }
+        const refreshAt = this.safeInteger (this.options, 'wsAuthRefreshAt');
+        const isPrivateClient = (client.url === this.getWsUrl (true));
+        if (isPrivateClient && (refreshAt !== undefined) && (this.milliseconds () >= refreshAt)) {
+            // re-authenticate in-band before the session expires, also while no watch call is pending
+            this.options['wsAuthRefreshAt'] = undefined;
+            return {
+                'jsonrpc': '2.0',
+                'method': 'public/auth',
+                'params': {
+                    'grant_type': 'coinbase_cdp',
+                    'token': this.createCoinbaseAuthToken (),
+                },
+                'id': this.requestId (),
+            };
+        }
+        // coinbasederibit closes a socket (1011) after ~30s without client messages; protocol pings do not count
+        return {
+            'jsonrpc': '2.0',
+            'method': 'public/test',
+            'params': {},
+            'id': this.requestId (),
+        };
     }
 
     requestId (): number {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name deribit#getWsUrl
+     * @description the websocket host for a call; deployments may serve market data from a separate host (urls.api.wsPublic)
+     * @param {boolean} isPrivate true for private/subscribe and other authenticated calls
+     * @returns {string} websocket url
+     */
+    getWsUrl (isPrivate: boolean): string {
+        if (!isPrivate) {
+            const publicUrl = this.safeString (this.urls['api'], 'wsPublic');
+            if (publicUrl !== undefined) {
+                return publicUrl;
+            }
+        }
+        return this.urls['api']['ws'];
     }
 
     /**
@@ -89,7 +140,7 @@ export default class deribit extends deribitRest {
     override async watchBalance (params: Dict = {}): Promise<Balances> {
         await this.authenticate (params);
         const messageHash = 'balance';
-        const url = this.urls['api']['ws'];
+        const url = this.getWsUrl (true);
         const currencies = this.safeList (this.options, 'currencies', []);
         const channels: List = [];
         for (let i = 0; i < currencies.length; i++) {
@@ -180,13 +231,13 @@ export default class deribit extends deribitRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const url = this.urls['api']['ws'];
+        const url = this.getWsUrl (false);
         const interval = this.safeString (params, 'interval', '100ms');
         const paramsOmitted: Dict = this.omit (params, 'interval');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (interval === 'raw') {
+        if ((interval === 'raw') && !this.isCoinbaseGateway ()) {
             await this.authenticate ();
         }
         const channel = 'ticker.' + market['id'] + '.' + interval;
@@ -217,13 +268,13 @@ export default class deribit extends deribitRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
-        const url = this.urls['api']['ws'];
+        const url = this.getWsUrl (false);
         const interval = this.safeString (params, 'interval', '100ms');
         const paramsOmitted: Dict = this.omit (params, 'interval');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (interval === 'raw') {
+        if ((interval === 'raw') && !this.isCoinbaseGateway ()) {
             await this.authenticate ();
         }
         const channels: List = [];
@@ -306,7 +357,7 @@ export default class deribit extends deribitRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
-        const url = this.urls['api']['ws'];
+        const url = this.getWsUrl (false);
         const channels: List = [];
         for (let i = 0; i < (symbolsNormalized as string[]).length; i++) {
             const market = this.market ((symbolsNormalized as string[])[i]);
@@ -407,7 +458,7 @@ export default class deribit extends deribitRest {
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const [ interval, paramsInterval ] = this.handleOptionStringAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
-        if (interval === 'raw') {
+        if ((interval === 'raw') && !this.isCoinbaseGateway ()) {
             await this.authenticate ();
         }
         const trades = await this.watchMultipleWrapper ('trades', interval, symbols, paramsInterval);
@@ -483,7 +534,7 @@ export default class deribit extends deribitRest {
             await this.loadMarkets ();
         }
         const symbolResolved = (symbol !== undefined) ? this.symbol (symbol) : undefined;
-        const url = this.urls['api']['ws'];
+        const url = this.getWsUrl (true);
         const interval = this.safeString (params, 'interval', 'raw');
         const paramsOmitted: Dict = this.omit (params, 'interval');
         const channel = 'user.trades.any.any.' + interval;
@@ -580,7 +631,7 @@ export default class deribit extends deribitRest {
      */
     override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         const [ interval, paramsInterval ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'interval', '100ms');
-        if (interval === 'raw') {
+        if ((interval === 'raw') && !this.isCoinbaseGateway ()) {
             await this.authenticate ();
         }
         // for more info on useDepthEndpoint, see comment in .options
@@ -731,7 +782,7 @@ export default class deribit extends deribitRest {
         }
         await this.authenticate (params);
         const symbolResolved = (symbol !== undefined) ? this.symbol (symbol) : undefined;
-        const url = this.urls['api']['ws'];
+        const url = this.getWsUrl (true);
         const currency = this.safeString (params, 'currency', 'any');
         const interval = this.safeString (params, 'interval', 'raw');
         const kind = this.safeString (params, 'kind', 'any');
@@ -927,7 +978,7 @@ export default class deribit extends deribitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.getWsUrl (false);
         const rawSubscriptions: List = [];
         const messageHashes: List = [];
         const isOHLCV = (channelName === 'chart.trades');
@@ -1062,8 +1113,15 @@ export default class deribit extends deribitRest {
             throw new NotSupported (this.id + ' no handler found for this message ' + this.json (message));
         }
         const result = this.safeDict (message, 'result', {});
+        if (this.safeString (result, 'version') !== undefined) {
+            // public/test reply to ping()
+            client.lastPong = this.milliseconds ();
+            return;
+        }
         const accessToken = this.safeString (result, 'access_token');
-        if (accessToken !== undefined) {
+        // the Coinbase gateway's public/auth result has no access_token (session auth: sid, expires_in, token_type)
+        const tokenType = this.safeString (result, 'token_type');
+        if ((accessToken !== undefined) || (tokenType !== undefined)) {
             this.handleAuthenticationMessage (client, message);
         }
     }
@@ -1087,21 +1145,50 @@ export default class deribit extends deribitRest {
         //     }
         //
         const messageHash = 'authenticated';
+        if (this.isCoinbaseGateway ()) {
+            // remember when this socket's session is due for re-authentication (see authenticate)
+            const result = this.safeDict (message, 'result', {});
+            const expiresIn = this.safeInteger (result, 'expires_in', 900);
+            this.options['wsAuthRefreshAt'] = this.coinbaseRefreshAt (this.milliseconds (), expiresIn);
+            client.lastPong = this.milliseconds ();
+        }
         client.resolve (message, messageHash);
         return message;
     }
 
     async authenticate (params: Dict = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.getWsUrl (true);
         const client = this.client (url);
         const time = this.milliseconds ();
         const timeString = this.numberToString (time);
         const nonce = timeString;
         const messageHash = 'authenticated';
         let future = this.safeValue (client.subscriptions, messageHash);
+        if ((future !== undefined) && this.isCoinbaseGateway ()) {
+            // sessions expire (~15 minutes): re-authenticate in-band on the same socket once due (ping() also does this)
+            const refreshAt = this.safeInteger (this.options, 'wsAuthRefreshAt');
+            if ((refreshAt !== undefined) && (time >= refreshAt)) {
+                delete client.subscriptions[messageHash];
+                future = undefined;
+            }
+        }
         if (future === undefined) {
             this.checkRequiredCredentials ();
             const requestId = this.requestId ();
+            if (this.isCoinbaseGateway ()) {
+                const coinbaseRequest: Dict = {
+                    'jsonrpc': '2.0',
+                    'id': requestId,
+                    'method': 'public/auth',
+                    'params': {
+                        'grant_type': 'coinbase_cdp',
+                        'token': this.createCoinbaseAuthToken (),
+                    },
+                };
+                future = await this.watch (url, messageHash, this.extend (coinbaseRequest, params), messageHash);
+                client.subscriptions[messageHash] = future;
+                return future;
+            }
             const lineBreak = "\n"; // eslint-disable-line quotes
             const signature = this.hmac (this.encode (timeString + lineBreak + nonce + lineBreak), this.encode (this.secret), sha256);
             const request: Dict = {

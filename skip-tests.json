@@ -870,6 +870,54 @@
             }
         }
     },
+    "coinbasederibit": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "networks": "not provided",
+                "withdraw": "not provided",
+                "deposit": "not provided",
+                "type": "todo",
+                "precision": "not provided",
+                "activeMajorCurrencies": "todo"
+            },
+            "loadMarkets": "strike is set when option is not true",
+            "fetchBalance": "does not add up",
+            "fetchPositions": {
+                "percentage": "undefined",
+                "hedged": "undefined",
+                "stopLossPrice": "undefined",
+                "takeProfitPrice": "undefined",
+                "lastPrice": "undefined",
+                "collateral": "undefined",
+                "marginMode": "undefined",
+                "marginRatio": "undefined",
+                "contracts": "undefined",
+                "id": "undefined"
+            },
+            "fetchDeposits": {
+                "id": "undefined",
+                "network": "undefined",
+                "addressFrom": "undefined",
+                "tag": "undefined",
+                "tagTo": "undefined",
+                "tagFrom": "undefined",
+                "fee": "undefined"
+            },
+            "ticker": {
+                "close": "might be negative https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L4371",
+                "open": "same",
+                "low": "same",
+                "high": "same",
+                "bid": "same",
+                "ask": "same",
+                "average": "same"
+            },
+            "fetchTickers": "requires custom param",
+            "fetchTrades": {
+                "side": "todo fix"
+            }
+        }
+    },
     "coinbaseexchange": {
         "skipWs": "needs auth",
         "skipMethods": {

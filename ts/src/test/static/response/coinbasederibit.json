@@ -1,0 +1,406 @@
+{
+    "exchange": "coinbasederibit",
+    "skipKeys": [],
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": {
+                        "timestamp": 1790764242663,
+                        "state": "open",
+                        "stats": {
+                            "high": 84584,
+                            "low": 82896.3,
+                            "price_change": -0.4392,
+                            "volume": 2983.1079,
+                            "volume_usd": 249069301.96,
+                            "volume_notional": 249092704.55832
+                        },
+                        "index_price": 83761.89,
+                        "instrument_name": "BTC_USDC-PERPETUAL",
+                        "last_price": 83768.5,
+                        "settlement_price": 83259.02,
+                        "min_price": 82511.4,
+                        "max_price": 85024.6,
+                        "open_interest": 502.4517,
+                        "mark_price": 83768.02,
+                        "interest_value": 0,
+                        "current_funding": 0,
+                        "estimated_delivery_price": 83761.89,
+                        "funding_8h": 1.836e-05,
+                        "best_ask_price": 83767.6,
+                        "best_bid_price": 83767.5,
+                        "best_ask_amount": 1.8246,
+                        "best_bid_amount": 0.5106
+                    },
+                    "usIn": 1790764242668096,
+                    "usOut": 1790764242668328,
+                    "usDiff": 232,
+                    "testnet": false
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "timestamp": 1790764242663,
+                    "datetime": "2026-09-30T10:30:42.663Z",
+                    "high": 84584,
+                    "low": 82896.3,
+                    "bid": 83767.5,
+                    "bidVolume": 0.5106,
+                    "ask": 83767.6,
+                    "askVolume": 1.8246,
+                    "vwap": 83501.07099991925,
+                    "open": null,
+                    "close": 83768.5,
+                    "last": 83768.5,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 2983.1079,
+                    "quoteVolume": 249092704.55832,
+                    "markPrice": 83768.02,
+                    "indexPrice": 83761.89,
+                    "info": {
+                        "timestamp": 1790764242663,
+                        "state": "open",
+                        "stats": {
+                            "high": 84584,
+                            "low": 82896.3,
+                            "price_change": -0.4392,
+                            "volume": 2983.1079,
+                            "volume_usd": 249069301.96,
+                            "volume_notional": 249092704.55832
+                        },
+                        "index_price": 83761.89,
+                        "instrument_name": "BTC_USDC-PERPETUAL",
+                        "last_price": 83768.5,
+                        "settlement_price": 83259.02,
+                        "min_price": 82511.4,
+                        "max_price": 85024.6,
+                        "open_interest": 502.4517,
+                        "mark_price": 83768.02,
+                        "interest_value": 0,
+                        "current_funding": 0,
+                        "estimated_delivery_price": 83761.89,
+                        "funding_8h": 1.836e-05,
+                        "best_ask_price": 83767.6,
+                        "best_bid_price": 83767.5,
+                        "best_ask_amount": 1.8246,
+                        "best_bid_amount": 0.5106
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDC:USDC",
+                    3
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": {
+                        "timestamp": 1790764244339,
+                        "state": "open",
+                        "stats": {
+                            "high": 84584,
+                            "low": 82896.3,
+                            "price_change": -0.4305,
+                            "volume": 2983.1791,
+                            "volume_usd": 249075266.18,
+                            "volume_notional": 249098669.37462005
+                        },
+                        "change_id": 198172213719,
+                        "index_price": 83765.65,
+                        "instrument_name": "BTC_USDC-PERPETUAL",
+                        "bids": [
+                            [
+                                83773,
+                                0.5533
+                            ],
+                            [
+                                83772.9,
+                                0.3001
+                            ],
+                            [
+                                83772.4,
+                                0.3
+                            ],
+                            [
+                                83772.3,
+                                0.0001
+                            ],
+                            [
+                                83771.3,
+                                0.179
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                83773.1,
+                                1.486
+                            ],
+                            [
+                                83773.8,
+                                0.2154
+                            ],
+                            [
+                                83773.9,
+                                0.3581
+                            ],
+                            [
+                                83774.6,
+                                0.0002
+                            ],
+                            [
+                                83775.8,
+                                0.1244
+                            ]
+                        ],
+                        "last_price": 83773,
+                        "settlement_price": 83259.02,
+                        "min_price": 82515.1,
+                        "max_price": 85028.4,
+                        "open_interest": 502.4504,
+                        "mark_price": 83771.77,
+                        "interest_value": 0,
+                        "current_funding": 0,
+                        "estimated_delivery_price": 83765.65,
+                        "funding_8h": 1.836e-05,
+                        "best_ask_price": 83773.1,
+                        "best_bid_price": 83773,
+                        "best_ask_amount": 1.486,
+                        "best_bid_amount": 0.5533
+                    },
+                    "usIn": 1790764244365133,
+                    "usOut": 1790764244365520,
+                    "usDiff": 387,
+                    "testnet": false
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "bids": [
+                        [
+                            83773,
+                            0.5533
+                        ],
+                        [
+                            83772.9,
+                            0.3001
+                        ],
+                        [
+                            83772.4,
+                            0.3
+                        ],
+                        [
+                            83772.3,
+                            0.0001
+                        ],
+                        [
+                            83771.3,
+                            0.179
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            83773.1,
+                            1.486
+                        ],
+                        [
+                            83773.8,
+                            0.2154
+                        ],
+                        [
+                            83773.9,
+                            0.3581
+                        ],
+                        [
+                            83774.6,
+                            0.0002
+                        ],
+                        [
+                            83775.8,
+                            0.1244
+                        ]
+                    ],
+                    "timestamp": 1790764244339,
+                    "datetime": "2026-09-30T10:30:44.339Z",
+                    "nonce": 198172213719
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDC:USDC",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": {
+                        "trades": [
+                            {
+                                "timestamp": "1790764245662",
+                                "price": "83792.2",
+                                "amount": "0.0382",
+                                "direction": "buy",
+                                "index_price": "83766.68",
+                                "instrument_name": "BTC_USDC-PERPETUAL",
+                                "trade_seq": "13067247",
+                                "mark_price": "83772.81",
+                                "tick_direction": "1",
+                                "starbase_match_id": "230999806598721536",
+                                "trade_id": "USDC-63764222",
+                                "contracts": "382.0",
+                                "starbase_timestamp": "1790764245662204584"
+                            },
+                            {
+                                "timestamp": "1790764245658",
+                                "price": "83792.2",
+                                "amount": "0.0382",
+                                "direction": "buy",
+                                "index_price": "83766.68",
+                                "instrument_name": "BTC_USDC-PERPETUAL",
+                                "trade_seq": "13067246",
+                                "mark_price": "83772.81",
+                                "tick_direction": "1",
+                                "starbase_match_id": "230999806581944320",
+                                "trade_id": "USDC-63764221",
+                                "contracts": "382.0",
+                                "starbase_timestamp": "1790764245658595993"
+                            }
+                        ],
+                        "has_more": true
+                    },
+                    "usIn": "1790764245993841",
+                    "usOut": "1790764245994184",
+                    "usDiff": "343",
+                    "testnet": false
+                },
+                "parsedResponse": [
+                    {
+                        "id": "USDC-63764221",
+                        "info": {
+                            "timestamp": "1790764245658",
+                            "price": "83792.2",
+                            "amount": "0.0382",
+                            "direction": "buy",
+                            "index_price": "83766.68",
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "trade_seq": "13067246",
+                            "mark_price": "83772.81",
+                            "tick_direction": "1",
+                            "starbase_match_id": "230999806581944320",
+                            "trade_id": "USDC-63764221",
+                            "contracts": "382.0",
+                            "starbase_timestamp": "1790764245658595993"
+                        },
+                        "timestamp": 1790764245658,
+                        "datetime": "2026-09-30T10:30:45.658Z",
+                        "symbol": "BTC/USDC:USDC",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 83792.2,
+                        "amount": 0.0382,
+                        "cost": 3200.86204,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "USDC-63764222",
+                        "info": {
+                            "timestamp": "1790764245662",
+                            "price": "83792.2",
+                            "amount": "0.0382",
+                            "direction": "buy",
+                            "index_price": "83766.68",
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "trade_seq": "13067247",
+                            "mark_price": "83772.81",
+                            "tick_direction": "1",
+                            "starbase_match_id": "230999806598721536",
+                            "trade_id": "USDC-63764222",
+                            "contracts": "382.0",
+                            "starbase_timestamp": "1790764245662204584"
+                        },
+                        "timestamp": 1790764245662,
+                        "datetime": "2026-09-30T10:30:45.662Z",
+                        "symbol": "BTC/USDC:USDC",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 83792.2,
+                        "amount": 0.0382,
+                        "cost": 3200.86204,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": 1.836287687293225e-05,
+                    "usIn": 1790764247630020,
+                    "usOut": 1790764247633761,
+                    "usDiff": 3741,
+                    "testnet": false
+                },
+                "parsedResponse": {
+                    "info": {
+                        "jsonrpc": "2.0",
+                        "result": 1.836287687293225e-05,
+                        "usIn": 1790764247630020,
+                        "usOut": 1790764247633761,
+                        "usDiff": 3741,
+                        "testnet": false
+                    },
+                    "symbol": "BTC/USDC:USDC",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 1.836287687293225e-05,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                }
+            }
+        ]
+    }
+}

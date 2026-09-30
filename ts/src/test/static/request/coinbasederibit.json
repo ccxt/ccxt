@@ -1,0 +1,103 @@
+{
+    "exchange": "coinbasederibit",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "public ticker is served by the gateway host",
+                "method": "fetchTicker",
+                "url": "https://drb.coinbase.com/api/v2/public/ticker?instrument_name=BTC_USDC-PERPETUAL",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "private request sends the cached bearer token",
+                "method": "fetchBalance",
+                "url": "https://drb.coinbase.com/api/v2/private/get_account_summaries",
+                "input": [],
+                "output": null,
+                "options": {
+                    "accessToken": "test-access-token",
+                    "accessTokenRefreshAt": 9999999999999
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "limit buy",
+                "method": "createOrder",
+                "url": "https://drb.coinbase.com/api/v2/private/buy?instrument_name=BTC_USDC-PERPETUAL&amount=0.0001&type=limit&price=60000",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    60000
+                ],
+                "output": null,
+                "options": {
+                    "accessToken": "test-access-token",
+                    "accessTokenRefreshAt": 9999999999999
+                }
+            },
+            {
+                "description": "market sell reduce only",
+                "method": "createOrder",
+                "url": "https://drb.coinbase.com/api/v2/private/sell?instrument_name=BTC_USDC-PERPETUAL&amount=0.0001&type=market&reduce_only=true",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": null,
+                "options": {
+                    "accessToken": "test-access-token",
+                    "accessTokenRefreshAt": 9999999999999
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel by id",
+                "method": "cancelOrder",
+                "url": "https://drb.coinbase.com/api/v2/private/cancel?order_id=USDC-198150503746",
+                "input": [
+                    "USDC-198150503746",
+                    "BTC/USDC:USDC"
+                ],
+                "output": null,
+                "options": {
+                    "accessToken": "test-access-token",
+                    "accessTokenRefreshAt": 9999999999999
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "positions",
+                "method": "fetchPositions",
+                "url": "https://drb.coinbase.com/api/v2/private/get_positions",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ]
+                ],
+                "output": null,
+                "options": {
+                    "accessToken": "test-access-token",
+                    "accessTokenRefreshAt": 9999999999999
+                }
+            }
+        ]
+    }
+}
