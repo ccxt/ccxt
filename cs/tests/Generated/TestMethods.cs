@@ -2999,8 +2999,7 @@ public partial class testMainClass
             spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
         object clientOrderId = getValue(spotOrderRequest, "newClientOrderId");
-        string spotIdString = ((object)spotId).ToString();
-        assert((((string)clientOrderId).StartsWith(((string)spotIdString)) == true), ((("binance - spot clientOrderId: " + (clientOrderId)) + " does not start with spotId") + spotIdString));
+        assert((((string)clientOrderId).StartsWith(((string)spotId)) == true), ((("binance - spot clientOrderId: " + (clientOrderId)) + " does not start with spotId") + spotId));
         object swapOrderRequest = new Dictionary<string, object>() {};
         try
         {
@@ -3019,8 +3018,7 @@ public partial class testMainClass
         }
         // linear swap
         object clientOrderIdSwap = getValue(swapOrderRequest, "newClientOrderId");
-        string swapIdString = ((object)swapId).ToString();
-        assert((((string)clientOrderIdSwap).StartsWith(((string)swapIdString)) == true), ((("binance - swap clientOrderId: " + (clientOrderIdSwap)) + " does not start with swapId") + swapIdString));
+        assert((((string)clientOrderIdSwap).StartsWith(((string)swapId)) == true), ((("binance - swap clientOrderId: " + (clientOrderIdSwap)) + " does not start with swapId") + swapId));
         // inverse swap
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
         assert((((string)clientOrderIdInverse).StartsWith(((string)inverseSwapId)) == true), ((("binance - swap clientOrderIdInverse: " + (clientOrderIdInverse)) + " does not start with swapId") + inverseSwapId));
@@ -3037,7 +3035,7 @@ public partial class testMainClass
         }
         object clientAlgoIdSwap = getValue(swapAlgoOrderRequest, "clientAlgoId");
         assert((clientAlgoIdSwap != null), "binance - swap conditional order must send clientAlgoId");
-        assert((((string)clientAlgoIdSwap).StartsWith(((string)swapIdString)) == true), ((("binance - swap clientAlgoId: " + (clientAlgoIdSwap)) + " does not start with swapId") + swapIdString));
+        assert((((string)clientAlgoIdSwap).StartsWith(((string)swapId)) == true), ((("binance - swap clientAlgoId: " + (clientAlgoIdSwap)) + " does not start with swapId") + swapId));
         // inverse swap conditional order
         object inverseAlgoOrderRequest = new Dictionary<string, object>() {};
         try
@@ -3077,7 +3075,7 @@ public partial class testMainClass
         {
             object current = getValue(batchOrders, i);
             object currentClientOrderId = getValue(current, "newClientOrderId");
-            assert((((string)currentClientOrderId).StartsWith(((string)swapIdString)) == true), ((("binance createOrders - clientOrderId: " + (currentClientOrderId)) + " does not start with swapId") + swapIdString));
+            assert((((string)currentClientOrderId).StartsWith(((string)swapId)) == true), ((("binance createOrders - clientOrderId: " + (currentClientOrderId)) + " does not start with swapId") + swapId));
         }
         // linear conditional orders cannot be batched
         object linearConditionalBatchNotSupported = false;
@@ -3126,6 +3124,92 @@ public partial class testMainClass
         object inverseConditionalClientOrderId = exchange.safeString(inverseConditionalBatchOrder, "newClientOrderId");
         assert((inverseConditionalClientOrderId != null), "binance createOrders - inverse conditional order must send newClientOrderId");
         assert((((string)inverseConditionalClientOrderId).StartsWith(((string)inverseSwapId)) == true), ((("binance createOrders - inverse conditional clientOrderId: " + (inverseConditionalClientOrderId)) + " does not start with inverseSwapId") + inverseSwapId));
+        // quarterly futures use the prefix of their fapi/dapi side, not the inverse one
+        object linearFutureOrderRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("ETH/USDT:USDT-261225", "limit", "buy", 1, 2000);
+        } catch(Exception e)
+        {
+            linearFutureOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object clientOrderIdLinearFuture = getValue(linearFutureOrderRequest, "newClientOrderId");
+        assert((((string)clientOrderIdLinearFuture).StartsWith(((string)swapId)) == true), ((("binance - linear future clientOrderId: " + (clientOrderIdLinearFuture)) + " does not start with swapId") + swapId));
+        object inverseFutureOrderRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("ETH/USD:ETH-261225", "limit", "buy", 1, 2000);
+        } catch(Exception e)
+        {
+            inverseFutureOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object clientOrderIdInverseFuture = getValue(inverseFutureOrderRequest, "newClientOrderId");
+        assert((((string)clientOrderIdInverseFuture).StartsWith(((string)inverseSwapId)) == true), ((("binance - inverse future clientOrderId: " + (clientOrderIdInverseFuture)) + " does not start with inverseSwapId") + inverseSwapId));
+        // the implicit order endpoints inject the broker id of their api section
+        // skipped in the sync flavours: callExchangeMethodDynamically is async-only there
+        if (!isTrue(isSync()))
+        {
+            object implicitDapiOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "dapiPrivatePostOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETHUSD_PERP" },
+    { "side", "SELL" },
+    { "type", "LIMIT" },
+    { "quantity", "1" },
+    { "price", "4100" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitDapiOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitDapiClientOrderId = getValue(implicitDapiOrderRequest, "newClientOrderId");
+            assert((((string)implicitDapiClientOrderId).StartsWith(((string)inverseSwapId)) == true), ((("binance - implicit dapi clientOrderId: " + (implicitDapiClientOrderId)) + " does not start with inverseSwapId") + inverseSwapId));
+            object implicitDapiBatchRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "dapiPrivatePostBatchOrders", new List<object>() {new Dictionary<string, object>() {
+    { "batchOrders", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETHUSD_PERP" },
+    { "side", "SELL" },
+    { "type", "LIMIT" },
+    { "quantity", "1" },
+    { "price", "4100" },
+    { "timeInForce", "GTC" },
+}} },
+}});
+            } catch(Exception e)
+            {
+                implicitDapiBatchRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitDapiBatchOrders = exchange.safeList(implicitDapiBatchRequest, "batchOrders", new List<object>() {});
+            object implicitDapiBatchOrder = exchange.safeDict(implicitDapiBatchOrders, 0, new Dictionary<string, object>() {});
+            object implicitDapiBatchClientOrderId = exchange.safeString(implicitDapiBatchOrder, "newClientOrderId");
+            assert((implicitDapiBatchClientOrderId != null), "binance - implicit dapi batch order must inject newClientOrderId");
+            assert((((string)implicitDapiBatchClientOrderId).StartsWith(((string)inverseSwapId)) == true), ((("binance - implicit dapi batch clientOrderId: " + (implicitDapiBatchClientOrderId)) + " does not start with inverseSwapId") + inverseSwapId));
+            // the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
+            object implicitFapiAlgoOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "fapiPrivatePostAlgoOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETHUSDT" },
+    { "side", "SELL" },
+    { "type", "STOP" },
+    { "algoType", "CONDITIONAL" },
+    { "quantity", "1" },
+    { "price", "4100" },
+    { "triggerPrice", "4200" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitFapiAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitFapiClientAlgoId = exchange.safeString(implicitFapiAlgoOrderRequest, "clientAlgoId");
+            assert((implicitFapiClientAlgoId != null), "binance - implicit fapi algo order must inject clientAlgoId");
+            assert((((string)implicitFapiClientAlgoId).StartsWith(((string)swapId)) == true), ((("binance - implicit fapi clientAlgoId: " + (implicitFapiClientAlgoId)) + " does not start with swapId") + swapId));
+        }
         if (!isTrue(isSync()))
         {
             await close(exchange);
