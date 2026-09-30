@@ -1005,7 +1005,8 @@ export default class indodax extends Exchange {
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
         if ('tradeId' in trade) {
-            return this.parseV2Trade (trade, market);
+            // copy so Java and Go accept this return; parseV2Trade already built the trade
+            return this.extend (this.parseV2Trade (trade, market), {});
         }
         const timestamp = this.safeTimestamp (trade, 'date');
         return this.safeTrade ({
@@ -1136,7 +1137,8 @@ export default class indodax extends Exchange {
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
         if (('origQty' in order) || ('oriQty' in order) || ('fullOrderId' in order) || ('executedQty' in order)) {
-            return this.parseV2Order (order, market);
+            // copy so Java and Go accept this return; parseV2Order already built the order
+            return this.extend (this.parseV2Order (order, market), {});
         }
         //
         //     {
@@ -1271,7 +1273,15 @@ export default class indodax extends Exchange {
      */
     override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.isTapiV2 ()) {
-            return await this.orderV2 (id, symbol, params);
+            if (this.markets === undefined) {
+                await this.loadMarkets ();
+            }
+            const orderRequest = this.v2OrderRequest (id, symbol, params);
+            const v2Market = orderRequest[0];
+            const v2Request = orderRequest[1];
+            const paramsRest = orderRequest[2];
+            const v2Response = await this.v2GetOrder (this.extend (v2Request, paramsRest));
+            return this.parseOrder (v2Response, v2Market);
         }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -1394,7 +1404,60 @@ export default class indodax extends Exchange {
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.isTapiV2 ()) {
-            return await this.placeOrderV2 (symbol, type, side, amount, price, params);
+            if (this.markets === undefined) {
+                await this.loadMarkets ();
+            }
+            const v2Market = this.market (symbol);
+            if (side === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+            }
+            const clientOrderId = this.safeString (params, 'clientOrderId');
+            const timeInForce = this.safeString (params, 'timeInForce');
+            const selfTradePreventionMode = this.safeString (params, 'selfTradePreventionMode');
+            const cost = this.safeString (params, 'cost');
+            const paramsOmitted = this.omit (params, [ 'clientOrderId', 'timeInForce', 'selfTradePreventionMode', 'cost' ]);
+            const v2Request: Dict = {
+                'symbol': this.tapiV2Symbol (v2Market),
+                'side': side.toUpperCase (),
+                'type': type.toUpperCase (),
+            };
+            if (type === 'market') {
+                if (side === 'buy') {
+                    let quoteAmount: Str = undefined;
+                    if (cost !== undefined) {
+                        quoteAmount = this.costToPrecision (symbol, cost);
+                    } else {
+                        if (price === undefined) {
+                            throw new InvalidOrder (this.id + ' createOrder() requires the price argument or params.cost for market buy orders');
+                        }
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        quoteAmount = this.costToPrecision (symbol, Precise.stringMul (amountString, priceString));
+                    }
+                    v2Request['quoteOrderQty'] = quoteAmount;
+                } else {
+                    v2Request['quantity'] = this.amountToPrecision (symbol, amount);
+                }
+            } else if (type === 'limit') {
+                if (price === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires a price argument for a limit order');
+                }
+                v2Request['price'] = this.priceToPrecision (symbol, price);
+                v2Request['quantity'] = this.amountToPrecision (symbol, amount);
+                if (timeInForce !== undefined) {
+                    v2Request['timeInForce'] = timeInForce;
+                }
+            } else {
+                throw new InvalidOrder (this.id + ' createOrder() does not support order type ' + type);
+            }
+            if (clientOrderId !== undefined) {
+                v2Request['newClientOrderId'] = clientOrderId;
+            }
+            if (selfTradePreventionMode !== undefined) {
+                v2Request['selfTradePreventionMode'] = selfTradePreventionMode;
+            }
+            const v2Response = await this.v2PostOrder (this.extend (v2Request, paramsOmitted));
+            return this.parseOrder (v2Response, v2Market);
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1467,7 +1530,15 @@ export default class indodax extends Exchange {
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.isTapiV2 ()) {
-            return await this.removeOrderV2 (id, symbol, params);
+            if (this.markets === undefined) {
+                await this.loadMarkets ();
+            }
+            const orderRequest = this.v2OrderRequest (id, symbol, params);
+            const v2Market = orderRequest[0];
+            const v2Request = orderRequest[1];
+            const paramsRest = orderRequest[2];
+            const v2Response = await this.v2DeleteOrder (this.extend (v2Request, paramsRest));
+            return this.parseOrder (v2Response, v2Market);
         }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -1717,7 +1788,8 @@ export default class indodax extends Exchange {
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
         if (this.isTapiV2 ()) {
-            return await this.sendWithdrawV2 (code, amount, address, tag, params);
+            const withdrawal = await this.sendWithdrawV2 (code, amount, address, tag, params);
+            return this.extend (withdrawal, {});
         }
         const withdrawTag = this.handleWithdrawTagAndParams (tag, params);
         const tagWithdrawTag = withdrawTag[0];
@@ -1764,7 +1836,8 @@ export default class indodax extends Exchange {
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         if (('coin' in transaction) || ('fiatCurrency' in transaction) || ('withdrawStatus' in transaction) || ('depositStatus' in transaction) || ('txType' in transaction)) {
-            return this.parseV2Transaction (transaction, currency);
+            // copy so Go accepts this return; parseV2Transaction already built the transaction
+            return this.extend (this.parseV2Transaction (transaction, currency), {});
         }
         //
         // withdraw
@@ -2225,27 +2298,6 @@ export default class indodax extends Exchange {
     /**
      * @ignore
      * @method
-     * @name indodax#orderV2
-     * @param {string} id order id
-     * @param {string} symbol unified symbol
-     * @param {object} [params] extra parameters
-     * @returns {object} an order structure
-     */
-    async orderV2 (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const orderRequest = this.v2OrderRequest (id, symbol, params);
-        const market = orderRequest[0];
-        const request = orderRequest[1];
-        const paramsRest = orderRequest[2];
-        const response = await this.v2GetOrder (this.extend (request, paramsRest));
-        return this.parseOrder (response, market);
-    }
-
-    /**
-     * @ignore
-     * @method
      * @name indodax#openOrdersV2
      * @param {string} [symbol] unified symbol
      * @param {int} [since] earliest timestamp
@@ -2395,96 +2447,6 @@ export default class indodax extends Exchange {
         const rows = await this.historyV2 ('trades', symbol, since, until, limit, paramsOmitted);
         const market = this.market (symbol);
         return this.parseTrades (rows, market, since, limit);
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name indodax#placeOrderV2
-     * @param {string} symbol unified symbol
-     * @param {string} orderType market or limit
-     * @param {string} side buy or sell
-     * @param {float} amount base amount
-     * @param {float} [price] price
-     * @param {object} [params] extra parameters
-     * @returns {object} an order structure
-     */
-    async placeOrderV2 (symbol: string, orderType: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const market = this.market (symbol);
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        const timeInForce = this.safeString (params, 'timeInForce');
-        const selfTradePreventionMode = this.safeString (params, 'selfTradePreventionMode');
-        const cost = this.safeString (params, 'cost');
-        const paramsOmitted = this.omit (params, [ 'clientOrderId', 'timeInForce', 'selfTradePreventionMode', 'cost' ]);
-        const request: Dict = {
-            'symbol': this.tapiV2Symbol (market),
-            'side': side.toUpperCase (),
-            'type': orderType.toUpperCase (),
-        };
-        if (orderType === 'market') {
-            if (side === 'buy') {
-                let quoteAmount: Str = undefined;
-                if (cost !== undefined) {
-                    quoteAmount = this.costToPrecision (symbol, cost);
-                } else {
-                    if (price === undefined) {
-                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument or params.cost for market buy orders');
-                    }
-                    const amountString = this.numberToString (amount);
-                    const priceString = this.numberToString (price);
-                    quoteAmount = this.costToPrecision (symbol, Precise.stringMul (amountString, priceString));
-                }
-                request['quoteOrderQty'] = quoteAmount;
-            } else {
-                request['quantity'] = this.amountToPrecision (symbol, amount);
-            }
-        } else if (orderType === 'limit') {
-            if (price === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a price argument for a limit order');
-            }
-            request['price'] = this.priceToPrecision (symbol, price);
-            request['quantity'] = this.amountToPrecision (symbol, amount);
-            if (timeInForce !== undefined) {
-                request['timeInForce'] = timeInForce;
-            }
-        } else {
-            throw new InvalidOrder (this.id + ' createOrder() does not support order type ' + orderType);
-        }
-        if (clientOrderId !== undefined) {
-            request['newClientOrderId'] = clientOrderId;
-        }
-        if (selfTradePreventionMode !== undefined) {
-            request['selfTradePreventionMode'] = selfTradePreventionMode;
-        }
-        const response = await this.v2PostOrder (this.extend (request, paramsOmitted));
-        return this.parseOrder (response, market);
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name indodax#removeOrderV2
-     * @param {string} id order id
-     * @param {string} symbol unified symbol
-     * @param {object} [params] extra parameters
-     * @returns {object} an order structure
-     */
-    async removeOrderV2 (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const orderRequest = this.v2OrderRequest (id, symbol, params);
-        const market = orderRequest[0];
-        const request = orderRequest[1];
-        const paramsRest = orderRequest[2];
-        const response = await this.v2DeleteOrder (this.extend (request, paramsRest));
-        return this.parseOrder (response, market);
     }
 
     /**
