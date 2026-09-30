@@ -3214,6 +3214,8 @@ class htx(Exchange, ImplicitAPI):
 
     def network_id_to_code(self, networkId: Str = None, currencyCode: Str = None) -> Str:
         # here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        if networkId is None:
+            return None
         keys = list(self.options['networkNamesByChainIds'].keys())
         keysLength = len(keys)
         if keysLength == 0:
@@ -6227,7 +6229,7 @@ class htx(Exchange, ImplicitAPI):
         #     }
         #
         timestamp = self.safe_integer(transaction, 'created-at')
-        code = self.safe_currency_code(self.safe_string(transaction, 'currency'))
+        code = self.safe_currency_code(self.safe_string(transaction, 'currency'), currency)
         type = self.safe_string(transaction, 'type')
         if type == 'withdraw':
             type = 'withdrawal'
@@ -6236,9 +6238,9 @@ class htx(Exchange, ImplicitAPI):
             feeCost = Precise.string_abs(feeCost)
         networkId = self.safe_string(transaction, 'chain')
         txHash = self.safe_string(transaction, 'tx-hash')
-        if txHash is None:
-            raise ExchangeError(self.id + ' parseTransaction() missing txHash')
-        if networkId == 'ETH' and txHash.find('0x') < 0:
+        # a freshly created withdrawal has no tx-hash yet, the create
+        # endpoint returns only { "status": "ok", "data": "<id>" }
+        if (txHash is not None) and (networkId == 'ETH') and (txHash.find('0x') < 0):
             txHash = '0x' + txHash
         subType = self.safe_string(transaction, 'sub-type')
         internal = subType == 'FAST'
