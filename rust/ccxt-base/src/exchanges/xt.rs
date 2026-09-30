@@ -5520,8 +5520,8 @@ impl XtCore {
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), self.safe_number_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), self.safe_number_k(order.clone(), "stopPrice", &[]));
-        m.insert("stopLoss".to_string(), self.safe_number_k(order.clone(), "triggerStopPrice", &[]));
-        m.insert("takeProfit".to_string(), self.safe_number_k(order.clone(), "triggerProfitPrice", &[]));
+        m.insert("stopLossPrice".to_string(), self.safe_number_k(order.clone(), "triggerStopPrice", &[]));
+        m.insert("takeProfitPrice".to_string(), self.safe_number_k(order.clone(), "triggerProfitPrice", &[]));
         m.insert("amount".to_string(), amount);
         m.insert("filled".to_string(), filled);
         m.insert("remaining".to_string(), self.safe_number_k(order.clone(), "leavingQty", &[]));

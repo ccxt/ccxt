@@ -4311,7 +4311,7 @@ impl HashkeyCore {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), self.safe_currency_code(feeCurrncyId, &[]));
-        m.insert("amount".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "feeAmount", &[])));
+        m.insert("cost".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "feeAmount", &[])));
     m
 }));
         m.insert("reduceOnly".to_string(), reduceOnly);

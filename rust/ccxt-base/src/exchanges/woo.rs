@@ -4339,7 +4339,7 @@ impl WooCore {
         let mut currencyRows: Value = self.get_asset_history_rows(&[code, since.clone(), limit.clone(), __ws_arg_25]).await;
         let mut currency: Value = self.safe_value(currencyRows.clone(), Value::Int(0), &[]);
         let mut rows: Value = self.safe_list(currencyRows, Value::Int(1), &[Value::from(vec![])]);
-        return self.parse_transactions(rows, &[currency, since, limit, params]);
+        return self.parse_transactions(rows, &[currency, since, limit, self.omit(params, Value::Str("tokenSide".into()), &[])]);
 
     Value::Null
 }

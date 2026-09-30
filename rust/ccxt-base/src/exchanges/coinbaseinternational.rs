@@ -1080,7 +1080,16 @@ impl CoinbaseinternationalCore {
 
     pub fn parse_funding_rate_history(&self, mut info: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return self.parse_funding_rate(info, &[market]);
+        let mut fundingRate: Value = self.parse_funding_rate(info.clone(), &[market]);
+        return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), info);
+        m.insert("symbol".to_string(), fundingRate.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("fundingRate".to_string(), fundingRate.as_map().and_then(|__m| __m.get("fundingRate")).cloned().unwrap_or(Value::Null));
+        m.insert("timestamp".to_string(), fundingRate.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null));
+        m.insert("datetime".to_string(), fundingRate.as_map().and_then(|__m| __m.get("datetime")).cloned().unwrap_or(Value::Null));
+    m
+});
 
     Value::Null
 }
