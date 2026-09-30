@@ -5179,16 +5179,12 @@
         ],
         "withdraw": [
             {
-                "description": "withdraw USDT on ERC20, create response carries only the withdrawal id",
+                "description": "withdraw USDT, create response carries only the withdrawal id",
                 "method": "withdraw",
                 "input": [
                     "USDT",
                     50,
-                    "0x5f3a9c27e84b61d0a7c2e9b4d18f6a3c0e72b5d9",
-                    null,
-                    {
-                        "network": "ERC20"
-                    }
+                    "0x5f3a9c27e84b61d0a7c2e9b4d18f6a3c0e72b5d9"
                 ],
                 "httpResponse": {
                     "status": "ok",

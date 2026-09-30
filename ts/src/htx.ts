@@ -3358,6 +3358,9 @@ export default class htx extends Exchange {
 
     override networkIdToCode (networkId: Str = undefined, currencyCode: Str = undefined): Str {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        if (networkId === undefined) {
+            return undefined;
+        }
         const keys = Object.keys (this.options['networkNamesByChainIds']);
         const keysLength = keys.length;
         if (keysLength === 0) {
