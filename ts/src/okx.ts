@@ -1462,6 +1462,10 @@ export default class okx extends Exchange {
                     'fetchCurrencies': {
                         'private': true,
                     },
+                    'withdraw': {
+                        'selectableFeeInclusion': false,
+                        'feeIncluded': false,
+                    },
                 },
                 'swap': {
                     'linear': {
