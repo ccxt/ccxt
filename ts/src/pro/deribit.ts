@@ -85,7 +85,8 @@ export default class deribit extends deribitRest {
         const isPrivateClient = (client.url === this.getWsUrl (true));
         if (isPrivateClient && (refreshAt !== undefined) && (this.milliseconds () >= refreshAt)) {
             // re-authenticate in-band before the session expires, also while no watch call is pending
-            this.options['wsAuthRefreshAt'] = undefined;
+            // retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
+            this.options['wsAuthRefreshAt'] = this.sum (this.milliseconds (), 60000);
             return {
                 'jsonrpc': '2.0',
                 'method': 'public/auth',
