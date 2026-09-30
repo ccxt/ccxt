@@ -2774,7 +2774,6 @@ class modetrade(Exchange, ImplicitAPI):
             'lastPrice': None,
             'collateral': None,
             'marginMode': 'cross',
-            'marginType': None,
             'side': side,
             'percentage': None,
             'hedged': None,

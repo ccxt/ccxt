@@ -6552,7 +6552,7 @@ public class Bingx extends BingxApi
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             if (java.util.Objects.equals(subType, "inverse"))
             {
-                paramsTrades = paramsSubType;
+                paramsTrades = this.omit(paramsSubType, "orderId");
                 String orderId = this.safeString(paramsSubType, "orderId");
                 if (java.util.Objects.equals(orderId, null))
                 {

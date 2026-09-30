@@ -169,13 +169,13 @@ type BaseExchange struct {
 	// WS - updated to use thread-safe sync.Map (except cache objects)
 	Ohlcvs         *sync.Map
 	Trades         any // map[string]*ArrayCache
-	Tickers        *sync.Map
+	Tickers        *TickerCache
 	Orders         any // *ArrayCache  // cache object, not a map
 	MyTrades       any // *ArrayCache  // cache object, not a map
 	Orderbooks     *sync.Map
 	Liquidations   any // *ArrayCacheBySymbolBySide
 	FundingRates   *sync.Map
-	Bidsasks       *sync.Map
+	Bidsasks       *TickerCache
 	TriggerOrders  any // *ArrayCache
 	Transactions   *sync.Map
 	MyLiquidations any // *ArrayCacheBySymbolBySide
@@ -263,7 +263,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	// Initialize WebSocket data structures with thread-safe sync.Map
 	// this.Trades = make(map[string]*ArrayCache)
 	this.Trades = &sync.Map{}
-	this.Tickers = &sync.Map{}
+	this.Tickers = &TickerCache{}
 	this.Orderbooks = &sync.Map{}
 	// this.Ohlcvs = make(map[string]map[string]*ArrayCacheByTimestamp)
 	this.Ohlcvs = &sync.Map{}
@@ -285,7 +285,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	this.Currencies = &sync.Map{}
 	// this.FundingRates = make(map[string]any)
 	this.FundingRates = &sync.Map{}
-	this.Bidsasks = &sync.Map{}
+	this.Bidsasks = &TickerCache{}
 	this.ProxyDictionaries = make(map[string]any)
 	this.AccountsById = make(map[string]any)
 	this.Accounts = make([]any, 0)

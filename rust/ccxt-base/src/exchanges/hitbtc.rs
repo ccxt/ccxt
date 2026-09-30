@@ -4208,8 +4208,7 @@ impl HitbtcCore {
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
         m.insert("notional".to_string(), Value::Null);
-        m.insert("marginMode".to_string(), marginMode.clone());
-        m.insert("marginType".to_string(), marginMode);
+        m.insert("marginMode".to_string(), marginMode);
         m.insert("liquidationPrice".to_string(), liquidationPrice);
         m.insert("entryPrice".to_string(), entryPrice);
         m.insert("unrealizedPnl".to_string(), Value::Null);

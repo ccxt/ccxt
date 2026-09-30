@@ -1,7 +1,7 @@
 import okxRest from '../okx.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class okx extends okxRest {
     describe(): any;
     getUrl(channel: Str, access?: string): string;
@@ -281,7 +281,7 @@ export default class okx extends okxRest {
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBookMessage(client: Client, message: Dict, orderbook: Ob, messageHash: string, market?: Market): Ob;
+    handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook, messageHash: string, market?: Market): WsOrderBook;
     handleOrderBook(client: Client, message: Dict): Dict;
     authenticate(params?: Dict): Promise<any>;
     /**

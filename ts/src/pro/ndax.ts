@@ -5,7 +5,7 @@ import ndaxRest from '../ndax.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -407,7 +407,7 @@ export default class ndax extends ndaxRest {
             'params': params,
         };
         const message = this.extend (request, params);
-        const orderbook: Ob = await this.watch (url, messageHash, message, messageHash, subscription);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit ();
     }
 

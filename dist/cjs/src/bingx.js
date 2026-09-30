@@ -6114,7 +6114,7 @@ class bingx extends bingx$1["default"] {
         let paramsTrades = undefined;
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchMyTrades', market, params);
         if (subType === 'inverse') {
-            paramsTrades = paramsSubType;
+            paramsTrades = this.omit(paramsSubType, 'orderId');
             const orderId = this.safeString(paramsSubType, 'orderId');
             if (orderId === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires an orderId argument for inverse swap trades');

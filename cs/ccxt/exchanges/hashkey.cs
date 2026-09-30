@@ -3808,7 +3808,7 @@ public partial class hashkey : Exchange
             { "trades", null },
             { "fee", new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(feeCurrncyId) },
-                { "amount", this.omitZero(this.safeString(order, "feeAmount")) },
+                { "cost", this.omitZero(this.safeString(order, "feeAmount")) },
             } },
             { "reduceOnly", reduceOnly },
             { "postOnly", postOnly },

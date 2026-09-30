@@ -2905,7 +2905,7 @@ impl KrakenCore {
                 append_to_array(&mut trades, self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), rawTrade.clone());
-        m.insert("orderId".to_string(), id.clone());
+        m.insert("order".to_string(), id.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();

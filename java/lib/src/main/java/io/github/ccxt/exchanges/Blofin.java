@@ -1890,10 +1890,9 @@ public class Blofin extends BlofinApi
         {
             clientOrderId = null; // fix empty clientOrderId string
         }
-        Double stopLossTriggerPrice = this.safeNumber(order, "slTriggerPrice", (Object) null);
-        Double stopLossPrice = this.safeNumber(order, "slOrderPrice", (Object) null);
-        Double takeProfitTriggerPrice = this.safeNumber(order, "tpTriggerPrice", (Object) null);
-        Double takeProfitPrice = this.safeNumber(order, "tpOrderPrice", (Object) null);
+        // unified stopLossPrice/takeProfitPrice are the trigger prices (createOrder sends them as sl/tpTriggerPrice)
+        Double stopLossPrice = this.safeNumber(order, "slTriggerPrice", (Object) null);
+        Double takeProfitPrice = this.safeNumber(order, "tpTriggerPrice", (Object) null);
         String reduceOnlyRaw = this.safeString(order, "reduceOnly");
         Boolean reduceOnly = (java.util.Objects.equals(reduceOnlyRaw, "true"));
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
@@ -1910,8 +1909,6 @@ public class Blofin extends BlofinApi
         mapLiteral6.put("postOnly", postOnly);
         mapLiteral6.put("side", side);
         mapLiteral6.put("price", price);
-        mapLiteral6.put("stopLossTriggerPrice", stopLossTriggerPrice);
-        mapLiteral6.put("takeProfitTriggerPrice", takeProfitTriggerPrice);
         mapLiteral6.put("stopLossPrice", stopLossPrice);
         mapLiteral6.put("takeProfitPrice", takeProfitPrice);
         mapLiteral6.put("average", average);

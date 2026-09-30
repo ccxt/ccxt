@@ -2349,7 +2349,7 @@ public partial class kraken : Exchange
             {
                 trades.Add(ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
                     { "id", rawTrade },
-                    { "orderId", id },
+                    { "order", id },
                     { "symbol", symbol },
                     { "info", new Dictionary<string, object>() {} },
                 })));

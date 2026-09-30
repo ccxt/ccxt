@@ -639,7 +639,6 @@ class bitfinex extends bitfinex$1["default"] {
         const response = await this.publicGetConfConfig(this.extend(request, params));
         const spotMarketsInfo = this.safeList(response, 0, []);
         const futuresMarketsInfo = this.safeList(response, 1, []);
-        const securitiesMarketsIds = this.safeList(response, 2, []);
         const marginIds = this.safeList(response, 3, []);
         const markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
         const result = [];
@@ -700,7 +699,6 @@ class bitfinex extends bitfinex$1["default"] {
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'tradfi': this.inArray(id, securitiesMarketsIds),
                 'margin': (spot && this.inArray(id, marginIds)),
                 'swap': swap,
                 'future': false,
@@ -3466,25 +3464,12 @@ class bitfinex extends bitfinex$1["default"] {
         // ]
         //
         const timestamp = this.safeInteger(contract, 0);
-        const nextFundingTimestamp = this.safeInteger(contract, 7);
         return {
             'info': contract,
             'symbol': this.safeSymbol(undefined, market),
-            'markPrice': this.safeNumber(contract, 14),
-            'indexPrice': this.safeNumber(contract, 2),
-            'interestRate': undefined,
-            'estimatedSettlePrice': undefined,
+            'fundingRate': this.safeNumber(contract, 11),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'fundingRate': this.safeNumber(contract, 11),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
-            'nextFundingRate': this.safeNumber(contract, 8),
-            'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': this.iso8601(nextFundingTimestamp),
-            'previousFundingRate': undefined,
-            'previousFundingTimestamp': undefined,
-            'previousFundingDatetime': undefined,
         };
     }
     /**

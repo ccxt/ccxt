@@ -4424,7 +4424,7 @@ impl KrakenfuturesCore {
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("lastPrice".to_string(), self.safe_number_k(position, "executionPrice", &[]));
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("marginType".to_string(), marginType);
+        m.insert("marginMode".to_string(), marginType);
         m.insert("side".to_string(), side);
         m.insert("percentage".to_string(), Value::Null);
     m

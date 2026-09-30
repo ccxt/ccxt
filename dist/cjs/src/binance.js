@@ -11843,7 +11843,6 @@ class binance extends binance$1["default"] {
             'marginRatio': marginRatio,
             'datetime': this.iso8601(timestamp),
             'marginMode': marginMode,
-            'marginType': marginMode, // deprecated
             'side': side,
             'hedged': hedged,
             'percentage': percentage,

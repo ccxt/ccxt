@@ -14205,7 +14205,6 @@ public class Binance extends BinanceApi
         mapLiteral9.put("marginRatio", marginRatio);
         mapLiteral9.put("datetime", this.iso8601(timestamp));
         mapLiteral9.put("marginMode", marginMode);
-        mapLiteral9.put("marginType", marginMode);
         mapLiteral9.put("side", side);
         mapLiteral9.put("hedged", hedged);
         mapLiteral9.put("percentage", percentage);

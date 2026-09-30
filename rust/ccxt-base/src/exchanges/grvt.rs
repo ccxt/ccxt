@@ -4253,7 +4253,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut filledAmounts: Value = self.safe_list_k(stateObj.clone(), "traded_size", &[Value::from(vec![])]);
         let mut avgPrices: Value = self.safe_list_k(stateObj.clone(), "avg_fill_price", &[Value::from(vec![])]);
         let mut primaryOrderIndex: Value = Value::Int(0);
-        let mut firstLeg: Value = self.safe_dict(legs.clone(), primaryOrderIndex.clone(), &[]);
+        let mut firstLeg: Value = self.safe_dict(legs, primaryOrderIndex.clone(), &[]);
         let mut legMarketId: Value = self.safe_string_k(firstLeg.clone(), "instrument", &[]);
         let mut marketResolved: Value = (if (firstLeg != Value::Null) { self.safe_market(&[legMarketId, market.clone()]) } else { market });
         if (firstLeg != Value::Null) {
@@ -4265,11 +4265,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             avgPrice = self.safe_string(avgPrices, primaryOrderIndex, &[]);
         }
         let mut timestamp: Value = self.safe_integer_product_k(metadata.clone(), "create_time", Value::Float(0.000001), &[]);
-        // const triggerDetails = this.safeDict (metadata, 'trigger', {});
-        let mut legsLength: f64 = ((legs.len() as i64) as f64);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("isMultiLeg".to_string(), (Value::Bool(legsLength > ((1i64) as f64))));
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "order_id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(metadata, "client_order_id", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());

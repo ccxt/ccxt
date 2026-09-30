@@ -3742,7 +3742,6 @@ public class Hitbtc extends HitbtcApi
         mapLiteral3.put("symbol", symbol);
         mapLiteral3.put("notional", null);
         mapLiteral3.put("marginMode", marginMode);
-        mapLiteral3.put("marginType", marginMode);
         mapLiteral3.put("liquidationPrice", liquidationPrice);
         mapLiteral3.put("entryPrice", entryPrice);
         mapLiteral3.put("unrealizedPnl", null);

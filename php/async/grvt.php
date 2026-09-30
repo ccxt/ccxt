@@ -3175,9 +3175,7 @@ class grvt extends Exchange {
         }
         $timestamp = $this->safe_integer_product($metadata, 'create_time', 0.000001);
         // const triggerDetails = this.safeDict (metadata, 'trigger', {});
-        $legsLength = count($legs);
         return $this->safe_order(array(
-            'isMultiLeg' => ($legsLength > 1),
             'id' => $this->safe_string($order, 'order_id'),
             'clientOrderId' => $this->safe_string($metadata, 'client_order_id'),
             'timestamp' => $timestamp,

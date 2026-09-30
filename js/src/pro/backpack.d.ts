@@ -1,7 +1,7 @@
 import backpackRest from '../backpack.js';
 import type { Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class backpack extends backpackRest {
     describe(): any;
     watchPublic(topics: string[], messageHashes: string[], params?: Dict, unwatch?: boolean): Promise<any>;
@@ -207,7 +207,7 @@ export default class backpack extends backpackRest {
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: Dict): Promise<any>;
     handleOrderBook(client: Client, message: Dict): void;
-    handleBookDelta(orderbook: Ob, delta: any): void;
+    handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     handleBidAsks(bookSide: any, bidAsks: any[]): void;
     getCacheIndex(orderbook: any, cache: any): number;
     /**

@@ -3759,7 +3759,7 @@ class hashkey extends hashkey$1["default"] {
             'trades': undefined,
             'fee': {
                 'currency': this.safeCurrencyCode(feeCurrncyId),
-                'amount': this.omitZero(this.safeString(order, 'feeAmount')),
+                'cost': this.omitZero(this.safeString(order, 'feeAmount')),
             },
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,

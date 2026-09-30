@@ -2,7 +2,7 @@ import * as functions from './functions.js';
 import WsClient from './ws/WsClient.js';
 import type Client from './ws/Client.js';
 import { type FutureInterface } from './ws/Future.js';
-import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
+import { WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, NullableList, Status, PositionModeInfo, MarginLoan, AllGreeks, DepositAddresses } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
@@ -86,7 +86,7 @@ export declare class BaseExchange {
     accountId: string;
     balance: Dict;
     liquidations: any;
-    orderbooks: Dictionary<Ob>;
+    orderbooks: Dictionary<WsOrderBook>;
     tickers: Dictionary<Ticker>;
     fundingRates: Dictionary<FundingRate>;
     bidsasks: Dictionary<Ticker>;
@@ -573,8 +573,8 @@ export declare class BaseExchange {
     storeByKey(dict: any, key: NullableIndexType, value: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleDelta(bookside: any, delta: any): void;
-    handleBookDeltas(orderbook: Ob, deltas: any): void;
-    handleBookDelta(orderbook: Ob, delta: any): void;
+    handleBookDeltas(orderbook: WsOrderBook, deltas: any): void;
+    handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     handleDeltasWithKeys(bookSide: any, deltas: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): void;
     getCacheIndex(orderbook: any, deltas: any): number;
     arraysConcat(arraysOfArrays: any[]): any[];

@@ -2219,7 +2219,7 @@ public class Zebpay extends ZebpayApi
             put( "liquidationPrice", Zebpay.this.safeNumber(position, "liquidationPrice", (Object) null) );
             put( "markPrice", null );
             put( "collateral", null );
-            put( "marginType", "isolated" );
+            put( "marginMode", "isolated" );
             put( "side", Zebpay.this.safeString(position, "side") );
             put( "percentage", null );
         }};

@@ -3036,7 +3036,6 @@ class hitbtc(Exchange, ImplicitAPI):
             'symbol': symbol,
             'notional': None,
             'marginMode': marginMode,
-            'marginType': marginMode,
             'liquidationPrice': liquidationPrice,
             'entryPrice': entryPrice,
             'unrealizedPnl': None,

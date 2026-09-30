@@ -3358,6 +3358,9 @@ export default class htx extends Exchange {
 
     override networkIdToCode (networkId: Str = undefined, currencyCode: Str = undefined): Str {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        if (networkId === undefined) {
+            return undefined;
+        }
         const keys = Object.keys (this.options['networkNamesByChainIds']);
         const keysLength = keys.length;
         if (keysLength === 0) {
@@ -6665,7 +6668,7 @@ export default class htx extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (transaction, 'created-at');
-        const code = this.safeCurrencyCode (this.safeString (transaction, 'currency'));
+        const code = this.safeCurrencyCode (this.safeString (transaction, 'currency'), currency);
         let type = this.safeString (transaction, 'type');
         if (type === 'withdraw') {
             type = 'withdrawal';
@@ -6676,10 +6679,9 @@ export default class htx extends Exchange {
         }
         const networkId = this.safeString (transaction, 'chain');
         let txHash = this.safeString (transaction, 'tx-hash');
-        if (txHash === undefined) {
-            throw new ExchangeError (this.id + ' parseTransaction() missing txHash');
-        }
-        if (networkId === 'ETH' && txHash.indexOf ('0x') < 0) {
+        // a freshly created withdrawal has no tx-hash yet, the create
+        // endpoint returns only { "status": "ok", "data": "<id>" }
+        if ((txHash !== undefined) && (networkId === 'ETH') && (txHash.indexOf ('0x') < 0)) {
             txHash = '0x' + txHash;
         }
         const subType = this.safeString (transaction, 'sub-type');

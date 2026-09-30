@@ -3660,7 +3660,7 @@ public class Woo extends WooApi
             Object currencyRows = (this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters))).join();
             Object currency = this.safeValue(currencyRows, 0);
             List<Object> rows = (List<Object>) this.safeList(currencyRows, 1, new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(rows, Helpers.toMapArg(currency), since, limit, parameters);
+            return this.parseTransactions(rows, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(this.omit(parameters, "tokenSide")));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }

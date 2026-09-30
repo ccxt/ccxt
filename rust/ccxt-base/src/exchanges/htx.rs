@@ -5831,6 +5831,9 @@ impl HtxCore {
         let mut networkId = get_arg(optional_args, 0, Value::Null);
         let mut currencyCode = get_arg(optional_args, 1, Value::Null);
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        if (networkId == Value::Null) {
+            return Value::Null;
+        }
         let mut keys: Value = object_keys(&self.options.as_map().and_then(|__m| __m.get("networkNamesByChainIds")).cloned().unwrap_or(Value::Null));
         let mut keysLength: f64 = ((keys.len() as i64) as f64);
         if (keysLength == 0.0) {
@@ -9492,7 +9495,7 @@ impl HtxCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "created-at", &[]);
-        let mut code: Value = self.safe_currency_code(self.safe_string_k(transaction.clone(), "currency", &[]), &[]);
+        let mut code: Value = self.safe_currency_code(self.safe_string_k(transaction.clone(), "currency", &[]), &[currency]);
         let mut type_var: Value = self.safe_string_k(transaction.clone(), "type", &[]);
         if (type_var.as_str() == Some("withdraw")) {
             type_var = Value::Str("withdrawal".into());
@@ -9503,10 +9506,9 @@ impl HtxCore {
         }
         let mut networkId: Value = self.safe_string_k(transaction.clone(), "chain", &[]);
         let mut txHash: Value = self.safe_string_k(transaction.clone(), "tx-hash", &[]);
-        if (txHash == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseTransaction() missing txHash".into()))));
-        }
-        if (networkId.as_str() == Some("ETH")) && Value::Int(txHash.as_str().and_then(|__s| __s.find("0x")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
+        // a freshly created withdrawal has no tx-hash yet, the create
+        // endpoint returns only { "status": "ok", "data": "<id>" }
+        if (txHash != Value::Null) && (networkId.as_str() == Some("ETH")) && (Value::Int(txHash.as_str().and_then(|__s| __s.find("0x")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) {
             txHash = Value::Str(format!("{}{}", Value::Str("0x".into()), txHash).into());
         }
         let mut subType: Option<String> = self.safe_string_k(transaction.clone(), "sub-type", &[]).as_str().map(str::to_owned);

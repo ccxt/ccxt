@@ -3903,7 +3903,7 @@ class hashkey extends Exchange {
             'trades' => null,
             'fee' => array(
                 'currency' => $this->safe_currency_code($feeCurrncyId),
-                'amount' => $this->omit_zero($this->safe_string($order, 'feeAmount')),
+                'cost' => $this->omit_zero($this->safe_string($order, 'feeAmount')),
             ),
             'reduceOnly' => $reduceOnly,
             'postOnly' => $postOnly,

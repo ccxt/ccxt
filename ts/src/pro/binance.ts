@@ -11,7 +11,7 @@ import type { Balances, Bool, Dict, Int, Liquidation, Market, Num, FeeString, Nu
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 // -----------------------------------------------------------------------------
 
@@ -828,7 +828,7 @@ export default class binance extends binanceRest {
             'type': type,
             'params': paramsRpi,
         };
-        const orderbook: Ob = await this.watchMultiple (url, messageHashes, this.extend (request, paramsRpi), messageHashes, subscription);
+        const orderbook: WsOrderBook = await this.watchMultiple (url, messageHashes, this.extend (request, paramsRpi), messageHashes, subscription);
         return orderbook.limit ();
     }
 
@@ -1073,7 +1073,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleOrderBookMessage (client: Client, message: Dict, orderbook: Ob) {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: WsOrderBook) {
         const u = this.safeInteger (message, 'u');
         this.handleDeltas (orderbook['asks'], this.safeList (message, 'a', []));
         this.handleDeltas (orderbook['bids'], this.safeList (message, 'b', []));
