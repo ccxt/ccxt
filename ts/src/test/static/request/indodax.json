@@ -7,15 +7,6 @@
     ],
     "outputType": "both",
     "methods": {
-        "fetchDepositAddresses": [
-            {
-                "description": "Fetch Deposit Addresses",
-                "method": "fetchDepositAddresses",
-                "url": "https://indodax.com/tapi",
-                "input": [],
-                "output": "method=getInfo&timestamp=1708039102346&recvWindow=5000"
-            }
-        ],
         "fetchOHLCV": [
             {
                 "description": "fetchOHLCV",
@@ -38,6 +29,265 @@
                     "BTC"
                 ],
                 "output": "method=withdrawFee&timestamp=1699457638812&recvWindow=5000&currency=btc"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "TAPI v2 account balances",
+                "method": "fetchBalance",
+                "url": "https://api.indodax.com/api/v2/account?timestamp=1700000000000&recvWindow=5000",
+                "input": [],
+                "options": {
+                    "tapiVersion": "2"
+                },
+                "headers": {
+                    "X-APIKEY": "key"
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "TAPI v2 limit buy",
+                "method": "createOrder",
+                "url": "https://api.indodax.com/api/v2/order",
+                "input": [
+                    "BTC/IDR",
+                    "limit",
+                    "buy",
+                    0.01,
+                    1000000
+                ],
+                "output": "timestamp=1700000000000&recvWindow=5000&symbol=btcidr&side=BUY&type=LIMIT&price=1000000&quantity=0.01",
+                "options": {
+                    "tapiVersion": "2"
+                }
+            },
+            {
+                "description": "TAPI v2 market buy spends quoteOrderQty",
+                "method": "createOrder",
+                "url": "https://api.indodax.com/api/v2/order",
+                "input": [
+                    "BTC/IDR",
+                    "market",
+                    "buy",
+                    0.01,
+                    1000000
+                ],
+                "output": "timestamp=1700000000000&recvWindow=5000&symbol=btcidr&side=BUY&type=MARKET&quoteOrderQty=10000",
+                "options": {
+                    "tapiVersion": "2"
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "TAPI v2 cancel does not require side",
+                "method": "cancelOrder",
+                "url": "https://api.indodax.com/api/v2/order?timestamp=1700000000000&recvWindow=5000&symbol=btcidr&orderId=6423",
+                "input": [
+                    "btcidr-limit-6423",
+                    "BTC/IDR"
+                ],
+                "options": {
+                    "tapiVersion": "2"
+                }
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "TAPI v2 get order sends the numeric orderId",
+                "method": "fetchOrder",
+                "url": "https://api.indodax.com/api/v2/order?timestamp=1700000000000&recvWindow=5000&symbol=btcidr&orderId=6423",
+                "input": [
+                    "btcidr-limit-6423",
+                    "BTC/IDR"
+                ],
+                "options": {
+                    "tapiVersion": "2"
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "TAPI v1 open orders send ticker_id",
+                "method": "fetchOpenOrders",
+                "url": "https://indodax.com/tapi",
+                "input": [
+                    "BTC/IDR"
+                ],
+                "output": "method=openOrders&timestamp=1&recvWindow=5000&pair=btc_idr"
+            },
+            {
+                "description": "TAPI v2 open orders for one symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://api.indodax.com/api/v2/openOrders?timestamp=1700000000000&recvWindow=5000&symbol=btcidr",
+                "input": [
+                    "BTC/IDR"
+                ],
+                "options": {
+                    "tapiVersion": "2"
+                }
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "TAPI v2 order history",
+                "method": "fetchOrders",
+                "url": "https://api.indodax.com/api/v2/order/histories?timestamp=1700000000000&recvWindow=5000&symbol=btcidr",
+                "input": [
+                    "BTC/IDR"
+                ],
+                "options": {
+                    "tapiVersion": "2"
+                }
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "TAPI v2 my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.indodax.com/api/v2/myTrades?timestamp=1700000000000&recvWindow=5000&symbol=btcidr",
+                "input": [
+                    "BTC/IDR"
+                ],
+                "options": {
+                    "tapiVersion": "2"
+                }
+            },
+            {
+                "description": "TAPI v2 my trades since returns only the first 7-day window",
+                "method": "fetchMyTrades",
+                "url": "https://api.indodax.com/api/v2/myTrades?timestamp=1700000000000&recvWindow=5000&symbol=btcidr&startTime=1700000000000&endTime=1700604800000",
+                "input": [
+                    "BTC/IDR",
+                    1700000000000,
+                    null,
+                    {
+                        "until": 1702592000000
+                    }
+                ],
+                "options": {
+                    "tapiVersion": "2"
+                }
+            }
+        ],
+        "fetchDepositAddresses": [
+            {
+                "description": "Fetch Deposit Addresses",
+                "method": "fetchDepositAddresses",
+                "url": "https://indodax.com/tapi",
+                "input": [],
+                "output": "method=getInfo&timestamp=1708039102346&recvWindow=5000"
+            },
+            {
+                "description": "TAPI v2 deposit address for one coin",
+                "method": "fetchDepositAddresses",
+                "url": "https://api.indodax.com/api/v2/capital/deposit/address/list?timestamp=1700000000000&recvWindow=5000&coin=btc",
+                "input": [
+                    [
+                        "BTC"
+                    ]
+                ],
+                "options": {
+                    "tapiVersion": "2"
+                }
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "TAPI v2 crypto deposit history",
+                "method": "fetchDeposits",
+                "url": "https://api.indodax.com/api/v2/capital/deposit/hisrec?timestamp=1700000000000&recvWindow=5000&coin=btc",
+                "input": [
+                    "BTC"
+                ],
+                "options": {
+                    "tapiVersion": "2"
+                }
+            },
+            {
+                "description": "TAPI v2 IDR deposits since returns only the first 30-day window",
+                "method": "fetchDeposits",
+                "url": "https://api.indodax.com/api/v2/fiat/orders?timestamp=1700000000000&recvWindow=5000&transactionType=0&beginTime=1700000000000&endTime=1702592000000",
+                "input": [
+                    "IDR",
+                    1700000000000,
+                    null,
+                    {
+                        "until": 1703888000000
+                    }
+                ],
+                "options": {
+                    "tapiVersion": "2"
+                }
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "TAPI v2 crypto withdraw history",
+                "method": "fetchWithdrawals",
+                "url": "https://api.indodax.com/api/v2/capital/withdraw/history?timestamp=1700000000000&recvWindow=5000&coin=btc",
+                "input": [
+                    "BTC"
+                ],
+                "options": {
+                    "tapiVersion": "2"
+                }
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "public pair fees",
+                "method": "fetchTradingFees",
+                "url": "https://indodax.com/api/pairs",
+                "input": []
+            }
+        ],
+        "fetchTradingLimits": [
+            {
+                "description": "public pair limits",
+                "method": "fetchTradingLimits",
+                "url": "https://indodax.com/api/pairs",
+                "input": []
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "TAPI v2 fiat withdraw request shape",
+                "method": "withdraw",
+                "url": "https://api.indodax.com/api/v2/fiat/withdraw",
+                "input": [
+                    "IDR",
+                    150000,
+                    "1234567890",
+                    null,
+                    {
+                        "clientOrderId": "fiat-1",
+                        "bankCode": "014"
+                    }
+                ],
+                "output": "timestamp=1700000000000&recvWindow=5000&apiPaymentMethod=bank_transfer&currency=idr&amount=150000&accountInfo=%7B%22accountNumber%22%3A%221234567890%22%2C%22bankCodeForPix%22%3A%22014%22%7D&clientRequestId=fiat-1",
+                "options": {
+                    "tapiVersion": "2"
+                }
+            },
+            {
+                "description": "TAPI v2 crypto withdraw sends the memo as addressTag",
+                "method": "withdraw",
+                "url": "https://api.indodax.com/api/v2/capital/withdraw/apply",
+                "input": [
+                    "BTC",
+                    0.01,
+                    "1FZdVHtiBqMrWdjPyRPULCUceZPJ2WLCsB",
+                    "12345",
+                    {
+                        "clientOrderId": "wd-1"
+                    }
+                ],
+                "output": "timestamp=1700000000000&recvWindow=5000&coin=btc&address=1FZdVHtiBqMrWdjPyRPULCUceZPJ2WLCsB&amount=0.01&withdrawOrderId=wd-1&addressTag=12345",
+                "options": {
+                    "tapiVersion": "2"
+                }
             }
         ]
     }

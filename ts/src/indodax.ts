@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { sha512 } from '@noble/hashes/sha2.js';
+import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/indodax.js';
-import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol, NotSupported, InvalidNonce, RateLimitExceeded, OnMaintenance, InvalidAddress, BadRequest, ExchangeNotAvailable } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, List, NullableDict, DepositWithdrawFee, Endpoint } from './base/types.js';
+import type{ Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, List, NullableDict, DepositWithdrawFee, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -45,6 +45,8 @@ export default class indodax extends Exchange {
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
+                'editOrder': false,
+                'fetchAccounts': false,
                 'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -61,13 +63,14 @@ export default class indodax extends Exchange {
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': true,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
+                'fetchFundingLimits': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
@@ -76,6 +79,7 @@ export default class indodax extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
+                'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchLeverages': false,
                 'fetchLeverageTiers': false,
@@ -92,6 +96,7 @@ export default class indodax extends Exchange {
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
@@ -101,7 +106,7 @@ export default class indodax extends Exchange {
                 'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchPosition': false,
                 'fetchPositionForSymbolWs': false,
                 'fetchPositionHistory': false,
@@ -118,7 +123,8 @@ export default class indodax extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
+                'fetchTradingLimits': true,
                 'fetchTransactionFee': true,
                 'fetchTransactionFees': false,
                 'fetchTransactions': 'emulated',
@@ -127,7 +133,7 @@ export default class indodax extends Exchange {
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -144,6 +150,7 @@ export default class indodax extends Exchange {
                 'api': {
                     'public': 'https://indodax.com',
                     'private': 'https://indodax.com/tapi',
+                    'v2': 'https://api.indodax.com',
                 },
                 'www': 'https://www.indodax.com',
                 'doc': 'https://github.com/btcid/indodax-official-api-docs',
@@ -182,6 +189,27 @@ export default class indodax extends Exchange {
                         'createVoucher': { 'cost': 4 } as Endpoint<Dict>, // partner only
                     },
                 },
+                'v2': {
+                    'get': {
+                        'order': { 'cost': 4 } as Endpoint<Dict>,
+                        'openOrders': { 'cost': 4 } as Endpoint<List>,
+                        'order/histories': { 'cost': 4 } as Endpoint<Dict>,
+                        'myTrades': { 'cost': 4 } as Endpoint<Dict>,
+                        'account': { 'cost': 4 } as Endpoint<Dict>,
+                        'capital/withdraw/history': { 'cost': 24 } as Endpoint<List>,
+                        'capital/deposit/hisrec': { 'cost': 24 } as Endpoint<List>,
+                        'capital/deposit/address/list': { 'cost': 24 } as Endpoint<List>,
+                        'fiat/orders': { 'cost': 24 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'order': { 'cost': 4 } as Endpoint<Dict>,
+                        'capital/withdraw/apply': { 'cost': 24 } as Endpoint<Dict>,
+                        'fiat/withdraw': { 'cost': 24 } as Endpoint<Dict>,
+                    },
+                    'delete': {
+                        'order': { 'cost': 4 } as Endpoint<Dict>,
+                    },
+                },
             },
             'fees': {
                 'trading': {
@@ -198,10 +226,37 @@ export default class indodax extends Exchange {
                     'invalid order.': OrderNotFound,
                     'Invalid credentials. API not found or session has expired.': AuthenticationError,
                     'Invalid credentials. Bad sign.': AuthenticationError,
+                    '-1121': BadSymbol,
+                    '-2013': OrderNotFound,
+                    '-1021': InvalidNonce,
+                    'invalid_timestamp': InvalidNonce,
+                    '-1022': AuthenticationError,
+                    '-1002': AuthenticationError,
+                    '-2014': AuthenticationError,
+                    '-2015': AuthenticationError,
+                    '-1003': RateLimitExceeded,
+                    '-2010': InvalidOrder,
+                    '-4026': InsufficientFunds,
+                    '-1102': BadRequest,
+                    '-1001': ExchangeNotAvailable,
+                    '-1099': BadRequest,
+                    '-1016': OnMaintenance,
+                    '1109': BadRequest,
+                    '1112': OrderNotFound,
+                    '-1130': InvalidOrder,
+                    '-1111': InvalidOrder,
+                    '-4022': InvalidOrder,
+                    '-4023': InvalidOrder,
+                    '-4033': InvalidAddress,
+                    '-4035': InvalidAddress,
+                    '-4039': BadRequest,
+                    '-4060': InsufficientFunds,
+                    '-4019': InvalidOrder,
                 },
                 'broad': {
                     'Minimum price': InvalidOrder,
                     'Minimum order': InvalidOrder,
+                    'nsufficient balance': InsufficientFunds,
                 },
             },
             'timeframes': {
@@ -216,6 +271,7 @@ export default class indodax extends Exchange {
             },
             // exchange-specific options
             'options': {
+                'tapiVersion': '1', // '2' opts private calls into TAPI v2; a v1 key cannot call v2
                 'recvWindow': 5 * 1000, // default 5 sec
                 'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
@@ -263,7 +319,13 @@ export default class indodax extends Exchange {
                         'iceberg': false,
                     },
                     'createOrders': undefined,
-                    'fetchMyTrades': undefined, // todo implement
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'daysBack': 7,
+                        'limit': 1000,
+                        'untilDays': 7,
+                        'symbolRequired': true,
+                    },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
@@ -277,7 +339,15 @@ export default class indodax extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 7,
+                        'untilDays': 7,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
@@ -317,6 +387,88 @@ export default class indodax extends Exchange {
     }
 
     /**
+     * @ignore
+     * @method
+     * @name indodax#requestTimestamp
+     * @description millisecond timestamp for a signed request, as an integer string
+     * @returns {string} timestamp in milliseconds
+     */
+    requestTimestamp (): string {
+        const timeDifference = this.safeInteger (this.options, 'timeDifference', 0);
+        return this.numberToString (this.milliseconds () - timeDifference);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#isTapiV2
+     * @description whether private calls should use TAPI v2
+     * @returns {boolean} true when options.tapiVersion is "2"
+     */
+    isTapiV2 (): boolean {
+        return this.safeString (this.options, 'tapiVersion', '1') === '2';
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#tapiV2Symbol
+     * @description convert a market to the lowercase TAPI v2 symbol
+     * @param {object} market market structure
+     * @returns {string} exchange symbol such as btcidr
+     */
+    tapiV2Symbol (market: Market): string {
+        let marketId = this.safeString (market, 'id', '');
+        marketId = marketId.replace ('_', '');
+        return marketId.toLowerCase ();
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#v1PairId
+     * @description TAPI v1 pair id, which is ticker_id rather than the public pair id
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md
+     * @param {object} market unified market
+     * @returns {string} pair id such as btc_idr
+     */
+    v1PairId (market: Market): string {
+        const info = this.safeDict (market, 'info', {});
+        const tickerId = this.safeString (info, 'ticker_id');
+        if (tickerId !== undefined) {
+            return tickerId;
+        }
+        return this.safeString (market, 'id', '');
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#marketFromV1Pair
+     * @description find a market for a TAPI v1 pair id such as btc_idr
+     * @param {string} pairId pair id from an order or the open-orders map
+     * @returns {object} a market structure
+     */
+    marketFromV1Pair (pairId: Str): Market {
+        if ((pairId !== undefined) && (this.markets_by_id !== undefined) && (pairId in this.markets_by_id)) {
+            return this.safeMarket (pairId);
+        }
+        const marketList = this.toArray (this.markets);
+        for (let i = 0; i < marketList.length; i++) {
+            const entry = marketList[i];
+            const info = this.safeDict (entry, 'info', {});
+            const tickerId = this.safeString (info, 'ticker_id');
+            if ((tickerId !== undefined) && (tickerId === pairId)) {
+                return entry;
+            }
+        }
+        if ((pairId !== undefined) && (pairId.indexOf ('_') >= 0)) {
+            return this.safeMarket (pairId, undefined, '_');
+        }
+        return this.safeMarket (pairId);
+    }
+
+    /**
      * @method
      * @name indodax#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
@@ -336,15 +488,92 @@ export default class indodax extends Exchange {
     }
 
     /**
+     * @ignore
+     * @method
+     * @name indodax#pairPriceStep
+     * @description tick size for a public pair
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#price-increments
+     * @param {object} market raw pair from GET /api/pairs
+     * @param {string} [increment] price step from GET /api/price_increments
+     * @returns {string} tick size
+     */
+    pairPriceStep (market: Dict, increment: Str = undefined): Str {
+        if ((increment !== undefined) && (increment !== '')) {
+            return increment;
+        }
+        const pricescale = this.safeString (market, 'pricescale');
+        if (pricescale !== undefined) {
+            return pricescale;
+        }
+        const pricePrecision = this.safeString (market, 'price_precision');
+        if (pricePrecision !== undefined) {
+            return pricePrecision;
+        }
+        return this.parsePrecision (this.safeString (market, 'price_round'));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#pairIncrement
+     * @description price step from GET /api/price_increments for one raw pair
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#price-increments
+     * @param {object} market raw pair from GET /api/pairs
+     * @param {object} increments map from GET /api/price_increments
+     * @returns {string|undefined} tick size
+     */
+    pairIncrement (market: Dict, increments: Dict): Str {
+        const tickerId = this.safeString (market, 'ticker_id');
+        let priceStep = this.safeString (increments, tickerId);
+        if (priceStep === undefined) {
+            priceStep = this.safeString (increments, this.safeString (market, 'id'));
+        }
+        return priceStep;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#parsePublicTradingFee
+     * @description parse the public pair fee, which is not an account fee tier
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs
+     * @param {object} market raw pair from GET /api/pairs
+     * @returns {object} a trading fee structure, or undefined when the pair has no fee fields
+     */
+    parsePublicTradingFee (market: Dict) {
+        const takerPercent = this.safeString2 (market, 'trade_fee_percent_taker', 'trade_fee_percent');
+        const makerPercent = this.safeString2 (market, 'trade_fee_percent_maker', 'trade_fee_percent');
+        if ((takerPercent === undefined) && (makerPercent === undefined)) {
+            return undefined;
+        }
+        const baseId = this.safeString (market, 'traded_currency');
+        const quoteId = this.safeString (market, 'base_currency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        return {
+            'info': market,
+            'symbol': base + '/' + quote,
+            'percentage': true,
+            'tierBased': false,
+            'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
+            'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
+        };
+    }
+
+    /**
      * @method
      * @name indodax#fetchMarkets
      * @description retrieves data on all markets for indodax
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#price-increments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetApiPairs (params);
+        const incrementsResponse = await this.publicGetApiPriceIncrements (params);
+        const increments = this.safeDict (incrementsResponse, 'increments', {});
         //
         //     [
         //         {
@@ -359,12 +588,15 @@ export default class indodax extends Exchange {
         //             "price_precision": 1000,
         //             "price_round": 8,
         //             "pricescale": 1000,
+        //             "quantity_increment": "0.00000001",
         //             "trade_min_base_currency": 10000,
         //             "trade_min_traded_currency": 0.00007457,
         //             "has_memo": false,
         //             "memo_name": false,
         //             "has_payment_id": false,
         //             "trade_fee_percent": 0.3,
+        //             "trade_fee_percent_maker": 0.1,
+        //             "trade_fee_percent_taker": 0.2,
         //             "url_logo": "https://indodax.com/v2/logo/svg/color/btc.svg",
         //             "url_logo_png": "https://indodax.com/v2/logo/png/color/btc.png",
         //             "is_maintenance": 0
@@ -385,6 +617,19 @@ export default class indodax extends Exchange {
             }
             const isMaintenance = this.safeInteger (market, 'is_maintenance');
             const inMaintenance = (isMaintenance !== undefined) && (isMaintenance !== 0);
+            let active = true;
+            if (inMaintenance) {
+                active = false;
+            }
+            const fee = this.parsePublicTradingFee (market);
+            let taker = undefined;
+            let maker = undefined;
+            if (fee !== undefined) {
+                taker = fee['taker'];
+                maker = fee['maker'];
+            }
+            const amountStep = this.safeString (market, 'quantity_increment', '0.00000001');
+            const priceStep = this.pairIncrement (market, increments);
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -400,20 +645,22 @@ export default class indodax extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': inMaintenance ? false : true,
+                'active': active,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': this.safeNumber (market, 'trade_fee_percent'),
+                'taker': taker,
+                'maker': maker,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'percentage': true,
+                'tierBased': false,
                 'precision': {
-                    'amount': this.parseNumber ('1e-8'),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_round'))),
+                    'amount': this.parseNumber (amountStep),
+                    'price': this.parseNumber (this.pairPriceStep (market, priceStep)),
                     'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'volume_precision'))),
                 },
                 'limits': {
@@ -426,11 +673,11 @@ export default class indodax extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.safeNumber (market, 'trade_min_base_currency'),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'trade_min_base_currency'),
                         'max': undefined,
                     },
                 },
@@ -439,6 +686,102 @@ export default class indodax extends Exchange {
             });
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name indodax#fetchTradingFees
+     * @description fetch the public trading fees for multiple markets
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=trading-fee-structure} indexed by market symbols
+     */
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
+        const response = await this.publicGetApiPairs (params);
+        const rawMarkets = this.toArray (response);
+        const result: Dict = {};
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const fee = this.parsePublicTradingFee (rawMarkets[i]);
+            if (fee !== undefined) {
+                const symbol = this.safeString (fee, 'symbol');
+                if (symbol !== undefined) {
+                    result[symbol] = fee;
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name indodax#fetchTradingLimits
+     * @description fetch the public trading limits and price steps for markets
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#price-increments
+     * @param {string[]|undefined} symbols unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [trading limits structures]{@link https://docs.ccxt.com/?id=trading-limits-structure} indexed by market symbol
+     */
+    override async fetchTradingLimits (symbols: Strings = undefined, params: Dict = {}): Promise<Dict> {
+        const response = await this.publicGetApiPairs (params);
+        const incrementsResponse = await this.publicGetApiPriceIncrements (params);
+        const increments = this.safeDict (incrementsResponse, 'increments', {});
+        const rawMarkets = this.toArray (response);
+        const result: Dict = {};
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const market = rawMarkets[i];
+            const baseId = this.safeString (market, 'traded_currency');
+            const quoteId = this.safeString (market, 'base_currency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            if (symbols !== undefined) {
+                if (!this.inArray (symbol, symbols)) {
+                    continue;
+                }
+            }
+            const priceStep = this.pairIncrement (market, increments);
+            const amountStep = this.safeString (market, 'quantity_increment');
+            result[symbol] = {
+                'info': market,
+                'precision': {
+                    'amount': this.parseNumber (amountStep),
+                    'price': this.parseNumber (this.pairPriceStep (market, priceStep)),
+                },
+                'limits': {
+                    'amount': {
+                        'min': this.safeNumber (market, 'trade_min_traded_currency'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'trade_min_base_currency'),
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name indodax#editOrder
+     * @description edit a trade order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to edit an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        throw new NotSupported (this.id + ' editOrder() is not supported yet');
     }
 
     override parseBalance (response: any): Balances {
@@ -470,10 +813,15 @@ export default class indodax extends Exchange {
      * @name indodax#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-info-endpoint
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#get-account-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.omitZeroBalances] true to omit zero balances, only used when options.tapiVersion is "2"
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
+        if (this.isTapiV2 ()) {
+            return await this.balanceV2 (params);
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -656,6 +1004,9 @@ export default class indodax extends Exchange {
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
+        if ('tradeId' in trade) {
+            return this.parseV2Trade (trade, market);
+        }
         const timestamp = this.safeTimestamp (trade, 'date');
         return this.safeTrade ({
             'id': this.safeString (trade, 'tid'),
@@ -772,11 +1123,21 @@ export default class indodax extends Exchange {
             'open': 'open',
             'filled': 'closed',
             'cancelled': 'canceled',
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'CANCELLED': 'canceled',
+            'CANCELED': 'canceled',
+            'REJECTED': 'rejected',
+            'EXPIRED': 'expired',
         };
         return this.safeString (statuses, status as string, status);
     }
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
+        if (('origQty' in order) || ('oriQty' in order) || ('fullOrderId' in order) || ('executedQty' in order)) {
+            return this.parseV2Order (order, market);
+        }
         //
         //     {
         //         "order_id": "12345",
@@ -833,20 +1194,40 @@ export default class indodax extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market);
         if (marketResolved !== undefined) {
             symbol = marketResolved['symbol'];
-            let quoteId = marketResolved['quoteId'];
-            let baseId = marketResolved['baseId'];
-            if ((marketResolved['quoteId'] === 'idr') && ('order_rp' in order)) {
+            let quoteId = this.safeString (marketResolved, 'quoteId');
+            let baseId = this.safeString (marketResolved, 'baseId');
+            if ((quoteId === undefined) || (baseId === undefined)) {
+                const resolved = this.marketFromV1Pair (marketId);
+                const resolvedQuoteId = this.safeString (resolved, 'quoteId');
+                const resolvedBaseId = this.safeString (resolved, 'baseId');
+                if (resolvedQuoteId !== undefined) {
+                    quoteId = resolvedQuoteId;
+                    symbol = this.safeString (resolved, 'symbol', symbol);
+                }
+                if (resolvedBaseId !== undefined) {
+                    baseId = resolvedBaseId;
+                }
+            }
+            if ((quoteId === 'idr') && ('order_rp' in order)) {
                 quoteId = 'rp';
             }
-            if ((marketResolved['baseId'] === 'idr') && ('remain_rp' in order)) {
+            if ((baseId === 'idr') && ('remain_rp' in order)) {
                 baseId = 'rp';
             }
-            cost = this.safeString (order, 'order_' + quoteId);
-            amount = this.safeString (order, 'order_' + baseId);
-            remaining = this.safeString (order, 'remain_' + baseId);
-            // filled buy orders on idr-quoted markets carry the executed base amount
-            // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
-            filled = this.safeString (order, 'receive_' + baseId);
+            if (quoteId !== undefined) {
+                const costKey = 'order_' + quoteId;
+                cost = this.safeString (order, costKey);
+            }
+            if (baseId !== undefined) {
+                const amountKey = 'order_' + baseId;
+                const remainKey = 'remain_' + baseId;
+                const filledKey = 'receive_' + baseId;
+                amount = this.safeString (order, amountKey);
+                remaining = this.safeString (order, remainKey);
+                // filled buy orders on idr-quoted markets carry the executed base amount
+                // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
+                filled = this.safeString (order, filledKey);
+            }
         }
         const timestamp = this.safeInteger (order, 'submit_time');
         const fee = undefined;
@@ -881,12 +1262,17 @@ export default class indodax extends Exchange {
      * @name indodax#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-order-endpoints
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#get-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, only used when options.tapiVersion is "2"
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        if (this.isTapiV2 ()) {
+            return await this.orderV2 (id, symbol, params);
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -895,7 +1281,7 @@ export default class indodax extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'pair': market['id'],
+            'pair': this.v1PairId (market),
             'order_id': id,
         };
         const response = await this.privatePostGetOrder (this.extend (request, params));
@@ -910,6 +1296,7 @@ export default class indodax extends Exchange {
      * @name indodax#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#open-orders-endpoints
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#pending-order
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -917,6 +1304,9 @@ export default class indodax extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.isTapiV2 ()) {
+            return await this.openOrdersV2 (symbol, since, limit, params);
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -924,7 +1314,7 @@ export default class indodax extends Exchange {
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['pair'] = market['id'];
+            request['pair'] = this.v1PairId (market);
         }
         const response = await this.privatePostOpenOrders (this.extend (request, params));
         const openOrdersResult = this.safeDict (response, 'return', {});
@@ -943,7 +1333,7 @@ export default class indodax extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketOrders = rawOrders[marketId];
-            market = this.safeMarket (marketId);
+            market = this.marketFromV1Pair (marketId);
             const parsedOrders = this.parseOrders (marketOrders, market, since, limit);
             exchangeOrders = this.arrayConcat (exchangeOrders, parsedOrders);
         }
@@ -955,6 +1345,7 @@ export default class indodax extends Exchange {
      * @name indodax#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#order-history
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#order-history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -962,6 +1353,10 @@ export default class indodax extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.isTapiV2 ()) {
+            const closedOrders = await this.fetchOrders (symbol, since, limit, params);
+            return this.filterBy (closedOrders, 'status', 'closed') as Order[];
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
@@ -970,7 +1365,7 @@ export default class indodax extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'pair': market['id'],
+            'pair': this.v1PairId (market),
         };
         const response = await this.privatePostOrderHistory (this.extend (request, params));
         const historyResult = this.safeDict (response, 'return', {});
@@ -984,31 +1379,34 @@ export default class indodax extends Exchange {
      * @name indodax#createOrder
      * @description create a trade order
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#trade-endpoints
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#create-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] quote amount to spend on a market buy, only used when options.tapiVersion is "2"
+     * @param {string} [params.clientOrderId] client order id, only used when options.tapiVersion is "2"
+     * @param {string} [params.timeInForce] GTC or MOC, only used when options.tapiVersion is "2"
+     * @param {string} [params.selfTradePreventionMode] EXPIRE_TAKER, EXPIRE_MAKER, or EXPIRE_BOTH, only used when options.tapiVersion is "2"
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        if (this.isTapiV2 ()) {
+            return await this.placeOrderV2 (symbol, type, side, amount, price, params);
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'pair': market['id'],
+            'pair': this.v1PairId (market),
             'type': side,
             'price': price,
         };
         let priceIsRequired = false;
         let quantityIsRequired = false;
-        const isMarketBuy = (type === 'market') && (side === 'buy');
-        let paramsOmitted: Dict = params;
-        if (isMarketBuy) {
-            paramsOmitted = this.omit (params, 'cost');
-        }
         if (type === 'market') {
             if (side === 'buy') {
                 let quoteAmount: Str = undefined;
@@ -1044,7 +1442,8 @@ export default class indodax extends Exchange {
         if (quantityIsRequired) {
             request[market['baseId'] as string] = this.amountToPrecision (symbol, amount);
         }
-        const result = await this.privatePostTrade (this.extend (request, paramsOmitted));
+        const tradeParams = (type === 'market' && side === 'buy') ? this.omit (params, 'cost') : params;
+        const result = await this.privatePostTrade (this.extend (request, tradeParams));
         const data = this.safeDict (result, 'return', {});
         const id = this.safeString (data, 'order_id');
         return this.safeOrder ({
@@ -1058,12 +1457,18 @@ export default class indodax extends Exchange {
      * @name indodax#cancelOrder
      * @description cancels an open order
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#cancel-order-endpoints
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#cancel-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.side] order side, required on TAPI v1 and not used when options.tapiVersion is "2"
+     * @param {string} [params.clientOrderId] client order id, only used when options.tapiVersion is "2"
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        if (this.isTapiV2 ()) {
+            return await this.removeOrderV2 (id, symbol, params);
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -1077,7 +1482,7 @@ export default class indodax extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'order_id': id,
-            'pair': market['id'],
+            'pair': this.v1PairId (market),
             'type': side,
         };
         const response = await this.privatePostCancelOrder (this.extend (request, params));
@@ -1114,6 +1519,9 @@ export default class indodax extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     override async fetchTransactionFee (code: string, params: Dict = {}) {
+        if (this.isTapiV2 ()) {
+            throw new NotSupported (this.id + ' fetchTransactionFee() is not available when options.tapiVersion is "2"');
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1151,6 +1559,9 @@ export default class indodax extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     override async fetchDepositWithdrawFee (code: string, params: Dict = {}): Promise<DepositWithdrawFee> {
+        if (this.isTapiV2 ()) {
+            throw new NotSupported (this.id + ' fetchDepositWithdrawFee() is not available when options.tapiVersion is "2"');
+        }
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
@@ -1181,13 +1592,20 @@ export default class indodax extends Exchange {
      * @name indodax#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#transaction-history-endpoints
-     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#get-withdraw-coin-information-history
+     * @param {string} [code] unified currency code. On TAPI v2, omitting code returns only BTC crypto history plus IDR fiat history, because the exchange defaults coin to BTC
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        if (this.isTapiV2 ()) {
+            const deposits = await this.fetchDeposits (code, since, limit, params);
+            const withdrawals = await this.fetchWithdrawals (code, since, limit, params);
+            const merged = this.arrayConcat (deposits, withdrawals);
+            return this.filterBySinceLimit (merged, since, limit, 'timestamp');
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1285,15 +1703,25 @@ export default class indodax extends Exchange {
      * @name indodax#withdraw
      * @description make a withdrawal
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-coin-endpoints
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#withdraw-coin
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#withdraw-idr
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] unified network code, used for crypto withdrawals when options.tapiVersion is "2"
+     * @param {string} [params.clientOrderId] client request id, only used when options.tapiVersion is "2"
+     * @param {string} [params.bankCode] bank code for an IDR withdrawal when options.tapiVersion is "2"
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        if (this.isTapiV2 ()) {
+            return await this.sendWithdrawV2 (code, amount, address, tag, params);
+        }
+        const withdrawTag = this.handleWithdrawTagAndParams (tag, params);
+        const tagWithdrawTag = withdrawTag[0];
+        const paramsWithdrawTag = withdrawTag[1];
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1335,6 +1763,9 @@ export default class indodax extends Exchange {
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        if (('coin' in transaction) || ('fiatCurrency' in transaction) || ('withdrawStatus' in transaction) || ('depositStatus' in transaction) || ('txType' in transaction)) {
+            return this.parseV2Transaction (transaction, currency);
+        }
         //
         // withdraw
         //
@@ -1415,8 +1846,77 @@ export default class indodax extends Exchange {
     parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'success': 'ok',
+            'pending': 'pending',
+            'failed': 'failed',
         };
         return this.safeString (statuses, status as string, status);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#v1DepositNetwork
+     * @description parse a getInfo network value, which may be a string, a comma-separated string, a list, or empty
+     * @param {object} networks network map from getInfo
+     * @param {string} currencyId currency id key
+     * @param {string} code unified currency code
+     * @returns {string[]} unified network codes, one per network
+     */
+    v1DepositNetwork (networks: Dict, currencyId: string, code: Str) {
+        const networkList = this.safeList (networks, currencyId);
+        const networkIds = [];
+        if (networkList !== undefined) {
+            for (let i = 0; i < networkList.length; i++) {
+                const networkId = this.safeString (networkList, i);
+                if (networkId !== undefined) {
+                    networkIds.push (networkId);
+                }
+            }
+        } else {
+            const networkId = this.safeString (networks, currencyId);
+            if (networkId !== undefined) {
+                if (networkId.indexOf (',') >= 0) {
+                    const parts = networkId.split (',');
+                    for (let j = 0; j < parts.length; j++) {
+                        networkIds.push (parts[j]);
+                    }
+                } else {
+                    networkIds.push (networkId);
+                }
+            }
+        }
+        const parsed = [];
+        for (let i = 0; i < networkIds.length; i++) {
+            const networkCode = this.networkIdToCode (networkIds[i], code);
+            if (networkCode !== undefined) {
+                parsed.push (networkCode.toUpperCase ());
+            }
+        }
+        return parsed;
+    }
+
+    /**
+     * @method
+     * @name indodax#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#general-information-on-endpoints
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#list-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] unified network code, only used when options.tapiVersion is "2"
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
+        const addresses = await this.fetchDepositAddresses ([ code ], params);
+        const rows = this.toArray (addresses);
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const rowCode = this.safeString (row, 'currency');
+            if (rowCode === code) {
+                return row as DepositAddress;
+            }
+        }
+        throw new InvalidAddress (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
     }
 
     /**
@@ -1424,11 +1924,16 @@ export default class indodax extends Exchange {
      * @name indodax#fetchDepositAddresses
      * @description fetch deposit addresses for multiple currencies and chain types
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#general-information-on-endpoints
-     * @param {string[]} [codes] list of unified currency codes, default is undefined
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#list-deposit-address
+     * @param {string[]} [codes] list of unified currency codes, required when options.tapiVersion is "2"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] unified network code, only used when options.tapiVersion is "2"
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
     override async fetchDepositAddresses (codes: Strings = undefined, params: Dict = {}): Promise<DepositAddress[]> {
+        if (this.isTapiV2 ()) {
+            return await this.depositAddressesV2 (codes, params);
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1472,53 +1977,932 @@ export default class indodax extends Exchange {
         const addresses = this.safeDict (data, 'address', {});
         const networks = this.safeDict (data, 'network', {});
         const addressKeys = Object.keys (addresses);
-        const result: Dict = {
-            'info': data,
-        };
+        const result = [];
         for (let i = 0; i < addressKeys.length; i++) {
             const marketId = addressKeys[i];
             const code = this.safeCurrencyCode (marketId);
             const address = this.safeString (addresses, marketId);
             if ((address !== undefined) && ((codes === undefined) || (this.inArray (code, codes)))) {
                 this.checkAddress (address);
-                let network: Str | string[] = undefined;
-                if (marketId in networks) {
-                    const networkId = this.safeString (networks, marketId);
-                    if (networkId === undefined) {
-                        throw new ExchangeError (this.id + ' fetchDepositAddresses() missing networkId');
-                    }
-                    if (networkId.indexOf (',') >= 0) {
-                        network = [];
-                        if (networkId === undefined) {
-                            throw new ExchangeError (this.id + ' fetchDepositAddresses() missing networkId');
-                        }
-                        const networkIds = networkId.split (',');
-                        for (let j = 0; j < networkIds.length; j++) {
-                            const _netIdTmp = this.networkIdToCode (networkIds[j], code);
-                            if (_netIdTmp !== undefined) {
-                                network.push (_netIdTmp.toUpperCase ());
-                            }
-                        }
-                    } else {
-                        const _netIdTmp = this.networkIdToCode (networkId, code);
-                        if (_netIdTmp !== undefined) {
-                            network = _netIdTmp.toUpperCase ();
-                        }
-                    }
-                }
-                const finalNetwork = network; // java req
+                const networkCodes = this.v1DepositNetwork (networks, marketId, code);
+                const networkCount = networkCodes.length;
                 if (code !== undefined) {
-                    result[code] = {
-                        'info': {},
-                        'currency': code,
-                        'network': finalNetwork,
-                        'address': address,
-                        'tag': undefined,
-                    };
+                    if (networkCount < 1) {
+                        result.push ({
+                            'info': {},
+                            'currency': code,
+                            'network': undefined,
+                            'address': address,
+                            'tag': undefined,
+                        });
+                    } else {
+                        for (let n = 0; n < networkCount; n++) {
+                            const networkCode = networkCodes[n];
+                            result.push ({
+                                'info': {},
+                                'currency': code,
+                                'network': networkCode,
+                                'address': address,
+                                'tag': undefined,
+                            });
+                        }
+                    }
                 }
             }
         }
         return result as DepositAddress[];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#balanceV2
+     * @description query account balances on TAPI v2
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#get-account-information
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a balance structure
+     */
+    async balanceV2 (params: Dict = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const request: Dict = {};
+        const omitZeroBalances = this.safeBool (params, 'omitZeroBalances');
+        const paramsOmitted = this.omit (params, [ 'omitZeroBalances' ]);
+        if (omitZeroBalances !== undefined) {
+            request['omitZeroBalances'] = omitZeroBalances;
+        }
+        const response = await this.v2GetAccount (this.extend (request, paramsOmitted));
+        return this.parseBalanceV2 (response);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#parseBalanceV2
+     * @param {object} response account response
+     * @returns {object} a balance structure
+     */
+    parseBalanceV2 (response: Dict): Balances {
+        const balances = this.safeList (response, 'balances', []);
+        const result: Dict = {
+            'info': response,
+        };
+        for (let i = 0; i < balances.length; i++) {
+            const entry = balances[i];
+            const currencyId = this.safeString (entry, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (entry, 'free');
+            account['used'] = this.safeString (entry, 'locked');
+            if (code !== undefined) {
+                result[code] = account;
+            }
+        }
+        return this.safeBalance (result);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#parseV2Order
+     * @param {object} order raw order
+     * @param {object} [market] market structure
+     * @returns {object} an order structure
+     */
+    parseV2Order (order: Dict, market: Market = undefined): Order {
+        const marketId = this.safeStringLower (order, 'symbol');
+        const marketResolved = this.safeMarket (marketId, market);
+        const rawStatus = this.safeString (order, 'status');
+        let status: Str = undefined;
+        if (rawStatus !== undefined) {
+            status = this.parseOrderStatus (rawStatus);
+        }
+        const timestamp = this.safeInteger2 (order, 'time', 'submitTime');
+        const amount = this.safeString2 (order, 'origQty', 'oriQty');
+        const filled = this.safeString (order, 'executedQty');
+        let remaining: Str = undefined;
+        if ((amount !== undefined) && (filled !== undefined)) {
+            remaining = Precise.stringSub (amount, filled);
+        }
+        return {
+            'info': order,
+            'id': this.safeString2 (order, 'fullOrderId', 'orderId'),
+            'clientOrderId': this.safeString2 (order, 'clientOrderId', 'origClientOrderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': this.safeInteger (order, 'finishTime'),
+            'symbol': this.safeSymbol (marketId, marketResolved),
+            'type': this.safeStringLower (order, 'type'),
+            'timeInForce': this.safeString (order, 'timeInForce'),
+            'postOnly': undefined,
+            'side': this.safeStringLower (order, 'side'),
+            'price': this.parseNumber (this.safeString (order, 'price')),
+            'triggerPrice': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'amount': this.parseNumber (amount),
+            'filled': this.parseNumber (filled),
+            'remaining': this.parseNumber (remaining),
+            'status': status,
+            'fee': undefined,
+            'trades': [],
+            'fees': [],
+            'lastUpdateTimestamp': undefined,
+            'reduceOnly': undefined,
+            'stopPrice': undefined,
+            'takeProfitPrice': undefined,
+            'stopLossPrice': undefined,
+        } as Order;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#parseV2Trade
+     * @param {object} trade raw trade
+     * @param {object} [market] market structure
+     * @returns {object} a trade structure
+     */
+    parseV2Trade (trade: Dict, market: Market = undefined): Trade {
+        const marketId = this.safeStringLower (trade, 'symbol');
+        const marketResolved = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (trade, 'time');
+        const isBuyer = this.safeBool (trade, 'isBuyer');
+        let side: Str = undefined;
+        if (isBuyer === true) {
+            side = 'buy';
+        } else if (isBuyer === false) {
+            side = 'sell';
+        }
+        const isMaker = this.safeBool (trade, 'isMaker');
+        let takerOrMaker: Str = undefined;
+        if (isMaker === true) {
+            takerOrMaker = 'maker';
+        } else if (isMaker === false) {
+            takerOrMaker = 'taker';
+        }
+        const feeCost = this.safeString (trade, 'commission');
+        let fee: Fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
+                'cost': this.parseNumber (feeCost),
+                'rate': undefined,
+            };
+        }
+        return this.safeTrade ({
+            'id': this.safeString (trade, 'tradeId'),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': this.safeSymbol (marketId, marketResolved),
+            'type': undefined,
+            'side': side,
+            'order': this.safeString (trade, 'orderId'),
+            'takerOrMaker': takerOrMaker,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'qty'),
+            'cost': this.safeString (trade, 'quoteQty'),
+            'fee': fee,
+        }, market);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#v2OrderRequest
+     * @param {string} id order id
+     * @param {string} symbol unified symbol
+     * @param {object} params extra parameters
+     * @returns {object[]} request and remaining params
+     */
+    v2OrderRequest (id: string, symbol: Str, params: Dict): any[] {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' order endpoints require a symbol argument');
+        }
+        const market = this.market (symbol);
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const paramsOmitted = this.omit (params, [ 'clientOrderId' ]);
+        const request: Dict = {
+            'symbol': this.tapiV2Symbol (market),
+        };
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
+        } else {
+            request['orderId'] = this.v2OrderId (id);
+        }
+        return [ market, request, paramsOmitted ];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#v2OrderId
+     * @description numeric id for GET and DELETE /api/v2/order. fullOrderId stays the unified id
+     * @param {string} orderId unified id, a number or a fullOrderId such as btcidr-limit-6423
+     * @returns {string} numeric order id
+     */
+    v2OrderId (orderId: string): string {
+        const parts = orderId.split ('-');
+        const numParts = parts.length;
+        const tail = parts[numParts - 1];
+        const digits = '0123456789';
+        if (tail.length < 1) {
+            return orderId;
+        }
+        let index = 0;
+        while (index < tail.length) {
+            const character = tail[index];
+            if (digits.indexOf (character) < 0) {
+                return orderId;
+            }
+            index = this.sum (index, 1);
+        }
+        return tail;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#orderV2
+     * @param {string} id order id
+     * @param {string} symbol unified symbol
+     * @param {object} [params] extra parameters
+     * @returns {object} an order structure
+     */
+    async orderV2 (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const orderRequest = this.v2OrderRequest (id, symbol, params);
+        const market = orderRequest[0];
+        const request = orderRequest[1];
+        const paramsRest = orderRequest[2];
+        const response = await this.v2GetOrder (this.extend (request, paramsRest));
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#openOrdersV2
+     * @param {string} [symbol] unified symbol
+     * @param {int} [since] earliest timestamp
+     * @param {int} [limit] max number of orders
+     * @param {object} [params] extra parameters
+     * @returns {object[]} a list of order structures
+     */
+    async openOrdersV2 (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = this.tapiV2Symbol (market);
+        }
+        const response = await this.v2GetOpenOrders (this.extend (request, params));
+        const rows = this.toArray (response);
+        return this.parseOrders (rows, market, since, limit);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#clampV2Limit
+     * @param {int} [limit] requested limit
+     * @returns {int} limit clamped to 10-1000
+     */
+    clampV2Limit (limit: Int = undefined): Int {
+        if (limit === undefined) {
+            return undefined;
+        }
+        if (limit < 10) {
+            return 10;
+        }
+        if (limit > 1000) {
+            return 1000;
+        }
+        return limit;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#historyV2
+     * @param {string} historyKind orders or trades
+     * @param {string} symbol unified symbol
+     * @param {int} [since] earliest timestamp
+     * @param {int} [until] latest timestamp
+     * @param {int} [limit] max rows per request
+     * @param {object} [params] extra parameters
+     * @returns {object[]} raw rows
+     */
+    async historyV2 (historyKind: string, symbol: string, since: Int = undefined, until: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<any[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const paginate = this.safeBool (params, 'paginate', false);
+        const paramsOmitted = this.omit (params, [ 'symbol', 'startTime', 'endTime', 'limit', 'paginate' ]);
+        const maxSpan = 7 * 24 * 60 * 60 * 1000;
+        const windows = this.windowV2 (since, until, maxSpan);
+        let numWindows = windows.length;
+        if ((numWindows > 1) && (paginate !== true)) {
+            numWindows = 1;
+        }
+        const requestLimit = this.clampV2Limit (limit);
+        const result: List = [];
+        for (let i = 0; i < numWindows; i++) {
+            const window = windows[i];
+            const request: Dict = {
+                'symbol': this.tapiV2Symbol (market),
+            };
+            if (window[0] !== undefined) {
+                request['startTime'] = window[0];
+            }
+            if (window[1] !== undefined) {
+                request['endTime'] = window[1];
+            }
+            if (requestLimit !== undefined) {
+                request['limit'] = requestLimit;
+            }
+            let response = undefined;
+            if (historyKind === 'orders') {
+                response = await this.v2GetOrderHistories (this.extend (request, paramsOmitted));
+            } else {
+                response = await this.v2GetMyTrades (this.extend (request, paramsOmitted));
+            }
+            const rows = this.safeList (response, 'data', []);
+            for (let j = 0; j < rows.length; j++) {
+                result.push (rows[j]);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name indodax#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#order-history
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {boolean} [params.paginate] true to request every 7-day window. When omitted, only the first window from since is requested. v1 orderHistory was decommissioned on 2026-04-07, so this method requires options.tapiVersion "2"
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (!this.isTapiV2 ()) {
+            throw new NotSupported (this.id + ' fetchOrders() requires options.tapiVersion set to "2"');
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+        }
+        const until = this.safeInteger (params, 'until');
+        const paramsOmitted = this.omit (params, [ 'until' ]);
+        const rows = await this.historyV2 ('orders', symbol, since, until, limit, paramsOmitted);
+        const market = this.market (symbol);
+        return this.parseOrders (rows, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name indodax#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#trade-history
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {boolean} [params.paginate] true to request every 7-day window. When omitted, only the first window from since is requested. v1 tradeHistory was decommissioned on 2026-04-07, so this method requires options.tapiVersion "2"
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (!this.isTapiV2 ()) {
+            throw new NotSupported (this.id + ' fetchMyTrades() requires options.tapiVersion set to "2"');
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
+        const until = this.safeInteger (params, 'until');
+        const paramsOmitted = this.omit (params, [ 'until' ]);
+        const rows = await this.historyV2 ('trades', symbol, since, until, limit, paramsOmitted);
+        const market = this.market (symbol);
+        return this.parseTrades (rows, market, since, limit);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#placeOrderV2
+     * @param {string} symbol unified symbol
+     * @param {string} orderType market or limit
+     * @param {string} side buy or sell
+     * @param {float} amount base amount
+     * @param {float} [price] price
+     * @param {object} [params] extra parameters
+     * @returns {object} an order structure
+     */
+    async placeOrderV2 (symbol: string, orderType: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const selfTradePreventionMode = this.safeString (params, 'selfTradePreventionMode');
+        const cost = this.safeString (params, 'cost');
+        const paramsOmitted = this.omit (params, [ 'clientOrderId', 'timeInForce', 'selfTradePreventionMode', 'cost' ]);
+        const request: Dict = {
+            'symbol': this.tapiV2Symbol (market),
+            'side': side.toUpperCase (),
+            'type': orderType.toUpperCase (),
+        };
+        if (orderType === 'market') {
+            if (side === 'buy') {
+                let quoteAmount: Str = undefined;
+                if (cost !== undefined) {
+                    quoteAmount = this.costToPrecision (symbol, cost);
+                } else {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument or params.cost for market buy orders');
+                    }
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    quoteAmount = this.costToPrecision (symbol, Precise.stringMul (amountString, priceString));
+                }
+                request['quoteOrderQty'] = quoteAmount;
+            } else {
+                request['quantity'] = this.amountToPrecision (symbol, amount);
+            }
+        } else if (orderType === 'limit') {
+            if (price === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires a price argument for a limit order');
+            }
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+            if (timeInForce !== undefined) {
+                request['timeInForce'] = timeInForce;
+            }
+        } else {
+            throw new InvalidOrder (this.id + ' createOrder() does not support order type ' + orderType);
+        }
+        if (clientOrderId !== undefined) {
+            request['newClientOrderId'] = clientOrderId;
+        }
+        if (selfTradePreventionMode !== undefined) {
+            request['selfTradePreventionMode'] = selfTradePreventionMode;
+        }
+        const response = await this.v2PostOrder (this.extend (request, paramsOmitted));
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#removeOrderV2
+     * @param {string} id order id
+     * @param {string} symbol unified symbol
+     * @param {object} [params] extra parameters
+     * @returns {object} an order structure
+     */
+    async removeOrderV2 (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const orderRequest = this.v2OrderRequest (id, symbol, params);
+        const market = orderRequest[0];
+        const request = orderRequest[1];
+        const paramsRest = orderRequest[2];
+        const response = await this.v2DeleteOrder (this.extend (request, paramsRest));
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#depositAddressesV2
+     * @param {string[]} codes unified currency codes, required because each TAPI v2 query needs a coin
+     * @param {object} [params] extra parameters
+     * @returns {object[]} a list of address structures
+     */
+    async depositAddressesV2 (codes: Strings = undefined, params: Dict = {}): Promise<DepositAddress[]> {
+        if (codes === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddresses() requires symbols like BTC');
+        }
+        const numCodes = codes.length;
+        if (numCodes < 1) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddresses() requires symbols like BTC');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const networkAndParams = this.handleNetworkCodeAndParams (params);
+        const networkCode = networkAndParams[0];
+        const paramsOmitted = networkAndParams[1];
+        const result = [];
+        for (let i = 0; i < numCodes; i++) {
+            const code = codes[i];
+            const currency = this.currency (code);
+            const coinId = this.safeString (currency, 'id', code);
+            if ((coinId === undefined) || (coinId === '')) {
+                continue;
+            }
+            const request: Dict = {
+                'coin': coinId,
+            };
+            if (networkCode !== undefined) {
+                request['network'] = this.networkCodeToId (networkCode, code);
+            }
+            const response = await this.v2GetCapitalDepositAddressList (this.extend (request, paramsOmitted));
+            const rows = this.toArray (response);
+            const numRows = rows.length;
+            for (let j = 0; j < numRows; j++) {
+                const row = rows[j];
+                const address = this.safeString (row, 'address');
+                if ((address === undefined) || (address === '')) {
+                    continue;
+                }
+                this.checkAddress (address);
+                const networkId = this.safeString (row, 'network');
+                const currencyCode = this.safeString (currency, 'code');
+                if (currencyCode !== undefined) {
+                    result.push ({
+                        'info': row,
+                        'currency': currencyCode,
+                        'network': this.networkIdToCode (networkId, currencyCode),
+                        'address': address,
+                        'tag': this.safeString (row, 'tag'),
+                    });
+                }
+            }
+        }
+        return result as DepositAddress[];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#windowV2
+     * @param {int} [since] earliest timestamp
+     * @param {int} [until] latest timestamp
+     * @param {int} maxSpan maximum window in ms
+     * @returns {int[][]} windows of start and end
+     */
+    windowV2 (since: Int, until: Int, maxSpan: number): any[] {
+        let windowStart = since;
+        let windowEnd = until;
+        if ((windowStart === undefined) && (windowEnd === undefined)) {
+            return [ [ undefined, undefined ] ];
+        }
+        if (windowEnd === undefined) {
+            windowEnd = this.milliseconds ();
+        }
+        if (windowStart === undefined) {
+            windowStart = windowEnd - maxSpan;
+        }
+        const windows: List = [];
+        let cursor = windowStart;
+        while (cursor < windowEnd) {
+            let chunkEnd = this.sum (cursor, maxSpan);
+            if (chunkEnd > windowEnd) {
+                chunkEnd = windowEnd;
+            }
+            windows.push ([ cursor, chunkEnd ]);
+            if (chunkEnd === cursor) {
+                break;
+            }
+            cursor = chunkEnd;
+        }
+        return windows;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#capitalHistoryV2
+     * @param {string} direction deposit or withdraw
+     * @param {string} [code] unified currency code
+     * @param {int} [since] earliest timestamp
+     * @param {int} [until] latest timestamp
+     * @param {int} [limit] max rows
+     * @param {object} [params] extra parameters
+     * @returns {object[]} raw rows
+     */
+    async capitalHistoryV2 (direction: string, code: Str = undefined, since: Int = undefined, until: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<any[]> {
+        const paginate = this.safeBool (params, 'paginate', false);
+        const paramsOmitted = this.omit (params, [ 'coin', 'startTime', 'endTime', 'limit', 'paginate' ]);
+        const requestLimit = this.clampV2Limit (limit);
+        const maxSpan = 90 * 24 * 60 * 60 * 1000;
+        const windows = this.windowV2 (since, until, maxSpan);
+        let numWindows = windows.length;
+        if ((numWindows > 1) && (paginate !== true)) {
+            numWindows = 1;
+        }
+        const result: List = [];
+        for (let i = 0; i < numWindows; i++) {
+            const window = windows[i];
+            const request: Dict = {};
+            if (code !== undefined) {
+                const currency = this.currency (code);
+                request['coin'] = currency['id'];
+            }
+            if (window[0] !== undefined) {
+                request['startTime'] = window[0];
+            }
+            if (window[1] !== undefined) {
+                request['endTime'] = window[1];
+            }
+            if (requestLimit !== undefined) {
+                request['limit'] = requestLimit;
+            }
+            let response = undefined;
+            if (direction === 'deposit') {
+                response = await this.v2GetCapitalDepositHisrec (this.extend (request, paramsOmitted));
+            } else {
+                response = await this.v2GetCapitalWithdrawHistory (this.extend (request, paramsOmitted));
+            }
+            const rows = this.toArray (response);
+            for (let j = 0; j < rows.length; j++) {
+                const txType = (direction === 'deposit') ? 'deposit' : 'withdraw';
+                const row = this.extend (rows[j], {
+                    'txType': txType,
+                });
+                result.push (row);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#fiatHistoryV2
+     * @param {string} direction deposit or withdraw
+     * @param {string} [code] unified currency code
+     * @param {int} [since] earliest timestamp
+     * @param {int} [until] latest timestamp
+     * @param {int} [limit] max rows
+     * @param {object} [params] extra parameters
+     * @returns {object[]} raw rows
+     */
+    async fiatHistoryV2 (direction: string, code: Str = undefined, since: Int = undefined, until: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<any[]> {
+        if ((code !== undefined) && (code !== 'IDR')) {
+            return [];
+        }
+        const paginate = this.safeBool (params, 'paginate', false);
+        const paramsOmitted = this.omit (params, [ 'transactionType', 'beginTime', 'endTime', 'limit', 'paginate' ]);
+        const requestLimit = this.clampV2Limit (limit);
+        const maxSpan = 30 * 24 * 60 * 60 * 1000;
+        const windows = this.windowV2 (since, until, maxSpan);
+        let numWindows = windows.length;
+        if ((numWindows > 1) && (paginate !== true)) {
+            numWindows = 1;
+        }
+        const result: List = [];
+        for (let i = 0; i < numWindows; i++) {
+            const window = windows[i];
+            const request: Dict = {};
+            if (direction === 'deposit') {
+                request['transactionType'] = '0';
+            }
+            if (window[0] !== undefined) {
+                request['beginTime'] = window[0];
+            }
+            if (window[1] !== undefined) {
+                request['endTime'] = window[1];
+            }
+            if (requestLimit !== undefined) {
+                request['limit'] = requestLimit;
+            }
+            const response = await this.v2GetFiatOrders (this.extend (request, paramsOmitted));
+            const rows = this.safeList (response, 'data', []);
+            for (let j = 0; j < rows.length; j++) {
+                const txType = (direction === 'deposit') ? 'deposit' : 'withdraw';
+                const row = this.extend (rows[j], {
+                    'txType': txType,
+                });
+                result.push (row);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name indodax#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#get-deposit-coin-information-history
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#get-withdrawdeposit-fiat-information-history
+     * @param {string} [code] unified currency code. Omitting code returns only BTC crypto deposits plus IDR fiat deposits, because TAPI v2 defaults coin to BTC. Without params.paginate the crypto window is 90 days and the IDR window is the first 30 days, so paging by the newest row can skip IDR. Not available when options.tapiVersion is "1"
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch deposits for
+     * @param {boolean} [params.paginate] true to request every exchange window. When omitted, only the first window from since is requested. Crypto windows are 90 days and IDR windows are 30 days
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        if (!this.isTapiV2 ()) {
+            throw new NotSupported (this.id + ' fetchDeposits() requires options.tapiVersion set to "2"');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const until = this.safeInteger (params, 'until');
+        const paramsOmitted = this.omit (params, [ 'until' ]);
+        let rows: List = [];
+        if (code !== 'IDR') {
+            const cryptoRows = await this.capitalHistoryV2 ('deposit', code, since, until, limit, paramsOmitted);
+            rows = this.arrayConcat (rows, cryptoRows);
+        }
+        if ((code === undefined) || (code === 'IDR')) {
+            const fiatRows = await this.fiatHistoryV2 ('deposit', code, since, until, limit, paramsOmitted);
+            rows = this.arrayConcat (rows, fiatRows);
+        }
+        const currency = (code === undefined) ? undefined : this.currency (code);
+        return this.parseTransactions (rows, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name indodax#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#get-withdraw-coin-information-history
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md#get-withdrawdeposit-fiat-information-history
+     * @param {string} [code] unified currency code. Omitting code returns only BTC crypto withdrawals plus IDR fiat withdrawals, because TAPI v2 defaults coin to BTC. Not available when options.tapiVersion is "1"
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+     * @param {boolean} [params.paginate] true to request every exchange window. When omitted, only the first window from since is requested. Crypto windows are 90 days and IDR windows are 30 days
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        if (!this.isTapiV2 ()) {
+            throw new NotSupported (this.id + ' fetchWithdrawals() requires options.tapiVersion set to "2"');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const until = this.safeInteger (params, 'until');
+        const paramsOmitted = this.omit (params, [ 'until' ]);
+        let rows: List = [];
+        if (code !== 'IDR') {
+            const cryptoRows = await this.capitalHistoryV2 ('withdraw', code, since, until, limit, paramsOmitted);
+            rows = this.arrayConcat (rows, cryptoRows);
+        }
+        if ((code === undefined) || (code === 'IDR')) {
+            const fiatRows = await this.fiatHistoryV2 ('withdraw', code, since, until, limit, paramsOmitted);
+            rows = this.arrayConcat (rows, fiatRows);
+        }
+        const currency = (code === undefined) ? undefined : this.currency (code);
+        return this.parseTransactions (rows, currency, since, limit);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#parseV2Transaction
+     * @param {object} transaction raw transaction
+     * @param {object} [currency] currency structure
+     * @returns {object} a transaction structure
+     */
+    parseV2Transaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        const txKind = this.safeString (transaction, 'txType');
+        const coin = this.safeString (transaction, 'coin');
+        const fiatCurrency = this.safeString (transaction, 'fiatCurrency');
+        const currencyId = (coin !== undefined) ? coin : fiatCurrency;
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const status = this.safeStringN (transaction, [ 'withdrawStatus', 'depositStatus', 'status' ]);
+        let timestamp = this.safeInteger2 (transaction, 'createTime', 'updateTime');
+        if (timestamp === undefined) {
+            timestamp = this.safeIntegerN (transaction, [ 'applyTime', 'insertTime', 'completeTime' ]);
+        }
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeStringN (transaction, [ 'applyTime', 'insertTime', 'completeTime' ]));
+        }
+        let updated = this.safeInteger2 (transaction, 'updateTime', 'completeTime');
+        if (updated === undefined) {
+            updated = this.parse8601 (this.safeString (transaction, 'completeTime'));
+        }
+        const info = this.omit (transaction, [ 'txType' ]);
+        const feeCost = this.safeNumber2 (transaction, 'transactionFee', 'totalFee');
+        let fee: Fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+                'rate': undefined,
+            };
+        }
+        const networkId = this.safeString (transaction, 'network');
+        return {
+            'id': this.safeString2 (transaction, 'id', 'orderNo'),
+            'txid': this.safeString (transaction, 'txId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': this.networkIdToCode (networkId, code),
+            'addressFrom': undefined,
+            'address': this.safeString (transaction, 'address'),
+            'addressTo': undefined,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'type': (txKind === undefined) ? undefined : txKind,
+            'currency': code,
+            'status': this.parseTransactionStatus (status),
+            'updated': updated,
+            'tagFrom': undefined,
+            'tag': this.safeString (transaction, 'addressTag'),
+            'tagTo': undefined,
+            'comment': undefined,
+            'internal': undefined,
+            'fee': fee,
+            'info': info,
+        } as Transaction;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#sendWithdrawV2
+     * @param {string} code unified currency code
+     * @param {float} amount amount to withdraw
+     * @param {string} address destination address or bank account number
+     * @param {string} [tag] destination tag or memo, sent as addressTag
+     * @param {object} [params] extra parameters
+     * @returns {object} a transaction structure
+     */
+    async sendWithdrawV2 (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+        const withdrawTag = this.handleWithdrawTagAndParams (tag, params);
+        const tagValue = withdrawTag[0];
+        const paramsAfterTag = withdrawTag[1];
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const currency = this.currency (code);
+        if (currency['code'] === 'IDR') {
+            const bankCode = this.safeString (paramsAfterTag, 'bankCode');
+            if ((bankCode === undefined) || (bankCode === '')) {
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a params.bankCode for IDR, the 3-digit bank code');
+            }
+            const clientRequestId = this.safeString (paramsAfterTag, 'clientOrderId', this.milliseconds ().toString ());
+            const paramsOmitted = this.omit (paramsAfterTag, [ 'bankCode', 'clientOrderId' ]);
+            const accountNumberJson = this.json (address);
+            const bankCodeJson = this.json (bankCode);
+            // hex braces: a '{...}' literal is rewritten to array() by the PHP transpiler
+            const openBrace = this.binaryToString (this.base16ToBinary ('7b'));
+            const closeBrace = this.binaryToString (this.base16ToBinary ('7d'));
+            const accountInfo = openBrace + '"accountNumber":' + accountNumberJson + ',"bankCodeForPix":' + bankCodeJson + closeBrace;
+            const fiatRequest: Dict = {
+                'apiPaymentMethod': 'bank_transfer',
+                'currency': 'idr',
+                'amount': this.parseToInt (amount),
+                'accountInfo': accountInfo,
+                'clientRequestId': clientRequestId,
+            };
+            const fiatResponse = await this.v2PostFiatWithdraw (this.extend (fiatRequest, paramsOmitted));
+            const data = this.safeDict (fiatResponse, 'data', {});
+            const orderId = this.safeString (data, 'orderId');
+            return this.parseV2Transaction ({
+                'orderNo': orderId,
+                'fiatCurrency': 'IDR',
+                'amount': this.numberToString (amount),
+                'txType': 'withdraw',
+                'address': address,
+            }, currency);
+        }
+        this.checkAddress (address);
+        const networkAndParams = this.handleNetworkCodeAndParams (paramsAfterTag);
+        const networkCode = networkAndParams[0];
+        const paramsAfterNetwork = networkAndParams[1];
+        const withdrawOrderId = this.safeString (paramsAfterNetwork, 'clientOrderId', this.milliseconds ().toString ());
+        const paramsForWithdraw = this.omit (paramsAfterNetwork, [ 'clientOrderId' ]);
+        const request: Dict = {
+            'coin': currency['id'],
+            'address': address,
+            'amount': this.numberToString (amount),
+            'withdrawOrderId': withdrawOrderId,
+        };
+        if (networkCode !== undefined) {
+            request['network'] = this.networkCodeToId (networkCode, currency['code']);
+        }
+        if ((tagValue !== undefined) && (tagValue !== '')) {
+            request['addressTag'] = tagValue;
+        }
+        const response = await this.v2PostCapitalWithdrawApply (this.extend (request, paramsForWithdraw));
+        const annotated = this.extend (response, {
+            'txType': 'withdraw',
+        });
+        return this.parseV2Transaction (annotated, currency);
     }
 
     override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
@@ -1527,38 +2911,78 @@ export default class indodax extends Exchange {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl;
-        let privateBody: Str = undefined;
-        let privateHeaders: NullableDict = undefined;
-        const isPublic = (api === 'public');
-        if (isPublic) {
+        let requestBody: Str = body;
+        let requestHeaders: NullableDict = headers;
+        if (api === 'public') {
             const query = this.omit (params, this.extractParams (path));
             const requestPath = '/' + this.implodeParams (path, params);
-            url += requestPath;
+            url = url + requestPath;
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencodeWithArrayRepeat (query);
             }
+        } else if (api === 'v2') {
+            this.checkRequiredCredentials ();
+            url = url + '/api/v2/' + this.implodeParams (path, params);
+            const query = this.urlencode (this.extend ({
+                'timestamp': this.requestTimestamp (),
+                'recvWindow': this.safeInteger (this.options, 'recvWindow', 5000),
+            }, params));
+            const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
+            requestHeaders = {
+                'Accept': 'application/json',
+                'X-APIKEY': this.apiKey,
+                'Sign': signature,
+            };
+            if (method === 'POST') {
+                requestBody = query;
+                requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
+            } else {
+                url += '?' + query;
+            }
         } else {
             this.checkRequiredCredentials ();
-            privateBody = this.urlencode (this.extend ({
+            requestBody = this.urlencode (this.extend ({
                 'method': path,
-                'timestamp': this.nonce (),
-                'recvWindow': this.options['recvWindow'],
+                'timestamp': this.requestTimestamp (),
+                'recvWindow': this.safeInteger (this.options, 'recvWindow', 5000),
             }, params));
-            privateHeaders = {
+            requestHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (privateBody), this.encode (this.secret), sha512),
+                'Sign': this.hmac (this.encode (requestBody), this.encode (this.secret), sha512),
             };
         }
-        let requestBody: Str = privateBody;
-        if (isPublic) {
-            requestBody = body;
-        }
-        let requestHeaders: NullableDict = privateHeaders;
-        if (isPublic) {
-            requestHeaders = headers;
-        }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#request
+     * @description send a request and retry once when the exchange rejects the timestamp
+     * @param {string} path endpoint path
+     * @param {string} [api] api section, public, private, or v2
+     * @param {string} [method] http method
+     * @param {object} [params] request parameters
+     * @param {object} [headers] request headers
+     * @param {string} [body] request body
+     * @param {object} [config] request config
+     * @returns {object} the exchange response
+     */
+    override async request (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: any = {}): Promise<any> {
+        let response = undefined;
+        try {
+            response = await this.fetch2 (path, api, method, params, headers, body, config);
+        } catch (e) {
+            const adjusted = this.safeBool (this.options, 'timestampAdjusted', false);
+            if ((api === 'public') || adjusted || !(e instanceof InvalidNonce)) {
+                throw e;
+            }
+            await this.loadTimeDifference ();
+            this.options['timestampAdjusted'] = true;
+            response = await this.fetch2 (path, api, method, params, headers, body, config);
+        }
+        return response;
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
@@ -1571,6 +2995,15 @@ export default class indodax extends Exchange {
         // {"success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":""}
         if (Array.isArray (response)) {
             return undefined; // public endpoints may return []-arrays
+        }
+        const errorCode = this.safeInteger (response, 'code');
+        if ((errorCode !== undefined) && (errorCode !== 0)) {
+            const message = this.safeString (response, 'msg', '');
+            const errorFeedback = this.id + ' ' + body;
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, errorFeedback);
+            const codeString = this.numberToString (errorCode);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeString, errorFeedback);
+            throw new ExchangeError (errorFeedback);
         }
         const error = this.safeString (response, 'error', '');
         if (!('success' in response) && error === '') {
@@ -1589,6 +3022,10 @@ export default class indodax extends Exchange {
             }
         }
         const feedback = this.id + ' ' + body;
+        const errorCodeText = this.safeString (response, 'error_code');
+        if (errorCodeText !== undefined) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCodeText, feedback);
+        }
         this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
         throw new ExchangeError (feedback); // unknown message
