@@ -1238,9 +1238,6 @@ export default class pacifica extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a "since" argument');
-        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a "symbol" argument');
         }
@@ -1254,20 +1251,25 @@ export default class pacifica extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, defaultMaxLimit) as OHLCV[];
         }
         const tf = this.safeString (this.timeframes, timeframe, timeframe);
+        const duration = this.parseTimeframe (tf);
+        let sinceFinal = since;
+        if (sinceFinal === undefined) {
+            sinceFinal = this.milliseconds () - (defaultMaxLimit * duration * 1000);
+        }
         const request: Dict = {
             'symbol': market['id'],
             'interval': tf,
-            'start_time': since,
+            'start_time': sinceFinal,
         };
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_time', request, paramsPaginate);
         const nowMillis = this.milliseconds ();
         let until = this.safeInteger (requestUntil, 'end_time');
         if (until === undefined) {
             if (limit !== undefined) {
-                until = since + (limit * (this.parseTimeframe (tf) * 1000)) - 1;
+                until = sinceFinal + (limit * (duration * 1000)) - 1;
             }
             if (until === undefined) {
-                until = since + (defaultMaxLimit * (this.parseTimeframe (tf) * 1000)) - 1;
+                until = sinceFinal + (defaultMaxLimit * (duration * 1000)) - 1;
             }
             if (until > nowMillis) {
                 until = nowMillis;
@@ -1297,7 +1299,7 @@ export default class pacifica extends Exchange {
         // }
         //
         const candles = this.safeList (response, 'data', []);
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+        return this.parseOHLCVs (candles, market, timeframe, sinceFinal, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {

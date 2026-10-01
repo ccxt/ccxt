@@ -8,6 +8,19 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "fetchOHLCV": [
+            {
+                "disabled": true,
+                "description": "without since (disabled bcz of variable since handling)",
+                "method": "fetchOHLCV",
+                "url": "https://api.pacifica.fi/api/v1/kline?symbol=BTC&interval=1m&start_time=1790440852119&end_time=1790677852118",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m"
+                ],
+                "output": null
+            }
+        ],
         "fetchOpenInterests": [
             {
                 "description": "open interest for all markets",
