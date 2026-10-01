@@ -904,20 +904,24 @@ export default class derive extends deriveRest {
         const [ fetchSnapshot, paramsSnapshot ] = this.handleOptionBoolAndParams (params, 'watchPositions', 'fetchPositionsSnapshot', true);
         const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchPositions', paramsSnapshot);
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolBySide ();
+            const emptyCaches: Dict = {};
+            this.positions = emptyCaches;
             const emptySnapshots: Dict = {};
             this.options['loadedPositionsSnapshots'] = emptySnapshots;
         }
-        // the snapshot is tracked per subaccount, so each newly watched subaccount gets a rest snapshot of its own
-        const loadedSnapshots = this.safeDict (this.options, 'loadedPositionsSnapshots', {});
+        // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
         const subaccountIdKey = this.numberToString (subaccountId) as string;
+        if (!(subaccountIdKey in this.positions)) {
+            this.positions[subaccountIdKey] = new ArrayCacheBySymbolBySide ();
+        }
+        const loadedSnapshots = this.safeDict (this.options, 'loadedPositionsSnapshots', {});
         if (fetchSnapshot && !(subaccountIdKey in loadedSnapshots)) {
             const snapshotRequest: Dict = {
                 'subaccount_id': subaccountId,
             };
             const snapshotParams = this.extend (snapshotRequest, paramsDeriveSubaccountId);
             const positionsSnapshot = await this.fetchPositions (undefined, snapshotParams);
-            const cache = this.positions;
+            const cache = this.positions[subaccountIdKey];
             for (let i = 0; i < positionsSnapshot.length; i++) {
                 cache.append (positionsSnapshot[i]);
             }
@@ -943,10 +947,10 @@ export default class derive extends deriveRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbolsResolved, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions[subaccountIdKey], symbolsResolved, since, limit, true);
     }
 
-    handlePositionDelta (entry: Dict): Position {
+    handlePositionDelta (subaccountIdKey: string, entry: Dict): Position {
         const marketId = this.safeString (entry, 'name');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -954,7 +958,7 @@ export default class derive extends deriveRest {
         const isShort = Precise.stringLt (newSize, '0');
         const side = isShort ? 'short' : 'long';
         const contracts = Precise.stringAbs (newSize);
-        const cache = this.positions;
+        const cache = this.positions[subaccountIdKey];
         const symbolPositions = this.safeDict (cache.hashmap, symbol, {});
         // a fill through zero flattens the opposite side first
         const oppositeSide = isShort ? 'long' : 'short';
@@ -1006,6 +1010,8 @@ export default class derive extends deriveRest {
         //
         const params = this.safeDict (message, 'params');
         const topic = this.safeString (params, 'channel');
+        const topicParts = (topic as string).split ('.');
+        const subaccountIdKey = this.safeString (topicParts, 0) as string;
         const data = this.safeList (params, 'data', []);
         if (this.balance === undefined) {
             this.balance = {};
@@ -1017,8 +1023,8 @@ export default class derive extends deriveRest {
             const name = this.safeString (entry, 'name', '');
             if (name.indexOf ('-') >= 0) {
                 // position deltas carry instrument names and do not belong into the balance structure
-                if (this.positions !== undefined) {
-                    const position = this.handlePositionDelta (entry);
+                if ((this.positions !== undefined) && (subaccountIdKey in this.positions)) {
+                    const position = this.handlePositionDelta (subaccountIdKey, entry);
                     positionUpdates.push (position);
                 }
                 continue;
