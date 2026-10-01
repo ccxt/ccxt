@@ -905,17 +905,24 @@ export default class derive extends deriveRest {
         const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchPositions', paramsSnapshot);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
-            if (fetchSnapshot) {
-                const snapshotRequest: Dict = {
-                    'subaccount_id': subaccountId,
-                };
-                const snapshotParams = this.extend (snapshotRequest, paramsDeriveSubaccountId);
-                const positionsSnapshot = await this.fetchPositions (undefined, snapshotParams);
-                const cache = this.positions;
-                for (let i = 0; i < positionsSnapshot.length; i++) {
-                    cache.append (positionsSnapshot[i]);
-                }
+            const emptySnapshots: Dict = {};
+            this.options['loadedPositionsSnapshots'] = emptySnapshots;
+        }
+        // the snapshot is tracked per subaccount, so each newly watched subaccount gets a rest snapshot of its own
+        const loadedSnapshots = this.safeDict (this.options, 'loadedPositionsSnapshots', {});
+        const subaccountIdKey = this.numberToString (subaccountId) as string;
+        if (fetchSnapshot && !(subaccountIdKey in loadedSnapshots)) {
+            const snapshotRequest: Dict = {
+                'subaccount_id': subaccountId,
+            };
+            const snapshotParams = this.extend (snapshotRequest, paramsDeriveSubaccountId);
+            const positionsSnapshot = await this.fetchPositions (undefined, snapshotParams);
+            const cache = this.positions;
+            for (let i = 0; i < positionsSnapshot.length; i++) {
+                cache.append (positionsSnapshot[i]);
             }
+            loadedSnapshots[subaccountIdKey] = true;
+            this.options['loadedPositionsSnapshots'] = loadedSnapshots;
         }
         const topic = this.numberToString (subaccountId) + '.balances';
         const messageHash = 'positions:' + topic;
@@ -956,21 +963,25 @@ export default class derive extends deriveRest {
             const oppositeContracts = this.safeString (opposite, 'contracts');
             if ((oppositeContracts !== undefined) && (oppositeContracts !== '0')) {
                 (opposite as Dict)['contracts'] = this.parseNumber ('0');
-                (opposite as Dict)['timestamp'] = this.milliseconds ();
+                (opposite as Dict)['lastUpdateTimestamp'] = this.milliseconds ();
                 cache.append (opposite as Position);
             }
         }
         let position = this.safeDict (symbolPositions, side);
         if (position === undefined) {
+            // the position is freshly opened by the current fill, so the local clock approximates the open time
+            const timestamp = this.milliseconds ();
             position = this.safePosition ({
                 'symbol': symbol,
                 'side': side,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
                 'info': entry,
             });
         }
         (position as Dict)['contracts'] = this.parseNumber (contracts);
         (position as Dict)['side'] = side;
-        (position as Dict)['timestamp'] = this.milliseconds ();
+        (position as Dict)['lastUpdateTimestamp'] = this.milliseconds ();
         (position as Dict)['info'] = entry;
         cache.append (position as Position);
         return position as Position;
