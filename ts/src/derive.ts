@@ -1188,9 +1188,10 @@ export default class derive extends Exchange {
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), keccak, 'binary');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        let DOMAIN_SEPARATOR: Str = 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
+        // EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
+        let DOMAIN_SEPARATOR: Str = 'da616dfabb88681b08e1592820a41d55ddc62d68de110e327ae99d734506fe19';
         if (sandboxMode === true) {
-            DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105';
+            DOMAIN_SEPARATOR = '24d674cd5f2b9d564691c51e9d88f649b99246a2244dd74ce27b96578d773e85';
         }
         const binaryDomainSeparator = this.base16ToBinary (DOMAIN_SEPARATOR);
         const prefix = this.base16ToBinary ('1901');
