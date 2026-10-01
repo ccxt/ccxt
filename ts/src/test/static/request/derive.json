@@ -71,7 +71,7 @@
                         "until": 1736165703134
                     }
                 ],
-                "output": { "instrument_name": "BTC-PERP", "start_timestamp": 1736155500128, "to_timestamp": 1736165703134 }
+                "output": { "instrument_name": "BTC-PERP", "start_timestamp": 1736155500128, "end_timestamp": 1736165703134 }
             }
         ],
         "fetchFundingRate": [
