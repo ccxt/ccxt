@@ -904,6 +904,39 @@
               "ADA": 5.04716
             }
           }
+        },
+        {
+          "description": "CFM balance summary",
+          "method": "fetchBalance",
+          "input": [
+            {
+              "type": "swap"
+            }
+          ],
+          "httpResponse": {
+            "total_usd_balance": "1000.00",
+            "futures_buying_power": "750.00"
+          },
+          "parsedResponse": {
+            "info": {
+              "total_usd_balance": "1000.00",
+              "futures_buying_power": "750.00"
+            },
+            "USD": {
+              "free": 750,
+              "used": 250,
+              "total": 1000
+            },
+            "free": {
+              "USD": 750
+            },
+            "used": {
+              "USD": 250
+            },
+            "total": {
+              "USD": 1000
+            }
+          }
         }
       ],
       "fetchDepositsWithdrawals": [

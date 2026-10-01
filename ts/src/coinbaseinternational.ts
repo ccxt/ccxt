@@ -2938,7 +2938,6 @@ export default class coinbaseinternational extends Exchange {
             }
             return { 'url': requestUrl, 'method': method, 'body': body, 'headers': requestHeaders };
         }
-        // POST keeps the JWT out of the url
         const request = {
             'jsonrpc': '2.0',
             'id': this.nonce (),

@@ -1864,9 +1864,11 @@ export default class coinbase extends Exchange {
         const contractExpire = this.safeString (futureProductDetails, 'contract_expiry');
         const expireTimestamp = this.parse8601 (contractExpire);
         const expireDateTime = this.iso8601 (expireTimestamp);
-        // US perpetual-style futures are listed as EXPIRING with a placeholder expiry, only they carry a funding interval
+        // US perpetual-style futures are listed as EXPIRING with a placeholder expiry, a funding interval, and a PERP display name
         const fundingInterval = this.safeString (futureProductDetails, 'funding_interval');
-        const isSwap = (contractExpiryType === 'PERPETUAL') || (fundingInterval !== undefined);
+        const displayName = this.safeString (market, 'display_name');
+        const isPerpetualDisplayName = (displayName !== undefined) && (displayName.substring (displayName.length - 4) === 'PERP');
+        const isSwap = (contractExpiryType === 'PERPETUAL') || (fundingInterval !== undefined) || isPerpetualDisplayName;
         const baseId = this.safeString (futureProductDetails, 'contract_root_unit');
         const quoteId = this.safeString (market, 'quote_currency_id');
         const base = this.safeCurrencyCode (baseId);
@@ -2464,6 +2466,20 @@ export default class coinbase extends Exchange {
     }
 
     parseCustomBalance (response: Dict, params: Dict = {}): Balances {
+        const totalUsdBalance = this.safeString (response, 'total_usd_balance');
+        const futuresBuyingPower = this.safeString (response, 'futures_buying_power');
+        if ((totalUsdBalance !== undefined) || (futuresBuyingPower !== undefined)) {
+            const total = (totalUsdBalance !== undefined) ? totalUsdBalance : futuresBuyingPower;
+            const free = (futuresBuyingPower !== undefined) ? futuresBuyingPower : total;
+            const used = Precise.stringSub (total, free);
+            const balanceResult: Dict = { 'info': response };
+            balanceResult['USD'] = {
+                'free': free,
+                'used': used,
+                'total': total,
+            };
+            return this.safeBalance (balanceResult);
+        }
         const balances = this.safeList2 (response, 'data', 'accounts', []);
         const accounts = this.safeList (params, 'type', this.options['accounts']);
         const v3Accounts = this.safeList (params, 'type', this.options['v3Accounts']);
