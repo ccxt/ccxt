@@ -520,17 +520,16 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         }
     }
 
+    // remove extra exchanges from table
+    const skipIds = [ 'binanceusdm', 'binancecoinm', 'kucoinfutures' ];
     const certifiedExchanges = arrayOfExchanges.filter (exchange => exchange.certified)
     // certified exchanges are sorted according to the following order
     const certifiedExchangesSortingOrder = [
         'binance',
-        'binanceusdm',
-        'binancecoinm',
         'bybit',
         'okx',
         'gate',
         'kucoin',
-        'kucoinfutures',
         'bitget',
         'hyperliquid',
         'bingx',
@@ -543,7 +542,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         'woofipro',
     ]
 
-    let copyOfCertifiedExchanges = certifiedExchanges.slice (); // makes a new array with the same elements
+    let copyOfCertifiedExchanges = certifiedExchanges.slice ().filter (exchange => !skipIds.includes (exchange.id)); // makes a new array with the same elements
     let reorderedCertifiedExchanges = []
     for (let i = 0; i < certifiedExchangesSortingOrder.length; i++) {
         const exchangeId = certifiedExchangesSortingOrder[i]
