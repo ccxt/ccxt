@@ -380,8 +380,8 @@ export default class derive extends Exchange {
                     '14017': BadRequest, // The provided signed raw transaction contains contract address that does not match the expected contract address
                     '14018': BadRequest, // The provided signed raw transaction contains function params that do not match any expected function params
                     '14019': BadRequest, // The provided signed raw transaction contains function param values that do not match the expected values
-                    '14020': BadRequest, // The X-LyraWallet header does not match the requested subaccount_id or wallet
-                    '14021': BadRequest, // The X-LyraWallet header not provided
+                    '14020': BadRequest, // The X-DeriveWallet header does not match the requested subaccount_id or wallet
+                    '14021': BadRequest, // The X-DeriveWallet header not provided
                     '14022': AuthenticationError, // Subscription to a private channel failed
                     '14023': InvalidOrder, // {"code":"14023","message":"Signer in on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet"}
                     '14024': BadRequest, // Chain ID must match the current roll up chain id
@@ -423,6 +423,8 @@ export default class derive extends Exchange {
             'options': {
                 'deriveWalletAddress': '', // a derive wallet address "0x"-prefixed hexstring
                 'id': '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749',
+                'timeDifference': 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
             },
         });
     }
@@ -549,6 +551,9 @@ export default class derive extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
+            await this.loadTimeDifference ();
+        }
         const spotMarketsPromise = this.fetchSpotMarkets (params);
         const swapMarketsPromise = this.fetchSwapMarkets (params);
         const optionMarketsPromise = this.fetchOptionMarkets (params);
@@ -2762,7 +2767,7 @@ export default class derive extends Exchange {
     override nonce (): number {
         // the order nonce is a millisecond timestamp and must be unique per wallet (error 11017), while staying a valid date (error 11018)
         // incrementingNonce () reads this and bumps past the previous value when two orders share a millisecond
-        return this.milliseconds ();
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
@@ -2776,11 +2781,11 @@ export default class derive extends Exchange {
                 'Content-Type': 'application/json',
             };
             if (api === 'private') {
-                const now = this.milliseconds ().toString ();
+                const now = this.numberToString (this.nonce ());
                 const signature = this.signMessage (now, this.privateKey);
-                postHeaders['X-LyraWallet'] = this.safeString (this.options, 'deriveWalletAddress');
-                postHeaders['X-LyraTimestamp'] = now;
-                postHeaders['X-LyraSignature'] = signature;
+                postHeaders['X-DeriveWallet'] = this.safeString (this.options, 'deriveWalletAddress');
+                postHeaders['X-DeriveTimestamp'] = now;
+                postHeaders['X-DeriveSignature'] = signature;
             }
             const postBody: Str = this.json (params);
             return { 'url': url, 'method': method, 'body': postBody, 'headers': postHeaders };
