@@ -1,0 +1,5081 @@
+{
+    "ZAR":
+    {
+        "info":
+        {
+            "symbol": "R",
+            "isActive": true,
+            "shortName": "ZAR",
+            "longName": "Rand",
+            "decimalPlaces": "2",
+            "withdrawalDecimalPlaces": "2",
+            "collateral": true,
+            "collateralWeight": "0.99"
+        },
+        "id": "ZAR",
+        "code": "ZAR",
+        "precision": 2,
+        "name": "Rand",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "BTC":
+    {
+        "info":
+        {
+            "symbol": "BTC",
+            "isActive": true,
+            "shortName": "BTC",
+            "longName": "Bitcoin",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": true,
+            "collateralWeight": "0.95",
+            "defaultNetworkType": "Bitcoin",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Bitcoin",
+                    "networkLongName": "Bitcoin"
+                }
+            ]
+        },
+        "id": "BTC",
+        "code": "BTC",
+        "precision": 8,
+        "name": "Bitcoin",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "ETH":
+    {
+        "info":
+        {
+            "symbol": "ETH",
+            "isActive": true,
+            "shortName": "ETH",
+            "longName": "Ethereum",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": true,
+            "collateralWeight": "0.95",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum"
+                }
+            ]
+        },
+        "id": "ETH",
+        "code": "ETH",
+        "precision": 18,
+        "name": "Ethereum",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "LTC":
+    {
+        "info":
+        {
+            "symbol": "LTC",
+            "isActive": true,
+            "shortName": "LTC",
+            "longName": "Litecoin",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Litecoin",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Litecoin",
+                    "networkLongName": "Litecoin"
+                }
+            ]
+        },
+        "id": "LTC",
+        "code": "LTC",
+        "precision": 8,
+        "name": "Litecoin",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "ADA":
+    {
+        "info":
+        {
+            "symbol": "ADA",
+            "isActive": true,
+            "shortName": "ADA",
+            "longName": "Cardano",
+            "decimalPlaces": "6",
+            "withdrawalDecimalPlaces": "6",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Cardano",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Cardano",
+                    "networkLongName": "Cardano"
+                }
+            ]
+        },
+        "id": "ADA",
+        "code": "ADA",
+        "precision": 6,
+        "name": "Cardano",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "ZEC":
+    {
+        "info":
+        {
+            "symbol": "ZEC",
+            "isActive": false,
+            "shortName": "ZEC",
+            "longName": "Zcash",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "ZEC",
+        "code": "ZEC",
+        "precision": 8,
+        "name": "Zcash",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "DASH":
+    {
+        "info":
+        {
+            "symbol": "DASH",
+            "isActive": false,
+            "shortName": "DASH",
+            "longName": "Dash",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "DASH",
+        "code": "DASH",
+        "precision": 8,
+        "name": "Dash",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "XMR":
+    {
+        "info":
+        {
+            "symbol": "XMR",
+            "isActive": false,
+            "shortName": "XMR",
+            "longName": "Monero",
+            "decimalPlaces": "12",
+            "withdrawalDecimalPlaces": "8",
+            "paymentReferenceFieldName": "Payment ID",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "XMR",
+        "code": "XMR",
+        "precision": 12,
+        "name": "Monero",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "XEM":
+    {
+        "info":
+        {
+            "symbol": "XEM",
+            "isActive": false,
+            "shortName": "XEM",
+            "longName": "NEM",
+            "decimalPlaces": "6",
+            "withdrawalDecimalPlaces": "6",
+            "paymentReferenceFieldName": "Message",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "XEM",
+        "code": "XEM",
+        "precision": 6,
+        "name": "NEM",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "PIVX":
+    {
+        "info":
+        {
+            "symbol": "PIVX",
+            "isActive": false,
+            "shortName": "PIVX",
+            "longName": "Pivx",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "PIVX",
+        "code": "PIVX",
+        "precision": 8,
+        "name": "Pivx",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "LSK":
+    {
+        "info":
+        {
+            "symbol": "LSK",
+            "isActive": false,
+            "shortName": "LSK",
+            "longName": "Lisk",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "LSK",
+        "code": "LSK",
+        "precision": 8,
+        "name": "Lisk",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "ETC":
+    {
+        "info":
+        {
+            "symbol": "ETC",
+            "isActive": true,
+            "shortName": "ETC",
+            "longName": "Ethereum Classic",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "EthereumClassic",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "EthereumClassic",
+                    "networkLongName": "Ethereum Classic"
+                }
+            ]
+        },
+        "id": "ETC",
+        "code": "ETC",
+        "precision": 18,
+        "name": "Ethereum Classic",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "GNT":
+    {
+        "info":
+        {
+            "symbol": "GNT",
+            "isActive": true,
+            "shortName": "GNT",
+            "longName": "Golem",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x7dd9c5cba05e151c895fde1cf355c9a1d5da6429"
+                }
+            ]
+        },
+        "id": "GNT",
+        "code": "GNT",
+        "precision": 18,
+        "name": "Golem",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "GNO":
+    {
+        "info":
+        {
+            "symbol": "GNO",
+            "isActive": false,
+            "shortName": "GNO",
+            "longName": "Gnosis",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "GNO",
+        "code": "GNO",
+        "precision": 18,
+        "name": "Gnosis",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "SC":
+    {
+        "info":
+        {
+            "symbol": "SC",
+            "isActive": false,
+            "shortName": "SC",
+            "longName": "Siacoin",
+            "decimalPlaces": "24",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "SC",
+        "code": "SC",
+        "precision": 18,
+        "name": "Siacoin",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "BAT":
+    {
+        "info":
+        {
+            "symbol": "BAT",
+            "isActive": true,
+            "shortName": "BAT",
+            "longName": "Basic Attention Token",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x0d8775f648430679a709e98d2b0cb6250d2887ef"
+                }
+            ]
+        },
+        "id": "BAT",
+        "code": "BAT",
+        "precision": 18,
+        "name": "Basic Attention Token",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "PAY":
+    {
+        "info":
+        {
+            "symbol": "PAY",
+            "isActive": false,
+            "shortName": "PAY",
+            "longName": "TenX Pay Token",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "PAY",
+        "code": "PAY",
+        "precision": 18,
+        "name": "TenX Pay Token",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "OMG":
+    {
+        "info":
+        {
+            "symbol": "OMG",
+            "isActive": false,
+            "shortName": "OMG",
+            "longName": "OmiseGO",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "OMG",
+        "code": "OMG",
+        "precision": 18,
+        "name": "OmiseGO",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "CVC":
+    {
+        "info":
+        {
+            "symbol": "CVC",
+            "isActive": false,
+            "shortName": "CVC",
+            "longName": "Civic",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x41e5560054824ea6b0732e656e3ad64e20e94e45"
+                }
+            ]
+        },
+        "id": "CVC",
+        "code": "CVC",
+        "precision": 8,
+        "name": "Civic",
+        "active": "false",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "QTUM":
+    {
+        "info":
+        {
+            "symbol": "QTUM",
+            "isActive": false,
+            "shortName": "QTUM",
+            "longName": "Qtum",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "QTUM",
+        "code": "QTUM",
+        "precision": 8,
+        "name": "Qtum",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "BCH":
+    {
+        "info":
+        {
+            "symbol": "BCH",
+            "isActive": true,
+            "shortName": "BCH",
+            "longName": "Bitcoin Cash",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "BitcoinCash",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "BitcoinCash",
+                    "networkLongName": "BitcoinCash"
+                }
+            ]
+        },
+        "id": "BCH",
+        "code": "BCH",
+        "precision": 8,
+        "name": "Bitcoin Cash",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "ZRX":
+    {
+        "info":
+        {
+            "symbol": "ZRX",
+            "isActive": true,
+            "shortName": "ZRX",
+            "longName": "0x Protocol",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xe41d2489571d322189246dafa5ebde1f4699f498"
+                }
+            ]
+        },
+        "id": "ZRX",
+        "code": "ZRX",
+        "precision": 18,
+        "name": "0x Protocol",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "TRX":
+    {
+        "info":
+        {
+            "symbol": "TRX",
+            "isActive": true,
+            "shortName": "TRX",
+            "longName": "TRON",
+            "decimalPlaces": "6",
+            "withdrawalDecimalPlaces": "6",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "TRON",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "TRON",
+                    "networkLongName": "TRON"
+                }
+            ]
+        },
+        "id": "TRX",
+        "code": "TRX",
+        "precision": 6,
+        "name": "TRON",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "TUSD":
+    {
+        "info":
+        {
+            "symbol": "TUSD",
+            "isActive": false,
+            "shortName": "TUSD",
+            "longName": "TrueUSD",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "TUSD",
+        "code": "TUSD",
+        "precision": 18,
+        "name": "TrueUSD",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "SNT":
+    {
+        "info":
+        {
+            "symbol": "SNT",
+            "isActive": true,
+            "shortName": "SNT",
+            "longName": "Status Network Token",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x744d70fdbe2ba4cf95131626614a1763df805b9e"
+                }
+            ]
+        },
+        "id": "SNT",
+        "code": "SNT",
+        "precision": 18,
+        "name": "Status Network Token",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "GAME":
+    {
+        "info":
+        {
+            "symbol": "GAME",
+            "isActive": false,
+            "shortName": "GAME",
+            "longName": "GameCredits",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "GAME",
+        "code": "GAME",
+        "precision": 8,
+        "name": "GameCredits",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "XRP":
+    {
+        "info":
+        {
+            "symbol": "XRP",
+            "isActive": true,
+            "shortName": "XRP",
+            "longName": "XRP",
+            "decimalPlaces": "6",
+            "withdrawalDecimalPlaces": "6",
+            "paymentReferenceFieldName": "Tag",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ripple",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ripple",
+                    "networkLongName": "Ripple"
+                }
+            ]
+        },
+        "id": "XRP",
+        "code": "XRP",
+        "precision": 6,
+        "name": "XRP",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "XLM":
+    {
+        "info":
+        {
+            "symbol": "XLM",
+            "isActive": true,
+            "shortName": "XLM",
+            "longName": "Lumen",
+            "decimalPlaces": "7",
+            "withdrawalDecimalPlaces": "7",
+            "paymentReferenceFieldName": "Memo",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "StellarLumens",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "StellarLumens",
+                    "networkLongName": "StellarLumens"
+                }
+            ]
+        },
+        "id": "XLM",
+        "code": "XLM",
+        "precision": 7,
+        "name": "Lumen",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "DCR":
+    {
+        "info":
+        {
+            "symbol": "DCR",
+            "isActive": false,
+            "shortName": "DCR",
+            "longName": "Decred",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "DCR",
+        "code": "DCR",
+        "precision": 8,
+        "name": "Decred",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "ANT":
+    {
+        "info":
+        {
+            "symbol": "ANT",
+            "isActive": false,
+            "shortName": "ANT",
+            "longName": "Aragon",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "ANT",
+        "code": "ANT",
+        "precision": 18,
+        "name": "Aragon",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "DNT":
+    {
+        "info":
+        {
+            "symbol": "DNT",
+            "isActive": true,
+            "shortName": "DNT",
+            "longName": "District0x",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x0abdace70d3790235af448c88547603b945604ea"
+                }
+            ]
+        },
+        "id": "DNT",
+        "code": "DNT",
+        "precision": 18,
+        "name": "District0x",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "BNT":
+    {
+        "info":
+        {
+            "symbol": "BNT",
+            "isActive": true,
+            "shortName": "BNT",
+            "longName": "Bancor",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x1f573d6fb3f13d689ff844b4ce37794d79a7ff1c"
+                }
+            ]
+        },
+        "id": "BNT",
+        "code": "BNT",
+        "precision": 18,
+        "name": "Bancor",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "RLC":
+    {
+        "info":
+        {
+            "symbol": "RLC",
+            "isActive": true,
+            "shortName": "RLC",
+            "longName": "iEx.ec",
+            "decimalPlaces": "9",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x607f4c5bb672230e8672085532f7e901544a7375"
+                }
+            ]
+        },
+        "id": "RLC",
+        "code": "RLC",
+        "precision": 9,
+        "name": "iEx.ec",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "WAVES":
+    {
+        "info":
+        {
+            "symbol": "WAVES",
+            "isActive": false,
+            "shortName": "WAVES",
+            "longName": "Waves",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "WAVES",
+        "code": "WAVES",
+        "precision": 8,
+        "name": "Waves",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "STORJ":
+    {
+        "info":
+        {
+            "symbol": "STORJ",
+            "isActive": true,
+            "shortName": "STORJ",
+            "longName": "Storj",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xb64ef51c888972c908cfacf59b47c1afbc0ab8ac"
+                }
+            ]
+        },
+        "id": "STORJ",
+        "code": "STORJ",
+        "precision": 8,
+        "name": "Storj",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "RCN":
+    {
+        "info":
+        {
+            "symbol": "RCN",
+            "isActive": false,
+            "shortName": "RCN",
+            "longName": "Ripio Credit Network",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "RCN",
+        "code": "RCN",
+        "precision": 18,
+        "name": "Ripio Credit Network",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "DGB":
+    {
+        "info":
+        {
+            "symbol": "DGB",
+            "isActive": false,
+            "shortName": "DGB",
+            "longName": "Digibyte",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "DGB",
+        "code": "DGB",
+        "precision": 8,
+        "name": "Digibyte",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "SLR":
+    {
+        "info":
+        {
+            "symbol": "SLR",
+            "isActive": false,
+            "shortName": "SLR",
+            "longName": "SolarCoin",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "SLR",
+        "code": "SLR",
+        "precision": 8,
+        "name": "SolarCoin",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "MONA":
+    {
+        "info":
+        {
+            "symbol": "MONA",
+            "isActive": false,
+            "shortName": "MONA",
+            "longName": "MonaCoin",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "MONA",
+        "code": "MONA",
+        "precision": 8,
+        "name": "MonaCoin",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "EXP":
+    {
+        "info":
+        {
+            "symbol": "EXP",
+            "isActive": false,
+            "shortName": "EXP",
+            "longName": "Expanse",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "EXP",
+        "code": "EXP",
+        "precision": 8,
+        "name": "Expanse",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "VIB":
+    {
+        "info":
+        {
+            "symbol": "VIB",
+            "isActive": false,
+            "shortName": "VIB",
+            "longName": "Viberate",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "VIB",
+        "code": "VIB",
+        "precision": 18,
+        "name": "Viberate",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "STORM":
+    {
+        "info":
+        {
+            "symbol": "STORM",
+            "isActive": false,
+            "shortName": "STORM",
+            "longName": "Storm",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "STORM",
+        "code": "STORM",
+        "precision": 18,
+        "name": "Storm",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "DOGE":
+    {
+        "info":
+        {
+            "symbol": "DOGE",
+            "isActive": true,
+            "shortName": "DOGE",
+            "longName": "DogeCoin",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Dogecoin",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Dogecoin",
+                    "networkLongName": "Doge"
+                }
+            ]
+        },
+        "id": "DOGE",
+        "code": "DOGE",
+        "precision": 8,
+        "name": "DogeCoin",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "VTC":
+    {
+        "info":
+        {
+            "symbol": "VTC",
+            "isActive": false,
+            "shortName": "VTC",
+            "longName": "Vertcoin",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "VTC",
+        "code": "VTC",
+        "precision": 8,
+        "name": "Vertcoin",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "KMD":
+    {
+        "info":
+        {
+            "symbol": "KMD",
+            "isActive": false,
+            "shortName": "KMD",
+            "longName": "Komodo",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "KMD",
+        "code": "KMD",
+        "precision": 8,
+        "name": "Komodo",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "BSV":
+    {
+        "info":
+        {
+            "symbol": "BSV",
+            "isActive": false,
+            "shortName": "BSV",
+            "longName": "Bitcoin SV",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "BSV",
+        "code": "BSV",
+        "precision": 8,
+        "name": "Bitcoin SV",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "DAI":
+    {
+        "info":
+        {
+            "symbol": "DAI",
+            "isActive": true,
+            "shortName": "DAI",
+            "longName": "Dai",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x6b175474e89094c44da98b954eedeac495271d0f"
+                }
+            ]
+        },
+        "id": "DAI",
+        "code": "DAI",
+        "precision": 18,
+        "name": "Dai",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "EOS":
+    {
+        "info":
+        {
+            "symbol": "EOS",
+            "isActive": true,
+            "shortName": "EOS",
+            "longName": "EOS",
+            "decimalPlaces": "4",
+            "withdrawalDecimalPlaces": "4",
+            "paymentReferenceFieldName": "Memo",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "EOS",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "EOS",
+                    "networkLongName": "EOS"
+                }
+            ]
+        },
+        "id": "EOS",
+        "code": "EOS",
+        "precision": 4,
+        "name": "EOS",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "GRIN":
+    {
+        "info":
+        {
+            "symbol": "GRIN",
+            "isActive": false,
+            "shortName": "GRIN",
+            "longName": "Grin",
+            "decimalPlaces": "9",
+            "withdrawalDecimalPlaces": "9",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "GRIN",
+        "code": "GRIN",
+        "precision": 9,
+        "name": "Grin",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "LINK":
+    {
+        "info":
+        {
+            "symbol": "LINK",
+            "isActive": true,
+            "shortName": "LINK",
+            "longName": "Chainlink",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x514910771af9ca656af840dff83e8264ecf986ca"
+                }
+            ]
+        },
+        "id": "LINK",
+        "code": "LINK",
+        "precision": 18,
+        "name": "Chainlink",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "VET":
+    {
+        "info":
+        {
+            "symbol": "VET",
+            "isActive": false,
+            "shortName": "VET",
+            "longName": "VeChain",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "VET",
+        "code": "VET",
+        "precision": 8,
+        "name": "VeChain",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "XTZ":
+    {
+        "info":
+        {
+            "symbol": "XTZ",
+            "isActive": true,
+            "shortName": "XTZ",
+            "longName": "Tezos",
+            "decimalPlaces": "6",
+            "withdrawalDecimalPlaces": "6",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Tezos",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Tezos",
+                    "networkLongName": "Tezos"
+                }
+            ]
+        },
+        "id": "XTZ",
+        "code": "XTZ",
+        "precision": 6,
+        "name": "Tezos",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "QNT":
+    {
+        "info":
+        {
+            "symbol": "QNT",
+            "isActive": true,
+            "shortName": "QNT",
+            "longName": "Quant",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x4a220e6096b25eadb88358cb44068a3248254675"
+                }
+            ]
+        },
+        "id": "QNT",
+        "code": "QNT",
+        "precision": 18,
+        "name": "Quant",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "XTP":
+    {
+        "info":
+        {
+            "symbol": "XTP",
+            "isActive": false,
+            "shortName": "XTP",
+            "longName": "Tap",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "XTP",
+        "code": "XTP",
+        "precision": 18,
+        "name": "Tap",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "CRO":
+    {
+        "info":
+        {
+            "symbol": "CRO",
+            "isActive": false,
+            "shortName": "CRO",
+            "longName": "Crypto.com Coin",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "paymentReferenceFieldName": "Memo",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "CRO",
+        "code": "CRO",
+        "precision": 8,
+        "name": "Crypto.com Coin",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "USDT":
+    {
+        "info":
+        {
+            "symbol": "USDT",
+            "isActive": true,
+            "shortName": "USDT",
+            "longName": "Tether",
+            "decimalPlaces": "2",
+            "withdrawalDecimalPlaces": "2",
+            "collateral": true,
+            "collateralWeight": "0.99",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "TRON",
+                    "networkLongName": "TRON",
+                    "tokenContract": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                },
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                }
+            ]
+        },
+        "id": "USDT",
+        "code": "USDT",
+        "precision": 2,
+        "name": "Tether",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "STMX":
+    {
+        "info":
+        {
+            "symbol": "STMX",
+            "isActive": false,
+            "shortName": "STMX",
+            "longName": "StormX",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "STMX",
+        "code": "STMX",
+        "precision": 18,
+        "name": "StormX",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "REPV2":
+    {
+        "info":
+        {
+            "symbol": "REPV2",
+            "isActive": false,
+            "shortName": "REPV2",
+            "longName": "Augur",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "REPV2",
+        "code": "REPV2",
+        "precision": 18,
+        "name": "Augur",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "CELO":
+    {
+        "info":
+        {
+            "symbol": "CELO",
+            "isActive": true,
+            "shortName": "CELO",
+            "longName": "Celo",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "CeloNativeAsset",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "CeloNativeAsset",
+                    "networkLongName": "CeloNativeAsset"
+                }
+            ]
+        },
+        "id": "CELO",
+        "code": "CELO",
+        "precision": 18,
+        "name": "Celo",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "ALGO":
+    {
+        "info":
+        {
+            "symbol": "ALGO",
+            "isActive": true,
+            "shortName": "ALGO",
+            "longName": "Algorand",
+            "decimalPlaces": "6",
+            "withdrawalDecimalPlaces": "6",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Algorand",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Algorand",
+                    "networkLongName": "Algorand"
+                }
+            ]
+        },
+        "id": "ALGO",
+        "code": "ALGO",
+        "precision": 6,
+        "name": "Algorand",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "COMP":
+    {
+        "info":
+        {
+            "symbol": "COMP",
+            "isActive": true,
+            "shortName": "COMP",
+            "longName": "Compound",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xc00e94cb662c3520282e6f5717214004a7f26888"
+                }
+            ]
+        },
+        "id": "COMP",
+        "code": "COMP",
+        "precision": 18,
+        "name": "Compound",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "DOT":
+    {
+        "info":
+        {
+            "symbol": "DOT",
+            "isActive": true,
+            "shortName": "DOT",
+            "longName": "Polkadot",
+            "decimalPlaces": "10",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Polkadot",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Polkadot",
+                    "networkLongName": "Polkadot"
+                }
+            ]
+        },
+        "id": "DOT",
+        "code": "DOT",
+        "precision": 10,
+        "name": "Polkadot",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "PAX":
+    {
+        "info":
+        {
+            "symbol": "PAX",
+            "isActive": false,
+            "shortName": "PAX",
+            "longName": "Paxos Standard",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "PAX",
+        "code": "PAX",
+        "precision": 18,
+        "name": "Paxos Standard",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "USDC":
+    {
+        "info":
+        {
+            "symbol": "USDC",
+            "isActive": true,
+            "shortName": "USDC",
+            "longName": "USD Coin",
+            "decimalPlaces": "2",
+            "withdrawalDecimalPlaces": "2",
+            "collateral": true,
+            "collateralWeight": "1",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Avalanche",
+                    "networkLongName": "Avalanche C-Chain",
+                    "tokenContract": "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e"
+                },
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+                }
+            ]
+        },
+        "id": "USDC",
+        "code": "USDC",
+        "precision": 2,
+        "name": "USD Coin",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "SWT":
+    {
+        "info":
+        {
+            "symbol": "SWT",
+            "isActive": false,
+            "shortName": "SWT",
+            "longName": "Swarm City Token",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "SWT",
+        "code": "SWT",
+        "precision": 18,
+        "name": "Swarm City Token",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "MLN":
+    {
+        "info":
+        {
+            "symbol": "MLN",
+            "isActive": false,
+            "shortName": "MLN",
+            "longName": "Melon",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "MLN",
+        "code": "MLN",
+        "precision": 18,
+        "name": "Melon",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "SALT":
+    {
+        "info":
+        {
+            "symbol": "SALT",
+            "isActive": false,
+            "shortName": "SALT",
+            "longName": "Salt",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "SALT",
+        "code": "SALT",
+        "precision": 8,
+        "name": "Salt",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "GUP":
+    {
+        "info":
+        {
+            "symbol": "GUP",
+            "isActive": false,
+            "shortName": "GUP",
+            "longName": "Guppy",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "GUP",
+        "code": "GUP",
+        "precision": 18,
+        "name": "Guppy",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "NMR":
+    {
+        "info":
+        {
+            "symbol": "NMR",
+            "isActive": false,
+            "shortName": "NMR",
+            "longName": "Numeraire",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "NMR",
+        "code": "NMR",
+        "precision": 18,
+        "name": "Numeraire",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "WINGS":
+    {
+        "info":
+        {
+            "symbol": "WINGS",
+            "isActive": false,
+            "shortName": "WINGS",
+            "longName": "Wings",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "WINGS",
+        "code": "WINGS",
+        "precision": 18,
+        "name": "Wings",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "GRS":
+    {
+        "info":
+        {
+            "symbol": "GRS",
+            "isActive": false,
+            "shortName": "GRS",
+            "longName": "Groestlcoin",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "GRS",
+        "code": "GRS",
+        "precision": 8,
+        "name": "Groestlcoin",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "FCT":
+    {
+        "info":
+        {
+            "symbol": "FCT",
+            "isActive": false,
+            "shortName": "FCT",
+            "longName": "Factom",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "FCT",
+        "code": "FCT",
+        "precision": 8,
+        "name": "Factom",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "OCN":
+    {
+        "info":
+        {
+            "symbol": "OCN",
+            "isActive": false,
+            "shortName": "OCN",
+            "longName": "Odyssey",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "OCN",
+        "code": "OCN",
+        "precision": 18,
+        "name": "Odyssey",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "POLY":
+    {
+        "info":
+        {
+            "symbol": "POLY",
+            "isActive": false,
+            "shortName": "POLY",
+            "longName": "Polymath",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "POLY",
+        "code": "POLY",
+        "precision": 18,
+        "name": "Polymath",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "REP":
+    {
+        "info":
+        {
+            "symbol": "REP",
+            "isActive": false,
+            "shortName": "REP",
+            "longName": "Augur",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "REP",
+        "code": "REP",
+        "precision": 18,
+        "name": "Augur",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "MATIC":
+    {
+        "info":
+        {
+            "symbol": "MATIC",
+            "isActive": true,
+            "shortName": "MATIC",
+            "longName": "Polygon",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0"
+                }
+            ]
+        },
+        "id": "MATIC",
+        "code": "MATIC",
+        "precision": 18,
+        "name": "Polygon",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "AAVE":
+    {
+        "info":
+        {
+            "symbol": "AAVE",
+            "isActive": true,
+            "shortName": "AAVE",
+            "longName": "Aave",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9"
+                }
+            ]
+        },
+        "id": "AAVE",
+        "code": "AAVE",
+        "precision": 18,
+        "name": "Aave",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "UNI":
+    {
+        "info":
+        {
+            "symbol": "UNI",
+            "isActive": true,
+            "shortName": "UNI",
+            "longName": "Uniswap",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984"
+                }
+            ]
+        },
+        "id": "UNI",
+        "code": "UNI",
+        "precision": 18,
+        "name": "Uniswap",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "ENJ":
+    {
+        "info":
+        {
+            "symbol": "ENJ",
+            "isActive": true,
+            "shortName": "ENJ",
+            "longName": "Enjin Coin",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xf629cbd94d3791c9250152bd8dfbdf380e2a3b9c"
+                }
+            ]
+        },
+        "id": "ENJ",
+        "code": "ENJ",
+        "precision": 18,
+        "name": "Enjin Coin",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "MANA":
+    {
+        "info":
+        {
+            "symbol": "MANA",
+            "isActive": true,
+            "shortName": "MANA",
+            "longName": "Decentraland",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x0f5d2fb29fb7d3cfee444a200298f468908cc942"
+                }
+            ]
+        },
+        "id": "MANA",
+        "code": "MANA",
+        "precision": 18,
+        "name": "Decentraland",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "SOL":
+    {
+        "info":
+        {
+            "symbol": "SOL",
+            "isActive": true,
+            "shortName": "SOL",
+            "longName": "Solana",
+            "decimalPlaces": "9",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Solana",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Solana",
+                    "networkLongName": "Solana"
+                }
+            ]
+        },
+        "id": "SOL",
+        "code": "SOL",
+        "precision": 9,
+        "name": "Solana",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "BNB":
+    {
+        "info":
+        {
+            "symbol": "BNB",
+            "isActive": true,
+            "shortName": "BNB",
+            "longName": "Binance Coin",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "BinanceSmartChain",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "BinanceSmartChain",
+                    "networkLongName": "Binance Smart Chain"
+                }
+            ]
+        },
+        "id": "BNB",
+        "code": "BNB",
+        "precision": 18,
+        "name": "Binance Coin",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "SHIB":
+    {
+        "info":
+        {
+            "symbol": "SHIB",
+            "isActive": true,
+            "shortName": "SHIB",
+            "longName": "Shiba Inu",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "2",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce"
+                }
+            ]
+        },
+        "id": "SHIB",
+        "code": "SHIB",
+        "precision": 18,
+        "name": "Shiba Inu",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "AVAX":
+    {
+        "info":
+        {
+            "symbol": "AVAX",
+            "isActive": true,
+            "shortName": "AVAX",
+            "longName": "Avalanche",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Avalanche",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Avalanche",
+                    "networkLongName": "Avalanche C-Chain"
+                }
+            ]
+        },
+        "id": "AVAX",
+        "code": "AVAX",
+        "precision": 18,
+        "name": "Avalanche",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "ETHW":
+    {
+        "info":
+        {
+            "symbol": "ETHW",
+            "isActive": true,
+            "shortName": "ETHW",
+            "longName": "Ethereum PoW",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "EthereumPow",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "EthereumPow",
+                    "networkLongName": "EthereumPoW"
+                }
+            ]
+        },
+        "id": "ETHW",
+        "code": "ETHW",
+        "precision": 18,
+        "name": "Ethereum PoW",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "ZMW":
+    {
+        "info":
+        {
+            "symbol": "ZMW",
+            "isActive": true,
+            "shortName": "ZMW",
+            "longName": "Zambian Kwacha",
+            "decimalPlaces": "2",
+            "withdrawalDecimalPlaces": "2",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "ZMW",
+        "code": "ZMW",
+        "precision": 2,
+        "name": "Zambian Kwacha",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "FLR":
+    {
+        "info":
+        {
+            "symbol": "FLR",
+            "isActive": true,
+            "shortName": "FLR",
+            "longName": "Flare",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Flare",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Flare",
+                    "networkLongName": "Flare"
+                }
+            ]
+        },
+        "id": "FLR",
+        "code": "FLR",
+        "precision": 18,
+        "name": "Flare",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "INR":
+    {
+        "info":
+        {
+            "symbol": "INR",
+            "isActive": true,
+            "shortName": "INR",
+            "longName": "Indian Rupee",
+            "decimalPlaces": "2",
+            "withdrawalDecimalPlaces": "2",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "INR",
+        "code": "INR",
+        "precision": 2,
+        "name": "Indian Rupee",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "USD":
+    {
+        "info":
+        {
+            "symbol": "USD",
+            "isActive": false,
+            "shortName": "USD",
+            "longName": "United States Dollar",
+            "decimalPlaces": "2",
+            "withdrawalDecimalPlaces": "2",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "USD",
+        "code": "USD",
+        "precision": 2,
+        "name": "United States Dollar",
+        "active": "false",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "YFI":
+    {
+        "info":
+        {
+            "symbol": "YFI",
+            "isActive": true,
+            "shortName": "YFI",
+            "longName": "Yearn.finance",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e"
+                }
+            ]
+        },
+        "id": "YFI",
+        "code": "YFI",
+        "precision": 18,
+        "name": "Yearn.finance",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "LDO":
+    {
+        "info":
+        {
+            "symbol": "LDO",
+            "isActive": true,
+            "shortName": "LDO",
+            "longName": "Lido DAO",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x5a98fcbea516cf06857215779fd812ca3bef1b32"
+                }
+            ]
+        },
+        "id": "LDO",
+        "code": "LDO",
+        "precision": 18,
+        "name": "Lido DAO",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "MKR":
+    {
+        "info":
+        {
+            "symbol": "MKR",
+            "isActive": true,
+            "shortName": "MKR",
+            "longName": "Maker",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2"
+                }
+            ]
+        },
+        "id": "MKR",
+        "code": "MKR",
+        "precision": 18,
+        "name": "Maker",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "CRV":
+    {
+        "info":
+        {
+            "symbol": "CRV",
+            "isActive": true,
+            "shortName": "CRV",
+            "longName": "Curve",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xd533a949740bb3306d119cc777fa900ba034cd52"
+                }
+            ]
+        },
+        "id": "CRV",
+        "code": "CRV",
+        "precision": 18,
+        "name": "Curve",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "HFT":
+    {
+        "info":
+        {
+            "symbol": "HFT",
+            "isActive": true,
+            "shortName": "HFT",
+            "longName": "Hashflow",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xb3999f658c0391d94a37f7ff328f3fec942bcadc"
+                }
+            ]
+        },
+        "id": "HFT",
+        "code": "HFT",
+        "precision": 18,
+        "name": "Hashflow",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "APE":
+    {
+        "info":
+        {
+            "symbol": "APE",
+            "isActive": true,
+            "shortName": "APE",
+            "longName": "ApeCoin",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x4d224452801aced8b2f0aebe155379bb5d594381"
+                }
+            ]
+        },
+        "id": "APE",
+        "code": "APE",
+        "precision": 18,
+        "name": "ApeCoin",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "BAND":
+    {
+        "info":
+        {
+            "symbol": "BAND",
+            "isActive": true,
+            "shortName": "BAND",
+            "longName": "Band Protocol",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xba11d00c5f74255f56a5e366f4f77f5a186d7f55"
+                }
+            ]
+        },
+        "id": "BAND",
+        "code": "BAND",
+        "precision": 18,
+        "name": "Band Protocol",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "FIL":
+    {
+        "info":
+        {
+            "symbol": "FIL",
+            "isActive": true,
+            "shortName": "FIL",
+            "longName": "Filecoin",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Filecoin",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Filecoin",
+                    "networkLongName": "Filecoin"
+                }
+            ]
+        },
+        "id": "FIL",
+        "code": "FIL",
+        "precision": 18,
+        "name": "Filecoin",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "APT":
+    {
+        "info":
+        {
+            "symbol": "APT",
+            "isActive": true,
+            "shortName": "APT",
+            "longName": "Aptos",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Aptos",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Aptos",
+                    "networkLongName": "Aptos"
+                }
+            ]
+        },
+        "id": "APT",
+        "code": "APT",
+        "precision": 8,
+        "name": "Aptos",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "GRT":
+    {
+        "info":
+        {
+            "symbol": "GRT",
+            "isActive": true,
+            "shortName": "GRT",
+            "longName": "The Graph",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xc944e90c64b2c07662a292be6244bdf05cda44a7"
+                }
+            ]
+        },
+        "id": "GRT",
+        "code": "GRT",
+        "precision": 18,
+        "name": "The Graph",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "SUI":
+    {
+        "info":
+        {
+            "symbol": "SUI",
+            "isActive": true,
+            "shortName": "SUI",
+            "longName": "Sui",
+            "decimalPlaces": "9",
+            "withdrawalDecimalPlaces": "9",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Sui",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Sui",
+                    "networkLongName": "Sui"
+                }
+            ]
+        },
+        "id": "SUI",
+        "code": "SUI",
+        "precision": 9,
+        "name": "Sui",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "SNX":
+    {
+        "info":
+        {
+            "symbol": "SNX",
+            "isActive": true,
+            "shortName": "SNX",
+            "longName": "Synthetix",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f"
+                }
+            ]
+        },
+        "id": "SNX",
+        "code": "SNX",
+        "precision": 18,
+        "name": "Synthetix",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "OP":
+    {
+        "info":
+        {
+            "symbol": "OP",
+            "isActive": true,
+            "shortName": "OP",
+            "longName": "Optimism",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Optimism",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Optimism",
+                    "networkLongName": "Optimism",
+                    "tokenContract": "0x4200000000000000000000000000000000000042"
+                }
+            ]
+        },
+        "id": "OP",
+        "code": "OP",
+        "precision": 18,
+        "name": "Optimism",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "ARB":
+    {
+        "info":
+        {
+            "symbol": "ARB",
+            "isActive": true,
+            "shortName": "ARB",
+            "longName": "Arbitrum",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Arbitrum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Arbitrum",
+                    "networkLongName": "Arbitrum",
+                    "tokenContract": "0x912ce59144191c1204e64559fe8253a0e49e6548"
+                }
+            ]
+        },
+        "id": "ARB",
+        "code": "ARB",
+        "precision": 18,
+        "name": "Arbitrum",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "BONK":
+    {
+        "info":
+        {
+            "symbol": "BONK",
+            "isActive": true,
+            "shortName": "BONK",
+            "longName": "Bonk",
+            "decimalPlaces": "5",
+            "withdrawalDecimalPlaces": "5",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Solana",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Solana",
+                    "networkLongName": "Solana",
+                    "tokenContract": "dezxaz8z7pnrnrjjz3wxborgixca6xjnb7yab1ppb263"
+                }
+            ]
+        },
+        "id": "BONK",
+        "code": "BONK",
+        "precision": 5,
+        "name": "Bonk",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "FET":
+    {
+        "info":
+        {
+            "symbol": "FET",
+            "isActive": true,
+            "shortName": "FET",
+            "longName": "Fetch.ai",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xaea46a60368a7bd060eec7df8cba43b7ef41ad85"
+                }
+            ]
+        },
+        "id": "FET",
+        "code": "FET",
+        "precision": 18,
+        "name": "Fetch.ai",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "ILV":
+    {
+        "info":
+        {
+            "symbol": "ILV",
+            "isActive": true,
+            "shortName": "ILV",
+            "longName": "Illuvium",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x767fe9edc9e0df98e07454847909b5e959d7ca0e"
+                }
+            ]
+        },
+        "id": "ILV",
+        "code": "ILV",
+        "precision": 18,
+        "name": "Illuvium",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "INJ":
+    {
+        "info":
+        {
+            "symbol": "INJ",
+            "isActive": true,
+            "shortName": "INJ",
+            "longName": "Injective",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "INJ",
+        "code": "INJ",
+        "precision": 18,
+        "name": "Injective",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "SEI":
+    {
+        "info":
+        {
+            "symbol": "SEI",
+            "isActive": true,
+            "shortName": "SEI",
+            "longName": "Sei",
+            "decimalPlaces": "6",
+            "withdrawalDecimalPlaces": "6",
+            "paymentReferenceFieldName": "Memo",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "SEI",
+        "code": "SEI",
+        "precision": 6,
+        "name": "Sei",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "TIA":
+    {
+        "info":
+        {
+            "symbol": "TIA",
+            "isActive": true,
+            "shortName": "TIA",
+            "longName": "Celestia",
+            "decimalPlaces": "6",
+            "withdrawalDecimalPlaces": "6",
+            "paymentReferenceFieldName": "Memo",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "TIA",
+        "code": "TIA",
+        "precision": 6,
+        "name": "Celestia",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "ATOM":
+    {
+        "info":
+        {
+            "symbol": "ATOM",
+            "isActive": true,
+            "shortName": "ATOM",
+            "longName": "Cosmos",
+            "decimalPlaces": "6",
+            "withdrawalDecimalPlaces": "6",
+            "paymentReferenceFieldName": "Memo",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Cosmos",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Cosmos",
+                    "networkLongName": "Cosmos"
+                }
+            ]
+        },
+        "id": "ATOM",
+        "code": "ATOM",
+        "precision": 6,
+        "name": "Cosmos",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "RNDR":
+    {
+        "info":
+        {
+            "symbol": "RNDR",
+            "isActive": true,
+            "shortName": "RNDR",
+            "longName": "Render",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "RNDR",
+        "code": "RNDR",
+        "precision": 18,
+        "name": "Render",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "STX":
+    {
+        "info":
+        {
+            "symbol": "STX",
+            "isActive": true,
+            "shortName": "STX",
+            "longName": "Stacks",
+            "decimalPlaces": "6",
+            "withdrawalDecimalPlaces": "6",
+            "paymentReferenceFieldName": "Memo",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "STX",
+        "code": "STX",
+        "precision": 6,
+        "name": "Stacks",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "API3":
+    {
+        "info":
+        {
+            "symbol": "API3",
+            "isActive": true,
+            "shortName": "API3",
+            "longName": "API3",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x0b38210ea11411557c13457d4da7dc6ea731b88a"
+                }
+            ]
+        },
+        "id": "API3",
+        "code": "API3",
+        "precision": 18,
+        "name": "API3",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "AXS":
+    {
+        "info":
+        {
+            "symbol": "AXS",
+            "isActive": true,
+            "shortName": "AXS",
+            "longName": "Axie Infinity",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xbb0e17ef65f82ab018d8edd776e8dd940327b28b"
+                }
+            ]
+        },
+        "id": "AXS",
+        "code": "AXS",
+        "precision": 18,
+        "name": "Axie Infinity",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "BICO":
+    {
+        "info":
+        {
+            "symbol": "BICO",
+            "isActive": true,
+            "shortName": "BICO",
+            "longName": "Biconomy",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xf17e65822b568b3903685a7c9f496cf7656cc6c2"
+                }
+            ]
+        },
+        "id": "BICO",
+        "code": "BICO",
+        "precision": 18,
+        "name": "Biconomy",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "BLUR":
+    {
+        "info":
+        {
+            "symbol": "BLUR",
+            "isActive": true,
+            "shortName": "BLUR",
+            "longName": "Blur",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x5283d291dbcf85356a21ba090e6db59121208b44"
+                }
+            ]
+        },
+        "id": "BLUR",
+        "code": "BLUR",
+        "precision": 18,
+        "name": "Blur",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "CHZ":
+    {
+        "info":
+        {
+            "symbol": "CHZ",
+            "isActive": true,
+            "shortName": "CHZ",
+            "longName": "Chiliz",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x3506424f91fd33084466f402d5d97f05f8e3b4af"
+                }
+            ]
+        },
+        "id": "CHZ",
+        "code": "CHZ",
+        "precision": 18,
+        "name": "Chiliz",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "ENS":
+    {
+        "info":
+        {
+            "symbol": "ENS",
+            "isActive": true,
+            "shortName": "ENS",
+            "longName": "Ethereum Name Service",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xc18360217d8f7ab5e7c516566761ea12ce7f9d72"
+                }
+            ]
+        },
+        "id": "ENS",
+        "code": "ENS",
+        "precision": 18,
+        "name": "Ethereum Name Service",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "GAL":
+    {
+        "info":
+        {
+            "symbol": "GAL",
+            "isActive": true,
+            "shortName": "GAL",
+            "longName": "Galxe",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "GAL",
+        "code": "GAL",
+        "precision": 18,
+        "name": "Galxe",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "IMX":
+    {
+        "info":
+        {
+            "symbol": "IMX",
+            "isActive": true,
+            "shortName": "IMX",
+            "longName": "Immutable",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xf57e7e7c23978c3caec3c3548e3d615c346e79ff"
+                }
+            ]
+        },
+        "id": "IMX",
+        "code": "IMX",
+        "precision": 18,
+        "name": "Immutable",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "KSM":
+    {
+        "info":
+        {
+            "symbol": "KSM",
+            "isActive": true,
+            "shortName": "KSM",
+            "longName": "Kusama",
+            "decimalPlaces": "12",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "KSM",
+        "code": "KSM",
+        "precision": 12,
+        "name": "Kusama",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "LRC":
+    {
+        "info":
+        {
+            "symbol": "LRC",
+            "isActive": true,
+            "shortName": "LRC",
+            "longName": "Loopring",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "LRC",
+        "code": "LRC",
+        "precision": 18,
+        "name": "Loopring",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "MAGIC":
+    {
+        "info":
+        {
+            "symbol": "MAGIC",
+            "isActive": true,
+            "shortName": "MAGIC",
+            "longName": "Magic",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "MAGIC",
+        "code": "MAGIC",
+        "precision": 18,
+        "name": "Magic",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "MASK":
+    {
+        "info":
+        {
+            "symbol": "MASK",
+            "isActive": true,
+            "shortName": "MASK",
+            "longName": "Mask Network",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x69af81e73a73b40adf4f3d4223cd9b1ece623074"
+                }
+            ]
+        },
+        "id": "MASK",
+        "code": "MASK",
+        "precision": 18,
+        "name": "Mask Network",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "MINA":
+    {
+        "info":
+        {
+            "symbol": "MINA",
+            "isActive": true,
+            "shortName": "MINA",
+            "longName": "Mina",
+            "decimalPlaces": "9",
+            "withdrawalDecimalPlaces": "9",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "MINA",
+        "code": "MINA",
+        "precision": 9,
+        "name": "Mina",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "OGN":
+    {
+        "info":
+        {
+            "symbol": "OGN",
+            "isActive": true,
+            "shortName": "OGN",
+            "longName": "Origin Protocol",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x8207c1ffc5b6804f6024322ccf34f29c3541ae26"
+                }
+            ]
+        },
+        "id": "OGN",
+        "code": "OGN",
+        "precision": 18,
+        "name": "Origin Protocol",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "OSMO":
+    {
+        "info":
+        {
+            "symbol": "OSMO",
+            "isActive": true,
+            "shortName": "OSMO",
+            "longName": "Osmosis",
+            "decimalPlaces": "6",
+            "withdrawalDecimalPlaces": "6",
+            "paymentReferenceFieldName": "Memo",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "OSMO",
+        "code": "OSMO",
+        "precision": 6,
+        "name": "Osmosis",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "PYR":
+    {
+        "info":
+        {
+            "symbol": "PYR",
+            "isActive": true,
+            "shortName": "PYR",
+            "longName": "Vulcan Forged",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x430ef9263e76dae63c84292c3409d61c598e9682"
+                }
+            ]
+        },
+        "id": "PYR",
+        "code": "PYR",
+        "precision": 18,
+        "name": "Vulcan Forged",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "SAND":
+    {
+        "info":
+        {
+            "symbol": "SAND",
+            "isActive": true,
+            "shortName": "SAND",
+            "longName": "The Sandbox",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "SAND",
+        "code": "SAND",
+        "precision": 18,
+        "name": "The Sandbox",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "SKL":
+    {
+        "info":
+        {
+            "symbol": "SKL",
+            "isActive": true,
+            "shortName": "SKL",
+            "longName": "SKALE",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x00c83aecc790e8a4453e5dd3b0b4b3680501a7a7"
+                }
+            ]
+        },
+        "id": "SKL",
+        "code": "SKL",
+        "precision": 18,
+        "name": "SKALE",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "SUPER":
+    {
+        "info":
+        {
+            "symbol": "SUPER",
+            "isActive": true,
+            "shortName": "SUPER",
+            "longName": "SuperVerse",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xe53ec727dbdeb9e2d5456c3be40cff031ab40a55"
+                }
+            ]
+        },
+        "id": "SUPER",
+        "code": "SUPER",
+        "precision": 18,
+        "name": "SuperVerse",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "SUSHI":
+    {
+        "info":
+        {
+            "symbol": "SUSHI",
+            "isActive": true,
+            "shortName": "SUSHI",
+            "longName": "SushiSwap",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "SUSHI",
+        "code": "SUSHI",
+        "precision": 18,
+        "name": "SushiSwap",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "TRB":
+    {
+        "info":
+        {
+            "symbol": "TRB",
+            "isActive": true,
+            "shortName": "TRB",
+            "longName": "Tellor",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "TRB",
+        "code": "TRB",
+        "precision": 18,
+        "name": "Tellor",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "UNFI":
+    {
+        "info":
+        {
+            "symbol": "UNFI",
+            "isActive": true,
+            "shortName": "UNFI",
+            "longName": "Unifi Protocol DAO",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x441761326490cacf7af299725b6292597ee822c2"
+                }
+            ]
+        },
+        "id": "UNFI",
+        "code": "UNFI",
+        "precision": 18,
+        "name": "Unifi Protocol DAO",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "ICP":
+    {
+        "info":
+        {
+            "symbol": "ICP",
+            "isActive": true,
+            "shortName": "ICP",
+            "longName": "Internet Computer",
+            "decimalPlaces": "8",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "ICP",
+        "code": "ICP",
+        "precision": 8,
+        "name": "Internet Computer",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "PYUSD":
+    {
+        "info":
+        {
+            "symbol": "PYUSD",
+            "isActive": true,
+            "shortName": "PYUSD",
+            "longName": "PayPal USD",
+            "decimalPlaces": "6",
+            "withdrawalDecimalPlaces": "6",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0x6c3ea9036406852006290770bedfcaba0e23a0e8"
+                }
+            ]
+        },
+        "id": "PYUSD",
+        "code": "PYUSD",
+        "precision": 6,
+        "name": "PayPal USD",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "ONDO":
+    {
+        "info":
+        {
+            "symbol": "ONDO",
+            "isActive": true,
+            "shortName": "ONDO",
+            "longName": "Ondo",
+            "decimalPlaces": "18",
+            "withdrawalDecimalPlaces": "8",
+            "collateral": false,
+            "collateralWeight": "0.0",
+            "defaultNetworkType": "Ethereum",
+            "supportedNetworks":
+            [
+                {
+                    "networkType": "Ethereum",
+                    "networkLongName": "Ethereum",
+                    "tokenContract": "0xfaba6f8e4a5e8ab82f62fe7c39859fa577269be3"
+                }
+            ]
+        },
+        "id": "ONDO",
+        "code": "ONDO",
+        "precision": 18,
+        "name": "Ondo",
+        "active": "true",
+        "deposit": true,
+        "withdraw": true,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    },
+    "JTO":
+    {
+        "info":
+        {
+            "symbol": "JTO",
+            "isActive": true,
+            "shortName": "JTO",
+            "longName": "Jito",
+            "decimalPlaces": "9",
+            "withdrawalDecimalPlaces": "9",
+            "collateral": false,
+            "collateralWeight": "0.0"
+        },
+        "id": "JTO",
+        "code": "JTO",
+        "precision": 9,
+        "name": "Jito",
+        "active": "true",
+        "deposit": false,
+        "withdraw": false,
+        "fees":
+        {},
+        "networks":
+        {},
+        "limits":
+        {
+            "deposit":
+            {},
+            "withdraw":
+            {}
+        }
+    }
+}
