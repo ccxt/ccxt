@@ -811,7 +811,7 @@ export default class derive extends Exchange {
             marketType = 'option';
             const optionDetails = this.safeDict (market, 'option_details');
             expiry = this.safeTimestamp (optionDetails, 'expiry');
-            strike = this.safeInteger (optionDetails, 'strike');
+            strike = this.safeNumber (optionDetails, 'strike'); // strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
             optionLetter = this.safeString (optionDetails, 'option_type');
             symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry) + '-' + this.numberToString (strike) + '-' + optionLetter;
             if (optionLetter === 'P') {
@@ -1419,8 +1419,11 @@ export default class derive extends Exchange {
      */
     nonceString (): string {
         // incrementingNonce guarantees unique milliseconds within one instance; the result matches the official derive-ts client nonce format (error 11017 = duplicate nonce)
-        const milliseconds = this.numberToString (this.incrementingNonce ());
-        const suffix = this.numberToString (this.randNumber (6)); // guards against collisions of different instances with the same wallet
+        // the mutating calls stay hoisted out of other call arguments, nesting them breaks the rust borrow checker (E0502)
+        const rawNonce = this.incrementingNonce ();
+        const randomPart = this.randNumber (6); // guards against collisions of different instances with the same wallet
+        const milliseconds = this.numberToString (rawNonce);
+        const suffix = this.numberToString (randomPart);
         const padded = suffix.padStart (6, '0');
         return milliseconds + padded;
     }
