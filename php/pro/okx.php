@@ -63,10 +63,10 @@ class okx extends \ccxt\async\okx {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://ws.okx.com:8443/ws/v5',
+                    'ws' => 'wss://ws.okx.com:443/ws/v5',
                 ),
                 'test' => array(
-                    'ws' => 'wss://wspap.okx.com:8443/ws/v5',
+                    'ws' => 'wss://wspap.okx.com:443/ws/v5',
                 ),
             ),
             'options' => array(
