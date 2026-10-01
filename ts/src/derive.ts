@@ -981,14 +981,19 @@ export default class derive extends Exchange {
      * @see https://docs.derive.xyz/api-reference/market-data/publicget_trade_history
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch; limits above ~500 cannot be filled in a single request because the venue caps pages at 1000 raw rows (two per match), use params.paginate instead
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
+        }
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchTrades', symbol, since, limit, paramsPaginate, 'page', 1000) as Trade[];
         }
         const request: Dict = {};
         let market: Market = undefined;
@@ -1001,13 +1006,18 @@ export default class derive extends Exchange {
             limitResolved = 1000;
         }
         if (limitResolved !== undefined) {
-            request['page_size'] = limitResolved; // default 100, max 1000
+            // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
+            let pageSize = limitResolved * 2;
+            if (pageSize > 1000) {
+                pageSize = 1000; // default 100, max 1000
+            }
+            request['page_size'] = pageSize;
         }
         if (since !== undefined) {
             request['from_timestamp'] = since;
         }
-        const until = this.safeInteger (params, 'until');
-        const paramsOmitted: Dict = this.omit (params, [ 'until' ]);
+        const until = this.safeInteger (paramsPaginate, 'until');
+        const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
         if (until !== undefined) {
             request['to_timestamp'] = until;
         }
