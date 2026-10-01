@@ -437,7 +437,7 @@ export default class paradex extends Exchange {
                     },
                     'fetchClosedOrders': undefined, // todo
                     'fetchOHLCV': {
-                        'limit': undefined, // todo by from/to
+                        'limit': 1000, // todo by from/to
                     },
                 },
                 'swap': {
@@ -854,30 +854,28 @@ export default class paradex extends Exchange {
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             'symbol': market['id'],
         };
-        const now = this.milliseconds ();
+        const maxLimit = 1000; // exchange has undocumented limit slightly above, but this is reliable limit
         const duration = this.parseTimeframe (timeframe);
-        const until = this.safeInteger2 (params, 'until', 'till', now);
         const price = this.safeString (params, 'price');
         if (price !== undefined) {
             request['price_kind'] = price;
         }
-        const paramsOmitted: Dict = this.omit (params, [ 'until', 'till', 'price' ]);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, params);
+        const hasEnd = ('end_at' in request);
+        const paramsOmitted: Dict = this.omit (paramsUntil, [ 'price' ]);
+        const limitResolved = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         if (since !== undefined) {
-            request['start_at'] = since;
-            if (limit !== undefined) {
-                request['end_at'] = since + duration * (limit + 1) * 1000 - 1;
-            } else {
-                request['end_at'] = until;
+            requestUntil['start_at'] = since;
+            if (!hasEnd) {
+                requestUntil['end_at'] = since + duration * (limitResolved + 1) * 1000 - 1;
             }
         } else {
-            request['end_at'] = until;
-            if (limit !== undefined) {
-                request['start_at'] = until - duration * (limit + 1) * 1000 + 1;
-            } else {
-                request['start_at'] = until - duration * 101 * 1000 + 1;
+            if (!hasEnd) {
+                requestUntil['end_at'] = this.milliseconds ();
             }
+            requestUntil['start_at'] = requestUntil['end_at'] - duration * (limitResolved + 1) * 1000 + 1;
         }
-        const response = await this.publicGetMarketsKlines (this.extend (request, paramsOmitted));
+        const response = await this.publicGetMarketsKlines (this.extend (requestUntil, paramsOmitted));
         //
         //     {
         //         "results": [

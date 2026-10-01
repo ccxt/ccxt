@@ -686,7 +686,7 @@ func (this *Paradex) Describe() any {
 				},
 				"fetchClosedOrders": nil,
 				"fetchOHLCV": map[string]any{
-					"limit": nil,
+					"limit": 1000,
 				},
 			},
 			"swap": map[string]any{
@@ -1223,7 +1223,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	_ = timeframe
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1239,31 +1239,34 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"symbol":     market["id"],
 	}
-	var now int64 = this.Milliseconds()
+	var maxLimit int = 1000 // exchange has undocumented limit slightly above, but this is reliable limit
 	var duration int64 = this.ParseTimeframe(timeframe)
-	var until *int64 = this.SafeInteger2(params, "until", "till", now)
 	var price *string = this.SafeString(params, "price")
 	if price != nil {
 		request["price_kind"] = price
 	}
-	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until", "till", "price"})
+	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, params)
+	var hasEnd bool = (func() bool { _, ok := request["end_at"]; return ok }())
+	var paramsOmitted map[string]any = this.OmitDict(paramsUntil, []any{"price"})
+	var limitResolved any = func() any {
+		if limit == nil {
+			return maxLimit
+		}
+		return mathMin(limit, maxLimit)
+	}()
 	if since != nil {
-		request["start_at"] = since
-		if limit != nil {
-			request["end_at"] = Subtract(Add(since, Multiply(Multiply(duration, (Add(limit, 1))), 1000)), 1)
-		} else {
-			request["end_at"] = until
+		requestUntil["start_at"] = *since
+		if !hasEnd {
+			AddElementToObject(requestUntil, "end_at", Subtract(Add(since, Multiply(Multiply(duration, (Add(limitResolved, 1))), 1000)), 1))
 		}
 	} else {
-		request["end_at"] = until
-		if limit != nil {
-			request["start_at"] = Add(Subtract(until, Multiply(Multiply(duration, (Add(limit, 1))), 1000)), 1)
-		} else {
-			request["start_at"] = Add(Subtract(until, (duration*101)*1000), 1)
+		if !hasEnd {
+			requestUntil["end_at"] = this.Milliseconds()
 		}
+		AddElementToObject(requestUntil, "start_at", Add(Subtract(GetValue(requestUntil, "end_at"), Multiply(Multiply(duration, (Add(limitResolved, 1))), 1000)), 1))
 	}
 
-	r1 := <-this.PublicGetMarketsKlines(this.Extend(request, paramsOmitted))
+	r1 := <-this.PublicGetMarketsKlines(this.Extend(requestUntil, paramsOmitted))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1759,11 +1762,11 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes123319 []any = ListTyped(r1.Value)
-		if retRes123319 == nil {
+		var retRes123119 []any = ListTyped(r1.Value)
+		if retRes123119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes123319}
+			ch <- AsyncResult[any]{Value: retRes123119}
 		}
 		return nil
 	}
@@ -3237,11 +3240,11 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes226219 []any = ListTyped(r2.Value)
-		if retRes226219 == nil {
+		var retRes226019 []any = ListTyped(r2.Value)
+		if retRes226019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes226219}
+			ch <- AsyncResult[any]{Value: retRes226019}
 		}
 		return nil
 	}
@@ -3517,11 +3520,11 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes244619 []any = ListTyped(r2.Value)
-		if retRes244619 == nil {
+		var retRes244419 []any = ListTyped(r2.Value)
+		if retRes244419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes244619}
+			ch <- AsyncResult[any]{Value: retRes244419}
 		}
 		return nil
 	}
@@ -3897,11 +3900,11 @@ func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes270019 []any = ListTyped(r2.Value)
-		if retRes270019 == nil {
+		var retRes269819 []any = ListTyped(r2.Value)
+		if retRes269819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes270019}
+			ch <- AsyncResult[any]{Value: retRes269819}
 		}
 		return nil
 	}
@@ -4006,11 +4009,11 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes276319 []any = ListTyped(r2.Value)
-		if retRes276319 == nil {
+		var retRes276119 []any = ListTyped(r2.Value)
+		if retRes276119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes276319}
+			ch <- AsyncResult[any]{Value: retRes276119}
 		}
 		return nil
 	}
@@ -4115,11 +4118,11 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs .
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes282619 []any = ListTyped(r2.Value)
-		if retRes282619 == nil {
+		var retRes282419 []any = ListTyped(r2.Value)
+		if retRes282419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes282619}
+			ch <- AsyncResult[any]{Value: retRes282419}
 		}
 		return nil
 	}
@@ -4806,11 +4809,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalA
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes332619 []any = ListTyped(r2.Value)
-		if retRes332619 == nil {
+		var retRes332419 []any = ListTyped(r2.Value)
+		if retRes332419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes332619}
+			ch <- AsyncResult[any]{Value: retRes332419}
 		}
 		return nil
 	}

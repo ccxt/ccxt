@@ -873,10 +873,16 @@ public class Deepcoin extends DeepcoinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Long maxLimit = 300L;
+            Map<String, Object> market = this.market(symbol);
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+            String price = this.safeString(paramsPaginate, "price");
+            Long maxLimit = 300L;
+            if (java.util.Objects.equals(market.get("swap"), true) && java.util.Objects.equals(price, null))
+            {
+                maxLimit = 1000L;
+            }
             if (Boolean.TRUE.equals(paginate))
             {
                 Map<String, Object> paramsExtended = this.extend(paramsPaginate, new HashMap<String, Object>() {{
@@ -884,8 +890,6 @@ public class Deepcoin extends DeepcoinApi
                 }});
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsExtended, maxLimit)).join();
             }
-            Map<String, Object> market = this.market(symbol);
-            String price = this.safeString(paramsPaginate, "price");
             String bar = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", market.get("id") );
@@ -893,7 +897,7 @@ public class Deepcoin extends DeepcoinApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", limit);
+                request.put("limit", Math.min(limit, maxLimit));
             }
             Long until = this.safeInteger(paramsPaginate, "until");
             if (!java.util.Objects.equals(until, null))

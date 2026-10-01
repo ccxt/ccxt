@@ -69,7 +69,7 @@ class pacifica extends Exchange {
                 'fetchCurrencies' => false,
                 'fetchDepositAddress' => false,
                 'fetchDepositAddresses' => false,
-                'fetchDeposits' => false,
+                'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
@@ -113,7 +113,7 @@ class pacifica extends Exchange {
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => false,
-                'fetchWithdrawals' => false,
+                'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
@@ -3317,6 +3317,109 @@ class pacifica extends Exchange {
             'payout' => 'payout',
         );
         return $this->safe_string($ledgerType, $type, $type);
+    }
+
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_deposits(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all USDC $deposits made to an account, spot asset $deposits are not included
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+         *
+         * @param {string} [$code] unified currency $code
+         * @param {int} [$since] the earliest time in ms to fetch $deposits for
+         * @param {int} [$limit] the maximum number of $deposits structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->account] will default to walletAddress if not provided
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        list($userAddress, $paramsAddress) = $this->handle_origin_and_single_address('fetchDeposits', $params);
+        $request = array(
+            'account' => $userAddress,
+        );
+        $response = Async\await($this->publicGetAccountBalanceHistory($this->extend($request, $paramsAddress)));
+        $data = $this->safe_list($response, 'data', array());
+        $transactions = $this->parse_transactions($data, $this->safe_currency($code));
+        $deposits = $this->filter_by($transactions, 'type', 'deposit');
+        return $this->filter_by_since_limit($deposits, $since, $limit, 'timestamp');
+    }
+
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_withdrawals(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all USDC $withdrawals made from an account, spot asset $withdrawals are not included
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+         *
+         * @param {string} [$code] unified currency $code
+         * @param {int} [$since] the earliest time in ms to fetch $withdrawals for
+         * @param {int} [$limit] the maximum number of $withdrawals structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->account] will default to walletAddress if not provided
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        list($userAddress, $paramsAddress) = $this->handle_origin_and_single_address('fetchWithdrawals', $params);
+        $request = array(
+            'account' => $userAddress,
+        );
+        $response = Async\await($this->publicGetAccountBalanceHistory($this->extend($request, $paramsAddress)));
+        $data = $this->safe_list($response, 'data', array());
+        $transactions = $this->parse_transactions($data, $this->safe_currency($code));
+        $withdrawals = $this->filter_by($transactions, 'type', 'withdrawal');
+        return $this->filter_by_since_limit($withdrawals, $since, $limit, 'timestamp');
+    }
+
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
+        //
+        //     {
+        //         "amount": "5000",
+        //         "balance": "5000",
+        //         "pending_balance": "0",
+        //         "event_type": "deposit",
+        //         "created_at": 1789199771373
+        //     }
+        //
+        $timestamp = $this->safe_integer($transaction, 'created_at');
+        $types = array(
+            'deposit' => 'deposit',
+            'withdraw' => 'withdrawal',
+        );
+        $eventType = $this->safe_string($transaction, 'event_type');
+        $amount = $this->safe_string($transaction, 'amount');
+        return array(
+            'info' => $transaction,
+            'id' => null,
+            'txid' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'network' => null,
+            'address' => null,
+            'addressTo' => null,
+            'addressFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
+            'type' => $this->safe_string($types, $eventType),
+            'amount' => $this->parse_number(Precise::string_abs($amount)),
+            'currency' => $this->safe_currency_code('USDC', $currency),
+            'status' => null,
+            'updated' => null,
+            'comment' => null,
+            'internal' => null,
+            'fee' => null,
+        );
     }
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

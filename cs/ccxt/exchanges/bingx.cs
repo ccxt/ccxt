@@ -3874,8 +3874,8 @@ public partial class bingx : Exchange
      * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
      * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
      * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
-     * @param {float} [params.stopLossPrice] stop loss trigger price
-     * @param {float} [params.takeProfitPrice] take profit trigger price
+     * @param {float} [params.stopLossPrice] stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
+     * @param {float} [params.takeProfitPrice] take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
      * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
      * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
@@ -4170,7 +4170,12 @@ public partial class bingx : Exchange
             { "stop_limit", "limit" },
             { "stop_market", "market" },
             { "take_profit_market", "market" },
+            { "take_profit", "limit" },
             { "stop", "limit" },
+            { "take_stop_limit", "limit" },
+            { "take_stop_market", "market" },
+            { "trailing_stop_market", "market" },
+            { "trailing_tp_sl", "market" },
         };
         return this.safeString(types, type, type);
     }
@@ -4472,6 +4477,12 @@ public partial class bingx : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(((market == null)) ? marketId : null, market, null, marketType);
         string? side = this.safeStringLower2(orderData, "side", "S");
         Int64? timestamp = this.safeIntegerN(orderData, new List<object>() {"time", "transactTime", "E", "createdTime"});
+        string transactTime = this.safeString(orderData, "transactTime", "");
+        if ((transactTime.Length == 10))
+        {
+            // spot conditional orders are created with transactTime in seconds
+            timestamp = this.safeTimestamp(orderData, "transactTime");
+        }
         Int64? lastTradeTimestamp = this.safeInteger2(orderData, "updateTime", "T");
         string? statusId = this.safeStringUpperN(orderData, new List<object>() {"status", "X", "orderStatus"});
         object feeCurrencyCode = this.safeString2(orderData, "feeAsset", "N");
@@ -4525,7 +4536,9 @@ public partial class bingx : Exchange
         string rawType = this.safeStringLower2(orderData, "type", "o");
         string? stopPrice = ((string)this.omitZero(this.safeString2(orderData, "StopPrice", "stopPrice")));
         string? triggerPrice = stopPrice;
-        if ((stopPrice != null))
+        // spot TAKE_STOP_* is a plain conditional order, the venue does not say whether it protects a position
+        bool isTakeStop = ((rawType != null)) && (rawType.IndexOf("take_stop", StringComparison.Ordinal) > -1);
+        if (((stopPrice != null)) && !isTakeStop)
         {
             if ((rawType.IndexOf("stop", StringComparison.Ordinal) > -1) && ((stopLossPrice == null)))
             {

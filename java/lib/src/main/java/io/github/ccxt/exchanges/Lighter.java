@@ -3915,6 +3915,11 @@ public class Lighter extends LighterApi
                 put( "api_key_index", apiKeyIndex );
                 put( "account_index", accountIndex );
             }};
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                Map<String, Object> market = this.market(symbol);
+                signRaw.put("cancel_all_market_index", this.parseToInt(market.get("id")));
+            }
             var txTypetxInfoVariable = this.lighterSignCancelAllOrders(signer, this.extend(signRaw, paramsAccountIndex));
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);

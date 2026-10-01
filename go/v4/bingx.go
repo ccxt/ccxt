@@ -4374,8 +4374,8 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
  * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
  * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
  * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
- * @param {float} [params.stopLossPrice] stop loss trigger price
- * @param {float} [params.takeProfitPrice] take profit trigger price
+ * @param {float} [params.stopLossPrice] stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
+ * @param {float} [params.takeProfitPrice] take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
  * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
  * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
@@ -4716,12 +4716,17 @@ func (this *Bingx) ParseOrderSide(side *string) *string {
 }
 func (this *Bingx) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
-		"trigger_market":     "market",
-		"trigger_limit":      "limit",
-		"stop_limit":         "limit",
-		"stop_market":        "market",
-		"take_profit_market": "market",
-		"stop":               "limit",
+		"trigger_market":       "market",
+		"trigger_limit":        "limit",
+		"stop_limit":           "limit",
+		"stop_market":          "market",
+		"take_profit_market":   "market",
+		"take_profit":          "limit",
+		"stop":                 "limit",
+		"take_stop_limit":      "limit",
+		"take_stop_market":     "market",
+		"trailing_stop_market": "market",
+		"trailing_tp_sl":       "market",
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
@@ -5032,6 +5037,11 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 	}(), market, nil, marketType)
 	var side *string = this.SafeStringLower2(orderData, "side", "S")
 	var timestamp *int64 = this.SafeIntegerN(orderData, []any{"time", "transactTime", "E", "createdTime"})
+	var transactTime *string = this.SafeString(orderData, "transactTime", "")
+	if len(*transactTime) == 10 {
+		// spot conditional orders are created with transactTime in seconds
+		timestamp = this.SafeTimestamp(orderData, "transactTime")
+	}
 	var lastTradeTimestamp *int64 = this.SafeInteger2(orderData, "updateTime", "T")
 	var statusId *string = this.SafeStringUpperN(orderData, []any{"status", "X", "orderStatus"})
 	var feeCurrencyCode any
@@ -5082,7 +5092,14 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 	var rawType *string = this.SafeStringLower2(orderData, "type", "o")
 	var stopPrice any = this.OmitZero(this.SafeString2(orderData, "StopPrice", "stopPrice"))
 	var triggerPrice any = stopPrice
-	if stopPrice != nil {
+	// spot TAKE_STOP_* is a plain conditional order, the venue does not say whether it protects a position
+	var isTakeStop bool = (rawType != nil) && (func() int {
+		if rawType == nil {
+			return -1
+		}
+		return strings.Index(*rawType, "take_stop")
+	}() > -1)
+	if (stopPrice != nil) && !isTakeStop {
 		if (func() int {
 			if rawType == nil {
 				return -1
@@ -6399,11 +6416,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes539719 []any = ListTyped(r1.Value)
-		if retRes539719 == nil {
+		var retRes540919 []any = ListTyped(r1.Value)
+		if retRes540919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes539719}
+			ch <- AsyncResult[any]{Value: retRes540919}
 		}
 		return nil
 	}
@@ -6676,11 +6693,11 @@ func (this *Bingx) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...a
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6222 := <-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))
-	if listEp6222.Err != nil {
-		panic(listEp6222.Err)
+	listEp6239 := <-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))
+	if listEp6239.Err != nil {
+		panic(listEp6239.Err)
 	}
-	var response []any = listEp6222.Value
+	var response []any = listEp6239.Value
 
 	//
 	//    [
@@ -6752,11 +6769,11 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs .
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6291 := <-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))
-	if listEp6291.Err != nil {
-		panic(listEp6291.Err)
+	listEp6308 := <-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))
+	if listEp6308.Err != nil {
+		panic(listEp6308.Err)
 	}
-	var response []any = listEp6291.Value
+	var response []any = listEp6308.Value
 
 	//
 	//    [
@@ -6994,11 +7011,11 @@ func (this *Bingx) addMarginBody(ch chan AsyncResult[map[string]any], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes583715 map[string]any = MapTyped(r.Value)
-	if retRes583715 == nil {
+	var retRes584915 map[string]any = MapTyped(r.Value)
+	if retRes584915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes583715}
+		ch <- AsyncResult[map[string]any]{Value: retRes584915}
 	}
 	return nil
 }
@@ -7020,11 +7037,11 @@ func (this *Bingx) reduceMarginBody(ch chan EndpointResult[map[string]any], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes584415 map[string]any = MapTyped(r.Value)
-	if retRes584415 == nil {
+	var retRes585615 map[string]any = MapTyped(r.Value)
+	if retRes585615 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes584415, Raw: retRes584415}
+		ch <- EndpointResult[map[string]any]{Value: retRes585615, Raw: retRes585615}
 	}
 	return nil
 }
@@ -9199,8 +9216,8 @@ func (this *Bingx) CreateMarketSellOrderWithCost(symbol string, cost float64, op
  * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
  * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
  * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
- * @param {float} [params.stopLossPrice] stop loss trigger price
- * @param {float} [params.takeProfitPrice] take profit trigger price
+ * @param {float} [params.stopLossPrice] stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
+ * @param {float} [params.takeProfitPrice] take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
  * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
  * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
