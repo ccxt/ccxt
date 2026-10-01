@@ -1,9 +1,10 @@
 // ----------------------------------------------------------------------------
 
 import deriveRest from '../derive.js';
+import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, UnsubscribeError } from '../base/errors.js';
-import { ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Dict, Bool, List } from '../base/types.js';
+import { ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCache } from '../base/ws/Cache.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Position, Dict, Bool, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -24,7 +25,7 @@ export default class derive extends deriveRest {
                 'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
-                'watchPositions': false, // the balances channel streams position deltas without an initial snapshot, which is not enough for a faithful positions cache
+                'watchPositions': true,
             },
             'urls': {
                 'api': {
@@ -853,7 +854,9 @@ export default class derive extends deriveRest {
         }
         const [ fetchSnapshot, paramsSnapshot ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
         const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchBalance', paramsSnapshot);
-        if (fetchSnapshot && (this.balance === undefined)) {
+        // the base initializes balance to an empty dict, so the snapshot presence is detected by the info key only a real fetchBalance sets
+        const balanceInfo = this.safeDict (this.balance, 'info');
+        if (fetchSnapshot && (balanceInfo === undefined)) {
             const snapshotRequest: Dict = {
                 'subaccount_id': subaccountId,
             };
@@ -880,6 +883,99 @@ export default class derive extends deriveRest {
         return await this.watchPrivate (topic, message, subscription);
     }
 
+    /**
+     * @method
+     * @name derive#watchPositions
+     * @description watch all open positions; the sizes stream over the balances channel, while entry price, pnl and margin fields stay from the rest snapshot until the next one
+     * @see https://docs.derive.xyz/api-reference/channels/subaccountbalances
+     * @param {string[]} [symbols] list of unified market symbols to watch positions for
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @param {boolean} [params.fetchPositionsSnapshot] default true, the channel only streams size changes, so an initial snapshot is loaded over rest before subscribing
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsResolved = this.marketSymbols (symbols, undefined, true);
+        const [ fetchSnapshot, paramsSnapshot ] = this.handleOptionBoolAndParams (params, 'watchPositions', 'fetchPositionsSnapshot', true);
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchPositions', paramsSnapshot);
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+            if (fetchSnapshot) {
+                const snapshotRequest: Dict = {
+                    'subaccount_id': subaccountId,
+                };
+                const snapshotParams = this.extend (snapshotRequest, paramsDeriveSubaccountId);
+                const positionsSnapshot = await this.fetchPositions (undefined, snapshotParams);
+                const cache = this.positions;
+                for (let i = 0; i < positionsSnapshot.length; i++) {
+                    cache.append (positionsSnapshot[i]);
+                }
+            }
+        }
+        const topic = this.numberToString (subaccountId) + '.balances';
+        const messageHash = 'positions:' + topic;
+        const request: Dict = {
+            'method': 'subscribe',
+            'params': {
+                'channels': [
+                    topic,
+                ],
+            },
+        };
+        const subscription: Dict = {
+            'name': topic,
+            'params': paramsDeriveSubaccountId,
+        };
+        const message = this.extend (request, paramsDeriveSubaccountId);
+        const newPositions = await this.watchPrivate (messageHash, message, subscription);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsResolved, since, limit, true);
+    }
+
+    handlePositionDelta (entry: Dict): Position {
+        const marketId = this.safeString (entry, 'name');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const newSize = this.safeString (entry, 'new_balance', '0');
+        const isShort = Precise.stringLt (newSize, '0');
+        const side = isShort ? 'short' : 'long';
+        const contracts = Precise.stringAbs (newSize);
+        const cache = this.positions;
+        const symbolPositions = this.safeDict (cache.hashmap, symbol, {});
+        // a fill through zero flattens the opposite side first
+        const oppositeSide = isShort ? 'long' : 'short';
+        const opposite = this.safeDict (symbolPositions, oppositeSide);
+        if (opposite !== undefined) {
+            const oppositeContracts = this.safeString (opposite, 'contracts');
+            if ((oppositeContracts !== undefined) && (oppositeContracts !== '0')) {
+                (opposite as Dict)['contracts'] = this.parseNumber ('0');
+                (opposite as Dict)['timestamp'] = this.milliseconds ();
+                cache.append (opposite as Position);
+            }
+        }
+        let position = this.safeDict (symbolPositions, side);
+        if (position === undefined) {
+            position = this.safePosition ({
+                'symbol': symbol,
+                'side': side,
+                'info': entry,
+            });
+        }
+        (position as Dict)['contracts'] = this.parseNumber (contracts);
+        (position as Dict)['side'] = side;
+        (position as Dict)['timestamp'] = this.milliseconds ();
+        (position as Dict)['info'] = entry;
+        cache.append (position as Position);
+        return position as Position;
+    }
+
     handleBalance (client: Client, message: Dict) {
         //
         //     {
@@ -904,11 +1000,17 @@ export default class derive extends deriveRest {
             this.balance = {};
         }
         let updated = false;
+        const positionUpdates = [];
         for (let i = 0; i < data.length; i++) {
-            const entry = this.safeDict (data, i);
+            const entry = this.safeDict (data, i, {});
             const name = this.safeString (entry, 'name', '');
             if (name.indexOf ('-') >= 0) {
-                continue; // position deltas carry instrument names and do not belong into the balance structure
+                // position deltas carry instrument names and do not belong into the balance structure
+                if (this.positions !== undefined) {
+                    const position = this.handlePositionDelta (entry);
+                    positionUpdates.push (position);
+                }
+                continue;
             }
             const code = this.safeCurrencyCode (name);
             if (code === undefined) {
@@ -918,13 +1020,29 @@ export default class derive extends deriveRest {
             if (account === undefined) {
                 account = this.account ();
             }
-            account['total'] = this.safeString (entry, 'new_balance');
+            // the channel streams one subaccount while the rest snapshot sums the whole wallet, so the delta (new minus previous) is applied to the seeded total instead of overwriting it with the subaccount-scoped absolute value
+            const newBalance = this.safeString (entry, 'new_balance');
+            const previousBalance = this.safeString (entry, 'previous_balance');
+            const oldTotal = this.safeString (account, 'total');
+            if ((oldTotal !== undefined) && (previousBalance !== undefined)) {
+                const difference = Precise.stringSub (newBalance, previousBalance);
+                account['total'] = Precise.stringAdd (oldTotal, difference);
+            } else {
+                account['total'] = newBalance;
+            }
+            // the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
+            account['free'] = undefined;
+            account['used'] = undefined;
             this.balance[code] = account;
             updated = true;
         }
         if (updated) {
             this.balance = this.safeBalance (this.balance);
             client.resolve (this.balance, topic);
+        }
+        const positionUpdatesLength = positionUpdates.length;
+        if (positionUpdatesLength > 0) {
+            client.resolve (positionUpdates, 'positions:' + topic);
         }
     }
 
