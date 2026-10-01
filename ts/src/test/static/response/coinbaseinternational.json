@@ -377,21 +377,9 @@
                             "prev_index_price": 64773.05
                         },
                         "symbol": "BTC/USDC:USDC",
-                        "markPrice": null,
-                        "indexPrice": 64832.34,
-                        "interestRate": null,
-                        "estimatedSettlePrice": null,
-                        "timestamp": 1786269600000,
-                        "datetime": "2026-08-09T10:00:00.000Z",
                         "fundingRate": 0,
-                        "fundingTimestamp": 1786269600000,
-                        "fundingDatetime": "2026-08-09T10:00:00.000Z",
-                        "nextFundingRate": null,
-                        "nextFundingTimestamp": null,
-                        "nextFundingDatetime": null,
-                        "previousFundingRate": null,
-                        "previousFundingTimestamp": null,
-                        "previousFundingDatetime": null
+                        "timestamp": 1786269600000,
+                        "datetime": "2026-08-09T10:00:00.000Z"
                     },
                     {
                         "info": {
@@ -402,21 +390,9 @@
                             "prev_index_price": 64832.34
                         },
                         "symbol": "BTC/USDC:USDC",
-                        "markPrice": null,
-                        "indexPrice": 64912.3,
-                        "interestRate": null,
-                        "estimatedSettlePrice": null,
-                        "timestamp": 1786273200000,
-                        "datetime": "2026-08-09T11:00:00.000Z",
                         "fundingRate": 0,
-                        "fundingTimestamp": 1786273200000,
-                        "fundingDatetime": "2026-08-09T11:00:00.000Z",
-                        "nextFundingRate": null,
-                        "nextFundingTimestamp": null,
-                        "nextFundingDatetime": null,
-                        "previousFundingRate": null,
-                        "previousFundingTimestamp": null,
-                        "previousFundingDatetime": null
+                        "timestamp": 1786273200000,
+                        "datetime": "2026-08-09T11:00:00.000Z"
                     },
                     {
                         "info": {
@@ -427,21 +403,9 @@
                             "prev_index_price": 64912.3
                         },
                         "symbol": "BTC/USDC:USDC",
-                        "markPrice": null,
-                        "indexPrice": 64902.69,
-                        "interestRate": null,
-                        "estimatedSettlePrice": null,
-                        "timestamp": 1786276800000,
-                        "datetime": "2026-08-09T12:00:00.000Z",
                         "fundingRate": 0,
-                        "fundingTimestamp": 1786276800000,
-                        "fundingDatetime": "2026-08-09T12:00:00.000Z",
-                        "nextFundingRate": null,
-                        "nextFundingTimestamp": null,
-                        "nextFundingDatetime": null,
-                        "previousFundingRate": null,
-                        "previousFundingTimestamp": null,
-                        "previousFundingDatetime": null
+                        "timestamp": 1786276800000,
+                        "datetime": "2026-08-09T12:00:00.000Z"
                     }
                 ]
             }

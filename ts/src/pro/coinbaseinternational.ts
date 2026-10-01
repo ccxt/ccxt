@@ -29,6 +29,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
                 'watchOrdersForSymbols': true,
                 'watchPositions': true,
                 'watchTickers': true,
+                'watchMarkPrice': true,
+                'watchMarkPrices': true,
+                'unWatchMarkPrice': true,
+                'unWatchMarkPrices': true,
                 'unWatchTrades': true,
                 'unWatchTradesForSymbols': true,
                 'unWatchOHLCV': true,
@@ -60,7 +64,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
                     'wsPrivate': 'wss://drb.coinbase.com/ws/api/v2',
                 },
             },
+            'streaming': {
+                'keepAlive': 15000, // idle sockets are closed (1011) after ~30s without client messages, see ping()
+            },
             'options': {
+                'wsAuthRefreshRatio': 0.8, // re-authenticate the private socket after 80% of the session lifetime
                 'ws': {
                     'timeframes': {
                         '1m': '1',
@@ -94,6 +102,34 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;
+    }
+
+    override ping (client: Client): Dict | Str {
+        const refreshAt = this.safeInteger (this.options, 'wsAuthRefreshAt');
+        const isPrivateClient = (client.url === this.urls['api']['wsPrivate']);
+        if (isPrivateClient && (refreshAt !== undefined) && (this.milliseconds () >= refreshAt)) {
+            // re-authenticate in-band before the session expires, also while no watch call is pending
+            // retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
+            this.options['wsAuthRefreshAt'] = this.sum (this.milliseconds (), 60000);
+            const requestId = this.requestId ();
+            this.options['wsAuthRequestId'] = requestId;
+            return {
+                'jsonrpc': '2.0',
+                'id': requestId,
+                'method': 'public/auth',
+                'params': {
+                    'grant_type': 'coinbase_cdp',
+                    'token': this.createAuthToken (this.seconds (), this.isEddsaSecret ()),
+                },
+            };
+        }
+        // the gateway closes a socket after ~30s without client messages; protocol-level pings do not count
+        return {
+            'jsonrpc': '2.0',
+            'id': this.requestId (),
+            'method': 'public/test',
+            'params': {},
+        };
     }
 
     async subscribe (channels: string[], messageHashes: string[], isPrivate = false, params = {}) {
@@ -162,10 +198,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     override async watchBalance (params = {}): Promise<Balances> {
-        let currency: Str = undefined;
-        [ currency, params ] = this.handleOptionAndParams (params, 'watchBalance', 'currency', 'any');
+        const [ currency, paramsResolved ] = this.handleOptionAndParams (params, 'watchBalance', 'currency', 'any');
         const channel = 'user.portfolio.' + currency;
-        return await this.subscribe ([ channel ], [ 'balance' ], true, params);
+        return await this.subscribe ([ channel ], [ 'balance' ], true, paramsResolved);
     }
 
     handleBalance (client: Client, message: any) {
@@ -192,16 +227,16 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'interval', 'raw');
+        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchMyTrades', 'interval', 'raw');
         let channel = 'user.trades.any.any.' + interval;
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbol = market['symbol'];
+            symbolResolved = market['symbol'];
             channel = 'user.trades.' + market['id'] + '.' + interval;
         }
-        const trades = await this.subscribe ([ channel ], [ channel ], true, params);
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        const trades = await this.subscribe ([ channel ], [ channel ], true, paramsResolved);
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limit, true);
     }
 
     /**
@@ -214,8 +249,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @returns {object} the exchange response
      */
     override async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'interval', 'raw');
+        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchMyTrades', 'interval', 'raw');
         let channel = 'user.trades.any.any.' + interval;
         if (symbol !== undefined) {
             if (this.markets === undefined) {
@@ -223,7 +257,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             }
             channel = 'user.trades.' + this.marketId (symbol) + '.' + interval;
         }
-        return await this.unSubscribe ([ channel ], true, params);
+        return await this.unSubscribe ([ channel ], true, paramsResolved);
     }
 
     handleMyTrades (client: Client, message: any) {
@@ -258,8 +292,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrders', 'interval', 'raw');
+        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchOrders', 'interval', 'raw');
         let channel = 'user.orders.any.any.' + interval;
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
@@ -267,7 +300,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             symbolResolved = market['symbol'];
             channel = 'user.orders.' + market['id'] + '.' + interval;
         }
-        const orders = await this.subscribe ([ channel ], [ channel ], true, params);
+        const orders = await this.subscribe ([ channel ], [ channel ], true, paramsResolved);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -290,19 +323,19 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrders', 'interval', 'raw');
+        const symbolsResolved = this.marketSymbols (symbols, undefined, false);
+        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchOrders', 'interval', 'raw');
         const channels: string[] = [];
-        const symbolsLength = symbols.length;
+        const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            channels.push ('user.orders.' + this.marketId (symbols[i]) + '.' + interval);
+            channels.push ('user.orders.' + this.marketId (symbolsResolved[i]) + '.' + interval);
         }
-        const orders = await this.subscribe (channels, channels, true, params);
+        const orders = await this.subscribe (channels, channels, true, paramsResolved);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (undefined, limit);
+            limitResolved = orders.getLimit (undefined, limit);
         }
-        return this.filterBySymbolsSinceLimit (orders, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (orders, symbolsResolved, since, limitResolved, true);
     }
 
     /**
@@ -315,8 +348,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @returns {object} the exchange response
      */
     override async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrders', 'interval', 'raw');
+        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchOrders', 'interval', 'raw');
         let channel = 'user.orders.any.any.' + interval;
         if (symbol !== undefined) {
             if (this.markets === undefined) {
@@ -324,7 +356,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             }
             channel = 'user.orders.' + this.marketId (symbol) + '.' + interval;
         }
-        return await this.unSubscribe ([ channel ], true, params);
+        return await this.unSubscribe ([ channel ], true, paramsResolved);
     }
 
     handleOrders (client: Client, message: any) {
@@ -365,8 +397,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols);
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchPositions', 'interval', 'raw');
+        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchPositions', 'interval', 'raw');
         const channels: string[] = [];
         let symbolsLength = 0;
         if (symbolsResolved !== undefined) {
@@ -379,7 +410,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         } else {
             channels.push ('user.changes.any.any.' + interval);
         }
-        const positions = await this.subscribe (channels, channels, true, params);
+        const positions = await this.subscribe (channels, channels, true, paramsResolved);
         if (this.newUpdates) {
             return positions;
         }
@@ -399,22 +430,21 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchPositions', 'interval', 'raw');
+        const symbolsResolved = this.marketSymbols (symbols);
+        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchPositions', 'interval', 'raw');
         const channels: string[] = [];
         let symbolsLength = 0;
-        if (symbols !== undefined) {
-            symbolsLength = symbols.length;
+        if (symbolsResolved !== undefined) {
+            symbolsLength = symbolsResolved.length;
         }
-        if ((symbols !== undefined) && (symbolsLength > 0)) {
+        if ((symbolsResolved !== undefined) && (symbolsLength > 0)) {
             for (let i = 0; i < symbolsLength; i++) {
-                channels.push ('user.changes.' + this.marketId (symbols[i]) + '.' + interval);
+                channels.push ('user.changes.' + this.marketId (symbolsResolved[i]) + '.' + interval);
             }
         } else {
             channels.push ('user.changes.any.any.' + interval);
         }
-        return await this.unSubscribe (channels, true, params);
+        return await this.unSubscribe (channels, true, paramsResolved);
     }
 
     handlePositions (client: Client, message: any) {
@@ -516,11 +546,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchTicker', 'interval', '100ms');
+        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchTicker', 'interval', '100ms');
         const isPrivate = interval === 'raw';
         const channel = 'ticker.' + market['id'] + '.' + interval;
-        return await this.subscribe ([ channel ], [ channel ], isPrivate, params);
+        return await this.subscribe ([ channel ], [ channel ], isPrivate, paramsResolved);
     }
 
     /**
@@ -551,8 +580,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols, undefined, false);
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchTickers', 'interval', '100ms');
+        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchTickers', 'interval', '100ms');
         const isPrivate = interval === 'raw';
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
@@ -560,7 +588,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             const market = this.market (symbolsResolved[i]);
             channels.push ('ticker.' + market['id'] + '.' + interval);
         }
-        const ticker = await this.subscribe (channels, channels, isPrivate, params);
+        const ticker = await this.subscribe (channels, channels, isPrivate, paramsResolved);
         if (this.newUpdates) {
             const result: Dict = {};
             const tickerSymbol = this.safeString (ticker, 'symbol');
@@ -585,15 +613,68 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchTickers', 'interval', '100ms');
+        const symbolsResolved = this.marketSymbols (symbols, undefined, false);
+        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchTickers', 'interval', '100ms');
         const channels: string[] = [];
-        const symbolsLength = symbols.length;
+        const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            channels.push ('ticker.' + this.marketId (symbols[i]) + '.' + interval);
+            channels.push ('ticker.' + this.marketId (symbolsResolved[i]) + '.' + interval);
         }
-        return await this.unSubscribe (channels, interval === 'raw', params);
+        return await this.unSubscribe (channels, interval === 'raw', paramsResolved);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchMarkPrice
+     * @description watches a mark price for a specific market
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.interval] notification interval, default 100ms
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async watchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
+        return await this.watchTicker (symbol, params);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchMarkPrices
+     * @description watches the mark price for multiple markets
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @param {string[]} symbols unified symbols of the markets to watch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.interval] notification interval, default 100ms
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async watchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        return await this.watchTickers (symbols, params);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchMarkPrice
+     * @description stops watching the mark price for a symbol
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    override async unWatchMarkPrice (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTicker (symbol, params);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchMarkPrices
+     * @description stops watching mark prices for multiple symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    override async unWatchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        return await this.unWatchTickers (symbols, params);
     }
 
     /**
@@ -609,11 +690,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsResolved = this.marketSymbols (symbols, undefined, false);
         const channels: string[] = [];
-        const symbolsLength = symbols.length;
+        const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            const market = this.market (symbols[i]);
+            const market = this.market (symbolsResolved[i]);
             channels.push ('quote.' + market['id']);
         }
         const ticker = await this.subscribe (channels, channels, false, params);
@@ -622,7 +703,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             result[ticker['symbol']] = ticker;
             return result;
         }
-        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+        return this.filterByArray (this.bidsasks, 'symbol', symbolsResolved);
     }
 
     /**
@@ -638,11 +719,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsResolved = this.marketSymbols (symbols, undefined, false);
         const channels: string[] = [];
-        const symbolsLength = symbols.length;
+        const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            channels.push ('quote.' + this.marketId (symbols[i]));
+            channels.push ('quote.' + this.marketId (symbolsResolved[i]));
         }
         return await this.unSubscribe (channels, false, params);
     }
@@ -669,18 +750,18 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
 
     parseWsBidAsk (ticker: any, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 'instrument_name');
-        market = this.safeMarket (marketId, market);
+        const marketResolved = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (ticker, 'timestamp');
         return this.safeTicker ({
             'info': ticker,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'bid': this.safeString (ticker, 'best_bid_price'),
             'bidVolume': this.safeString (ticker, 'best_bid_amount'),
             'ask': this.safeString (ticker, 'best_ask_price'),
             'askVolume': this.safeString (ticker, 'best_ask_amount'),
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -699,9 +780,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
-        const ohlcvs = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
-        return ohlcvs[symbol][timeframe];
+        const symbolResolved = this.symbol (symbol);
+        const ohlcvs = await this.watchOHLCVForSymbols ([ [ symbolResolved, timeframe ] ], since, limit, params);
+        return ohlcvs[symbolResolved][timeframe];
     }
 
     /**
@@ -847,17 +928,16 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
+        const symbolsResolved = this.marketSymbols (symbols, undefined, false);
+        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
         const isPrivate = interval === 'raw';
         const channels: string[] = [];
-        const symbolsLength = symbols.length;
+        const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            const market = this.market (symbols[i]);
+            const market = this.market (symbolsResolved[i]);
             channels.push ('trades.' + market['id'] + '.' + interval);
         }
-        const trades = await this.subscribe (channels, channels, isPrivate, params);
+        const trades = await this.subscribe (channels, channels, isPrivate, paramsResolved);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
@@ -893,15 +973,14 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
+        const symbolsResolved = this.marketSymbols (symbols, undefined, false);
+        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
         const channels: string[] = [];
-        const symbolsLength = symbols.length;
+        const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            channels.push ('trades.' + this.marketId (symbols[i]) + '.' + interval);
+            channels.push ('trades.' + this.marketId (symbolsResolved[i]) + '.' + interval);
         }
-        return await this.unSubscribe (channels, interval === 'raw', params);
+        return await this.unSubscribe (channels, interval === 'raw', paramsResolved);
     }
 
     handleTrades (client: Client, message: any) {
@@ -956,17 +1035,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', '100ms');
         const isPrivate = interval === 'raw';
-        let useDepthEndpoint: Bool = undefined;
-        [ useDepthEndpoint, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
+        const [ useDepthEndpoint, paramsDepthEndpoint ] = this.handleOptionAndParams (paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
+        let paramsResolved: Dict = paramsDepthEndpoint;
         let descriptor = interval as string;
         if (useDepthEndpoint) {
-            let depth: Str = undefined;
-            [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', '20');
-            let group: Str = undefined;
-            [ group, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'group', 'none');
+            const [ depth, paramsDepth ] = this.handleOptionAndParams (paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
+            const [ group, paramsGroup ] = this.handleOptionAndParams (paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
+            paramsResolved = paramsGroup;
             descriptor = group + '.' + depth + '.' + interval;
         }
         const channels: string[] = [];
@@ -975,7 +1052,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             const market = this.market (symbols[i]);
             channels.push ('book.' + market['id'] + '.' + descriptor);
         }
-        const orderbook = await this.subscribe (channels, channels, isPrivate, params);
+        const orderbook = await this.subscribe (channels, channels, isPrivate, paramsResolved);
         return orderbook.limit ();
     }
 
@@ -1005,16 +1082,14 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', '100ms');
-        let useDepthEndpoint: Bool = undefined;
-        [ useDepthEndpoint, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', '100ms');
+        const [ useDepthEndpoint, paramsDepthEndpoint ] = this.handleOptionAndParams (paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
+        let paramsResolved: Dict = paramsDepthEndpoint;
         let descriptor = interval as string;
         if (useDepthEndpoint) {
-            let depth: Str = undefined;
-            [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', '20');
-            let group: Str = undefined;
-            [ group, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'group', 'none');
+            const [ depth, paramsDepth ] = this.handleOptionAndParams (paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
+            const [ group, paramsGroup ] = this.handleOptionAndParams (paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
+            paramsResolved = paramsGroup;
             descriptor = group + '.' + depth + '.' + interval;
         }
         const channels: string[] = [];
@@ -1022,7 +1097,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         for (let i = 0; i < symbolsLength; i++) {
             channels.push ('book.' + this.marketId (symbols[i]) + '.' + descriptor);
         }
-        return await this.unSubscribe (channels, interval === 'raw', params);
+        return await this.unSubscribe (channels, interval === 'raw', paramsResolved);
     }
 
     handleOrderBook (client: any, message: any) {
@@ -1130,6 +1205,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             const requestId = this.safeString (message, 'id');
             const authRequestId = this.safeString (this.options, 'wsAuthRequestId');
             const messageHash = (requestId === authRequestId) ? 'authenticated' : requestId;
+            if ((messageHash === 'authenticated') && (messageHash in client.subscriptions)) {
+                // allow the next authenticate () call to retry
+                delete client.subscriptions[messageHash];
+            }
             client.reject (e, messageHash);
         }
         return true;
@@ -1187,10 +1266,41 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
         const requestId = this.safeString (message, 'id');
         if (requestId !== undefined) {
+            const result = this.safeDict (message, 'result');
+            if (this.safeString (result, 'version') !== undefined) {
+                // public/test reply to ping ()
+                client.lastPong = this.milliseconds ();
+            }
             const authRequestId = this.safeString (this.options, 'wsAuthRequestId');
-            const messageHash = (requestId === authRequestId) ? 'authenticated' : requestId;
-            client.resolve (this.safeValue (message, 'result', message), messageHash);
+            if (requestId === authRequestId) {
+                this.handleAuthenticationMessage (client, message);
+                return;
+            }
+            client.resolve (this.safeValue (message, 'result', message), requestId);
         }
+    }
+
+    handleAuthenticationMessage (client: Client, message: any) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": {
+        //             "expires_in": 3000,
+        //             "scope": "...",
+        //             "sid": "...",
+        //             "token_type": "bearer"
+        //         }
+        //     }
+        //
+        const result = this.safeDict (message, 'result', {});
+        const expiresIn = this.safeInteger (result, 'expires_in', 900);
+        const ratio = this.safeNumber (this.options, 'wsAuthRefreshRatio');
+        const refreshRatio = (ratio === undefined) ? 0.8 : ratio;
+        const now = this.milliseconds ();
+        this.options['wsAuthRefreshAt'] = this.sum (now, this.parseToInt (expiresIn * 1000 * refreshRatio));
+        client.lastPong = now;
+        client.resolve (result, 'authenticated');
     }
 
     async authenticate (params = {}) {
@@ -1198,16 +1308,19 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const client = this.client (url);
         const messageHash = 'authenticated';
         let future = this.safeValue (client.subscriptions, messageHash);
+        if (future !== undefined) {
+            // sessions expire: re-authenticate on the same socket once due (ping () also does this)
+            const refreshAt = this.safeInteger (this.options, 'wsAuthRefreshAt');
+            if ((refreshAt !== undefined) && (this.milliseconds () >= refreshAt)) {
+                delete client.subscriptions[messageHash];
+                future = undefined;
+            }
+        }
         if (future === undefined) {
             this.checkRequiredCredentials ();
-            const secretIsPem = this.secret.startsWith ('-----BEGIN');
-            const secretEndsWithEquals = this.secret.endsWith ('=');
-            const useV2CloudApiKey = this.safeBool (this.options, 'v2CloudAPiKey', false);
-            const secretLength = this.secret.length;
-            const useEddsa = !secretIsPem && ((secretLength === 88) || useV2CloudApiKey || secretEndsWithEquals);
             const requestId = this.requestId ();
             this.options['wsAuthRequestId'] = requestId;
-            const token = this.createAuthToken (this.seconds (), undefined, undefined, useEddsa);
+            const token = this.createAuthToken (this.seconds (), this.isEddsaSecret ());
             const request: Dict = {
                 'jsonrpc': '2.0',
                 'id': requestId,
@@ -1335,8 +1448,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (triggerPrice !== undefined) {
             request['trigger_price'] = triggerPrice;
         }
-        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
-        const result = await this.requestWs ('private/edit', this.extend (request, params), true);
+        const paramsResolved = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        const result = await this.requestWs ('private/edit', this.extend (request, paramsResolved), true);
         const order = this.safeDict (result, 'order', {});
         order['trades'] = this.safeList (result, 'trades', []);
         return this.parseOrder (order, market);
@@ -1376,15 +1489,16 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      */
     override async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
         let method = 'private/cancel_all';
+        let paramsResolved: Dict = params;
         if (symbol !== undefined) {
             if (this.markets === undefined) {
                 await this.loadMarkets ();
             }
             const market = this.market (symbol);
-            params = this.extend ({ 'instrument_name': market['id'] }, params);
+            paramsResolved = this.extend ({ 'instrument_name': market['id'] }, params);
             method = 'private/cancel_all_by_instrument';
         }
-        const result = await this.requestWs (method, params, true);
+        const result = await this.requestWs (method, paramsResolved, true);
         return [ this.safeOrder ({ 'info': result }) ];
     }
 

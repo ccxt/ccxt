@@ -51,6 +51,7 @@ interface Exchange {
     publicGetSubscribe (params?: {}): Promise<Dict>;
     publicGetTest (params?: {}): Promise<Dict>;
     publicGetTicker (params?: {}): Promise<Dict>;
+    publicGetTickersByCurrency (params?: {}): Promise<Dict>;
     publicGetUnsubscribe (params?: {}): Promise<Dict>;
     publicGetUnsubscribeAll (params?: {}): Promise<Dict>;
     privateGetAcceptBlockRfq (params?: {}): Promise<Dict>;
@@ -92,7 +93,9 @@ interface Exchange {
     privateGetGetBrokerTrades (params?: {}): Promise<Dict>;
     privateGetGetCancelOnDisconnect (params?: {}): Promise<Dict>;
     privateGetGetLegPrices (params?: {}): Promise<Dict>;
+    privateGetGetLeverage (params?: {}): Promise<Dict>;
     privateGetGetMargins (params?: {}): Promise<Dict>;
+    privateGetGetMaxOrderSize (params?: {}): Promise<Dict>;
     privateGetGetOpenOrders (params?: {}): Promise<Dict>;
     privateGetGetOpenOrdersByCurrency (params?: {}): Promise<Dict>;
     privateGetGetOpenOrdersByInstrument (params?: {}): Promise<Dict>;
@@ -102,12 +105,18 @@ interface Exchange {
     privateGetGetOrderMarginByIds (params?: {}): Promise<Dict>;
     privateGetGetOrderState (params?: {}): Promise<Dict>;
     privateGetGetOrderStateByLabel (params?: {}): Promise<Dict>;
+    privateGetGetPmeParams (params?: {}): Promise<Dict>;
     privateGetGetPosition (params?: {}): Promise<Dict>;
     privateGetGetPositions (params?: {}): Promise<Dict>;
+    privateGetGetRiskProfile (params?: {}): Promise<Dict>;
     privateGetGetSettlementHistoryByCurrency (params?: {}): Promise<Dict>;
     privateGetGetSettlementHistoryByInstrument (params?: {}): Promise<Dict>;
+    privateGetGetSubaccounts (params?: {}): Promise<Dict>;
+    privateGetGetSubaccountsDetails (params?: {}): Promise<Dict>;
+    privateGetGetTradingLimits (params?: {}): Promise<Dict>;
     privateGetGetTransactionLog (params?: {}): Promise<Dict>;
     privateGetGetTriggerOrderHistory (params?: {}): Promise<Dict>;
+    privateGetGetUserLocks (params?: {}): Promise<Dict>;
     privateGetGetUserTradesByCurrency (params?: {}): Promise<Dict>;
     privateGetGetUserTradesByCurrencyAndTime (params?: {}): Promise<Dict>;
     privateGetGetUserTradesByInstrument (params?: {}): Promise<Dict>;
@@ -118,9 +127,11 @@ interface Exchange {
     privateGetPmeSimulate (params?: {}): Promise<Dict>;
     privateGetRejectBlockTrade (params?: {}): Promise<Dict>;
     privateGetSell (params?: {}): Promise<Dict>;
+    privateGetSetLeverage (params?: {}): Promise<Dict>;
     privateGetSimulateBlockTrade (params?: {}): Promise<Dict>;
     privateGetSimulatePortfolio (params?: {}): Promise<Dict>;
     privateGetSubscribe (params?: {}): Promise<Dict>;
+    privateGetSubmitTransferBetweenSubaccounts (params?: {}): Promise<Dict>;
     privateGetUnsubscribe (params?: {}): Promise<Dict>;
     privateGetUnsubscribeAll (params?: {}): Promise<Dict>;
     privateGetVerifyBlockTrade (params?: {}): Promise<Dict>;
