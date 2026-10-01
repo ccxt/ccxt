@@ -364,12 +364,12 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ws".to_string(), Value::Str("wss://ws.okx.com:8443/ws/v5".into()));
+        m.insert("ws".to_string(), Value::Str("wss://ws.okx.com:443/ws/v5".into()));
     m
 }));
         m.insert("test".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ws".to_string(), Value::Str("wss://wspap.okx.com:8443/ws/v5".into()));
+        m.insert("ws".to_string(), Value::Str("wss://wspap.okx.com:443/ws/v5".into()));
     m
 }));
     m

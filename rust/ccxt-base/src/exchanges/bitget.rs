@@ -450,7 +450,7 @@ impl BitgetCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://www.bitget.com".into()));
-        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://www.bitget.com/api-doc/common/intro".into()), Value::Str("https://www.bitget.com/api-doc/spot/intro".into()), Value::Str("https://www.bitget.com/api-doc/contract/intro".into()), Value::Str("https://www.bitget.com/api-doc/broker/intro".into()), Value::Str("https://www.bitget.com/api-doc/margin/intro".into()), Value::Str("https://www.bitget.com/api-doc/copytrading/intro".into()), Value::Str("https://www.bitget.com/api-doc/earn/intro".into()), Value::Str("https://bitgetlimited.github.io/apidoc/en/mix".into()), Value::Str("https://bitgetlimited.github.io/apidoc/en/spot".into()), Value::Str("https://bitgetlimited.github.io/apidoc/en/broker".into()), Value::Str("https://bitgetlimited.github.io/apidoc/en/margin".into())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://www.bitget.com/docs/uta/Introduction".into()), Value::Str("https://www.bitget.com/docs/classic/Introduction".into())]));
         m.insert("fees".to_string(), Value::Str("https://www.bitget.cc/zh-CN/rate?tab=1".into()));
         m.insert("referral".to_string(), Value::Str("https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j".into()));
     m
@@ -8941,14 +8941,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name bitget#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Assets
- * @see https://www.bitget.com/api-doc/contract/account/Get-Account-List
- * @see https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Assets
- * @see https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets
- * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
- * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
- * @see https://www.bitget.com/api-doc/uta/account/Get-Account
- * @see https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
+ * @see https://www.bitget.com/docs/catalog/classic-spot-account/classic-spot-account#get-account-assets
+ * @see https://www.bitget.com/docs/catalog/classic-contract-account/classic-contract-account#get-account-list
+ * @see https://www.bitget.com/docs/catalog/classic-margin-cross-account/classic-margin-cross-account#get-cross-account-assets
+ * @see https://www.bitget.com/docs/catalog/classic-margin-isolated-account/classic-margin-isolated-account#get-isolated-account-asset
+ * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-assets
+ * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-funding-assets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
