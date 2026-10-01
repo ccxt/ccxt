@@ -1652,6 +1652,22 @@
         ],
         "editOrder": [
             {
+                "description": "spot edit order with cancelReplaceMode",
+                "method": "editOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order/cancelReplace?cancelOrderId=2105697526710435840&cancelReplaceMode=ALLOW_FAILURE&price=29000&quantity=0.0002&side=BUY&symbol=BTC-USDT&timestamp=1790872390993&type=LIMIT&signature=847bac298ae237333917a1b7f57d9bd4c59f48360d5caf3c690f64c60cbbee97",
+                "input": [
+                    "2105697526710435840",
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0002,
+                    29000,
+                    {
+                        "cancelReplaceMode": "ALLOW_FAILURE"
+                    }
+                ]
+            },
+            {
                 "disabled": true,
                 "description": "trigger order with stoploss & takeprofit",
                 "method": "editOrder",
