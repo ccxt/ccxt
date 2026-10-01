@@ -91,7 +91,7 @@ dependencies = [
     # transitive dependencies of requests
     "charset_normalizer==3.4.7",
     "idna==3.18",
-    "urllib3==2.7.0",
+    "urllib3==2.8.0",
 ]
 
 [project.optional-dependencies]
