@@ -1203,6 +1203,21 @@ export default class derive extends Exchange {
         return this.signHash (hashOrder.slice (-64), privateKey.slice (-64));
     }
 
+    /**
+     * @method
+     * @ignore
+     * @name derive#nonceString
+     * @description returns a unique nanosecond-scale action nonce as a decimal string; v3 requires UTC timestamps in nanoseconds (~19 digits), which overflow double precision, so the millisecond timestamp from incrementingNonce is concatenated with a random 6-digit suffix (the venue accepts string nonces)
+     * @returns {string} a nanosecond-scale nonce as a decimal string
+     */
+    nonceString (): string {
+        // incrementingNonce guarantees unique milliseconds within one instance; the result matches the official derive-ts client nonce format (error 11017 = duplicate nonce)
+        const milliseconds = this.numberToString (this.incrementingNonce ());
+        const suffix = this.numberToString (this.randNumber (6)); // guards against collisions of different instances with the same wallet
+        const padded = suffix.padStart (6, '0');
+        return milliseconds + padded;
+    }
+
     hashMessage (message: any) {
         const binaryMessage = this.encode (message);
         const binaryMessageLength = this.binaryLength (binaryMessage);
@@ -1265,15 +1280,11 @@ export default class derive extends Exchange {
         const orderType = type.toLowerCase ();
         const orderSide = (side as string).toLowerCase ();
         const orderSideIsBuy = (orderSide === 'buy'); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-        const nonce = this.incrementingNonce ();
+        const nonce = this.nonceString ();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         const signatureExpiry = this.safeInteger (paramsDeriveSubaccountId, 'signature_expiry_sec', this.seconds () + 7776000);
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
-        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        let TRADE_MODULE_ADDRESS: Str = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
-        if (sandboxMode === true) {
-            TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
-        }
+        const TRADE_MODULE_ADDRESS: Str = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'; // shared across mainnet and testnet in v3
         const priceString = this.numberToString (price);
         let maxFee: Num = undefined;
         let paramsMaxFee: Dict = {};
@@ -1298,7 +1309,7 @@ export default class derive extends Exchange {
         const signature = this.signOrder ([
             ACTION_TYPEHASH,
             subaccountId,
-            nonce,
+            this.convertToBigInt (nonce),
             TRADE_MODULE_ADDRESS,
             tradeModuleDataHash,
             signatureExpiry,
@@ -1459,15 +1470,10 @@ export default class derive extends Exchange {
         const orderType = type.toLowerCase ();
         const orderSide = (side as string).toLowerCase ();
         const orderSideIsBuy = (orderSide === 'buy'); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-        const nonce = this.incrementingNonce ();
+        const nonce = this.nonceString ();
         const signatureExpiry = this.safeNumber (paramsDeriveSubaccountId, 'signature_expiry_sec', this.seconds () + 7776000);
-        // TODO: subaccount id / trade module address
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
-        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        let TRADE_MODULE_ADDRESS: Str = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
-        if (sandboxMode === true) {
-            TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
-        }
+        const TRADE_MODULE_ADDRESS: Str = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'; // shared across mainnet and testnet in v3
         const priceString = this.numberToString (price) as string;
         const maxFeeString = this.safeString (paramsDeriveSubaccountId, 'max_fee', '0');
         const amountString = this.numberToString (amount);
@@ -1486,7 +1492,7 @@ export default class derive extends Exchange {
         const signature = this.signOrder ([
             ACTION_TYPEHASH,
             subaccountId,
-            nonce,
+            this.convertToBigInt (nonce),
             TRADE_MODULE_ADDRESS,
             tradeModuleDataHash,
             signatureExpiry,
@@ -2766,8 +2772,7 @@ export default class derive extends Exchange {
     }
 
     override nonce (): number {
-        // the order nonce is a millisecond timestamp and must be unique per wallet (error 11017), while staying a valid date (error 11018)
-        // incrementingNonce () reads this and bumps past the previous value when two orders share a millisecond
+        // signs the auth timestamp and feeds incrementingNonce (), which nonceString () extends to the nanosecond-scale action nonce; must be unique per wallet (error 11017) while staying a valid date (error 11018)
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
