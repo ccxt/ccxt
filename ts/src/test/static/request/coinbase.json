@@ -310,7 +310,7 @@
             {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://api.coinbase.com/v2/accounts?limit=250",
+                "url": "https://api.coinbase.com/api/v3/brokerage/cfm/balance_summary",
                 "input": [
                     {
                         "type": "swap"

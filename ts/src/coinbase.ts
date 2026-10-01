@@ -1864,7 +1864,9 @@ export default class coinbase extends Exchange {
         const contractExpire = this.safeString (futureProductDetails, 'contract_expiry');
         const expireTimestamp = this.parse8601 (contractExpire);
         const expireDateTime = this.iso8601 (expireTimestamp);
-        const isSwap = (contractExpiryType === 'PERPETUAL');
+        // US perpetual-style futures are listed as EXPIRING with a placeholder expiry, only they carry a funding interval
+        const fundingInterval = this.safeString (futureProductDetails, 'funding_interval');
+        const isSwap = (contractExpiryType === 'PERPETUAL') || (fundingInterval !== undefined);
         const baseId = this.safeString (futureProductDetails, 'contract_root_unit');
         const quoteId = this.safeString (market, 'quote_currency_id');
         const base = this.safeCurrencyCode (baseId);
@@ -1908,8 +1910,8 @@ export default class coinbase extends Exchange {
             'taker': taker,
             'maker': maker,
             'contractSize': contractSize,
-            'expiry': expireTimestamp,
-            'expiryDatetime': expireDateTime,
+            'expiry': (isSwap) ? undefined : expireTimestamp,
+            'expiryDatetime': (isSwap) ? undefined : expireDateTime,
             'strike': undefined,
             'optionType': undefined,
             'precision': {
@@ -2541,7 +2543,7 @@ export default class coinbase extends Exchange {
         const paramsOmitted: Dict = this.omit (params, [ 'v3' ]);
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsOmitted);
         const method = this.safeString (this.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
-        if (marketType === 'future') {
+        if ((marketType === 'future') || (marketType === 'swap')) {
             response = await this.v3PrivateGetBrokerageCfmBalanceSummary (this.extend (request, paramsMarketType));
         } else if ((isV3 === true) || (method === 'v3PrivateGetBrokerageAccounts')) {
             request['limit'] = 250;
@@ -5029,8 +5031,8 @@ export default class coinbase extends Exchange {
         }
         return this.safePosition ({
             'info': position,
-            'id': undefined,
-            'symbol': marketResolved['symbol'],
+            'id': this.safeString (position, 'product_id'),
+            'symbol': this.safeSymbol (marketId, marketResolved),
             'notional': undefined,
             'marginMode': undefined,
             'liquidationPrice': undefined,
