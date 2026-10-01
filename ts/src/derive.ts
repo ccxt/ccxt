@@ -147,8 +147,8 @@ export default class derive extends Exchange {
                     'private': 'https://testnet.api.derive.xyz/v3/private',
                 },
                 'www': 'https://www.derive.xyz/',
-                'doc': 'https://docs.derive.xyz/docs/',
-                'fees': 'https://docs.derive.xyz/reference/fees-1/',
+                'doc': 'https://docs.derive.xyz/',
+                'fees': 'https://docs.derive.xyz/integrators/trading/trading-fees',
                 'referral': 'https://www.derive.xyz/invite/3VB0B',
             },
             'api': {
@@ -440,7 +440,7 @@ export default class derive extends Exchange {
      * @method
      * @name derive#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.derive.xyz/reference/post_public-get-time
+     * @see https://docs.derive.xyz/api-reference/system/publicget_time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -459,7 +459,7 @@ export default class derive extends Exchange {
      * @method
      * @name derive#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://docs.derive.xyz/reference/post_public-get-all-currencies
+     * @see https://docs.derive.xyz/api-reference/market-data/publicget_all_currencies
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -897,7 +897,7 @@ export default class derive extends Exchange {
      * @method
      * @name derive#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.derive.xyz/reference/post_public-get-trade-history
+     * @see https://docs.derive.xyz/api-reference/market-data/publicget_trade_history
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -1047,7 +1047,7 @@ export default class derive extends Exchange {
      * @method
      * @name derive#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://docs.derive.xyz/reference/post_public-get-funding-rate-history
+     * @see https://docs.derive.xyz/api-reference/market-data/publicget_funding_rate_history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of funding rate structures to fetch
@@ -1106,7 +1106,7 @@ export default class derive extends Exchange {
      * @method
      * @name derive#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://docs.derive.xyz/reference/post_public-get-funding-rate-history
+     * @see https://docs.derive.xyz/api-reference/market-data/publicget_funding_rate_history
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1221,7 +1221,7 @@ export default class derive extends Exchange {
      * @method
      * @name derive#createOrder
      * @description create a trade order
-     * @see https://docs.derive.xyz/reference/post_private-order
+     * @see https://docs.derive.xyz/api-reference/orderbook/privateorder
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1420,7 +1420,7 @@ export default class derive extends Exchange {
      * @method
      * @name derive#editOrder
      * @description edit a trade order
-     * @see https://docs.derive.xyz/reference/post_private-replace
+     * @see https://docs.derive.xyz/api-reference/orderbook/privatereplace
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -1586,7 +1586,7 @@ export default class derive extends Exchange {
     /**
      * @method
      * @name derive#cancelOrder
-     * @see https://docs.derive.xyz/reference/post_private-cancel
+     * @see https://docs.derive.xyz/api-reference/orderbook/privatecancel
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -1680,8 +1680,8 @@ export default class derive extends Exchange {
     /**
      * @method
      * @name derive#cancelAllOrders
-     * @see https://docs.derive.xyz/reference/post_private-cancel-by-instrument
-     * @see https://docs.derive.xyz/reference/post_private-cancel-all
+     * @see https://docs.derive.xyz/api-reference/orderbook/privatecancel_by_instrument
+     * @see https://docs.derive.xyz/api-reference/orderbook/privatecancel_all
      * @description cancel all open orders in a market
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2059,7 +2059,7 @@ export default class derive extends Exchange {
      * @method
      * @name derive#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://docs.derive.xyz/reference/post_private-get-trade-history
+     * @see https://docs.derive.xyz/api-reference/history/privateget_trade_history
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2134,7 +2134,7 @@ export default class derive extends Exchange {
      * @method
      * @name derive#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.derive.xyz/reference/post_private-get-trade-history
+     * @see https://docs.derive.xyz/api-reference/history/privateget_trade_history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -2220,7 +2220,7 @@ export default class derive extends Exchange {
      * @method
      * @name derive#fetchPositions
      * @description fetch all open positions
-     * @see https://docs.derive.xyz/reference/post_private-get-positions
+     * @see https://docs.derive.xyz/api-reference/subaccounts/privateget_positions
      * @param {string[]} [symbols] not used by fetchPositions ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccount_id] *required* the subaccount id
@@ -2360,7 +2360,7 @@ export default class derive extends Exchange {
      * @method
      * @name derive#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://docs.derive.xyz/reference/post_private-get-funding-history
+     * @see https://docs.derive.xyz/api-reference/history/privateget_funding_history
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -2466,7 +2466,7 @@ export default class derive extends Exchange {
      * @method
      * @name derive#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.derive.xyz/reference/post_private-get-all-portfolios
+     * @see https://docs.derive.xyz/api-reference/subaccounts/privateget_all_portfolios
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
