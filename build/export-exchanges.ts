@@ -524,13 +524,10 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     // certified exchanges are sorted according to the following order
     const certifiedExchangesSortingOrder = [
         'binance',
-        'binanceusdm',
-        'binancecoinm',
         'bybit',
         'okx',
         'gate',
         'kucoin',
-        'kucoinfutures',
         'bitget',
         'hyperliquid',
         'bingx',
