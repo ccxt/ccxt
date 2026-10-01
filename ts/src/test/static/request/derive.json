@@ -119,12 +119,82 @@
                         "postOnly":true,
                         "reduceOnly":false,
                         "clientOrderId":"test1234",
-                        "stopLoss":{
-                            "triggerPrice":102800
-                        }
+                        "stopLossPrice":102800
                     }
                 ],
                 "output": { "instrument_name": "BTC-PERP", "direction": "buy", "order_type": "limit", "nonce": 1738914735356, "amount": "0.01", "limit_price": "10000", "max_fee": "219", "subaccount_id": 130837, "signature_expiry_sec": 1746690735, "signer": "0x0000000000000000000000000000000000000000", "reduce_only": false, "time_in_force": "post_only", "trigger_price": "102800", "trigger_type": "stoploss", "trigger_price_type": "mark", "label": "test1234", "signature": "0x4d621920bb2d11e1a910b88c5cbe0d9ea73b114ee6197409eab18170381e257962245bf86149962cae510863cf587662548d383bb1b3408d9c26a6627ffad3df1b", "referral_code": "" }
+            },
+            {
+                "description": "createOrder with triggerPrice",
+                "method": "createOrder",
+                "url": "https://testnet.api.derive.xyz/v3/private/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.01,
+                    86500,
+                    {
+                        "subaccount_id": 86815,
+                        "max_fee": 100,
+                        "triggerPrice": 86000
+                    }
+                ],
+                "output": {"instrument_name": "BTC-PERP", "direction": "buy", "order_type": "limit", "nonce": "1790873707668552727", "amount": "0.01", "limit_price": "86500", "max_fee": "100", "subaccount_id": 86815, "signature_expiry_sec": 1798649707, "referral_code": "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749", "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee", "trigger_price": "86000", "trigger_type": "stoploss", "trigger_price_type": "mark", "signature": "0xdcb8949694d4b8776c620bee184fa3b4e1ac2c4c475f0cd1d4b353e52f795fa707b2d6ccdcd569087b5c012ee5a33d3ed59bc59f0d2dffc1e8d03e1a5ea7c1b71c"}
+            },
+            {
+                "description": "createOrder with takeProfitPrice",
+                "method": "createOrder",
+                "url": "https://testnet.api.derive.xyz/v3/private/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "sell",
+                    0.01,
+                    85500,
+                    {
+                        "subaccount_id": 86815,
+                        "max_fee": 100,
+                        "takeProfitPrice": 86000
+                    }
+                ],
+                "output": {"instrument_name": "BTC-PERP", "direction": "sell", "order_type": "limit", "nonce": "1790873738104149747", "amount": "0.01", "limit_price": "85500", "max_fee": "100", "subaccount_id": 86815, "signature_expiry_sec": 1798649738, "referral_code": "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749", "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee", "trigger_price": "86000", "trigger_type": "takeprofit", "trigger_price_type": "mark", "signature": "0xc1468f2454cba71831866e76307e50217f69332095c50a6afa906a6b2b842c9d756d47dcd33aeedd91427ac9deeaeecf9a2f3a710b0dc73835dd81080639b68a1b"}
+            },
+            {
+                "description": "createOrder market with price bound",
+                "method": "createOrder",
+                "url": "https://testnet.api.derive.xyz/v3/private/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.01,
+                    86000,
+                    {
+                        "subaccount_id": 86815,
+                        "max_fee": 100
+                    }
+                ],
+                "output": {"instrument_name": "BTC-PERP", "direction": "buy", "order_type": "market", "nonce": "1790873773801399553", "amount": "0.01", "limit_price": "86000", "max_fee": "100", "subaccount_id": 86815, "signature_expiry_sec": 1798649773, "referral_code": "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749", "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee", "signature": "0x38f6c6f0fb95d4b8e250172c470fb6688824cee1db31c81cdd5401ab45a891ca767452433bbaf1202146e3c18600b1677732aace4dd5792a3458de7b8d4dd3521b"}
+            },
+            {
+                "description": "createOrder reduceOnly IOC",
+                "method": "createOrder",
+                "url": "https://testnet.api.derive.xyz/v3/private/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "sell",
+                    0.01,
+                    83000,
+                    {
+                        "subaccount_id": 86815,
+                        "max_fee": 100,
+                        "reduceOnly": true,
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": {"instrument_name": "BTC-PERP", "direction": "sell", "order_type": "limit", "nonce": "1790873787013716702", "amount": "0.01", "limit_price": "83000", "max_fee": "100", "subaccount_id": 86815, "signature_expiry_sec": 1798649787, "referral_code": "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749", "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee", "reduce_only": true, "time_in_force": "ioc", "signature": "0x53e950b0f2efc0c38dc70190c785ecb4065157ef6a94a775e7977627684aa4e762299e3186ab36392b0999d3aa38ec461b3ea0170d5d19bf8f2d64a459aec9031c"}
             }
         ],
         "editOrder": [
@@ -161,6 +231,20 @@
                     }
                 ],
                 "output": { "instrument_name": "LBTC-USDC", "subaccount_id": 130837, "order_id": "df3879a6-5421-41ba-bd91-68d7a36edd3d" }
+            },
+            {
+                "description": "cancelOrder trigger",
+                "method": "cancelOrder",
+                "url": "https://testnet.api.derive.xyz/v3/private/cancel_trigger_order",
+                "input": [
+                    "66942199-0444-404a-adfb-6563fb1faf48",
+                    "BTC/USDC:USDC",
+                    {
+                        "subaccount_id": 86815,
+                        "trigger": true
+                    }
+                ],
+                "output": {"instrument_name": "BTC-PERP", "subaccount_id": 86815, "order_id": "66942199-0444-404a-adfb-6563fb1faf48"}
             }
         ],
         "cancelAllOrders": [
@@ -217,6 +301,21 @@
                     }
                 ],
                 "output": { "page_size": 10, "subaccount_id": 130837 }
+            },
+            {
+                "description": "fetchCanceledAndClosedOrders since until limit",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_order_history",
+                "input": [
+                    null,
+                    1790870000000,
+                    5,
+                    {
+                        "subaccount_id": 86815,
+                        "until": 1790880000000
+                    }
+                ],
+                "output": {"subaccount_id": 86815, "page_size": 5, "from_timestamp": 1790870000000, "to_timestamp": 1790880000000}
             }
         ],
         "fetchOpenOrders": [
@@ -233,6 +332,21 @@
                     }
                 ],
                 "output": { "subaccount_id": 130837 }
+            },
+            {
+                "description": "fetchOpenOrders trigger",
+                "method": "fetchOpenOrders",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_trigger_orders",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "subaccount_id": 86815,
+                        "trigger": true
+                    }
+                ],
+                "output": {"subaccount_id": 86815}
             }
         ],
         "fetchClosedOrders": [

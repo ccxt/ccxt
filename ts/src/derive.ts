@@ -49,9 +49,17 @@ export default class derive extends Exchange {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': false,
-                'createReduceOnlyOrder': false,
-                'createStopOrder': false,
-                'createTriggerOrder': false,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopLossOrder': true,
+                'createStopMarketOrder': false,
+                'createStopOrder': true,
+                'createTakeProfitOrder': true,
+                'createTrailingAmountOrder': false,
+                'createTrailingPercentOrder': false,
+                'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -67,7 +75,7 @@ export default class derive extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
-                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
@@ -76,7 +84,7 @@ export default class derive extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
-                'fetchLedger': true,
+                'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
@@ -135,6 +143,78 @@ export default class derive extends Exchange {
                 '3d': '3d',
                 '1w': '1w',
                 '1M': '1M',
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': false,
+                            'mark': true,
+                            'index': false,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': undefined,
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/9e640700-c870-41f9-8907-fba58e120fed',
@@ -1229,11 +1309,12 @@ export default class derive extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccount_id] *required* the subaccount id
-     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
-     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
-     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {float} [params.triggerPrice] the price a standalone trigger (stop) order is triggered at
+     * @param {float} [params.stopLossPrice] the price a standalone stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price a standalone take profit order is triggered at
+     * @param {string} [params.trigger_price_type] the price type the trigger watches, only 'mark' is supported by the venue (default)
+     * @param {bool} [params.postOnly] true makes the order post only
+     * @param {bool} [params.reduceOnly] true reduces the position only, not available with post only
      * @param {float} [params.max_fee] *required* the maximum fee you are willing to pay for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1313,16 +1394,20 @@ export default class derive extends Exchange {
         } else if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
         }
-        const stopLoss = this.safeValue (paramsDeriveWalletAddress, 'stopLoss');
-        const takeProfit = this.safeValue (paramsDeriveWalletAddress, 'takeProfit');
+        // the venue supports exactly two standalone conditional kinds: 'stoploss' triggers on adverse crossing (the classic stop semantics, so both triggerPrice and stopLossPrice map onto it) and 'takeprofit' triggers on the favorable one; attached stop loss / take profit are not supported
+        const triggerPrice = this.safeStringN (paramsDeriveWalletAddress, [ 'triggerPrice', 'stopPrice', 'trigger_price' ]);
+        const stopLossPrice = this.safeString (paramsDeriveWalletAddress, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (paramsDeriveWalletAddress, 'takeProfitPrice');
+        if ((takeProfitPrice !== undefined) && ((triggerPrice !== undefined) || (stopLossPrice !== undefined))) {
+            throw new InvalidOrder (this.id + ' createOrder() accepts only one of triggerPrice, stopLossPrice or takeProfitPrice');
+        }
         const triggerPriceType = this.safeString (paramsDeriveWalletAddress, 'trigger_price_type', 'mark');
-        if (stopLoss !== undefined) {
-            const stopLossPrice = this.safeString (stopLoss, 'triggerPrice', stopLoss);
-            request['trigger_price'] = stopLossPrice;
+        const stopPrice = (triggerPrice !== undefined) ? triggerPrice : stopLossPrice;
+        if (stopPrice !== undefined) {
+            request['trigger_price'] = stopPrice;
             request['trigger_type'] = 'stoploss';
             request['trigger_price_type'] = triggerPriceType;
-        } else if (takeProfit !== undefined) {
-            const takeProfitPrice = this.safeString (takeProfit, 'triggerPrice', takeProfit);
+        } else if (takeProfitPrice !== undefined) {
             request['trigger_price'] = takeProfitPrice;
             request['trigger_type'] = 'takeprofit';
             request['trigger_price_type'] = triggerPriceType;
@@ -1332,7 +1417,7 @@ export default class derive extends Exchange {
             request['label'] = clientOrderId;
         }
         request['signature'] = signature;
-        const paramsOmitted = this.omit (paramsDeriveWalletAddress, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type' ]);
+        const paramsOmitted = this.omit (paramsDeriveWalletAddress, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLossPrice', 'takeProfitPrice', 'trigger_price_type' ]);
         let response: Dict;
         if (test === true) {
             response = await this.privatePostOrderDebug (this.extend (request, paramsOmitted));
