@@ -854,7 +854,12 @@ export default class derive extends deriveRest {
         const [ fetchSnapshot, paramsSnapshot ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
         const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchBalance', paramsSnapshot);
         if (fetchSnapshot && (this.balance === undefined)) {
-            this.balance = await this.fetchBalance (this.extend ({ 'subaccount_id': subaccountId }, paramsDeriveSubaccountId));
+            const snapshotRequest: Dict = {
+                'subaccount_id': subaccountId,
+            };
+            const snapshotParams = this.extend (snapshotRequest, paramsDeriveSubaccountId);
+            const snapshot = await this.fetchBalance (snapshotParams);
+            this.balance = snapshot;
         }
         const topic = this.numberToString (subaccountId) + '.balances';
         const request: Dict = {

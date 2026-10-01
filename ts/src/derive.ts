@@ -707,7 +707,8 @@ export default class derive extends Exchange {
             'expired': false,
             'instrument_type': 'erc20',
         };
-        return await this.getMarketsPaginated (request, params);
+        const instruments = await this.getMarketsPaginated (request, params);
+        return this.parseMarkets (instruments);
     }
 
     async fetchSwapMarkets (params: Dict = {}): Promise<Market[]> {
@@ -715,7 +716,8 @@ export default class derive extends Exchange {
             'expired': false,
             'instrument_type': 'perp',
         };
-        return await this.getMarketsPaginated (request, params);
+        const instruments = await this.getMarketsPaginated (request, params);
+        return this.parseMarkets (instruments);
     }
 
     async fetchOptionMarkets (params: Dict = {}): Promise<Market[]> {
@@ -723,7 +725,8 @@ export default class derive extends Exchange {
             'expired': false,
             'instrument_type': 'option',
         };
-        return await this.getMarketsPaginated (request, params);
+        const instruments = await this.getMarketsPaginated (request, params);
+        return this.parseMarkets (instruments);
     }
 
     /**
@@ -733,9 +736,9 @@ export default class derive extends Exchange {
      * @description fetches every page of public/get_all_instruments for the given filter and parses the instruments; v3 paginates the endpoint, options alone exceed 5000 entries
      * @param {object} request the base request with the instrument_type filter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of market structures
+     * @returns {object[]} an array of raw instrument entries
      */
-    async getMarketsPaginated (request: Dict, params: Dict = {}): Promise<Market[]> {
+    async getMarketsPaginated (request: Dict, params: Dict = {}): Promise<Dict[]> {
         let allInstruments: Dict[] = [];
         let maxPages = 25;
         let paramsOmitted: Dict = {};
@@ -748,7 +751,7 @@ export default class derive extends Exchange {
                 'page': page,
                 'page_size': pageSize,
             };
-            const requestExtended = this.extend (request, requestExtension, paramsOmitted);
+            const requestExtended = this.extend (this.extend (request, requestExtension), paramsOmitted); // nested because the csharp base defines extend with two arguments only
             const response = await this.publicPostGetAllInstruments (requestExtended);
             const result = this.safeDict (response, 'result', {});
             const data = this.safeList (result, 'instruments', []);
@@ -761,7 +764,7 @@ export default class derive extends Exchange {
             }
             page += 1;
         }
-        return this.parseMarkets (allInstruments);
+        return allInstruments;
     }
 
     override parseMarket (market: Dict): Market {
