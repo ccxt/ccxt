@@ -1,0 +1,172 @@
+{
+    "exchange": "ax",
+    "skipKeys": ["start_timestamp_ns", "end_timestamp_ns"],
+    "outputType": "json",
+    "options": {
+        "tokenExpires": 999999999999999
+    },
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetch all markets",
+                "method": "fetchMarkets",
+                "url": "https://gateway.architect.exchange/api/instruments",
+                "input": []
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch ticker for TSLA/USD:USD",
+                "method": "fetchTicker",
+                "url": "https://gateway.architect.exchange/api/ticker?symbol=TSLA-PERP",
+                "input": [
+                    "TSLA/USD:USD"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetch all tickers",
+                "method": "fetchTickers",
+                "url": "https://gateway.architect.exchange/api/tickers",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch order book for TSLA/USD:USD",
+                "method": "fetchOrderBook",
+                "url": "https://gateway.architect.exchange/api/book?symbol=TSLA-PERP&level=2",
+                "input": [
+                    "TSLA/USD:USD"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades for TSLA/USD:USD",
+                "method": "fetchTrades",
+                "url": "https://gateway.architect.exchange/api/trades?symbol=TSLA-PERP",
+                "input": [
+                    "TSLA/USD:USD"
+                ]
+            },
+            {
+                "description": "fetch trades with limit",
+                "method": "fetchTrades",
+                "url": "https://gateway.architect.exchange/api/trades?symbol=TSLA-PERP&limit=5",
+                "input": [
+                    "TSLA/USD:USD",
+                    null,
+                    5
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV for TSLA/USD:USD 1m with since",
+                "method": "fetchOHLCV",
+                "url": "https://gateway.architect.exchange/api/candles?symbol=TSLA-PERP&candle_width=1m&start_timestamp_ns=1709900000000000000",
+                "input": [
+                    "TSLA/USD:USD",
+                    "1m",
+                    1709900000000
+                ]
+            },
+            {
+                "description": "fetch OHLCV with since and limit",
+                "method": "fetchOHLCV",
+                "url": "https://gateway.architect.exchange/api/candles?symbol=TSLA-PERP&candle_width=5m&start_timestamp_ns=1709900000000000000&end_timestamp_ns=1709901500000000000",
+                "input": [
+                    "TSLA/USD:USD",
+                    "5m",
+                    1709900000000,
+                    5
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create limit buy order",
+                "method": "createOrder",
+                "url": "https://gateway.architect.exchange/orders/place_order",
+                "input": [
+                    "TSLA/USD:USD",
+                    "limit",
+                    "buy",
+                    10,
+                    180
+                ],
+                "output": "{\"s\":\"TSLA-PERP\",\"d\":\"B\",\"q\":10,\"p\":\"180\",\"tif\":\"GTC\",\"po\":false}"
+            },
+            {
+                "description": "create limit sell order",
+                "method": "createOrder",
+                "url": "https://gateway.architect.exchange/orders/place_order",
+                "input": [
+                    "TSLA/USD:USD",
+                    "limit",
+                    "sell",
+                    5,
+                    200
+                ],
+                "output": "{\"s\":\"TSLA-PERP\",\"d\":\"S\",\"q\":5,\"p\":\"200\",\"tif\":\"GTC\",\"po\":false}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order by id",
+                "method": "cancelOrder",
+                "url": "https://gateway.architect.exchange/orders/cancel_order",
+                "input": [
+                    "O-01ARZ3NDEKTSV4RRFFQ69G5FAV"
+                ],
+                "output": "{\"oid\":\"O-01ARZ3NDEKTSV4RRFFQ69G5FAV\"}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://gateway.architect.exchange/orders/open_orders",
+                "input": []
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch order by id",
+                "method": "fetchOrder",
+                "url": "https://gateway.architect.exchange/orders/order-status?order_id=O-01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                "input": [
+                    "O-01ARZ3NDEKTSV4RRFFQ69G5FAV"
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch balances",
+                "method": "fetchBalance",
+                "url": "https://gateway.architect.exchange/api/balances",
+                "input": []
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "url": "https://gateway.architect.exchange/api/positions",
+                "input": []
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch funding rates for TSLA/USD:USD",
+                "method": "fetchFundingRates",
+                "url": "https://gateway.architect.exchange/api/funding-rates?symbol=TSLA-PERP&start_timestamp_ns=0&end_timestamp_ns=0",
+                "input": [
+                    ["TSLA/USD:USD"]
+                ]
+            }
+        ]
+    }
+}
