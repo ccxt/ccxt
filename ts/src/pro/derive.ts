@@ -859,7 +859,9 @@ export default class derive extends deriveRest {
             };
             const snapshotParams = this.extend (snapshotRequest, paramsDeriveSubaccountId);
             const snapshot = await this.fetchBalance (snapshotParams);
-            this.balance = snapshot;
+            const emptyBalance: Dict = {}; // hoisted: an inline literal on the right side of a property assignment derails the rust transpiler
+            const seeded = this.extend (snapshot, emptyBalance); // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
+            this.balance = seeded;
         }
         const topic = this.numberToString (subaccountId) + '.balances';
         const request: Dict = {
