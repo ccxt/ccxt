@@ -38,3 +38,6 @@ pub mod exchanges;
 pub mod exchanges {
     // empty until transpiled-base feature is enabled
 }
+
+#[cfg(all(test, feature = "engine", feature = "binance"))]
+mod exchange_tests;

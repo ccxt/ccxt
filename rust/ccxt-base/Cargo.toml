@@ -34,7 +34,7 @@ default = []
 # `ccxt = { default-features = false, features = ["binance"] }` compiles a
 # single Core instead of all 200+.
 transpiled-base = ["engine", "all-exchanges", "all-prediction"]
-engine = []
+engine = ["ccxt-core/engine"]
 # One feature per transpiled Core, emitted by build/generateRustWrappers.ts; a
 # derived venue lists its parent so the parent Core compiles too. Prediction
 # Cores are prefixed `prediction-` because their ids overlap the REST venues.
@@ -160,4 +160,8 @@ all-prediction = ["prediction-binance", "prediction-hyperliquid", "prediction-ka
 ccxt-core = { path = "../ccxt-core", version = "4.5.85" }
 indexmap = { version = "2", features = ["serde"] }
 futures = "0.3"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
+serde_json = { version = "1", features = ["preserve_order"] }
 

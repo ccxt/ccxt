@@ -18,7 +18,6 @@ path = "src/lib.rs"
 [features]
 default = []
 engine = []
-binance = []
 
 [dependencies]
 reqwest = { version = "0.12", features = ["json", "rustls-tls", "socks", "gzip"], default-features = false }

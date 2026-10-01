@@ -203,6 +203,8 @@ dependencies = [
  "ccxt-core",
  "futures",
  "indexmap",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]
