@@ -528,10 +528,10 @@ export default class derive extends Exchange {
     override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.publicPostGetTime (params);
         //
-        // {
-        //     "result": 1735846536758,
-        //     "id": "f1c03d21-f886-4c5a-9a9d-33dd06f180f0"
-        // }
+        //     {
+        //         "id": "8be9f582-7653-48b1-980a-6da11c130d58",
+        //         "result": 1790877292671
+        //     }
         //
         return this.safeInteger (response, 'result');
     }
@@ -547,52 +547,59 @@ export default class derive extends Exchange {
     override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const tokenResponse = await this.publicGetGetAllCurrencies (params);
         //
-        //    {
-        //        "result": [
-        //            {
-        //                "currency": "SEI",
-        //                "instrument_types": [
-        //                    "perp"
-        //                ],
-        //                "protocol_asset_addresses": {
-        //                    "perp": "0x7225889B75fd34C68eA3098dAE04D50553C09840",
-        //                    "option": null,
-        //                    "spot": null,
-        //                    "underlying_erc20": null
-        //                },
-        //                "managers": [
-        //                    {
-        //                        "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
-        //                        "margin_type": "SM",
-        //                        "currency": null
-        //                    }
-        //                ],
-        //                "srm_im_discount": "0",
-        //                "srm_mm_discount": "0",
-        //                "pm2_collateral_discounts": [],
-        //                "borrow_apy": "0",
-        //                "supply_apy": "0",
-        //                "total_borrow": "0",
-        //                "total_supply": "0",
-        //                "asset_cap_and_supply_per_manager": {
-        //                    "perp": {
-        //                        "SM": [
-        //                            {
-        //                                "current_open_interest": "0",
-        //                                "interest_cap": "2000000",
-        //                                "manager_currency": null
-        //                            }
-        //                        ]
-        //                    },
-        //                    "option": {},
-        //                    "erc20": {}
-        //                },
-        //                "market_type": "SRM_PERP_ONLY",
-        //                "spot_price": "0.2193542905042081",
-        //                "spot_price_24h": "0.238381655533635830"
-        //            },
-        //     "id": "7e07fe1d-0ab4-4d2b-9e22-b65ce9e232dc"
-        // }
+        //     {
+        //         "id": "b343bc1c-8417-485f-9022-e18787909856",
+        //         "result": [
+        //             {
+        //                 "currency": "BTC",
+        //                 "market_type": "ALL",
+        //                 "spot_price": "84829.66932265963",
+        //                 "spot_price_24h": "83566.69063592498",
+        //                 "managers": [
+        //                     {
+        //                         "risk_universe_id": 1,
+        //                         "risk_universe_name": "PRIME",
+        //                         "sm": 1,
+        //                         "pm": 5
+        //                     }
+        //                 ],
+        //                 "option": {
+        //                     "name": "BTC-OPTION",
+        //                     "address": "0xd0711b9eBE84b778483709CDe62BacFDBAE13623",
+        //                     "universes": [
+        //                         {
+        //                             "risk_universe_id": 1,
+        //                             "risk_universe_name": "PRIME",
+        //                             "oi": {
+        //                                 "current_open_interest": "6495.655320644765",
+        //                                 "interest_cap": "300000"
+        //                             }
+        //                         }
+        //                     ]
+        //                 },
+        //                 "perp": {
+        //                     "name": "BTC-PERP",
+        //                     "address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+        //                     "universes": [
+        //                         {
+        //                             "risk_universe_id": 1,
+        //                             "risk_universe_name": "PRIME",
+        //                             "oi": {
+        //                                 "current_open_interest": "291.309220426457",
+        //                                 "interest_cap": "36000"
+        //                             },
+        //                             "srm_perp_margin_requirements": {
+        //                                 "im_perp_req": "0.066",
+        //                                 "mm_perp_req": "0.05",
+        //                                 "max_leverage": "15.15"
+        //                             }
+        //                         }
+        //                     ]
+        //                 },
+        //                 "spot": []
+        //             }
+        //         ]
+        //     }
         //
         const currencies = this.safeList (tokenResponse, 'result', []);
         return this.parseCurrencies (currencies);
@@ -642,49 +649,53 @@ export default class derive extends Exchange {
         const optionMarketsPromise = this.fetchOptionMarkets (params);
         const [ spotMarkets, swapMarkets, optionMarkets ] = await Promise.all ([ spotMarketsPromise, swapMarketsPromise, optionMarketsPromise ]);
         //
-        // {
-        //     "result": {
-        //         "instruments": [
-        //             {
-        //                 "instrument_type": "perp",
-        //                 "instrument_name": "BTC-PERP",
-        //                 "scheduled_activation": 1701840228,
-        //                 "scheduled_deactivation": 9223372036854776000,
-        //                 "is_active": true,
-        //                 "tick_size": "0.1",
-        //                 "minimum_amount": "0.01",
-        //                 "maximum_amount": "10000",
-        //                 "amount_step": "0.001",
-        //                 "mark_price_fee_rate_cap": "0",
-        //                 "maker_fee_rate": "0.00005",
-        //                 "taker_fee_rate": "0.0003",
-        //                 "base_fee": "0.1",
-        //                 "base_currency": "BTC",
-        //                 "quote_currency": "USD",
-        //                 "option_details": null,
-        //                 "perp_details": {
-        //                     "index": "BTC-USD",
-        //                     "max_rate_per_hour": "0.004",
-        //                     "min_rate_per_hour": "-0.004",
-        //                     "static_interest_rate": "0.0000125",
-        //                     "aggregate_funding": "10538.574363381759146829",
-        //                     "funding_rate": "0.0000125"
-        //                 },
-        //                 "erc20_details": null,
-        //                 "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
-        //                 "base_asset_sub_id": "0",
-        //                 "pro_rata_fraction": "0",
-        //                 "fifo_min_allocation": "0",
-        //                 "pro_rata_amount_step": "0.1"
+        //     {
+        //         "id": "dd959aa7-d878-45b8-926d-3a247376de90",
+        //         "result": {
+        //             "instruments": [
+        //                 {
+        //                     "instrument_type": "perp",
+        //                     "instrument_name": "ZEC-PERP",
+        //                     "scheduled_activation": 1780572941,
+        //                     "scheduled_deactivation": 9223372036854775807,
+        //                     "is_active": true,
+        //                     "tick_size": "0.01",
+        //                     "minimum_amount": "1",
+        //                     "maximum_amount": "100000",
+        //                     "amount_step": "0.01",
+        //                     "mark_price_fee_rate_cap": "0",
+        //                     "maker_fee_rate": "0.0001",
+        //                     "taker_fee_rate": "0.0003",
+        //                     "base_fee": "0.01",
+        //                     "base_currency": "ZEC",
+        //                     "quote_currency": "USDC",
+        //                     "option_details": null,
+        //                     "perp_details": {
+        //                         "index": "ZEC-USD",
+        //                         "max_rate_per_hour": "0.000456621005",
+        //                         "min_rate_per_hour": "-0.000456621005",
+        //                         "aggregate_funding": "26.08805211207",
+        //                         "funding_rate": "0",
+        //                         "srm_perp_margin_requirements": {
+        //                             "im_perp_req": "0.15",
+        //                             "mm_perp_req": "0.1",
+        //                             "max_leverage": "6.67"
+        //                         }
+        //                     },
+        //                     "erc20_details": null,
+        //                     "base_asset_address": "0x7bF0D72275246A434151693c0EBBD38937dFE23b",
+        //                     "base_asset_sub_id": "0",
+        //                     "pro_rata_fraction": "0",
+        //                     "fifo_min_allocation": "0",
+        //                     "pro_rata_amount_step": "1"
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 15,
+        //                 "count": 15
         //             }
-        //         ],
-        //         "pagination": {
-        //             "num_pages": 1,
-        //             "count": 1
         //         }
-        //     },
-        //     "id": "a06bc0b2-8e78-4536-a21f-f785f225b5a5"
-        // }
+        //     }
         //
         let result = this.arrayConcat (spotMarkets, swapMarkets);
         result = this.arrayConcat (result, optionMarkets);
@@ -1023,36 +1034,105 @@ export default class derive extends Exchange {
         }
         const response = await this.publicPostGetTradeHistory (this.extend (request, paramsOmitted));
         //
-        // {
-        //     "result": {
-        //         "trades": [
-        //             {
-        //                 "trade_id": "9dbc88b0-f0c4-4439-9cc1-4e6409d4eafb",
-        //                 "instrument_name": "BTC-PERP",
-        //                 "timestamp": 1736153910930,
-        //                 "trade_price": "98995.3",
-        //                 "trade_amount": "0.033",
-        //                 "mark_price": "98990.875914388161618263",
-        //                 "index_price": "99038.050611100001501184",
-        //                 "direction": "sell",
-        //                 "quote_id": null,
-        //                 "wallet": "0x88B6BB87fbFac92a34F8155aaA35c87B5b166fA9",
-        //                 "subaccount_id": 8250,
-        //                 "tx_status": "settled",
-        //                 "tx_hash": "0x020bd735b312f867f17f8cc254946d87cfe9f2c8ff3605035d8129082eb73723",
-        //                 "trade_fee": "0.980476701049890015",
-        //                 "liquidity_role": "taker",
-        //                 "realized_pnl": "-2.92952402688793509",
-        //                 "realized_pnl_excl_fees": "-1.949047325838045075"
+        //     {
+        //         "id": "ac7b1242-a8e5-4ee3-a975-c1b0cb413932",
+        //         "result": {
+        //             "trades": [
+        //                 {
+        //                     "trade_id": "28bea459-a2ff-45cc-a7e9-3d25448c859a",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "timestamp": 1790792657383,
+        //                     "trade_price": "83863",
+        //                     "trade_amount": "0.0357",
+        //                     "mark_price": "83851.150918173763",
+        //                     "index_price": "83867.1716490259",
+        //                     "direction": "buy",
+        //                     "quote_id": null,
+        //                     "rfq_id": null,
+        //                     "wallet": "0xa28557a5Dbe5E22249b292fD032C5225952A6709",
+        //                     "subaccount_id": 56390,
+        //                     "batch_status": null,
+        //                     "tx_hash": "",
+        //                     "trade_fee": "0.44910870418",
+        //                     "expected_rebate": "0",
+        //                     "liquidity_role": "taker",
+        //                     "realized_pnl": "5.486968004488",
+        //                     "realized_pnl_excl_fees": "6.328028163017",
+        //                     "extra_fee": "0"
+        //                 },
+        //                 {
+        //                     "trade_id": "28bea459-a2ff-45cc-a7e9-3d25448c859a",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "timestamp": 1790792657383,
+        //                     "trade_price": "83863",
+        //                     "trade_amount": "0.0357",
+        //                     "mark_price": "83851.150918173763",
+        //                     "index_price": "83867.1716490259",
+        //                     "direction": "sell",
+        //                     "quote_id": null,
+        //                     "rfq_id": null,
+        //                     "wallet": "0x1DBc86f1b1Be7a45a3161A06bDD15F7470bF9d2c",
+        //                     "subaccount_id": 62065,
+        //                     "batch_status": null,
+        //                     "tx_hash": "",
+        //                     "trade_fee": "0",
+        //                     "expected_rebate": "0.299405802787",
+        //                     "liquidity_role": "maker",
+        //                     "realized_pnl": "0",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "extra_fee": "0"
+        //                 },
+        //                 {
+        //                     "trade_id": "10a84fb1-11a5-4521-b49d-a55c9b241207",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "timestamp": 1790792405993,
+        //                     "trade_price": "83932.1",
+        //                     "trade_amount": "0.0357",
+        //                     "mark_price": "83934.717310599589",
+        //                     "index_price": "83948.87303382531",
+        //                     "direction": "buy",
+        //                     "quote_id": null,
+        //                     "rfq_id": null,
+        //                     "wallet": "0xa28557a5Dbe5E22249b292fD032C5225952A6709",
+        //                     "subaccount_id": 56390,
+        //                     "batch_status": null,
+        //                     "tx_hash": "",
+        //                     "trade_fee": "0.449546215096",
+        //                     "expected_rebate": "0",
+        //                     "liquidity_role": "taker",
+        //                     "realized_pnl": "3.019660493572",
+        //                     "realized_pnl_excl_fees": "3.861158163017",
+        //                     "extra_fee": "0"
+        //                 },
+        //                 {
+        //                     "trade_id": "10a84fb1-11a5-4521-b49d-a55c9b241207",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "timestamp": 1790792405993,
+        //                     "trade_price": "83932.1",
+        //                     "trade_amount": "0.0357",
+        //                     "mark_price": "83934.717310599589",
+        //                     "index_price": "83948.87303382531",
+        //                     "direction": "sell",
+        //                     "quote_id": null,
+        //                     "rfq_id": null,
+        //                     "wallet": "0x1DBc86f1b1Be7a45a3161A06bDD15F7470bF9d2c",
+        //                     "subaccount_id": 62065,
+        //                     "batch_status": null,
+        //                     "tx_hash": "",
+        //                     "trade_fee": "0",
+        //                     "expected_rebate": "0.29969747673",
+        //                     "liquidity_role": "maker",
+        //                     "realized_pnl": "0",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "extra_fee": "0"
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 531087,
+        //                 "count": 2124347
         //             }
-        //         ],
-        //         "pagination": {
-        //             "num_pages": 598196,
-        //             "count": 598196
         //         }
-        //     },
-        //     "id": "b8539544-6975-4497-8163-5e51a38e4aa7"
-        // }
+        //     }
         //
         const result = this.safeDict (response, 'result', {});
         const data: Dict[] = this.safeList (result, 'trades', []);
@@ -1081,34 +1161,55 @@ export default class derive extends Exchange {
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
-        // fetchTrades & fetchMyTrades
-        //
-        // {
-        //     "subaccount_id": 130837,
-        //     "instrument_name": "BTC-PERP",
-        //     "direction": "sell",
-        //     "quote_id": null,
-        //     "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
-        //     "timestamp": 1738065303708,
-        //     "mark_price": "102740.137375457314192317",
-        //     "index_price": "102741.553409299981533184",
-        //     "trade_price": "102700.6",
-        //     "trade_amount": "0.01",
-        //     "liquidity_role": "taker",
-        //     "realized_pnl": "0",
-        //     "realized_pnl_excl_fees": "0",
-        //     "tx_status": "settled",
-        //     "trade_fee": "1.127415534092999815",
-        //     "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //     "label": "test1234",                                      // only fetchMyTrades
-        //     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
-        //     "is_transfer": false,                                     // only fetchMyTrades
-        //     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
-        //     "rfq_id": null,                                           // only fetchTrades
-        //     "wallet": "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
-        //     "expected_rebate": "0",                                   // only fetchTrades
-        //     "extra_fee": "0",                                         // only fetchTrades
-        // }
+        //     [
+        //         {
+        //             "trade_id": "28bea459-a2ff-45cc-a7e9-3d25448c859a",
+        //             "instrument_name": "BTC-PERP",
+        //             "timestamp": 1790792657383,
+        //             "trade_price": "83863",
+        //             "trade_amount": "0.0357",
+        //             "mark_price": "83851.150918173763",
+        //             "index_price": "83867.1716490259",
+        //             "direction": "buy",
+        //             "quote_id": null,
+        //             "rfq_id": null,
+        //             "wallet": "0xa28557a5Dbe5E22249b292fD032C5225952A6709",
+        //             "subaccount_id": 56390,
+        //             "batch_status": null,
+        //             "tx_hash": "",
+        //             "trade_fee": "0.44910870418",
+        //             "expected_rebate": "0",
+        //             "liquidity_role": "taker",
+        //             "realized_pnl": "5.486968004488",
+        //             "realized_pnl_excl_fees": "6.328028163017",
+        //             "extra_fee": "0"
+        //         },
+        //         {
+        //             "subaccount_id": 86815,
+        //             "order_id": "f1ff080c-f2d1-4e0a-9dad-9ba462c6615d",
+        //             "instrument_name": "BTC-PERP",
+        //             "direction": "sell",
+        //             "label": "",
+        //             "quote_id": null,
+        //             "trade_id": "b9608468-9ebe-478c-aedf-38fa2f754f19",
+        //             "rfq_id": null,
+        //             "timestamp": 1790874586675,
+        //             "mark_price": "84367.247384690156",
+        //             "index_price": "84358.49561857211",
+        //             "trade_price": "84365.4",
+        //             "trade_amount": "0.01",
+        //             "liquidity_role": "taker",
+        //             "realized_pnl": "-0.993258849822",
+        //             "realized_pnl_excl_fees": "-0.467",
+        //             "is_transfer": false,
+        //             "batch_status": "Settled",
+        //             "trade_fee": "0.263075486855",
+        //             "expected_rebate": "0",
+        //             "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
+        //             "op_uuid": "01a0f871-8e34-7152-aea8-0b6d06ce484e",
+        //             "extra_fee": "0"
+        //         }
+        //     ]
         //
         const marketId = this.safeString (trade, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
@@ -1163,17 +1264,34 @@ export default class derive extends Exchange {
         }
         const response = await this.publicPostGetFundingRateHistory (this.extend (request, paramsOmitted));
         //
-        // {
-        //     "result": {
-        //         "funding_rate_history": [
-        //             {
-        //                 "timestamp": 1736215200000,
-        //                 "funding_rate": "-0.000020014"
-        //             }
-        //         ]
-        //     },
-        //     "id": "3200ab8d-0080-42f0-8517-c13e3d9201d8"
-        // }
+        //     {
+        //         "id": "6dcdcdd2-1523-4d48-9b45-e1f3e61b3711",
+        //         "result": {
+        //             "instrument_name": null,
+        //             "funding_rate_history": [
+        //                 {
+        //                     "timestamp": 1783461600000,
+        //                     "risk_universe_id": 1,
+        //                     "currency": "BTC",
+        //                     "open": "0.000047348",
+        //                     "high": "0.000047348",
+        //                     "low": "0.000047348",
+        //                     "close": "0.000047348",
+        //                     "funding_rate": "0.000047348"
+        //                 },
+        //                 {
+        //                     "timestamp": 1783465200000,
+        //                     "risk_universe_id": 1,
+        //                     "currency": "BTC",
+        //                     "open": "0.000012500",
+        //                     "high": "0.000049960",
+        //                     "low": "0.000012500",
+        //                     "close": "0.000049960",
+        //                     "funding_rate": "0.000049960"
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
         const result = this.safeDict (response, 'result', {});
         const data: Dict[] = this.safeList (result, 'funding_rate_history', []);
@@ -1205,18 +1323,40 @@ export default class derive extends Exchange {
     override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         const response = await this.fetchFundingRateHistory (symbol, undefined, 1, params);
         //
-        // [
-        //     {
-        //         "info": {
-        //             "timestamp": 1736157600000,
-        //             "funding_rate": "-0.000008872"
+        //     [
+        //         {
+        //             "info": {
+        //                 "timestamp": 1790870400000,
+        //                 "risk_universe_id": 1,
+        //                 "currency": "BTC",
+        //                 "open": "0.000012500",
+        //                 "high": "0.000012500",
+        //                 "low": "0.000012500",
+        //                 "close": "0.000012500",
+        //                 "funding_rate": "0.000012500"
+        //             },
+        //             "symbol": "BTC/USDC:USDC",
+        //             "fundingRate": 1.25e-05,
+        //             "timestamp": 1790870400000,
+        //             "datetime": "2026-10-01T16:00:00.000Z"
         //         },
-        //         "symbol": "BTC/USD:USDC",
-        //         "fundingRate": -0.000008872,
-        //         "timestamp": 1736157600000,
-        //         "datetime": "2025-01-06T10:00:00.000Z"
-        //     }
-        // ]
+        //         {
+        //             "info": {
+        //                 "timestamp": 1790874000000,
+        //                 "risk_universe_id": 1,
+        //                 "currency": "BTC",
+        //                 "open": "0.000012500",
+        //                 "high": "0.000012500",
+        //                 "low": "0.000012500",
+        //                 "close": "0.000012500",
+        //                 "funding_rate": "0.000012500"
+        //             },
+        //             "symbol": "BTC/USDC:USDC",
+        //             "fundingRate": 1.25e-05,
+        //             "timestamp": 1790874000000,
+        //             "datetime": "2026-10-01T17:00:00.000Z"
+        //         }
+        //     ]
         //
         const data = this.safeDict (response, 0);
         return this.parseFundingRate (data);
@@ -1790,17 +1930,10 @@ export default class derive extends Exchange {
             response = await this.privatePostCancelAll (this.extend (request, paramsDeriveSubaccountId));
         }
         //
-        // {
-        //     "result": {
-        //         "cancelled_orders": 0
-        //     },
-        //     "id": "9d633799-2098-4559-b547-605bb6f4d8f5"
-        // }
-        //
-        // {
-        //     "id": "45548646-c74f-4ca2-9de4-551e6de49afa",
-        //     "result": "ok"
-        // }
+        //     {
+        //         "id": "dda90de6-30d5-4bb1-8c3b-cdaa23e9e718",
+        //         "result": "ok"
+        //     }
         //
         return [ this.safeOrder ({ 'info': response }) ];
     }
@@ -2213,40 +2346,43 @@ export default class derive extends Exchange {
         }
         const response = await this.privatePostGetTradeHistory (this.extend (request, paramsDeriveSubaccountId));
         //
-        // {
-        //     "result": {
-        //         "subaccount_id": 130837,
-        //         "trades": [
-        //             {
-        //                 "subaccount_id": 130837,
-        //                 "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
-        //                 "instrument_name": "BTC-PERP",
-        //                 "direction": "sell",
-        //                 "label": "test1234",
-        //                 "quote_id": null,
-        //                 "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
-        //                 "timestamp": 1738065303708,
-        //                 "mark_price": "102740.137375457314192317",
-        //                 "index_price": "102741.553409299981533184",
-        //                 "trade_price": "102700.6",
-        //                 "trade_amount": "0.01",
-        //                 "liquidity_role": "taker",
-        //                 "realized_pnl": "0",
-        //                 "realized_pnl_excl_fees": "0",
-        //                 "is_transfer": false,
-        //                 "tx_status": "settled",
-        //                 "trade_fee": "1.127415534092999815",
-        //                 "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //                 "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //     {
+        //         "id": "41517b29-67b3-4ed8-845d-ef4bde9b79aa",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "trades": [
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "order_id": "ca94f349-8521-40a1-852e-d32b8994cb11",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "direction": "buy",
+        //                     "label": "",
+        //                     "quote_id": null,
+        //                     "trade_id": "7fdf1fb0-0fba-443d-9f34-d6a1f76870aa",
+        //                     "rfq_id": null,
+        //                     "timestamp": 1790874532387,
+        //                     "mark_price": "84403.830304818628",
+        //                     "index_price": "84394.4543226228",
+        //                     "trade_price": "84412.1",
+        //                     "trade_amount": "0.01",
+        //                     "liquidity_role": "taker",
+        //                     "realized_pnl": "0",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "is_transfer": false,
+        //                     "batch_status": "Settled",
+        //                     "trade_fee": "0.263183362967",
+        //                     "expected_rebate": "0",
+        //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
+        //                     "op_uuid": "01a0f870-ba23-7600-a3dd-320305d5bb2f",
+        //                     "extra_fee": "0"
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 1,
+        //                 "count": 1
         //             }
-        //         ],
-        //         "pagination": {
-        //             "num_pages": 1,
-        //             "count": 1
         //         }
-        //     },
-        //     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
-        // }
+        //     }
         //
         const result = this.safeDict (response, 'result', {});
         const trades: Dict[] = this.safeList (result, 'trades', []);
@@ -2291,40 +2427,68 @@ export default class derive extends Exchange {
         }
         const response = await this.privatePostGetTradeHistory (this.extend (request, paramsDeriveSubaccountId));
         //
-        // {
-        //     "result": {
-        //         "subaccount_id": 130837,
-        //         "trades": [
-        //             {
-        //                 "subaccount_id": 130837,
-        //                 "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
-        //                 "instrument_name": "BTC-PERP",
-        //                 "direction": "sell",
-        //                 "label": "test1234",
-        //                 "quote_id": null,
-        //                 "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
-        //                 "timestamp": 1738065303708,
-        //                 "mark_price": "102740.137375457314192317",
-        //                 "index_price": "102741.553409299981533184",
-        //                 "trade_price": "102700.6",
-        //                 "trade_amount": "0.01",
-        //                 "liquidity_role": "taker",
-        //                 "realized_pnl": "0",
-        //                 "realized_pnl_excl_fees": "0",
-        //                 "is_transfer": false,
-        //                 "tx_status": "settled",
-        //                 "trade_fee": "1.127415534092999815",
-        //                 "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //                 "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //     {
+        //         "id": "c375c303-2356-4ba0-acea-32411e33b3f6",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "trades": [
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "order_id": "f1ff080c-f2d1-4e0a-9dad-9ba462c6615d",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "direction": "sell",
+        //                     "label": "",
+        //                     "quote_id": null,
+        //                     "trade_id": "b9608468-9ebe-478c-aedf-38fa2f754f19",
+        //                     "rfq_id": null,
+        //                     "timestamp": 1790874586675,
+        //                     "mark_price": "84367.247384690156",
+        //                     "index_price": "84358.49561857211",
+        //                     "trade_price": "84365.4",
+        //                     "trade_amount": "0.01",
+        //                     "liquidity_role": "taker",
+        //                     "realized_pnl": "-0.993258849822",
+        //                     "realized_pnl_excl_fees": "-0.467",
+        //                     "is_transfer": false,
+        //                     "batch_status": "Settled",
+        //                     "trade_fee": "0.263075486855",
+        //                     "expected_rebate": "0",
+        //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
+        //                     "op_uuid": "01a0f871-8e34-7152-aea8-0b6d06ce484e",
+        //                     "extra_fee": "0"
+        //                 },
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "order_id": "ca94f349-8521-40a1-852e-d32b8994cb11",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "direction": "buy",
+        //                     "label": "",
+        //                     "quote_id": null,
+        //                     "trade_id": "7fdf1fb0-0fba-443d-9f34-d6a1f76870aa",
+        //                     "rfq_id": null,
+        //                     "timestamp": 1790874532387,
+        //                     "mark_price": "84403.830304818628",
+        //                     "index_price": "84394.4543226228",
+        //                     "trade_price": "84412.1",
+        //                     "trade_amount": "0.01",
+        //                     "liquidity_role": "taker",
+        //                     "realized_pnl": "0",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "is_transfer": false,
+        //                     "batch_status": "Settled",
+        //                     "trade_fee": "0.263183362967",
+        //                     "expected_rebate": "0",
+        //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
+        //                     "op_uuid": "01a0f870-ba23-7600-a3dd-320305d5bb2f",
+        //                     "extra_fee": "0"
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 2,
+        //                 "count": 4
         //             }
-        //         ],
-        //         "pagination": {
-        //             "num_pages": 1,
-        //             "count": 1
         //         }
-        //     },
-        //     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
-        // }
+        //     }
         //
         const result = this.safeDict (response, 'result', {});
         const page = this.safeInteger (paramsDeriveSubaccountId, 'page');
@@ -2360,42 +2524,43 @@ export default class derive extends Exchange {
         const paramsOmitted: Dict = this.omit (paramsDeriveSubaccountId, [ 'subaccount_id' ]);
         const response = await this.privatePostGetPositions (this.extend (request, paramsOmitted));
         //
-        // {
-        //     "result": {
-        //         "subaccount_id": 130837,
-        //         "positions": [
-        //             {
-        //                 "instrument_type": "perp",
-        //                 "instrument_name": "BTC-PERP",
-        //                 "amount": "-0.02",
-        //                 "average_price": "102632.9105389869500088",
-        //                 "realized_pnl": "0",
-        //                 "unrealized_pnl": "-2.6455959784245548835819950103759765625",
-        //                 "total_fees": "2.255789220260999824",
-        //                 "average_price_excl_fees": "102745.7",
-        //                 "realized_pnl_excl_fees": "0",
-        //                 "unrealized_pnl_excl_fees": "-0.3898067581635550595819950103759765625",
-        //                 "net_settlements": "-4.032902047219498639",
-        //                 "cumulative_funding": "-0.004677736347850093",
-        //                 "pending_funding": "0",
-        //                 "mark_price": "102765.190337908177752979099750518798828125",
-        //                 "index_price": "102767.657193800017641472",
-        //                 "delta": "1",
-        //                 "gamma": "0",
-        //                 "vega": "0",
-        //                 "theta": "0",
-        //                 "mark_value": "1.38730606879471451975405216217041015625",
-        //                 "maintenance_margin": "-101.37788426911356509663164615631103515625",
-        //                 "initial_margin": "-132.2074413704858670826070010662078857421875",
-        //                 "open_orders_margin": "264.116085900726830004714429378509521484375",
-        //                 "leverage": "8.6954476205089299495699106539379941746377322586618",
-        //                 "liquidation_price": "109125.705451984322280623018741607666015625",
-        //                 "creation_timestamp": 1738065303840
-        //             }
-        //         ]
-        //     },
-        //     "id": "167350f1-d9fc-41d4-9797-1c78f83fda8e"
-        // }
+        //     {
+        //         "id": "64af0eeb-5b8f-4aa9-bc6b-c5029f47ac27",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "positions": [
+        //                 {
+        //                     "instrument_type": "perp",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "amount": "0.01",
+        //                     "average_price": "84869.2487131065",
+        //                     "average_price_excl_fees": "84842.8",
+        //                     "mark_price": "84838.524516604186",
+        //                     "index_price": "84829.52978196857",
+        //                     "mark_value": "-0.002270077649",
+        //                     "amount_step": "0.0001",
+        //                     "creation_timestamp": 0,
+        //                     "cumulative_funding": "-0.000008835819",
+        //                     "pending_funding": "-0.000008835819",
+        //                     "net_settlements": "-0.304980723193",
+        //                     "initial_margin": "-55.989759825391",
+        //                     "maintenance_margin": "-42.417035008133",
+        //                     "open_orders_margin": "0",
+        //                     "realized_pnl": "0",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "total_fees": "0.264487131065",
+        //                     "unrealized_pnl": "-0.307241965023",
+        //                     "unrealized_pnl_excl_fees": "-0.042754833958",
+        //                     "delta": "1",
+        //                     "gamma": "0",
+        //                     "vega": "0",
+        //                     "theta": "0",
+        //                     "leverage": "0.141718718485",
+        //                     "liquidation_price": null
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
         const result = this.safeDict (response, 'result', {});
         const positions: Dict[] = this.safeList (result, 'positions', []);
@@ -2522,35 +2687,37 @@ export default class derive extends Exchange {
         }
         const response = await this.privatePostGetFundingHistory (this.extend (request, paramsOmitted));
         //
-        // {
-        //     "result": {
-        //         "events": [
-        //             {
-        //                 "instrument_name": "BTC-PERP",
-        //                 "timestamp": 1738066618272,
-        //                 "funding": "-0.004677736347850093",
-        //                 "pnl": "-0.944081615774632967"
-        //             },
-        //             {
-        //                 "instrument_name": "BTC-PERP",
-        //                 "timestamp": 1738066617964,
-        //                 "funding": "0",
-        //                 "pnl": "-0.437556413479249408"
-        //             },
-        //             {
-        //                 "instrument_name": "BTC-PERP",
-        //                 "timestamp": 1738065307565,
-        //                 "funding": "0",
-        //                 "pnl": "-0.39547479770461644"
+        //     {
+        //         "id": "05a90234-63dd-4769-b66b-3256fe4c3336",
+        //         "result": {
+        //             "events": [
+        //                 {
+        //                     "funding": "0",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "pnl": "-0.020391277096",
+        //                     "subaccount_id": 86815,
+        //                     "timestamp": 1790874586000,
+        //                     "batch_uuid": "01a0f86e-2486-7732-bcb5-15e64d863650",
+        //                     "batch_status": "Settled",
+        //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892"
+        //                 },
+        //                 {
+        //                     "funding": "-0.000131801001",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "pnl": "-0.124504613742",
+        //                     "subaccount_id": 86815,
+        //                     "timestamp": 1790874586000,
+        //                     "batch_uuid": "01a0f86e-2486-7732-bcb5-15e64d863650",
+        //                     "batch_status": "Settled",
+        //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892"
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 4,
+        //                 "count": 7
         //             }
-        //         ],
-        //         "pagination": {
-        //             "num_pages": 1,
-        //             "count": 3
         //         }
-        //     },
-        //     "id": "524b817f-2108-467f-8795-511066f4acec"
-        // }
+        //     }
         //
         const result = this.safeDict (response, 'result', {});
         const page = this.safeInteger (paramsDeriveSubaccountId, 'page');
@@ -3099,7 +3266,7 @@ export default class derive extends Exchange {
     handleDeriveSubaccountId (methodName: string, params: Dict): [any, Dict] {
         const [ derivesubAccountId, paramsSubaccountId ] = this.handleOptionAndParams (params, methodName, 'subaccount_id');
         if ((derivesubAccountId !== undefined) && (derivesubAccountId !== '')) {
-            this.options['subaccount_id'] = derivesubAccountId; // saving in options
+            this.options['subaccount_id'] = derivesubAccountId;
             return [ derivesubAccountId, paramsSubaccountId ];
         }
         const optionsWallet = this.safeString (this.options, 'subaccount_id');
@@ -3112,7 +3279,7 @@ export default class derive extends Exchange {
     handleDeriveWalletAddress (methodName: string, params: Dict): [Str, Dict] {
         const [ deriveWalletAddress, paramsDeriveWalletAddress ] = this.handleOptionStringAndParams (params, methodName, 'deriveWalletAddress');
         if ((deriveWalletAddress !== undefined) && (deriveWalletAddress !== '')) {
-            this.options['deriveWalletAddress'] = deriveWalletAddress; // saving in options
+            this.options['deriveWalletAddress'] = deriveWalletAddress;
             return [ deriveWalletAddress, paramsDeriveWalletAddress ];
         }
         const optionsWallet = this.safeString (this.options, 'deriveWalletAddress');
