@@ -801,9 +801,42 @@ export default class derive extends Exchange {
         };
         const response = await this.publicPostGetTicker (this.extend (request, params));
         //
-        // {
-        //     "id": "45bb6856-54b7-48da-a9c1-1c3ba964888b",
-        //     "result": {
+        //     {
+        //         "id": "45bb6856-54b7-48da-a9c1-1c3ba964888b",
+        //         "result": {
+        //             "t": 1790867526668,
+        //             "A": "0",
+        //             "a": "0",
+        //             "B": "0",
+        //             "b": "0",
+        //             "f": "0.000012500",
+        //             "option_pricing": null,
+        //             "I": "83946.3",
+        //             "M": "83938.8",
+        //             "stats": {
+        //                 "c": "16.41",
+        //                 "v": "1377350.271",
+        //                 "pr": "1377095.872",
+        //                 "n": 98,
+        //                 "oi": "0",
+        //                 "h": "84282",
+        //                 "l": "83661.8",
+        //                 "p": "0"
+        //             },
+        //             "minp": "82293.1",
+        //             "maxp": "85617.6"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'result', {});
+        return this.parseTicker (data, market);
+    }
+
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     v3 slim format; the payload does not carry the instrument name, so the symbol comes from the market argument
+        //
+        //     {
         //         "t": 1790867526668,
         //         "A": "0",
         //         "a": "0",
@@ -814,51 +847,18 @@ export default class derive extends Exchange {
         //         "I": "83946.3",
         //         "M": "83938.8",
         //         "stats": {
-        //             "c": "16.41",
-        //             "v": "1377350.271",
-        //             "pr": "1377095.872",
-        //             "n": 98,
-        //             "oi": "0",
-        //             "h": "84282",
-        //             "l": "83661.8",
-        //             "p": "0"
+        //             "c": "16.41",           // contract_volume_24h
+        //             "v": "1377350.271",     // notional_volume_24h
+        //             "pr": "1377095.872",    // premium_volume_24h
+        //             "n": 98,                // trade_count_24h
+        //             "oi": "0",              // open_interest
+        //             "h": "84282",           // high_24h
+        //             "l": "83661.8",         // low_24h
+        //             "p": "0"                // percent_change_24h
         //         },
         //         "minp": "82293.1",
         //         "maxp": "85617.6"
         //     }
-        // }
-        //
-        const data = this.safeDict (response, 'result', {});
-        return this.parseTicker (data, market);
-    }
-
-    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
-        //
-        // v3 slim format; the payload does not carry the instrument name, so the symbol comes from the market argument
-        //
-        // {
-        //     "t": 1790867526668,
-        //     "A": "0",
-        //     "a": "0",
-        //     "B": "0",
-        //     "b": "0",
-        //     "f": "0.000012500",
-        //     "option_pricing": null,
-        //     "I": "83946.3",
-        //     "M": "83938.8",
-        //     "stats": {
-        //         "c": "16.41",           // contract_volume_24h
-        //         "v": "1377350.271",     // notional_volume_24h
-        //         "pr": "1377095.872",    // premium_volume_24h
-        //         "n": 98,                // trade_count_24h
-        //         "oi": "0",              // open_interest
-        //         "h": "84282",           // high_24h
-        //         "l": "83661.8",         // low_24h
-        //         "p": "0"                // percent_change_24h
-        //     },
-        //     "minp": "82293.1",
-        //     "maxp": "85617.6"
-        // }
         //
         const timestamp = this.safeIntegerOmitZero (ticker, 't');
         const stats = this.safeDict (ticker, 'stats');
@@ -1271,7 +1271,7 @@ export default class derive extends Exchange {
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
             market['info']['base_asset_address'],
-            this.parseToNumeric (market['info']['base_asset_sub_id']),
+            this.convertToBigInt (market['info']['base_asset_sub_id']), // options carry a huge encoded sub_id that overflows double precision, so it must stay integral
             this.convertToBigInt ((this.parseUnits (priceString) as string)),
             this.convertToBigInt ((this.parseUnits ((this.amountToPrecision (symbol, amountString) as string)) as string)),
             this.convertToBigInt ((this.parseUnits (maxFeeString) as string)),
@@ -1340,71 +1340,49 @@ export default class derive extends Exchange {
             response = await this.privatePostOrder (this.extend (request, paramsOmitted));
         }
         //
-        // {
-        //     "result": {
-        //         "raw_data": {
-        //             "subaccount_id": 130837,
-        //             "nonce": 1736923517552,
-        //             "module": "0x87F2863866D85E3192a35A73b388BD625D83f2be",
-        //             "expiry": 86400,
-        //             "owner": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-        //             "signer": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-        //             "signature": "0xaa4f42b2f3da33c668fa703ea872d4c3a6b55aca66025b5119e3bebb6679fe2e2794638db51dcace21fc39a498047835994f07eb59f311bb956ce057e66793d1c",
-        //             "data": {
-        //                 "asset": "0xAFB6Bb95cd70D5367e2C39e9dbEb422B9815339D",
-        //                 "sub_id": 0,
-        //                 "limit_price": "10000",
-        //                 "desired_amount": "0.001",
-        //                 "worst_fee": "0",
-        //                 "recipient_id": 130837,
-        //                 "is_bid": true,
-        //                 "trade_id": ""
-        //             }
-        //         },
-        //         "encoded_data": "0x000000000000000000000000afb6bb95cd70d5367e2c39e9dbeb422b9815339d000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000021e19e0c9bab240000000000000000000000000000000000000000000000000000000038d7ea4c680000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001ff150000000000000000000000000000000000000000000000000000000000000001",
-        //         "encoded_data_hashed": "0xe88fb416bc54dba2d288988f1a82fee40fd792ed555b3471b5f6b4b810d279b4",
-        //         "action_hash": "0x273a0befb3751fa991edc7ed73582456c3b50ae964d458c8f472e932fb6a0069",
-        //         "typed_data_hash": "0x123e2d2f3d5b2473b4e260f51c6459d6bf904e5db8f042a3ea63be8d55329ce9"
-        //     },
-        //     "id": "f851c8c4-dddf-4b77-93cf-aeddd0966f29"
-        // }
-        // {
-        //     "result": {
-        //         "order": {
-        //             "subaccount_id": 130837,
-        //             "order_id": "96349ebb-7d46-43ae-81c7-7ab390444293",
-        //             "instrument_name": "BTC-PERP",
-        //             "direction": "buy",
-        //             "label": "",
-        //             "quote_id": null,
-        //             "creation_timestamp": 1737467576257,
-        //             "last_update_timestamp": 1737467576257,
-        //             "limit_price": "10000",
-        //             "amount": "0.01",
-        //             "filled_amount": "0",
-        //             "average_price": "0",
-        //             "order_fee": "0",
-        //             "order_type": "limit",
-        //             "time_in_force": "gtc",
-        //             "order_status": "open",
-        //             "max_fee": "210",
-        //             "signature_expiry_sec": 1737468175989,
-        //             "nonce": 1737467575989,
-        //             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //             "signature": "0xd1ca49df1fa06bd805bb59b132ff6c0de29bf973a3e01705abe0a01cc956e4945ed9eb99ab68f3df4c037908113cac5a5bfc3a954a0b7103cdab285962fa6a51c",
-        //             "cancel_reason": "",
-        //             "mmp": false,
-        //             "is_transfer": false,
-        //             "replaced_order_id": null,
-        //             "trigger_type": null,
-        //             "trigger_price_type": null,
-        //             "trigger_price": null,
-        //             "trigger_reject_message": null
-        //         },
-        //         "trades": []
-        //     },
-        //     "id": "397087fa-0125-42af-bfc3-f66166f9fb55"
-        // }
+        //     {
+        //         "id": "dd0fe5ec-043c-41ab-95e1-fc2421c6fc10",
+        //         "result": {
+        //             "order": {
+        //                 "subaccount_id": 86815,
+        //                 "order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "direction": "buy",
+        //                 "label": "",
+        //                 "quote_id": null,
+        //                 "amount": "0.01",
+        //                 "average_price": "0",
+        //                 "cancel_reason": "",
+        //                 "creation_timestamp": 1790871618199,
+        //                 "filled_amount": "0",
+        //                 "is_transfer": false,
+        //                 "last_update_timestamp": 1790871618199,
+        //                 "limit_price": "83000",
+        //                 "signed_limit_price": null,
+        //                 "max_fee": "100",
+        //                 "mmp": false,
+        //                 "nonce": "1790871617137835612",
+        //                 "order_fee": "0",
+        //                 "order_status": "open",
+        //                 "order_type": "limit",
+        //                 "replaced_order_id": null,
+        //                 "signature": "0x55412a2a39e2dd70b0c39ea03859ac499b5c500756b46197900a413f7bfd294e0adb8c2c5eec467b4c83ef75f7068b528e21044cdd27faa47a6db475461641c21b",
+        //                 "signature_expiry_sec": 1798647617,
+        //                 "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                 "time_in_force": "gtc",
+        //                 "trigger_type": null,
+        //                 "trigger_price": null,
+        //                 "trigger_price_type": null,
+        //                 "trigger_reject_message": null,
+        //                 "extra_fee": "0",
+        //                 "algo_type": null,
+        //                 "algo_duration_sec": null,
+        //                 "algo_num_slices": null,
+        //                 "algo_slices_completed": null
+        //             },
+        //             "trades": []
+        //         }
+        //     }
         //
         const result = this.safeDict (response, 'result');
         let rawOrder = this.safeDict (result, 'raw_data');
@@ -1454,7 +1432,7 @@ export default class derive extends Exchange {
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
             market['info']['base_asset_address'],
-            this.parseToNumeric (market['info']['base_asset_sub_id']),
+            this.convertToBigInt (market['info']['base_asset_sub_id']), // options carry a huge encoded sub_id that overflows double precision, so it must stay integral
             this.convertToBigInt ((this.parseUnits (priceString) as string)),
             this.convertToBigInt ((this.parseUnits ((this.amountToPrecision (symbol, amountString) as string)) as string)),
             this.convertToBigInt ((this.parseUnits (maxFeeString) as string)),
@@ -1504,78 +1482,87 @@ export default class derive extends Exchange {
         const paramsOmitted = this.omit (paramsDeriveWalletAddress, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId' ]);
         const response = await this.privatePostReplace (this.extend (request, paramsOmitted));
         //
-        //   {
-        //     "result":
-        //       {
-        //         "cancelled_order":
-        //           {
-        //             "subaccount_id": 130837,
-        //             "order_id": "c2337704-f1af-437d-91c8-dddb9d6bac59",
-        //             "instrument_name": "BTC-PERP",
-        //             "direction": "buy",
-        //             "label": "test1234",
-        //             "quote_id": null,
-        //             "creation_timestamp": 1737539743959,
-        //             "last_update_timestamp": 1737539764234,
-        //             "limit_price": "10000",
-        //             "amount": "0.01",
-        //             "filled_amount": "0",
-        //             "average_price": "0",
-        //             "order_fee": "0",
-        //             "order_type": "limit",
-        //             "time_in_force": "post_only",
-        //             "order_status": "cancelled",
-        //             "max_fee": "211",
-        //             "signature_expiry_sec": 1737540343631,
-        //             "nonce": 1737539743631,
-        //             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //             "signature": "0xdb669e18f407a3efa816b79c0dd3bac1c651d4dbf3caad4db67678ce9b81c76378d787a08143a30707eb0827ce4626640767c9f174358df1b90611bd6d1391711b",
-        //             "cancel_reason": "user_request",
-        //             "mmp": false,
-        //             "is_transfer": false,
-        //             "replaced_order_id": null,
-        //             "trigger_type": null,
-        //             "trigger_price_type": null,
-        //             "trigger_price": null,
-        //             "trigger_reject_message": null,
-        //           },
-        //         "order":
-        //           {
-        //             "subaccount_id": 130837,
-        //             "order_id": "97af0902-813f-4892-a54b-797e5689db05",
-        //             "instrument_name": "BTC-PERP",
-        //             "direction": "buy",
-        //             "label": "test1234",
-        //             "quote_id": null,
-        //             "creation_timestamp": 1737539764154,
-        //             "last_update_timestamp": 1737539764154,
-        //             "limit_price": "10000",
-        //             "amount": "0.01",
-        //             "filled_amount": "0",
-        //             "average_price": "0",
-        //             "order_fee": "0",
-        //             "order_type": "limit",
-        //             "time_in_force": "post_only",
-        //             "order_status": "open",
-        //             "max_fee": "211",
-        //             "signature_expiry_sec": 1737540363890,
-        //             "nonce": 1737539763890,
-        //             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //             "signature": "0xef2c459ab4797cbbd7d97b47678ff172542af009bac912bf53e7879cf92eb1aa6b1a6cf40bf0928684f5394942fb424cc2db71eac0eaf7226a72480034332f291c",
-        //             "cancel_reason": "",
-        //             "mmp": false,
-        //             "is_transfer": false,
-        //             "replaced_order_id": "c2337704-f1af-437d-91c8-dddb9d6bac59",
-        //             "trigger_type": null,
-        //             "trigger_price_type": null,
-        //             "trigger_price": null,
-        //             "trigger_reject_message": null,
-        //           },
-        //         "trades": [],
-        //         "create_order_error": null,
-        //       },
-        //     "id": "fb19e991-15f6-4c80-a20c-917e762a1a38",
-        //   }
+        //     {
+        //         "id": "bdeaa36f-5eae-4193-a1d2-81fb7f0dfd9d",
+        //         "result": {
+        //             "cancelled_order": {
+        //                 "subaccount_id": 86815,
+        //                 "order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "direction": "buy",
+        //                 "label": "",
+        //                 "quote_id": null,
+        //                 "amount": "0.01",
+        //                 "average_price": "0",
+        //                 "cancel_reason": "user_request",
+        //                 "creation_timestamp": 1790871618199,
+        //                 "filled_amount": "0",
+        //                 "is_transfer": false,
+        //                 "last_update_timestamp": 1790871630849,
+        //                 "limit_price": "83000",
+        //                 "signed_limit_price": null,
+        //                 "max_fee": "100",
+        //                 "mmp": false,
+        //                 "nonce": "1790871617137835612",
+        //                 "order_fee": "0",
+        //                 "order_status": "cancelled",
+        //                 "order_type": "limit",
+        //                 "replaced_order_id": null,
+        //                 "signature": "0x55412a2a39e2dd70b0c39ea03859ac499b5c500756b46197900a413f7bfd294e0adb8c2c5eec467b4c83ef75f7068b528e21044cdd27faa47a6db475461641c21b",
+        //                 "signature_expiry_sec": 1798647617,
+        //                 "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                 "time_in_force": "gtc",
+        //                 "trigger_type": null,
+        //                 "trigger_price": null,
+        //                 "trigger_price_type": null,
+        //                 "trigger_reject_message": null,
+        //                 "extra_fee": "0",
+        //                 "algo_type": null,
+        //                 "algo_duration_sec": null,
+        //                 "algo_num_slices": null,
+        //                 "algo_slices_completed": null
+        //             },
+        //             "order": {
+        //                 "subaccount_id": 86815,
+        //                 "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "direction": "buy",
+        //                 "label": "",
+        //                 "quote_id": null,
+        //                 "amount": "0.01",
+        //                 "average_price": "0",
+        //                 "cancel_reason": "",
+        //                 "creation_timestamp": 1790871630849,
+        //                 "filled_amount": "0",
+        //                 "is_transfer": false,
+        //                 "last_update_timestamp": 1790871630849,
+        //                 "limit_price": "83500",
+        //                 "signed_limit_price": null,
+        //                 "max_fee": "100",
+        //                 "mmp": false,
+        //                 "nonce": "1790871630331176421",
+        //                 "order_fee": "0",
+        //                 "order_status": "open",
+        //                 "order_type": "limit",
+        //                 "replaced_order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //                 "signature": "0x0c8ae3bebd23b1e303b49dd60eb34a5c96ccd450ea9f37536f30d7fa07322980569e4e691e90673a9a8db27b253cf00026ea813034ad2f5e22e2db727cb42faa1c",
+        //                 "signature_expiry_sec": 1798647630,
+        //                 "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                 "time_in_force": "gtc",
+        //                 "trigger_type": null,
+        //                 "trigger_price": null,
+        //                 "trigger_price_type": null,
+        //                 "trigger_reject_message": null,
+        //                 "extra_fee": "0",
+        //                 "algo_type": null,
+        //                 "algo_duration_sec": null,
+        //                 "algo_num_slices": null,
+        //                 "algo_slices_completed": null
+        //             },
+        //             "trades": [],
+        //             "create_order_error": null
+        //         }
+        //     }
         //
         const result = this.safeDict (response, 'result');
         const rawOrder = this.safeDict (result, 'order', {});
@@ -1627,47 +1614,46 @@ export default class derive extends Exchange {
             }
         }
         //
-        // {
-        //     "result": {
-        //         "subaccount_id": 130837,
-        //         "order_id": "de4f30b6-0dcb-4df6-9222-c1a27f1ad80d",
-        //         "instrument_name": "BTC-PERP",
-        //         "direction": "buy",
-        //         "label": "test1234",
-        //         "quote_id": null,
-        //         "creation_timestamp": 1737540100989,
-        //         "last_update_timestamp": 1737540574696,
-        //         "limit_price": "10000",
-        //         "amount": "0.01",
-        //         "filled_amount": "0",
-        //         "average_price": "0",
-        //         "order_fee": "0",
-        //         "order_type": "limit",
-        //         "time_in_force": "post_only",
-        //         "order_status": "cancelled",
-        //         "max_fee": "211",
-        //         "signature_expiry_sec": 1737540700726,
-        //         "nonce": 1737540100726,
-        //         "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //         "signature": "0x9cd1a6e32a0699929e4e090c08c548366b1353701ec56e02d5cdf37fc89bd19b7b29e00e57e8383bb6336d73019027a7e2a4364f40859e7a949115024c7f199a1b",
-        //         "cancel_reason": "user_request",
-        //         "mmp": false,
-        //         "is_transfer": false,
-        //         "replaced_order_id": "4ccc89ba-3c3d-4047-8900-0aa5fb4ef706",
-        //         "trigger_type": null,
-        //         "trigger_price_type": null,
-        //         "trigger_price": null,
-        //         "trigger_reject_message": null
-        //     },
-        //     "id": "cef61e2a-cb13-4779-8e6b-535361981fad"
-        // }
-        //
-        // {
-        //     "result": {
-        //         "cancelled_orders": 1
-        //     },
-        //     "id": "674e075e-1e8a-4a47-99ff-75efbdd2370f"
-        // }
+        //     {
+        //         "id": "1765272a-2d4d-4761-8e05-64061d64dc9c",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
+        //             "instrument_name": "BTC-PERP",
+        //             "direction": "buy",
+        //             "label": "",
+        //             "quote_id": null,
+        //             "amount": "0.01",
+        //             "average_price": "0",
+        //             "cancel_reason": "user_request",
+        //             "creation_timestamp": 1790871630849,
+        //             "filled_amount": "0",
+        //             "is_transfer": false,
+        //             "last_update_timestamp": 1790871644913,
+        //             "limit_price": "83500",
+        //             "signed_limit_price": null,
+        //             "max_fee": "100",
+        //             "mmp": false,
+        //             "nonce": "1790871630331176421",
+        //             "order_fee": "0",
+        //             "order_status": "cancelled",
+        //             "order_type": "limit",
+        //             "replaced_order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //             "signature": "0x0c8ae3bebd23b1e303b49dd60eb34a5c96ccd450ea9f37536f30d7fa07322980569e4e691e90673a9a8db27b253cf00026ea813034ad2f5e22e2db727cb42faa1c",
+        //             "signature_expiry_sec": 1798647630,
+        //             "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //             "time_in_force": "gtc",
+        //             "trigger_type": null,
+        //             "trigger_price": null,
+        //             "trigger_price_type": null,
+        //             "trigger_reject_message": null,
+        //             "extra_fee": "0",
+        //             "algo_type": null,
+        //             "algo_duration_sec": null,
+        //             "algo_num_slices": null,
+        //             "algo_slices_completed": null
+        //         }
+        //     }
         //
         const extendParams: Dict = { 'symbol': symbol };
         const order = this.safeDict (response, 'result', {});
@@ -1770,49 +1756,55 @@ export default class derive extends Exchange {
         }
         const response = await this.privatePostGetOrderHistory (this.extend (request, paramsDeriveSubaccountId));
         //
-        // {
-        //     "result": {
-        //         "subaccount_id": 130837,
-        //         "orders": [
-        //             {
-        //                 "subaccount_id": 130837,
-        //                 "order_id": "63a80cb8-387b-472b-a838-71cd9513c365",
-        //                 "instrument_name": "BTC-PERP",
-        //                 "direction": "buy",
-        //                 "label": "test1234",
-        //                 "quote_id": null,
-        //                 "creation_timestamp": 1737551053207,
-        //                 "last_update_timestamp": 1737551053207,
-        //                 "limit_price": "10000",
-        //                 "amount": "0.01",
-        //                 "filled_amount": "0",
-        //                 "average_price": "0",
-        //                 "order_fee": "0",
-        //                 "order_type": "limit",
-        //                 "time_in_force": "post_only",
-        //                 "order_status": "open",
-        //                 "max_fee": "211",
-        //                 "signature_expiry_sec": 1737551652765,
-        //                 "nonce": 1737551052765,
-        //                 "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //                 "signature": "0x35535ccb1bcad509ecc435c79e966174db6403fc9aeee1e237d08a941014c57b59279dfe4be39e081f9921a53eaad59cb2a151d9f52f2d05fc47e6280254952e1c",
-        //                 "cancel_reason": "",
-        //                 "mmp": false,
-        //                 "is_transfer": false,
-        //                 "replaced_order_id": null,
-        //                 "trigger_type": null,
-        //                 "trigger_price_type": null,
-        //                 "trigger_price": null,
-        //                 "trigger_reject_message": null
+        //     {
+        //         "id": "c55b1f4e-7263-4045-ac9f-158da9a97c5c",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "orders": [
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "direction": "buy",
+        //                     "label": "",
+        //                     "quote_id": null,
+        //                     "amount": "0.01",
+        //                     "average_price": "0",
+        //                     "cancel_reason": "user_request",
+        //                     "creation_timestamp": 1790871630849,
+        //                     "filled_amount": "0",
+        //                     "is_transfer": false,
+        //                     "last_update_timestamp": 1790871644913,
+        //                     "limit_price": "83500",
+        //                     "signed_limit_price": null,
+        //                     "max_fee": "100",
+        //                     "mmp": false,
+        //                     "nonce": "1790871630331176421",
+        //                     "order_fee": "0",
+        //                     "order_status": "cancelled",
+        //                     "order_type": "limit",
+        //                     "replaced_order_id": null,
+        //                     "signature": "",
+        //                     "signature_expiry_sec": 1798647630,
+        //                     "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "time_in_force": "gtc",
+        //                     "trigger_type": null,
+        //                     "trigger_price": null,
+        //                     "trigger_price_type": null,
+        //                     "trigger_reject_message": null,
+        //                     "extra_fee": "0",
+        //                     "algo_type": null,
+        //                     "algo_duration_sec": null,
+        //                     "algo_num_slices": null,
+        //                     "algo_slices_completed": null
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 2,
+        //                 "count": 6
         //             }
-        //         ],
-        //         "pagination": {
-        //             "num_pages": 1,
-        //             "count": 1
         //         }
-        //     },
-        //     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
-        // }
+        //     }
         //
         const data = this.safeDict (response, 'result');
         const page = this.safeInteger (paramsDeriveSubaccountId, 'page');
@@ -1862,6 +1854,53 @@ export default class derive extends Exchange {
         } else {
             response = await this.privatePostGetOpenOrders (this.extend (request, paramsDeriveSubaccountId));
         }
+        //
+        //     {
+        //         "id": "aca80354-f6fe-4862-bbbd-7982f774914e",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "orders": [
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "direction": "buy",
+        //                     "label": "",
+        //                     "quote_id": null,
+        //                     "amount": "0.01",
+        //                     "average_price": "0",
+        //                     "cancel_reason": "",
+        //                     "creation_timestamp": 1790871618199,
+        //                     "filled_amount": "0",
+        //                     "is_transfer": false,
+        //                     "last_update_timestamp": 1790871618199,
+        //                     "limit_price": "83000",
+        //                     "signed_limit_price": null,
+        //                     "max_fee": "100",
+        //                     "mmp": false,
+        //                     "nonce": "1790871617137835612",
+        //                     "order_fee": "0",
+        //                     "order_status": "open",
+        //                     "order_type": "limit",
+        //                     "replaced_order_id": null,
+        //                     "signature": "0x55412a2a39e2dd70b0c39ea03859ac499b5c500756b46197900a413f7bfd294e0adb8c2c5eec467b4c83ef75f7068b528e21044cdd27faa47a6db475461641c21b",
+        //                     "signature_expiry_sec": 1798647617,
+        //                     "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "time_in_force": "gtc",
+        //                     "trigger_type": null,
+        //                     "trigger_price": null,
+        //                     "trigger_price_type": null,
+        //                     "trigger_reject_message": null,
+        //                     "extra_fee": "0",
+        //                     "algo_type": null,
+        //                     "algo_duration_sec": null,
+        //                     "algo_num_slices": null,
+        //                     "algo_slices_completed": null
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
         const data = this.safeDict (response, 'result');
         const orders: Dict[] = this.safeList (data, 'orders', []);
         const parsedOrders = this.parseOrders (orders, market);
@@ -1934,56 +1973,44 @@ export default class derive extends Exchange {
 
     override parseOrder (rawOrder: Dict, market: Market = undefined): Order {
         //
-        // {
-        //     "subaccount_id": 130837,
-        //     "nonce": 1736923517552,
-        //     "module": "0x87F2863866D85E3192a35A73b388BD625D83f2be",
-        //     "expiry": 86400,
-        //     "owner": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-        //     "signer": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-        //     "signature": "0xaa4f42b2f3da33c668fa703ea872d4c3a6b55aca66025b5119e3bebb6679fe2e2794638db51dcace21fc39a498047835994f07eb59f311bb956ce057e66793d1c",
-        //     "data": {
-        //         "asset": "0xAFB6Bb95cd70D5367e2C39e9dbEb422B9815339D",
-        //         "sub_id": 0,
-        //         "limit_price": "10000",
-        //         "desired_amount": "0.001",
-        //         "worst_fee": "0",
-        //         "recipient_id": 130837,
-        //         "is_bid": true,
-        //         "trade_id": ""
+        //     {
+        //         "subaccount_id": 86815,
+        //         "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
+        //         "instrument_name": "BTC-PERP",
+        //         "direction": "buy",
+        //         "label": "",
+        //         "quote_id": null,
+        //         "amount": "0.01",
+        //         "average_price": "0",
+        //         "cancel_reason": "user_request",
+        //         "creation_timestamp": 1790871630849,
+        //         "filled_amount": "0",
+        //         "is_transfer": false,
+        //         "last_update_timestamp": 1790871644913,
+        //         "limit_price": "83500",
+        //         "signed_limit_price": null,
+        //         "max_fee": "100",
+        //         "mmp": false,
+        //         "nonce": "1790871630331176421",
+        //         "order_fee": "0",
+        //         "order_status": "cancelled",
+        //         "order_type": "limit",
+        //         "replaced_order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //         "signature": "0x0c8ae3bebd23b1e303b49dd60eb34a5c96ccd450ea9f37536f30d7fa07322980569e4e691e90673a9a8db27b253cf00026ea813034ad2f5e22e2db727cb42faa1c",
+        //         "signature_expiry_sec": 1798647630,
+        //         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //         "time_in_force": "gtc",
+        //         "trigger_type": null,
+        //         "trigger_price": null,
+        //         "trigger_price_type": null,
+        //         "trigger_reject_message": null,
+        //         "extra_fee": "0",
+        //         "algo_type": null,
+        //         "algo_duration_sec": null,
+        //         "algo_num_slices": null,
+        //         "algo_slices_completed": null
         //     }
-        // }
-        // {
-        //     "subaccount_id": 130837,
-        //     "order_id": "96349ebb-7d46-43ae-81c7-7ab390444293",
-        //     "instrument_name": "BTC-PERP",
-        //     "direction": "buy",
-        //     "label": "",
-        //     "quote_id": null,
-        //     "creation_timestamp": 1737467576257,
-        //     "last_update_timestamp": 1737467576257,
-        //     "limit_price": "10000",
-        //     "amount": "0.01",
-        //     "filled_amount": "0",
-        //     "average_price": "0",
-        //     "order_fee": "0",
-        //     "order_type": "limit",
-        //     "time_in_force": "gtc",
-        //     "order_status": "open",
-        //     "max_fee": "210",
-        //     "signature_expiry_sec": 1737468175989,
-        //     "nonce": 1737467575989,
-        //     "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //     "signature": "0xd1ca49df1fa06bd805bb59b132ff6c0de29bf973a3e01705abe0a01cc956e4945ed9eb99ab68f3df4c037908113cac5a5bfc3a954a0b7103cdab285962fa6a51c",
-        //     "cancel_reason": "",
-        //     "mmp": false,
-        //     "is_transfer": false,
-        //     "replaced_order_id": null,
-        //     "trigger_type": null,
-        //     "trigger_price_type": null,
-        //     "trigger_price": null,
-        //     "trigger_reject_message": null
-        // }
+        //
         let order = this.safeDict (rawOrder, 'data');
         if (order === undefined) {
             order = rawOrder;
@@ -1995,7 +2022,7 @@ export default class derive extends Exchange {
         const symbol = this.safeString (marketResolved, 'symbol');
         const price = this.safeString (order, 'limit_price');
         const average = this.safeString (order, 'average_price');
-        const amount = this.safeString (order, 'desired_amount');
+        const amount = this.safeString2 (order, 'amount', 'desired_amount'); // plain orders carry amount, the raw_data debug shape nests desired_amount
         const filled = this.safeString (order, 'filled_amount');
         const fee = this.safeString (order, 'order_fee');
         const orderType = this.safeStringLower (order, 'order_type');
@@ -2582,33 +2609,33 @@ export default class derive extends Exchange {
         }
         const response = await this.privatePostGetDepositHistory (this.extend (request, paramsDeriveSubaccountId));
         //
-        // {
-        //     "id": "4ba60e41-fa05-490c-b849-9ead5aef63c8",
-        //     "result": {
-        //         "deposits": [
-        //             {
-        //                 "operation_id": "01a0f7f4-008c-7322-81c6-7c80e1b98a79",
-        //                 "new_subaccount": true,
-        //                 "subaccount_id": 86815,
-        //                 "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-        //                 "asset": "USDC",
-        //                 "amount": "10000",
-        //                 "fee": "0",
-        //                 "timestamp": 1790866358000,
-        //                 "batch_uuid": "01a0f7f1-b8f3-7261-b09f-54c6df91273e",
-        //                 "batch_status": "Batching",
-        //                 "tx_hash": null,
-        //                 "action_id": 418,
-        //                 "is_fallback": false,
-        //                 "fallback_error_code": null,
-        //                 "fallback_error_message": null,
-        //                 "fallback_error_data": null,
-        //                 "l1_tx_hash": "0x77a6f738abb0642f32a35f1a53050968728182bd29ab0b19f8234f5df7bac309",
-        //                 "l1_sender": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"
-        //             }
-        //         ]
+        //     {
+        //         "id": "4ba60e41-fa05-490c-b849-9ead5aef63c8",
+        //         "result": {
+        //             "deposits": [
+        //                 {
+        //                     "operation_id": "01a0f7f4-008c-7322-81c6-7c80e1b98a79",
+        //                     "new_subaccount": true,
+        //                     "subaccount_id": 86815,
+        //                     "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "asset": "USDC",
+        //                     "amount": "10000",
+        //                     "fee": "0",
+        //                     "timestamp": 1790866358000,
+        //                     "batch_uuid": "01a0f7f1-b8f3-7261-b09f-54c6df91273e",
+        //                     "batch_status": "Batching",
+        //                     "tx_hash": null,
+        //                     "action_id": 418,
+        //                     "is_fallback": false,
+        //                     "fallback_error_code": null,
+        //                     "fallback_error_message": null,
+        //                     "fallback_error_data": null,
+        //                     "l1_tx_hash": "0x77a6f738abb0642f32a35f1a53050968728182bd29ab0b19f8234f5df7bac309",
+        //                     "l1_sender": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"
+        //                 }
+        //             ]
+        //         }
         //     }
-        // }
         //
         const currency = this.safeCurrency (code);
         const result = this.safeDict (response, 'result', {});
@@ -2641,27 +2668,27 @@ export default class derive extends Exchange {
         }
         const response = await this.privatePostGetWithdrawalHistory (this.extend (request, paramsDeriveSubaccountId));
         //
-        // {
-        //     "id": "f3d46c05-5c8f-4e4a-9d2f-5a86d26124b3",
-        //     "result": {
-        //         "withdrawals": [
-        //             {
-        //                 "operation_id": "01a0f7f9-b539-7a42-b48e-6081fa401b3f",
-        //                 "subaccount_id": 86820,
-        //                 "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-        //                 "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-        //                 "asset": "USDC",
-        //                 "erc20_address": "0x73Efab09362052D26FB93A730Be4F8a5EdC833af",
-        //                 "amount": "100",
-        //                 "fee": "1.000073283608",
-        //                 "timestamp": 1790866732000,
-        //                 "batch_uuid": "01a0f7f7-1010-7c33-8bcf-7fef764d7fc5",
-        //                 "batch_status": "Batching",
-        //                 "tx_hash": null
-        //             }
-        //         ]
+        //     {
+        //         "id": "f3d46c05-5c8f-4e4a-9d2f-5a86d26124b3",
+        //         "result": {
+        //             "withdrawals": [
+        //                 {
+        //                     "operation_id": "01a0f7f9-b539-7a42-b48e-6081fa401b3f",
+        //                     "subaccount_id": 86820,
+        //                     "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "asset": "USDC",
+        //                     "erc20_address": "0x73Efab09362052D26FB93A730Be4F8a5EdC833af",
+        //                     "amount": "100",
+        //                     "fee": "1.000073283608",
+        //                     "timestamp": 1790866732000,
+        //                     "batch_uuid": "01a0f7f7-1010-7c33-8bcf-7fef764d7fc5",
+        //                     "batch_status": "Batching",
+        //                     "tx_hash": null
+        //                 }
+        //             ]
+        //         }
         //     }
-        // }
         //
         const currency = this.safeCurrency (code);
         const result = this.safeDict (response, 'result', {});
@@ -2671,26 +2698,26 @@ export default class derive extends Exchange {
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
-        // {
-        //     "operation_id": "01a0f7f4-008c-7322-81c6-7c80e1b98a79",
-        //     "new_subaccount": true,
-        //     "subaccount_id": 86815,
-        //     "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-        //     "asset": "USDC",
-        //     "amount": "10000",
-        //     "fee": "0",
-        //     "timestamp": 1790866358000,
-        //     "batch_uuid": "01a0f7f1-b8f3-7261-b09f-54c6df91273e",
-        //     "batch_status": "Batching",
-        //     "tx_hash": null,
-        //     "action_id": 418,
-        //     "is_fallback": false,
-        //     "fallback_error_code": null,
-        //     "fallback_error_message": null,
-        //     "fallback_error_data": null,
-        //     "l1_tx_hash": "0x77a6f738abb0642f32a35f1a53050968728182bd29ab0b19f8234f5df7bac309",
-        //     "l1_sender": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"
-        // }
+        //     {
+        //         "operation_id": "01a0f7f4-008c-7322-81c6-7c80e1b98a79",
+        //         "new_subaccount": true,
+        //         "subaccount_id": 86815,
+        //         "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //         "asset": "USDC",
+        //         "amount": "10000",
+        //         "fee": "0",
+        //         "timestamp": 1790866358000,
+        //         "batch_uuid": "01a0f7f1-b8f3-7261-b09f-54c6df91273e",
+        //         "batch_status": "Batching",
+        //         "tx_hash": null,
+        //         "action_id": 418,
+        //         "is_fallback": false,
+        //         "fallback_error_code": null,
+        //         "fallback_error_message": null,
+        //         "fallback_error_data": null,
+        //         "l1_tx_hash": "0x77a6f738abb0642f32a35f1a53050968728182bd29ab0b19f8234f5df7bac309",
+        //         "l1_sender": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"
+        //     }
         //
         const code = this.safeString (transaction, 'asset');
         const timestamp = this.safeInteger (transaction, 'timestamp');
