@@ -58,7 +58,7 @@ export default class derive extends Exchange {
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchCanceledAndClosedOrders': false,
+                'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
@@ -93,7 +93,7 @@ export default class derive extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
                 'fetchOrderBook': false,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
@@ -217,7 +217,6 @@ export default class derive extends Exchange {
                         'replace': { 'cost': 1 } as Endpoint<Dict>,
                         'order_debug': { 'cost': 1 } as Endpoint<Dict>,
                         'get_order': { 'cost': 1 } as Endpoint<Dict>,
-                        'get_orders': { 'cost': 1 } as Endpoint<Dict>,
                         'get_open_orders': { 'cost': 1 } as Endpoint<Dict>,
                         'get_trigger_orders': { 'cost': 1 } as Endpoint<Dict>,
                         'get_algo_orders': { 'cost': 1 } as Endpoint<Dict>,
@@ -1741,46 +1740,50 @@ export default class derive extends Exchange {
 
     /**
      * @method
-     * @name derive#fetchOrders
-     * @description fetches information on multiple orders made by the user
-     * @see https://docs.derive.xyz/reference/post_private-get-orders
+     * @name derive#fetchCanceledAndClosedOrders
+     * @description fetches information on multiple canceled and closed orders made by the user; only orders in a terminal state (filled, cancelled, expired) are returned, use fetchOpenOrders for orders resting on the order book
+     * @see https://docs.derive.xyz/api-reference/history/privateget_order_history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
-     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, paramsPaginate, 'page', 500) as Order[];
+            // paginate without a symbol: the venue cannot filter the order history by instrument, so an inner call filtering by symbol could return an empty page and stop the pagination loop prematurely
+            const allOrders = await this.fetchPaginatedCallIncremental ('fetchCanceledAndClosedOrders', undefined, since, undefined, paramsPaginate, 'page', 500) as Order[];
+            return this.filterBySymbolSinceLimit (allOrders, symbol, since, limit) as Order[];
         }
-        const isTrigger = this.safeBool2 (paramsPaginate, 'trigger', 'stop', false);
-        const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'trigger', 'stop' ]);
-        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('fetchOrders', paramsOmitted);
+        const until = this.safeInteger (paramsPaginate, 'until');
+        const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('fetchCanceledAndClosedOrders', paramsOmitted);
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['instrument_name'] = market['id'];
         }
         if (limit !== undefined) {
             request['page_size'] = limit;
         } else {
             request['page_size'] = 500;
         }
-        if (isTrigger === true) {
-            request['status'] = 'untriggered';
+        if (since !== undefined) {
+            request['from_timestamp'] = since;
         }
-        const response = await this.privatePostGetOrders (this.extend (request, paramsDeriveSubaccountId));
+        if (until !== undefined) {
+            request['to_timestamp'] = until;
+        }
+        const response = await this.privatePostGetOrderHistory (this.extend (request, paramsDeriveSubaccountId));
         //
         // {
         //     "result": {
@@ -1836,34 +1839,55 @@ export default class derive extends Exchange {
             }
         }
         const orders: Dict[] = this.safeList (data, 'orders', []);
-        return this.parseOrders (orders, market, since, limit);
+        const parsedOrders = this.parseOrders (orders, market);
+        return this.filterBySymbolSinceLimit (parsedOrders, symbol, since, limit) as Order[];
     }
 
     /**
      * @method
      * @name derive#fetchOpenOrders
-     * @description fetches information on multiple orders made by the user
-     * @see https://docs.derive.xyz/reference/post_private-get-orders
+     * @description fetches information on all currently open orders of the user resting on the order book
+     * @see https://docs.derive.xyz/api-reference/orderbook/privateget_open_orders
+     * @see https://docs.derive.xyz/api-reference/orderbook/privateget_trigger_orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+     * @param {boolean} [params.trigger] when true fetches the pending trigger orders that have not fired yet instead of the orders resting on the order book
+     * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const extendedParams = this.extend (params, { 'status': 'open' });
-        return await this.fetchOrders (symbol, since, limit, extendedParams);
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
+        const paramsOmitted: Dict = this.omit (params, [ 'trigger', 'stop' ]);
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('fetchOpenOrders', paramsOmitted);
+        const request: Dict = {
+            'subaccount_id': subaccountId,
+        };
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let response: Dict;
+        if (isTrigger === true) {
+            response = await this.privatePostGetTriggerOrders (this.extend (request, paramsDeriveSubaccountId));
+        } else {
+            response = await this.privatePostGetOpenOrders (this.extend (request, paramsDeriveSubaccountId));
+        }
+        const data = this.safeDict (response, 'result');
+        const orders: Dict[] = this.safeList (data, 'orders', []);
+        const parsedOrders = this.parseOrders (orders, market);
+        return this.filterBySymbolSinceLimit (parsedOrders, symbol, since, limit) as Order[];
     }
 
     /**
      * @method
      * @name derive#fetchClosedOrders
-     * @description fetches information on multiple orders made by the user
-     * @see https://docs.derive.xyz/reference/post_private-get-orders
+     * @description fetches information on multiple closed (fully filled) orders made by the user
+     * @see https://docs.derive.xyz/api-reference/history/privateget_order_history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1875,15 +1899,15 @@ export default class derive extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const extendedParams = this.extend (params, { 'status': 'filled' });
-        return await this.fetchOrders (symbol, since, limit, extendedParams);
+        const orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'closed') as Order[];
     }
 
     /**
      * @method
      * @name derive#fetchCanceledOrders
      * @description fetches information on multiple canceled orders made by the user
-     * @see https://docs.derive.xyz/reference/post_private-get-orders
+     * @see https://docs.derive.xyz/api-reference/history/privateget_order_history
      * @param {string} symbol unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1895,8 +1919,8 @@ export default class derive extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const extendedParams = this.extend (params, { 'status': 'cancelled' });
-        return await this.fetchOrders (symbol, since, limit, extendedParams);
+        const orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'canceled') as Order[];
     }
 
     parseTimeInForce (timeInForce: Str) {

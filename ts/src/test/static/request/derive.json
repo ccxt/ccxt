@@ -189,11 +189,11 @@
                 "output": { "subaccount_id": 130837 }
             }
         ],
-        "fetchOrders": [
+        "fetchCanceledAndClosedOrders": [
             {
-                "description": "fetchOrders",
-                "method": "fetchOrders",
-                "url": "https://testnet.api.derive.xyz/v3/private/get_orders",
+                "description": "fetchCanceledAndClosedOrders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_order_history",
                 "input": [
                     "LBTC/USDC",
                     null,
@@ -202,12 +202,12 @@
                         "subaccount_id":130837
                     }
                 ],
-                "output": { "page_size": 10, "instrument_name": "LBTC-USDC", "subaccount_id": 130837 }
+                "output": { "page_size": 10, "subaccount_id": 130837 }
             },
             {
-                "description": "fetchOrders",
-                "method": "fetchOrders",
-                "url": "https://testnet.api.derive.xyz/v3/private/get_orders",
+                "description": "fetchCanceledAndClosedOrders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_order_history",
                 "input": [
                     null,
                     null,
@@ -223,7 +223,7 @@
             {
                 "description": "fetchOpenOrders",
                 "method": "fetchOpenOrders",
-                "url": "https://testnet.api.derive.xyz/v3/private/get_orders",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_open_orders",
                 "input": [
                     "LBTC/USDC",
                     null,
@@ -232,14 +232,14 @@
                         "subaccount_id":130837
                     }
                 ],
-                "output": { "page_size": 10, "instrument_name": "LBTC-USDC", "subaccount_id": 130837, "status": "open" }
+                "output": { "subaccount_id": 130837 }
             }
         ],
         "fetchClosedOrders": [
             {
                 "description": "fetchClosedOrders",
                 "method": "fetchClosedOrders",
-                "url": "https://testnet.api.derive.xyz/v3/private/get_orders",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_order_history",
                 "input": [
                     "LBTC/USDC",
                     null,
@@ -248,14 +248,14 @@
                         "subaccount_id":130837
                     }
                 ],
-                "output": { "page_size": 10, "instrument_name": "LBTC-USDC", "subaccount_id": 130837, "status": "filled" }
+                "output": { "page_size": 10, "subaccount_id": 130837 }
             }
         ],
         "fetchCanceledOrders": [
             {
                 "description": "fetchCanceledOrders",
                 "method": "fetchCanceledOrders",
-                "url": "https://testnet.api.derive.xyz/v3/private/get_orders",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_order_history",
                 "input": [
                     "LBTC/USDC",
                     null,
@@ -264,7 +264,7 @@
                         "subaccount_id":130837
                     }
                 ],
-                "output": { "page_size": 10, "instrument_name": "LBTC-USDC", "subaccount_id": 130837, "status": "cancelled" }
+                "output": { "page_size": 10, "subaccount_id": 130837 }
             }
         ],
         "fetchOrderTrades": [

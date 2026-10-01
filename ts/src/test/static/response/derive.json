@@ -1215,10 +1215,10 @@
                 }
             }
         ],
-        "fetchOrders": [
+        "fetchCanceledAndClosedOrders": [
             {
-                "description": "fetchOrders",
-                "method": "fetchOrders",
+                "description": "fetchCanceledAndClosedOrders",
+                "method": "fetchCanceledAndClosedOrders",
                 "input": [
                     "BTC/USD:USDC",
                     null,
