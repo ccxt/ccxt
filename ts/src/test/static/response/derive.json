@@ -1846,42 +1846,69 @@
         ],
         "fetchDeposits": [
             {
-                "description": "fetchDeposits",
+                "description": "fetchDeposits testnet",
                 "method": "fetchDeposits",
-                "disabledGO": true,
-                "disabledRS": true,
-                "input": [],
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "subaccount_id": 86815
+                    }
+                ],
                 "httpResponse": {
+                    "id": "28f69233-8a88-4d91-b938-106d5a00b385",
                     "result": {
-                        "events": [
+                        "deposits": [
                             {
-                                "timestamp": 1736860533599,
-                                "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
-                                "asset": "ETH",
-                                "amount": "0.1",
-                                "tx_status": "settled",
-                                "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-                                "error_log": {}
+                                "operation_id": "01a0f7f4-008c-7322-81c6-7c80e1b98a79",
+                                "new_subaccount": true,
+                                "subaccount_id": 86815,
+                                "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                                "asset": "USDC",
+                                "amount": "10000",
+                                "fee": "0",
+                                "timestamp": 1790866358000,
+                                "batch_uuid": "01a0f7f1-b8f3-7261-b09f-54c6df91273e",
+                                "batch_status": "Settled",
+                                "tx_hash": "0x0a3ecf0a8e24d60acff89f2f67472d2edbbddb23239fe4e0dc19a2e86cf53275",
+                                "action_id": 418,
+                                "is_fallback": false,
+                                "fallback_error_code": null,
+                                "fallback_error_message": null,
+                                "fallback_error_data": null,
+                                "l1_tx_hash": "0x77a6f738abb0642f32a35f1a53050968728182bd29ab0b19f8234f5df7bac309",
+                                "l1_sender": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"
                             }
                         ]
-                    },
-                    "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
+                    }
                 },
                 "parsedResponse": [
                     {
                         "info": {
-                            "timestamp": 1736860533599,
-                            "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
-                            "asset": "ETH",
-                            "amount": "0.1",
-                            "tx_status": "settled",
-                            "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-                            "error_log": {}
+                            "operation_id": "01a0f7f4-008c-7322-81c6-7c80e1b98a79",
+                            "new_subaccount": true,
+                            "subaccount_id": 86815,
+                            "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                            "asset": "USDC",
+                            "amount": "10000",
+                            "fee": "0",
+                            "timestamp": 1790866358000,
+                            "batch_uuid": "01a0f7f1-b8f3-7261-b09f-54c6df91273e",
+                            "batch_status": "Settled",
+                            "tx_hash": "0x0a3ecf0a8e24d60acff89f2f67472d2edbbddb23239fe4e0dc19a2e86cf53275",
+                            "action_id": 418,
+                            "is_fallback": false,
+                            "fallback_error_code": null,
+                            "fallback_error_message": null,
+                            "fallback_error_data": null,
+                            "l1_tx_hash": "0x77a6f738abb0642f32a35f1a53050968728182bd29ab0b19f8234f5df7bac309",
+                            "l1_sender": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"
                         },
-                        "id": null,
-                        "txid": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-                        "timestamp": 1736860533599,
-                        "datetime": "2025-01-14T13:15:33.599Z",
+                        "id": "01a0f7f4-008c-7322-81c6-7c80e1b98a79",
+                        "txid": "0x0a3ecf0a8e24d60acff89f2f67472d2edbbddb23239fe4e0dc19a2e86cf53275",
+                        "timestamp": 1790866358000,
+                        "datetime": "2026-10-01T14:52:38.000Z",
                         "address": null,
                         "addressFrom": null,
                         "addressTo": null,
@@ -1889,13 +1916,16 @@
                         "tagFrom": null,
                         "tagTo": null,
                         "type": null,
-                        "amount": 0.1,
-                        "currency": "ETH",
+                        "amount": 10000,
+                        "currency": "USDC",
                         "status": "ok",
                         "updated": null,
                         "comment": null,
                         "internal": null,
-                        "fee": null,
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDC"
+                        },
                         "network": null
                     }
                 ]
@@ -1903,56 +1933,74 @@
         ],
         "fetchWithdrawals": [
             {
-                "description": "fetchWithdrawals",
+                "description": "fetchWithdrawals testnet",
                 "method": "fetchWithdrawals",
-                "disabledGO": true,
-                "disabledRS": true,
-                "input": [],
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "subaccount_id": 86820
+                    }
+                ],
                 "httpResponse": {
+                    "id": "f492124b-43c1-46bc-9b2b-081d543472e3",
                     "result": {
-                        "events": [
+                        "withdrawals": [
                             {
-                                "timestamp": 1736860533599,
-                                "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
-                                "asset": "ETH",
-                                "amount": "0.1",
-                                "tx_status": "settled",
-                                "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-                                "error_log": {}
+                                "operation_id": "01a0f7f9-b539-7a42-b48e-6081fa401b3f",
+                                "subaccount_id": 86820,
+                                "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                                "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                                "asset": "USDC",
+                                "erc20_address": "0x73Efab09362052D26FB93A730Be4F8a5EdC833af",
+                                "amount": "100",
+                                "fee": "1.000073283608",
+                                "timestamp": 1790866732000,
+                                "batch_uuid": "01a0f7f7-1010-7c33-8bcf-7fef764d7fc5",
+                                "batch_status": "Proving",
+                                "tx_hash": null
                             }
                         ]
-                    },
-                    "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
+                    }
                 },
                 "parsedResponse": [
                     {
                         "info": {
-                            "timestamp": 1736860533599,
-                            "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
-                            "asset": "ETH",
-                            "amount": "0.1",
-                            "tx_status": "settled",
-                            "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-                            "error_log": {}
+                            "operation_id": "01a0f7f9-b539-7a42-b48e-6081fa401b3f",
+                            "subaccount_id": 86820,
+                            "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                            "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                            "asset": "USDC",
+                            "erc20_address": "0x73Efab09362052D26FB93A730Be4F8a5EdC833af",
+                            "amount": "100",
+                            "fee": "1.000073283608",
+                            "timestamp": 1790866732000,
+                            "batch_uuid": "01a0f7f7-1010-7c33-8bcf-7fef764d7fc5",
+                            "batch_status": "Proving",
+                            "tx_hash": null
                         },
-                        "id": null,
-                        "txid": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-                        "timestamp": 1736860533599,
-                        "datetime": "2025-01-14T13:15:33.599Z",
+                        "id": "01a0f7f9-b539-7a42-b48e-6081fa401b3f",
+                        "txid": null,
+                        "timestamp": 1790866732000,
+                        "datetime": "2026-10-01T14:58:52.000Z",
                         "address": null,
                         "addressFrom": null,
-                        "addressTo": null,
+                        "addressTo": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
                         "tag": null,
                         "tagFrom": null,
                         "tagTo": null,
                         "type": null,
-                        "amount": 0.1,
-                        "currency": "ETH",
-                        "status": "ok",
+                        "amount": 100,
+                        "currency": "USDC",
+                        "status": "pending",
                         "updated": null,
                         "comment": null,
                         "internal": null,
-                        "fee": null,
+                        "fee": {
+                            "cost": 1.000073283608,
+                            "currency": "USDC"
+                        },
                         "network": null
                     }
                 ]

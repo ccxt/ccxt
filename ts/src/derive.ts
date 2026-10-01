@@ -421,7 +421,7 @@ export default class derive extends Exchange {
             'commonCurrencies': {
             },
             'options': {
-                'deriveWalletAddress': '', // a derive wallet address "0x"-prefixed hexstring
+                'deriveWalletAddress': '', // the owner wallet "0x"-prefixed hexstring; defaults to the walletAddress credential (v3 has no separate derive wallet), override only when signing with a session key for another owner wallet
                 'id': '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749',
                 'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
@@ -2015,7 +2015,7 @@ export default class derive extends Exchange {
         if (order === undefined) {
             order = rawOrder;
         }
-        const timestamp = this.safeInteger2 (rawOrder, 'creation_timestamp', 'nonce');
+        const timestamp = this.safeInteger (rawOrder, 'creation_timestamp'); // the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
         const orderId = this.safeString (order, 'order_id');
         const marketId = this.safeString (order, 'instrument_name');
         const marketResolved: Market = (marketId !== undefined) ? this.safeMarket (marketId, market) : market;
@@ -2588,7 +2588,7 @@ export default class derive extends Exchange {
      * @method
      * @name derive#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://docs.derive.xyz/reference/post_private-get-deposit-history
+     * @see https://docs.derive.xyz/api-reference/history/privateget_deposit_history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2610,33 +2610,44 @@ export default class derive extends Exchange {
         const response = await this.privatePostGetDepositHistory (this.extend (request, paramsDeriveSubaccountId));
         //
         // {
+        //     "id": "4ba60e41-fa05-490c-b849-9ead5aef63c8",
         //     "result": {
-        //         "events": [
+        //         "deposits": [
         //             {
-        //                 "timestamp": 1736860533599,
-        //                 "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
-        //                 "asset": "ETH",
-        //                 "amount": "0.1",
-        //                 "tx_status": "settled",
-        //                 "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-        //                 "error_log": {}
+        //                 "operation_id": "01a0f7f4-008c-7322-81c6-7c80e1b98a79",
+        //                 "new_subaccount": true,
+        //                 "subaccount_id": 86815,
+        //                 "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                 "asset": "USDC",
+        //                 "amount": "10000",
+        //                 "fee": "0",
+        //                 "timestamp": 1790866358000,
+        //                 "batch_uuid": "01a0f7f1-b8f3-7261-b09f-54c6df91273e",
+        //                 "batch_status": "Batching",
+        //                 "tx_hash": null,
+        //                 "action_id": 418,
+        //                 "is_fallback": false,
+        //                 "fallback_error_code": null,
+        //                 "fallback_error_message": null,
+        //                 "fallback_error_data": null,
+        //                 "l1_tx_hash": "0x77a6f738abb0642f32a35f1a53050968728182bd29ab0b19f8234f5df7bac309",
+        //                 "l1_sender": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"
         //             }
         //         ]
-        //     },
-        //     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
+        //     }
         // }
         //
         const currency = this.safeCurrency (code);
         const result = this.safeDict (response, 'result', {});
-        const events: Dict[] = this.safeList (result, 'events', []);
-        return this.parseTransactions (events, currency, since, limit, paramsDeriveSubaccountId);
+        const deposits: Dict[] = this.safeList (result, 'deposits', []);
+        return this.parseTransactions (deposits, currency, since, limit, paramsDeriveSubaccountId);
     }
 
     /**
      * @method
      * @name derive#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.derive.xyz/reference/post_private-get-withdrawal-history
+     * @see https://docs.derive.xyz/api-reference/history/privateget_withdrawal_history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2658,74 +2669,111 @@ export default class derive extends Exchange {
         const response = await this.privatePostGetWithdrawalHistory (this.extend (request, paramsDeriveSubaccountId));
         //
         // {
+        //     "id": "f3d46c05-5c8f-4e4a-9d2f-5a86d26124b3",
         //     "result": {
-        //         "events": [
+        //         "withdrawals": [
         //             {
-        //                 "timestamp": 1736860533599,
-        //                 "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
-        //                 "asset": "ETH",
-        //                 "amount": "0.1",
-        //                 "tx_status": "settled",
-        //                 "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-        //                 "error_log": {}
+        //                 "operation_id": "01a0f7f9-b539-7a42-b48e-6081fa401b3f",
+        //                 "subaccount_id": 86820,
+        //                 "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                 "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                 "asset": "USDC",
+        //                 "erc20_address": "0x73Efab09362052D26FB93A730Be4F8a5EdC833af",
+        //                 "amount": "100",
+        //                 "fee": "1.000073283608",
+        //                 "timestamp": 1790866732000,
+        //                 "batch_uuid": "01a0f7f7-1010-7c33-8bcf-7fef764d7fc5",
+        //                 "batch_status": "Batching",
+        //                 "tx_hash": null
         //             }
         //         ]
-        //     },
-        //     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
+        //     }
         // }
         //
         const currency = this.safeCurrency (code);
         const result = this.safeDict (response, 'result', {});
-        const events: Dict[] = this.safeList (result, 'events', []);
-        return this.parseTransactions (events, currency, since, limit, paramsDeriveSubaccountId);
+        const withdrawals: Dict[] = this.safeList (result, 'withdrawals', []);
+        return this.parseTransactions (withdrawals, currency, since, limit, paramsDeriveSubaccountId);
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // {
-        //     "timestamp": 1736860533599,
-        //     "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
-        //     "asset": "ETH",
-        //     "amount": "0.1",
-        //     "tx_status": "settled",
-        //     "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-        //     "error_log": {}
+        //     "operation_id": "01a0f7f4-008c-7322-81c6-7c80e1b98a79",
+        //     "new_subaccount": true,
+        //     "subaccount_id": 86815,
+        //     "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //     "asset": "USDC",
+        //     "amount": "10000",
+        //     "fee": "0",
+        //     "timestamp": 1790866358000,
+        //     "batch_uuid": "01a0f7f1-b8f3-7261-b09f-54c6df91273e",
+        //     "batch_status": "Batching",
+        //     "tx_hash": null,
+        //     "action_id": 418,
+        //     "is_fallback": false,
+        //     "fallback_error_code": null,
+        //     "fallback_error_message": null,
+        //     "fallback_error_data": null,
+        //     "l1_tx_hash": "0x77a6f738abb0642f32a35f1a53050968728182bd29ab0b19f8234f5df7bac309",
+        //     "l1_sender": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"
         // }
         //
         const code = this.safeString (transaction, 'asset');
         const timestamp = this.safeInteger (transaction, 'timestamp');
-        let txId = this.safeString (transaction, 'tx_hash');
+        // tx_hash is the settling ethereum L1 transaction and stays null until the batch settles; deposits carry the sender's own L1 transaction in l1_tx_hash
+        let txId = this.safeString2 (transaction, 'tx_hash', 'l1_tx_hash');
         if (txId === '0x0') {
             txId = undefined;
         }
+        const feeCost = this.safeNumber (transaction, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
         return {
             'info': transaction,
-            'id': undefined,
+            'id': this.safeString2 (transaction, 'operation_id', 'transaction_id'),
             'txid': txId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': undefined,
             'addressFrom': undefined,
-            'addressTo': undefined,
+            'addressTo': this.safeString (transaction, 'recipient'),
             'tag': undefined,
             'tagFrom': undefined,
             'tagTo': undefined,
             'type': undefined,
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
-            'status': this.parseTransactionStatus (this.safeString (transaction, 'tx_status')),
+            'status': this.parseTransactionStatus (this.safeString2 (transaction, 'batch_status', 'tx_status')),
             'updated': undefined,
             'comment': undefined,
             'internal': undefined,
-            'fee': undefined,
+            'fee': fee,
             'network': undefined,
         } as Transaction;
     }
 
     parseTransactionStatus (status: Str) {
         const statuses: Dict = {
-            'settled': 'ok',
-            'reverted': 'failed',
+            'Batching': 'pending',
+            'Executing': 'pending',
+            'Da': 'pending',
+            'Proving': 'pending',
+            'Settling': 'pending',
+            'Settled': 'ok',
+            'BatchingError': 'failed',
+            'ExecutingError': 'failed',
+            'DaError': 'failed',
+            'ProvingError': 'failed',
+            'SettlingError': 'failed',
+            'SettledError': 'failed',
+            'settled': 'ok', // v2 legacy
+            'reverted': 'failed', // v2 legacy
         };
         return this.safeString (statuses, (status as string), status);
     }
@@ -2750,10 +2798,14 @@ export default class derive extends Exchange {
             return [ deriveWalletAddress, paramsDeriveWalletAddress ];
         }
         const optionsWallet = this.safeString (this.options, 'deriveWalletAddress');
-        if (optionsWallet !== undefined) {
+        if ((optionsWallet !== undefined) && (optionsWallet !== '')) {
             return [ optionsWallet, paramsDeriveWalletAddress ];
         }
-        throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.');
+        // v3 abolished the separate derive wallet: the owner wallet is the user's own EOA, so the walletAddress credential is the default; set deriveWalletAddress explicitly only when signing with a session key registered to another owner wallet
+        if ((this.walletAddress !== undefined) && (this.walletAddress !== '')) {
+            return [ this.walletAddress, paramsDeriveWalletAddress ];
+        }
+        throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires the walletAddress credential, a deriveWalletAddress parameter inside \'params\', or exchange.options[\'deriveWalletAddress\'] = ADDRESS.');
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
@@ -2789,7 +2841,11 @@ export default class derive extends Exchange {
             if (api === 'private') {
                 const now = this.numberToString (this.nonce ());
                 const signature = this.signMessage (now, this.privateKey);
-                postHeaders['X-DeriveWallet'] = this.safeString (this.options, 'deriveWalletAddress');
+                let deriveWalletAddress = this.safeString (this.options, 'deriveWalletAddress');
+                if ((deriveWalletAddress === undefined) || (deriveWalletAddress === '')) {
+                    deriveWalletAddress = this.walletAddress; // v3: the owner wallet is the user's own EOA
+                }
+                postHeaders['X-DeriveWallet'] = deriveWalletAddress;
                 postHeaders['X-DeriveTimestamp'] = now;
                 postHeaders['X-DeriveSignature'] = signature;
             }
