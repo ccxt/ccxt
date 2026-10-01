@@ -1538,13 +1538,13 @@
         ],
         "transfer": [
             {
-                "description": "transfer DOGE from inverse swap to spot using the subType parameter",
+                "description": "transfer XRP from inverse swap to spot using the subType parameter",
                 "disabledGO": true,
                 "method": "transfer",
-                "url": "https://open-api.bingx.com/openApi/api/asset/v1/transfer?amount=20&asset=DOGE&fromAccount=coinMPerp&timestamp=1790873077945&toAccount=spot&signature=b195e287a87e6bf41844f816abbb4f35baca5e557e51296dabff2b3af077b634",
+                "url": "https://open-api.bingx.com/openApi/api/asset/v1/transfer?amount=1&asset=XRP&fromAccount=coinMPerp&timestamp=1790873599567&toAccount=spot&signature=33832570dab98c247777fd3eb14175b1f208ac75b7353ad5e7e86ebfb879bfdf",
                 "input": [
-                    "DOGE",
-                    20,
+                    "XRP",
+                    1,
                     "swap",
                     "spot",
                     {
@@ -1553,13 +1553,13 @@
                 ]
             },
             {
-                "description": "transfer DOGE from spot to inverse swap using the subType parameter",
+                "description": "transfer XRP from spot to inverse swap using the subType parameter",
                 "disabledGO": true,
                 "method": "transfer",
-                "url": "https://open-api.bingx.com/openApi/api/asset/v1/transfer?amount=20&asset=DOGE&fromAccount=spot&timestamp=1790873054275&toAccount=coinMPerp&signature=318971c9d00cd485bf27c9fe196ead67db8c4df85265c8b9d95b1959832a42af",
+                "url": "https://open-api.bingx.com/openApi/api/asset/v1/transfer?amount=1&asset=XRP&fromAccount=spot&timestamp=1790873597997&toAccount=coinMPerp&signature=c988f9c3996be4387895a7c1a2490b1b388bc11dcfb94dff7c8df77a2b78b667",
                 "input": [
-                    "DOGE",
-                    20,
+                    "XRP",
+                    1,
                     "spot",
                     "swap",
                     {
