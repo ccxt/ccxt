@@ -1149,7 +1149,7 @@ export default class derive extends Exchange {
         const until = this.safeInteger (params, 'until');
         const paramsOmitted: Dict = this.omit (params, [ 'until' ]);
         if (until !== undefined) {
-            request['to_timestamp'] = until;
+            request['end_timestamp'] = until; // the venue silently ignores the to_timestamp spelling other endpoints use
         }
         const response = await this.publicPostGetFundingRateHistory (this.extend (request, paramsOmitted));
         //
@@ -2478,6 +2478,7 @@ export default class derive extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch funding history for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
@@ -2504,7 +2505,12 @@ export default class derive extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await this.privatePostGetFundingHistory (this.extend (request, paramsDeriveSubaccountId));
+        const until = this.safeInteger (paramsDeriveSubaccountId, 'until');
+        const paramsOmitted: Dict = this.omit (paramsDeriveSubaccountId, [ 'until' ]);
+        if (until !== undefined) {
+            request['end_timestamp'] = until;
+        }
+        const response = await this.privatePostGetFundingHistory (this.extend (request, paramsOmitted));
         //
         // {
         //     "result": {
