@@ -1009,6 +1009,39 @@
                     "nonce": null
                 }
             }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "swap fetch leverage",
+                "method": "fetchLeverage",
+                "options": {
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "result": {
+                        "instrument_name": "BTC_USDC-PERPETUAL",
+                        "leverage": 25,
+                        "max_leverage": 50
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instrument_name": "BTC_USDC-PERPETUAL",
+                        "leverage": 25,
+                        "max_leverage": 50
+                    },
+                    "symbol": "BTC/USDC:USDC",
+                    "marginMode": null,
+                    "longLeverage": 25,
+                    "shortLeverage": 25
+                }
+            }
         ]
     }
 }

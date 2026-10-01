@@ -335,7 +335,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.newUpdates) {
             limitResolved = orders.getLimit (undefined, limit);
         }
-        return this.filterBySymbolsSinceLimit (orders, symbolsResolved, since, limitResolved, true);
+        const ordersForSymbols = this.filterByArray (orders, 'symbol', symbolsResolved, false);
+        return this.filterBySinceLimit (ordersForSymbols, since, limitResolved, 'timestamp', true);
     }
 
     /**

@@ -1227,6 +1227,7 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        await this.authenticateV2 ();
         const response = await this.privateGetGetAccountSummaries (params);
         //
         // {
@@ -1529,6 +1530,7 @@ export default class coinbaseinternational extends Exchange {
             request['end_timestamp'] = until;
         }
         const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
+        await this.authenticateV2 ();
         const response = await this.privateGetGetTransactionLog (this.extend (request, paramsOmitted));
         //
         //     {
@@ -1634,6 +1636,7 @@ export default class coinbaseinternational extends Exchange {
         const request: Dict = {
             'instrument_name': market['id'],
         };
+        await this.authenticateV2 ();
         const response = await this.privateGetGetPosition (this.extend (request, params));
         //
         //     {
@@ -1741,6 +1744,7 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        await this.authenticateV2 ();
         const response = await this.privateGetGetPositions (params);
         //
         //     {
@@ -1821,6 +1825,7 @@ export default class coinbaseinternational extends Exchange {
             request['count'] = limit;
         }
         const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
+        await this.authenticateV2 ();
         const response = await this.privateGetGetTransactionLog (this.extend (request, paramsOmitted));
         //
         //     {
@@ -2040,6 +2045,7 @@ export default class coinbaseinternational extends Exchange {
             }
         }
         const paramsResolved = this.omit (params, [ 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'tif', 'timeInForce', 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        await this.authenticateV2 ();
         let response = undefined;
         if (side === 'buy') {
             response = await this.privateGetBuy (this.extend (request, paramsResolved));
@@ -2279,6 +2285,7 @@ export default class coinbaseinternational extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        await this.authenticateV2 ();
         const response = await this.privateGetCancel (this.extend (request, params));
         //
         //     {
@@ -2326,6 +2333,7 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        await this.authenticateV2 ();
         let response = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -2381,6 +2389,7 @@ export default class coinbaseinternational extends Exchange {
             request['trigger_price'] = triggerPrice;
         }
         const paramsResolved = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        await this.authenticateV2 ();
         const response = await this.privateGetEdit (this.extend (request, paramsResolved));
         //
         //     {
@@ -2442,6 +2451,7 @@ export default class coinbaseinternational extends Exchange {
         const request: Dict = {
             'order_id': id,
         };
+        await this.authenticateV2 ();
         const response = await this.privateGetGetOrderState (this.extend (request, params));
         //
         //     {
@@ -2502,6 +2512,7 @@ export default class coinbaseinternational extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
+        await this.authenticateV2 ();
         const response = await this.privateGetGetOpenOrdersByInstrument (this.extend (request, params));
         //
         //     {
@@ -2564,6 +2575,7 @@ export default class coinbaseinternational extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
+        await this.authenticateV2 ();
         const response = await this.privateGetGetUserTradesByInstrument (this.extend (request, params));
         //
         //     {
@@ -2727,6 +2739,7 @@ export default class coinbaseinternational extends Exchange {
         const request: Dict = {
             'instrument_name': market['id'],
         };
+        await this.authenticateV2 ();
         const response = await this.privateGetGetLeverage (this.extend (request, params));
         //
         //     {
@@ -2779,6 +2792,7 @@ export default class coinbaseinternational extends Exchange {
             'instrument_name': market['id'],
             'leverage': this.numberToString (leverage),
         };
+        await this.authenticateV2 ();
         const response = await this.privateGetSetLeverage (this.extend (request, params));
         //
         //     {
@@ -2844,7 +2858,7 @@ export default class coinbaseinternational extends Exchange {
         const forceRefresh = this.safeBool (params, 'forceRefresh', false);
         const paramsOmitted = this.omit (params, 'forceRefresh');
         const now = this.milliseconds ();
-        const token = this.token;
+        const token = this.getV2AccessToken ();
         const tokenExpires = this.safeInteger (this.options, 'v2TokenExpires');
         if (!forceRefresh && (token !== undefined) && (token !== '') && (tokenExpires !== undefined) && (now < tokenExpires)) {
             return token;
@@ -2874,30 +2888,29 @@ export default class coinbaseinternational extends Exchange {
         const refreshRatio = (ratio === undefined) ? 0.8 : ratio;
         const tokenRefreshInMilliseconds = this.parseToInt (expiresIn * 1000 * refreshRatio);
         this.token = accessToken;
+        this.options['v2AccessToken'] = accessToken;
         this.options['v2TokenExpires'] = this.sum (now, tokenRefreshInMilliseconds);
         return accessToken;
     }
 
-    override async fetch2 (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}): Promise<any> {
-        // fetch2 (not request) is the hook every language routes implicit endpoints through
-        if (api !== 'private') {
-            return await super.fetch2 (path, api, method, params, headers, body, config);
+    /**
+     * @ignore
+     * @method
+     * @description the cached gateway access token, options.v2AccessToken takes precedence over exchange.token
+     * @returns {string|undefined} the access token
+     */
+    getV2AccessToken (): Str {
+        const token = this.safeString (this.options, 'v2AccessToken');
+        if ((token !== undefined) && (token !== '')) {
+            return token;
         }
-        await this.authenticateV2 ();
-        try {
-            return await super.fetch2 (path, api, method, params, headers, body, config);
-        } catch (e) {
-            // a rejected token is retried once, and only for reads: writes are never replayed
-            const isRead = path.indexOf ('get_') === 0;
-            if ((e instanceof AuthenticationError) && isRead) {
-                await this.authenticateV2 ({ 'forceRefresh': true });
-                return await super.fetch2 (path, api, method, params, headers, body, config);
-            }
-            throw e;
+        if ((this.token === undefined) || (this.token === '')) {
+            return undefined;
         }
+        return this.token;
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const access = api;
         const rpcMethod = access + '/' + path;
         const url = this.urls['api']['rest'] + '/' + rpcMethod;
@@ -2910,11 +2923,12 @@ export default class coinbaseinternational extends Exchange {
                 'token': this.createAuthToken (this.seconds (), this.isEddsaSecret ()),
             }, params);
         } else if (access === 'private') {
-            if ((this.token === undefined) || (this.token === '')) {
+            const accessToken = this.getV2AccessToken ();
+            if (accessToken === undefined) {
                 throw new AuthenticationError (this.id + ' requires an access token from public/auth');
             }
             requestHeaders = {
-                'Authorization': 'Bearer ' + this.token,
+                'Authorization': 'Bearer ' + accessToken,
             };
         }
         if (method === 'GET') {

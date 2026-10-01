@@ -140,6 +140,37 @@
                 ],
                 "output": null
             }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "swap fetchLeverage",
+                "method": "fetchLeverage",
+                "url": "https://drb.coinbase.com/api/v2/private/get_leverage?instrument_name=BTC_USDC-PERPETUAL",
+                "options": {
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "swap setLeverage",
+                "method": "setLeverage",
+                "url": "https://drb.coinbase.com/api/v2/private/set_leverage?instrument_name=BTC_USDC-PERPETUAL&leverage=10",
+                "options": {
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
+                "input": [
+                    10,
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
         ]
     }
 }
