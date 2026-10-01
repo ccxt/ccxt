@@ -22,7 +22,7 @@ export default class derive extends Exchange {
             'id': 'derive',
             'name': 'Derive',
             'countries': [],
-            'version': 'v1',
+            'version': 'v3',
             'rateLimit': 50,
             'certified': false,
             'pro': true,
@@ -139,12 +139,12 @@ export default class derive extends Exchange {
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/9e640700-c870-41f9-8907-fba58e120fed',
                 'api': {
-                    'public': 'https://api.lyra.finance/public',
-                    'private': 'https://api.lyra.finance/private',
+                    'public': 'https://api.derive.xyz/v3/public',
+                    'private': 'https://api.derive.xyz/v3/private',
                 },
                 'test': {
-                    'public': 'https://api-demo.lyra.finance/public',
-                    'private': 'https://api-demo.lyra.finance/private',
+                    'public': 'https://testnet.api.derive.xyz/v3/public',
+                    'private': 'https://testnet.api.derive.xyz/v3/private',
                 },
                 'www': 'https://www.derive.xyz/',
                 'doc': 'https://docs.derive.xyz/docs/',

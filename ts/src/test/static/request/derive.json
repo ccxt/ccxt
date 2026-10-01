@@ -18,7 +18,7 @@
             {
                 "description": "fetchTime",
                 "method": "fetchTime",
-                "url": "https://api.lyra.finance/public/get_time",
+                "url": "https://api.derive.xyz/v3/public/get_time",
                 "input": [],
                 "output": {}
             }
@@ -27,7 +27,7 @@
             {
                 "description": "default",
                 "method": "fetchCurrencies",
-                "url": "https://api.lyra.finance/public/get_all_currencies",
+                "url": "https://api.derive.xyz/v3/public/get_all_currencies",
                 "input": []
             }
         ],
@@ -35,7 +35,7 @@
             {
                 "description": "fetchTicker",
                 "method": "fetchTicker",
-                "url": "https://api.lyra.finance/public/get_ticker",
+                "url": "https://api.derive.xyz/v3/public/get_ticker",
                 "input": [
                     "BTC/USD:USDC"
                 ],
@@ -46,7 +46,7 @@
             {
                 "description": "fetchTrades",
                 "method": "fetchTrades",
-                "url": "https://api.lyra.finance/public/get_trade_history",
+                "url": "https://api.derive.xyz/v3/public/get_trade_history",
                 "input": [
                     "BTC/USD:USDC",
                     1736155500128,
@@ -62,7 +62,7 @@
             {
                 "description": "fetchFundingRateHistory",
                 "method": "fetchFundingRateHistory",
-                "url": "https://api.lyra.finance/public/get_funding_rate_history",
+                "url": "https://api.derive.xyz/v3/public/get_funding_rate_history",
                 "input": [
                     "BTC/USD:USDC",
                     1736155500128,
@@ -78,7 +78,7 @@
             {
                 "description": "fetchFundingRate",
                 "method": "fetchFundingRate",
-                "url": "https://api.lyra.finance/public/get_funding_rate_history",
+                "url": "https://api.derive.xyz/v3/public/get_funding_rate_history",
                 "input": [
                     "BTC/USD:USDC"
                 ],
@@ -89,7 +89,7 @@
             {
                 "description": "createOrder",
                 "method": "createOrder",
-                "url": "https://api-demo.lyra.finance/private/order",
+                "url": "https://testnet.api.derive.xyz/v3/private/order",
                 "input": [
                     "LBTC/USDC",
                     "limit",
@@ -106,7 +106,7 @@
             {
                 "description": "createOrder",
                 "method": "createOrder",
-                "url": "https://api-demo.lyra.finance/private/order",
+                "url": "https://testnet.api.derive.xyz/v3/private/order",
                 "input": [
                     "BTC/USD:USDC",
                     "limit",
@@ -131,7 +131,7 @@
             {
                 "description": "editOrder",
                 "method": "editOrder",
-                "url": "https://api-demo.lyra.finance/private/replace",
+                "url": "https://testnet.api.derive.xyz/v3/private/replace",
                 "input": [
                     "cfc66623-f38c-4bdd-9898-8c9a72a42f6f",
                     "LBTC/USDC",
@@ -152,7 +152,7 @@
             {
                 "description": "cancelOrder",
                 "method": "cancelOrder",
-                "url": "https://api-demo.lyra.finance/private/cancel",
+                "url": "https://testnet.api.derive.xyz/v3/private/cancel",
                 "input": [
                     "df3879a6-5421-41ba-bd91-68d7a36edd3d",
                     "LBTC/USDC",
@@ -167,7 +167,7 @@
             {
                 "description": "cancelAllOrders",
                 "method": "cancelAllOrders",
-                "url": "https://api-demo.lyra.finance/private/cancel_by_instrument",
+                "url": "https://testnet.api.derive.xyz/v3/private/cancel_by_instrument",
                 "input": [
                     "LBTC/USDC",
                     {
@@ -179,7 +179,7 @@
             {
                 "description": "cancelAllOrders",
                 "method": "cancelAllOrders",
-                "url": "https://api-demo.lyra.finance/private/cancel_all",
+                "url": "https://testnet.api.derive.xyz/v3/private/cancel_all",
                 "input": [
                     null,
                     {
@@ -193,7 +193,7 @@
             {
                 "description": "fetchOrders",
                 "method": "fetchOrders",
-                "url": "https://api-demo.lyra.finance/private/get_orders",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_orders",
                 "input": [
                     "LBTC/USDC",
                     null,
@@ -207,7 +207,7 @@
             {
                 "description": "fetchOrders",
                 "method": "fetchOrders",
-                "url": "https://api-demo.lyra.finance/private/get_orders",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_orders",
                 "input": [
                     null,
                     null,
@@ -223,7 +223,7 @@
             {
                 "description": "fetchOpenOrders",
                 "method": "fetchOpenOrders",
-                "url": "https://api-demo.lyra.finance/private/get_orders",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_orders",
                 "input": [
                     "LBTC/USDC",
                     null,
@@ -239,7 +239,7 @@
             {
                 "description": "fetchClosedOrders",
                 "method": "fetchClosedOrders",
-                "url": "https://api-demo.lyra.finance/private/get_orders",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_orders",
                 "input": [
                     "LBTC/USDC",
                     null,
@@ -255,7 +255,7 @@
             {
                 "description": "fetchCanceledOrders",
                 "method": "fetchCanceledOrders",
-                "url": "https://api-demo.lyra.finance/private/get_orders",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_orders",
                 "input": [
                     "LBTC/USDC",
                     null,
@@ -271,7 +271,7 @@
             {
                 "description": "fetchOrderTrades",
                 "method": "fetchOrderTrades",
-                "url": "https://api-demo.lyra.finance/private/get_trade_history",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_trade_history",
                 "input": [
                     "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
                     "LBTC/USDC",
@@ -286,7 +286,7 @@
             {
                 "description": "fetchOrderTrades",
                 "method": "fetchOrderTrades",
-                "url": "https://api-demo.lyra.finance/private/get_trade_history",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_trade_history",
                 "input": [
                     "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
                     null,
@@ -303,7 +303,7 @@
             {
                 "description": "fetchMyTrades",
                 "method": "fetchMyTrades",
-                "url": "https://api-demo.lyra.finance/private/get_trade_history",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_trade_history",
                 "input": [
                     "LBTC/USDC",
                     null,
@@ -317,7 +317,7 @@
             {
                 "description": "fetchMyTrades",
                 "method": "fetchMyTrades",
-                "url": "https://api-demo.lyra.finance/private/get_trade_history",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_trade_history",
                 "input": [
                     null,
                     null,
@@ -333,7 +333,7 @@
             {
                 "description": "fetchPositions",
                 "method": "fetchPositions",
-                "url": "https://api-demo.lyra.finance/private/get_positions",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_positions",
                 "input": [
                     null,
                     {
@@ -347,7 +347,7 @@
             {
                 "description": "fetchFundingHistory",
                 "method": "fetchFundingHistory",
-                "url": "https://api-demo.lyra.finance/private/get_funding_history",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_funding_history",
                 "input": [
                     "BTC/USD:USDC",
                     null,
@@ -363,7 +363,7 @@
             {
                 "description": "fetchBalance",
                 "method": "fetchBalance",
-                "url": "https://api-demo.lyra.finance/private/get_all_portfolios",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_all_portfolios",
                 "input": [
                 ],
                 "output": { "wallet": "0x0000000000000000000000000000000000000000" }
@@ -373,7 +373,7 @@
             {
                 "description": "fetchDeposits",
                 "method": "fetchDeposits",
-                "url": "https://api-demo.lyra.finance/private/get_deposit_history",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_deposit_history",
                 "input": [
                     null,
                     null,
@@ -389,7 +389,7 @@
             {
                 "description": "fetchWithdrawals",
                 "method": "fetchWithdrawals",
-                "url": "https://api-demo.lyra.finance/private/get_withdrawal_history",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_withdrawal_history",
                 "input": [
                     null,
                     null,
