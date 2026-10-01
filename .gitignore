@@ -105,4 +105,5 @@ rust/tests.bin
 
 # Local documentation (WIP / uncommitted)
 rust/BUILD_OPTIMIZATION.md
+PR_RESPONSE.md
 
