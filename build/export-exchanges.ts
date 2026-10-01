@@ -520,7 +520,10 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         }
     }
 
-    const certifiedExchanges = arrayOfExchanges.filter (exchange => exchange.certified)
+    // remove extra exchanges from table
+    const skipIds = [ 'binanceusdm', 'binancecoinm', 'kucoinfutures' ];
+    const certifiedExchanges = arrayOfExchanges.filter (exchange => exchange.certified).filter (exchange => !skipIds.includes (exchange.id))
+
     // certified exchanges are sorted according to the following order
     const certifiedExchangesSortingOrder = [
         'binance',
