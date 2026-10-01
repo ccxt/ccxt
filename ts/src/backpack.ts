@@ -1011,7 +1011,8 @@ export default class backpack extends Exchange {
         if (until === undefined) {
             const currentMs = this.seconds (); // default to current time in seconds
             const windowLimit = (limit === undefined) ? defaultLimit : limit;
-            const minTimestamp = Math.min (currentMs, request['startTime'] + (windowLimit * duration));
+            const windowEnd = this.sum (request['startTime'], windowLimit * duration); // sum (): `+` on a dict value is string concatenation in php
+            const minTimestamp = Math.min (currentMs, windowEnd);
             request['endTime'] = this.parseToInt (minTimestamp); // default to current time in seconds if until is not specified
         }
         const price = this.safeString (paramsUntil, 'price');
