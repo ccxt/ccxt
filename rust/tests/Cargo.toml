@@ -20,6 +20,8 @@ transpiled-tests = []
 # These are what `ti-rust <id>` dispatches into for live mode (mirrors
 # Go's per-test-file `testFiles` map).
 exchange-tests = []
+# Optional high-performance allocator for lower allocation latency and no heap fragmentation
+mimalloc = ["dep:mimalloc"]
 
 [dependencies]
 # `ccxt` is the typed API crate; it re-exports the whole `ccxt-base` engine at
@@ -35,3 +37,4 @@ serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 tokio = { version = "1", features = ["full"] }
 futures = "0.3"
 indexmap = "2"
+mimalloc = { version = "0.1", default-features = false, optional = true }
