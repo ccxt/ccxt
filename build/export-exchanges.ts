@@ -546,9 +546,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     let reorderedCertifiedExchanges = []
     for (let i = 0; i < certifiedExchangesSortingOrder.length; i++) {
         const exchangeId = certifiedExchangesSortingOrder[i]
-        if (skipIds.includes (exchangeId)) {
-            continue
-        }
         const index = copyOfCertifiedExchanges.findIndex (exchange => exchange.id == exchangeId)
         if (index >= 0) {
             const splicedExchanges = copyOfCertifiedExchanges.splice (index, 1)
