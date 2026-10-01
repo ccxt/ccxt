@@ -66,10 +66,10 @@ func (this *Okx) Describe() any {
 		},
 		"urls": map[string]any{
 			"api": map[string]any{
-				"ws": "wss://ws.okx.com:8443/ws/v5",
+				"ws": "wss://ws.okx.com:443/ws/v5",
 			},
 			"test": map[string]any{
-				"ws": "wss://wspap.okx.com:8443/ws/v5",
+				"ws": "wss://wspap.okx.com:443/ws/v5",
 			},
 		},
 		"options": map[string]any{
