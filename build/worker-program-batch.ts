@@ -24,7 +24,7 @@
 // program a thread ever built.
 import type { Transpiler, TranspileProgramBatch } from 'ast-transpiler';
 
-const MAX_CACHED_BATCHES = Number (process.env['CCXT_TRANSPILE_BATCH_CACHE']) || 3;
+const MAX_CACHED_BATCHES = Number (process.env['CCXT_TRANSPILE_BATCH_CACHE']) || 2;
 
 const verbose = !!process.env['CCXT_TRANSPILE_VERBOSE'];
 
@@ -36,6 +36,10 @@ interface CachedBatch {
 // key -> { transpiler, batch }; Map iteration order is insertion order, which is
 // what makes the delete/set dance below a real LRU
 const cache = new Map<string, CachedBatch> ();
+
+export function clearProgramBatchCache (): void {
+    cache.clear ();
+}
 
 function batchKey (configKey: string, roots: string[]): string {
     // roots arrive as a fresh array on every task (structured clone), so identity
