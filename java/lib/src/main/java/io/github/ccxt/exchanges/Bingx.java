@@ -4019,8 +4019,8 @@ public class Bingx extends BingxApi
      * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
      * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
      * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
-     * @param {float} [params.stopLossPrice] stop loss trigger price
-     * @param {float} [params.takeProfitPrice] take profit trigger price
+     * @param {float} [params.stopLossPrice] stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
+     * @param {float} [params.takeProfitPrice] take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
      * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
      * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
@@ -4323,7 +4323,12 @@ public class Bingx extends BingxApi
             put( "stop_limit", "limit" );
             put( "stop_market", "market" );
             put( "take_profit_market", "market" );
+            put( "take_profit", "limit" );
             put( "stop", "limit" );
+            put( "take_stop_limit", "limit" );
+            put( "take_stop_market", "market" );
+            put( "trailing_stop_market", "market" );
+            put( "trailing_tp_sl", "market" );
         }};
         return this.safeString(types, ((String)type), type);
     }
@@ -4625,6 +4630,12 @@ public class Bingx extends BingxApi
         Map<String, Object> marketResolved = this.safeMarket((((java.util.Objects.equals(market, null)))) ? marketId : null, market, (String) null, marketType);
         String side = this.safeStringLower2(orderData, "side", "S");
         Long timestamp = this.safeIntegerN(orderData, new ArrayList<Object>(Arrays.asList("time", "transactTime", "E", "createdTime")));
+        String transactTime = this.safeString(orderData, "transactTime", "");
+        if ((transactTime.length() == 10))
+        {
+            // spot conditional orders are created with transactTime in seconds
+            timestamp = this.safeTimestamp(orderData, "transactTime");
+        }
         Long lastTradeTimestamp = (Long) this.safeInteger2(orderData, "updateTime", "T");
         String statusId = this.safeStringUpperN(orderData, new ArrayList<Object>(Arrays.asList("status", "X", "orderStatus")));
         Object feeCurrencyCode = this.safeString2(orderData, "feeAsset", "N");
@@ -4678,7 +4689,9 @@ public class Bingx extends BingxApi
         String rawType = ((String)this.safeStringLower2(orderData, "type", "o"));
         String stopPrice = this.omitZero(this.safeString2(orderData, "StopPrice", "stopPrice"));
         String triggerPrice = stopPrice;
-        if (!java.util.Objects.equals(stopPrice, null))
+        // spot TAKE_STOP_* is a plain conditional order, the venue does not say whether it protects a position
+        Boolean isTakeStop = (!java.util.Objects.equals(rawType, null)) && (((String)rawType).indexOf("take_stop") > -1);
+        if ((!java.util.Objects.equals(stopPrice, null)) && !Boolean.TRUE.equals(isTakeStop))
         {
             if ((((String)rawType).indexOf("stop") > -1) && (java.util.Objects.equals(stopLossPrice, null)))
             {

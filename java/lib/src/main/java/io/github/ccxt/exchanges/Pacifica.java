@@ -97,7 +97,7 @@ public class Pacifica extends PacificaApi
                 put( "fetchCurrencies", false );
                 put( "fetchDepositAddress", false );
                 put( "fetchDepositAddresses", false );
-                put( "fetchDeposits", false );
+                put( "fetchDeposits", true );
                 put( "fetchDepositWithdrawFee", false );
                 put( "fetchDepositWithdrawFees", false );
                 put( "fetchFundingHistory", true );
@@ -141,7 +141,7 @@ public class Pacifica extends PacificaApi
                 put( "fetchTransfer", false );
                 put( "fetchTransfers", false );
                 put( "fetchWithdrawal", false );
-                put( "fetchWithdrawals", false );
+                put( "fetchWithdrawals", true );
                 put( "reduceMargin", false );
                 put( "repayCrossMargin", false );
                 put( "repayIsolatedMargin", false );
@@ -3802,6 +3802,120 @@ public class Pacifica extends PacificaApi
             put( "payout", "payout" );
         }};
         return this.safeString(ledgerType, ((String)type), type);
+    }
+
+    /**
+     * @method
+     * @name pacifica#fetchDeposits
+     * @description fetch all USDC deposits made to an account, spot asset deposits are not included
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<Object> userAddressparamsAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchDeposits", (Map<String, Object>) (parameters));
+            String userAddress = (String) ((List<Object>) userAddressparamsAddressVariable).get(0);
+            Map<String, Object> paramsAddress = (Map<String, Object>) ((List<Object>) userAddressparamsAddressVariable).get(1);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "account", userAddress );
+            }};
+            Map<String, Object> response = (this.publicGetAccountBalanceHistory(this.extend(request, paramsAddress))).join();
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> transactions = this.parseTransactions(data, Helpers.toMapArg(this.safeCurrency((String) (code), (Map<String, Object>) null)), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            List<Object> deposits = this.filterBy(transactions, "type", "deposit");
+            return this.filterBySinceLimit(deposits, since, limit, "timestamp", false);
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name pacifica#fetchWithdrawals
+     * @description fetch all USDC withdrawals made from an account, spot asset withdrawals are not included
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<Object> userAddressparamsAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchWithdrawals", (Map<String, Object>) (parameters));
+            String userAddress = (String) ((List<Object>) userAddressparamsAddressVariable).get(0);
+            Map<String, Object> paramsAddress = (Map<String, Object>) ((List<Object>) userAddressparamsAddressVariable).get(1);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "account", userAddress );
+            }};
+            Map<String, Object> response = (this.publicGetAccountBalanceHistory(this.extend(request, paramsAddress))).join();
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> transactions = this.parseTransactions(data, Helpers.toMapArg(this.safeCurrency((String) (code), (Map<String, Object>) null)), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            List<Object> withdrawals = this.filterBy(transactions, "type", "withdrawal");
+            return this.filterBySinceLimit(withdrawals, since, limit, "timestamp", false);
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+
+    }
+
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    {
+        //
+        //     {
+        //         "amount": "5000",
+        //         "balance": "5000",
+        //         "pending_balance": "0",
+        //         "event_type": "deposit",
+        //         "created_at": 1789199771373
+        //     }
+        //
+        Long timestamp = this.safeInteger(transaction, "created_at");
+        Map<String, Object> types = new HashMap<String, Object>() {{
+            put( "deposit", "deposit" );
+            put( "withdraw", "withdrawal" );
+        }};
+        String eventType = this.safeString(transaction, "event_type");
+        String amount = this.safeString(transaction, "amount");
+        return new HashMap<String, Object>() {{
+            put( "info", transaction );
+            put( "id", null );
+            put( "txid", null );
+            put( "timestamp", timestamp );
+            put( "datetime", Pacifica.this.iso8601(timestamp) );
+            put( "network", null );
+            put( "address", null );
+            put( "addressTo", null );
+            put( "addressFrom", null );
+            put( "tag", null );
+            put( "tagTo", null );
+            put( "tagFrom", null );
+            put( "type", Pacifica.this.safeString(types, eventType) );
+            put( "amount", Pacifica.this.parseNumber(Precise.stringAbs(amount)) );
+            put( "currency", Pacifica.this.safeCurrencyCode("USDC", currency) );
+            put( "status", null );
+            put( "updated", null );
+            put( "comment", null );
+            put( "internal", null );
+            put( "fee", null );
+        }};
     }
 
     /**
