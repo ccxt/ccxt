@@ -2440,6 +2440,95 @@
         ],
         "createOrder": [
             {
+                "description": "spot conditional take-stop limit order",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    29990,
+                    {
+                        "stopLossPrice": 30000
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "retryable": "0",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "orderId": "2105228788877918210",
+                        "transactTime": "1790760631",
+                        "price": "0",
+                        "stopPrice": "30000",
+                        "origQty": "0.0001",
+                        "executedQty": "0",
+                        "cummulativeQuoteQty": "0",
+                        "status": "NEW",
+                        "type": "TAKE_STOP_LIMIT",
+                        "side": "BUY",
+                        "clientOrderID": "",
+                        "clientUserID": "",
+                        "msg": "",
+                        "bxUid": ""
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "orderId": "2105228788877918210",
+                        "transactTime": "1790760631",
+                        "price": "0",
+                        "stopPrice": "30000",
+                        "origQty": "0.0001",
+                        "executedQty": "0",
+                        "cummulativeQuoteQty": "0",
+                        "status": "NEW",
+                        "type": "TAKE_STOP_LIMIT",
+                        "side": "BUY",
+                        "clientOrderID": "",
+                        "clientUserID": "",
+                        "msg": "",
+                        "bxUid": ""
+                    },
+                    "id": "2105228788877918210",
+                    "clientOrderId": null,
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1790760631000,
+                    "datetime": "2026-09-30T09:30:31.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": 30000,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": 0,
+                    "amount": 0.0001,
+                    "filled": 0,
+                    "remaining": 0.0001,
+                    "status": "open",
+                    "fee": {
+                        "currency": "BTC",
+                        "cost": null
+                    },
+                    "trades": [],
+                    "reduceOnly": null,
+                    "fees": [
+                        {
+                            "currency": "BTC",
+                            "cost": null
+                        }
+                    ],
+                    "stopPrice": 30000
+                }
+            },
+            {
                 "description": "with stopLoss (exchange-specific)",
                 "method": "createOrder",
                 "input": [
@@ -4952,6 +5041,93 @@
             }
         ],
         "fetchOrder": [
+            {
+                "description": "spot conditional take-stop limit order parses as a trigger order",
+                "method": "fetchOrder",
+                "input": [
+                    "2105228788877918210",
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "retryable": "0",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "orderId": "2105228788877918210",
+                        "price": "29990",
+                        "StopPrice": "30000",
+                        "origQty": "0.0001",
+                        "executedQty": "0",
+                        "cummulativeQuoteQty": "0",
+                        "status": "NEW",
+                        "type": "TAKE_STOP_LIMIT",
+                        "side": "BUY",
+                        "time": "1790760631184",
+                        "updateTime": "1790760631184",
+                        "origQuoteOrderQty": "0",
+                        "fee": "0",
+                        "feeAsset": "BTC",
+                        "clientOrderID": "",
+                        "avgPrice": "0"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "orderId": "2105228788877918210",
+                        "price": "29990",
+                        "StopPrice": "30000",
+                        "origQty": "0.0001",
+                        "executedQty": "0",
+                        "cummulativeQuoteQty": "0",
+                        "status": "NEW",
+                        "type": "TAKE_STOP_LIMIT",
+                        "side": "BUY",
+                        "time": "1790760631184",
+                        "updateTime": "1790760631184",
+                        "origQuoteOrderQty": "0",
+                        "fee": "0",
+                        "feeAsset": "BTC",
+                        "clientOrderID": "",
+                        "avgPrice": "0"
+                    },
+                    "id": "2105228788877918210",
+                    "clientOrderId": null,
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1790760631184,
+                    "datetime": "2026-09-30T09:30:31.184Z",
+                    "lastTradeTimestamp": 1790760631184,
+                    "lastUpdateTimestamp": 1790760631184,
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 29990,
+                    "triggerPrice": 30000,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": 0,
+                    "amount": 0.0001,
+                    "filled": 0,
+                    "remaining": 0.0001,
+                    "status": "open",
+                    "fee": {
+                        "currency": "BTC",
+                        "cost": "0"
+                    },
+                    "trades": [],
+                    "reduceOnly": null,
+                    "fees": [
+                        {
+                            "currency": "BTC",
+                            "cost": 0
+                        }
+                    ],
+                    "stopPrice": 30000
+                }
+            },
             {
                 "description": "spot order preserves REST cumulative quote amount precedence over websocket alias",
                 "method": "fetchOrder",
