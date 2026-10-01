@@ -422,6 +422,7 @@ export default class derive extends Exchange {
                     '11026': BadRequest, // Transfer reject
                     '11027': InvalidOrder, // Subaccount undergoing liquidation
                     '11028': InvalidOrder, // Replaced order filled amount does not match expected state.
+                    '11029': InvalidOrder, // {"code":11029,"message":"Trade or transfer rejected: open interest cap would be exceeded","data":"open-interest cap exceeded for SpotBorrow on 0x... in universe 1: pre 0, post 2000000000, cap 0"}
                     '11050': InvalidOrder, // Trigger order was cancelled between the time worker sent order and engine processed order
                     '11051': InvalidOrder, // {"code":"11051","message":"Trigger price must be higher than the current price for stop orders and vice versa for take orders","data":"Trigger price 9000.0 must be < or > current price 102671.2 depending on trigger type and direction."}
                     '11052': InvalidOrder, // Trigger order limit exceeded (separate limit from regular orders)
@@ -2592,52 +2593,252 @@ export default class derive extends Exchange {
         };
         const response = await this.privatePostGetAllPortfolios (this.extend (request, paramsDeriveWalletAddress));
         //
-        // {
-        //     "result": [{
-        //             "subaccount_id": 130837,
-        //             "label": "",
-        //             "currency": "all",
-        //             "margin_type": "SM",
-        //             "is_under_liquidation": false,
-        //             "positions_value": "0",
-        //             "collaterals_value": "318.0760325000001103035174310207366943359375",
-        //             "subaccount_value": "318.0760325000001103035174310207366943359375",
-        //             "positions_maintenance_margin": "0",
-        //             "positions_initial_margin": "0",
-        //             "collaterals_maintenance_margin": "238.557024375000082727638073265552520751953125",
-        //             "collaterals_initial_margin": "190.845619500000083235136116854846477508544921875",
-        //             "maintenance_margin": "238.557024375000082727638073265552520751953125",
-        //             "initial_margin": "190.845619500000083235136116854846477508544921875",
-        //             "open_orders_margin": "0",
-        //             "projected_margin_change": "0",
-        //             "open_orders": [],
-        //             "positions": [],
-        //             "collaterals": [
-        //                 {
-        //                     "asset_type": "erc20",
-        //                     "asset_name": "ETH",
-        //                     "currency": "ETH",
-        //                     "amount": "0.1",
-        //                     "mark_price": "3180.760325000000438272",
-        //                     "mark_value": "318.0760325000001103035174310207366943359375",
-        //                     "cumulative_interest": "0",
-        //                     "pending_interest": "0",
-        //                     "initial_margin": "190.845619500000083235136116854846477508544921875",
-        //                     "maintenance_margin": "238.557024375000082727638073265552520751953125",
-        //                     "realized_pnl": "0",
-        //                     "average_price": "3184.891931",
-        //                     "unrealized_pnl": "-0.413161",
-        //                     "total_fees": "0",
-        //                     "average_price_excl_fees": "3184.891931",
-        //                     "realized_pnl_excl_fees": "0",
-        //                     "unrealized_pnl_excl_fees": "-0.413161",
-        //                     "open_orders_margin": "0",
-        //                     "creation_timestamp": 1736860533493
-        //                 }
-        //             ]
-        //     }],
-        //     "id": "27b9a64e-3379-4ce6-a126-9fb941c4a970"
-        // }
+        //     {
+        //         "id": "eb40a04b-167e-4a3f-b142-63f76e0e2a31",
+        //         "result": [
+        //             {
+        //                 "subaccount_id": 86815,
+        //                 "failed_to_fetch": false,
+        //                 "manager_id": 1,
+        //                 "risk_universe_id": 1,
+        //                 "label": "",
+        //                 "currency": [
+        //                     "AUSD",
+        //                     "BTC",
+        //                     "CBBTC",
+        //                     "DRV",
+        //                     "ETH",
+        //                     "FXUSDC",
+        //                     "HEMIBTC",
+        //                     "LBTC",
+        //                     "SC_USDC_2",
+        //                     "SC_USDT_2",
+        //                     "SFP",
+        //                     "SUSDE",
+        //                     "USDC",
+        //                     "USDE",
+        //                     "USDT",
+        //                     "WBTC",
+        //                     "WEETH",
+        //                     "WSTETH"
+        //                 ],
+        //                 "margin_type": "SM",
+        //                 "is_under_liquidation": false,
+        //                 "positions_value": "1466.712032105876",
+        //                 "collaterals_value": "4527.545377437385",
+        //                 "subaccount_value": "5994.257409543261",
+        //                 "mm_credits": "0",
+        //                 "positions_maintenance_margin": "-42.257371387251",
+        //                 "positions_initial_margin": "-55.755494300332",
+        //                 "collaterals_maintenance_margin": "4527.545388020506",
+        //                 "collaterals_initial_margin": "4527.545388020506",
+        //                 "maintenance_margin": "4485.288016633255",
+        //                 "initial_margin": "4471.789893720174",
+        //                 "open_orders_margin": "-1305.403225577642",
+        //                 "projected_margin_change": "0",
+        //                 "open_orders": [
+        //                     {
+        //                         "subaccount_id": 86815,
+        //                         "order_id": "dbc70689-dcc4-43d3-9d95-492a6c165bde",
+        //                         "instrument_name": "LBTC-USDC",
+        //                         "direction": "buy",
+        //                         "label": "",
+        //                         "quote_id": null,
+        //                         "amount": "0.002",
+        //                         "average_price": "0",
+        //                         "cancel_reason": "",
+        //                         "creation_timestamp": 1790874519896,
+        //                         "filled_amount": "0",
+        //                         "is_transfer": false,
+        //                         "last_update_timestamp": 1790874519896,
+        //                         "limit_price": "82000",
+        //                         "signed_limit_price": null,
+        //                         "max_fee": "300",
+        //                         "mmp": false,
+        //                         "nonce": "1790874518872109498",
+        //                         "order_fee": "0",
+        //                         "order_status": "open",
+        //                         "order_type": "limit",
+        //                         "replaced_order_id": null,
+        //                         "signature": "0x089fcff0654a15babcc7e7c256ab500dcee78beb3eb1963c102d7d53e233d2521ee0754fd1fa17c403a4aa9028c00f7ab5cd3d260a3136d84b617ad97e72d2c71c",
+        //                         "signature_expiry_sec": 1798650518,
+        //                         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                         "time_in_force": "gtc",
+        //                         "trigger_type": null,
+        //                         "trigger_price": null,
+        //                         "trigger_price_type": null,
+        //                         "trigger_reject_message": null,
+        //                         "extra_fee": "0",
+        //                         "algo_type": null,
+        //                         "algo_duration_sec": null,
+        //                         "algo_num_slices": null,
+        //                         "algo_slices_completed": null
+        //                     },
+        //                     {
+        //                         "subaccount_id": 86815,
+        //                         "order_id": "c33e2299-e60e-4d71-8910-15cd5ea43fef",
+        //                         "instrument_name": "BTC-20270924-85000-C",
+        //                         "direction": "buy",
+        //                         "label": "",
+        //                         "quote_id": null,
+        //                         "amount": "0.1",
+        //                         "average_price": "0",
+        //                         "cancel_reason": "",
+        //                         "creation_timestamp": 1790874524730,
+        //                         "filled_amount": "0",
+        //                         "is_transfer": false,
+        //                         "last_update_timestamp": 1790874524730,
+        //                         "limit_price": "12000",
+        //                         "signed_limit_price": null,
+        //                         "max_fee": "300",
+        //                         "mmp": false,
+        //                         "nonce": "1790874524124508650",
+        //                         "order_fee": "0",
+        //                         "order_status": "open",
+        //                         "order_type": "limit",
+        //                         "replaced_order_id": null,
+        //                         "signature": "0x74bb9bc53c590985a916acf0e39d14f264e06105ca008c1e94935cb643741978084e05b7b4d3afa894d763d5c7abe038c58fed6c8b0a899dbeb5d0a2f3b50c8e1c",
+        //                         "signature_expiry_sec": 1798650524,
+        //                         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                         "time_in_force": "gtc",
+        //                         "trigger_type": null,
+        //                         "trigger_price": null,
+        //                         "trigger_price_type": null,
+        //                         "trigger_reject_message": null,
+        //                         "extra_fee": "0",
+        //                         "algo_type": null,
+        //                         "algo_duration_sec": null,
+        //                         "algo_num_slices": null,
+        //                         "algo_slices_completed": null
+        //                     },
+        //                     {
+        //                         "subaccount_id": 86815,
+        //                         "order_id": "1625ce89-9cf3-4ec0-8a6c-e208b49e5830",
+        //                         "instrument_name": "BTC-PERP",
+        //                         "direction": "buy",
+        //                         "label": "",
+        //                         "quote_id": null,
+        //                         "amount": "0.01",
+        //                         "average_price": "0",
+        //                         "cancel_reason": "",
+        //                         "creation_timestamp": 1790874522225,
+        //                         "filled_amount": "0",
+        //                         "is_transfer": false,
+        //                         "last_update_timestamp": 1790874522225,
+        //                         "limit_price": "83000",
+        //                         "signed_limit_price": null,
+        //                         "max_fee": "100",
+        //                         "mmp": false,
+        //                         "nonce": "1790874521734002365",
+        //                         "order_fee": "0",
+        //                         "order_status": "open",
+        //                         "order_type": "limit",
+        //                         "replaced_order_id": null,
+        //                         "signature": "0x5005d1696341bc1a5bc1ddd9f1312343439cdef792767f0ecc823e43af809480060b1deea0f51e4827899c3766b672d4eb0d4038394d153f8b0a2cd68d3bfe5a1c",
+        //                         "signature_expiry_sec": 1798650521,
+        //                         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                         "time_in_force": "gtc",
+        //                         "trigger_type": null,
+        //                         "trigger_price": null,
+        //                         "trigger_price_type": null,
+        //                         "trigger_reject_message": null,
+        //                         "extra_fee": "0",
+        //                         "algo_type": null,
+        //                         "algo_duration_sec": null,
+        //                         "algo_num_slices": null,
+        //                         "algo_slices_completed": null
+        //                     }
+        //                 ],
+        //                 "positions": [
+        //                     {
+        //                         "instrument_type": "perp",
+        //                         "instrument_name": "BTC-PERP",
+        //                         "amount": "0.01",
+        //                         "average_price": "84438.4183362967",
+        //                         "average_price_excl_fees": "84412.1",
+        //                         "mark_price": "84372.319949036835",
+        //                         "index_price": "84363.26788266873",
+        //                         "mark_value": "-0.075737406633",
+        //                         "amount_step": "0.0001",
+        //                         "creation_timestamp": 0,
+        //                         "cumulative_funding": "-0.000067374305",
+        //                         "pending_funding": "-0.000041006163",
+        //                         "net_settlements": "-0.585287472129",
+        //                         "initial_margin": "-55.755494300332",
+        //                         "maintenance_margin": "-42.257371387251",
+        //                         "open_orders_margin": "-55.755494300331",
+        //                         "realized_pnl": "0",
+        //                         "realized_pnl_excl_fees": "0",
+        //                         "total_fees": "0.263183362967",
+        //                         "unrealized_pnl": "-0.660983872598",
+        //                         "unrealized_pnl_excl_fees": "-0.397800509631",
+        //                         "delta": "1",
+        //                         "gamma": "0",
+        //                         "vega": "0",
+        //                         "theta": "0",
+        //                         "leverage": "0.186356454478",
+        //                         "liquidation_price": null
+        //                     },
+        //                     {
+        //                         "instrument_type": "option",
+        //                         "instrument_name": "BTC-20270924-85000-C",
+        //                         "amount": "0.1",
+        //                         "average_price": "14711.3113013995",
+        //                         "average_price_excl_fees": "14681",
+        //                         "mark_price": "14667.877695125091",
+        //                         "index_price": "84363.26788266873",
+        //                         "mark_value": "1466.787769512509",
+        //                         "amount_step": "0.00001",
+        //                         "creation_timestamp": 0,
+        //                         "cumulative_funding": "0",
+        //                         "pending_funding": "0",
+        //                         "net_settlements": "0",
+        //                         "initial_margin": "0",
+        //                         "maintenance_margin": "0",
+        //                         "open_orders_margin": "0",
+        //                         "realized_pnl": "0",
+        //                         "realized_pnl_excl_fees": "0",
+        //                         "total_fees": "3.03113013995",
+        //                         "unrealized_pnl": "-4.34336062744",
+        //                         "unrealized_pnl_excl_fees": "-1.31223048749",
+        //                         "delta": "0.620796293303",
+        //                         "gamma": "0.00001229971",
+        //                         "vega": "334.523390908959",
+        //                         "theta": "-18.178343402455",
+        //                         "leverage": null,
+        //                         "liquidation_price": null
+        //                     }
+        //                 ],
+        //                 "collaterals": [
+        //                     {
+        //                         "asset_type": "erc20",
+        //                         "asset_name": "USDC",
+        //                         "amount": "4527.545377437385",
+        //                         "average_price": "1",
+        //                         "average_price_excl_fees": "1",
+        //                         "mark_price": "1",
+        //                         "mark_value": "4527.545377437385",
+        //                         "amount_step": "0",
+        //                         "currency": "USDC",
+        //                         "creation_timestamp": 0,
+        //                         "cumulative_interest": "0.008352036862",
+        //                         "pending_interest": "0.000010583121",
+        //                         "initial_margin": "4527.545388020506",
+        //                         "maintenance_margin": "4527.545388020506",
+        //                         "open_orders_margin": "0",
+        //                         "realized_pnl": "0",
+        //                         "realized_pnl_excl_fees": "0",
+        //                         "total_fees": "0",
+        //                         "unrealized_pnl": "0",
+        //                         "unrealized_pnl_excl_fees": "0",
+        //                         "delta_currency": "USDC",
+        //                         "delta": "1"
+        //                     }
+        //                 ],
+        //                 "vault_deposit_holds": []
+        //             }
+        //         ]
+        //     }
         //
         const result = this.safeList (response, 'result');
         return this.parseBalance (result);
@@ -2647,8 +2848,13 @@ export default class derive extends Exchange {
         const result: Dict = {
             'info': response,
         };
+        // margin requirements come as negative subaccount-level contributions in usd terms (initial_margin = collaterals_initial_margin + positions_initial_margin, verified on live data), so they are attributed to the usdc settlement currency and clamped by the usdc cash below; other collaterals stay total-only because the shared margin pool cannot be split per currency
+        let usedUsd: Str = '0';
         for (let i = 0; i < response.length; i++) {
             const subaccount = this.safeDict (response, i);
+            const positionsMargin = this.safeString (subaccount, 'positions_initial_margin', '0');
+            const ordersMargin = this.safeString (subaccount, 'open_orders_margin', '0');
+            usedUsd = Precise.stringSub (usedUsd, Precise.stringAdd (positionsMargin, ordersMargin));
             const collaterals: Dict[] = this.safeList (subaccount, 'collaterals', []);
             for (let j = 0; j < collaterals.length; j++) {
                 const balance = this.safeDict (collaterals, j);
@@ -2665,6 +2871,17 @@ export default class derive extends Exchange {
                     result[code] = account;
                 }
             }
+        }
+        const usdcAccount = this.safeDict (result, 'USDC');
+        if (usdcAccount !== undefined) {
+            const totalUsdc = this.safeString (usdcAccount, 'total');
+            let used: Str = usedUsd;
+            if (Precise.stringGt (used, totalUsdc)) {
+                used = totalUsdc;
+            }
+            usdcAccount['used'] = used;
+            usdcAccount['free'] = Precise.stringSub (totalUsdc, used);
+            result['USDC'] = usdcAccount;
         }
         return this.safeBalance (result);
     }
