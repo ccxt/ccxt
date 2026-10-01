@@ -37,7 +37,7 @@
                 "method": "fetchTicker",
                 "url": "https://api.derive.xyz/v3/public/get_ticker",
                 "input": [
-                    "BTC/USD:USDC"
+                    "BTC/USDC:USDC"
                 ],
                 "output": { "instrument_name": "BTC-PERP" }
             }
@@ -48,7 +48,7 @@
                 "method": "fetchTrades",
                 "url": "https://api.derive.xyz/v3/public/get_trade_history",
                 "input": [
-                    "BTC/USD:USDC",
+                    "BTC/USDC:USDC",
                     1736155500128,
                     1,
                     {
@@ -64,7 +64,7 @@
                 "method": "fetchFundingRateHistory",
                 "url": "https://api.derive.xyz/v3/public/get_funding_rate_history",
                 "input": [
-                    "BTC/USD:USDC",
+                    "BTC/USDC:USDC",
                     1736155500128,
                     1,
                     {
@@ -80,7 +80,7 @@
                 "method": "fetchFundingRate",
                 "url": "https://api.derive.xyz/v3/public/get_funding_rate_history",
                 "input": [
-                    "BTC/USD:USDC"
+                    "BTC/USDC:USDC"
                 ],
                 "output": { "instrument_name": "BTC-PERP" }
             }
@@ -108,7 +108,7 @@
                 "method": "createOrder",
                 "url": "https://testnet.api.derive.xyz/v3/private/order",
                 "input": [
-                    "BTC/USD:USDC",
+                    "BTC/USDC:USDC",
                     "limit",
                     "buy",
                     0.01,
@@ -349,7 +349,7 @@
                 "method": "fetchFundingHistory",
                 "url": "https://testnet.api.derive.xyz/v3/private/get_funding_history",
                 "input": [
-                    "BTC/USD:USDC",
+                    "BTC/USDC:USDC",
                     null,
                     10,
                     {
