@@ -3272,7 +3272,6 @@ export default class derive extends Exchange {
     handleDeriveSubaccountId (methodName: string, params: Dict): [any, Dict] {
         const [ derivesubAccountId, paramsSubaccountId ] = this.handleOptionAndParams (params, methodName, 'subaccount_id');
         if ((derivesubAccountId !== undefined) && (derivesubAccountId !== '')) {
-            this.options['subaccount_id'] = derivesubAccountId;
             return [ derivesubAccountId, paramsSubaccountId ];
         }
         const optionsWallet = this.safeString (this.options, 'subaccount_id');
