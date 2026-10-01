@@ -2225,12 +2225,16 @@
         }
     },
     "p2b": {
-        "skip": "temp issues",
-        "skipWs": "flaky",
         "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
-            "loadMarkets": "invalid URL",
-            "fetchTrades": "requires order id"
+            "fetchTrades": "venue requires a mandatory params.lastId (ArgumentsRequired, measured 2026-09-14); relax planned in fix/p2b-fetch-trades-lastid",
+            "watchOHLCV": "the harness prefers 1m, which only the REST timeframes advertise - the ws channel map has 15m/30m/1h/1d; a pro describe override cannot fix it because deepExtend unions the two maps and 1m survives; ws kline.subscribe acks interval 60 but no kline.update frame could be proven on a quiet market, so 1m stays unmapped (measured 2026-09-14)",
+            "fetchCurrencies.go": "the go base does not synthesize currencies from markets - fetchCurrencies returns 0 entries and the amountOfCurrencies gate panics; js/py/php synthesize fine (measured 2026-09-14, recheck when the go port adds market-derived currencies)",
+            "fetchTickers.cs": "the cs number pipeline fails on sub-1e-6 change values from btc-quoted dust pairs with 'input string --06 was not in a correct format'; base-port issue, seven such pairs live (XSR/BTC etc, measured 2026-09-14)",
+            "watchOrderBook": "depth frames carry no timestamp and the handler does not stamp one, the orderbook validator requires it (3/3 deterministic, measured 2026-09-14); fix candidate like whitebit pro handleOrderBook",
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "no currencies endpoint on the public api - currencies are synthesized from markets, deposit/withdraw flags unknowable (measured 2026-09-14)"
+            }
         }
     },
     "poloniex": {
