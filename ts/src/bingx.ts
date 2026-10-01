@@ -5318,14 +5318,14 @@ export default class bingx extends Exchange {
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('transfer', undefined, params);
         let fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         let toId = this.safeString (accountsByType, toAccount, toAccount);
-        if (fromId === 'swap') {
+        if (fromAccount === 'swap') {
             if (subType === 'inverse') {
                 fromId = 'coinMPerp';
             } else {
                 fromId = 'USDTMPerp';
             }
         }
-        if (toId === 'swap') {
+        if (toAccount === 'swap') {
             if (subType === 'inverse') {
                 toId = 'coinMPerp';
             } else {
