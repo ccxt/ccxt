@@ -48,6 +48,9 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
         const inactiveCurrenciesPercentage = (numInactiveCurrencies / currenciesLength) * 100;
         assert (skipActive || (inactiveCurrenciesPercentage < maxInactiveCurrenciesPercentage), 'Percentage of inactive currencies is too high at ' + inactiveCurrenciesPercentage.toString () + '% that is more than the allowed maximum of ' + maxInactiveCurrenciesPercentage.toString () + '%');
         detectCurrencyConflicts (exchange, currencies);
+        if (!('skipObsoleteNetworks' in skippedProperties)) {
+            detectObsoleteNetworks (exchange);
+        }
     }
     return true;
 }
@@ -68,6 +71,33 @@ function detectCurrencyConflicts (exchange: Exchange, currencyValues: any) {
         }
     }
     return true;
+}
+
+function detectObsoleteNetworks (exchange: Exchange) {
+    // detect if there are networks defined in options, but no longer exist on exchange
+    const networks = exchange.safeDict (exchange.options, 'networks');
+    if (networks === undefined) {
+        return;
+    }
+    const allNetworkCodes: string[] = Object.keys (networks);
+    if (allNetworkCodes.length <= 0) {
+        return;
+    }
+    let collectedNetworkCodes: string[] = [];
+    const currencies = Object.values (exchange.currencies);
+    for (let i = 0; i < currencies.length; i++) {
+        const currency = currencies[i];
+        const currencyNetworks = exchange.safeDict (currency, 'networks', {});
+        const networkCodes = Object.keys (currencyNetworks);
+        collectedNetworkCodes = exchange.arrayConcat (collectedNetworkCodes, networkCodes);
+    }
+    const filteredCodes = exchange.unique (collectedNetworkCodes);
+    for (let j = 0; j < allNetworkCodes.length; j++) {
+        const networkCode = allNetworkCodes[j];
+        if (!exchange.inArray (networkCode, filteredCodes)) {
+            console.log ('Warning: networkCode ' + networkCode + ' is defined in exchange.options.networks, but exchange no longer supports that chain.');
+        }
+    }
 }
 
 export default testFetchCurrencies;
