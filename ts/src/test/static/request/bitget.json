@@ -146,6 +146,38 @@
         ],
         "withdraw": [
             {
+                "description": "fee exclusion check",
+                "method": "withdraw",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/withdrawal",
+                "input": [
+                    "USDT",
+                    10.05,
+                    "0x587ef27bace760781556ba15217735b05a2edc89",
+                    null,
+                    {
+                        "network": "BEP20",
+						"includeFee": false
+                    }
+                ],
+                "output": "{\"coin\":\"USDT\",\"address\":\"0x587ef27bace760781556ba15217735b05a2edc89\",\"chain\":\"BEP20\",\"size\":\"10.05\",\"transferType\":\"on_chain\"}"
+            },
+            {
+                "description": "fee inclusion check",
+                "method": "withdraw",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/withdrawal",
+                "input": [
+                    "USDT",
+                    10.05,
+                    "0x587ef27bace760781556ba15217735b05a2edc89",
+                    null,
+                    {
+                        "network": "BEP20",
+						"includeFee": true
+                    }
+                ],
+                "output": "{\"coin\":\"USDT\",\"address\":\"0x587ef27bace760781556ba15217735b05a2edc89\",\"chain\":\"BEP20\",\"size\":\"10.05\",\"transferType\":\"on_chain\"}"
+            },
+            {
                 "description": "with_precision",
                 "method": "withdraw",
                 "url": "https://api.bitget.com/api/v2/spot/wallet/withdrawal",
