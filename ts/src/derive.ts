@@ -757,9 +757,9 @@ export default class derive extends Exchange {
             const data = this.safeList (result, 'instruments', []);
             allInstruments = this.arrayConcat (allInstruments, data);
             const pagination = this.safeDict (result, 'pagination', {});
-            const count = this.safeInteger (pagination, 'count', 0);
+            const totalCount = this.safeInteger (pagination, 'count', 0); // not named count: that collides with the php builtin the length mapping expands to
             const collected = allInstruments.length;
-            if (collected >= count) {
+            if (collected >= totalCount) {
                 break;
             }
             page += 1;
