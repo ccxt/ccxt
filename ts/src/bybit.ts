@@ -6665,11 +6665,11 @@ export default class bybit extends Exchange {
         if (tagWithdrawTag !== undefined) {
             request['tag'] = tagWithdrawTag;
         }
-        const [ includeFee, paramsWithdrawFee ] = this.handleParamBool (paramsAccountType, 'includeFee');
+        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsAccountType, 'withdraw', 'includeFee', false);
         if (includeFee === true) {
             request['feeType'] = 1; // only change param if inclusion needed
         }
-        const [ networkCode, query ] = this.handleNetworkCodeAndParams (paramsWithdrawFee);
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (paramsIncludeFee);
         const networkId = this.networkCodeToId (networkCode, code);
         if (networkId !== undefined) {
             request['chain'] = networkId.toUpperCase ();
