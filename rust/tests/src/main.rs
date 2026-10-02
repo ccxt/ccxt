@@ -52,10 +52,6 @@ mod tests;
 use test_helpers::{getCliArgValue, getCliPositionalArg};
 use tests::TestMainClass;
 
-#[cfg(feature = "mimalloc")]
-#[global_allocator]
-static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
-
 #[tokio::main]
 async fn main() -> ExitCode {
     // Install the heavy-field live-lookup callback in the ccxt crate so
