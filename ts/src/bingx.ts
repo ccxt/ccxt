@@ -5736,10 +5736,8 @@ export default class bingx extends Exchange {
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'addressTag');
         let timestamp = this.safeInteger2 (transaction, 'insertTime', 'timestamp');
-        let datetime = this.iso8601 (timestamp);
         if (timestamp === undefined) {
-            datetime = this.safeString (transaction, 'applyTime');
-            timestamp = this.parse8601 (datetime);
+            timestamp = this.parse8601 (this.safeString (transaction, 'applyTime'));
         }
         const network = this.safeString (transaction, 'network');
         const currencyId = this.safeString (transaction, 'coin');
@@ -5764,7 +5762,7 @@ export default class bingx extends Exchange {
             'amount': this.safeNumber (transaction, 'amount'),
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'address': address,
             'addressFrom': undefined,
             'addressTo': address,
