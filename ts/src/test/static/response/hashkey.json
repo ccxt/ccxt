@@ -226,9 +226,9 @@
                                     "allowWithdraw": true
                                 }
                             },
-                            "Tron": {
+                            "TRC20": {
                                 "id": "TRC20",
-                                "network": "Tron",
+                                "network": "TRC20",
                                 "limits": {
                                     "withdraw": {
                                         "min": 1,
@@ -254,9 +254,9 @@
                                     "allowWithdraw": true
                                 }
                             },
-                            "Arbitrum": {
+                            "ARBITRUM": {
                                 "id": "Arbitrum",
-                                "network": "Arbitrum",
+                                "network": "ARBITRUM",
                                 "limits": {
                                     "withdraw": {
                                         "min": 1,
@@ -282,9 +282,9 @@
                                     "allowWithdraw": true
                                 }
                             },
-                            "BSC(BEP20)": {
+                            "BEP20": {
                                 "id": "BSC(BEP20)",
-                                "network": "BSC(BEP20)",
+                                "network": "BEP20",
                                 "limits": {
                                     "withdraw": {
                                         "min": 1,
@@ -338,9 +338,9 @@
                                     "allowWithdraw": false
                                 }
                             },
-                            "Solana": {
+                            "SOL": {
                                 "id": "Solana",
-                                "network": "Solana",
+                                "network": "SOL",
                                 "limits": {
                                     "withdraw": {
                                         "min": 1,
@@ -366,9 +366,9 @@
                                     "allowWithdraw": true
                                 }
                             },
-                            "Scroll": {
+                            "SCROLL": {
                                 "id": "Scroll",
-                                "network": "Scroll",
+                                "network": "SCROLL",
                                 "limits": {
                                     "withdraw": {
                                         "min": 1,
