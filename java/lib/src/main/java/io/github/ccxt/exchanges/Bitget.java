@@ -6913,7 +6913,7 @@ public class Bitget extends BitgetApi
                     Map<String, Object> results = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     assets = (List<Object>) this.safeList(results, "assets", new ArrayList<Object>(Arrays.asList()));
                 }
-                return this.parseUtaBalance(assets);
+                return this.parseUtaBalance(assets, response);
             } else if ((java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future")))
             {
                 String productType = null;
@@ -7033,10 +7033,11 @@ public class Bitget extends BitgetApi
 
     }
 
-    public Object parseUtaBalance(Object balance)
+    public Object parseUtaBalance(Object balance, Object response)
     {
+        Object info = (((!java.util.Objects.equals(response, null)))) ? response : balance;
         Map<String, Object> result = new HashMap<String, Object>() {{
-            put( "info", balance );
+            put( "info", info );
         }};
         //
         // uta
