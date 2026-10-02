@@ -1368,8 +1368,6 @@ pub use crate::exchanges::coinbaseexchange_typed::Coinbaseexchange;
 pub use crate::exchanges::coinbaseinternational_typed::Coinbaseinternational;
 #[cfg(feature = "coincheck")]
 pub use crate::exchanges::coincheck_typed::Coincheck;
-#[cfg(feature = "coinex")]
-pub use crate::exchanges::coinex_typed::Coinex;
 #[cfg(feature = "coinmate")]
 pub use crate::exchanges::coinmate_typed::Coinmate;
 #[cfg(feature = "coinone")]
@@ -1584,7 +1582,6 @@ pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedEx
         #[cfg(feature = "coincheck")]
         "coincheck" => Some(Box::new(Coincheck::new(config))),
         #[cfg(feature = "coinex")]
-        "coinex" => Some(Box::new(Coinex::new(config))),
         #[cfg(feature = "coinmate")]
         "coinmate" => Some(Box::new(Coinmate::new(config))),
         #[cfg(feature = "coinone")]
