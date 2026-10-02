@@ -5687,7 +5687,7 @@ public class Bingx extends BingxApi
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
-            if (java.util.Objects.equals(fromId, "swap"))
+            if (java.util.Objects.equals(fromAccount, "swap"))
             {
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
@@ -5697,7 +5697,7 @@ public class Bingx extends BingxApi
                     fromId = "USDTMPerp";
                 }
             }
-            if (java.util.Objects.equals(toId, "swap"))
+            if (java.util.Objects.equals(toAccount, "swap"))
             {
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
@@ -5725,17 +5725,19 @@ public class Bingx extends BingxApi
             //         }
             //     }
             //
-            return new HashMap<String, Object>() {{
-                put( "info", response );
-                put( "id", Bingx.this.safeString2(data, "transferId", "tranId") );
-                put( "timestamp", timestamp );
-                put( "datetime", Bingx.this.iso8601(timestamp) );
-                put( "currency", code );
-                put( "amount", amount );
-                put( "fromAccount", fromAccount );
-                put( "toAccount", toAccount );
-                put( "status", null );
-            }};
+            {
+                HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+                h2kMap1.put("info", response);
+                h2kMap1.put("id", this.safeString2(data, "transferId", "tranId"));
+                h2kMap1.put("timestamp", timestamp);
+                h2kMap1.put("datetime", this.iso8601(timestamp));
+                h2kMap1.put("currency", code);
+                h2kMap1.put("amount", amount);
+                h2kMap1.put("fromAccount", fromAccount);
+                h2kMap1.put("toAccount", toAccount);
+                h2kMap1.put("status", null);
+                return h2kMap1;
+            }
         }).thenApply(TransferEntry::new);
 
     }
@@ -5988,13 +5990,13 @@ public class Bingx extends BingxApi
         }
         this.checkAddress(address);
         {
-            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
-            h2kMap1.put("info", depositAddress);
-            h2kMap1.put("currency", code);
-            h2kMap1.put("network", networkCode);
-            h2kMap1.put("address", address);
-            h2kMap1.put("tag", tag);
-            return h2kMap1;
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", depositAddress);
+            h2kMap2.put("currency", code);
+            h2kMap2.put("network", networkCode);
+            h2kMap2.put("address", address);
+            h2kMap2.put("tag", tag);
+            return h2kMap2;
         }
     }
 
@@ -6202,32 +6204,32 @@ public class Bingx extends BingxApi
             type = "deposit";
         }
         {
-            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-            h2kMap2.put("info", transaction);
-            h2kMap2.put("id", id);
-            h2kMap2.put("txid", this.safeString(transaction, "txId"));
-            h2kMap2.put("type", type);
-            h2kMap2.put("currency", code);
-            h2kMap2.put("network", this.networkIdToCode(network, code));
-            h2kMap2.put("amount", this.safeNumber(transaction, "amount", (Object) null));
-            h2kMap2.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
-            h2kMap2.put("timestamp", timestamp);
-            h2kMap2.put("datetime", datetime);
-            h2kMap2.put("address", address);
-            h2kMap2.put("addressFrom", null);
-            h2kMap2.put("addressTo", address);
-            h2kMap2.put("tag", tag);
-            h2kMap2.put("tagFrom", tag);
-            h2kMap2.put("tagTo", null);
-            h2kMap2.put("updated", null);
-            h2kMap2.put("comment", this.safeString(transaction, "info"));
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("info", transaction);
+            h2kMap3.put("id", id);
+            h2kMap3.put("txid", this.safeString(transaction, "txId"));
+            h2kMap3.put("type", type);
+            h2kMap3.put("currency", code);
+            h2kMap3.put("network", this.networkIdToCode(network, code));
+            h2kMap3.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap3.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", datetime);
+            h2kMap3.put("address", address);
+            h2kMap3.put("addressFrom", null);
+            h2kMap3.put("addressTo", address);
+            h2kMap3.put("tag", tag);
+            h2kMap3.put("tagFrom", tag);
+            h2kMap3.put("tagTo", null);
+            h2kMap3.put("updated", null);
+            h2kMap3.put("comment", this.safeString(transaction, "info"));
             HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
             mapLiteral11.put("currency", code);
             mapLiteral11.put("cost", this.safeNumber(transaction, "transactionFee", (Object) null));
             mapLiteral11.put("rate", null);
-            h2kMap2.put("fee", mapLiteral11);
-            h2kMap2.put("internal", null);
-            return h2kMap2;
+            h2kMap3.put("fee", mapLiteral11);
+            h2kMap3.put("internal", null);
+            return h2kMap3;
         }
     }
 
@@ -6389,18 +6391,18 @@ public class Bingx extends BingxApi
         //
         String type = this.safeString(data, "type");
         {
-            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
-            h2kMap3.put("info", data);
-            h2kMap3.put("symbol", ((String)this.safeString(market, "symbol")));
-            h2kMap3.put("type", (((java.util.Objects.equals(type, "1")))) ? "add" : "reduce");
-            h2kMap3.put("marginMode", "isolated");
-            h2kMap3.put("amount", this.safeNumber(data, "amount", (Object) null));
-            h2kMap3.put("total", this.safeNumber(data, "margin", (Object) null));
-            h2kMap3.put("code", this.safeString(market, "settle"));
-            h2kMap3.put("status", null);
-            h2kMap3.put("timestamp", null);
-            h2kMap3.put("datetime", null);
-            return h2kMap3;
+            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+            h2kMap4.put("info", data);
+            h2kMap4.put("symbol", ((String)this.safeString(market, "symbol")));
+            h2kMap4.put("type", (((java.util.Objects.equals(type, "1")))) ? "add" : "reduce");
+            h2kMap4.put("marginMode", "isolated");
+            h2kMap4.put("amount", this.safeNumber(data, "amount", (Object) null));
+            h2kMap4.put("total", this.safeNumber(data, "margin", (Object) null));
+            h2kMap4.put("code", this.safeString(market, "settle"));
+            h2kMap4.put("status", null);
+            h2kMap4.put("timestamp", null);
+            h2kMap4.put("datetime", null);
+            return h2kMap4;
         }
     }
 
@@ -7116,10 +7118,10 @@ public class Bingx extends BingxApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String dualSidePosition = this.safeString(data, "dualSidePosition");
             {
-                HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
-                h2kMap4.put("info", response);
-                h2kMap4.put("hedged", (java.util.Objects.equals(dualSidePosition, "true")));
-                return h2kMap4;
+                HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
+                h2kMap5.put("info", response);
+                h2kMap5.put("hedged", (java.util.Objects.equals(dualSidePosition, "true")));
+                return h2kMap5;
             }
         }).thenApply(PositionModeInfo::new);
 
@@ -7287,11 +7289,11 @@ public class Bingx extends BingxApi
             marginType = "cross";
         }
         {
-            HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
-            h2kMap5.put("info", marginMode);
-            h2kMap5.put("symbol", this.safeSymbol(marketId, market, "-", "swap"));
-            h2kMap5.put("marginMode", marginType);
-            return h2kMap5;
+            HashMap<String, Object> h2kMap6 = new HashMap<String, Object>();
+            h2kMap6.put("info", marginMode);
+            h2kMap6.put("symbol", this.safeSymbol(marketId, market, "-", "swap"));
+            h2kMap6.put("marginMode", marginType);
+            return h2kMap6;
         }
     }
 
@@ -7621,12 +7623,12 @@ public class Bingx extends BingxApi
         String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
         {
-            HashMap<String, Object> h2kMap6 = new HashMap<String, Object>();
-            h2kMap6.put("url", url);
-            h2kMap6.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap6.put("body", bodyResult);
-            h2kMap6.put("headers", headersResult);
-            return h2kMap6;
+            HashMap<String, Object> h2kMap7 = new HashMap<String, Object>();
+            h2kMap7.put("url", url);
+            h2kMap7.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap7.put("body", bodyResult);
+            h2kMap7.put("headers", headersResult);
+            return h2kMap7;
         }
     }
 
