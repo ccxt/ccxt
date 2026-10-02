@@ -2820,22 +2820,44 @@ export default class coinbaseinternational extends Exchange {
      * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/deribit-partners#authentication
      * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/intx-partners#authentication
      * @param {int} seconds current timestamp in seconds
+     * @param {string} [method] request method
+     * @param {string} [url] request URL
      * @param {boolean} [useEddsa] true for Ed25519 keys, false for ECDSA PEM keys
-     * @param {string} [uri] request URI in the format "METHOD host/path"
      * @returns {string} signed JWT
      */
-    createAuthToken (seconds: Int, useEddsa = false, uri: Str = undefined) {
+    createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined, useEddsa = false) {
+        let uri: Str = undefined;
+        if (url !== undefined) {
+            uri = method + ' ' + url.replace ('https://', '');
+            const quesPos = uri.indexOf ('?');
+            if (quesPos > 0) {
+                uri = uri.slice (0, quesPos);
+            }
+        }
         const nonce = this.randomBytes (16);
-        const uriResolved = (uri === undefined) ? 'POST drb.coinbase.com/api/v2/public/auth' : uri;
+        let aud: Str = 'retail_rest_api_proxy';
+        if (useEddsa) {
+            aud = 'cdp_service';
+        }
+        let iss: Str = 'coinbase-cloud';
+        if (useEddsa) {
+            iss = 'cdp';
+        }
         const request: Dict = {
-            'aud': [ 'cdp_service' ],
+            'aud': [ aud ],
             'sub': this.apiKey,
-            'iss': 'cdp',
+            'iss': iss,
             'nbf': seconds,
             'exp': (seconds as number) + 120,
             'iat': seconds,
         };
-        request['uri'] = uriResolved;
+        if (uri !== undefined) {
+            if (!useEddsa) {
+                request['uri'] = uri;
+            } else {
+                request['uris'] = [ uri ];
+            }
+        }
         if (useEddsa) {
             const byteArray = this.base64ToBinary (this.secret);
             const seed = this.arraySlice (byteArray, 0, 32);
@@ -2935,9 +2957,10 @@ export default class coinbaseinternational extends Exchange {
                     'client_secret': this.secret,
                 }, params);
             } else {
+                const isV2CloudAPiKey = (this.secret.length === 88) || this.safeBool (this.options, 'v2CloudAPiKey', false) || this.secret.endsWith ('=');
                 requestParams = this.extend ({
                     'grant_type': 'coinbase_cdp',
-                    'token': this.createAuthToken (this.seconds (), this.isEddsaSecret (), method + ' drb.coinbase.com' + '/api/v2/' + rpcMethod),
+                    'token': this.createAuthToken (this.seconds (), method, url, isV2CloudAPiKey),
                 }, params);
             }
         } else if ((access === 'private') && isNativeDeribit) {

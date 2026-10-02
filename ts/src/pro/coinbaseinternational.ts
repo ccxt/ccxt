@@ -104,23 +104,41 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return requestId;
     }
 
+    getWsUrl (isPrivate = false): string {
+        if (this.isNativeDeribitCredentials ()) {
+            return 'wss://www.deribit.com/ws/api/v2';
+        }
+        if (isPrivate) {
+            return this.urls['api']['wsPrivate'];
+        }
+        return this.urls['api']['ws'];
+    }
+
     override ping (client: Client): Dict | Str {
         const refreshAt = this.safeInteger (this.options, 'wsAuthRefreshAt');
-        const isPrivateClient = (client.url === this.urls['api']['wsPrivate']);
+        const isPrivateClient = (client.url === this.getWsUrl (true));
         if (isPrivateClient && (refreshAt !== undefined) && (this.milliseconds () >= refreshAt)) {
             // re-authenticate in-band before the session expires, also while no watch call is pending
             // retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
             this.options['wsAuthRefreshAt'] = this.sum (this.milliseconds (), 60000);
             const requestId = this.requestId ();
             this.options['wsAuthRequestId'] = requestId;
+            let params: Dict = {
+                'grant_type': 'client_credentials',
+                'client_id': this.apiKey,
+                'client_secret': this.secret,
+            };
+            if (!this.isNativeDeribitCredentials ()) {
+                params = {
+                    'grant_type': 'coinbase_cdp',
+                    'token': this.createAuthToken (this.seconds (), 'GET', 'wss://drb.coinbase.com/ws/api/v2/public/auth', this.isEddsaSecret ()),
+                };
+            }
             return {
                 'jsonrpc': '2.0',
                 'id': requestId,
                 'method': 'public/auth',
-                'params': {
-                    'grant_type': 'coinbase_cdp',
-                    'token': this.createAuthToken (this.seconds (), this.isEddsaSecret ()),
-                },
+                'params': params,
             };
         }
         // the gateway closes a socket after ~30s without client messages; protocol-level pings do not count
@@ -133,10 +151,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     }
 
     async subscribe (channels: string[], messageHashes: string[], isPrivate = false, params = {}) {
-        let url = this.urls['api']['ws'];
+        let url = this.getWsUrl (false);
         let method = 'public/subscribe';
         if (isPrivate) {
-            url = this.urls['api']['wsPrivate'];
+            url = this.getWsUrl (true);
             method = 'private/subscribe';
             await this.authenticate ();
         }
@@ -160,10 +178,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     }
 
     async unSubscribe (channels: string[], isPrivate = false, params = {}) {
-        let url = this.urls['api']['ws'];
+        let url = this.getWsUrl (false);
         let method = 'public/unsubscribe';
         if (isPrivate) {
-            url = this.urls['api']['wsPrivate'];
+            url = this.getWsUrl (true);
             method = 'private/unsubscribe';
             await this.authenticate ();
         }
@@ -1152,7 +1170,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const channelParts = channel.split ('.');
         const channelPartsLength = channelParts.length;
         const isPrivate = this.safeString (channelParts, channelPartsLength - 1) === 'raw';
-        const url = isPrivate ? this.urls['api']['wsPrivate'] : this.urls['api']['ws'];
+        const url = this.getWsUrl (isPrivate);
         if (isPrivate) {
             await this.authenticate ();
         }
@@ -1305,7 +1323,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     }
 
     async authenticate (params = {}) {
-        const url = this.urls['api']['wsPrivate'];
+        const url = this.getWsUrl (true);
         const client = this.client (url);
         const messageHash = 'authenticated';
         let future = this.safeValue (client.subscriptions, messageHash);
@@ -1321,15 +1339,22 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             this.checkRequiredCredentials ();
             const requestId = this.requestId ();
             this.options['wsAuthRequestId'] = requestId;
-            const token = this.createAuthToken (this.seconds (), this.isEddsaSecret ());
+            let paramsAuth: Dict = {
+                'grant_type': 'client_credentials',
+                'client_id': this.apiKey,
+                'client_secret': this.secret,
+            };
+            if (!this.isNativeDeribitCredentials ()) {
+                paramsAuth = {
+                    'grant_type': 'coinbase_cdp',
+                    'token': this.createAuthToken (this.seconds (), 'GET', 'wss://drb.coinbase.com/ws/api/v2/public/auth', this.isEddsaSecret ()),
+                };
+            }
             const request: Dict = {
                 'jsonrpc': '2.0',
                 'id': requestId,
                 'method': 'public/auth',
-                'params': {
-                    'grant_type': 'coinbase_cdp',
-                    'token': token,
-                },
+                'params': paramsAuth,
             };
             future = this.watch (url, messageHash, this.extend (request, params), messageHash);
             client.subscriptions[messageHash] = future;
@@ -1338,7 +1363,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     }
 
     async requestWs (method: string, params = {}, isPrivate = false) {
-        const url = this.urls['api']['wsPrivate'];
+        const url = this.getWsUrl (true);
         if (isPrivate) {
             await this.authenticate ();
         }
@@ -1727,7 +1752,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      */
     async logoutWs (params = {}) {
         await this.authenticate ();
-        const url = this.urls['api']['wsPrivate'];
+        const url = this.getWsUrl (true);
         const client = this.client (url);
         const request: Dict = {
             'jsonrpc': '2.0',
