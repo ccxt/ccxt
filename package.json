@@ -337,7 +337,7 @@
     "ololog": "^1.1.175",
     "open": "^10.2.0",
     "ora": "^9.0.0",
-    "piscina": "^4.9.3",
+    "piscina": "^4.9.4",
     "protobufjs": "^7.5.3",
     "replace-in-file": "^6.3.5",
     "rollup": "^2.70.1",
@@ -451,7 +451,7 @@
   },
   "overrides": {
     "marked": "^4.0.10",
-    "piscina": "^4.9.3"
+    "piscina": "^4.9.4"
   },
   "optionalDependencies": {
     "bufferutil": "4.1.0",
