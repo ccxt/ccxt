@@ -1599,7 +1599,7 @@ export default class indodax extends Exchange {
     /**
      * @method
      * @name indodax#cancelAllOrdersAfter
-     * @description dead man's switch, cancel all orders after the given timeout. options.deadmanUrl replaces the tapi base and has no trailing path
+     * @description dead man's switch, cancel all orders after a countdown in milliseconds, and 0 stops the timer. options.deadmanUrl replaces the tapi base and has no trailing path
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Deadman-switch.md
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
