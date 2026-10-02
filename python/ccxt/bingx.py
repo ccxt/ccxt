@@ -5046,12 +5046,12 @@ class bingx(Exchange, ImplicitAPI):
         subType, paramsSubType = self.handle_sub_type_and_params('transfer', None, params)
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
-        if fromId == 'swap':
+        if fromAccount == 'swap':
             if subType == 'inverse':
                 fromId = 'coinMPerp'
             else:
                 fromId = 'USDTMPerp'
-        if toId == 'swap':
+        if toAccount == 'swap':
             if subType == 'inverse':
                 toId = 'coinMPerp'
             else:
