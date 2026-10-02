@@ -1559,7 +1559,8 @@ export default class coinbase extends Exchange {
         try {
             unresolvedContractPromises = [
                 this.v3PublicGetBrokerageMarketProducts (this.extend (paramsUsePrivate, { 'product_type': 'FUTURE' })),
-                this.v3PublicGetBrokerageMarketProducts (this.extend (paramsUsePrivate, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
+                // deprecated INTX call, coinbase may return to using this approach for swap markets
+                // this.v3PublicGetBrokerageMarketProducts (this.extend (paramsUsePrivate, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
             ];
         } catch (e) {
             unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
@@ -1854,9 +1855,9 @@ export default class coinbase extends Exchange {
         //           }
         //        }
         //
-        if (this.safeString (market, 'product_venue') === 'INTX') {
-            return undefined; // INTX perpetuals were retired from Advanced Trade on 2026-10-01, they trade via coinbaseinternational now
-        }
+        // if (this.safeString (market, 'product_venue') === 'INTX') {
+        //     return undefined; // INTX perpetuals were retired from Advanced Trade on 2026-10-01, they trade via coinbaseinternational now
+        // }
         const id = this.safeString (market, 'product_id');
         const futureProductDetails = this.safeDict (market, 'future_product_details', {});
         const contractExpiryType = this.safeString (futureProductDetails, 'contract_expiry_type');

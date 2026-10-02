@@ -2852,6 +2852,9 @@ export default class coinbaseinternational extends Exchange {
      * @returns {string} a Deribit gateway access token
      */
     async authenticateV2 (params = {}): Promise<Str> {
+        if (this.isNativeDeribitCredentials ()) {
+            return undefined;
+        }
         const forceRefresh = this.safeBool (params, 'forceRefresh', false);
         const paramsOmitted = this.omit (params, 'forceRefresh');
         const now = this.milliseconds ();
@@ -2940,8 +2943,8 @@ export default class coinbaseinternational extends Exchange {
             if (Object.keys (requestParams).length > 0) {
                 signedRequest += '?' + this.urlencode (requestParams);
             }
-            const requestData = method + "\n" + signedRequest + "\n" + "\n";
-            const auth = timestamp + "\n" + nonce + "\n" + requestData;
+            const requestData = method + "\n" + signedRequest + "\n" + "\n"; // eslint-disable-line quotes
+            const auth = timestamp + "\n" + nonce + "\n" + requestData; // eslint-disable-line quotes
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             requestHeaders = {
                 'Content-Type': 'application/json',
