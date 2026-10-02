@@ -5340,7 +5340,7 @@ class bingx extends bingx$1["default"] {
         const [subType, paramsSubType] = this.handleSubTypeAndParams('transfer', undefined, params);
         let fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         let toId = this.safeString(accountsByType, toAccount, toAccount);
-        if (fromId === 'swap') {
+        if (fromAccount === 'swap') {
             if (subType === 'inverse') {
                 fromId = 'coinMPerp';
             }
@@ -5348,7 +5348,7 @@ class bingx extends bingx$1["default"] {
                 fromId = 'USDTMPerp';
             }
         }
-        if (toId === 'swap') {
+        if (toAccount === 'swap') {
             if (subType === 'inverse') {
                 toId = 'coinMPerp';
             }
