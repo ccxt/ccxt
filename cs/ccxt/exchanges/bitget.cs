@@ -6773,7 +6773,7 @@ public partial class bitget : Exchange
                 IDictionary<string, object> results = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 assets = this.safeList(results, "assets", new List<object>() {});
             }
-            return ccxt.BaseExchange.ToBalances(this.parseUtaBalance(assets));
+            return ccxt.BaseExchange.ToBalances(this.parseUtaBalance(assets, response));
         } else if ((marketType == "swap") || (marketType == "future"))
         {
             string? productType = null;
@@ -6891,10 +6891,11 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(data));
     }
 
-    public virtual object parseUtaBalance(object balance)
+    public virtual object parseUtaBalance(object balance, object response = null)
     {
+        object info = ((response != null)) ? response : balance;
         Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "info", balance },
+            { "info", info },
         };
         //
         // uta
