@@ -401,6 +401,14 @@ func (this *BaseExchange) InitThrottler() {
 	this.Throttler = NewThrottler(this.TokenBucket)
 }
 
+func (this *BaseExchange) MarketsMutexLocker(locked bool) {
+	if locked {
+		this.MarketsMutex.Lock()
+	} else {
+		this.MarketsMutex.Unlock()
+	}
+}
+
 /*
 *
   - @method
@@ -438,73 +446,6 @@ func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan AsyncResult[any
 	}
 
 	this.loadMu.Unlock()
-	return ch
-}
-
-func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
-
-	go func() {
-		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				ch <- AsyncResult[any]{Err: RecoveredError(r)}
-			}
-		}()
-		reload := GetArg(params, 0, false).(bool)
-		params := GetArg(params, 1, map[string]any{})
-		if !reload {
-			if this.Markets != nil {
-				if this.Markets_by_id == nil {
-					// Only lock when writing
-					this.MarketsMutex.Lock()
-					result := this.SetMarkets(this.Markets, nil)
-					this.MarketsMutex.Unlock()
-					ch <- AsyncResult[any]{Value: result}
-					return
-				}
-				ch <- AsyncResult[any]{Value: this.Markets}
-				return
-			}
-		}
-
-		var currencies any = nil
-		hasFetchCurrencies := this.Has["fetchCurrencies"]
-		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
-			currencies = (<-this.DerivedExchange.FetchCurrenciesAsync(params)).Value
-			// this.cachedCurrenciesMutex.Lock()
-			// this.Options["cachedCurrencies"] = currencies
-			this.Options.Store("cachedCurrencies", currencies)
-			// this.cachedCurrenciesMutex.Unlock()
-		}
-
-		fetched := <-this.DerivedExchange.FetchMarketsAsync(params)
-		if fetched.Err != nil {
-			panic(fetched.Err)
-		}
-		markets := fetched.Value
-
-		// this.cachedCurrenciesMutex.Lock()
-		// delete(this.Options, "cachedCurrencies")
-		// this.Options.Del
-		this.Options.Delete("cachedCurrencies")
-		// this.cachedCurrenciesMutex.Unlock()
-
-		// Lock only for writing
-		this.MarketsMutex.Lock()
-		result := this.SetMarkets(markets, currencies)
-		// prediction exchanges build an outcome lookup from the loaded markets via the
-		// PredictionExchange.SetMarkets override. Go has no virtual dispatch, so the base
-		// SetMarkets above bypasses it — invoke setOutcomesFromMarkets on the concrete
-		// instance when it implements it (non-prediction exchanges do not, so they are
-		// unaffected). Mirrors the TS override that runs inside setMarkets.
-		if pred, ok := this.Itf.(interface{ SetOutcomesFromMarkets() }); ok {
-			pred.SetOutcomesFromMarkets()
-		}
-		this.MarketsMutex.Unlock()
-
-		ch <- AsyncResult[any]{Value: result}
-	}()
 	return ch
 }
 

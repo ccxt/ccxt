@@ -557,30 +557,6 @@ public partial class BaseExchange
         return Convert.ToInt64(res);
     }
 
-    public async virtual Task<IDictionary<string, object>> loadMarketsHelper(bool reload = false, Dictionary<string, object> parameters = null)
-    {
-        if (!reload && this.markets != null)
-        {
-            if (this.markets_by_id == null)
-            {
-                return ((IDictionary<string, object>)((object)(this.setMarkets(this.markets))));
-            }
-            // return Task.FromResult(this.markets);
-            return ((IDictionary<string, object>)((object)(this.markets)));
-        }
-
-        object currencies = null;
-        var has = this.has as dict;
-        if (has["fetchCurrencies"] != null)
-        {
-            currencies = await this.fetchCurrencies();
-            this.options.TryAdd("cachedCurrencies", currencies);
-        }
-        var markets = await this.FetchMarkets();
-        this.options.TryRemove("cachedCurrencies", out _);
-        return ((IDictionary<string, object>)((object)(this.setMarkets(markets, currencies))));
-    }
-
     public virtual Task<IDictionary<string, object>> loadMarkets(bool? reload2 = null, object parameters2 = null)
     {
         var reload = reload2 == true;
@@ -597,6 +573,11 @@ public partial class BaseExchange
         }
 
         return marketsLoading;
+    }
+
+    public virtual void marketsMutexLocker(bool locked)
+    {
+        // stub for c#
     }
 
     public virtual async Task<List<MarketInterface>> FetchMarkets(object parameters = null)
