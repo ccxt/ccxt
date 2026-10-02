@@ -3266,6 +3266,9 @@ export default class lighter extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        if (timeout === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrdersAfter() requires a timeout argument');
+        }
         const isScheduled = (timeout !== 0);
         if (isScheduled && (((timeout as number) < 300000) || ((timeout as number) > 1296000000))) {
             throw new BadRequest (this.id + ' timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.');
