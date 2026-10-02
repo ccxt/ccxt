@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') }}
     timeout-minutes: 150
     steps:
