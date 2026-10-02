@@ -184,6 +184,7 @@ ccxt::any wsClientFuture (const ccxt::any& client, const ccxt::any& messageHash)
 ccxt::any wsClientReusableFuture (const ccxt::any& client, const ccxt::any& messageHash);
 ccxt::any wsClientSend (const ccxt::any& client, const ccxt::any& message);
 ccxt::any wsClientReset (const ccxt::any& client, const ccxt::any& error);
+ccxt::any wsClientClose (const ccxt::any& client);
 ccxt::any wsFutureResolve (const ccxt::any& future, const ccxt::any& value = ccxt::any {});
 ccxt::any wsFutureReject (const ccxt::any& future, const ccxt::any& error = ccxt::any {});
 ccxt::any makeExchangeError (const ccxt::any& errorClass, const ccxt::any& message);
