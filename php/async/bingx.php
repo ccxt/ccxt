@@ -6984,7 +6984,7 @@ class bingx extends Exchange {
         }
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $request['cancelOrderId'] = $id;
-        $request['cancelReplaceMode'] = 'STOP_ON_FAILURE';
+        $request['cancelReplaceMode'] = $this->safe_string($params, 'cancelReplaceMode', 'STOP_ON_FAILURE');
         if ($market['swap'] === true) {
             $response = Async\await($this->swapV1PrivatePostTradeCancelReplace($request));
             //
