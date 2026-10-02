@@ -2677,7 +2677,8 @@ class testMainClass {
             this.testToobit (),
             this.testWeex (),
             this.testFoxbit (),
-            this.testBithumb ()
+            this.testBithumb (),
+            this.testExtended ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -2958,6 +2959,61 @@ class testMainClass {
             reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['OPEN-API-PARTNER'] === id, 'bithumb - id: ' + id + ' not in headers (public endpoints).');
+        if (!isSync ()) {
+            await close (exchange);
+        }
+        return true;
+    }
+
+    async testExtended () {
+        if (this.lang === 'RUST') {
+            return false; // the extended static request suite is disabledRS as well
+        }
+        const exchange = this.initOfflineExchange ('extended');
+        exchange.privateKey = '0x12345';
+        exchange.options['account'] = { 'l2Key': '0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf', 'l2Vault': '123456' };
+        const builderId = '257624';
+        const builderFeeRate = '0.0001';
+        assert (exchange.options['builderFee'] === true, 'extended - builderFee is not enabled in options');
+        assert (exchange.options['builderId'] === builderId, 'extended - builderId: ' + builderId + ' not in options');
+        assert (exchange.options['builderFeeRate'] === builderFeeRate, 'extended - builderFeeRate: ' + builderFeeRate + ' not in options');
+        // default: the builder code and fee rate come from options
+        let request: Dict = {};
+        try {
+            await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        assert (request['builderId'] === builderId, 'extended - builderId: ' + request['builderId'] + ' different from options: ' + builderId);
+        assert (request['builderFee'] === builderFeeRate, 'extended - builderFee: ' + request['builderFee'] + ' different from options: ' + builderFeeRate);
+        assert (request['fee'] === '0.0005', 'extended - fee: ' + request['fee'] + ' should stay the base fee, the builder fee is a separate field');
+        // params override the fee rate, the builder code stays
+        request = {};
+        try {
+            await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000, { 'builderFeeRate': '0.0002' });
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        assert (request['builderFee'] === '0.0002', 'extended - builderFee: ' + request['builderFee'] + ' does not take the params value 0.0002');
+        assert (request['builderId'] === builderId, 'extended - builderId: ' + request['builderId'] + ' changed by a builderFeeRate param');
+        assert (!('builderFeeRate' in request), 'extended - builderFeeRate param leaked into the request');
+        // sandbox: the builder is only attached when passed explicitly in params
+        exchange.setSandboxMode (true);
+        request = {};
+        try {
+            await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        assert (!('builderId' in request), 'extended - sandbox attached builderId from options');
+        request = {};
+        try {
+            await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000, { 'builderId': '999', 'builderFeeRate': '0.0003' });
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        assert (request['builderId'] === '999', 'extended - sandbox builderId: ' + request['builderId'] + ' does not take the params value 999');
+        assert (request['builderFee'] === '0.0003', 'extended - sandbox builderFee: ' + request['builderFee'] + ' does not take the params value 0.0003');
         if (!isSync ()) {
             await close (exchange);
         }
