@@ -3,8 +3,6 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import { jwt } from './base/functions/rsa.js';
-import { ecdsa } from './base/functions/crypto.js';
-import { p256 } from '@noble/curves/nist.js';
 import Exchange from './abstract/coinbaseinternational.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
@@ -124,6 +122,10 @@ export default class coinbaseinternational extends Exchange {
                 'www': 'https://international.coinbase.com',
                 'doc': [
                     'https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/overview',
+                    'https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/technical#authentication',
+                    'https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication',
+                    'https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication#generating-a-jwt',
+                    'https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/access-and-refresh-tokens',
                     'https://docs.deribit.com',
                 ],
                 'fees': [
@@ -2809,40 +2811,33 @@ export default class coinbaseinternational extends Exchange {
      * @method
      * @description signs a short-lived CDP JWT that public/auth exchanges for a gateway access token
      * @see https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
+     * @see https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication#generating-a-jwt
+     * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/access-and-refresh-tokens
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/rest-api/authentication/post-publicauth
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/technical#authentication
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/deribit-partners#authentication
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/intx-partners#authentication
      * @param {int} seconds current timestamp in seconds
      * @param {boolean} [useEddsa] true for Ed25519 keys, false for ECDSA PEM keys
      * @returns {string} signed JWT
      */
     createAuthToken (seconds: Int, useEddsa = false) {
         const nonce = this.randomBytes (16);
-        // no uri/aud claims: the token authorizes the key at public/auth, not a single request
+        // public/auth exchanges this short-lived CDP JWT for the gateway access token
         const request: Dict = {
+            'aud': [ 'cdp_service' ],
             'sub': this.apiKey,
             'iss': 'cdp',
             'nbf': seconds,
             'exp': (seconds as number) + 120,
+            'iat': seconds,
         };
         if (useEddsa) {
             const byteArray = this.base64ToBinary (this.secret);
             const seed = this.arraySlice (byteArray, 0, 32);
             return jwt (request, seed, sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'EdDSA' });
         }
-        const header = {
-            'alg': 'ES256',
-            'typ': 'JWT',
-            'kid': this.apiKey,
-            'nonce': nonce,
-        };
-        const encodedHeader = this.urlencodeBase64 (this.json (header));
-        const encodedRequest = this.urlencodeBase64 (this.json (request));
-        const token = encodedHeader + '.' + encodedRequest;
-        const signedHash = ecdsa (token, this.secret, p256, sha256);
-        const rawR = signedHash['r'];
-        const rawS = signedHash['s'];
-        const r = rawR.padStart (64, '0');
-        const s = rawS.padStart (64, '0');
-        const signature = this.urlencodeBase64 (this.base16ToBinary (r + s));
-        return token + '.' + signature;
+        return jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
     }
 
     /**
@@ -2850,11 +2845,13 @@ export default class coinbaseinternational extends Exchange {
      * @method
      * @description exchanges a CDP JWT for a Deribit gateway access token
      * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/technical#authentication
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/overview
+     * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/access-and-refresh-tokens
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.forceRefresh] ignore the cached token and request a new one
      * @returns {string} a Deribit gateway access token
      */
-    async authenticateV2 (params = {}): Promise<string> {
+    async authenticateV2 (params = {}): Promise<Str> {
         const forceRefresh = this.safeBool (params, 'forceRefresh', false);
         const paramsOmitted = this.omit (params, 'forceRefresh');
         const now = this.milliseconds ();
@@ -2913,15 +2910,25 @@ export default class coinbaseinternational extends Exchange {
     override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const access = api;
         const rpcMethod = access + '/' + path;
-        const url = this.urls['api']['rest'] + '/' + rpcMethod;
+        const isNativeAuth = this.isNativeDeribitCredentials () && (access === 'public') && (path === 'auth');
+        const baseApiUrl = isNativeAuth ? 'https://www.deribit.com/api/v2' : this.urls['api']['rest'];
+        const url = baseApiUrl + '/' + rpcMethod;
         let requestParams: Dict = params;
         let requestHeaders: NullableDict = headers;
         if ((access === 'public') && (path === 'auth')) {
             this.checkRequiredCredentials ();
-            requestParams = this.extend ({
-                'grant_type': 'coinbase_cdp',
-                'token': this.createAuthToken (this.seconds (), this.isEddsaSecret ()),
-            }, params);
+            if (isNativeAuth) {
+                requestParams = this.extend ({
+                    'grant_type': 'client_credentials',
+                    'client_id': this.apiKey,
+                    'client_secret': this.secret,
+                }, params);
+            } else {
+                requestParams = this.extend ({
+                    'grant_type': 'coinbase_cdp',
+                    'token': this.createAuthToken (this.seconds (), this.isEddsaSecret ()),
+                }, params);
+            }
         } else if (access === 'private') {
             const accessToken = this.getV2AccessToken ();
             if (accessToken === undefined) {
@@ -2930,6 +2937,20 @@ export default class coinbaseinternational extends Exchange {
             requestHeaders = {
                 'Authorization': 'Bearer ' + accessToken,
             };
+        }
+        if ((access === 'private') && (path === 'get_leverage') && (method === 'GET')) {
+            const request = {
+                'jsonrpc': '2.0',
+                'id': this.nonce (),
+                'method': rpcMethod,
+                'params': requestParams,
+            };
+            let requestUrl = url;
+            if (Object.keys (requestParams).length > 0) {
+                requestUrl += '?' + this.urlencode (requestParams);
+            }
+            requestHeaders = this.extend ({ 'Content-Type': 'application/json' }, requestHeaders);
+            return { 'url': requestUrl, 'method': method, 'body': this.json (request), 'headers': requestHeaders };
         }
         if (method === 'GET') {
             let requestUrl = url;
@@ -2963,6 +2984,14 @@ export default class coinbaseinternational extends Exchange {
         const useV2CloudApiKey = this.safeBool (this.options, 'v2CloudAPiKey', false);
         const secretLength = this.secret.length;
         return (secretLength === 88) || useV2CloudApiKey || this.secret.endsWith ('=');
+    }
+
+    isCdpCredentials (): boolean {
+        return this.apiKey.indexOf ('organizations/') >= 0 || this.secret.indexOf ('BEGIN') >= 0 || this.isEddsaSecret ();
+    }
+
+    isNativeDeribitCredentials (): boolean {
+        return (this.apiKey !== undefined) && (this.apiKey !== '') && (this.secret !== undefined) && (this.secret !== '') && !this.isCdpCredentials ();
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

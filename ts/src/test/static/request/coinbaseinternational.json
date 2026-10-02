@@ -1,6 +1,7 @@
 {
     "exchange": "coinbaseinternational",
     "skipKeys": [
+        "id",
         "start_timestamp",
         "end_timestamp"
     ],
@@ -153,7 +154,7 @@
                 "input": [
                     "BTC/USDC:USDC"
                 ],
-                "output": null
+                "output": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"private/get_leverage\",\"params\":{\"instrument_name\":\"BTC_USDC-PERPETUAL\"}}"
             }
         ],
         "setLeverage": [

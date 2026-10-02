@@ -1061,6 +1061,90 @@
         },
         "alias": null
     },
+    "BTC/USD:USD": {
+        "id": "BIP-20DEC30-CDE",
+        "symbol": "BTC/USD:USD",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0005,
+        "contractSize": 0.01,
+        "expiry": null,
+        "expiryDatetime": null,
+        "precision": {
+            "amount": 1,
+            "price": 5
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1,
+                "max": 100000000
+            },
+            "price": {},
+            "cost": {
+                "min": 0,
+                "max": 100000000
+            }
+        },
+        "info": {
+            "product_id": "BIP-20DEC30-CDE",
+            "product_type": "FUTURE",
+            "quote_currency_id": "USD",
+            "base_currency_id": "",
+            "base_increment": "1",
+            "quote_increment": "0.01",
+            "quote_min_size": "0",
+            "quote_max_size": "100000000",
+            "base_min_size": "1",
+            "base_max_size": "100000000",
+            "is_disabled": false,
+            "trading_disabled": false,
+            "display_name": "BTC PERP",
+            "product_venue": "FCM",
+            "future_product_details": {
+                "venue": "cde",
+                "contract_code": "BIP",
+                "contract_expiry": "2089-12-30T16:00:00Z",
+                "contract_size": "0.01",
+                "contract_root_unit": "BTC",
+                "group_description": "Bitcoin Perpetual Futures",
+                "contract_expiry_timezone": "America/New_York",
+                "risk_managed_by": "MANAGED_BY_FCM",
+                "contract_expiry_type": "EXPIRING",
+                "funding_interval": "3600s",
+                "perpetual_details": {
+                    "open_interest": "0",
+                    "funding_rate": "0",
+                    "funding_time": "2026-10-02T00:00:00Z",
+                    "max_leverage": "50"
+                },
+                "contract_display_name": "BTC PERP"
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [],
+            "maker": []
+        },
+        "alias": null
+    },
     "BTC/USD:USD-240426": {
         "id": "BIT-26APR24-CDE",
         "symbol": "BTC/USD:USD-240426",
