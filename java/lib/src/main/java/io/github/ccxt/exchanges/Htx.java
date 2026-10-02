@@ -4500,6 +4500,10 @@ public class Htx extends HtxApi
     public String networkIdToCode(String networkId, String currencyCode)
     {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        if (java.util.Objects.equals(networkId, null))
+        {
+            return null;
+        }
         List<Object> keys = Helpers.objectKeys(this.options.get("networkNamesByChainIds"));
         Integer keysLength = ((List<?>)keys).size();
         if (java.util.Objects.equals(keysLength, 0))
@@ -8264,7 +8268,7 @@ public class Htx extends HtxApi
         //     }
         //
         Long timestamp = this.safeInteger(transaction, "created-at");
-        String code = this.safeCurrencyCode(this.safeString(transaction, "currency"), (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(this.safeString(transaction, "currency"), currency);
         String type = this.safeString(transaction, "type");
         if (java.util.Objects.equals(type, "withdraw"))
         {
@@ -8277,11 +8281,9 @@ public class Htx extends HtxApi
         }
         String networkId = this.safeString(transaction, "chain");
         String txHash = this.safeString(transaction, "tx-hash");
-        if (java.util.Objects.equals(txHash, null))
-        {
-            throw new ExchangeError((this.id + " parseTransaction() missing txHash")) ;
-        }
-        if (java.util.Objects.equals(networkId, "ETH") && ((String)txHash).indexOf("0x") < 0)
+        // a freshly created withdrawal has no tx-hash yet, the create
+        // endpoint returns only { "status": "ok", "data": "<id>" }
+        if ((!java.util.Objects.equals(txHash, null)) && (java.util.Objects.equals(networkId, "ETH")) && (((String)txHash).indexOf("0x") < 0))
         {
             txHash = ("0x" + txHash);
         }

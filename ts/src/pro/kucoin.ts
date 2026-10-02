@@ -7,7 +7,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, FeeString, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1449,7 +1449,7 @@ export default class kucoin extends kucoinRest {
             const paramsExtended = this.extend (paramsDepth, {
                 'depth': depth,
             });
-            const orderbook: Ob = await this.subscribePublicUta (messageHash, channel, symbolResolved, paramsExtended, subscription);
+            const orderbook: WsOrderBook = await this.subscribePublicUta (messageHash, channel, symbolResolved, paramsExtended, subscription);
             return orderbook.limit ();
         }
         return await this.watchOrderBookForSymbols ([ symbol ], limit, paramsUta);
@@ -1567,7 +1567,7 @@ export default class kucoin extends kucoinRest {
                 'limit': limit,
             };
         }
-        const orderbook: Ob = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, paramsMethod, subscription);
+        const orderbook: WsOrderBook = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, paramsMethod, subscription);
         return orderbook.limit ();
     }
 
@@ -1812,7 +1812,7 @@ export default class kucoin extends kucoinRest {
         return cache.length;
     }
 
-    override handleBookDelta (orderbook: Ob, delta: any) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
         let timestamp = this.safeIntegerProduct (delta, 'M', 0.000001);
         if (timestamp === undefined) {
             timestamp = this.safeInteger2 (delta, 'time', 'timestamp');

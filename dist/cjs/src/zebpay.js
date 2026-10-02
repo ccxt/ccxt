@@ -1804,7 +1804,7 @@ class zebpay extends zebpay$1["default"] {
             'liquidationPrice': this.safeNumber(position, 'liquidationPrice'),
             'markPrice': undefined,
             'collateral': undefined,
-            'marginType': 'isolated',
+            'marginMode': 'isolated',
             'side': this.safeString(position, 'side'),
             'percentage': undefined,
         };

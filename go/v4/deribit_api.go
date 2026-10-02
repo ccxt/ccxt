@@ -8,736 +8,736 @@
 package ccxt
 
 // PublicGetAuth returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetAuth(args ...any) <-chan any {
-	return this.Fetch2Async("auth", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetAuth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "auth", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetExchangeToken returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetExchangeToken(args ...any) <-chan any {
-	return this.Fetch2Async("exchange_token", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetExchangeToken(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "exchange_token", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetForkToken returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetForkToken(args ...any) <-chan any {
-	return this.Fetch2Async("fork_token", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetForkToken(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "fork_token", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSetHeartbeat returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetSetHeartbeat(args ...any) <-chan any {
-	return this.Fetch2Async("set_heartbeat", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetSetHeartbeat(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "set_heartbeat", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetDisableHeartbeat returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetDisableHeartbeat(args ...any) <-chan any {
-	return this.Fetch2Async("disable_heartbeat", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetDisableHeartbeat(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "disable_heartbeat", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetTime returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetTime(args ...any) <-chan any {
-	return this.Fetch2Async("get_time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetHello returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetHello(args ...any) <-chan any {
-	return this.Fetch2Async("hello", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetHello(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "hello", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetStatus returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetStatus(args ...any) <-chan any {
-	return this.Fetch2Async("status", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "status", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTest returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetTest(args ...any) <-chan any {
-	return this.Fetch2Async("test", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetTest(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "test", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSubscribe returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetSubscribe(args ...any) <-chan any {
-	return this.Fetch2Async("subscribe", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetSubscribe(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "subscribe", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetUnsubscribe returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetUnsubscribe(args ...any) <-chan any {
-	return this.Fetch2Async("unsubscribe", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetUnsubscribe(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "unsubscribe", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetUnsubscribeAll returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetUnsubscribeAll(args ...any) <-chan any {
-	return this.Fetch2Async("unsubscribe_all", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetUnsubscribeAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "unsubscribe_all", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetAnnouncements returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetAnnouncements(args ...any) <-chan any {
-	return this.Fetch2Async("get_announcements", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetAnnouncements(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_announcements", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetAprHistory returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetAprHistory(args ...any) <-chan any {
-	return this.Fetch2Async("get_apr_history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetAprHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_apr_history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetBookSummaryByCurrency returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetBookSummaryByCurrency(args ...any) <-chan any {
-	return this.Fetch2Async("get_book_summary_by_currency", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetBookSummaryByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_book_summary_by_currency", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetBookSummaryByInstrument returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetBookSummaryByInstrument(args ...any) <-chan any {
-	return this.Fetch2Async("get_book_summary_by_instrument", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetBookSummaryByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_book_summary_by_instrument", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetContractSize returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetContractSize(args ...any) <-chan any {
-	return this.Fetch2Async("get_contract_size", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetContractSize(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_contract_size", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetCurrencies returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetCurrencies(args ...any) <-chan any {
-	return this.Fetch2Async("get_currencies", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetCurrencies(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_currencies", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetDeliveryPrices returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetDeliveryPrices(args ...any) <-chan any {
-	return this.Fetch2Async("get_delivery_prices", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetDeliveryPrices(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_delivery_prices", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetExpirations returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetExpirations(args ...any) <-chan any {
-	return this.Fetch2Async("get_expirations", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetExpirations(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_expirations", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetFundingChartData returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetFundingChartData(args ...any) <-chan any {
-	return this.Fetch2Async("get_funding_chart_data", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetFundingChartData(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_funding_chart_data", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetFundingRateHistory returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetFundingRateHistory(args ...any) <-chan any {
-	return this.Fetch2Async("get_funding_rate_history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetFundingRateHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_funding_rate_history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetFundingRateValue returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetFundingRateValue(args ...any) <-chan any {
-	return this.Fetch2Async("get_funding_rate_value", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetFundingRateValue(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_funding_rate_value", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetHistoricalVolatility returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetHistoricalVolatility(args ...any) <-chan any {
-	return this.Fetch2Async("get_historical_volatility", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetHistoricalVolatility(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_historical_volatility", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetIndex returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetIndex(args ...any) <-chan any {
-	return this.Fetch2Async("get_index", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetIndex(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_index", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetIndexChartData returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetIndexChartData(args ...any) <-chan any {
-	return this.Fetch2Async("get_index_chart_data", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetIndexChartData(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_index_chart_data", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetIndexPrice returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetIndexPrice(args ...any) <-chan any {
-	return this.Fetch2Async("get_index_price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetIndexPrice(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_index_price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetIndexPriceNames returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetIndexPriceNames(args ...any) <-chan any {
-	return this.Fetch2Async("get_index_price_names", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetIndexPriceNames(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_index_price_names", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetInstrument returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetInstrument(args ...any) <-chan any {
-	return this.Fetch2Async("get_instrument", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_instrument", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetInstruments returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetInstruments(args ...any) <-chan any {
-	return this.Fetch2Async("get_instruments", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetInstruments(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_instruments", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetLastSettlementsByCurrency returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetLastSettlementsByCurrency(args ...any) <-chan any {
-	return this.Fetch2Async("get_last_settlements_by_currency", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetLastSettlementsByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_last_settlements_by_currency", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetLastSettlementsByInstrument returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetLastSettlementsByInstrument(args ...any) <-chan any {
-	return this.Fetch2Async("get_last_settlements_by_instrument", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetLastSettlementsByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_last_settlements_by_instrument", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetLastTradesByCurrency returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetLastTradesByCurrency(args ...any) <-chan any {
-	return this.Fetch2Async("get_last_trades_by_currency", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetLastTradesByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_last_trades_by_currency", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetLastTradesByCurrencyAndTime returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetLastTradesByCurrencyAndTime(args ...any) <-chan any {
-	return this.Fetch2Async("get_last_trades_by_currency_and_time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetLastTradesByCurrencyAndTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_last_trades_by_currency_and_time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetLastTradesByInstrument returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetLastTradesByInstrument(args ...any) <-chan any {
-	return this.Fetch2Async("get_last_trades_by_instrument", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetLastTradesByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_last_trades_by_instrument", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetLastTradesByInstrumentAndTime returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetLastTradesByInstrumentAndTime(args ...any) <-chan any {
-	return this.Fetch2Async("get_last_trades_by_instrument_and_time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetLastTradesByInstrumentAndTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_last_trades_by_instrument_and_time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetMarkPriceHistory returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetMarkPriceHistory(args ...any) <-chan any {
-	return this.Fetch2Async("get_mark_price_history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetMarkPriceHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_mark_price_history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetOrderBook returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetOrderBook(args ...any) <-chan any {
-	return this.Fetch2Async("get_order_book", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetOrderBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_order_book", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetSupportedIndexNames returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetSupportedIndexNames(args ...any) <-chan any {
-	return this.Fetch2Async("get_supported_index_names", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetSupportedIndexNames(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_supported_index_names", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetTradeVolumes returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetTradeVolumes(args ...any) <-chan any {
-	return this.Fetch2Async("get_trade_volumes", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetTradeVolumes(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_trade_volumes", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetTradingviewChartData returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetTradingviewChartData(args ...any) <-chan any {
-	return this.Fetch2Async("get_tradingview_chart_data", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetTradingviewChartData(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_tradingview_chart_data", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetVolatilityIndexData returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetGetVolatilityIndexData(args ...any) <-chan any {
-	return this.Fetch2Async("get_volatility_index_data", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetGetVolatilityIndexData(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_volatility_index_data", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTicker returns a channel that yields a JSON object.
-func (this *Deribit) PublicGetTicker(args ...any) <-chan any {
-	return this.Fetch2Async("ticker", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PublicGetTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ticker", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetLogout returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetLogout(args ...any) <-chan any {
-	return this.Fetch2Async("logout", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetLogout(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "logout", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetEnableCancelOnDisconnect returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetEnableCancelOnDisconnect(args ...any) <-chan any {
-	return this.Fetch2Async("enable_cancel_on_disconnect", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetEnableCancelOnDisconnect(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "enable_cancel_on_disconnect", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetDisableCancelOnDisconnect returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetDisableCancelOnDisconnect(args ...any) <-chan any {
-	return this.Fetch2Async("disable_cancel_on_disconnect", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetDisableCancelOnDisconnect(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "disable_cancel_on_disconnect", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetCancelOnDisconnect returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetCancelOnDisconnect(args ...any) <-chan any {
-	return this.Fetch2Async("get_cancel_on_disconnect", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetCancelOnDisconnect(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_cancel_on_disconnect", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSubscribe returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetSubscribe(args ...any) <-chan any {
-	return this.Fetch2Async("subscribe", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetSubscribe(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "subscribe", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetUnsubscribe returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetUnsubscribe(args ...any) <-chan any {
-	return this.Fetch2Async("unsubscribe", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetUnsubscribe(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "unsubscribe", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetUnsubscribeAll returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetUnsubscribeAll(args ...any) <-chan any {
-	return this.Fetch2Async("unsubscribe_all", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetUnsubscribeAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "unsubscribe_all", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetChangeApiKeyName returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetChangeApiKeyName(args ...any) <-chan any {
-	return this.Fetch2Async("change_api_key_name", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetChangeApiKeyName(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "change_api_key_name", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetChangeScopeInApiKey returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetChangeScopeInApiKey(args ...any) <-chan any {
-	return this.Fetch2Async("change_scope_in_api_key", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetChangeScopeInApiKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "change_scope_in_api_key", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetChangeSubaccountName returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetChangeSubaccountName(args ...any) <-chan any {
-	return this.Fetch2Async("change_subaccount_name", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetChangeSubaccountName(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "change_subaccount_name", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetCreateApiKey returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetCreateApiKey(args ...any) <-chan any {
-	return this.Fetch2Async("create_api_key", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetCreateApiKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "create_api_key", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetCreateSubaccount returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetCreateSubaccount(args ...any) <-chan any {
-	return this.Fetch2Async("create_subaccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetCreateSubaccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "create_subaccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetDisableApiKey returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetDisableApiKey(args ...any) <-chan any {
-	return this.Fetch2Async("disable_api_key", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetDisableApiKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "disable_api_key", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetDisableTfaForSubaccount returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetDisableTfaForSubaccount(args ...any) <-chan any {
-	return this.Fetch2Async("disable_tfa_for_subaccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetDisableTfaForSubaccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "disable_tfa_for_subaccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetEnableAffiliateProgram returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetEnableAffiliateProgram(args ...any) <-chan any {
-	return this.Fetch2Async("enable_affiliate_program", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetEnableAffiliateProgram(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "enable_affiliate_program", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetEnableApiKey returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetEnableApiKey(args ...any) <-chan any {
-	return this.Fetch2Async("enable_api_key", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetEnableApiKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "enable_api_key", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetAccessLog returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetAccessLog(args ...any) <-chan any {
-	return this.Fetch2Async("get_access_log", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetAccessLog(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_access_log", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetAccountSummary returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetAccountSummary(args ...any) <-chan any {
-	return this.Fetch2Async("get_account_summary", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetAccountSummary(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_account_summary", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetAccountSummaries returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetAccountSummaries(args ...any) <-chan any {
-	return this.Fetch2Async("get_account_summaries", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetAccountSummaries(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_account_summaries", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetAffiliateProgramInfo returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetAffiliateProgramInfo(args ...any) <-chan any {
-	return this.Fetch2Async("get_affiliate_program_info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetAffiliateProgramInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_affiliate_program_info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetCurrencies returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetCurrencies(args ...any) <-chan any {
-	return this.Fetch2Async("get_currencies", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetCurrencies(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_currencies", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetEmailLanguage returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetEmailLanguage(args ...any) <-chan any {
-	return this.Fetch2Async("get_email_language", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetEmailLanguage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_email_language", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetNewAnnouncements returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetNewAnnouncements(args ...any) <-chan any {
-	return this.Fetch2Async("get_new_announcements", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetNewAnnouncements(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_new_announcements", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetPortfolioMargins returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetPortfolioMargins(args ...any) <-chan any {
-	return this.Fetch2Async("get_portfolio_margins", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetPortfolioMargins(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_portfolio_margins", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetPosition returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetPosition(args ...any) <-chan any {
-	return this.Fetch2Async("get_position", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetPosition(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_position", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetPositions returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetPositions(args ...any) <-chan any {
-	return this.Fetch2Async("get_positions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetPositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_positions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetSubaccounts returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetSubaccounts(args ...any) <-chan any {
-	return this.Fetch2Async("get_subaccounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetSubaccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_subaccounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetSubaccountsDetails returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetSubaccountsDetails(args ...any) <-chan any {
-	return this.Fetch2Async("get_subaccounts_details", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetSubaccountsDetails(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_subaccounts_details", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetTransactionLog returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetTransactionLog(args ...any) <-chan any {
-	return this.Fetch2Async("get_transaction_log", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetTransactionLog(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_transaction_log", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetListApiKeys returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetListApiKeys(args ...any) <-chan any {
-	return this.Fetch2Async("list_api_keys", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetListApiKeys(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "list_api_keys", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetRemoveApiKey returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetRemoveApiKey(args ...any) <-chan any {
-	return this.Fetch2Async("remove_api_key", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetRemoveApiKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "remove_api_key", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetRemoveSubaccount returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetRemoveSubaccount(args ...any) <-chan any {
-	return this.Fetch2Async("remove_subaccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetRemoveSubaccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "remove_subaccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetResetApiKey returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetResetApiKey(args ...any) <-chan any {
-	return this.Fetch2Async("reset_api_key", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetResetApiKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "reset_api_key", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSetAnnouncementAsRead returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetSetAnnouncementAsRead(args ...any) <-chan any {
-	return this.Fetch2Async("set_announcement_as_read", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetSetAnnouncementAsRead(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "set_announcement_as_read", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSetApiKeyAsDefault returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetSetApiKeyAsDefault(args ...any) <-chan any {
-	return this.Fetch2Async("set_api_key_as_default", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetSetApiKeyAsDefault(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "set_api_key_as_default", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSetDisabledTradingProducts returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetSetDisabledTradingProducts(args ...any) <-chan any {
-	return this.Fetch2Async("set_disabled_trading_products", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetSetDisabledTradingProducts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "set_disabled_trading_products", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSetEmailForSubaccount returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetSetEmailForSubaccount(args ...any) <-chan any {
-	return this.Fetch2Async("set_email_for_subaccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetSetEmailForSubaccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "set_email_for_subaccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSetEmailLanguage returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetSetEmailLanguage(args ...any) <-chan any {
-	return this.Fetch2Async("set_email_language", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetSetEmailLanguage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "set_email_language", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSetPasswordForSubaccount returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetSetPasswordForSubaccount(args ...any) <-chan any {
-	return this.Fetch2Async("set_password_for_subaccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetSetPasswordForSubaccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "set_password_for_subaccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSimulatePortfolio returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetSimulatePortfolio(args ...any) <-chan any {
-	return this.Fetch2Async("simulate_portfolio", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetSimulatePortfolio(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "simulate_portfolio", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetToggleNotificationsFromSubaccount returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetToggleNotificationsFromSubaccount(args ...any) <-chan any {
-	return this.Fetch2Async("toggle_notifications_from_subaccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetToggleNotificationsFromSubaccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "toggle_notifications_from_subaccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetToggleSubaccountLogin returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetToggleSubaccountLogin(args ...any) <-chan any {
-	return this.Fetch2Async("toggle_subaccount_login", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetToggleSubaccountLogin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "toggle_subaccount_login", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApproveBlockTrade returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetApproveBlockTrade(args ...any) <-chan any {
-	return this.Fetch2Async("approve_block_trade", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetApproveBlockTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "approve_block_trade", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetExecuteBlockTrade returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetExecuteBlockTrade(args ...any) <-chan any {
-	return this.Fetch2Async("execute_block_trade", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+func (this *Deribit) PrivateGetExecuteBlockTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "execute_block_trade", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetGetBlockTrade returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetBlockTrade(args ...any) <-chan any {
-	return this.Fetch2Async("get_block_trade", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetBlockTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_block_trade", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetBlockTradeRequests returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetBlockTradeRequests(args ...any) <-chan any {
-	return this.Fetch2Async("get_block_trade_requests", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetBlockTradeRequests(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_block_trade_requests", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetBlockTrades returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetBlockTrades(args ...any) <-chan any {
-	return this.Fetch2Async("get_block_trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetBlockTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_block_trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetLastBlockTradesByCurrency returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetLastBlockTradesByCurrency(args ...any) <-chan any {
-	return this.Fetch2Async("get_last_block_trades_by_currency", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetLastBlockTradesByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_last_block_trades_by_currency", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetInvalidateBlockTradeSignature returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetInvalidateBlockTradeSignature(args ...any) <-chan any {
-	return this.Fetch2Async("invalidate_block_trade_signature", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetInvalidateBlockTradeSignature(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "invalidate_block_trade_signature", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetRejectBlockTrade returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetRejectBlockTrade(args ...any) <-chan any {
-	return this.Fetch2Async("reject_block_trade", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetRejectBlockTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "reject_block_trade", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSimulateBlockTrade returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetSimulateBlockTrade(args ...any) <-chan any {
-	return this.Fetch2Async("simulate_block_trade", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+func (this *Deribit) PrivateGetSimulateBlockTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "simulate_block_trade", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetVerifyBlockTrade returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetVerifyBlockTrade(args ...any) <-chan any {
-	return this.Fetch2Async("verify_block_trade", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+func (this *Deribit) PrivateGetVerifyBlockTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "verify_block_trade", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetBuy returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetBuy(args ...any) <-chan any {
-	return this.Fetch2Async("buy", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+func (this *Deribit) PrivateGetBuy(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "buy", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetSell returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetSell(args ...any) <-chan any {
-	return this.Fetch2Async("sell", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+func (this *Deribit) PrivateGetSell(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sell", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetEdit returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetEdit(args ...any) <-chan any {
-	return this.Fetch2Async("edit", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+func (this *Deribit) PrivateGetEdit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "edit", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetEditByLabel returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetEditByLabel(args ...any) <-chan any {
-	return this.Fetch2Async("edit_by_label", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+func (this *Deribit) PrivateGetEditByLabel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "edit_by_label", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetCancel returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetCancel(args ...any) <-chan any {
-	return this.Fetch2Async("cancel", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+func (this *Deribit) PrivateGetCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetCancelAll returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetCancelAll(args ...any) <-chan any {
-	return this.Fetch2Async("cancel_all", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+func (this *Deribit) PrivateGetCancelAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_all", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetCancelAllByCurrency returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetCancelAllByCurrency(args ...any) <-chan any {
-	return this.Fetch2Async("cancel_all_by_currency", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+func (this *Deribit) PrivateGetCancelAllByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_all_by_currency", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetCancelAllByInstrument returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetCancelAllByInstrument(args ...any) <-chan any {
-	return this.Fetch2Async("cancel_all_by_instrument", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+func (this *Deribit) PrivateGetCancelAllByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_all_by_instrument", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetCancelByLabel returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetCancelByLabel(args ...any) <-chan any {
-	return this.Fetch2Async("cancel_by_label", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+func (this *Deribit) PrivateGetCancelByLabel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_by_label", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetCancelQuotes returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetCancelQuotes(args ...any) <-chan any {
-	return this.Fetch2Async("cancel_quotes", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+func (this *Deribit) PrivateGetCancelQuotes(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_quotes", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetClosePosition returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetClosePosition(args ...any) <-chan any {
-	return this.Fetch2Async("close_position", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+func (this *Deribit) PrivateGetClosePosition(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "close_position", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetGetMargins returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetMargins(args ...any) <-chan any {
-	return this.Fetch2Async("get_margins", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetMargins(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_margins", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetMmpConfig returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetMmpConfig(args ...any) <-chan any {
-	return this.Fetch2Async("get_mmp_config", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetMmpConfig(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_mmp_config", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetMmpStatus returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetMmpStatus(args ...any) <-chan any {
-	return this.Fetch2Async("get_mmp_status", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetMmpStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_mmp_status", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOpenOrders returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetOpenOrders(args ...any) <-chan any {
-	return this.Fetch2Async("get_open_orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_open_orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOpenOrdersByCurrency returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetOpenOrdersByCurrency(args ...any) <-chan any {
-	return this.Fetch2Async("get_open_orders_by_currency", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetOpenOrdersByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_open_orders_by_currency", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOpenOrdersByInstrument returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetOpenOrdersByInstrument(args ...any) <-chan any {
-	return this.Fetch2Async("get_open_orders_by_instrument", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetOpenOrdersByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_open_orders_by_instrument", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOpenOrdersByLabel returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetOpenOrdersByLabel(args ...any) <-chan any {
-	return this.Fetch2Async("get_open_orders_by_label", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetOpenOrdersByLabel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_open_orders_by_label", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOrderHistoryByCurrency returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetOrderHistoryByCurrency(args ...any) <-chan any {
-	return this.Fetch2Async("get_order_history_by_currency", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetOrderHistoryByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_order_history_by_currency", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOrderHistoryByInstrument returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetOrderHistoryByInstrument(args ...any) <-chan any {
-	return this.Fetch2Async("get_order_history_by_instrument", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetOrderHistoryByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_order_history_by_instrument", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOrderMarginByIds returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetOrderMarginByIds(args ...any) <-chan any {
-	return this.Fetch2Async("get_order_margin_by_ids", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetOrderMarginByIds(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_order_margin_by_ids", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOrderState returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetOrderState(args ...any) <-chan any {
-	return this.Fetch2Async("get_order_state", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetOrderState(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_order_state", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOrderStateByLabel returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetOrderStateByLabel(args ...any) <-chan any {
-	return this.Fetch2Async("get_order_state_by_label", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetOrderStateByLabel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_order_state_by_label", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetStopOrderHistory returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetStopOrderHistory(args ...any) <-chan any {
-	return this.Fetch2Async("get_stop_order_history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetStopOrderHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_stop_order_history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetTriggerOrderHistory returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetTriggerOrderHistory(args ...any) <-chan any {
-	return this.Fetch2Async("get_trigger_order_history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetTriggerOrderHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_trigger_order_history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetUserTradesByCurrency returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetUserTradesByCurrency(args ...any) <-chan any {
-	return this.Fetch2Async("get_user_trades_by_currency", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetUserTradesByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_user_trades_by_currency", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetUserTradesByCurrencyAndTime returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetUserTradesByCurrencyAndTime(args ...any) <-chan any {
-	return this.Fetch2Async("get_user_trades_by_currency_and_time", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetUserTradesByCurrencyAndTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_user_trades_by_currency_and_time", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetUserTradesByInstrument returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetUserTradesByInstrument(args ...any) <-chan any {
-	return this.Fetch2Async("get_user_trades_by_instrument", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetUserTradesByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_user_trades_by_instrument", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetUserTradesByInstrumentAndTime returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetUserTradesByInstrumentAndTime(args ...any) <-chan any {
-	return this.Fetch2Async("get_user_trades_by_instrument_and_time", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetUserTradesByInstrumentAndTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_user_trades_by_instrument_and_time", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetUserTradesByOrder returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetUserTradesByOrder(args ...any) <-chan any {
-	return this.Fetch2Async("get_user_trades_by_order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetUserTradesByOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_user_trades_by_order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetMassQuote returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetMassQuote(args ...any) <-chan any {
-	return this.Fetch2Async("mass_quote", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+func (this *Deribit) PrivateGetMassQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "mass_quote", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetMovePositions returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetMovePositions(args ...any) <-chan any {
-	return this.Fetch2Async("move_positions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+func (this *Deribit) PrivateGetMovePositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "move_positions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetResetMmp returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetResetMmp(args ...any) <-chan any {
-	return this.Fetch2Async("reset_mmp", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetResetMmp(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "reset_mmp", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSetMmpConfig returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetSetMmpConfig(args ...any) <-chan any {
-	return this.Fetch2Async("set_mmp_config", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetSetMmpConfig(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "set_mmp_config", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetSettlementHistoryByInstrument returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetSettlementHistoryByInstrument(args ...any) <-chan any {
-	return this.Fetch2Async("get_settlement_history_by_instrument", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetSettlementHistoryByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_settlement_history_by_instrument", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetSettlementHistoryByCurrency returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetSettlementHistoryByCurrency(args ...any) <-chan any {
-	return this.Fetch2Async("get_settlement_history_by_currency", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetSettlementHistoryByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_settlement_history_by_currency", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetAddToAddressBook returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetAddToAddressBook(args ...any) <-chan any {
-	return this.Fetch2Async("add_to_address_book", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetAddToAddressBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "add_to_address_book", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetCancelTransferById returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetCancelTransferById(args ...any) <-chan any {
-	return this.Fetch2Async("cancel_transfer_by_id", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetCancelTransferById(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_transfer_by_id", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetCancelWithdrawal returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetCancelWithdrawal(args ...any) <-chan any {
-	return this.Fetch2Async("cancel_withdrawal", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetCancelWithdrawal(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_withdrawal", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetCreateDepositAddress returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetCreateDepositAddress(args ...any) <-chan any {
-	return this.Fetch2Async("create_deposit_address", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetCreateDepositAddress(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "create_deposit_address", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetAddressBook returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetAddressBook(args ...any) <-chan any {
-	return this.Fetch2Async("get_address_book", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetAddressBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_address_book", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetCurrentDepositAddress returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetCurrentDepositAddress(args ...any) <-chan any {
-	return this.Fetch2Async("get_current_deposit_address", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetCurrentDepositAddress(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_current_deposit_address", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetDeposits returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetDeposits(args ...any) <-chan any {
-	return this.Fetch2Async("get_deposits", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetDeposits(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_deposits", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetRewardEligibility returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetRewardEligibility(args ...any) <-chan any {
-	return this.Fetch2Async("get_reward_eligibility", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetRewardEligibility(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_reward_eligibility", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetTransfers returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetTransfers(args ...any) <-chan any {
-	return this.Fetch2Async("get_transfers", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetTransfers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_transfers", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetWithdrawals returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetGetWithdrawals(args ...any) <-chan any {
-	return this.Fetch2Async("get_withdrawals", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetGetWithdrawals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_withdrawals", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetRemoveFromAddressBook returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetRemoveFromAddressBook(args ...any) <-chan any {
-	return this.Fetch2Async("remove_from_address_book", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetRemoveFromAddressBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "remove_from_address_book", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSetClearanceOriginator returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetSetClearanceOriginator(args ...any) <-chan any {
-	return this.Fetch2Async("set_clearance_originator", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetSetClearanceOriginator(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "set_clearance_originator", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSubmitTransferToSubaccount returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetSubmitTransferToSubaccount(args ...any) <-chan any {
-	return this.Fetch2Async("submit_transfer_to_subaccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetSubmitTransferToSubaccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "submit_transfer_to_subaccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSubmitTransferToUser returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetSubmitTransferToUser(args ...any) <-chan any {
-	return this.Fetch2Async("submit_transfer_to_user", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetSubmitTransferToUser(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "submit_transfer_to_user", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetUpdateInAddressBook returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetUpdateInAddressBook(args ...any) <-chan any {
-	return this.Fetch2Async("update_in_address_book", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetUpdateInAddressBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "update_in_address_book", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWithdraw returns a channel that yields a JSON object.
-func (this *Deribit) PrivateGetWithdraw(args ...any) <-chan any {
-	return this.Fetch2Async("withdraw", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Deribit) PrivateGetWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "withdraw", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

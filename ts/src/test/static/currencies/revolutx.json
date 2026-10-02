@@ -1,25 +1,22 @@
 {
     "BTC": {
         "info": {
-            "symbol": "BTC",
             "name": "Bitcoin",
+            "symbol": "BTC",
             "scale": 8,
             "asset_type": "crypto",
             "status": "active",
             "id": "BTC"
         },
         "id": "BTC",
-        "numericId": null,
         "code": "BTC",
-        "precision": 0.00000001,
-        "type": "crypto",
         "name": "Bitcoin",
         "active": true,
+        "type": "crypto",
         "deposit": null,
         "withdraw": null,
+        "precision": 1e-8,
         "fee": null,
-        "fees": {},
-        "networks": {},
         "limits": {
             "amount": {
                 "min": null,
@@ -33,7 +30,8 @@
                 "min": null,
                 "max": null
             }
-        }
+        },
+        "networks": {}
     },
     "USD": {
         "info": {
@@ -83,7 +81,7 @@
         "id": "ETH",
         "numericId": null,
         "code": "ETH",
-        "precision": 0.00000001,
+        "precision": 1e-8,
         "type": "crypto",
         "name": "Ethereum",
         "active": true,
@@ -106,5 +104,39 @@
                 "max": null
             }
         }
+    },
+    "USDC": {
+        "info": {
+            "name": "US Dollar Coin",
+            "symbol": "USDC",
+            "scale": 6,
+            "asset_type": "crypto",
+            "status": "active",
+            "id": "USDC"
+        },
+        "id": "USDC",
+        "code": "USDC",
+        "name": "US Dollar Coin",
+        "active": true,
+        "type": "crypto",
+        "deposit": null,
+        "withdraw": null,
+        "precision": 0.000001,
+        "fee": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {}
     }
 }

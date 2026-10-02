@@ -62,7 +62,7 @@ use function abs, array_change_key_case, array_filter, array_is_list, array_key_
     stripos, strlen, strpos, strtolower, strtotime, strtoupper, strtr, strval, substr, sys_get_temp_dir,
     time, trim, unpack, urldecode, urlencode, usleep, usort, var_export;
 
-$version = '4.5.84';
+$version = '4.5.85';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -81,10 +81,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.84';
+    const VERSION = '4.5.85';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.84';
+    public static $ccxt_version = '4.5.85';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1796,16 +1796,16 @@ class BaseExchange {
         $orders_arr = array();
         foreach ($orders as $order) {
             $orders_arr[] = array(
-                'marketIndex' => $order['market_index'],
-                'clientOrderIndex' => $order['client_order_index'],
-                'baseAmount' => $order['base_amount'],
-                'price' => $order['avg_execution_price'],
-                'isAsk' => $order['is_ask'],
-                'type' => $order['order_type'],
-                'timeInForce' => $order['time_in_force'],
-                'reduceOnly' => $order['reduce_only'],
-                'triggerPrice' => $order['trigger_price'],
-                'orderExpiry' => $order['order_expiry'],
+                'MarketIndex' => $order['market_index'],
+                'ClientOrderIndex' => $order['client_order_index'],
+                'BaseAmount' => $order['base_amount'],
+                'Price' => $order['avg_execution_price'],
+                'IsAsk' => $order['is_ask'],
+                'Type' => $order['order_type'],
+                'TimeInForce' => $order['time_in_force'],
+                'ReduceOnly' => $order['reduce_only'],
+                'TriggerPrice' => $order['trigger_price'],
+                'OrderExpiry' => $order['order_expiry'],
             );
         }
         $result = $signer->signCreateGroupedOrders(

@@ -1646,8 +1646,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             put( "side", Xt.this.safeStringLower2(order, "sd", "orderSide") );
             put( "price", Xt.this.safeNumber2(order, "p", "price", (Object) null) );
             put( "stopPrice", null );
-            put( "stopLoss", null );
-            put( "takeProfit", null );
+            put( "stopLossPrice", null );
+            put( "takeProfitPrice", null );
             put( "amount", Xt.this.safeString2(order, "oq", "origQty") );
             put( "filled", Xt.this.safeString2(order, "eq", "executedQty") );
             put( "remaining", Xt.this.safeString(order, "lq") );

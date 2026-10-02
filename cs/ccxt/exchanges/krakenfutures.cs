@@ -3810,7 +3810,7 @@ public partial class krakenfutures : Exchange
             { "markPrice", null },
             { "lastPrice", this.safeNumber(position, "executionPrice") },
             { "collateral", null },
-            { "marginType", marginType },
+            { "marginMode", marginType },
             { "side", side },
             { "percentage", null },
         };

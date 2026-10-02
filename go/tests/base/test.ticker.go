@@ -101,10 +101,10 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	//
 	// close price
 	//
-	var lastString any = exchange.SafeString(entry, "last")
-	var closeString any = exchange.SafeString(entry, "close")
+	var lastString any = ccxt.DerefScalar(exchange.SafeString(entry, "last"))
+	var closeString any = ccxt.DerefScalar(exchange.SafeString(entry, "close"))
 	Assert(((closeString == nil) && (lastString == nil)) || ccxt.Precise.StringEq(lastString, closeString), Add("`last` != `close`", logText))
-	var openPrice any = exchange.SafeString(entry, "open")
+	var openPrice any = ccxt.DerefScalar(exchange.SafeString(entry, "open"))
 	//
 	// base & quote volumes
 	//
@@ -126,7 +126,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 			var baseHigh *string = ccxt.Precise.StringMul(baseVolume, high)
 			// to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
 			var mPrecision any = exchange.SafeDict(market, "precision")
-			var amountPrecision any = exchange.SafeString(mPrecision, "amount")
+			var amountPrecision any = ccxt.DerefScalar(exchange.SafeString(mPrecision, "amount"))
 			var tolerance string = "1.0001"
 			if amountPrecision != nil {
 				baseLow = ccxt.Precise.StringMul(ccxt.Precise.StringSub(baseVolume, amountPrecision), low)
@@ -161,8 +161,8 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	//
 	// the Manual defines both against open: change is `last - open`, and
 	// percentage is `(change/open) * 100`
-	var changeString any = exchange.SafeString(entry, "change")
-	var percentageString any = exchange.SafeString(entry, "percentage")
+	var changeString any = ccxt.DerefScalar(exchange.SafeString(entry, "change"))
+	var percentageString any = ccxt.DerefScalar(exchange.SafeString(entry, "percentage"))
 	if (changeString != nil) && (open != nil) && (close != nil) && !(InOp(skippedProperties, "compareChange")) {
 		// the window is the larger of two roundings: float residue on a change
 		// safeTicker derived, which needs a part per million of the price, and an
@@ -210,7 +210,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	//
 	// vwap
 	//
-	var vwap any = exchange.SafeString(entry, "vwap")
+	var vwap any = ccxt.DerefScalar(exchange.SafeString(entry, "vwap"))
 	if vwap != nil {
 		// todo
 		// Assert (high !== undefined, 'vwap is defined, but high is not' + logText);
@@ -225,8 +225,8 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 			Assert((baseVolume != nil), Add("quoteVolume & vwap is defined, but baseVolume is not", logText))
 		}
 	}
-	var askString any = exchange.SafeString(entry, "ask")
-	var bidString any = exchange.SafeString(entry, "bid")
+	var askString any = ccxt.DerefScalar(exchange.SafeString(entry, "ask"))
+	var bidString any = ccxt.DerefScalar(exchange.SafeString(entry, "bid"))
 	if (askString != nil) && (bidString != nil) && !(InOp(skippedProperties, "spread")) {
 		// greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
 		AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "ask", exchange.SafeString(entry, "bid"))
@@ -239,8 +239,8 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		var medianHigh *string = ccxt.Precise.StringMul(medianPrice, ccxt.Precise.StringAdd("1", allowedPercentageVariation))
 		Assert(ccxt.Precise.StringGe(lastString, medianLow) && ccxt.Precise.StringLe(lastString, medianHigh), Add("last price should be within 1% of the bid/ask median price", logText))
 	}
-	var percentage any = exchange.SafeString(entry, "percentage")
-	var change any = exchange.SafeString(entry, "change")
+	var percentage any = ccxt.DerefScalar(exchange.SafeString(entry, "percentage"))
+	var change any = ccxt.DerefScalar(exchange.SafeString(entry, "change"))
 	// option markets are exempt from the UPPER percentage/change caps only:
 	// expiry-day convexity makes any finite cap wrong - a formerly-OTM
 	// contract moving into the money legitimately gains 1000x+ (observed: a
@@ -263,7 +263,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		//
 		// change
 		//
-		var approxValue any = exchange.SafeStringN(entry, []any{"open", "close", "average", "bid", "ask", "vwap", "previousClose"})
+		var approxValue any = ccxt.DerefScalar(exchange.SafeStringN(entry, []any{"open", "close", "average", "bid", "ask", "vwap", "previousClose"}))
 		if change != nil {
 			// - should be above -price and (for non-options) below +price*maxIncrease
 			Assert(ccxt.Precise.StringGe(change, ccxt.Precise.StringNeg(approxValue)), Add("change should be above -price ", logText))

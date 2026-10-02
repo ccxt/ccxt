@@ -1324,7 +1324,6 @@
                     }
                 },
                 "parsedResponse": {
-                    "isMultiLeg": false,
                     "id": "0x00",
                     "clientOrderId": "17734008980001",
                     "timestamp": 1773400897769,
@@ -1485,7 +1484,6 @@
                     }
                 },
                 "parsedResponse": {
-                    "isMultiLeg": false,
                     "id": "0x00",
                     "clientOrderId": "17734008450001",
                     "timestamp": 1773400844855,
@@ -1641,7 +1639,6 @@
                     }
                 },
                 "parsedResponse": {
-                    "isMultiLeg": false,
                     "id": "0x00",
                     "clientOrderId": "17733960520001",
                     "timestamp": 1773396052378,
@@ -1797,7 +1794,6 @@
                     }
                 },
                 "parsedResponse": {
-                    "isMultiLeg": false,
                     "id": "0x00",
                     "clientOrderId": "17733959610001",
                     "timestamp": 1773395961381,
@@ -1953,7 +1949,6 @@
                     }
                 },
                 "parsedResponse": {
-                    "isMultiLeg": false,
                     "id": "0x00",
                     "clientOrderId": "17733958810001",
                     "timestamp": 1773395881319,
@@ -2115,7 +2110,6 @@
                     }
                 },
                 "parsedResponse": {
-                    "isMultiLeg": false,
                     "id": "0x00",
                     "clientOrderId": "1770274343",
                     "timestamp": 1770274344616,
@@ -2275,7 +2269,6 @@
                     }
                 },
                 "parsedResponse": {
-                    "isMultiLeg": false,
                     "id": "0x00",
                     "clientOrderId": "1770274292",
                     "timestamp": 1770274295302,
@@ -2434,7 +2427,6 @@
                     }
                 },
                 "parsedResponse": {
-                    "isMultiLeg": false,
                     "id": "0x00",
                     "clientOrderId": "1768237177",
                     "timestamp": 1768237176812,
@@ -2593,7 +2585,6 @@
                     }
                 },
                 "parsedResponse": {
-                    "isMultiLeg": false,
                     "id": "0x00",
                     "clientOrderId": "1768236866",
                     "timestamp": 1768236865187,
@@ -2748,7 +2739,6 @@
                     }
                 },
                 "parsedResponse": {
-                    "isMultiLeg": false,
                     "id": "0x00",
                     "clientOrderId": "1766239807",
                     "timestamp": 1766239807867,

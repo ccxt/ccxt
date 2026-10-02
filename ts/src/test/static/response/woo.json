@@ -2821,8 +2821,7 @@
                             "cost": "0",
                             "currency": null
                         },
-                        "network": null,
-                        "tokenSide": "DEPOSIT"
+                        "network": null
                     }
                 ]
             }
@@ -2908,8 +2907,7 @@
                             "cost": "2",
                             "currency": "USDC"
                         },
-                        "network": null,
-                        "tokenSide": "WITHDRAW"
+                        "network": null
                     }
                 ]
             }

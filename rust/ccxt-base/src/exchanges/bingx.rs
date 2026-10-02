@@ -1602,11 +1602,6 @@ impl BingxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("swap/trace/currentTrack".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(2));
-    m
-}));
         m.insert("PFutures/traderDetail".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(2));
@@ -1651,11 +1646,6 @@ impl BingxCore {
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("swap/trace/closeTrackOrder".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(2));
-    m
-}));
         m.insert("swap/trace/setTPSL".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(2));
@@ -4909,8 +4899,8 @@ impl BingxCore {
  * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
  * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
  * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
- * @param {float} [params.stopLossPrice] stop loss trigger price
- * @param {float} [params.takeProfitPrice] take profit trigger price
+ * @param {float} [params.stopLossPrice] stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
+ * @param {float} [params.takeProfitPrice] take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
  * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
  * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
@@ -5213,7 +5203,12 @@ impl BingxCore {
                 m.insert("stop_limit".to_string(), Value::Str("limit".into()));
                 m.insert("stop_market".to_string(), Value::Str("market".into()));
                 m.insert("take_profit_market".to_string(), Value::Str("market".into()));
+                m.insert("take_profit".to_string(), Value::Str("limit".into()));
                 m.insert("stop".to_string(), Value::Str("limit".into()));
+                m.insert("take_stop_limit".to_string(), Value::Str("limit".into()));
+                m.insert("take_stop_market".to_string(), Value::Str("market".into()));
+                m.insert("trailing_stop_market".to_string(), Value::Str("market".into()));
+                m.insert("trailing_tp_sl".to_string(), Value::Str("market".into()));
             m
         });
         return self.safe_string(types, type_var.clone(), &[type_var.clone()]);
@@ -5517,6 +5512,11 @@ impl BingxCore {
         let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { marketId.clone() } else { Value::Null }), market, Value::Null, marketType.clone()]);
         let mut side: Value = self.safe_string_lower2(orderData.clone(), Value::Str("side".into()), Value::Str("S".into()), &[]);
         let mut timestamp: Value = self.safe_integer_n(orderData.clone(), Value::from(vec![Value::Str("time".into()), Value::Str("transactTime".into()), Value::Str("E".into()), Value::Str("createdTime".into())]), &[]);
+        let mut transactTime: Value = self.safe_string_k(orderData.clone(), "transactTime", &[Value::Str("".into())]);
+        if (Value::Int(transactTime.len() as i64).as_f64() == Some(10.0)) {
+            // spot conditional orders are created with transactTime in seconds
+            timestamp = self.safe_timestamp_k(orderData.clone(), "transactTime", &[]);
+        }
         let mut lastTradeTimestamp: Value = self.safe_integer2(orderData.clone(), Value::Str("updateTime".into()), Value::Str("T".into()), &[]);
         let mut statusId: Value = self.safe_string_upper_n(orderData.clone(), Value::from(vec![Value::Str("status".into()), Value::Str("X".into()), Value::Str("orderStatus".into())]), &[]);
         let mut feeCurrencyCode: Value = self.safe_string2(orderData.clone(), Value::Str("feeAsset".into()), Value::Str("N".into()), &[]);
@@ -5559,7 +5559,9 @@ impl BingxCore {
         let mut rawType: Value = self.safe_string_lower2(orderData.clone(), Value::Str("type".into()), Value::Str("o".into()), &[]);
         let mut stopPrice: Value = self.omit_zero(self.safe_string2(orderData.clone(), Value::Str("StopPrice".into()), Value::Str("stopPrice".into()), &[]));
         let mut triggerPrice: Value = stopPrice.clone();
-        if (stopPrice != Value::Null) {
+        // spot TAKE_STOP_* is a plain conditional order, the venue does not say whether it protects a position
+        let mut isTakeStop: bool = (rawType != Value::Null) && (Value::Int(rawType.as_str().and_then(|__s| __s.find("take_stop")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64));
+        if (stopPrice != Value::Null) && !isTakeStop {
             if (Value::Int(rawType.as_str().and_then(|__s| __s.find("stop")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64)) && (stopLossPrice == Value::Null) {
                 stopLossPrice = stopPrice.clone();
                 triggerPrice = Value::Null;
@@ -6582,14 +6584,14 @@ impl BingxCore {
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
         let mut toId: Value = self.safe_string(accountsByType, toAccount.clone(), &[toAccount.clone()]);
-        if (fromId.as_str() == Some("swap")) {
+        if (fromAccount.as_str() == Some("swap")) {
             if (subType.as_str() == Some("inverse")) {
                 fromId = Value::Str("coinMPerp".into());
             }  else {
                 fromId = Value::Str("USDTMPerp".into());
             }
         }
-        if (toId.as_str() == Some("swap")) {
+        if (toAccount.as_str() == Some("swap")) {
             if (subType.as_str() == Some("inverse")) {
                 toId = Value::Str("coinMPerp".into());
             }  else {
@@ -7447,7 +7449,7 @@ impl BingxCore {
         let mut subType: Value = subTypeparamsSubTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (subType.as_str() == Some("inverse")) {
-            paramsTrades = paramsSubType.clone();
+            paramsTrades = self.omit(paramsSubType.clone(), Value::Str("orderId".into()), &[]);
             let mut orderId: Option<String> = self.safe_string_k(paramsSubType.clone(), "orderId", &[]).as_str().map(str::to_owned);
             if (orderId.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires an orderId argument for inverse swap trades".into()))));
@@ -8145,9 +8147,9 @@ impl BingxCore {
         if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" editOrder() is not supported for inverse swap markets".into()))));
         }
-        let mut request: Value = self.create_order_request(symbol, type_var, side, amount, &[price, params]);
+        let mut request: Value = self.create_order_request(symbol, type_var, side, amount, &[price, params.clone()]);
         add_element_to_object(&mut request, &Value::Str("cancelOrderId".into()), id);
-        add_element_to_object(&mut request, &Value::Str("cancelReplaceMode".into()), Value::Str("STOP_ON_FAILURE".into()));
+        add_element_to_object(&mut request, &Value::Str("cancelReplaceMode".into()), self.safe_string_k(params, "cancelReplaceMode", &[Value::Str("STOP_ON_FAILURE".into())]));
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             response = self.swap_v1_private_post_trade_cancel_replace(&[request.clone()]).await;

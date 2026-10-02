@@ -1518,7 +1518,7 @@ class testMainClass {
     }
 
     public function is_vacant_value($exchange, $value) {
-        // C# only. The unified types are structs, so the two sides of the comparison
+        // C# and Go only. The unified types are structs, so the two sides of the comparison
         // carry different key sets for reasons that are structural, not behavioural:
         //   - a struct field the venue never populated is still a field, and comes
         //     back as an explicit null the fixture may not carry (Balance.debt);
@@ -1589,7 +1589,7 @@ class testMainClass {
         if ($new_output_is_empty && $stored_output_is_empty) {
             return true;
         }
-        if ($this->lang === 'C#') {
+        if (($this->lang === 'C#') || ($this->lang === 'GO')) {
             // a struct is never null: an absent `fee` comes back as a Fee whose every
             // field is null, and an absent `fees` as []. The stored fixture writes the
             // same thing as a bare null. Treat "carries no data" as equal on both
@@ -1608,7 +1608,7 @@ class testMainClass {
             $new_output_keys = is_array($new_output) ? array_keys($new_output) : array();
             $stored_keys_length = count($stored_output_keys);
             $new_keys_length = count($new_output_keys);
-            if ($this->lang === 'C#') {
+            if (($this->lang === 'C#') || ($this->lang === 'GO')) {
                 // the unified types are structs there, so an unpopulated field still
                 // comes back (as an explicit null) and a unified key with no struct
                 // field cannot come back at all; count only the keys that carry data
@@ -1620,7 +1620,7 @@ class testMainClass {
             for ($i = 0; $i < count($stored_output_keys); $i++) {
                 $key = $stored_output_keys[$i];
                 if (!($exchange->in_array($key, $new_output_keys))) {
-                    if (($this->lang === 'C#') && $this->is_vacant_value($exchange, $stored_output[$key])) {
+                    if ((($this->lang === 'C#') || ($this->lang === 'GO')) && $this->is_vacant_value($exchange, $stored_output[$key])) {
                         continue;
                     }
                     $this->assert_static_error(false, 'output key missing: ' . $key, $stored_output, $new_output);
@@ -1670,12 +1670,12 @@ class testMainClass {
                 $is_computed_undefined = ($sanitized_new_output === null);
                 $is_stored_undefined = ($sanitized_stored_output === null);
                 $should_be_same = ($is_computed_bool === $is_stored_bool) && ($is_computed_string === $is_stored_string) && ($is_computed_undefined === $is_stored_undefined);
-                if (!$should_be_same && (($this->lang === 'PY') || ($this->lang === 'C#')) && !$is_computed_bool && !$is_stored_bool && !$is_computed_undefined && !$is_stored_undefined) {
+                if (!$should_be_same && (($this->lang === 'PY') || ($this->lang === 'C#') || ($this->lang === 'GO')) && !$is_computed_bool && !$is_stored_bool && !$is_computed_undefined && !$is_stored_undefined) {
                     // python parses json numbers natively (arbitrary-precision ints), while fixtures
                     // captured under number-quoting store them as strings - compare numerically like C#/GO
                     // c#: a typed core returns the unified `Num` fields as a real double, whereas the
                     // fixture was captured through the untyped path and kept the venue's quoted string
-                    // (cost "0.02" vs 0.02) - same value, different json spelling
+                    // (cost "0.02" vs 0.02) - same value, different json spelling; go structs likewise
                     // pass the sanitized VALUES, not their string forms: C# renders a small
                     // double as "6.79E-05", which parseToNumeric cannot parse. And only the
                     // STRING side needs parsing - parseToNumeric round-trips a double through
@@ -2539,7 +2539,7 @@ class testMainClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex(), $this->test_foxbit(), $this->test_bithumb()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex(), $this->test_foxbit(), $this->test_bithumb(), $this->test_extended()];
             \React\Async\await(\React\Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -2561,8 +2561,7 @@ class testMainClass {
                 $spot_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
             }
             $client_order_id = $spot_order_request['newClientOrderId'];
-            $spot_id_string = ((string) $spot_id);
-            assert(str_starts_with($client_order_id, $spot_id_string) === true, 'binance - spot clientOrderId: ' . $client_order_id . ' does not start with spotId' . $spot_id_string);
+            assert(str_starts_with($client_order_id, $spot_id) === true, 'binance - spot clientOrderId: ' . $client_order_id . ' does not start with spotId' . $spot_id);
             $swap_order_request = array();
             try {
                 \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
@@ -2577,8 +2576,7 @@ class testMainClass {
             }
             // linear swap
             $client_order_id_swap = $swap_order_request['newClientOrderId'];
-            $swap_id_string = ((string) $swap_id);
-            assert(str_starts_with($client_order_id_swap, $swap_id_string) === true, 'binance - swap clientOrderId: ' . $client_order_id_swap . ' does not start with swapId' . $swap_id_string);
+            assert(str_starts_with($client_order_id_swap, $swap_id) === true, 'binance - swap clientOrderId: ' . $client_order_id_swap . ' does not start with swapId' . $swap_id);
             // inverse swap
             $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
             assert(str_starts_with($client_order_id_inverse, $inverse_swap_id) === true, 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $inverse_swap_id);
@@ -2593,7 +2591,7 @@ class testMainClass {
             }
             $client_algo_id_swap = $swap_algo_order_request['clientAlgoId'];
             assert($client_algo_id_swap !== null, 'binance - swap conditional order must send clientAlgoId');
-            assert(str_starts_with($client_algo_id_swap, $swap_id_string) === true, 'binance - swap clientAlgoId: ' . $client_algo_id_swap . ' does not start with swapId' . $swap_id_string);
+            assert(str_starts_with($client_algo_id_swap, $swap_id) === true, 'binance - swap clientAlgoId: ' . $client_algo_id_swap . ' does not start with swapId' . $swap_id);
             // inverse swap conditional order
             $inverse_algo_order_request = array();
             try {
@@ -2628,7 +2626,7 @@ class testMainClass {
             for ($i = 0; $i < count($batch_orders); $i++) {
                 $current = $batch_orders[$i];
                 $current_client_order_id = $current['newClientOrderId'];
-                assert(str_starts_with($current_client_order_id, $swap_id_string) === true, 'binance createOrders - clientOrderId: ' . $current_client_order_id . ' does not start with swapId' . $swap_id_string);
+                assert(str_starts_with($current_client_order_id, $swap_id) === true, 'binance createOrders - clientOrderId: ' . $current_client_order_id . ' does not start with swapId' . $swap_id);
             }
             // linear conditional orders cannot be batched
             $linear_conditional_batch_not_supported = false;
@@ -2673,6 +2671,81 @@ class testMainClass {
             $inverse_conditional_client_order_id = $exchange->safe_string($inverse_conditional_batch_order, 'newClientOrderId');
             assert($inverse_conditional_client_order_id !== null, 'binance createOrders - inverse conditional order must send newClientOrderId');
             assert(str_starts_with($inverse_conditional_client_order_id, $inverse_swap_id) === true, 'binance createOrders - inverse conditional clientOrderId: ' . $inverse_conditional_client_order_id . ' does not start with inverseSwapId' . $inverse_swap_id);
+            // quarterly futures use the prefix of their fapi/dapi side, not the inverse one
+            $linear_future_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('ETH/USDT:USDT-261225', 'limit', 'buy', 1, 2000));
+            } catch(\Throwable $e) {
+                $linear_future_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            }
+            $client_order_id_linear_future = $linear_future_order_request['newClientOrderId'];
+            assert(str_starts_with($client_order_id_linear_future, $swap_id) === true, 'binance - linear future clientOrderId: ' . $client_order_id_linear_future . ' does not start with swapId' . $swap_id);
+            $inverse_future_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('ETH/USD:ETH-261225', 'limit', 'buy', 1, 2000));
+            } catch(\Throwable $e) {
+                $inverse_future_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            }
+            $client_order_id_inverse_future = $inverse_future_order_request['newClientOrderId'];
+            assert(str_starts_with($client_order_id_inverse_future, $inverse_swap_id) === true, 'binance - inverse future clientOrderId: ' . $client_order_id_inverse_future . ' does not start with inverseSwapId' . $inverse_swap_id);
+            // the implicit order endpoints inject the broker id of their api section
+            // skipped in the sync flavours: callExchangeMethodDynamically is async-only there
+            if (!is_sync()) {
+                $implicit_dapi_order_request = array();
+                try {
+                    \React\Async\await(call_exchange_method_dynamically($exchange, 'dapiPrivatePostOrder', [array(
+    'symbol' => 'ETHUSD_PERP',
+    'side' => 'SELL',
+    'type' => 'LIMIT',
+    'quantity' => '1',
+    'price' => '4100',
+    'timeInForce' => 'GTC',
+)]));
+                } catch(\Throwable $e) {
+                    $implicit_dapi_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+                }
+                $implicit_dapi_client_order_id = $implicit_dapi_order_request['newClientOrderId'];
+                assert(str_starts_with($implicit_dapi_client_order_id, $inverse_swap_id) === true, 'binance - implicit dapi clientOrderId: ' . $implicit_dapi_client_order_id . ' does not start with inverseSwapId' . $inverse_swap_id);
+                $implicit_dapi_batch_request = array();
+                try {
+                    \React\Async\await(call_exchange_method_dynamically($exchange, 'dapiPrivatePostBatchOrders', [array(
+    'batchOrders' => [array(
+    'symbol' => 'ETHUSD_PERP',
+    'side' => 'SELL',
+    'type' => 'LIMIT',
+    'quantity' => '1',
+    'price' => '4100',
+    'timeInForce' => 'GTC',
+)],
+)]));
+                } catch(\Throwable $e) {
+                    $implicit_dapi_batch_request = $this->urlencoded_to_dict($exchange->last_request_body);
+                }
+                $implicit_dapi_batch_orders = $exchange->safe_list($implicit_dapi_batch_request, 'batchOrders', []);
+                $implicit_dapi_batch_order = $exchange->safe_dict($implicit_dapi_batch_orders, 0, array());
+                $implicit_dapi_batch_client_order_id = $exchange->safe_string($implicit_dapi_batch_order, 'newClientOrderId');
+                assert($implicit_dapi_batch_client_order_id !== null, 'binance - implicit dapi batch order must inject newClientOrderId');
+                assert(str_starts_with($implicit_dapi_batch_client_order_id, $inverse_swap_id) === true, 'binance - implicit dapi batch clientOrderId: ' . $implicit_dapi_batch_client_order_id . ' does not start with inverseSwapId' . $inverse_swap_id);
+                // the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
+                $implicit_fapi_algo_order_request = array();
+                try {
+                    \React\Async\await(call_exchange_method_dynamically($exchange, 'fapiPrivatePostAlgoOrder', [array(
+    'symbol' => 'ETHUSDT',
+    'side' => 'SELL',
+    'type' => 'STOP',
+    'algoType' => 'CONDITIONAL',
+    'quantity' => '1',
+    'price' => '4100',
+    'triggerPrice' => '4200',
+    'timeInForce' => 'GTC',
+)]));
+                } catch(\Throwable $e) {
+                    $implicit_fapi_algo_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+                }
+                $implicit_fapi_client_algo_id = $exchange->safe_string($implicit_fapi_algo_order_request, 'clientAlgoId');
+                assert($implicit_fapi_client_algo_id !== null, 'binance - implicit fapi algo order must inject clientAlgoId');
+                assert(str_starts_with($implicit_fapi_client_algo_id, $swap_id) === true, 'binance - implicit fapi clientAlgoId: ' . $implicit_fapi_client_algo_id . ' does not start with swapId' . $swap_id);
+            }
             if (!is_sync()) {
                 \React\Async\await(close($exchange));
             }
@@ -2783,6 +2856,71 @@ class testMainClass {
                 $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
             }
             assert($req_headers['OPEN-API-PARTNER'] === $id, 'bithumb - id: ' . $id . ' not in headers (public endpoints).');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_extended() {
+        return Async\async(function () {
+            if ($this->lang === 'RUST') {
+                return false;  // the extended static request suite is disabledRS as well
+            }
+            $exchange = $this->init_offline_exchange('extended');
+            $exchange->privateKey = '0x12345';
+            $exchange->options['account'] = array(
+                'l2Key' => '0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf',
+                'l2Vault' => '123456',
+            );
+            $builder_id = '257624';
+            $builder_fee_rate = '0.0001';
+            assert($exchange->options['builderFee'] === true, 'extended - builderFee is not enabled in options');
+            assert($exchange->options['builderId'] === $builder_id, 'extended - builderId: ' . $builder_id . ' not in options');
+            assert($exchange->options['builderFeeRate'] === $builder_fee_rate, 'extended - builderFeeRate: ' . $builder_fee_rate . ' not in options');
+            // default: the builder code and fee rate come from options
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            assert($request['builderId'] === $builder_id, 'extended - builderId: ' . $request['builderId'] . ' different from options: ' . $builder_id);
+            assert($request['builderFee'] === $builder_fee_rate, 'extended - builderFee: ' . $request['builderFee'] . ' different from options: ' . $builder_fee_rate);
+            assert($request['fee'] === '0.0005', 'extended - fee: ' . $request['fee'] . ' should stay the base fee, the builder fee is a separate field');
+            // params override the fee rate, the builder code stays
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000, array(
+                    'builderFeeRate' => '0.0002',
+                )));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            assert($request['builderFee'] === '0.0002', 'extended - builderFee: ' . $request['builderFee'] . ' does not take the params value 0.0002');
+            assert($request['builderId'] === $builder_id, 'extended - builderId: ' . $request['builderId'] . ' changed by a builderFeeRate param');
+            assert(!(is_array($request) && array_key_exists('builderFeeRate', $request)), 'extended - builderFeeRate param leaked into the request');
+            // sandbox: the builder is only attached when passed explicitly in params
+            $exchange->set_sandbox_mode(true);
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            assert(!(is_array($request) && array_key_exists('builderId', $request)), 'extended - sandbox attached builderId from options');
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000, array(
+                    'builderId' => '999',
+                    'builderFeeRate' => '0.0003',
+                )));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            assert($request['builderId'] === '999', 'extended - sandbox builderId: ' . $request['builderId'] . ' does not take the params value 999');
+            assert($request['builderFee'] === '0.0003', 'extended - sandbox builderFee: ' . $request['builderFee'] . ' does not take the params value 0.0003');
             if (!is_sync()) {
                 \React\Async\await(close($exchange));
             }

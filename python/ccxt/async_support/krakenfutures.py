@@ -3240,7 +3240,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'markPrice': None,
             'lastPrice': self.safe_number(position, 'executionPrice'),
             'collateral': None,
-            'marginType': marginType,
+            'marginMode': marginType,
             'side': side,
             'percentage': None,
         }

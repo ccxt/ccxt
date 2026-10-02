@@ -4,6 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { goStructBoxedReturn } from './go-struct-returns.js';
 
 const GO_CHAN_TABLE_DIR = path.join (path.dirname (fileURLToPath (import.meta.url)), 'go-chan-tables');
 // calls whose hand-written Go signature returns this type (go/v4/exchange_*.go)
@@ -248,6 +249,11 @@ export function goChanSetBaseReturnsForTest (map: Map<string, string> | undefine
 // `this.M` on R: R's own declaration in the file decides. Otherwise R must directly embed Exchange (package ccxt)
 // or ccxt.PredictionExchange; the promoted method is the shallowest declaration, which must have a concrete type.
 export function goChanMethodReturn (masked: string, receiver: string, name: string): string | undefined {
+    // struct-return names: every call site is boxed back (go-struct-returns), whatever disk says
+    const boxed = goStructBoxedReturn (name);
+    if (boxed !== undefined) {
+        return (boxed === '') ? undefined : boxed;
+    }
     if (new RegExp ('^func \\(this \\*' + receiver + '\\) ' + name + '\\(', 'm').test (masked)) {
         return goChanOwnReturn (masked, receiver, name);
     }
@@ -652,7 +658,7 @@ export function goChanSelfTest (): string[] {
     ok (bound.includes ('\t\tchValue := this.Extend(a, map[string]any{\n\t\t\t"k": 1,\n\t\t})\n\t\tch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}\n\t\treturn nil'), 'bound call send');
     ok (bound.includes ('\tchValue := map[string]any{}\n\tch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}\n'), 'bound literal send');
     ok (throws ('\tif a != nil {\n\t\tch <- this.Extend(a)\n\t}\n\tpanic(\"x\")\n'), 'bound send without return rejected');
-    ok (throws ('\tch <- this.ParseOrder(a)\n\treturn nil\n'), 'any-typed call rejected');
+    ok (throws ('\tch <- this.ParseThing(a)\n\treturn nil\n'), 'any-typed call rejected');
     const ownOk = goChanCarrierPass ('package ccxt\n' + core ('X', '\tch <- this.ParseRows(a)\n\treturn nil\n') + 'func (this *X) ParseRows(a any) map[string]any {\n\treturn nil\n}\n', table);
     ok (ownOk.includes ('\tchValue := this.ParseRows(a)\n\tch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}\n'), 'own typed call send');
     // G10K-gochan2: inherited base returns

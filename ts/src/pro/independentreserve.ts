@@ -6,7 +6,7 @@ import { ROUND, DECIMAL_PLACES, PAD_WITH_ZERO } from '../base/functions/number.j
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, OrderBook, Trade, Dict , Market, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -161,7 +161,7 @@ export default class independentreserve extends independentreserveRest {
         const subscription: Dict = {
             'receivedSnapshot': false,
         };
-        const orderbook: Ob = await this.watch (url, messageHash, undefined, messageHash, subscription);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, undefined, messageHash, subscription);
         return orderbook.limit ();
     }
 

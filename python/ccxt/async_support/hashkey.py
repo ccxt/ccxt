@@ -3585,7 +3585,7 @@ class hashkey(Exchange, ImplicitAPI):
             'trades': None,
             'fee': {
                 'currency': self.safe_currency_code(feeCurrncyId),
-                'amount': self.omit_zero(self.safe_string(order, 'feeAmount')),
+                'cost': self.omit_zero(self.safe_string(order, 'feeAmount')),
             },
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,

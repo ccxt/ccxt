@@ -1230,7 +1230,7 @@ class testMainClass:
         return (value <= 0) and (value >= 0)
 
     def is_vacant_value(self, exchange, value):
-        # C# only. The unified types are structs, so the two sides of the comparison
+        # C# and Go only. The unified types are structs, so the two sides of the comparison
         # carry different key sets for reasons that are structural, not behavioural:
         #   - a struct field the venue never populated is still a field, and comes
         #     back as an explicit null the fixture may not carry (Balance.debt);
@@ -1285,7 +1285,7 @@ class testMainClass:
         stored_output_is_empty = self.is_empty_output_value(exchange, stored_output)
         if new_output_is_empty and stored_output_is_empty:
             return True
-        if self.lang == 'C#':
+        if (self.lang == 'C#') or (self.lang == 'GO'):
             # a struct is never null: an absent `fee` comes back as a Fee whose every
             # field is null, and an absent `fees` as []. The stored fixture writes the
             # same thing as a bare null. Treat "carries no data" as equal on both
@@ -1301,7 +1301,7 @@ class testMainClass:
             new_output_keys = list(new_output.keys())
             stored_keys_length = len(stored_output_keys)
             new_keys_length = len(new_output_keys)
-            if self.lang == 'C#':
+            if (self.lang == 'C#') or (self.lang == 'GO'):
                 # the unified types are structs there, so an unpopulated field still
                 # comes back (as an explicit null) and a unified key with no struct
                 # field cannot come back at all; count only the keys that carry data
@@ -1312,7 +1312,7 @@ class testMainClass:
             for i in range(0, len(stored_output_keys)):
                 key = stored_output_keys[i]
                 if not (exchange.in_array(key, new_output_keys)):
-                    if (self.lang == 'C#') and self.is_vacant_value(exchange, stored_output[key]):
+                    if ((self.lang == 'C#') or (self.lang == 'GO')) and self.is_vacant_value(exchange, stored_output[key]):
                         continue
                     self.assert_static_error(False, 'output key missing: ' + key, stored_output, new_output)
                 if exchange.in_array(key, skip_keys):
@@ -1357,12 +1357,12 @@ class testMainClass:
                 is_computed_undefined = (sanitized_new_output is None)
                 is_stored_undefined = (sanitized_stored_output is None)
                 should_be_same = (is_computed_bool == is_stored_bool) and (is_computed_string == is_stored_string) and (is_computed_undefined == is_stored_undefined)
-                if not should_be_same and ((self.lang == 'PY') or (self.lang == 'C#')) and not is_computed_bool and not is_stored_bool and not is_computed_undefined and not is_stored_undefined:
+                if not should_be_same and ((self.lang == 'PY') or (self.lang == 'C#') or (self.lang == 'GO')) and not is_computed_bool and not is_stored_bool and not is_computed_undefined and not is_stored_undefined:
                     # python parses json numbers natively (arbitrary-precision ints), while fixtures
                     # captured under number-quoting store them as strings - compare numerically like C#/GO
                     # c#: a typed core returns the unified `Num` fields as a real double, whereas the
                     # fixture was captured through the untyped path and kept the venue's quoted string
-                    # (cost "0.02" vs 0.02) - same value, different json spelling
+                    # (cost "0.02" vs 0.02) - same value, different json spelling; go structs likewise
                     # pass the sanitized VALUES, not their string forms: C# renders a small
                     # double as "6.79E-05", which parseToNumeric cannot parse. And only the
                     # STRING side needs parsing - parseToNumeric round-trips a double through
@@ -2056,7 +2056,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit(), self.test_bithumb()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit(), self.test_bithumb(), self.test_extended()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -2074,8 +2074,7 @@ class testMainClass:
         except Exception as e:
             spot_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         client_order_id = spot_order_request['newClientOrderId']
-        spot_id_string = str(spot_id)
-        assert client_order_id.startswith(spot_id_string), 'binance - spot clientOrderId: ' + client_order_id + ' does not start with spotId' + spot_id_string
+        assert client_order_id.startswith(spot_id), 'binance - spot clientOrderId: ' + client_order_id + ' does not start with spotId' + spot_id
         swap_order_request = {}
         try:
             exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
@@ -2088,8 +2087,7 @@ class testMainClass:
             swap_inverse_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         # linear swap
         client_order_id_swap = swap_order_request['newClientOrderId']
-        swap_id_string = str(swap_id)
-        assert client_order_id_swap.startswith(swap_id_string), 'binance - swap clientOrderId: ' + client_order_id_swap + ' does not start with swapId' + swap_id_string
+        assert client_order_id_swap.startswith(swap_id), 'binance - swap clientOrderId: ' + client_order_id_swap + ' does not start with swapId' + swap_id
         # inverse swap
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
         assert client_order_id_inverse.startswith(inverse_swap_id), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + inverse_swap_id
@@ -2103,7 +2101,7 @@ class testMainClass:
             swap_algo_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         client_algo_id_swap = swap_algo_order_request['clientAlgoId']
         assert client_algo_id_swap is not None, 'binance - swap conditional order must send clientAlgoId'
-        assert client_algo_id_swap.startswith(swap_id_string), 'binance - swap clientAlgoId: ' + client_algo_id_swap + ' does not start with swapId' + swap_id_string
+        assert client_algo_id_swap.startswith(swap_id), 'binance - swap clientAlgoId: ' + client_algo_id_swap + ' does not start with swapId' + swap_id
         # inverse swap conditional order
         inverse_algo_order_request = {}
         try:
@@ -2136,7 +2134,7 @@ class testMainClass:
         for i in range(0, len(batch_orders)):
             current = batch_orders[i]
             current_client_order_id = current['newClientOrderId']
-            assert current_client_order_id.startswith(swap_id_string), 'binance createOrders - clientOrderId: ' + current_client_order_id + ' does not start with swapId' + swap_id_string
+            assert current_client_order_id.startswith(swap_id), 'binance createOrders - clientOrderId: ' + current_client_order_id + ' does not start with swapId' + swap_id
         # linear conditional orders cannot be batched
         linear_conditional_batch_not_supported = False
         try:
@@ -2178,6 +2176,75 @@ class testMainClass:
         inverse_conditional_client_order_id = exchange.safe_string(inverse_conditional_batch_order, 'newClientOrderId')
         assert inverse_conditional_client_order_id is not None, 'binance createOrders - inverse conditional order must send newClientOrderId'
         assert inverse_conditional_client_order_id.startswith(inverse_swap_id), 'binance createOrders - inverse conditional clientOrderId: ' + inverse_conditional_client_order_id + ' does not start with inverseSwapId' + inverse_swap_id
+        # quarterly futures use the prefix of their fapi/dapi side, not the inverse one
+        linear_future_order_request = {}
+        try:
+            exchange.create_order('ETH/USDT:USDT-261225', 'limit', 'buy', 1, 2000)
+        except Exception as e:
+            linear_future_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+        client_order_id_linear_future = linear_future_order_request['newClientOrderId']
+        assert client_order_id_linear_future.startswith(swap_id), 'binance - linear future clientOrderId: ' + client_order_id_linear_future + ' does not start with swapId' + swap_id
+        inverse_future_order_request = {}
+        try:
+            exchange.create_order('ETH/USD:ETH-261225', 'limit', 'buy', 1, 2000)
+        except Exception as e:
+            inverse_future_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+        client_order_id_inverse_future = inverse_future_order_request['newClientOrderId']
+        assert client_order_id_inverse_future.startswith(inverse_swap_id), 'binance - inverse future clientOrderId: ' + client_order_id_inverse_future + ' does not start with inverseSwapId' + inverse_swap_id
+        # the implicit order endpoints inject the broker id of their api section
+        # skipped in the sync flavours: callExchangeMethodDynamically is async-only there
+        if not is_sync():
+            implicit_dapi_order_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'dapiPrivatePostOrder', [{
+    'symbol': 'ETHUSD_PERP',
+    'side': 'SELL',
+    'type': 'LIMIT',
+    'quantity': '1',
+    'price': '4100',
+    'timeInForce': 'GTC',
+}])
+            except Exception as e:
+                implicit_dapi_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            implicit_dapi_client_order_id = implicit_dapi_order_request['newClientOrderId']
+            assert implicit_dapi_client_order_id.startswith(inverse_swap_id), 'binance - implicit dapi clientOrderId: ' + implicit_dapi_client_order_id + ' does not start with inverseSwapId' + inverse_swap_id
+            implicit_dapi_batch_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'dapiPrivatePostBatchOrders', [{
+    'batchOrders': [{
+    'symbol': 'ETHUSD_PERP',
+    'side': 'SELL',
+    'type': 'LIMIT',
+    'quantity': '1',
+    'price': '4100',
+    'timeInForce': 'GTC',
+}],
+}])
+            except Exception as e:
+                implicit_dapi_batch_request = self.urlencoded_to_dict(exchange.last_request_body)
+            implicit_dapi_batch_orders = exchange.safe_list(implicit_dapi_batch_request, 'batchOrders', [])
+            implicit_dapi_batch_order = exchange.safe_dict(implicit_dapi_batch_orders, 0, {})
+            implicit_dapi_batch_client_order_id = exchange.safe_string(implicit_dapi_batch_order, 'newClientOrderId')
+            assert implicit_dapi_batch_client_order_id is not None, 'binance - implicit dapi batch order must inject newClientOrderId'
+            assert implicit_dapi_batch_client_order_id.startswith(inverse_swap_id), 'binance - implicit dapi batch clientOrderId: ' + implicit_dapi_batch_client_order_id + ' does not start with inverseSwapId' + inverse_swap_id
+            # the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
+            implicit_fapi_algo_order_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'fapiPrivatePostAlgoOrder', [{
+    'symbol': 'ETHUSDT',
+    'side': 'SELL',
+    'type': 'STOP',
+    'algoType': 'CONDITIONAL',
+    'quantity': '1',
+    'price': '4100',
+    'triggerPrice': '4200',
+    'timeInForce': 'GTC',
+}])
+            except Exception as e:
+                implicit_fapi_algo_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            implicit_fapi_client_algo_id = exchange.safe_string(implicit_fapi_algo_order_request, 'clientAlgoId')
+            assert implicit_fapi_client_algo_id is not None, 'binance - implicit fapi algo order must inject clientAlgoId'
+            assert implicit_fapi_client_algo_id.startswith(swap_id), 'binance - implicit fapi clientAlgoId: ' + implicit_fapi_client_algo_id + ' does not start with swapId' + swap_id
         if not is_sync():
             close(exchange)
         return True
@@ -2265,6 +2332,62 @@ class testMainClass:
         except Exception as e:
             req_headers = exchange.last_request_headers if (exchange.last_request_headers is not None and exchange.last_request_headers is not None) else {}
         assert req_headers['OPEN-API-PARTNER'] == id, 'bithumb - id: ' + id + ' not in headers (public endpoints).'
+        if not is_sync():
+            close(exchange)
+        return True
+
+    def test_extended(self):
+        if self.lang == 'RUST':
+            return False   # the extended static request suite is disabledRS as well
+        exchange = self.init_offline_exchange('extended')
+        exchange.privateKey = '0x12345'
+        exchange.options['account'] = {
+            'l2Key': '0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf',
+            'l2Vault': '123456',
+        }
+        builder_id = '257624'
+        builder_fee_rate = '0.0001'
+        assert exchange.options['builderFee'], 'extended - builderFee is not enabled in options'
+        assert exchange.options['builderId'] == builder_id, 'extended - builderId: ' + builder_id + ' not in options'
+        assert exchange.options['builderFeeRate'] == builder_fee_rate, 'extended - builderFeeRate: ' + builder_fee_rate + ' not in options'
+        # default: the builder code and fee rate come from options
+        request = {}
+        try:
+            exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        assert request['builderId'] == builder_id, 'extended - builderId: ' + request['builderId'] + ' different from options: ' + builder_id
+        assert request['builderFee'] == builder_fee_rate, 'extended - builderFee: ' + request['builderFee'] + ' different from options: ' + builder_fee_rate
+        assert request['fee'] == '0.0005', 'extended - fee: ' + request['fee'] + ' should stay the base fee, the builder fee is a separate field'
+        # params override the fee rate, the builder code stays
+        request = {}
+        try:
+            exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000, {
+                'builderFeeRate': '0.0002',
+            })
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        assert request['builderFee'] == '0.0002', 'extended - builderFee: ' + request['builderFee'] + ' does not take the params value 0.0002'
+        assert request['builderId'] == builder_id, 'extended - builderId: ' + request['builderId'] + ' changed by a builderFeeRate param'
+        assert not ('builderFeeRate' in request), 'extended - builderFeeRate param leaked into the request'
+        # sandbox: the builder is only attached when passed explicitly in params
+        exchange.set_sandbox_mode(True)
+        request = {}
+        try:
+            exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        assert not ('builderId' in request), 'extended - sandbox attached builderId from options'
+        request = {}
+        try:
+            exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000, {
+                'builderId': '999',
+                'builderFeeRate': '0.0003',
+            })
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        assert request['builderId'] == '999', 'extended - sandbox builderId: ' + request['builderId'] + ' does not take the params value 999'
+        assert request['builderFee'] == '0.0003', 'extended - sandbox builderFee: ' + request['builderFee'] + ' does not take the params value 0.0003'
         if not is_sync():
             close(exchange)
         return True

@@ -691,21 +691,24 @@ class deepcoin extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $maxLimit = 300;
+        $market = $this->market($symbol);
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
+        $price = $this->safe_string($paramsPaginate, 'price');
+        $maxLimit = 300;
+        if ($market['swap'] === true && $price === null) {
+            $maxLimit = 1000;
+        }
         if ($paginate) {
             $paramsExtended = $this->extend($paramsPaginate, array( 'calculateUntil' => true ));
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsExtended, $maxLimit));
         }
-        $market = $this->market($symbol);
-        $price = $this->safe_string($paramsPaginate, 'price');
         $bar = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $request = array(
             'instId' => $market['id'],
             'bar' => $bar,
         );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min($limit, $maxLimit);
         }
         $until = $this->safe_integer($paramsPaginate, 'until');
         if ($until !== null) {

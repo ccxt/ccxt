@@ -2453,7 +2453,7 @@ public class Kraken extends KrakenApi
             {
                 HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
                 mapLiteral4.put("id", rawTrade);
-                mapLiteral4.put("orderId", id);
+                mapLiteral4.put("order", id);
                 mapLiteral4.put("symbol", symbol);
                 mapLiteral4.put("info", new HashMap<String, Object>() {{}});
                 ((List<Object>)trades).add(this.safeTrade(mapLiteral4, (Map<String, Object>) null));

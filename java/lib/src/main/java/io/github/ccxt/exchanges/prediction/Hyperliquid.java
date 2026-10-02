@@ -2424,10 +2424,6 @@ public class Hyperliquid extends HyperliquidApi
         mapLiteral12.put("event", parentSymbol);
         mapLiteral12.put("title", title);
         mapLiteral12.put("markets", markets);
-        mapLiteral12.put("underlying", underlying);
-        mapLiteral12.put("targetPrice", targetPrice);
-        mapLiteral12.put("class", this.safeString(desc, "class"));
-        mapLiteral12.put("period", this.safeString(desc, "period"));
         mapLiteral12.put("url", null);
         mapLiteral12.put("image", null);
         mapLiteral12.put("created", null);
