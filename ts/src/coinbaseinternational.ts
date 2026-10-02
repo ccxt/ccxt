@@ -2910,8 +2910,11 @@ export default class coinbaseinternational extends Exchange {
     override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const access = api;
         const rpcMethod = access + '/' + path;
-        const isNativeAuth = this.isNativeDeribitCredentials () && (access === 'public') && (path === 'auth');
-        const baseApiUrl = isNativeAuth ? 'https://www.deribit.com/api/v2' : this.urls['api']['rest'];
+        const isNativeAuth = (access === 'public') && (path === 'auth') && this.isNativeDeribitCredentials ();
+        let baseApiUrl = this.urls['api']['rest'];
+        if (isNativeAuth) {
+            baseApiUrl = 'https://www.deribit.com/api/v2';
+        }
         const url = baseApiUrl + '/' + rpcMethod;
         let requestParams: Dict = params;
         let requestHeaders: NullableDict = headers;
@@ -2935,22 +2938,9 @@ export default class coinbaseinternational extends Exchange {
                 throw new AuthenticationError (this.id + ' requires an access token from public/auth');
             }
             requestHeaders = {
+                'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + accessToken,
             };
-        }
-        if ((access === 'private') && (path === 'get_leverage') && (method === 'GET')) {
-            const request = {
-                'jsonrpc': '2.0',
-                'id': this.nonce (),
-                'method': rpcMethod,
-                'params': requestParams,
-            };
-            let requestUrl = url;
-            if (Object.keys (requestParams).length > 0) {
-                requestUrl += '?' + this.urlencode (requestParams);
-            }
-            requestHeaders = this.extend ({ 'Content-Type': 'application/json' }, requestHeaders);
-            return { 'url': requestUrl, 'method': method, 'body': this.json (request), 'headers': requestHeaders };
         }
         if (method === 'GET') {
             let requestUrl = url;

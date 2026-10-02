@@ -1867,7 +1867,7 @@ export default class coinbase extends Exchange {
         // US perpetual-style futures are listed as EXPIRING with a placeholder expiry, a funding interval, and a PERP display name
         const fundingInterval = this.safeString (futureProductDetails, 'funding_interval');
         const displayName = this.safeString (market, 'display_name');
-        const isPerpetualDisplayName = (displayName !== undefined) && (displayName.substring (displayName.length - 4) === 'PERP');
+        const isPerpetualDisplayName = (displayName !== undefined) && displayName.endsWith ('PERP');
         const isSwap = (contractExpiryType === 'PERPETUAL') || (fundingInterval !== undefined) || isPerpetualDisplayName;
         const baseId = this.safeString (futureProductDetails, 'contract_root_unit');
         const quoteId = this.safeString (market, 'quote_currency_id');
