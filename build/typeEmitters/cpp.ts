@@ -322,8 +322,11 @@ function renderInterfaceStruct (ir: TypesIR, type: IRType, out: string[]): void 
     const name = cppName (type.name);
     out.push ('struct ' + name + ' {');
     const reads: string[] = [];
+    const declaredFields = new Set<string> ();
     for (const field of type.fields) {
         const fieldName = unquote (field.name);
+        if (declaredFields.has (fieldName)) { continue; } // inherited fields re-listed by the child interface
+        declaredFields.add (fieldName);
         const path = name + '.' + fieldName;
         const plan = planField (ir, name, field, path);
         // nested inline structs (Currency.limits.amount) are declared through INLINE_STRUCTS
@@ -336,6 +339,7 @@ function renderInterfaceStruct (ir: TypesIR, type: IRType, out: string[]): void 
     const extras = EXTRAS[name];
     if (extras !== undefined) {
         for (const extra of extras) {
+            if (declaredFields.has (extra.name)) { continue; } // upstream now declares it
             out.push ('    ' + extraDecl (extra));
             reads.push (extraRead (extra));
         }
