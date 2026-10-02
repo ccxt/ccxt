@@ -892,6 +892,24 @@
                     }
                 ]
             }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "deadman success has no return field",
+                "method": "cancelAllOrdersAfter",
+                "input": [
+                    10000,
+                    {
+                        "symbol": "BTC/IDR"
+                    }
+                ],
+                "httpResponse": {
+                    "success": 1
+                },
+                "parsedResponse": {
+                    "success": 1
+                }
+            }
         ]
     }
 }
