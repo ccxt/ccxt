@@ -3266,8 +3266,8 @@ export default class lighter extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const isScheduled = (timeout !== undefined) && (timeout > 0);
-        if (isScheduled && ((timeout < 300000) || (timeout > 1296000000))) {
+        const isScheduled = (timeout !== 0);
+        if (isScheduled && (((timeout as number) < 300000) || ((timeout as number) > 1296000000))) {
             throw new BadRequest (this.id + ' timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.');
         }
         const [ apiKeyIndex, paramsApiKeyIndex ] = this.handleApiKeyIndex (params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
