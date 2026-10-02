@@ -6594,14 +6594,14 @@ impl BingxCore {
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
         let mut toId: Value = self.safe_string(accountsByType, toAccount.clone(), &[toAccount.clone()]);
-        if (fromId.as_str() == Some("swap")) {
+        if (fromAccount.as_str() == Some("swap")) {
             if (subType.as_str() == Some("inverse")) {
                 fromId = Value::Str("coinMPerp".into());
             }  else {
                 fromId = Value::Str("USDTMPerp".into());
             }
         }
-        if (toId.as_str() == Some("swap")) {
+        if (toAccount.as_str() == Some("swap")) {
             if (subType.as_str() == Some("inverse")) {
                 toId = Value::Str("coinMPerp".into());
             }  else {
