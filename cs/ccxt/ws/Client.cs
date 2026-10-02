@@ -31,7 +31,16 @@ public partial class BaseExchange
         public volatile bool startedConnecting = false;
         private readonly object connectSync = new object();
         private readonly CancellationTokenSource connectCancellation = new CancellationTokenSource();
+        private readonly CancellationTokenSource pingCancellation = new CancellationTokenSource();
+        private readonly CancellationTokenSource receiveCancellation = new CancellationTokenSource();
         private Task connectTask = null;
+        private Task pingTask = null;
+        private Task receiveTask = null;
+        private Task closeTask = null;
+        private TaskCompletionSource<bool> peerCloseGate = null;
+        private Exception callbackError = null;
+        private Exception closeError = null;
+        private volatile bool closing = false;
         private ManualResetEvent waitHandle = new ManualResetEvent(false);
 
         public TaskCompletionSource<bool> connected = null;
@@ -97,8 +106,16 @@ public partial class BaseExchange
             object rejection = null;
             lock (futuresSync)
             {
-                future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
-                (this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out rejection);
+                if (this.error != null || this.closing)
+                {
+                    future = new Future();
+                    rejection = this.error ?? this.closeError;
+                }
+                else
+                {
+                    future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
+                    (this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out rejection);
+                }
             }
             // settle outside the lock, the TaskCompletionSource is not
             // RunContinuationsAsynchronously so awaiter continuations can run
@@ -125,7 +142,10 @@ public partial class BaseExchange
             Future future = null;
             lock (futuresSync)
             {
-                (this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out future);
+                if (this.error == null && !this.closing)
+                {
+                    (this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out future);
+                }
             }
             if (future != null)
             {
@@ -141,6 +161,10 @@ public partial class BaseExchange
                 Future future = null;
                 lock (futuresSync)
                 {
+                    if (this.error != null || this.closing)
+                    {
+                        return;
+                    }
                     if (!(this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out future))
                     {
                         (this.rejections as ConcurrentDictionary<string, object>)[messageHash] = content;
@@ -185,6 +209,7 @@ public partial class BaseExchange
                     this.futures.Remove(messageHash);
                 }
                 this.subscriptions.Clear();
+                this.rejections.Clear();
             }
             foreach (var future in settled)
             {
@@ -205,34 +230,53 @@ public partial class BaseExchange
                 }
                 this.error = error;
             }
-            this.isConnected = false; // stops PingLoop's while() condition
-            if (this.startedConnecting)
+            var connectionError = error as Exception ?? new Exception(error?.ToString() ?? "WebSocket connection failed");
+            lock (connectSync)
             {
-                var connectionError = error as Exception ?? new Exception(error?.ToString() ?? "WebSocket connection failed");
-                this.connected.TrySetException(connectionError);
+                this.closeError ??= connectionError;
+                this.closing = true;
             }
+            this.isConnected = false; // stops PingLoop's while() condition
+            this.connected.TrySetException(connectionError);
             this.reset(error);
-            this.onErrorCallback?.Invoke(this, error);
+            try
+            {
+                this.onErrorCallback?.Invoke(this, error);
+            }
+            catch (Exception ex)
+            {
+                Interlocked.CompareExchange(ref this.callbackError, ex, null);
+            }
+            this.RequestClose();
         }
 
         public void onOpen()
         {
-
-            this.connectionEstablished = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            this.isConnected = true;
-            // Awaiters can resume inline in SetResult: publish the ready state first.
-            this.connected.SetResult(true);
-            // this.clearConnectionTimeout();
-            Task.Run(async () =>
+            lock (connectSync)
             {
-                PingLoop();
-            });
+                if (this.closing)
+                {
+                    return;
+                }
+                this.connectionEstablished = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                this.isConnected = true;
+                if (this.pingTask == null)
+                {
+                    this.pingTask = this.PingLoop();
+                }
+            }
+            // Awaiters can resume inline only after the lifecycle tasks are registered.
+            this.connected.TrySetResult(true);
         }
 
         public Task connect(int backoffDelay = 0)
         {
             lock (connectSync)
             {
+                if (this.closing)
+                {
+                    return Task.FromException(this.closeError);
+                }
                 if (!this.startedConnecting)
                 {
                     this.startedConnecting = true;
@@ -268,14 +312,15 @@ public partial class BaseExchange
             }
         }
 
-        public async void PingLoop()
+        public async Task PingLoop()
         {
+            var cancellationToken = this.pingCancellation.Token;
             try
             {
 
                 if (this.keepAlive != null)
                 {
-                    await Task.Delay(Convert.ToInt32(this.keepAlive));
+                    await Task.Delay(Convert.ToInt32(this.keepAlive), cancellationToken);
                 }
                 var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 if (this.verbose)
@@ -283,7 +328,7 @@ public partial class BaseExchange
                     Console.WriteLine($"PingLoop: {Exchange.Iso8601(now)}");
                 }
 
-                while (this.keepAlive != null && this.isConnected)
+                while (this.keepAlive != null && this.isConnected && !cancellationToken.IsCancellationRequested)
                 {
                     // refresh on every iteration - a timestamp captured once before the loop
                     // freezes the staleness comparison below and the pong-timeout branch can
@@ -306,17 +351,6 @@ public partial class BaseExchange
                         // labeled as "seconds", and raise RequestTimeout instead of a bare
                         // Exception the error-class handling cannot categorize
                         this.onError(new RequestTimeout("Connection to " + this.url + " timed out due to a ping-pong keepalive missing on time (no liveness within " + (convertedKeepAlive * this.maxPingPongMisses) + " ms = keepAlive " + convertedKeepAlive + " ms x " + this.maxPingPongMisses + " misses)"));
-                        // onError rejects the pending futures and the exchange drops
-                        // this client from its registry, but the socket itself is
-                        // still open: leaving the loop does not tear it down, and the
-                        // server never asked for a close. left alone the Receiving
-                        // task keeps pulling frames and dispatching them into the
-                        // exchange caches next to the replacement connection the
-                        // next watch call opens. close the transport here so the
-                        // timeout ends the connection and not only the futures
-                        // waiting on it, mirroring ts/src/base/ws/Client.ts
-                        // onPingInterval (ccxt/ccxt#30293)
-                        await this.Close();
                         break;
                     }
                     else
@@ -332,11 +366,11 @@ public partial class BaseExchange
                                 // }
                                 if (pingResult is string)
                                 {
-                                    await this.send((string)pingResult);
+                                await this.send((string)pingResult, cancellationToken);
                                 }
                                 else
                                 {
-                                    await this.send(pingResult);
+                                    await this.send(pingResult, cancellationToken);
 
                                 }
                             }
@@ -347,8 +381,12 @@ public partial class BaseExchange
 
                         }
                     }
-                    await Task.Delay(Convert.ToInt32(convertedKeepAlive));
+                    await Task.Delay(Convert.ToInt32(convertedKeepAlive), cancellationToken);
                 }
+            }
+            catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested && ex.CancellationToken == cancellationToken)
+            {
+                return;
             }
             catch (Exception ex)
             {
@@ -357,6 +395,7 @@ public partial class BaseExchange
                     Console.WriteLine($"PingLoop error: {ex.Message}");
                 }
                 this.onError(ex);
+                throw;
             }
         }
 
@@ -366,6 +405,7 @@ public partial class BaseExchange
         private async Task Connect(int backoffDelay, CancellationToken cancellationToken)
         {
             var acquired = false;
+            TaskCompletionSource<bool> receiveStart = null;
             try
             {
                 if (backoffDelay > 0)
@@ -385,18 +425,33 @@ public partial class BaseExchange
                 {
                     Console.WriteLine("WebSocket connected to " + url);
                 }
-                this.onOpen();
-                // start the receive loop off this path: inline, it would handle frames that
-                // are already buffered while the process-wide _connectSemaphore is still held
-                _ = Task.Run(() => this.Receiving(webSocket));
+                lock (connectSync)
+                {
+                    if (this.closing)
+                    {
+                        return;
+                    }
+                    var receiveToken = this.receiveCancellation.Token;
+                    receiveStart = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    this.receiveTask = Task.Run(async () =>
+                    {
+                        await receiveStart.Task;
+                        if (!receiveToken.IsCancellationRequested && !this.closing)
+                        {
+                            await this.Receiving(webSocket, receiveToken);
+                        }
+                    });
+                    this.onOpen();
+                }
             }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested && ex.CancellationToken == cancellationToken)
             {
                 this.onError(this.error ?? new ExchangeClosedByUser("Connection closed by the user"));
             }
             catch (Exception ex)
             {
                 this.onError(ex);
+                throw;
             }
             finally
             {
@@ -404,6 +459,7 @@ public partial class BaseExchange
                 {
                     _connectSemaphore.Release();
                 }
+                receiveStart?.TrySetResult(true);
             }
         }
 
@@ -412,12 +468,16 @@ public partial class BaseExchange
 
         protected static async Task sendAsyncWrapper(ClientWebSocket webSocket, ArraySegment<byte> ArraySegment, WebSocketMessageType WebSocketMessageType, bool endOnMessage, CancellationToken CancellationToken)
         {
-            await _sendSemaphore.WaitAsync();
+            await _sendSemaphore.WaitAsync(CancellationToken);
             try
             {
                 if (webSocket.State == WebSocketState.Open)
                 {
                     await webSocket.SendAsync(ArraySegment, WebSocketMessageType, endOnMessage, CancellationToken);
+                }
+                else
+                {
+                    throw new WebSocketException("Cannot send on a WebSocket that is not open");
                 }
             }
             finally
@@ -426,7 +486,12 @@ public partial class BaseExchange
             }
         }
 
-        public async Task send(object message)
+        public Task send(object message)
+        {
+            return this.send(message, CancellationToken.None);
+        }
+
+        private async Task send(object message, CancellationToken cancellationToken)
         {
             var jsonMessage = (message is string) ? ((string)message) : Exchange.Json(message);
             if (this.isMock)
@@ -444,7 +509,7 @@ public partial class BaseExchange
             await sendAsyncWrapper(this.webSocket, arraySegment,
                                 WebSocketMessageType.Text,
                                 true,
-                                CancellationToken.None);
+                                cancellationToken);
         }
 
         // private static async Task Sending(ClientWebSocket webSocket)
@@ -503,7 +568,7 @@ public partial class BaseExchange
         //     this.handleMessage(this, deserializedMessages);
         // }
 
-        private async Task Receiving(ClientWebSocket webSocket)
+        private async Task Receiving(ClientWebSocket webSocket, CancellationToken cancellationToken)
         {
             var buffer = new byte[10485760]; // 10MB, check best size later
             try
@@ -516,9 +581,14 @@ public partial class BaseExchange
                     WebSocketReceiveResult result;
                     do
                     {
-                        result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                        result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
                         memory.Write(buffer, 0, result.Count);
                     } while (!result.EndOfMessage);
+
+                    if (cancellationToken.IsCancellationRequested || this.closing)
+                    {
+                        return;
+                    }
 
 
                     if (result.MessageType == WebSocketMessageType.Text)
@@ -600,9 +670,19 @@ public partial class BaseExchange
                     }
                     else if (result.MessageType == WebSocketMessageType.Close)
                     {
-                        this.onClose(this, null);
-                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
-                        this.isConnected = false;
+                        var reason = new NetworkError("connection closed by remote server");
+                        var gate = this.BeginPeerClose(reason);
+                        try
+                        {
+                            await webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+                        }
+                        catch
+                        {
+                            gate.TrySetResult(true);
+                            throw;
+                        }
+                        this.RetireFromPeerClose(reason, gate);
+                        return;
                     }
                     // else if (result.MessageType == WebSocketMessageType.Pong)
                     // {
@@ -610,6 +690,10 @@ public partial class BaseExchange
                     //     // Handle the Pong message as needed
                     // }
                 }
+            }
+            catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested && ex.CancellationToken == cancellationToken)
+            {
+                return;
             }
             catch (Exception ex)
             {
@@ -619,6 +703,7 @@ public partial class BaseExchange
                 }
                 this.isConnected = false;
                 this.onError(ex);
+                throw;
             }
         }
 
@@ -631,29 +716,185 @@ public partial class BaseExchange
             return btype == 0b01 || btype == 0b10;
         }
 
-        public async Task Close()
+        private void RequestClose()
         {
-            Task pendingConnect;
             lock (connectSync)
             {
-                this.connectCancellation.Cancel();
-                pendingConnect = this.connectTask;
+                if (this.closeTask != null)
+                {
+                    return;
+                }
             }
-            this.onError(new ExchangeClosedByUser("Connection closed by the user"));
-            if (pendingConnect != null)
-            {
-                await pendingConnect;
-            }
-            if (this.webSocket.State == WebSocketState.Open)
+            _ = Task.Run(async () =>
             {
                 try
                 {
+                    await this.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine("WebSocket shutdown failed: " + ex);
+                }
+            });
+        }
+
+        private TaskCompletionSource<bool> BeginPeerClose(object reason)
+        {
+            var terminalError = reason as Exception ?? new Exception(reason?.ToString() ?? "WebSocket connection closed");
+            var gate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            lock (connectSync)
+            {
+                this.closeError ??= terminalError;
+                this.peerCloseGate = gate;
+                this.closing = true;
+            }
+            return gate;
+        }
+
+        private void RetireFromPeerClose(object reason, TaskCompletionSource<bool> gate)
+        {
+            var terminalError = reason as Exception ?? new Exception(reason?.ToString() ?? "WebSocket connection closed");
+            this.isConnected = false;
+            try
+            {
+                this.onClose?.Invoke(this, reason);
+            }
+            catch (Exception ex)
+            {
+                Interlocked.CompareExchange(ref this.callbackError, ex, null);
+            }
+            lock (futuresSync)
+            {
+                this.error ??= reason;
+            }
+            this.connected.TrySetException(terminalError);
+            this.reset(reason);
+            gate.TrySetResult(true);
+            this.RequestClose();
+        }
+
+        public Task Close()
+        {
+            TaskCompletionSource<bool> completion;
+            Task pendingConnect;
+            Task pendingPing;
+            Task pendingReceive;
+            Task pendingPeerClose;
+            lock (connectSync)
+            {
+                if (this.closeTask != null)
+                {
+                    return this.closeTask;
+                }
+                this.closeError ??= new ExchangeClosedByUser("Connection closed by the user");
+                this.closing = true;
+                completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                this.closeTask = completion.Task;
+                pendingConnect = this.connectTask;
+                pendingPing = this.pingTask;
+                pendingReceive = this.receiveTask;
+                pendingPeerClose = this.peerCloseGate?.Task;
+            }
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await this.CompleteClose(completion, pendingConnect, pendingPing, pendingReceive, pendingPeerClose);
+                }
+                catch (Exception ex)
+                {
+                    completion.TrySetException(ex);
+                }
+            });
+            return this.closeTask;
+        }
+
+        private async Task CompleteClose(TaskCompletionSource<bool> completion, Task pendingConnect, Task pendingPing, Task pendingReceive, Task pendingPeerClose)
+        {
+            var errors = new List<Exception>();
+            await this.RecordTaskFailure(pendingPeerClose, errors);
+            try
+            {
+                this.connectCancellation.Cancel();
+                this.onError(this.closeError);
+            }
+            catch (Exception ex)
+            {
+                errors.Add(ex);
+            }
+            try
+            {
+                this.pingCancellation.Cancel();
+            }
+            catch (Exception ex)
+            {
+                errors.Add(ex);
+            }
+            await this.RecordTaskFailure(pendingConnect, errors);
+            await this.RecordTaskFailure(pendingPing, errors);
+            try
+            {
+                if (this.webSocket.State == WebSocketState.Open)
+                {
                     await this.webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
                 }
-                catch (Exception)
+            }
+            catch (Exception ex)
+            {
+                errors.Add(ex);
+            }
+            finally
+            {
+                this.isConnected = false;
+                try
                 {
-                    // the transport is going away regardless
+                    this.receiveCancellation.Cancel();
                 }
+                catch (Exception ex)
+                {
+                    errors.Add(ex);
+                }
+                await this.RecordTaskFailure(pendingReceive, errors);
+                try
+                {
+                    this.webSocket.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    errors.Add(ex);
+                }
+                this.connectCancellation.Dispose();
+                this.pingCancellation.Dispose();
+                this.receiveCancellation.Dispose();
+            }
+            var callbackError = Interlocked.Exchange(ref this.callbackError, null);
+            if (callbackError != null)
+            {
+                errors.Add(callbackError);
+            }
+            if (errors.Count == 0)
+            {
+                completion.TrySetResult(true);
+            }
+            else
+            {
+                completion.TrySetException(new AggregateException(errors));
+            }
+        }
+
+        private async Task RecordTaskFailure(Task task, List<Exception> errors)
+        {
+            if (task == null)
+            {
+                return;
+            }
+            try
+            {
+                await task;
+            }
+            catch (Exception ex)
+            {
+                errors.Add(ex);
             }
         }
     }
