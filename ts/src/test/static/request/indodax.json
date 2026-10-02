@@ -308,6 +308,82 @@
                     "tapiVersion": "2"
                 }
             }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "TAPI v1 arms the deadman timer for one pair",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://indodax.com/tapi/countdownCancelAll",
+                "input": [
+                    10000,
+                    {
+                        "symbol": "BTC/IDR"
+                    }
+                ],
+                "output": "timestamp=1700000000000&recvWindow=5000&pair=btc_idr&countdownTime=10000",
+                "headers": {
+                    "Key": "key",
+                    "Content-Type": "text/plain"
+                }
+            },
+            {
+                "description": "TAPI v1 joins several pairs into one countdown",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://indodax.com/tapi/countdownCancelAll",
+                "input": [
+                    10000,
+                    {
+                        "symbols": [ "BTC/IDR", "ETH/USDT" ]
+                    }
+                ],
+                "output": "timestamp=1700000000000&recvWindow=5000&pair=btc_idr%2Ceth_usdt&countdownTime=10000"
+            },
+            {
+                "description": "TAPI v1 countdownTime 0 stops the timer",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://indodax.com/tapi/countdownCancelAll",
+                "input": [
+                    0,
+                    {
+                        "symbol": "BTC/IDR"
+                    }
+                ],
+                "output": "timestamp=1700000000000&recvWindow=5000&pair=btc_idr&countdownTime=0"
+            },
+            {
+                "description": "TAPI v2 uses the same deadman url with the v2 key header",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://indodax.com/tapi/countdownCancelAll",
+                "input": [
+                    10000,
+                    {
+                        "symbol": "BTC/IDR"
+                    }
+                ],
+                "output": "timestamp=1700000000000&recvWindow=5000&pair=btc_idr&countdownTime=10000",
+                "options": {
+                    "tapiVersion": "2"
+                },
+                "headers": {
+                    "X-APIKEY": "key",
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }
+            },
+            {
+                "description": "options.deadmanUrl replaces the tapi base",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://example.com/tapi/countdownCancelAll",
+                "input": [
+                    10000,
+                    {
+                        "symbol": "BTC/IDR"
+                    }
+                ],
+                "output": "timestamp=1700000000000&recvWindow=5000&pair=btc_idr&countdownTime=10000",
+                "options": {
+                    "deadmanUrl": "https://example.com/tapi"
+                }
+            }
         ]
     }
 }

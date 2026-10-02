@@ -35,6 +35,7 @@ export default class indodax extends Exchange {
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
                 'cancelAllOrders': false,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'closeAllPositions': false,
@@ -150,6 +151,7 @@ export default class indodax extends Exchange {
                 'api': {
                     'public': 'https://indodax.com',
                     'private': 'https://indodax.com/tapi',
+                    'deadman': 'https://indodax.com/tapi',
                     'v2': 'https://api.indodax.com',
                 },
                 'www': 'https://www.indodax.com',
@@ -189,6 +191,11 @@ export default class indodax extends Exchange {
                         'createVoucher': { 'cost': 4 } as Endpoint<Dict>, // partner only
                     },
                 },
+                'deadman': {
+                    'post': {
+                        'countdownCancelAll': { 'cost': 20 } as Endpoint<Dict>, // 10 requests / 10 seconds
+                    },
+                },
                 'v2': {
                     'get': {
                         'order': { 'cost': 4 } as Endpoint<Dict>,
@@ -222,6 +229,13 @@ export default class indodax extends Exchange {
             'exceptions': {
                 'exact': {
                     'invalid_pair': BadSymbol, // {"error":"invalid_pair","error_description":"Invalid Pair"}
+                    'Invalid pair': BadSymbol,
+                    'bad_request': BadRequest,
+                    'Pair is empty': BadRequest,
+                    'Invalid countdown time': BadRequest,
+                    'bad_sign': AuthenticationError,
+                    'sign_not_found': AuthenticationError,
+                    'key_not_found': AuthenticationError,
                     'Insufficient balance.': InsufficientFunds,
                     'invalid order.': OrderNotFound,
                     'Invalid credentials. API not found or session has expired.': AuthenticationError,
@@ -272,6 +286,7 @@ export default class indodax extends Exchange {
             // exchange-specific options
             'options': {
                 'tapiVersion': '1', // '2' opts private calls into TAPI v2; a v1 key cannot call v2
+                'deadmanUrl': undefined, // optional replacement for urls.api.private, no trailing path; unset keeps the production tapi host
                 'recvWindow': 5 * 1000, // default 5 sec
                 'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
@@ -1579,6 +1594,59 @@ export default class indodax extends Exchange {
         //
         const data = this.safeDict (response, 'return');
         return this.parseOrder (data as Dict);
+    }
+
+    /**
+     * @method
+     * @name indodax#cancelAllOrdersAfter
+     * @description dead man's switch, cancel all orders after the given timeout. options.deadmanUrl replaces the tapi base and has no trailing path
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Deadman-switch.md
+     * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.symbol] unified market symbol
+     * @param {string[]} [params.symbols] list of unified market symbols, joined into one pair list
+     * @returns {object} the raw api response
+     */
+    override async cancelAllOrdersAfter (timeout: Int, params: Dict = {}): Promise<Dict> {
+        if (timeout === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrdersAfter() requires a timeout argument');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbol = this.safeString (params, 'symbol');
+        const symbols = this.safeList (params, 'symbols');
+        let pair: Str = undefined;
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength < 1) {
+                throw new ArgumentsRequired (this.id + ' cancelAllOrdersAfter() requires a symbol or symbols argument in params');
+            }
+            const pairIds = [];
+            for (let i = 0; i < symbolsLength; i++) {
+                const marketSymbol = symbols[i];
+                const market = this.market (marketSymbol);
+                pairIds.push (this.v1PairId (market));
+            }
+            pair = pairIds.join (',');
+        } else if (symbol !== undefined) {
+            const market = this.market (symbol);
+            pair = this.v1PairId (market);
+        } else {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrdersAfter() requires a symbol or symbols argument in params');
+        }
+        const paramsOmitted = this.omit (params, [ 'symbol', 'symbols' ]);
+        const request: Dict = {
+            'pair': pair,
+            'countdownTime': timeout,
+        };
+        const response = await this.deadmanPostCountdownCancelAll (this.extend (request, paramsOmitted));
+        //
+        //     {
+        //         "success": 1
+        //     }
+        //
+        return this.extend (response, {});
     }
 
     /**
@@ -2900,6 +2968,32 @@ export default class indodax extends Exchange {
             } else {
                 url += '?' + query;
             }
+        } else if (api === 'deadman') {
+            this.checkRequiredCredentials ();
+            const deadmanUrl = this.safeString (this.options, 'deadmanUrl');
+            if ((deadmanUrl !== undefined) && (deadmanUrl !== '')) {
+                url = deadmanUrl;
+            }
+            url = url + '/' + this.implodeParams (path, params);
+            const query = this.urlencode (this.extend ({
+                'timestamp': this.requestTimestamp (),
+                'recvWindow': this.safeInteger (this.options, 'recvWindow', 5000),
+            }, params));
+            requestBody = query;
+            if (this.isTapiV2 ()) {
+                requestHeaders = {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-APIKEY': this.apiKey,
+                    'Sign': this.hmac (this.encode (query), this.encode (this.secret), sha256),
+                };
+            } else {
+                requestHeaders = {
+                    'Content-Type': 'text/plain',
+                    'Key': this.apiKey,
+                    'Sign': this.hmac (this.encode (query), this.encode (this.secret), sha512),
+                };
+            }
         } else {
             this.checkRequiredCredentials ();
             requestBody = this.urlencode (this.extend ({
@@ -2922,7 +3016,7 @@ export default class indodax extends Exchange {
      * @name indodax#request
      * @description send a request and retry once when the exchange rejects the timestamp
      * @param {string} path endpoint path
-     * @param {string} [api] api section, public, private, or v2
+     * @param {string} [api] api section, public, private, deadman, or v2
      * @param {string} [method] http method
      * @param {object} [params] request parameters
      * @param {object} [headers] request headers
@@ -2976,7 +3070,11 @@ export default class indodax extends Exchange {
         }
         if (this.safeInteger (response, 'success', 0) === 1) {
             // { success: 1, return: { orders: [] }}
+            // countdownCancelAll answers { success: 1 } with no return field
             if (!('return' in response)) {
+                if (url.indexOf ('countdownCancelAll') >= 0) {
+                    return undefined;
+                }
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
             } else {
                 return undefined;
