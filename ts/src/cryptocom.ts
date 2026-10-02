@@ -463,6 +463,10 @@ export default class cryptocom extends Exchange {
                     'fetchCurrencies': {
                         'private': true,
                     },
+                    'withdraw': {
+                        'includesFee': false,
+                        'selectableFeeInclusion': false,
+                    },
                 },
                 'swap': {
                     'linear': {
