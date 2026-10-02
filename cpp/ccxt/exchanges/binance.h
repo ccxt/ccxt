@@ -2193,7 +2193,7 @@ public:
                             }},
                            {std::string("historicalTrades"),
                             ccxt::dict{
-                                {std::string("cost"), 20},
+                                {std::string("cost"), 200},
                             }},
                            {std::string("aggTrades"),
                             ccxt::dict{
@@ -2345,6 +2345,14 @@ public:
                                 {std::string("cost"), 1},
                                 {std::string("noSymbol"), 40},
                             }},
+                           {std::string("algoOrder"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("allAlgoOrders"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                            {std::string("allOrders"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
@@ -2488,6 +2496,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("algoOpenOrders"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("allOpenOrders"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -2509,6 +2521,7 @@ public:
                            {std::string("leverageBracket"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
+                                {std::string("noSymbol"), 2},
                             }},
                        }},
                   }},
@@ -2547,7 +2560,7 @@ public:
                             }},
                            {std::string("historicalTrades"),
                             ccxt::dict{
-                                {std::string("cost"), 20},
+                                {std::string("cost"), 200},
                             }},
                            {std::string("aggTrades"),
                             ccxt::dict{
@@ -4531,7 +4544,7 @@ public:
                       {std::string("fetchOrder"),
                        ccxt::dict{
                            {std::string("marginMode"), false},
-                           {std::string("trigger"), false},
+                           {std::string("trigger"), true},
                            {std::string("trailing"), false},
                            {std::string("symbolRequired"), true},
                        }},
@@ -4539,7 +4552,7 @@ public:
                        ccxt::dict{
                            {std::string("marginMode"), true},
                            {std::string("limit"), 500},
-                           {std::string("trigger"), false},
+                           {std::string("trigger"), true},
                            {std::string("trailing"), false},
                            {std::string("symbolRequired"), false},
                        }},
@@ -4549,7 +4562,7 @@ public:
                            {std::string("limit"), 1000},
                            {std::string("daysBack"), 90},
                            {std::string("untilDays"), 7},
-                           {std::string("trigger"), false},
+                           {std::string("trigger"), true},
                            {std::string("trailing"), false},
                            {std::string("symbolRequired"), true},
                        }},
@@ -4560,7 +4573,7 @@ public:
                            {std::string("daysBack"), 90},
                            {std::string("daysBackCanceled"), 3},
                            {std::string("untilDays"), 7},
-                           {std::string("trigger"), false},
+                           {std::string("trigger"), true},
                            {std::string("trailing"), false},
                            {std::string("symbolRequired"), true},
                        }},
@@ -4575,6 +4588,10 @@ public:
                        ccxt::dict{
                            {std::string("extends"),
                             std::string("forDerivatives")},
+                           {std::string("fetchOrders"),
+                            ccxt::dict{
+                                {std::string("symbolRequired"), false},
+                            }},
                        }},
                       {std::string("inverse"),
                        ccxt::dict{
@@ -4588,6 +4605,10 @@ public:
                        ccxt::dict{
                            {std::string("extends"),
                             std::string("forDerivatives")},
+                           {std::string("fetchOrders"),
+                            ccxt::dict{
+                                {std::string("symbolRequired"), false},
+                            }},
                        }},
                       {std::string("inverse"),
                        ccxt::dict{
@@ -5104,6 +5125,7 @@ public:
                             std::string("OperationRejected")},
                            {std::string("-4118"),
                             std::string("OperationRejected")},
+                           {std::string("-4120"), std::string("InvalidOrder")},
                            {std::string("-4131"),
                             std::string("OperationRejected")},
                            {std::string("-4140"), std::string("BadRequest")},
@@ -5165,9 +5187,12 @@ public:
                            {std::string("-5037"), std::string("BadRequest")},
                            {std::string("-5038"), std::string("BadRequest")},
                            {std::string("-5039"), std::string("BadRequest")},
+                           {std::string("-4531"),
+                            std::string("OperationRejected")},
                            {std::string("-5040"), std::string("BadRequest")},
                            {std::string("-5041"),
                             std::string("OperationFailed")},
+                           {std::string("-5047"), std::string("InvalidOrder")},
                        }},
                   }},
                  {std::string("inverse"),
@@ -5233,12 +5258,15 @@ public:
                             std::string("PermissionDenied")},
                            {std::string("-4195"),
                             std::string("PermissionDenied")},
+                           {std::string("-4120"), std::string("InvalidOrder")},
                            {std::string("-4196"), std::string("BadRequest")},
                            {std::string("-4197"),
                             std::string("OperationRejected")},
                            {std::string("-4198"),
                             std::string("OperationRejected")},
                            {std::string("-4199"), std::string("BadRequest")},
+                           {std::string("-4531"),
+                            std::string("OperationRejected")},
                            {std::string("-4200"),
                             std::string("PermissionDenied")},
                            {std::string("-4201"),
@@ -6639,6 +6667,9 @@ public:
    * // future
    * @see
    * https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information
+   * // option // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#exchange-information
    * // option
    * @see
    * https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs
@@ -7566,6 +7597,9 @@ public:
    * // future
    * @see
    * https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information
+   * // option // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#option-margin-account-information
    * // option
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance
@@ -7907,6 +7941,9 @@ public:
    * // future
    * @see
    * https://developers.binance.com/docs/derivatives/option/market-data/Order-Book
+   * // option // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#order-book
    * // option
    * @param {string} symbol unified symbol of the market to fetch the order book
    * for
@@ -8303,6 +8340,9 @@ public:
    * // future
    * @see
    * https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
+   * // option // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#ticker24hr-price-change-statistics
    * // option
    * @see
    * https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#latest-quote
@@ -8630,6 +8670,9 @@ public:
    * // future
    * @see
    * https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
+   * // option // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#ticker24hr-price-change-statistics
    * // option
    * @param {string[]} [symbols] unified symbols of the markets to fetch the
    * ticker for, all market tickers are returned if not assigned
@@ -8962,8 +9005,14 @@ public:
    * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#klinecandlestick-data
    * @see
    * https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#kline-candlestick-data
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/market-data#kline-candlestick-data
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
    * @see
@@ -8972,6 +9021,9 @@ public:
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Kline-Candlestick-Data
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/market-data#kline-candlestick-data
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
    * @see
@@ -9469,6 +9521,16 @@ public:
         }
       }
     }
+    // linear and spot trades carry the cost in quoteQty, inverse trades in
+    // baseQty, the futures endpoints return both fields with the unused one as
+    // "0" (see the note in parseOrder)
+    ccxt::any cost = this->safeStringN(
+        trade, ccxt::list{std::string("quoteQty"), std::string("baseQty"),
+                          std::string("total")});
+    if (isTrue(isEqual(::getValue(marketResolved, std::string("inverse")),
+                       true))) {
+      cost = this->safeString(trade, std::string("baseQty"), cost);
+    }
     return this->safeTrade(
         ccxt::dict{
             {std::string("info"), trade},
@@ -9490,10 +9552,7 @@ public:
             {std::string("price"),
              this->safeString2(trade, std::string("p"), std::string("price"))},
             {std::string("amount"), amount},
-            {std::string("cost"),
-             this->safeStringN(trade, ccxt::list{std::string("quoteQty"),
-                                                 std::string("baseQty"),
-                                                 std::string("total")})},
+            {std::string("cost"), cost},
             {std::string("fee"), fee},
         },
         marketResolved);
@@ -9515,6 +9574,9 @@ public:
    * // dapiPublicGetAggTrades (future)
    * @see
    * https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List
+   * // eapiPublicGetTrades (option) // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#recent-trades-list
    * // eapiPublicGetTrades (option) Other fetchTradesMethod
    * @see
    * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list
@@ -9536,7 +9598,7 @@ public:
    * // dapiPublicGetHistoricalTrades (future)
    * @see
    * https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup
-   * // eapiPublicGetHistoricalTrades (option)
+   * // eapiPublicGetHistoricalTrades (option) // deprecated
    * @param {string} symbol unified symbol of the market to fetch trades for
    * @param {int} [since] only used when fetchTradesMethod is
    * 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
@@ -9977,14 +10039,8 @@ public:
       }
     }
     if (isTrue(isEqual(clientOrderId, ccxt::any{}))) {
-      ccxt::any broker = this->safeDict(this->options, std::string("broker"));
-      if (isTrue(!isEqual(broker, ccxt::any{}))) {
-        ccxt::any brokerId = this->safeString(broker, std::string("spot"));
-        if (isTrue(!isEqual(brokerId, ccxt::any{}))) {
-          ::setValue(request, std::string("newClientOrderId"),
-                     add(brokerId, this->uuid22()));
-        }
-      }
+      ::setValue(request, std::string("newClientOrderId"),
+                 this->generateClientOrderId(market));
     } else {
       ::setValue(request, std::string("newClientOrderId"), clientOrderId);
     }
@@ -11133,8 +11189,9 @@ public:
     if (isTrue(isContract)) {
       marketType = std::string("contract");
     }
-    ccxt::any symbol =
-        this->safeSymbol(marketId, market, ccxt::any{}, marketType);
+    ccxt::any marketResolved =
+        this->safeMarket(marketId, market, ccxt::any{}, marketType);
+    ccxt::any symbol = ::getValue(marketResolved, std::string("symbol"));
     ccxt::any filled =
         this->safeString2(order, std::string("executedQty"),
                           std::string("filledQty"), std::string("0"));
@@ -11171,12 +11228,17 @@ public:
         order, ccxt::list{std::string("origQty"), std::string("quantity"),
                           std::string("qty")});
     // - Spot/Margin market: cummulativeQuoteQty
-    // - Futures market: cumQuote.
-    //   Note this is not the actual cost, since Binance futures uses leverage
-    //   to calculate margins.
+    // - Linear futures: cumQuote, inverse futures: cumBase.
+    //   Since 2026-08-05 both endpoints return both fields, the unused one as
+    //   "0", so the field must be picked by the market side, see the coin-m
+    //   migration changelog. Note this is not the actual cost, since Binance
+    //   futures uses leverage to calculate margins.
     ccxt::any cost = this->safeString2(
         order, std::string("cummulativeQuoteQty"), std::string("cumQuote"));
-    cost = this->safeString(order, std::string("cumBase"), cost);
+    if (isTrue(isEqual(::getValue(marketResolved, std::string("inverse")),
+                       true))) {
+      cost = this->safeString(order, std::string("cumBase"), cost);
+    }
     ccxt::any type = this->safeStringLower2(order, std::string("type"),
                                             std::string("orderType"));
     ccxt::any side = this->safeStringLower(order, std::string("side"));
@@ -11249,7 +11311,7 @@ public:
             {std::string("fee"), fee},
             {std::string("trades"), fills},
         },
-        market);
+        marketResolved);
   }
 
   /**
@@ -11262,6 +11324,9 @@ public:
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
    * @see
    * https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#place-multiple-orders
    * @param {Array} orders list of orders to create, each object should contain
    * the parameters required by createOrder, namely symbol, type, side, amount,
    * price and params
@@ -11405,6 +11470,9 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api
    * @see https://developers.binance.com/docs/derivatives/option/trade/New-Order
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#new-order
    * @see
    * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#sor
    * @see
@@ -11610,6 +11678,81 @@ public:
   /**
    * @method
    * @ignore
+   * @name binance#generateClientOrderId
+   * @description builds a fresh client order id
+   * @param {object} [market] the market of the order, takes precedence over the
+   * api argument
+   * @param {string} [api] the implicit api section the order is sent to
+   * (private, sapi, fapiPrivate, dapiPrivate, eapiPrivate, ...)
+   * @returns {string} the broker prefix followed by 22 random characters
+   */
+  virtual ccxt::any generateClientOrderId(ccxt::any market = ccxt::any{},
+                                          ccxt::any api = ccxt::any{}) {
+    ccxt::any idMarketType = ccxt::any{};
+    if (isTrue(!isEqual(market, ccxt::any{}))) {
+      if (isTrue(isEqual(::getValue(market, std::string("option")), true))) {
+        idMarketType = std::string("option");
+      } else if (isTrue(isEqual(::getValue(market, std::string("linear")),
+                                true))) {
+        idMarketType =
+            (isTrue((isEqual(::getValue(market, std::string("swap")), true)))
+                 ? ccxt::any(std::string("swap"))
+                 : ccxt::any(std::string("future")));
+      } else if (isTrue(isEqual(::getValue(market, std::string("inverse")),
+                                true))) {
+        idMarketType = std::string("inverse");
+      } else {
+        idMarketType = std::string("spot");
+      }
+    } else if (isTrue(!isEqual(api, ccxt::any{}))) {
+      ccxt::any isSpotOrMargin =
+          (isTrue(isGreaterThan(getIndexOf(api, std::string("sapi")), -1)) ||
+           isTrue(isEqual(api, std::string("private"))));
+      if (isTrue(isSpotOrMargin)) {
+        idMarketType = std::string("spot");
+      } else if (isTrue(
+                     isGreaterThan(getIndexOf(api, std::string("dapi")), -1))) {
+        idMarketType = std::string("inverse");
+      } else if (isTrue(
+                     isGreaterThan(getIndexOf(api, std::string("eapi")), -1))) {
+        idMarketType = std::string("option");
+      } else {
+        idMarketType = std::string("future");
+      }
+    } else {
+      ccxt::any defaultType = this->safeString(
+          this->options, std::string("defaultType"), std::string("spot"));
+      ccxt::any defaultSubType =
+          this->safeString(this->options, std::string("defaultSubType"));
+      idMarketType = defaultType;
+      if (isTrue(isEqual(defaultType, std::string("delivery")))) {
+        idMarketType = std::string("inverse");
+      } else if (isTrue(isTrue((
+                            isEqual(defaultSubType, std::string("inverse")))) &&
+                        isTrue((isTrue((isEqual(defaultType,
+                                                std::string("swap")))) ||
+                                isTrue((isEqual(defaultType,
+                                                std::string("future")))))))) {
+        idMarketType = std::string("inverse");
+      }
+    }
+    ccxt::any defaultId = std::string("x-xcKtGhcu"); // inverse, option
+    if (isTrue(isTrue((isEqual(idMarketType, std::string("spot")))) ||
+               isTrue((isEqual(idMarketType, std::string("margin")))))) {
+      defaultId = std::string("x-TKT5PX2F");
+    } else if (isTrue(isTrue((isEqual(idMarketType, std::string("future")))) ||
+                      isTrue((isEqual(idMarketType, std::string("swap")))))) {
+      defaultId = std::string("x-cvBPrNm9");
+    }
+    ccxt::any broker =
+        this->safeDict(this->options, std::string("broker"), ccxt::dict{});
+    ccxt::any brokerId = this->safeString(broker, idMarketType, defaultId);
+    return add(brokerId, this->uuid22());
+  }
+
+  /**
+   * @method
+   * @ignore
    * @name binance#isConditionalOrder
    * @description checks whether the order params describe a conditional
    * (trigger, stop loss, take profit or trailing) order
@@ -11753,7 +11896,10 @@ public:
     ccxt::any uppercaseType = toUpperCase(type);
     ccxt::any stopPrice = ccxt::any{};
     if (isTrue(isTrailingPercentOrder)) {
-      if (isTrue(isEqual(::getValue(market, std::string("swap")), true))) {
+      if (isTrue(isTrue((
+                     isEqual(::getValue(market, std::string("swap")), true))) ||
+                 isTrue((isEqual(::getValue(market, std::string("future")),
+                                 true))))) {
         uppercaseType = std::string("TRAILING_STOP_MARKET");
         ::setValue(request, std::string("callbackRate"), trailingPercent);
         if (isTrue(!isEqual(trailingTriggerPrice, ccxt::any{}))) {
@@ -11894,23 +12040,8 @@ public:
       clientOrderIdRequest = std::string("clientOrderId");
     }
     if (isTrue(isEqual(clientOrderId, ccxt::any{}))) {
-      ccxt::any broker =
-          this->safeDict(this->options, std::string("broker"), ccxt::dict{});
-      ccxt::any defaultId = std::string("x-TKT5PX2F");
-      if (isTrue(isEqual(::getValue(market, std::string("contract")), true))) {
-        defaultId = std::string("x-xcKtGhcu");
-      }
-      ccxt::any idMarketType = std::string("spot");
-      if (isTrue(isEqual(::getValue(market, std::string("contract")), true))) {
-        ccxt::any isLinearSwap =
-            isTrue((isEqual(::getValue(market, std::string("swap")), true))) &&
-            isTrue((isEqual(::getValue(market, std::string("linear")), true)));
-        idMarketType =
-            (isTrue(isLinearSwap) ? ccxt::any(std::string("swap"))
-                                  : ccxt::any(std::string("inverse")));
-      }
-      ccxt::any brokerId = this->safeString(broker, idMarketType, defaultId);
-      ::setValue(request, clientOrderIdRequest, add(brokerId, this->uuid22()));
+      ::setValue(request, clientOrderIdRequest,
+                 this->generateClientOrderId(market));
     } else {
       ::setValue(request, clientOrderIdRequest, clientOrderId);
     }
@@ -12424,6 +12555,9 @@ public:
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Order
    * @see
    * https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-single-order
    * @see
    * https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order
    * @see
@@ -12517,13 +12651,9 @@ public:
                  ccxt::any isOptionType = isEqual(type, std::string("option"));
                  ccxt::any isLinearType = this->isLinear(type, subType);
                  ccxt::any isInverseType = this->isInverse(type, subType);
-                 ccxt::any isLinearSwapConditional =
-                     isTrue(isTrue(isTrue(isTrue(isLinearType) &&
-                                          isTrue((!isEqual(market,
-                                                           ccxt::any{})))) &&
-                                   isTrue((isEqual(
-                                       ::getValue(market, std::string("swap")),
-                                       true)))) &&
+                 ccxt::any isContractConditional =
+                     isTrue(isTrue((isTrue(isLinearType) ||
+                                    isTrue(isInverseType))) &&
                             isTrue((isEqual(isConditional, true)))) &&
                      isTrue((!isEqual(isPortfolioMargin, true)));
                  ccxt::any clientOrderId = this->safeStringN(
@@ -12534,14 +12664,14 @@ public:
                    if (isTrue(isOptionType)) {
                      ::setValue(request, std::string("clientOrderId"),
                                 clientOrderId);
-                   } else if (isTrue(isEqual(isLinearSwapConditional, true))) {
+                   } else if (isTrue(isEqual(isContractConditional, true))) {
                      ::setValue(request, std::string("clientAlgoId"),
                                 clientOrderId);
                    } else {
                      ::setValue(request, std::string("origClientOrderId"),
                                 clientOrderId);
                    }
-                 } else if (isTrue(isEqual(isLinearSwapConditional, true))) {
+                 } else if (isTrue(isEqual(isContractConditional, true))) {
                    ::setValue(request, std::string("algoId"), id);
                  } else {
                    ::setValue(request, std::string("orderId"), id);
@@ -12575,8 +12705,13 @@ public:
                      response = awaitValue(this->papiGetCmOrder(
                          this->extend(request, paramsStock)));
                    } else {
-                     response = awaitValue(this->dapiPrivateGetOrder(
-                         this->extend(request, paramsStock)));
+                     if (isTrue(isEqual(isConditional, true))) {
+                       response = awaitValue(this->dapiPrivateGetAlgoOrder(
+                           this->extend(request, paramsStock)));
+                     } else {
+                       response = awaitValue(this->dapiPrivateGetOrder(
+                           this->extend(request, paramsStock)));
+                     }
                    }
                  } else if (isTrue(isTrue(isTrue((isEqual(
                                               type, std::string("margin")))) ||
@@ -12622,6 +12757,9 @@ public:
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
    * @see
    * https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
    * @see
    * https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
    * @see
@@ -12695,11 +12833,6 @@ public:
                    stock = this->safeBool(market, std::string("stock"), false);
                    ::setValue(request, std::string("symbol"),
                               ::getValue(market, std::string("id")));
-                 } else if (!isTrue(stock)) {
-                   throw ArgumentsRequired(toString(
-                       add(this->id,
-                           std::string(
-                               " fetchOrders() requires a symbol argument"))));
                  }
                  ccxt::any type = ccxt::any{};
                  ccxt::any typeparamsPaginateVariable =
@@ -12738,6 +12871,23 @@ public:
                  ccxt::any isOptionType = isEqual(type, std::string("option"));
                  ccxt::any isLinearType = this->isLinear(type, subType);
                  ccxt::any isInverseType = this->isInverse(type, subType);
+                 if (isTrue(isEqual(symbol, ccxt::any{}))) {
+                   // the linear allOrders endpoint accepts requests without a
+                   // symbol since 2026-08-25 and also returns the inverse
+                   // orders then
+                   ccxt::any canOmitSymbol =
+                       isTrue((isEqual(stock, true))) ||
+                       isTrue(
+                           (isTrue(isTrue(isLinearType) &&
+                                   isTrue((!isEqual(isConditional, true)))) &&
+                            isTrue((!isEqual(isPortfolioMargin, true)))));
+                   if (!isTrue(canOmitSymbol)) {
+                     throw ArgumentsRequired(toString(add(
+                         this->id,
+                         std::string(
+                             " fetchOrders() requires a symbol argument"))));
+                   }
+                 }
                  ccxt::any until = this->safeIntegerN(
                      paramsPaginate,
                      ccxt::list{std::string("until"), std::string("till"),
@@ -12813,8 +12963,13 @@ public:
                            this->extend(request, paramsPaginate)));
                      }
                    } else {
-                     response = awaitValue(this->dapiPrivateGetAllOrders(
-                         this->extend(request, paramsPaginate)));
+                     if (isTrue(isEqual(isConditional, true))) {
+                       response = awaitValue(this->dapiPrivateGetAllAlgoOrders(
+                           this->extend(request, paramsPaginate)));
+                     } else {
+                       response = awaitValue(this->dapiPrivateGetAllOrders(
+                           this->extend(request, paramsPaginate)));
+                     }
                    }
                  } else {
                    if (isTrue(isPortfolioMargin)) {
@@ -13067,6 +13222,9 @@ public:
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Current-All-Open-Orders
    * @see
    * https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-current-open-option-orders
    * @see
    * https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders
    * @see
@@ -13343,6 +13501,22 @@ public:
                                 std::string("conditional")});
                  ccxt::any isPortfolioMarginConditional =
                      (isTrue(isPortfolioMargin) && isTrue(isConditional));
+                 if (isTrue(
+                         isTrue(isTrue((isEqual(isConditional, true))) &&
+                                !isTrue(isPortfolioMargin)) &&
+                         isTrue((isTrue((isEqual(
+                                     ::getValue(market, std::string("swap")),
+                                     true))) ||
+                                 isTrue((isEqual(
+                                     ::getValue(market, std::string("future")),
+                                     true))))))) {
+                   throw NotSupported(toString(
+                       add(this->id,
+                           std::string(
+                               " fetchOpenOrder() does not support conditional "
+                               "orders, use fetchOrder() or fetchOpenOrders() "
+                               "with the trigger param instead"))));
+                 }
                  ccxt::any orderIdRequest = std::string("orderId");
                  if (isTrue(isEqual(isPortfolioMarginConditional, true))) {
                    orderIdRequest = std::string("strategyId");
@@ -13560,6 +13734,9 @@ public:
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
    * @see
    * https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
    * @see
    * https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
    * @see
@@ -13642,6 +13819,9 @@ public:
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
    * @see
    * https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
    * @see
    * https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
    * @see
@@ -13723,6 +13903,9 @@ public:
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
    * @see
    * https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
    * @see
    * https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
    * @see
@@ -13809,6 +13992,9 @@ public:
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Order
    * @see
    * https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#cancel-option-order
    * @see
    * https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-Order
    * @see
@@ -13906,12 +14092,18 @@ public:
                  ccxt::any isOptionType = isEqual(type, std::string("option"));
                  ccxt::any isLinearType = this->isLinear(type, subType);
                  ccxt::any isInverseType = this->isInverse(type, subType);
-                 ccxt::any isSwapConditional =
-                     isTrue(isTrue(isTrue((!isEqual(market, ccxt::any{}))) &&
-                                   isTrue((isEqual(
-                                       ::getValue(market, std::string("swap")),
-                                       true)))) &&
-                            isTrue((isEqual(isConditional, true)))) &&
+                 ccxt::any isContractConditional =
+                     isTrue(
+                         isTrue(
+                             isTrue((!isEqual(market, ccxt::any{}))) &&
+                             isTrue(
+                                 (isTrue((isEqual(
+                                      ::getValue(market, std::string("swap")),
+                                      true))) ||
+                                  isTrue((isEqual(
+                                      ::getValue(market, std::string("future")),
+                                      true)))))) &&
+                         isTrue((isEqual(isConditional, true)))) &&
                      isTrue((!isEqual(isPortfolioMargin, true)));
                  ccxt::any clientOrderId = this->safeStringN(
                      paramsStock, ccxt::list{std::string("origClientOrderId"),
@@ -13922,7 +14114,7 @@ public:
                    if (isTrue(isOptionType)) {
                      ::setValue(request, std::string("clientOrderId"),
                                 clientOrderId);
-                   } else if (isTrue(isEqual(isSwapConditional, true))) {
+                   } else if (isTrue(isEqual(isContractConditional, true))) {
                      ::setValue(request, std::string("clientAlgoId"),
                                 clientOrderId);
                    } else {
@@ -13939,7 +14131,7 @@ public:
                    if (isTrue(isTrue(isPortfolioMargin) &&
                               isTrue((isEqual(isConditional, true))))) {
                      ::setValue(request, std::string("strategyId"), id);
-                   } else if (isTrue(isEqual(isSwapConditional, true))) {
+                   } else if (isTrue(isEqual(isContractConditional, true))) {
                      ::setValue(request, std::string("algoId"), id);
                    } else {
                      ::setValue(request, std::string("orderId"), id);
@@ -14033,10 +14225,19 @@ public:
    * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-all-open-orders-on-a-symbol-trade
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/trade#cancel-all-open-orders
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-All-Open-Orders
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/trade#cancel-all-open-orders
    * @see
    * https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#cancel-all-option-orders-on-specific-symbol
    * @see
    * https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders
    * @see
@@ -14176,8 +14377,15 @@ public:
                            this->extend(request, paramsStock)));
                      }
                    } else {
-                     response = awaitValue(this->dapiPrivateDeleteAllOpenOrders(
-                         this->extend(request, paramsStock)));
+                     if (isTrue(isEqual(isConditional, true))) {
+                       response =
+                           awaitValue(this->dapiPrivateDeleteAlgoOpenOrders(
+                               this->extend(request, paramsStock)));
+                     } else {
+                       response =
+                           awaitValue(this->dapiPrivateDeleteAllOpenOrders(
+                               this->extend(request, paramsStock)));
+                     }
                    }
                  } else if (isTrue(isTrue(isTrue((isEqual(
                                               type, std::string("margin")))) ||
@@ -14406,6 +14614,9 @@ public:
    * https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
    * @see
    * https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#account-trade-list
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
    * @see
@@ -15555,7 +15766,10 @@ public:
    * @description transfer currency internally between wallets on the same
    * account
    * @see
-   * https://developers.binance.com/docs/wallet/asset/user-universal-transfer
+   * https://developers.binance.com/docs/wallet/asset/user-universal-transfer //
+   * deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-wallet/api/rest-api/asset#user-universal-transfer
    * @param {string} code unified currency code
    * @param {float} amount amount to transfer
    * @param {string} fromAccount account to transfer from
@@ -16468,6 +16682,9 @@ public:
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
    * @param {object} [params] extra parameters specific to the exchange API
@@ -16753,6 +16970,7 @@ public:
    * @description transfer between futures account
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/New-Future-Account-Transfer
+   * // deprecated
    * @param {string} code unified currency code
    * @param {float} amount the amount to transfer
    * @param {string} type 1 - transfer from spot account to USDT-Ⓜ futures
@@ -17826,7 +18044,6 @@ public:
         {std::string("marginRatio"), marginRatio},
         {std::string("datetime"), this->iso8601(timestamp)},
         {std::string("marginMode"), marginMode},
-        {std::string("marginType"), marginMode},
         {std::string("side"), side},
         {std::string("hedged"), hedged},
         {std::string("percentage"), percentage},
@@ -18128,6 +18345,9 @@ public:
    * @description fetch data on an open position
    * @see
    * https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#option-position-information
    * @param {string} symbol unified market symbol of the market the position is
    * held in
    * @param {object} [params] extra parameters specific to the exchange API
@@ -18192,6 +18412,9 @@ public:
    * @description fetch data on open options positions
    * @see
    * https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#option-position-information
    * @param {string[]|undefined} symbols list of unified market symbols
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
@@ -18340,12 +18563,18 @@ public:
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
    * @see
    * https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#option-position-information
    * @param {string[]} [symbols] list of unified market symbols
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
@@ -18428,6 +18657,9 @@ public:
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
    * @see
@@ -18768,6 +19000,9 @@ public:
    * @param {boolean} [params.portfolioMargin] set to true if you would like to
    * fetch the funding history for a portfolio margin account
    * @param {string} [params.subType] "linear" or "inverse"
+   * @param {string} [params.incomeType] the income type to request, defaults to
+   * FUNDING_FEE, set to SPECIAL_FUNDING_FEE for the additional funding fees
+   * generated by tokenized-stock dividends
    * @returns {object} a [funding history structure]{@link
    * https://docs.ccxt.com/?id=funding-history-structure}
    */
@@ -19175,6 +19410,9 @@ public:
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
    * @see
@@ -19299,6 +19537,9 @@ public:
    * @description fetches historical settlement records
    * @see
    * https://developers.binance.com/docs/derivatives/option/market-data/Historical-Exercise-Records
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#historical-exercise-records
    * @param {string} symbol unified market symbol of the settlement history
    * @param {int} [since] timestamp in ms
    * @param {int} [limit] number of records, default 100, max 100
@@ -19379,6 +19620,9 @@ public:
    * @description fetches historical settlement records of the user
    * @see
    * https://developers.binance.com/docs/derivatives/option/trade/User-Exercise-Record
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#user-exercise-record
    * @param {string} symbol unified market symbol of the settlement history
    * @param {int} [since] timestamp in ms
    * @param {int} [limit] number of records
@@ -19554,6 +19798,9 @@ public:
    * operations that altered the balance of the user
    * @see
    * https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#account-funding-flow
    * @param {string} id the identification number of the ledger entry
    * @param {string} code unified currency code
    * @param {object} [params] extra parameters specific to the exchange API
@@ -19615,6 +19862,9 @@ public:
    * operations that altered the balance of the user
    * @see
    * https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#account-funding-flow
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
    * @see
@@ -19841,21 +20091,27 @@ public:
     ccxt::any ledgerType = ccxt::dict{
         {std::string("FEE"), std::string("fee")},
         {std::string("FUNDING_FEE"), std::string("fee")},
+        {std::string("SPECIAL_FUNDING_FEE"), std::string("fee")},
         {std::string("OPTIONS_PREMIUM_FEE"), std::string("fee")},
         {std::string("POSITION_LIMIT_INCREASE_FEE"), std::string("fee")},
         {std::string("CONTRACT"), std::string("trade")},
         {std::string("REALIZED_PNL"), std::string("trade")},
+        {std::string("AUTO_EXCHANGE"), std::string("trade")},
         {std::string("TRANSFER"), std::string("transfer")},
         {std::string("CROSS_COLLATERAL_TRANSFER"), std::string("transfer")},
         {std::string("INTERNAL_TRANSFER"), std::string("transfer")},
+        {std::string("STRATEGY_UMFUTURES_TRANSFER"), std::string("transfer")},
         {std::string("COIN_SWAP_DEPOSIT"), std::string("deposit")},
         {std::string("COIN_SWAP_WITHDRAW"), std::string("withdrawal")},
         {std::string("OPTIONS_SETTLE_PROFIT"), std::string("settlement")},
         {std::string("DELIVERED_SETTELMENT"), std::string("settlement")},
+        {std::string("INSURANCE_CLEAR"), std::string("settlement")},
         {std::string("WELCOME_BONUS"), std::string("cashback")},
         {std::string("CONTEST_REWARD"), std::string("cashback")},
+        {std::string("BFUSD_REWARD"), std::string("cashback")},
         {std::string("COMMISSION_REBATE"), std::string("rebate")},
         {std::string("API_REBATE"), std::string("rebate")},
+        {std::string("FEE_RETURN"), std::string("rebate")},
         {std::string("REFERRAL_KICKBACK"), std::string("referral")},
         {std::string("COMMISSION"), std::string("commission")},
     };
@@ -20034,23 +20290,18 @@ public:
         ccxt::any newClientOrderId =
             this->safeString(params, std::string("newClientOrderId"));
         if (isTrue(isEqual(newClientOrderId, ccxt::any{}))) {
-          ccxt::any isSpotOrMargin =
-              (isTrue(
-                   isGreaterThan(getIndexOf(api, std::string("sapi")), -1)) ||
-               isTrue(isEqual(api, std::string("private"))));
-          ccxt::any marketType = std::string("future");
-          if (isTrue(isSpotOrMargin)) {
-            marketType = std::string("spot");
-          }
-          ccxt::any defaultId = std::string("x-TKT5PX2F");
-          if (!isTrue(isSpotOrMargin)) {
-            defaultId = std::string("x-xcKtGhcu");
-          }
-          ccxt::any broker = this->safeDict(
-              this->options, std::string("broker"), ccxt::dict{});
-          ccxt::any brokerId = this->safeString(broker, marketType, defaultId);
           ::setValue(params, std::string("newClientOrderId"),
-                     add(brokerId, this->uuid22()));
+                     this->generateClientOrderId(ccxt::any{}, api));
+        }
+      } else if (isTrue(isTrue(isEqual(method, std::string("POST"))) &&
+                        isTrue((isEqual(path, std::string("algoOrder")))))) {
+        // the fapi/dapi algo order endpoints take clientAlgoId instead of
+        // newClientOrderId
+        ccxt::any clientAlgoId =
+            this->safeString(params, std::string("clientAlgoId"));
+        if (isTrue(isEqual(clientAlgoId, ccxt::any{}))) {
+          ::setValue(params, std::string("clientAlgoId"),
+                     this->generateClientOrderId(ccxt::any{}, api));
         }
       }
       ccxt::any query = ccxt::any{};
@@ -20061,10 +20312,12 @@ public:
         ccxt::any batchOrders =
             this->safeList(params, std::string("batchOrders"), ccxt::list{});
         ccxt::any checkedBatchOrders = batchOrders;
-        if (isTrue(isTrue(isEqual(method, std::string("POST"))) &&
-                   isTrue(isEqual(api, std::string("fapiPrivate"))))) {
+        if (isTrue(
+                isTrue(isEqual(method, std::string("POST"))) &&
+                isTrue((isTrue((isEqual(api, std::string("fapiPrivate")))) ||
+                        isTrue((isEqual(api, std::string("dapiPrivate")))))))) {
           // check broker id if batchOrders are called with
-          // fapiPrivatePostBatchOrders
+          // fapiPrivatePostBatchOrders / dapiPrivatePostBatchOrders
           checkedBatchOrders = ccxt::list{};
           for (ccxt::any i = 0; isLessThan(i, getArrayLength(batchOrders));
                postFixIncrement(i)) {
@@ -20072,15 +20325,8 @@ public:
             ccxt::any newClientOrderId =
                 this->safeString(batchOrder, std::string("newClientOrderId"));
             if (isTrue(isEqual(newClientOrderId, ccxt::any{}))) {
-              ccxt::any defaultId = std::string(
-                  "x-xcKtGhcu"); // batchOrders can not be spot or margin
-              ccxt::any broker = this->safeDict(
-                  this->options, std::string("broker"), ccxt::dict{});
-              ccxt::any brokerId =
-                  this->safeString(broker, std::string("future"), defaultId);
-              newClientOrderId = add(brokerId, this->uuid22());
               ::setValue(batchOrder, std::string("newClientOrderId"),
-                         newClientOrderId);
+                         this->generateClientOrderId(ccxt::any{}, api));
             }
             arrayPush(checkedBatchOrders, batchOrder);
           }
@@ -21593,6 +21839,9 @@ public:
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest
    * @see
    * https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#open-interest
    * @param {string} symbol unified CCXT market symbol
    * @param {object} [params] exchange specific parameters
    * @returns {object} an open interest structure{@link
@@ -22067,6 +22316,9 @@ public:
    * measure the factors that affect the price of an options contract
    * @see
    * https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#option-mark-price
    * @param {string} symbol unified symbol of the market to fetch greeks for
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
@@ -22117,6 +22369,9 @@ public:
    * measure the factors that affect the price of an options contract
    * @see
    * https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#option-mark-price
    * @param {string[]} [symbols] unified symbols of the markets to fetch greeks
    * for, all markets are returned if not assigned
    * @param {object} [params] extra parameters specific to the exchange API
@@ -22319,6 +22574,9 @@ public:
    * (linear/inverse) are returned
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
    * @see
@@ -22384,6 +22642,9 @@ public:
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
    * @param {string} symbol unified symbol of the market the order was made in
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
@@ -22471,6 +22732,9 @@ public:
    * @description fetches option data that is commonly found in an option chain
    * @see
    * https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
+   * // deprecated
+   * @see
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#ticker24hr-price-change-statistics
    * @param {string} symbol unified market symbol
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
@@ -23955,6 +24219,15 @@ public:
         return awaitValue(this->createOrder(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
+    }
+    if (which == "generateClientOrderId") {
+      if (count <= 0)
+        return this->generateClientOrderId();
+      if (count == 1)
+        return this->generateClientOrderId(::getValue(args, 0));
+      if (count >= 2)
+        return this->generateClientOrderId(::getValue(args, 0),
+                                           ::getValue(args, 1));
     }
     if (which == "isConditionalOrder") {
       if (count <= 0)
