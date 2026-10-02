@@ -409,6 +409,7 @@ function rewriteWsClientAccess (content: string): string {
     const cap = (s: string) => s.charAt (0).toUpperCase () + s.slice (1);
     return content
         .replace (/\bclient\.(resolve|reject)\s*\(/g, 'this->$1(')
+        .replace (/\bclient\.close\s*\(\s*\)/g, '::wsClientClose(client)')
         .replace (/\bclient\.(future|reusableFuture|send|reset)\s*\(/g, (_m, m) => '::wsClient' + cap (m) + '(client, ')
         .replace (/\bclient\.([A-Za-z_]\w*)\b(?!\s*\()/g, '::getValue(client, std::string("$1"))');
 }

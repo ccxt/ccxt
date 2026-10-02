@@ -1227,6 +1227,13 @@ ccxt::any wsClientReset (const ccxt::any& client, const ccxt::any& error) {
     return error;
 }
 
+ccxt::any wsClientClose (const ccxt::any& client) {
+    // JS client.close() tears the connection down; the C++ transport's
+    // shutdown() is the equivalent (disconnect + drop the receive loop)
+    ccxt::ws::Client::of (client).shutdown ();
+    return ccxt::any {};
+}
+
 ccxt::any wsClientReusableFuture (const ccxt::any& client, const ccxt::any& messageHash) {
     return ccxt::any (ccxt::ws::Client::of (client).future (anyToString (messageHash)));
 }
