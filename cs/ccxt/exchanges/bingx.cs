@@ -837,9 +837,6 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "swap/trace/currentTrack", new Dictionary<string, object>() {
-                                    { "cost", 2 },
-                                } },
                                 { "PFutures/traderDetail", new Dictionary<string, object>() {
                                     { "cost", 2 },
                                 } },
@@ -866,9 +863,6 @@ public partial class bingx : Exchange
                                 } },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "swap/trace/closeTrackOrder", new Dictionary<string, object>() {
-                                    { "cost", 2 },
-                                } },
                                 { "swap/trace/setTPSL", new Dictionary<string, object>() {
                                     { "cost", 2 },
                                 } },
@@ -6933,7 +6927,7 @@ public partial class bingx : Exchange
         }
         Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         request["cancelOrderId"] = id;
-        request["cancelReplaceMode"] = "STOP_ON_FAILURE";
+        request["cancelReplaceMode"] = this.safeString(parameters, "cancelReplaceMode", "STOP_ON_FAILURE");
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
         {
