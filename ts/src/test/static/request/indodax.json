@@ -351,7 +351,7 @@
                 "output": "timestamp=1700000000000&recvWindow=5000&pair=btc_idr&countdownTime=0"
             },
             {
-                "description": "TAPI v2 uses the same deadman url with the v2 key header",
+                "description": "a TAPI v2 key signs the deadman endpoint with v1 auth",
                 "method": "cancelAllOrdersAfter",
                 "url": "https://indodax.com/tapi/countdownCancelAll",
                 "input": [
@@ -365,8 +365,8 @@
                     "tapiVersion": "2"
                 },
                 "headers": {
-                    "X-APIKEY": "key",
-                    "Content-Type": "application/x-www-form-urlencoded"
+                    "Key": "key",
+                    "Content-Type": "text/plain"
                 }
             },
             {

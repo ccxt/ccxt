@@ -2980,20 +2980,11 @@ export default class indodax extends Exchange {
                 'recvWindow': this.safeInteger (this.options, 'recvWindow', 5000),
             }, params));
             requestBody = query;
-            if (this.isTapiV2 ()) {
-                requestHeaders = {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-APIKEY': this.apiKey,
-                    'Sign': this.hmac (this.encode (query), this.encode (this.secret), sha256),
-                };
-            } else {
-                requestHeaders = {
-                    'Content-Type': 'text/plain',
-                    'Key': this.apiKey,
-                    'Sign': this.hmac (this.encode (query), this.encode (this.secret), sha512),
-                };
-            }
+            requestHeaders = {
+                'Content-Type': 'text/plain',
+                'Key': this.apiKey,
+                'Sign': this.hmac (this.encode (query), this.encode (this.secret), sha512),
+            };
         } else {
             this.checkRequiredCredentials ();
             requestBody = this.urlencode (this.extend ({
