@@ -2539,7 +2539,7 @@ class testMainClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex(), $this->test_foxbit(), $this->test_bithumb()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex(), $this->test_foxbit(), $this->test_bithumb(), $this->test_extended()];
             \React\Async\await(\React\Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -2856,6 +2856,71 @@ class testMainClass {
                 $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
             }
             assert($req_headers['OPEN-API-PARTNER'] === $id, 'bithumb - id: ' . $id . ' not in headers (public endpoints).');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_extended() {
+        return Async\async(function () {
+            if ($this->lang === 'RUST') {
+                return false;  // the extended static request suite is disabledRS as well
+            }
+            $exchange = $this->init_offline_exchange('extended');
+            $exchange->privateKey = '0x12345';
+            $exchange->options['account'] = array(
+                'l2Key' => '0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf',
+                'l2Vault' => '123456',
+            );
+            $builder_id = '257624';
+            $builder_fee_rate = '0.0001';
+            assert($exchange->options['builderFee'] === true, 'extended - builderFee is not enabled in options');
+            assert($exchange->options['builderId'] === $builder_id, 'extended - builderId: ' . $builder_id . ' not in options');
+            assert($exchange->options['builderFeeRate'] === $builder_fee_rate, 'extended - builderFeeRate: ' . $builder_fee_rate . ' not in options');
+            // default: the builder code and fee rate come from options
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            assert($request['builderId'] === $builder_id, 'extended - builderId: ' . $request['builderId'] . ' different from options: ' . $builder_id);
+            assert($request['builderFee'] === $builder_fee_rate, 'extended - builderFee: ' . $request['builderFee'] . ' different from options: ' . $builder_fee_rate);
+            assert($request['fee'] === '0.0005', 'extended - fee: ' . $request['fee'] . ' should stay the base fee, the builder fee is a separate field');
+            // params override the fee rate, the builder code stays
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000, array(
+                    'builderFeeRate' => '0.0002',
+                )));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            assert($request['builderFee'] === '0.0002', 'extended - builderFee: ' . $request['builderFee'] . ' does not take the params value 0.0002');
+            assert($request['builderId'] === $builder_id, 'extended - builderId: ' . $request['builderId'] . ' changed by a builderFeeRate param');
+            assert(!(is_array($request) && array_key_exists('builderFeeRate', $request)), 'extended - builderFeeRate param leaked into the request');
+            // sandbox: the builder is only attached when passed explicitly in params
+            $exchange->set_sandbox_mode(true);
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            assert(!(is_array($request) && array_key_exists('builderId', $request)), 'extended - sandbox attached builderId from options');
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000, array(
+                    'builderId' => '999',
+                    'builderFeeRate' => '0.0003',
+                )));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            assert($request['builderId'] === '999', 'extended - sandbox builderId: ' . $request['builderId'] . ' does not take the params value 999');
+            assert($request['builderFee'] === '0.0003', 'extended - sandbox builderFee: ' . $request['builderFee'] . ' does not take the params value 0.0003');
             if (!is_sync()) {
                 \React\Async\await(close($exchange));
             }
