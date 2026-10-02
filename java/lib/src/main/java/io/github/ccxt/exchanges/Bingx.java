@@ -882,9 +882,6 @@ public class Bingx extends BingxApi
                     put( "v1", new HashMap<String, Object>() {{
                         put( "private", new HashMap<String, Object>() {{
                             put( "get", new HashMap<String, Object>() {{
-                                put( "swap/trace/currentTrack", new HashMap<String, Object>() {{
-                                    put( "cost", 2 );
-                                }} );
                                 put( "PFutures/traderDetail", new HashMap<String, Object>() {{
                                     put( "cost", 2 );
                                 }} );
@@ -911,9 +908,6 @@ public class Bingx extends BingxApi
                                 }} );
                             }} );
                             put( "post", new HashMap<String, Object>() {{
-                                put( "swap/trace/closeTrackOrder", new HashMap<String, Object>() {{
-                                    put( "cost", 2 );
-                                }} );
                                 put( "swap/trace/setTPSL", new HashMap<String, Object>() {{
                                     put( "cost", 2 );
                                 }} );
@@ -7225,7 +7219,7 @@ public class Bingx extends BingxApi
             }
             Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             request.put("cancelOrderId", id);
-            request.put("cancelReplaceMode", "STOP_ON_FAILURE");
+            request.put("cancelReplaceMode", this.safeString(parameters, "cancelReplaceMode", "STOP_ON_FAILURE"));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("swap"), true))
             {
