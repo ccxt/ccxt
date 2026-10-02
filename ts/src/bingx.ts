@@ -3341,7 +3341,8 @@ export default class bingx extends Exchange {
                     const slTriggerPrice = this.safeString2 (stopLossDict, 'triggerPrice', 'stopPrice');
                     const slWorkingType = this.safeString2 (stopLossDict, 'triggerPriceType', 'workingType', 'MARK_PRICE');
                     const slPrice = this.safeString (stopLossDict, 'price');
-                    const slType = this.safeString (stopLossDict, 'type', (slPrice !== undefined) ? 'STOP' : 'STOP_MARKET');
+                    const slDefaultType = (slPrice !== undefined) ? 'STOP' : 'STOP_MARKET';
+                    const slType = this.safeString (stopLossDict, 'type', slDefaultType);
                     const slRequest: Dict = {
                         'stopPrice': this.parseToNumeric (this.priceToPrecision (symbol, slTriggerPrice)),
                         'workingType': this.encodeTriggerPriceType (slWorkingType),
@@ -3362,7 +3363,8 @@ export default class bingx extends Exchange {
                     const tkTriggerPrice = this.safeString2 (takeProfitDict, 'triggerPrice', 'stopPrice');
                     const tkWorkingType = this.safeString2 (takeProfitDict, 'triggerPriceType', 'workingType', 'MARK_PRICE');
                     const tpPrice = this.safeString (takeProfitDict, 'price');
-                    const tpType = this.safeString (takeProfitDict, 'type', (tpPrice !== undefined) ? 'TAKE_PROFIT' : 'TAKE_PROFIT_MARKET');
+                    const tpDefaultType = (tpPrice !== undefined) ? 'TAKE_PROFIT' : 'TAKE_PROFIT_MARKET';
+                    const tpType = this.safeString (takeProfitDict, 'type', tpDefaultType);
                     const tpRequest: Dict = {
                         'stopPrice': this.parseToNumeric (this.priceToPrecision (symbol, tkTriggerPrice)),
                         'workingType': this.encodeTriggerPriceType (tkWorkingType),
