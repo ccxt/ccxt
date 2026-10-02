@@ -7,7 +7,7 @@
             "coinFullName": "Bitcoin",
             "allowWithdraw": true,
             "allowDeposit": true,
-            "status": "1",
+            "status": 1,
             "tokenType": "CHAIN_TOKEN",
             "cmcId": "",
             "chainTypes": [
@@ -43,9 +43,9 @@
         "fee": 0.00001,
         "fees": {},
         "networks": {
-            "Bitcoin": {
+            "BTC": {
                 "id": "Bitcoin",
-                "network": "Bitcoin",
+                "network": "BTC",
                 "limits": {
                     "withdraw": {
                         "min": 0.0004,
@@ -119,7 +119,7 @@
             "coinFullName": "Ethereum",
             "allowWithdraw": true,
             "allowDeposit": true,
-            "status": "1",
+            "status": 1,
             "tokenType": "ERC20_TOKEN",
             "cmcId": "",
             "chainTypes": [
@@ -194,6 +194,15 @@
                     "minDepositQuantity": "0.001",
                     "allowDeposit": false,
                     "allowWithdraw": false
+                },
+                {
+                    "chainType": "XLayer",
+                    "withdrawFee": "0.0008",
+                    "minWithdrawQuantity": "0.004",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.01",
+                    "allowDeposit": false,
+                    "allowWithdraw": true
                 }
             ]
         },
@@ -237,9 +246,9 @@
                     "allowWithdraw": true
                 }
             },
-            "Optimism": {
+            "OP": {
                 "id": "Optimism",
-                "network": "Optimism",
+                "network": "OP",
                 "limits": {
                     "withdraw": {
                         "min": 0.05,
@@ -265,9 +274,9 @@
                     "allowWithdraw": false
                 }
             },
-            "Arbitrum": {
+            "ARBITRUM": {
                 "id": "Arbitrum",
-                "network": "Arbitrum",
+                "network": "ARBITRUM",
                 "limits": {
                     "withdraw": {
                         "min": 0.0002,
@@ -293,9 +302,9 @@
                     "allowWithdraw": true
                 }
             },
-            "zkSync": {
+            "ZKSYNC": {
                 "id": "zkSync",
-                "network": "zkSync",
+                "network": "ZKSYNC",
                 "limits": {
                     "withdraw": {
                         "min": 0.001,
@@ -321,9 +330,9 @@
                     "allowWithdraw": false
                 }
             },
-            "Base": {
+            "BASE": {
                 "id": "Base",
-                "network": "Base",
+                "network": "BASE",
                 "limits": {
                     "withdraw": {
                         "min": 3e-7,
@@ -349,9 +358,9 @@
                     "allowWithdraw": true
                 }
             },
-            "Scroll": {
+            "SCROLL": {
                 "id": "Scroll",
-                "network": "Scroll",
+                "network": "SCROLL",
                 "limits": {
                     "withdraw": {
                         "min": 0.001,
@@ -432,6 +441,34 @@
                     "allowDeposit": false,
                     "allowWithdraw": false
                 }
+            },
+            "XLayer": {
+                "id": "XLayer",
+                "network": "XLayer",
+                "limits": {
+                    "withdraw": {
+                        "min": 0.004,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    }
+                },
+                "active": null,
+                "deposit": false,
+                "withdraw": true,
+                "fee": 0.0008,
+                "precision": null,
+                "info": {
+                    "chainType": "XLayer",
+                    "withdrawFee": "0.0008",
+                    "minWithdrawQuantity": "0.004",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.01",
+                    "allowDeposit": false,
+                    "allowWithdraw": true
+                }
             }
         },
         "limits": {
@@ -453,7 +490,7 @@
             "coinFullName": "Tether",
             "allowWithdraw": true,
             "allowDeposit": true,
-            "status": "1",
+            "status": 1,
             "tokenType": "ERC20_TOKEN",
             "cmcId": "",
             "chainTypes": [
@@ -552,9 +589,9 @@
         "fee": 0,
         "fees": {},
         "networks": {
-            "ETH": {
+            "ERC20": {
                 "id": "ETH",
-                "network": "ETH",
+                "network": "ERC20",
                 "limits": {
                     "withdraw": {
                         "min": 25,
@@ -580,9 +617,9 @@
                     "allowWithdraw": true
                 }
             },
-            "Tron": {
+            "TRC20": {
                 "id": "TRC20",
-                "network": "Tron",
+                "network": "TRC20",
                 "limits": {
                     "withdraw": {
                         "min": 1,
@@ -608,9 +645,9 @@
                     "allowWithdraw": true
                 }
             },
-            "Arbitrum": {
+            "ARBITRUM": {
                 "id": "Arbitrum",
-                "network": "Arbitrum",
+                "network": "ARBITRUM",
                 "limits": {
                     "withdraw": {
                         "min": 0.7,
@@ -636,9 +673,9 @@
                     "allowWithdraw": true
                 }
             },
-            "BSC(BEP20)": {
+            "BEP20": {
                 "id": "BSC(BEP20)",
-                "network": "BSC(BEP20)",
+                "network": "BEP20",
                 "limits": {
                     "withdraw": {
                         "min": 1,
@@ -692,9 +729,9 @@
                     "allowWithdraw": false
                 }
             },
-            "Solana": {
+            "SOL": {
                 "id": "Solana",
-                "network": "Solana",
+                "network": "SOL",
                 "limits": {
                     "withdraw": {
                         "min": 1,
@@ -720,9 +757,9 @@
                     "allowWithdraw": true
                 }
             },
-            "Scroll": {
+            "SCROLL": {
                 "id": "Scroll",
-                "network": "Scroll",
+                "network": "SCROLL",
                 "limits": {
                     "withdraw": {
                         "min": 1,
@@ -776,9 +813,9 @@
                     "allowWithdraw": true
                 }
             },
-            "Plasma": {
+            "PLASMA": {
                 "id": "Plasma",
-                "network": "Plasma",
+                "network": "PLASMA",
                 "limits": {
                     "withdraw": {
                         "min": 1,
@@ -824,7 +861,7 @@
             "coinFullName": "USD Coin",
             "allowWithdraw": true,
             "allowDeposit": true,
-            "status": "1",
+            "status": 1,
             "tokenType": "ERC20_TOKEN",
             "cmcId": "",
             "chainTypes": [
@@ -860,9 +897,9 @@
         "fee": 1,
         "fees": {},
         "networks": {
-            "ETH": {
+            "ERC20": {
                 "id": "ETH",
-                "network": "ETH",
+                "network": "ERC20",
                 "limits": {
                     "withdraw": {
                         "min": 25,
@@ -888,9 +925,9 @@
                     "allowWithdraw": true
                 }
             },
-            "Arbitrum": {
+            "ARBITRUM": {
                 "id": "Arbitrum",
-                "network": "Arbitrum",
+                "network": "ARBITRUM",
                 "limits": {
                     "withdraw": {
                         "min": 1,
@@ -935,8 +972,8 @@
             "coinName": "LTC",
             "coinFullName": "Litecoin",
             "allowWithdraw": true,
-            "allowDeposit": true,
-            "status": "1",
+            "allowDeposit": false,
+            "status": 1,
             "tokenType": "CHAIN_TOKEN",
             "cmcId": "",
             "chainTypes": [
@@ -946,7 +983,7 @@
                     "minWithdrawQuantity": "0.0052",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "0.0006",
-                    "allowDeposit": true,
+                    "allowDeposit": false,
                     "allowWithdraw": true
                 }
             ]
@@ -958,14 +995,14 @@
         "type": "crypto",
         "name": "Litecoin",
         "active": null,
-        "deposit": true,
+        "deposit": false,
         "withdraw": true,
         "fee": 0.0002,
         "fees": {},
         "networks": {
-            "Litecoin": {
+            "LITECOIN": {
                 "id": "Litecoin",
-                "network": "Litecoin",
+                "network": "LITECOIN",
                 "limits": {
                     "withdraw": {
                         "min": 0.0052,
@@ -977,7 +1014,7 @@
                     }
                 },
                 "active": null,
-                "deposit": true,
+                "deposit": false,
                 "withdraw": true,
                 "fee": 0.0002,
                 "precision": null,
@@ -987,7 +1024,7 @@
                     "minWithdrawQuantity": "0.0052",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "0.0006",
-                    "allowDeposit": true,
+                    "allowDeposit": false,
                     "allowWithdraw": true
                 }
             }
@@ -1011,7 +1048,7 @@
             "coinFullName": "Dogecoin",
             "allowWithdraw": true,
             "allowDeposit": true,
-            "status": "1",
+            "status": 1,
             "tokenType": "CHAIN_TOKEN",
             "cmcId": "",
             "chainTypes": [
@@ -1038,9 +1075,9 @@
         "fee": 8,
         "fees": {},
         "networks": {
-            "Dogecoin": {
+            "DOGECOIN": {
                 "id": "Dogecoin",
-                "network": "Dogecoin",
+                "network": "DOGECOIN",
                 "limits": {
                     "withdraw": {
                         "min": 20,
