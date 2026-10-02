@@ -1602,11 +1602,6 @@ impl BingxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("swap/trace/currentTrack".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(2));
-    m
-}));
         m.insert("PFutures/traderDetail".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(2));
@@ -1651,11 +1646,6 @@ impl BingxCore {
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("swap/trace/closeTrackOrder".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(2));
-    m
-}));
         m.insert("swap/trace/setTPSL".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(2));
@@ -8157,9 +8147,9 @@ impl BingxCore {
         if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" editOrder() is not supported for inverse swap markets".into()))));
         }
-        let mut request: Value = self.create_order_request(symbol, type_var, side, amount, &[price, params]);
+        let mut request: Value = self.create_order_request(symbol, type_var, side, amount, &[price, params.clone()]);
         add_element_to_object(&mut request, &Value::Str("cancelOrderId".into()), id);
-        add_element_to_object(&mut request, &Value::Str("cancelReplaceMode".into()), Value::Str("STOP_ON_FAILURE".into()));
+        add_element_to_object(&mut request, &Value::Str("cancelReplaceMode".into()), self.safe_string_k(params, "cancelReplaceMode", &[Value::Str("STOP_ON_FAILURE".into())]));
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             response = self.swap_v1_private_post_trade_cancel_replace(&[request.clone()]).await;

@@ -3037,7 +3037,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        let mut promises: Value = Value::from(vec![self.test_binance().await, self.test_okx().await, self.test_cryptocom().await, self.test_bybit().await, self.test_kucoin().await, self.test_kucoinfutures().await, self.test_bitget().await, self.test_mexc().await, self.test_htx().await, self.test_woo().await, self.test_coinex().await, self.test_bingx().await, self.test_phemex().await, self.test_blofin().await, self.test_coinbaseinternational().await, self.test_coinbase_advanced().await, self.test_woofi_pro().await, self.test_xt().await, Value::Null /* paradex broker-id skipped: starknetSign() not ported to Rust */, self.test_hashkey().await, self.test_cryptomus().await, self.test_derive().await, self.test_mode_trade().await, self.test_backpack().await, self.test_toobit().await, self.test_weex().await, self.test_foxbit().await, self.test_bithumb().await]);
+        let mut promises: Value = Value::from(vec![self.test_binance().await, self.test_okx().await, self.test_cryptocom().await, self.test_bybit().await, self.test_kucoin().await, self.test_kucoinfutures().await, self.test_bitget().await, self.test_mexc().await, self.test_htx().await, self.test_woo().await, self.test_coinex().await, self.test_bingx().await, self.test_phemex().await, self.test_blofin().await, self.test_coinbaseinternational().await, self.test_coinbase_advanced().await, self.test_woofi_pro().await, self.test_xt().await, Value::Null /* paradex broker-id skipped: starknetSign() not ported to Rust */, self.test_hashkey().await, self.test_cryptomus().await, self.test_derive().await, self.test_mode_trade().await, self.test_backpack().await, self.test_toobit().await, self.test_weex().await, self.test_foxbit().await, self.test_bithumb().await, self.test_extended().await]);
         promise_all(&promises).await;
         let mut successMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][TEST_SUCCESS] brokerId tests passed.".into())).into());
         dump(&[Value::Str(format!("{}{}", Value::Str("[INFO]".into()), successMessage).into())]);
@@ -3479,6 +3479,93 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }) });
         }
         assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("OPEN-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bithumb - id: ".into()), id).into()), Value::Str(" not in headers (public endpoints).".into())).into())]);
+        if !is_true(&isSync()) {
+            close(exchange.clone()).await;
+        }
+        return Value::Bool(true);
+
+    Value::Null
+}
+
+    pub async fn test_extended(&mut self) -> Value {
+        if (self.lang.as_str() == Some("RUST")) {
+            return Value::Bool(false);
+        }
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("extended".into()), &[]);
+        ccxt::set_value(&mut exchange, &Value::Str("privateKey".into()), Value::Str("0x12345".into()));
+        add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("account".into()), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("l2Key".to_string(), Value::Str("0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf".into()));
+        m.insert("l2Vault".to_string(), Value::Str("123456".into()));
+    m
+}));
+        let mut builderId: Value = Value::Str("257624".into());
+        let mut builderFeeRate: Value = Value::Str("0.0001".into());
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null), &Value::Bool(true))), &[Value::Str("extended - builderFee is not enabled in options".into())]);
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null), &builderId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("extended - builderId: ".into()), builderId).into()), Value::Str(" not in options".into())).into())]);
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("builderFeeRate")).cloned().unwrap_or(Value::Null), &builderFeeRate)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("extended - builderFeeRate: ".into()), builderFeeRate).into()), Value::Str(" not in options".into())).into())]);
+        // default: the builder code and fee rate come from options
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
+        }
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null), &builderId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("extended - builderId: ".into()), &request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null)), Value::Str(" different from options: ".into())).into()), builderId).into())]);
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null), &builderFeeRate)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("extended - builderFee: ".into()), &request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null)), Value::Str(" different from options: ".into())).into()), builderFeeRate).into())]);
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), &Value::Str("0.0005".into()))), &[Value::Str(format!("{}{}", add(&Value::Str("extended - fee: ".into()), &request.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null)), Value::Str(" should stay the base fee, the builder fee is a separate field".into())).into())]);
+        // params override the fee rate, the builder code stays
+        request = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000), Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("builderFeeRate".to_string(), Value::Str("0.0002".into()));
+                m
+            })]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
+        }
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null), &Value::Str("0.0002".into()))), &[Value::Str(format!("{}{}", add(&Value::Str("extended - builderFee: ".into()), &request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null)), Value::Str(" does not take the params value 0.0002".into())).into())]);
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null), &builderId)), &[Value::Str(format!("{}{}", add(&Value::Str("extended - builderId: ".into()), &request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null)), Value::Str(" changed by a builderFeeRate param".into())).into())]);
+        assert(Value::Bool(!(matches!(&request, Value::Dict(__d) if __d.contains_key("builderFeeRate")))), &[Value::Str("extended - builderFeeRate param leaked into the request".into())]);
+        // sandbox: the builder is only attached when passed explicitly in params
+        exchange.set_sandbox_mode(Value::Bool(true));
+        request = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
+        }
+        assert(Value::Bool(!(matches!(&request, Value::Dict(__d) if __d.contains_key("builderId")))), &[Value::Str("extended - sandbox attached builderId from options".into())]);
+        request = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000), Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("builderId".to_string(), Value::Str("999".into()));
+                    m.insert("builderFeeRate".to_string(), Value::Str("0.0003".into()));
+                m
+            })]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
+        }
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null), &Value::Str("999".into()))), &[Value::Str(format!("{}{}", add(&Value::Str("extended - sandbox builderId: ".into()), &request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null)), Value::Str(" does not take the params value 999".into())).into())]);
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null), &Value::Str("0.0003".into()))), &[Value::Str(format!("{}{}", add(&Value::Str("extended - sandbox builderFee: ".into()), &request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null)), Value::Str(" does not take the params value 0.0003".into())).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
