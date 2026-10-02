@@ -357,7 +357,7 @@ export default class hashkey extends Exchange {
                     'SUI': 'SUI',
                     'TON':'TON', 
                     'BTC': 'Bitcoin', 
-                    'TRC20': [ 'TRC20', 'TRON', 'Tron' ], 
+                    'TRC20': [ 'TRX', 'TRC20', 'TRON', 'Tron' ], 
                     // 'Conflux', 
                     'DOGECOIN': 'Dogecoin', 
                     'DOT': 'Polkadot', 
