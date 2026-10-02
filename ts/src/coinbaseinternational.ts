@@ -2910,9 +2910,9 @@ export default class coinbaseinternational extends Exchange {
     override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const access = api;
         const rpcMethod = access + '/' + path;
-        const isNativeAuth = (access === 'public') && (path === 'auth') && this.isNativeDeribitCredentials ();
+        const isNativeDeribit = this.isNativeDeribitCredentials ();
         let baseApiUrl = this.urls['api']['rest'];
-        if (isNativeAuth) {
+        if (isNativeDeribit) {
             baseApiUrl = 'https://www.deribit.com/api/v2';
         }
         const url = baseApiUrl + '/' + rpcMethod;
@@ -2920,7 +2920,7 @@ export default class coinbaseinternational extends Exchange {
         let requestHeaders: NullableDict = headers;
         if ((access === 'public') && (path === 'auth')) {
             this.checkRequiredCredentials ();
-            if (isNativeAuth) {
+            if (isNativeDeribit) {
                 requestParams = this.extend ({
                     'grant_type': 'client_credentials',
                     'client_id': this.apiKey,
@@ -2932,6 +2932,21 @@ export default class coinbaseinternational extends Exchange {
                     'token': this.createAuthToken (this.seconds (), this.isEddsaSecret ()),
                 }, params);
             }
+        } else if ((access === 'private') && isNativeDeribit) {
+            this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ().toString ();
+            const nonce = this.nonce ().toString ();
+            let signedRequest = '/' + 'api/' + this.version + '/' + access + '/' + path;
+            if (Object.keys (requestParams).length > 0) {
+                signedRequest += '?' + this.urlencode (requestParams);
+            }
+            const requestData = method + "\n" + signedRequest + "\n" + "\n";
+            const auth = timestamp + "\n" + nonce + "\n" + requestData;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+            requestHeaders = {
+                'Content-Type': 'application/json',
+                'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',nonce=' + nonce,
+            };
         } else if (access === 'private') {
             const accessToken = this.getV2AccessToken ();
             if (accessToken === undefined) {
@@ -2972,8 +2987,7 @@ export default class coinbaseinternational extends Exchange {
             return false;
         }
         const useV2CloudApiKey = this.safeBool (this.options, 'v2CloudAPiKey', false);
-        const secretLength = this.secret.length;
-        return (secretLength === 88) || useV2CloudApiKey || this.secret.endsWith ('=');
+        return (this.secret.length === 88) || useV2CloudApiKey || this.secret.endsWith ('=');
     }
 
     isCdpCredentials (): boolean {
