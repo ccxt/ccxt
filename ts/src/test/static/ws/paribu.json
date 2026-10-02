@@ -1,0 +1,2621 @@
+{
+    "exchange": "paribu",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchMyTrades": [
+            {
+                "description": "my trades",
+                "input": [],
+                "url": "wss://api.paribu.com/v1/wapi/user",
+                "messages": [
+                    {
+                        "r": {
+                            "channels": [
+                                "orders",
+                                "ledger"
+                            ],
+                            "id": "1",
+                            "t": "subscribed"
+                        },
+                        "e": "status",
+                        "E": 1789665111781
+                    },
+                    {
+                        "r": {
+                            "tx": "01a00000-0000-7000-0000-000000000003",
+                            "c": "tl",
+                            "bal": {
+                                "av": "1100.00000000",
+                                "lk": "0.00000000",
+                                "bl": "400.00000000",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "1500.00000000"
+                            },
+                            "tr": {
+                                "av": "0",
+                                "lk": "0",
+                                "bl": "0",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "0"
+                            },
+                            "st": {
+                                "ok": true
+                            },
+                            "t": "reserve-trade"
+                        },
+                        "e": "ledger",
+                        "E": 1789665122877
+                    },
+                    {
+                        "r": {
+                            "aa": 1789665122884,
+                            "T": 1789665122884,
+                            "i": "01a00000-0000-7000-0000-000000000003",
+                            "s": "btc_tl",
+                            "p": "0",
+                            "q": "0",
+                            "rq": "0",
+                            "tp": "150",
+                            "rtp": "0.65708",
+                            "fq": "0.00004",
+                            "ftp": "149.34292",
+                            "ap": "3733573",
+                            "S": "BUY",
+                            "ot": "MARKET",
+                            "tif": "GTC",
+                            "t": "match",
+                            "mp": "3733573",
+                            "mq": "0.00004",
+                            "mi": "657c5f1ea84593e49f5ad3ee06e7d53d",
+                            "mr": "TAKER"
+                        },
+                        "e": "order",
+                        "E": 1789665122884
+                    },
+                    {
+                        "r": {
+                            "tx": "657c5f1ea84593e49f5ad3ee06e7d53d",
+                            "c": "tl",
+                            "bal": {
+                                "av": "1300.00000000",
+                                "lk": "0.00000000",
+                                "bl": "200.00000000",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "1500.00000000"
+                            },
+                            "tr": {
+                                "av": "0",
+                                "lk": "0",
+                                "bl": "0",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "0"
+                            },
+                            "st": {
+                                "ok": true
+                            },
+                            "t": "execute-trade-taker"
+                        },
+                        "e": "ledger",
+                        "E": 1789665122884
+                    },
+                    {
+                        "r": {
+                            "tx": "657c5f1ea84593e49f5ad3ee06e7d53d",
+                            "c": "btc",
+                            "bal": {
+                                "av": "0.00001000",
+                                "lk": "0",
+                                "bl": "0",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "0.00001000"
+                            },
+                            "tr": {
+                                "av": "0",
+                                "lk": "0",
+                                "bl": "0",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "0"
+                            },
+                            "st": {
+                                "ok": true
+                            },
+                            "t": "execute-trade-taker"
+                        },
+                        "e": "ledger",
+                        "E": 1789665122884
+                    },
+                    {
+                        "r": {
+                            "tx": "657c5f1ea84593e49f5ad3ee06e7d53d",
+                            "c": "btc",
+                            "amt": "0.00000011",
+                            "rate": "0.0028",
+                            "t": "execute-trade-taker-commission"
+                        },
+                        "e": "ledger",
+                        "E": 1789665122884
+                    },
+                    {
+                        "r": {
+                            "aa": 1789665122884,
+                            "T": 1789665122884,
+                            "i": "01a00000-0000-7000-0000-000000000003",
+                            "s": "btc_tl",
+                            "p": "0",
+                            "q": "0",
+                            "rq": "0",
+                            "tp": "150",
+                            "rtp": "0.65708",
+                            "fq": "0.00004",
+                            "ftp": "149.34292",
+                            "ap": "3733573",
+                            "S": "BUY",
+                            "ot": "MARKET",
+                            "tif": "GTC",
+                            "t": "completed"
+                        },
+                        "e": "order",
+                        "E": 1789665122884
+                    },
+                    {
+                        "r": {
+                            "tx": "01a00000-0000-7000-0000-000000000003",
+                            "c": "tl",
+                            "bal": {
+                                "av": "1000.00000000",
+                                "lk": "0.00000000",
+                                "bl": "500.00000000",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "1500.00000000"
+                            },
+                            "tr": {
+                                "av": "0",
+                                "lk": "0",
+                                "bl": "0",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "0"
+                            },
+                            "st": {
+                                "ok": true
+                            },
+                            "t": "order-partially-completed"
+                        },
+                        "e": "ledger",
+                        "E": 1789665122884
+                    },
+                    {
+                        "r": {
+                            "tx": "01a00000-0000-7000-0000-000000000004",
+                            "c": "btc",
+                            "bal": {
+                                "av": "0.00002000",
+                                "lk": "0",
+                                "bl": "0",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "0.00002000"
+                            },
+                            "tr": {
+                                "av": "0",
+                                "lk": "0",
+                                "bl": "0",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "0"
+                            },
+                            "st": {
+                                "ok": true
+                            },
+                            "t": "reserve-trade"
+                        },
+                        "e": "ledger",
+                        "E": 1789665129054
+                    },
+                    {
+                        "r": {
+                            "aa": 1789665129061,
+                            "T": 1789665129061,
+                            "i": "01a00000-0000-7000-0000-000000000004",
+                            "s": "btc_tl",
+                            "p": "0",
+                            "q": "0.000039",
+                            "rq": "0",
+                            "tp": "0",
+                            "rtp": "0",
+                            "fq": "0.000039",
+                            "ftp": "145.609308",
+                            "ap": "3733572",
+                            "S": "SELL",
+                            "ot": "MARKET",
+                            "tif": "GTC",
+                            "t": "match",
+                            "mp": "3733572",
+                            "mq": "0.000039",
+                            "mi": "d49e5f0736737b73fd59ab0b17810de7",
+                            "mr": "TAKER"
+                        },
+                        "e": "order",
+                        "E": 1789665129061
+                    },
+                    {
+                        "r": {
+                            "tx": "d49e5f0736737b73fd59ab0b17810de7",
+                            "c": "btc",
+                            "bal": {
+                                "av": "0.00003000",
+                                "lk": "0",
+                                "bl": "0",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "0.00003000"
+                            },
+                            "tr": {
+                                "av": "0",
+                                "lk": "0",
+                                "bl": "0",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "0"
+                            },
+                            "st": {
+                                "ok": true
+                            },
+                            "t": "execute-trade-taker"
+                        },
+                        "e": "ledger",
+                        "E": 1789665129061
+                    },
+                    {
+                        "r": {
+                            "tx": "d49e5f0736737b73fd59ab0b17810de7",
+                            "c": "tl",
+                            "bal": {
+                                "av": "1200.00000000",
+                                "lk": "0.00000000",
+                                "bl": "300.00000000",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "1500.00000000"
+                            },
+                            "tr": {
+                                "av": "0",
+                                "lk": "0",
+                                "bl": "0",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "0"
+                            },
+                            "st": {
+                                "ok": true
+                            },
+                            "t": "execute-trade-taker"
+                        },
+                        "e": "ledger",
+                        "E": 1789665129061
+                    },
+                    {
+                        "r": {
+                            "tx": "d49e5f0736737b73fd59ab0b17810de7",
+                            "c": "tl",
+                            "amt": "0.40770606",
+                            "rate": "0.0028",
+                            "t": "execute-trade-taker-commission"
+                        },
+                        "e": "ledger",
+                        "E": 1789665129061
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "channels": [
+                            "orders",
+                            "ledger"
+                        ],
+                        "id": "1"
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "657c5f1ea84593e49f5ad3ee06e7d53d",
+                            "order": "01a00000-0000-7000-0000-000000000003",
+                            "timestamp": 1789665122884,
+                            "datetime": "2026-09-17T17:12:02.884Z",
+                            "symbol": "BTC/TRY",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": "taker",
+                            "price": 3733573,
+                            "amount": 0.00004,
+                            "cost": 149.34292,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "info": {
+                                "aa": 1789665122884,
+                                "T": 1789665122884,
+                                "i": "01a00000-0000-7000-0000-000000000003",
+                                "s": "btc_tl",
+                                "p": "0",
+                                "q": "0",
+                                "rq": "0",
+                                "tp": "150",
+                                "rtp": "0.65708",
+                                "fq": "0.00004",
+                                "ftp": "149.34292",
+                                "ap": "3733573",
+                                "S": "BUY",
+                                "ot": "MARKET",
+                                "tif": "GTC",
+                                "t": "match",
+                                "mp": "3733573",
+                                "mq": "0.00004",
+                                "mi": "657c5f1ea84593e49f5ad3ee06e7d53d",
+                                "mr": "TAKER"
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "id": "657c5f1ea84593e49f5ad3ee06e7d53d",
+                            "order": "01a00000-0000-7000-0000-000000000003",
+                            "timestamp": 1789665122884,
+                            "datetime": "2026-09-17T17:12:02.884Z",
+                            "symbol": "BTC/TRY",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": "taker",
+                            "price": 3733573,
+                            "amount": 0.00004,
+                            "cost": 149.34292,
+                            "fee": {
+                                "currency": "BTC",
+                                "cost": 1.1e-7,
+                                "rate": 0.0028
+                            },
+                            "info": {
+                                "aa": 1789665122884,
+                                "T": 1789665122884,
+                                "i": "01a00000-0000-7000-0000-000000000003",
+                                "s": "btc_tl",
+                                "p": "0",
+                                "q": "0",
+                                "rq": "0",
+                                "tp": "150",
+                                "rtp": "0.65708",
+                                "fq": "0.00004",
+                                "ftp": "149.34292",
+                                "ap": "3733573",
+                                "S": "BUY",
+                                "ot": "MARKET",
+                                "tif": "GTC",
+                                "t": "match",
+                                "mp": "3733573",
+                                "mq": "0.00004",
+                                "mi": "657c5f1ea84593e49f5ad3ee06e7d53d",
+                                "mr": "TAKER",
+                                "commission": {
+                                    "tx": "657c5f1ea84593e49f5ad3ee06e7d53d",
+                                    "c": "btc",
+                                    "amt": "0.00000011",
+                                    "rate": "0.0028",
+                                    "t": "execute-trade-taker-commission"
+                                }
+                            },
+                            "fees": [
+                                {
+                                    "currency": "BTC",
+                                    "cost": 1.1e-7,
+                                    "rate": 0.0028
+                                }
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "id": "d49e5f0736737b73fd59ab0b17810de7",
+                            "order": "01a00000-0000-7000-0000-000000000004",
+                            "timestamp": 1789665129061,
+                            "datetime": "2026-09-17T17:12:09.061Z",
+                            "symbol": "BTC/TRY",
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": "taker",
+                            "price": 3733572,
+                            "amount": 0.000039,
+                            "cost": 145.609308,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "info": {
+                                "aa": 1789665129061,
+                                "T": 1789665129061,
+                                "i": "01a00000-0000-7000-0000-000000000004",
+                                "s": "btc_tl",
+                                "p": "0",
+                                "q": "0.000039",
+                                "rq": "0",
+                                "tp": "0",
+                                "rtp": "0",
+                                "fq": "0.000039",
+                                "ftp": "145.609308",
+                                "ap": "3733572",
+                                "S": "SELL",
+                                "ot": "MARKET",
+                                "tif": "GTC",
+                                "t": "match",
+                                "mp": "3733572",
+                                "mq": "0.000039",
+                                "mi": "d49e5f0736737b73fd59ab0b17810de7",
+                                "mr": "TAKER"
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "id": "d49e5f0736737b73fd59ab0b17810de7",
+                            "order": "01a00000-0000-7000-0000-000000000004",
+                            "timestamp": 1789665129061,
+                            "datetime": "2026-09-17T17:12:09.061Z",
+                            "symbol": "BTC/TRY",
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": "taker",
+                            "price": 3733572,
+                            "amount": 0.000039,
+                            "cost": 145.609308,
+                            "fee": {
+                                "currency": "TRY",
+                                "cost": 0.40770606,
+                                "rate": 0.0028
+                            },
+                            "info": {
+                                "aa": 1789665129061,
+                                "T": 1789665129061,
+                                "i": "01a00000-0000-7000-0000-000000000004",
+                                "s": "btc_tl",
+                                "p": "0",
+                                "q": "0.000039",
+                                "rq": "0",
+                                "tp": "0",
+                                "rtp": "0",
+                                "fq": "0.000039",
+                                "ftp": "145.609308",
+                                "ap": "3733572",
+                                "S": "SELL",
+                                "ot": "MARKET",
+                                "tif": "GTC",
+                                "t": "match",
+                                "mp": "3733572",
+                                "mq": "0.000039",
+                                "mi": "d49e5f0736737b73fd59ab0b17810de7",
+                                "mr": "TAKER",
+                                "commission": {
+                                    "tx": "d49e5f0736737b73fd59ab0b17810de7",
+                                    "c": "tl",
+                                    "amt": "0.40770606",
+                                    "rate": "0.0028",
+                                    "t": "execute-trade-taker-commission"
+                                }
+                            },
+                            "fees": [
+                                {
+                                    "currency": "TRY",
+                                    "cost": 0.40770606,
+                                    "rate": 0.0028
+                                }
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchOrders": [
+            {
+                "description": "orders",
+                "input": [],
+                "url": "wss://api.paribu.com/v1/wapi/user",
+                "messages": [
+                    {
+                        "r": {
+                            "channels": [
+                                "orders"
+                            ],
+                            "id": "1",
+                            "t": "subscribed"
+                        },
+                        "e": "status",
+                        "E": 1789664959219
+                    },
+                    {
+                        "r": {
+                            "aa": 1789664970379,
+                            "T": 1789664970379,
+                            "i": "01a00000-0000-7000-0000-000000000001",
+                            "s": "btc_tl",
+                            "p": "3361769",
+                            "q": "0.000044",
+                            "rq": "0.000044",
+                            "tp": "0",
+                            "rtp": "0",
+                            "S": "BUY",
+                            "ot": "LIMIT",
+                            "tif": "GTC",
+                            "t": "placed"
+                        },
+                        "e": "order",
+                        "E": 1789664970379
+                    },
+                    {
+                        "r": {
+                            "aa": 1789664970379,
+                            "T": 1789664982479,
+                            "i": "01a00000-0000-7000-0000-000000000001",
+                            "s": "btc_tl",
+                            "p": "3361769",
+                            "q": "0.000044",
+                            "rq": "0.000044",
+                            "tp": "0",
+                            "rtp": "0",
+                            "S": "BUY",
+                            "ot": "LIMIT",
+                            "tif": "GTC",
+                            "t": "cancelled"
+                        },
+                        "e": "order",
+                        "E": 1789664982479
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "channels": [
+                            "orders"
+                        ],
+                        "id": "1"
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "01a00000-0000-7000-0000-000000000001",
+                            "clientOrderId": null,
+                            "timestamp": 1789664970379,
+                            "datetime": "2026-09-17T17:09:30.379Z",
+                            "lastTradeTimestamp": null,
+                            "symbol": "BTC/TRY",
+                            "type": "limit",
+                            "timeInForce": "GTC",
+                            "postOnly": false,
+                            "side": "buy",
+                            "price": 3361769,
+                            "triggerPrice": null,
+                            "amount": 0.000044,
+                            "filled": 0,
+                            "cost": 0,
+                            "average": null,
+                            "remaining": 0.000044,
+                            "status": "open",
+                            "fee": null,
+                            "trades": [],
+                            "info": {
+                                "aa": 1789664970379,
+                                "T": 1789664970379,
+                                "i": "01a00000-0000-7000-0000-000000000001",
+                                "s": "btc_tl",
+                                "p": "3361769",
+                                "q": "0.000044",
+                                "rq": "0.000044",
+                                "tp": "0",
+                                "rtp": "0",
+                                "S": "BUY",
+                                "ot": "LIMIT",
+                                "tif": "GTC",
+                                "t": "placed"
+                            },
+                            "fees": [],
+                            "lastUpdateTimestamp": null,
+                            "reduceOnly": null,
+                            "stopPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "id": "01a00000-0000-7000-0000-000000000001",
+                            "clientOrderId": null,
+                            "timestamp": 1789664970379,
+                            "datetime": "2026-09-17T17:09:30.379Z",
+                            "lastTradeTimestamp": null,
+                            "symbol": "BTC/TRY",
+                            "type": "limit",
+                            "timeInForce": "GTC",
+                            "postOnly": false,
+                            "side": "buy",
+                            "price": 3361769,
+                            "triggerPrice": null,
+                            "amount": 0.000044,
+                            "filled": 0,
+                            "cost": 0,
+                            "average": null,
+                            "remaining": 0.000044,
+                            "status": "canceled",
+                            "fee": null,
+                            "trades": [],
+                            "info": {
+                                "aa": 1789664970379,
+                                "T": 1789664982479,
+                                "i": "01a00000-0000-7000-0000-000000000001",
+                                "s": "btc_tl",
+                                "p": "3361769",
+                                "q": "0.000044",
+                                "rq": "0.000044",
+                                "tp": "0",
+                                "rtp": "0",
+                                "S": "BUY",
+                                "ot": "LIMIT",
+                                "tif": "GTC",
+                                "t": "cancelled"
+                            },
+                            "fees": [],
+                            "lastUpdateTimestamp": null,
+                            "reduceOnly": null,
+                            "stopPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchBalance": [
+            {
+                "description": "balance",
+                "input": [],
+                "url": "wss://api.paribu.com/v1/wapi/user",
+                "messages": [
+                    {
+                        "r": {
+                            "channels": [
+                                "ledger"
+                            ],
+                            "id": "1",
+                            "t": "subscribed"
+                        },
+                        "e": "status",
+                        "E": 1789664903904
+                    },
+                    {
+                        "r": {
+                            "tx": "01a00000-0000-7000-0000-000000000002",
+                            "c": "tl",
+                            "bal": {
+                                "av": "1000.00000000",
+                                "lk": "0.00000000",
+                                "bl": "500.00000000",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "1500.00000000"
+                            },
+                            "tr": {
+                                "av": "0",
+                                "lk": "0",
+                                "bl": "0",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "0"
+                            },
+                            "st": {
+                                "ok": true
+                            },
+                            "t": "reserve-trade"
+                        },
+                        "e": "ledger",
+                        "E": 1789664914567
+                    },
+                    {
+                        "r": {
+                            "tx": "01a00000-0000-7000-0000-000000000002",
+                            "c": "tl",
+                            "bal": {
+                                "av": "1200.00000000",
+                                "lk": "0.00000000",
+                                "bl": "300.00000000",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "1500.00000000"
+                            },
+                            "tr": {
+                                "av": "0",
+                                "lk": "0",
+                                "bl": "0",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "0"
+                            },
+                            "st": {
+                                "ok": true
+                            },
+                            "t": "order-cancelled"
+                        },
+                        "e": "ledger",
+                        "E": 1789664926671
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "currency": "tl",
+                        "total": "1500.00000000",
+                        "blocked_in_orders": "0.00000000",
+                        "blocked_in_transactions": "0.00000000",
+                        "blocked_in_staked": "500.00000000",
+                        "blocked": "500.00000000",
+                        "locked": "0.00000000",
+                        "available": "1000.00000000",
+                        "details": {
+                            "conversion_in": "0",
+                            "conversion_out": "0",
+                            "assigned": "0"
+                        }
+                    },
+                    {
+                        "currency": "btc",
+                        "total": "0.01500000",
+                        "blocked_in_orders": "0.00000000",
+                        "blocked_in_transactions": "0.00000000",
+                        "blocked_in_staked": "0.00500000",
+                        "blocked": "0.00500000",
+                        "locked": "0.00000000",
+                        "available": "0.01000000",
+                        "details": {
+                            "conversion_in": "0",
+                            "conversion_out": "0",
+                            "assigned": "0"
+                        }
+                    },
+                    {
+                        "currency": "usdt",
+                        "total": "150.00000000",
+                        "blocked_in_orders": "0.00000000",
+                        "blocked_in_transactions": "0.00000000",
+                        "blocked_in_staked": "50.00000000",
+                        "blocked": "50.00000000",
+                        "locked": "0.00000000",
+                        "available": "100.00000000",
+                        "details": {
+                            "conversion_in": "0",
+                            "conversion_out": "0",
+                            "assigned": "0"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "channels": [
+                            "ledger"
+                        ],
+                        "id": "1"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "info": {
+                            "tx": "01a00000-0000-7000-0000-000000000002",
+                            "c": "tl",
+                            "bal": {
+                                "av": "1000.00000000",
+                                "lk": "0.00000000",
+                                "bl": "500.00000000",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "1500.00000000"
+                            },
+                            "tr": {
+                                "av": "0",
+                                "lk": "0",
+                                "bl": "0",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "0"
+                            },
+                            "st": {
+                                "ok": true
+                            },
+                            "t": "reserve-trade"
+                        },
+                        "TRY": {
+                            "free": 1000,
+                            "used": 500,
+                            "total": 1500
+                        },
+                        "BTC": {
+                            "free": 0.01,
+                            "used": 0.005,
+                            "total": 0.015
+                        },
+                        "USDT": {
+                            "free": 100,
+                            "used": 50,
+                            "total": 150
+                        },
+                        "free": {
+                            "TRY": 1000,
+                            "BTC": 0.01,
+                            "USDT": 100
+                        },
+                        "used": {
+                            "TRY": 500,
+                            "BTC": 0.005,
+                            "USDT": 50
+                        },
+                        "total": {
+                            "TRY": 1500,
+                            "BTC": 0.015,
+                            "USDT": 150
+                        },
+                        "timestamp": 1789664914567,
+                        "datetime": "2026-09-17T17:08:34.567Z"
+                    },
+                    {
+                        "info": {
+                            "tx": "01a00000-0000-7000-0000-000000000002",
+                            "c": "tl",
+                            "bal": {
+                                "av": "1200.00000000",
+                                "lk": "0.00000000",
+                                "bl": "300.00000000",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "1500.00000000"
+                            },
+                            "tr": {
+                                "av": "0",
+                                "lk": "0",
+                                "bl": "0",
+                                "ca": "0",
+                                "cl": "0",
+                                "tb": "0"
+                            },
+                            "st": {
+                                "ok": true
+                            },
+                            "t": "order-cancelled"
+                        },
+                        "TRY": {
+                            "free": 1200,
+                            "used": 300,
+                            "total": 1500
+                        },
+                        "BTC": {
+                            "free": 0.01,
+                            "used": 0.005,
+                            "total": 0.015
+                        },
+                        "USDT": {
+                            "free": 100,
+                            "used": 50,
+                            "total": 150
+                        },
+                        "free": {
+                            "TRY": 1200,
+                            "BTC": 0.01,
+                            "USDT": 100
+                        },
+                        "used": {
+                            "TRY": 300,
+                            "BTC": 0.005,
+                            "USDT": 50
+                        },
+                        "total": {
+                            "TRY": 1500,
+                            "BTC": 0.015,
+                            "USDT": 150
+                        },
+                        "timestamp": 1789664926671,
+                        "datetime": "2026-09-17T17:08:46.671Z"
+                    }
+                ]
+            }
+        ],
+        "watchTrades": [
+            {
+                "description": "trades",
+                "input": [
+                    "USDT/TRY"
+                ],
+                "url": "wss://api.paribu.com/v1/wapi/stream",
+                "messages": [
+                    {
+                        "r": {
+                            "channels": [
+                                "matches:usdt_tl"
+                            ],
+                            "id": "1",
+                            "t": "subscribed"
+                        },
+                        "e": "status",
+                        "E": 1789664412240
+                    },
+                    {
+                        "e": "order",
+                        "s": "usdt_tl",
+                        "r": {
+                            "i": "f43bc13d85cf977fef1919f5a4513849",
+                            "p": "48.614",
+                            "q": "777.64",
+                            "t": "match",
+                            "S": "SELL",
+                            "T": 1789664412600
+                        },
+                        "E": 1789664412600
+                    },
+                    {
+                        "e": "order",
+                        "s": "usdt_tl",
+                        "r": {
+                            "i": "b0bf08fd23506e48bd292c733817894f",
+                            "p": "48.614",
+                            "q": "6.2",
+                            "t": "match",
+                            "S": "SELL",
+                            "T": 1789664448671
+                        },
+                        "E": 1789664448671
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "channels": [
+                            "matches:usdt_tl"
+                        ],
+                        "id": "1"
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "f43bc13d85cf977fef1919f5a4513849",
+                            "order": null,
+                            "timestamp": 1789664412600,
+                            "datetime": "2026-09-17T17:00:12.600Z",
+                            "symbol": "USDT/TRY",
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 48.614,
+                            "amount": 777.64,
+                            "cost": 37804.19096,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "info": {
+                                "i": "f43bc13d85cf977fef1919f5a4513849",
+                                "p": "48.614",
+                                "q": "777.64",
+                                "t": "match",
+                                "S": "SELL",
+                                "T": 1789664412600
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "id": "b0bf08fd23506e48bd292c733817894f",
+                            "order": null,
+                            "timestamp": 1789664448671,
+                            "datetime": "2026-09-17T17:00:48.671Z",
+                            "symbol": "USDT/TRY",
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 48.614,
+                            "amount": 6.2,
+                            "cost": 301.4068,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "info": {
+                                "i": "b0bf08fd23506e48bd292c733817894f",
+                                "p": "48.614",
+                                "q": "6.2",
+                                "t": "match",
+                                "S": "SELL",
+                                "T": 1789664448671
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchTickers": [
+            {
+                "description": "tickers",
+                "input": [
+                    [
+                        "BTC/TRY",
+                        "ETH/TRY"
+                    ]
+                ],
+                "url": "wss://api.paribu.com/stream",
+                "messages": [
+                    {
+                        "channel": "ticker24h",
+                        "method": "subscribe",
+                        "id": "",
+                        "status": "success",
+                        "code": 100
+                    },
+                    {
+                        "channel": "ticker24h",
+                        "method": "subscribe",
+                        "id": "",
+                        "status": "success",
+                        "code": 100
+                    },
+                    {
+                        "E": 1789664192126,
+                        "e": "ticker24h",
+                        "market": "btc_tl",
+                        "r": {
+                            "l": "3651754",
+                            "h": "3748788",
+                            "o": "3683180",
+                            "c": "3725505",
+                            "v": "38.765782",
+                            "q": "143841048",
+                            "p": "42325",
+                            "P": "1.14",
+                            "w": "3710515"
+                        },
+                        "s": "btc_tl"
+                    },
+                    {
+                        "E": 1789664192126,
+                        "e": "ticker24h",
+                        "market": "eth_tl",
+                        "r": {
+                            "l": "115335",
+                            "h": "120599",
+                            "o": "116376",
+                            "c": "119763",
+                            "v": "1430.08288",
+                            "q": "168920155",
+                            "p": "3387",
+                            "P": "2.91",
+                            "w": "118119"
+                        },
+                        "s": "eth_tl"
+                    },
+                    {
+                        "E": 1789664192625,
+                        "e": "ticker24h",
+                        "market": "btc_tl",
+                        "r": {
+                            "l": "3651754",
+                            "h": "3748788",
+                            "o": "3683180",
+                            "c": "3725505",
+                            "v": "38.765782",
+                            "q": "143841048",
+                            "p": "42325",
+                            "P": "1.14",
+                            "w": "3710515"
+                        },
+                        "s": "btc_tl"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "channels": [
+                            "ticker24h:btc_tl",
+                            "ticker24h:eth_tl"
+                        ],
+                        "id": "1"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/TRY": {
+                            "symbol": "BTC/TRY",
+                            "timestamp": 1789664192126,
+                            "datetime": "2026-09-17T16:56:32.126Z",
+                            "high": 3748788,
+                            "low": 3651754,
+                            "bid": null,
+                            "bidVolume": null,
+                            "ask": null,
+                            "askVolume": null,
+                            "vwap": 3710515,
+                            "open": 3683180,
+                            "close": 3725505,
+                            "last": 3725505,
+                            "previousClose": null,
+                            "change": 42325,
+                            "percentage": 1.14,
+                            "average": 3704342,
+                            "baseVolume": 38.765782,
+                            "quoteVolume": 143841048,
+                            "info": {
+                                "l": "3651754",
+                                "h": "3748788",
+                                "o": "3683180",
+                                "c": "3725505",
+                                "v": "38.765782",
+                                "q": "143841048",
+                                "p": "42325",
+                                "P": "1.14",
+                                "w": "3710515"
+                            },
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "ETH/TRY": {
+                            "symbol": "ETH/TRY",
+                            "timestamp": 1789664192126,
+                            "datetime": "2026-09-17T16:56:32.126Z",
+                            "high": 120599,
+                            "low": 115335,
+                            "bid": null,
+                            "bidVolume": null,
+                            "ask": null,
+                            "askVolume": null,
+                            "vwap": 118119,
+                            "open": 116376,
+                            "close": 119763,
+                            "last": 119763,
+                            "previousClose": null,
+                            "change": 3387,
+                            "percentage": 2.91,
+                            "average": 118069,
+                            "baseVolume": 1430.08288,
+                            "quoteVolume": 168920155,
+                            "info": {
+                                "l": "115335",
+                                "h": "120599",
+                                "o": "116376",
+                                "c": "119763",
+                                "v": "1430.08288",
+                                "q": "168920155",
+                                "p": "3387",
+                                "P": "2.91",
+                                "w": "118119"
+                            },
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/TRY": {
+                            "symbol": "BTC/TRY",
+                            "timestamp": 1789664192625,
+                            "datetime": "2026-09-17T16:56:32.625Z",
+                            "high": 3748788,
+                            "low": 3651754,
+                            "bid": null,
+                            "bidVolume": null,
+                            "ask": null,
+                            "askVolume": null,
+                            "vwap": 3710515,
+                            "open": 3683180,
+                            "close": 3725505,
+                            "last": 3725505,
+                            "previousClose": null,
+                            "change": 42325,
+                            "percentage": 1.14,
+                            "average": 3704342,
+                            "baseVolume": 38.765782,
+                            "quoteVolume": 143841048,
+                            "info": {
+                                "l": "3651754",
+                                "h": "3748788",
+                                "o": "3683180",
+                                "c": "3725505",
+                                "v": "38.765782",
+                                "q": "143841048",
+                                "p": "42325",
+                                "P": "1.14",
+                                "w": "3710515"
+                            },
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchTicker": [
+            {
+                "description": "ticker",
+                "input": [
+                    "BTC/TRY"
+                ],
+                "url": "wss://api.paribu.com/stream",
+                "messages": [
+                    {
+                        "channel": "ticker24h",
+                        "method": "subscribe",
+                        "id": "",
+                        "status": "success",
+                        "code": 100
+                    },
+                    {
+                        "E": 1789664174125,
+                        "e": "ticker24h",
+                        "market": "btc_tl",
+                        "r": {
+                            "l": "3651754",
+                            "h": "3748788",
+                            "o": "3685258",
+                            "c": "3725505",
+                            "v": "38.767138",
+                            "q": "143846045",
+                            "p": "40247",
+                            "P": "1.09",
+                            "w": "3710514"
+                        },
+                        "s": "btc_tl"
+                    },
+                    {
+                        "E": 1789664174626,
+                        "e": "ticker24h",
+                        "market": "btc_tl",
+                        "r": {
+                            "l": "3651754",
+                            "h": "3748788",
+                            "o": "3685258",
+                            "c": "3725505",
+                            "v": "38.767138",
+                            "q": "143846045",
+                            "p": "40247",
+                            "P": "1.09",
+                            "w": "3710514"
+                        },
+                        "s": "btc_tl"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "channels": [
+                            "ticker24h:btc_tl"
+                        ],
+                        "id": "1"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/TRY",
+                        "timestamp": 1789664174125,
+                        "datetime": "2026-09-17T16:56:14.125Z",
+                        "high": 3748788,
+                        "low": 3651754,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 3710514,
+                        "open": 3685258,
+                        "close": 3725505,
+                        "last": 3725505,
+                        "previousClose": null,
+                        "change": 40247,
+                        "percentage": 1.09,
+                        "average": 3705381,
+                        "baseVolume": 38.767138,
+                        "quoteVolume": 143846045,
+                        "info": {
+                            "l": "3651754",
+                            "h": "3748788",
+                            "o": "3685258",
+                            "c": "3725505",
+                            "v": "38.767138",
+                            "q": "143846045",
+                            "p": "40247",
+                            "P": "1.09",
+                            "w": "3710514"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    },
+                    {
+                        "symbol": "BTC/TRY",
+                        "timestamp": 1789664174626,
+                        "datetime": "2026-09-17T16:56:14.626Z",
+                        "high": 3748788,
+                        "low": 3651754,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 3710514,
+                        "open": 3685258,
+                        "close": 3725505,
+                        "last": 3725505,
+                        "previousClose": null,
+                        "change": 40247,
+                        "percentage": 1.09,
+                        "average": 3705381,
+                        "baseVolume": 38.767138,
+                        "quoteVolume": 143846045,
+                        "info": {
+                            "l": "3651754",
+                            "h": "3748788",
+                            "o": "3685258",
+                            "c": "3725505",
+                            "v": "38.767138",
+                            "q": "143846045",
+                            "p": "40247",
+                            "P": "1.09",
+                            "w": "3710514"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            }
+        ],
+        "watchBidsAsks": [
+            {
+                "description": "bids asks",
+                "input": [
+                    [
+                        "BTC/TRY"
+                    ]
+                ],
+                "url": "wss://api.paribu.com/v1/wapi/stream",
+                "messages": [
+                    {
+                        "r": {
+                            "channels": [
+                                "book-ticker:btc_tl"
+                            ],
+                            "id": "1",
+                            "t": "subscribed"
+                        },
+                        "e": "status",
+                        "E": 1789664132493
+                    },
+                    {
+                        "e": "orderbook",
+                        "s": "btc_tl",
+                        "r": {
+                            "b": "3722989",
+                            "bq": "0.000053",
+                            "a": "3724421",
+                            "aq": "0.002934",
+                            "t": "book-ticker",
+                            "u": 254371244
+                        },
+                        "E": 1789664132494
+                    },
+                    {
+                        "e": "orderbook",
+                        "s": "btc_tl",
+                        "r": {
+                            "b": "3719155",
+                            "bq": "0.044157",
+                            "a": "3724411",
+                            "aq": "0.039123",
+                            "t": "book-ticker",
+                            "u": 254371298
+                        },
+                        "E": 1789664133267
+                    },
+                    {
+                        "e": "orderbook",
+                        "s": "btc_tl",
+                        "r": {
+                            "b": "3719162",
+                            "bq": "0.000261",
+                            "a": "3724400",
+                            "aq": "0.026417",
+                            "t": "book-ticker",
+                            "u": 254371367
+                        },
+                        "E": 1789664134266
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "channels": [
+                            "book-ticker:btc_tl"
+                        ],
+                        "id": "1"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/TRY": {
+                            "symbol": "BTC/TRY",
+                            "timestamp": 1789664132494,
+                            "datetime": "2026-09-17T16:55:32.494Z",
+                            "bid": 3722989,
+                            "bidVolume": 0.000053,
+                            "ask": 3724421,
+                            "askVolume": 0.002934,
+                            "info": {
+                                "b": "3722989",
+                                "bq": "0.000053",
+                                "a": "3724421",
+                                "aq": "0.002934",
+                                "t": "book-ticker",
+                                "u": 254371244
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/TRY": {
+                            "symbol": "BTC/TRY",
+                            "timestamp": 1789664133267,
+                            "datetime": "2026-09-17T16:55:33.267Z",
+                            "bid": 3719155,
+                            "bidVolume": 0.044157,
+                            "ask": 3724411,
+                            "askVolume": 0.039123,
+                            "info": {
+                                "b": "3719155",
+                                "bq": "0.044157",
+                                "a": "3724411",
+                                "aq": "0.039123",
+                                "t": "book-ticker",
+                                "u": 254371298
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/TRY": {
+                            "symbol": "BTC/TRY",
+                            "timestamp": 1789664134266,
+                            "datetime": "2026-09-17T16:55:34.266Z",
+                            "bid": 3719162,
+                            "bidVolume": 0.000261,
+                            "ask": 3724400,
+                            "askVolume": 0.026417,
+                            "info": {
+                                "b": "3719162",
+                                "bq": "0.000261",
+                                "a": "3724400",
+                                "aq": "0.026417",
+                                "t": "book-ticker",
+                                "u": 254371367
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "orderbook",
+                "input": [
+                    "BTC/TRY",
+                    5
+                ],
+                "url": "wss://api.paribu.com/v1/wapi/stream",
+                "messages": [
+                    {
+                        "e": "orderbook",
+                        "s": "btc_tl",
+                        "r": {
+                            "t": "snapshot",
+                            "b": [
+                                [
+                                    "3724826",
+                                    "0.000186"
+                                ],
+                                [
+                                    "3724810",
+                                    "0.026806"
+                                ],
+                                [
+                                    "3724809",
+                                    "0.026784"
+                                ],
+                                [
+                                    "3724764",
+                                    "0.002136"
+                                ],
+                                [
+                                    "3724761",
+                                    "0.050678"
+                                ],
+                                [
+                                    "3724737",
+                                    "0.000053"
+                                ],
+                                [
+                                    "3710882",
+                                    "0.0004"
+                                ],
+                                [
+                                    "3710881",
+                                    "0.010847"
+                                ],
+                                [
+                                    "3710880",
+                                    "0.104248"
+                                ],
+                                [
+                                    "3710135",
+                                    "0.000269"
+                                ],
+                                [
+                                    "3702003",
+                                    "0.006591"
+                                ],
+                                [
+                                    "3702000",
+                                    "0.000053"
+                                ],
+                                [
+                                    "3701000",
+                                    "0.000027"
+                                ],
+                                [
+                                    "3700000",
+                                    "0.001379"
+                                ],
+                                [
+                                    "3691112",
+                                    "0.208496"
+                                ],
+                                [
+                                    "3691111",
+                                    "0.027093"
+                                ],
+                                [
+                                    "3690000",
+                                    "0.027881"
+                                ],
+                                [
+                                    "3652067",
+                                    "0.31305"
+                                ],
+                                [
+                                    "3652066",
+                                    "0.083501"
+                                ],
+                                [
+                                    "3651003",
+                                    "0.006591"
+                                ],
+                                [
+                                    "3651000",
+                                    "0.000055"
+                                ],
+                                [
+                                    "3650000",
+                                    "0.000957"
+                                ],
+                                [
+                                    "3618545",
+                                    "0.000386"
+                                ],
+                                [
+                                    "3612770",
+                                    "0.000283"
+                                ],
+                                [
+                                    "3600001",
+                                    "0.313122"
+                                ],
+                                [
+                                    "3600000",
+                                    "0.090538"
+                                ],
+                                [
+                                    "3590000",
+                                    "0.00003"
+                                ],
+                                [
+                                    "3583500",
+                                    "0.002707"
+                                ],
+                                [
+                                    "3580000",
+                                    "0.00003"
+                                ],
+                                [
+                                    "3560000",
+                                    "0.00003"
+                                ],
+                                [
+                                    "3540000",
+                                    "0.00003"
+                                ],
+                                [
+                                    "3520000",
+                                    "0.00003"
+                                ],
+                                [
+                                    "3500001",
+                                    "0.313287"
+                                ],
+                                [
+                                    "3500000",
+                                    "0.06516"
+                                ],
+                                [
+                                    "3480000",
+                                    "0.00003"
+                                ],
+                                [
+                                    "3459339",
+                                    "0.002804"
+                                ],
+                                [
+                                    "3400346",
+                                    "0.294087"
+                                ],
+                                [
+                                    "3400010",
+                                    "0.000073"
+                                ],
+                                [
+                                    "3400000",
+                                    "0.160289"
+                                ],
+                                [
+                                    "3394271",
+                                    "0.00019"
+                                ],
+                                [
+                                    "3380000",
+                                    "0.0009"
+                                ],
+                                [
+                                    "3277356",
+                                    "0.000186"
+                                ],
+                                [
+                                    "3249000",
+                                    "0.000076"
+                                ],
+                                [
+                                    "3233410",
+                                    "0.000155"
+                                ],
+                                [
+                                    "3222222",
+                                    "0.000031"
+                                ],
+                                [
+                                    "3200000",
+                                    "0.000807"
+                                ],
+                                [
+                                    "3151344",
+                                    "0.000129"
+                                ],
+                                [
+                                    "3150000",
+                                    "0.00032"
+                                ],
+                                [
+                                    "3137810",
+                                    "0.000125"
+                                ],
+                                [
+                                    "3115308",
+                                    "0.00015"
+                                ],
+                                [
+                                    "3111111",
+                                    "0.000032"
+                                ],
+                                [
+                                    "3100001",
+                                    "0.00005"
+                                ],
+                                [
+                                    "3100000",
+                                    "0.000322"
+                                ],
+                                [
+                                    "3086000",
+                                    "0.000081"
+                                ],
+                                [
+                                    "3080000",
+                                    "0.109287"
+                                ],
+                                [
+                                    "3076923",
+                                    "0.00045"
+                                ],
+                                [
+                                    "3075132",
+                                    "0.000129"
+                                ],
+                                [
+                                    "3050000",
+                                    "0.000327"
+                                ],
+                                [
+                                    "3008459",
+                                    "0.00013"
+                                ],
+                                [
+                                    "3004014",
+                                    "0.005944"
+                                ],
+                                [
+                                    "3000001",
+                                    "0.00005"
+                                ],
+                                [
+                                    "3000000",
+                                    "0.00782"
+                                ],
+                                [
+                                    "2985701",
+                                    "0.000336"
+                                ],
+                                [
+                                    "2958000",
+                                    "0.003718"
+                                ],
+                                [
+                                    "2957000",
+                                    "0.000338"
+                                ],
+                                [
+                                    "2950000",
+                                    "0.000075"
+                                ],
+                                [
+                                    "2933596",
+                                    "0.000125"
+                                ],
+                                [
+                                    "2931500",
+                                    "0.000085"
+                                ],
+                                [
+                                    "2926575",
+                                    "0.00017"
+                                ],
+                                [
+                                    "2911111",
+                                    "0.000037"
+                                ],
+                                [
+                                    "2903000",
+                                    "0.0031"
+                                ],
+                                [
+                                    "2900001",
+                                    "0.00005"
+                                ],
+                                [
+                                    "2900000",
+                                    "0.011259"
+                                ],
+                                [
+                                    "2876477",
+                                    "0.000183"
+                                ],
+                                [
+                                    "2876000",
+                                    "0.000034"
+                                ],
+                                [
+                                    "2851017",
+                                    "0.000197"
+                                ],
+                                [
+                                    "2850000",
+                                    "0.003913"
+                                ],
+                                [
+                                    "2820139",
+                                    "0.007091"
+                                ],
+                                [
+                                    "2811111",
+                                    "0.000039"
+                                ],
+                                [
+                                    "2800001",
+                                    "0.00005"
+                                ],
+                                [
+                                    "2800000",
+                                    "0.000357"
+                                ],
+                                [
+                                    "2790046",
+                                    "0.000098"
+                                ],
+                                [
+                                    "2785000",
+                                    "0.001069"
+                                ],
+                                [
+                                    "2784042",
+                                    "0.000226"
+                                ],
+                                [
+                                    "2784000",
+                                    "0.000089"
+                                ],
+                                [
+                                    "2763062",
+                                    "0.0009"
+                                ],
+                                [
+                                    "2736684",
+                                    "0.000146"
+                                ],
+                                [
+                                    "2733111",
+                                    "0.00006"
+                                ],
+                                [
+                                    "2700606",
+                                    "0.00018"
+                                ],
+                                [
+                                    "2700603",
+                                    "0.000038"
+                                ],
+                                [
+                                    "2700003",
+                                    "0.000038"
+                                ],
+                                [
+                                    "2700001",
+                                    "0.00005"
+                                ],
+                                [
+                                    "2700000",
+                                    "0.00004"
+                                ],
+                                [
+                                    "2684128",
+                                    "0.000153"
+                                ],
+                                [
+                                    "2676816",
+                                    "0.004024"
+                                ],
+                                [
+                                    "2675000",
+                                    "0.00006"
+                                ],
+                                [
+                                    "2664474",
+                                    "0.000191"
+                                ],
+                                [
+                                    "2655555",
+                                    "0.000039"
+                                ],
+                                [
+                                    "2651111",
+                                    "0.000039"
+                                ],
+                                [
+                                    "2650953",
+                                    "0.00016"
+                                ]
+                            ],
+                            "a": [
+                                [
+                                    "3728002",
+                                    "0.002783"
+                                ],
+                                [
+                                    "3728316",
+                                    "0.02646"
+                                ],
+                                [
+                                    "3728434",
+                                    "0.039109"
+                                ],
+                                [
+                                    "3728435",
+                                    "0.00556"
+                                ],
+                                [
+                                    "3729159",
+                                    "0.027994"
+                                ],
+                                [
+                                    "3730311",
+                                    "0.000257"
+                                ],
+                                [
+                                    "3730328",
+                                    "0.000027"
+                                ],
+                                [
+                                    "3731556",
+                                    "0.035681"
+                                ],
+                                [
+                                    "3731557",
+                                    "0.043616"
+                                ],
+                                [
+                                    "3738995",
+                                    "0.026838"
+                                ],
+                                [
+                                    "3739000",
+                                    "0.002888"
+                                ],
+                                [
+                                    "3740000",
+                                    "0.454582"
+                                ],
+                                [
+                                    "3741000",
+                                    "0.000267"
+                                ],
+                                [
+                                    "3741450",
+                                    "0.000267"
+                                ],
+                                [
+                                    "3742000",
+                                    "0.001336"
+                                ],
+                                [
+                                    "3742450",
+                                    "0.000267"
+                                ],
+                                [
+                                    "3743000",
+                                    "0.001335"
+                                ],
+                                [
+                                    "3744000",
+                                    "0.001335"
+                                ],
+                                [
+                                    "3745000",
+                                    "0.001335"
+                                ],
+                                [
+                                    "3748788",
+                                    "0.048187"
+                                ],
+                                [
+                                    "3750000",
+                                    "0.002712"
+                                ],
+                                [
+                                    "3750485",
+                                    "0.000266"
+                                ],
+                                [
+                                    "3756276",
+                                    "0.002097"
+                                ],
+                                [
+                                    "3765000",
+                                    "0.000189"
+                                ],
+                                [
+                                    "3770000",
+                                    "0.000177"
+                                ],
+                                [
+                                    "3773666",
+                                    "0.026291"
+                                ],
+                                [
+                                    "3775000",
+                                    "0.000639"
+                                ],
+                                [
+                                    "3779999",
+                                    "0.07806"
+                                ],
+                                [
+                                    "3780000",
+                                    "0.00015"
+                                ],
+                                [
+                                    "3785000",
+                                    "0.000209"
+                                ],
+                                [
+                                    "3786666",
+                                    "0.000045"
+                                ],
+                                [
+                                    "3790000",
+                                    "0.000093"
+                                ],
+                                [
+                                    "3793887",
+                                    "0.000026"
+                                ],
+                                [
+                                    "3795000",
+                                    "0.000026"
+                                ],
+                                [
+                                    "3800000",
+                                    "0.005289"
+                                ],
+                                [
+                                    "3805000",
+                                    "0.000052"
+                                ],
+                                [
+                                    "3810000",
+                                    "0.010099"
+                                ],
+                                [
+                                    "3812148",
+                                    "0.000198"
+                                ],
+                                [
+                                    "3845322",
+                                    "0.021045"
+                                ],
+                                [
+                                    "3847380",
+                                    "0.000668"
+                                ],
+                                [
+                                    "3850000",
+                                    "0.001706"
+                                ],
+                                [
+                                    "3856691",
+                                    "0.000053"
+                                ],
+                                [
+                                    "3860000",
+                                    "0.001025"
+                                ],
+                                [
+                                    "3860591",
+                                    "0.006277"
+                                ],
+                                [
+                                    "3880000",
+                                    "0.010309"
+                                ],
+                                [
+                                    "3888888",
+                                    "0.000028"
+                                ],
+                                [
+                                    "3889000",
+                                    "0.000172"
+                                ],
+                                [
+                                    "3890000",
+                                    "0.004159"
+                                ],
+                                [
+                                    "3890774",
+                                    "0.000361"
+                                ],
+                                [
+                                    "3891254",
+                                    "0.002"
+                                ],
+                                [
+                                    "3898000",
+                                    "0.000266"
+                                ],
+                                [
+                                    "3899999",
+                                    "0.008496"
+                                ],
+                                [
+                                    "3900000",
+                                    "0.099803"
+                                ],
+                                [
+                                    "3910000",
+                                    "0.015541"
+                                ],
+                                [
+                                    "3914000",
+                                    "0.039991"
+                                ],
+                                [
+                                    "3920000",
+                                    "0.000052"
+                                ],
+                                [
+                                    "3925000",
+                                    "0.0506"
+                                ],
+                                [
+                                    "3930000",
+                                    "0.050283"
+                                ],
+                                [
+                                    "3935000",
+                                    "0.05"
+                                ],
+                                [
+                                    "3936038",
+                                    "0.000508"
+                                ],
+                                [
+                                    "3940000",
+                                    "0.087297"
+                                ],
+                                [
+                                    "3946223",
+                                    "0.002529"
+                                ],
+                                [
+                                    "3946699",
+                                    "0.001266"
+                                ],
+                                [
+                                    "3950000",
+                                    "0.053302"
+                                ],
+                                [
+                                    "3955718",
+                                    "0.001263"
+                                ],
+                                [
+                                    "3960000",
+                                    "0.000544"
+                                ],
+                                [
+                                    "3960876",
+                                    "0.000252"
+                                ],
+                                [
+                                    "3964000",
+                                    "0.0005"
+                                ],
+                                [
+                                    "3970000",
+                                    "0.002516"
+                                ],
+                                [
+                                    "3978100",
+                                    "0.008323"
+                                ],
+                                [
+                                    "3978550",
+                                    "0.001598"
+                                ],
+                                [
+                                    "3978654",
+                                    "0.000251"
+                                ],
+                                [
+                                    "3980000",
+                                    "0.000392"
+                                ],
+                                [
+                                    "3985555",
+                                    "0.000048"
+                                ],
+                                [
+                                    "3990000",
+                                    "0.000616"
+                                ],
+                                [
+                                    "3990550",
+                                    "0.005292"
+                                ],
+                                [
+                                    "3994502",
+                                    "0.002503"
+                                ],
+                                [
+                                    "3998000",
+                                    "0.025012"
+                                ],
+                                [
+                                    "3998877",
+                                    "0.000266"
+                                ],
+                                [
+                                    "3999000",
+                                    "0.084218"
+                                ],
+                                [
+                                    "3999899",
+                                    "0.013513"
+                                ],
+                                [
+                                    "3999950",
+                                    "0.00025"
+                                ],
+                                [
+                                    "3999963",
+                                    "0.000101"
+                                ],
+                                [
+                                    "3999999",
+                                    "0.000311"
+                                ],
+                                [
+                                    "4000000",
+                                    "1.122145"
+                                ],
+                                [
+                                    "4010000",
+                                    "0.000403"
+                                ],
+                                [
+                                    "4010802",
+                                    "0.00005"
+                                ],
+                                [
+                                    "4020000",
+                                    "0.000358"
+                                ],
+                                [
+                                    "4021505",
+                                    "0.004953"
+                                ],
+                                [
+                                    "4025000",
+                                    "0.004968"
+                                ],
+                                [
+                                    "4030000",
+                                    "0.000352"
+                                ],
+                                [
+                                    "4040000",
+                                    "0.002077"
+                                ],
+                                [
+                                    "4040743",
+                                    "0.000247"
+                                ],
+                                [
+                                    "4042232",
+                                    "0.001628"
+                                ],
+                                [
+                                    "4050000",
+                                    "0.000349"
+                                ],
+                                [
+                                    "4060000",
+                                    "0.000349"
+                                ],
+                                [
+                                    "4065000",
+                                    "0.000615"
+                                ],
+                                [
+                                    "4065858",
+                                    "0.000167"
+                                ],
+                                [
+                                    "4070000",
+                                    "0.000346"
+                                ],
+                                [
+                                    "4080000",
+                                    "0.000356"
+                                ]
+                            ],
+                            "sq": 44437435
+                        },
+                        "E": 1789664040708
+                    },
+                    {
+                        "r": {
+                            "channels": [
+                                "orderbook:btc_tl"
+                            ],
+                            "id": "1",
+                            "t": "subscribed"
+                        },
+                        "e": "status",
+                        "E": 1789664040708
+                    },
+                    {
+                        "e": "orderbook",
+                        "s": "btc_tl",
+                        "r": {
+                            "t": "diff",
+                            "b": [
+                                [
+                                    "3724828",
+                                    "0.027065"
+                                ],
+                                [
+                                    "3724827",
+                                    "0.000186"
+                                ],
+                                [
+                                    "3724826",
+                                    "0"
+                                ],
+                                [
+                                    "2650953",
+                                    "0"
+                                ]
+                            ],
+                            "a": [],
+                            "sq": 44437436
+                        },
+                        "E": 1789664040725
+                    },
+                    {
+                        "e": "orderbook",
+                        "s": "btc_tl",
+                        "r": {
+                            "t": "diff",
+                            "b": [
+                                [
+                                    "3724829",
+                                    "0.000186"
+                                ],
+                                [
+                                    "2650953",
+                                    "0.00016"
+                                ],
+                                [
+                                    "3724809",
+                                    "0"
+                                ],
+                                [
+                                    "3724827",
+                                    "0"
+                                ]
+                            ],
+                            "a": [
+                                [
+                                    "3738994",
+                                    "0.008237"
+                                ],
+                                [
+                                    "3899999",
+                                    "0.000259"
+                                ],
+                                [
+                                    "4080000",
+                                    "0"
+                                ]
+                            ],
+                            "sq": 44437437
+                        },
+                        "E": 1789664040825
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "channels": [
+                            "orderbook:btc_tl"
+                        ],
+                        "id": "1"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                3724826,
+                                0.000186
+                            ],
+                            [
+                                3724810,
+                                0.026806
+                            ],
+                            [
+                                3724809,
+                                0.026784
+                            ],
+                            [
+                                3724764,
+                                0.002136
+                            ],
+                            [
+                                3724761,
+                                0.050678
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                3728002,
+                                0.002783
+                            ],
+                            [
+                                3728316,
+                                0.02646
+                            ],
+                            [
+                                3728434,
+                                0.039109
+                            ],
+                            [
+                                3728435,
+                                0.00556
+                            ],
+                            [
+                                3729159,
+                                0.027994
+                            ]
+                        ],
+                        "timestamp": 1789664040708,
+                        "datetime": "2026-09-17T16:54:00.708Z",
+                        "nonce": 44437435,
+                        "symbol": "BTC/TRY"
+                    },
+                    {
+                        "bids": [
+                            [
+                                3724828,
+                                0.027065
+                            ],
+                            [
+                                3724827,
+                                0.000186
+                            ],
+                            [
+                                3724810,
+                                0.026806
+                            ],
+                            [
+                                3724809,
+                                0.026784
+                            ],
+                            [
+                                3724764,
+                                0.002136
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                3728002,
+                                0.002783
+                            ],
+                            [
+                                3728316,
+                                0.02646
+                            ],
+                            [
+                                3728434,
+                                0.039109
+                            ],
+                            [
+                                3728435,
+                                0.00556
+                            ],
+                            [
+                                3729159,
+                                0.027994
+                            ]
+                        ],
+                        "timestamp": 1789664040725,
+                        "datetime": "2026-09-17T16:54:00.725Z",
+                        "nonce": 44437436,
+                        "symbol": "BTC/TRY"
+                    },
+                    {
+                        "bids": [
+                            [
+                                3724829,
+                                0.000186
+                            ],
+                            [
+                                3724828,
+                                0.027065
+                            ],
+                            [
+                                3724810,
+                                0.026806
+                            ],
+                            [
+                                3724764,
+                                0.002136
+                            ],
+                            [
+                                2650953,
+                                0.00016
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                3728002,
+                                0.002783
+                            ],
+                            [
+                                3728316,
+                                0.02646
+                            ],
+                            [
+                                3728434,
+                                0.039109
+                            ],
+                            [
+                                3728435,
+                                0.00556
+                            ],
+                            [
+                                3729159,
+                                0.027994
+                            ]
+                        ],
+                        "timestamp": 1789664040825,
+                        "datetime": "2026-09-17T16:54:00.825Z",
+                        "nonce": 44437437,
+                        "symbol": "BTC/TRY"
+                    }
+                ]
+            }
+        ]
+    }
+}
