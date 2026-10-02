@@ -3147,21 +3147,25 @@ public class Extended extends ExtendedApi
             String fee = this.safeString(parameters, "fee", "0.0005");
             String builderFeeRate = null;
             String builderId = null;
-            Map<String, Object> paramsBuilder = null;
-            if (this.isSandboxModeEnabled)
+            Map<String, Object> paramsBuilder = parameters;
+            Boolean builderEnabled = (Boolean) this.safeBool(this.options, "builderFee", (Object) null);
+            if (java.util.Objects.equals(builderEnabled, true))
             {
-                builderFeeRate = this.safeString2(parameters, "builderFeeRate", "defaultBuilderFeeRate");
-                builderId = this.safeString2(parameters, "builderId", "defaultBuilderId");
-                paramsBuilder = this.omit(parameters, new ArrayList<Object>(Arrays.asList("builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId")));
-            } else
-            {
-                Map<String, Object> paramsBuilderFeeRate = null;
-                io.github.ccxt.base.Pair<String, Map<String, Object>> builderFeeRateparamsBuilderFeeRateVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "builderFeeRate", "0.0001");
-                builderFeeRate = builderFeeRateparamsBuilderFeeRateVariable.first();
-                paramsBuilderFeeRate = builderFeeRateparamsBuilderFeeRateVariable.second();
-                io.github.ccxt.base.Pair<String, Map<String, Object>> builderIdparamsBuilderVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBuilderFeeRate), "createOrder", "builderId", (String) null);
-                builderId = builderIdparamsBuilderVariable.first();
-                paramsBuilder = builderIdparamsBuilderVariable.second();
+                if (this.isSandboxModeEnabled)
+                {
+                    builderFeeRate = this.safeString2(parameters, "builderFeeRate", "defaultBuilderFeeRate");
+                    builderId = this.safeString2(parameters, "builderId", "defaultBuilderId");
+                    paramsBuilder = this.omit(parameters, new ArrayList<Object>(Arrays.asList("builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId")));
+                } else
+                {
+                    Map<String, Object> paramsBuilderFeeRate = null;
+                    io.github.ccxt.base.Pair<String, Map<String, Object>> builderFeeRateparamsBuilderFeeRateVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "builderFeeRate", "0.0001");
+                    builderFeeRate = builderFeeRateparamsBuilderFeeRateVariable.first();
+                    paramsBuilderFeeRate = builderFeeRateparamsBuilderFeeRateVariable.second();
+                    io.github.ccxt.base.Pair<String, Map<String, Object>> builderIdparamsBuilderVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBuilderFeeRate), "createOrder", "builderId", (String) null);
+                    builderId = builderIdparamsBuilderVariable.first();
+                    paramsBuilder = builderIdparamsBuilderVariable.second();
+                }
             }
             String totalFee = fee;
             if (!java.util.Objects.equals(builderFeeRate, null))
