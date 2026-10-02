@@ -4926,7 +4926,7 @@ export default class bitget extends Exchange {
                 const results = this.safeDict(response, 'data', {});
                 assets = this.safeList(results, 'assets', []);
             }
-            return this.parseUtaBalance(assets);
+            return this.parseUtaBalance(assets, response);
         }
         else if ((marketType === 'swap') || (marketType === 'future')) {
             let productType = undefined;
@@ -5084,8 +5084,9 @@ export default class bitget extends Exchange {
         const data = this.safeList(response, 'data', []);
         return this.parseBalance(data);
     }
-    parseUtaBalance(balance) {
-        const result = { 'info': balance };
+    parseUtaBalance(balance, response = undefined) {
+        const info = (response !== undefined) ? response : balance;
+        const result = { 'info': info };
         //
         // uta
         //

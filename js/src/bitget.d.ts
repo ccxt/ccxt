@@ -309,7 +309,7 @@ export default class bitget extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseUtaBalance(balance: Dict[]): Balances;
+    parseUtaBalance(balance: Dict[], response?: Dict | undefined): Balances;
     parseBalance(balance: any): Balances;
     parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
