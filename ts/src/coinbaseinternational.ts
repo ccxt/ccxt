@@ -2957,10 +2957,9 @@ export default class coinbaseinternational extends Exchange {
                     'client_secret': this.secret,
                 }, params);
             } else {
-                const isV2CloudAPiKey = (this.secret.length === 88) || this.safeBool (this.options, 'v2CloudAPiKey', false) || this.secret.endsWith ('=');
                 requestParams = this.extend ({
                     'grant_type': 'coinbase_cdp',
-                    'token': this.createAuthToken (this.seconds (), method, url, isV2CloudAPiKey),
+                    'token': this.createAuthToken (this.seconds (), method, url, this.isEddsaSecret ()),
                 }, params);
             }
         } else if ((access === 'private') && isNativeDeribit) {

@@ -131,7 +131,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             if (!this.isNativeDeribitCredentials ()) {
                 params = {
                     'grant_type': 'coinbase_cdp',
-                    'token': this.createAuthToken (this.seconds (), 'GET', 'wss://drb.coinbase.com/ws/api/v2/public/auth', this.isEddsaSecret ()),
+                    'token': this.createAuthToken (this.seconds (), undefined, undefined, this.isEddsaSecret ()),
                 };
             }
             return {
@@ -1347,7 +1347,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             if (!this.isNativeDeribitCredentials ()) {
                 paramsAuth = {
                     'grant_type': 'coinbase_cdp',
-                    'token': this.createAuthToken (this.seconds (), 'GET', 'wss://drb.coinbase.com/ws/api/v2/public/auth', this.isEddsaSecret ()),
+                    'token': this.createAuthToken (this.seconds (), undefined, undefined, this.isEddsaSecret ()),
                 };
             }
             const request: Dict = {
