@@ -5494,7 +5494,7 @@ public partial class bingx : Exchange
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
         string? fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         string? toId = this.safeString(accountsByType, toAccount, toAccount);
-        if (fromId == "swap")
+        if ((fromAccount == "swap"))
         {
             if ((subType == "inverse"))
             {
@@ -5504,7 +5504,7 @@ public partial class bingx : Exchange
                 fromId = "USDTMPerp";
             }
         }
-        if (toId == "swap")
+        if ((toAccount == "swap"))
         {
             if ((subType == "inverse"))
             {
