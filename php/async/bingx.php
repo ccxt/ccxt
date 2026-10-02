@@ -5444,14 +5444,14 @@ class bingx extends Exchange {
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('transfer', null, $params);
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-        if ($fromId === 'swap') {
+        if ($fromAccount === 'swap') {
             if ($subType === 'inverse') {
                 $fromId = 'coinMPerp';
             } else {
                 $fromId = 'USDTMPerp';
             }
         }
-        if ($toId === 'swap') {
+        if ($toAccount === 'swap') {
             if ($subType === 'inverse') {
                 $toId = 'coinMPerp';
             } else {
