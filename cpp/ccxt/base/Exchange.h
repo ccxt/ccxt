@@ -264,27 +264,27 @@ public:
 
     // TS no-op stubs (ts/src/base/Exchange.ts): the transpiled base calls these
     // in incrementingNonce and friends; the C++ port keeps them as no-ops.
-    std::any lockLastNonce () { return ccxt::any {}; }
-    std::any unlockLastNonce () { return ccxt::any {}; }
+    ccxt::any lockLastNonce () { return ccxt::any {}; }
+    ccxt::any unlockLastNonce () { return ccxt::any {}; }
     // TS pass-through stubs (Exchange.ts): the statically typed ports may throw
     // on a present wrong-typed value; TS passes through unchanged and so does C++.
-    std::any checkOptionString (ccxt::any, ccxt::any, ccxt::any value) { return value; }
-    std::any checkOptionBool (ccxt::any, ccxt::any, ccxt::any value) { return value; }
-    std::any checkOptionInteger (ccxt::any, ccxt::any, ccxt::any value) { return value; }
+    ccxt::any checkOptionString (ccxt::any, ccxt::any, ccxt::any value) { return value; }
+    ccxt::any checkOptionBool (ccxt::any, ccxt::any, ccxt::any value) { return value; }
+    ccxt::any checkOptionInteger (ccxt::any, ccxt::any, ccxt::any value) { return value; }
     // bitmex.ts passes a trailing `false` to filterByArrayPositions — legal extra
     // arg in TS (silently dropped), so the C++ port ignores it the same way.
-    std::any filterByArrayPositions (ccxt::any objects, ccxt::any key,
+    ccxt::any filterByArrayPositions (ccxt::any objects, ccxt::any key,
                                      ccxt::any values, ccxt::any) {
         return filterByArrayPositions (objects, key, values);
     }
     // pro/binance.h calls filterByArrayTickers with a trailing extra arg (TS drops it).
-    std::any filterByArrayTickers (ccxt::any objects, ccxt::any key,
+    ccxt::any filterByArrayTickers (ccxt::any objects, ccxt::any key,
                                    ccxt::any values, ccxt::any) {
         return filterByArrayTickers (objects, key, values);
     }
     // Dead implicit-API entry: appears in upstream api blocks but has no TS
     // implementation — behave like the dynamic layer for unknown methods.
-    std::any isDecimalPrecision () {
+    ccxt::any isDecimalPrecision () {
         throw ccxt::NotSupported ("isDecimalPrecision is not implemented in the C++ port");
     }
 
