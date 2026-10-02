@@ -6398,7 +6398,7 @@ class bingx(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' editOrder() is not supported for inverse swap markets')
         request = self.create_order_request(symbol, type, side, amount, price, params)
         request['cancelOrderId'] = id
-        request['cancelReplaceMode'] = 'STOP_ON_FAILURE'
+        request['cancelReplaceMode'] = self.safe_string(params, 'cancelReplaceMode', 'STOP_ON_FAILURE')
         response: dict
         if market['swap'] is True:
             response = await self.swapV1PrivatePostTradeCancelReplace(request)
