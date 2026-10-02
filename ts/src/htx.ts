@@ -995,7 +995,7 @@ export default class htx extends Exchange {
                     'FLOW': 'FLOW',
                     'IOTX': 'IOTX',
                     'LAT': 'LAT',
-                    'APT': 'APT',
+                    'APT': 'APTOS',
                     'XCH': 'XCH',
                     'MINA': 'MINA',
                     'XEC': 'ECASH',
@@ -1214,6 +1214,10 @@ export default class htx extends Exchange {
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // 2000 for non-historical
+                    },
+                    'withdraw': {
+                        'selectableFeeInclusion': false,
+                        'feeIncluded': false,
                     },
                 },
                 'forDerivatives': {
