@@ -130,6 +130,3 @@ cpp/tests/Generated/
 !cpp/ccxt/api/binance.h
 !cpp/ccxt/base/Exchange.BaseMethods.inc
 !cpp/tests/Generated/testMainClass.inc
-!cpp/tests/Generated/Base/test.indexBy.h
-!cpp/tests/Generated/Base/Ws/test.cache.h
-!cpp/tests/Generated/Exchange/Base/test.account.inc
