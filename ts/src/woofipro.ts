@@ -433,6 +433,10 @@ export default class woofipro extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                    'withdraw': {
+                        'feeIncluded': false,
+                        'selectableFeeInclusion': false,
+                    },
                 },
                 'forDerivatives': {
                     'extends': 'default',
