@@ -2466,8 +2466,11 @@ export default class coinbase extends Exchange {
     }
 
     parseCustomBalance (response: Dict, params: Dict = {}): Balances {
-        const totalUsdBalance = this.safeString (response, 'total_usd_balance');
-        const futuresBuyingPower = this.safeString (response, 'futures_buying_power');
+        const summary = this.safeDict (response, 'balance_summary', {});
+        const totalUsdBalanceData = this.safeDict (summary, 'total_usd_balance', {});
+        const futuresBuyingPowerData = this.safeDict (summary, 'futures_buying_power', {});
+        const totalUsdBalance = this.safeString (totalUsdBalanceData, 'value');
+        const futuresBuyingPower = this.safeString (futuresBuyingPowerData, 'value');
         if ((totalUsdBalance !== undefined) || (futuresBuyingPower !== undefined)) {
             const total = (totalUsdBalance !== undefined) ? totalUsdBalance : futuresBuyingPower;
             const free = (futuresBuyingPower !== undefined) ? futuresBuyingPower : total;
@@ -2542,7 +2545,7 @@ export default class coinbase extends Exchange {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
      * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary
+     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/get-futures-balance-summary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
      * @param {string} [params.type] "spot" (default) or "swap" or "future"

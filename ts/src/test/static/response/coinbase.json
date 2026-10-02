@@ -914,13 +914,33 @@
             }
           ],
           "httpResponse": {
-            "total_usd_balance": "1000.00",
-            "futures_buying_power": "750.00"
+            "balance_summary": {
+              "total_usd_balance": {
+                "value": "1000.00",
+                "currency": "USD",
+                "cbrn": ""
+              },
+              "futures_buying_power": {
+                "value": "750.00",
+                "currency": "USD",
+                "cbrn": ""
+              }
+            }
           },
           "parsedResponse": {
             "info": {
-              "total_usd_balance": "1000.00",
-              "futures_buying_power": "750.00"
+              "balance_summary": {
+                "total_usd_balance": {
+                  "value": "1000.00",
+                  "currency": "USD",
+                  "cbrn": ""
+                },
+                "futures_buying_power": {
+                  "value": "750.00",
+                  "currency": "USD",
+                  "cbrn": ""
+                }
+              }
             },
             "USD": {
               "free": 750,
