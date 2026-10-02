@@ -362,6 +362,17 @@ function testWsCache () {
     assert (cacheSymbolId9.getLimit (undefined, outsideLimit) === 2); // watch all orders
 
     // ----------------------------------------------------------------------------
+    // test ArrayCacheBySymbolById, multi-symbol distinct id counting and global counter reset
+
+    const cacheMultiSymbolById = new ArrayCacheBySymbolById ();
+    cacheMultiSymbolById.append ({ 'symbol': 'BTC/USDT', 'id': 'btc-1', 'i': 1 });
+    cacheMultiSymbolById.append ({ 'symbol': 'ETH/USDT', 'id': 'eth-1', 'i': 1 });
+    cacheMultiSymbolById.append ({ 'symbol': 'BTC/USDT', 'id': 'btc-1', 'i': 2 });
+    assert (cacheMultiSymbolById.getLimit (undefined, 10) === 2);
+    cacheMultiSymbolById.append ({ 'symbol': 'SOL/USDT', 'id': 'sol-1', 'i': 1 });
+    assert (cacheMultiSymbolById.getLimit (undefined, 10) === 1);
+
+    // ----------------------------------------------------------------------------
     // test ArrayCacheBySymbolBySide, watch all positions, same symbol and side id gets updated
 
     const cacheSymbolSide = new ArrayCacheBySymbolBySide ();
