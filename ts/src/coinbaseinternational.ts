@@ -2994,7 +2994,9 @@ export default class coinbaseinternational extends Exchange {
     }
 
     isCdpCredentials (): boolean {
-        return this.apiKey.indexOf ('organizations/') >= 0 || this.secret.indexOf ('BEGIN') >= 0 || this.isEddsaSecret ();
+        const isOrgKey = this.apiKey.indexOf ('organizations/') >= 0;
+        const isPem = this.secret.indexOf ('BEGIN') >= 0;
+        return isOrgKey || isPem || this.isEddsaSecret ();
     }
 
     isNativeDeribitCredentials (): boolean {
