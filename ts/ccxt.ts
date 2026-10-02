@@ -86,7 +86,7 @@ import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
 import coinbaseexchange from  './src/coinbaseexchange.js'
 import coinbaseinternational from  './src/coinbaseinternational.js'
-import coincheck from  './src/coincheck.js'4
+import coincheck from  './src/coincheck.js'
 import coinmate from  './src/coinmate.js'
 import coinone from  './src/coinone.js'
 import coinsph from  './src/coinsph.js'
