@@ -1924,12 +1924,7 @@ export default class latoken extends Exchange {
         if (error !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
-            const codeAsString = code.toString ();
-            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
-                // an error envelope must always throw — also for statuses the http-status handler has no entry for
-                throw new ExchangeError (feedback);
-            }
-            // unmapped codes on the remaining error statuses fall through to the default http-status handler
+            throw new ExchangeError (feedback); // unknown message
         }
         return undefined;
     }
