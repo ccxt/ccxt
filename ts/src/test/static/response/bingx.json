@@ -3,6 +3,90 @@
     "skipKeys": [ "tranId", "timestamp" ],
     "options": {},
     "methods": {
+        "fetchTradingFee": [
+            {
+                "description": "spot trading fee rates are percentage-based",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "retryable": 0,
+                    "data": {
+                        "takerCommissionRate": 0.001,
+                        "makerCommissionRate": 0.001
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "takerCommissionRate": 0.001,
+                        "makerCommissionRate": 0.001
+                    },
+                    "symbol": "BTC/USDT",
+                    "maker": 0.001,
+                    "taker": 0.001,
+                    "percentage": true,
+                    "tierBased": false
+                }
+            },
+            {
+                "description": "linear trading fee rates are percentage-based",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": {
+                        "commission": {
+                            "takerCommissionRate": 0.0005,
+                            "makerCommissionRate": 0.0002
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "takerCommissionRate": 0.0005,
+                        "makerCommissionRate": 0.0002
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "maker": 0.0002,
+                    "taker": 0.0005,
+                    "percentage": true,
+                    "tierBased": false
+                }
+            },
+            {
+                "description": "inverse trading fee rates are percentage-based",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1790159229410,
+                    "data": {
+                        "takerCommissionRate": "0.0005",
+                        "makerCommissionRate": "0.0002"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "takerCommissionRate": "0.0005",
+                        "makerCommissionRate": "0.0002"
+                    },
+                    "symbol": "BTC/USD:BTC",
+                    "maker": 0.0002,
+                    "taker": 0.0005,
+                    "percentage": true,
+                    "tierBased": false
+                }
+            }
+        ],
         "fetchInverseSwapMarkets": [
             {
                 "description": "active Coin-M contract metadata",
