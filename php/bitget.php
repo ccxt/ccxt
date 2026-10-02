@@ -4889,7 +4889,7 @@ class bitget extends Exchange {
                 $results = $this->safe_dict($response, 'data', array());
                 $assets = $this->safe_list($results, 'assets', array());
             }
-            return $this->parse_uta_balance($assets);
+            return $this->parse_uta_balance($assets, $response);
         } elseif (($marketType === 'swap') || ($marketType === 'future')) {
             $productType = null;
             list($productType, $paramsUTA) = $this->handle_product_type_and_params(null, $paramsUTA);
@@ -5043,8 +5043,9 @@ class bitget extends Exchange {
         return $this->parse_balance($data);
     }
 
-    public function parse_uta_balance(array $balance): array {
-        $result = array( 'info' => $balance );
+    public function parse_uta_balance(array $balance, ?array $response = null): array {
+        $info = ($response !== null) ? $response : $balance;
+        $result = array( 'info' => $info );
         //
         // uta
         //
