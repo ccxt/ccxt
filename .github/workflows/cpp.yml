@@ -44,8 +44,13 @@ jobs:
       # lld links the whole-archive test binary in a fraction of GNU ld's time and
       # memory -- the 104-exchange static lib is the memory hot spot on the runner
       run: |
-        sudo apt-get update
-        sudo apt-get install -y cmake ninja-build clang-format libcurl4-openssl-dev libssl-dev nlohmann-json3-dev lld libboost-dev libboost-system-dev libsimdjson-dev
+        if command -v sudo >/dev/null 2>&1 && [ "$(id -u)" -ne 0 ]; then
+          SUDO=sudo
+        else
+          SUDO=""
+        fi
+        $SUDO apt-get update
+        $SUDO apt-get install -y cmake ninja-build clang-format libcurl4-openssl-dev libssl-dev nlohmann-json3-dev lld libboost-dev libboost-system-dev libsimdjson-dev
     - name: ccache
       uses: hendrikmuhs/ccache-action@v1.2
       with:
