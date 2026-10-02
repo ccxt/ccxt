@@ -1,0 +1,59 @@
+{
+    "exchange": "uniswapv4",
+    "options": {
+        "graphApiKey": "key"
+    },
+    "skipKeys": [],
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "graphql query for the top 25 pools",
+                "method": "fetchMarkets",
+                "url": "https://gateway.thegraph.com/api/subgraphs/id/DiYPVdygkfjDWhbxGSqAQxwBKmfKnkWQojqeM2rkLb3G",
+                "input": [
+                    {
+                        "variables": {
+                            "first": 25
+                        }
+                    }
+                ],
+                "output": "{\"query\":\"query ($first: Int) { pools(first: $first, orderBy: volumeUSD, orderDirection: desc) { id feeTier tickSpacing hooks volumeUSD token0 { id symbol decimals } token1 { id symbol decimals } } }\",\"variables\":{\"first\":25}}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "buy exact output quote",
+                "method": "createOrder",
+                "url": "https://trade-api.gateway.uniswap.org/v1/quote",
+                "input": [
+                    "ETH/USDC",
+                    "market",
+                    "buy",
+                    0.01,
+                    null,
+                    {
+                        "swapper": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+                    }
+                ],
+                "output": "{\"type\":\"EXACT_OUTPUT\",\"amount\":\"10000000000000000\",\"tokenInChainId\":1,\"tokenOutChainId\":1,\"tokenIn\":\"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48\",\"tokenOut\":\"0x0000000000000000000000000000000000000000\",\"swapper\":\"0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045\",\"protocols\":[\"V4\"],\"slippageTolerance\":0.5}"
+            },
+            {
+                "description": "sell exact input quote",
+                "method": "createOrder",
+                "url": "https://trade-api.gateway.uniswap.org/v1/quote",
+                "input": [
+                    "ETH/USDC",
+                    "market",
+                    "sell",
+                    0.01,
+                    null,
+                    {
+                        "swapper": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+                    }
+                ],
+                "output": "{\"type\":\"EXACT_INPUT\",\"amount\":\"10000000000000000\",\"tokenInChainId\":1,\"tokenOutChainId\":1,\"tokenIn\":\"0x0000000000000000000000000000000000000000\",\"tokenOut\":\"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48\",\"swapper\":\"0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045\",\"protocols\":[\"V4\"],\"slippageTolerance\":0.5}"
+            }
+        ]
+    },
+    "outputType": "both"
+}
