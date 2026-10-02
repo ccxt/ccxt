@@ -4739,7 +4739,7 @@ class bitget(Exchange, ImplicitAPI):
                 response = await self.privateUtaGetV3AccountAssets(self.extend(request, paramsUTA))
                 results = self.safe_dict(response, 'data', {})
                 assets = self.safe_list(results, 'assets', [])
-            return self.parse_uta_balance(assets)
+            return self.parse_uta_balance(assets, response)
         elif (marketType == 'swap') or (marketType == 'future'):
             productType = None
             productType, paramsUTA = self.handle_product_type_and_params(None, paramsUTA)
@@ -4891,8 +4891,9 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_balance(data)
 
-    def parse_uta_balance(self, balance: list[dict]) -> Balances:
-        result = {'info': balance}
+    def parse_uta_balance(self, balance: list[dict], response: dict | None = None) -> Balances:
+        info = response if (response is not None) else balance
+        result = {'info': info}
         #
         # uta
         #
