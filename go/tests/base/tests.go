@@ -3552,7 +3552,7 @@ func (this *testMainClass) runBrokerIdTestsBody(ch chan ccxt.AsyncResult[any]) a
 	//  -----------------------------------------------------------------------------
 	//  --- Init of brokerId tests functions-----------------------------------------
 	//  -----------------------------------------------------------------------------
-	var promises []any = []any{this.TestBinanceAsync(), this.TestOkxAsync(), this.TestCryptocomAsync(), this.TestBybitAsync(), this.TestKucoinAsync(), this.TestKucoinfuturesAsync(), this.TestBitgetAsync(), this.TestMexcAsync(), this.TestHtxAsync(), this.TestWooAsync(), this.TestCoinexAsync(), this.TestBingxAsync(), this.TestPhemexAsync(), this.TestBlofinAsync(), this.TestCoinbaseinternationalAsync(), this.TestCoinbaseAdvancedAsync(), this.TestWoofiProAsync(), this.TestXTAsync(), this.TestParadexAsync(), this.TestHashkeyAsync(), this.TestCryptomusAsync(), this.TestDeriveAsync(), this.TestModeTradeAsync(), this.TestBackpackAsync(), this.TestToobitAsync(), this.TestWeexAsync(), this.TestFoxbitAsync(), this.TestBithumbAsync()}
+	var promises []any = []any{this.TestBinanceAsync(), this.TestOkxAsync(), this.TestCryptocomAsync(), this.TestBybitAsync(), this.TestKucoinAsync(), this.TestKucoinfuturesAsync(), this.TestBitgetAsync(), this.TestMexcAsync(), this.TestHtxAsync(), this.TestWooAsync(), this.TestCoinexAsync(), this.TestBingxAsync(), this.TestPhemexAsync(), this.TestBlofinAsync(), this.TestCoinbaseinternationalAsync(), this.TestCoinbaseAdvancedAsync(), this.TestWoofiProAsync(), this.TestXTAsync(), this.TestParadexAsync(), this.TestHashkeyAsync(), this.TestCryptomusAsync(), this.TestDeriveAsync(), this.TestModeTradeAsync(), this.TestBackpackAsync(), this.TestToobitAsync(), this.TestWeexAsync(), this.TestFoxbitAsync(), this.TestBithumbAsync(), this.TestExtendedAsync()}
 
 	r := <-promiseAll(promises)
 	if r.Err != nil {
@@ -4331,6 +4331,160 @@ func (this *testMainClass) testBithumbBody(ch chan ccxt.AsyncResult[any]) any {
 
 	}
 	Assert(IsEqual(GetValue(reqHeaders, "OPEN-API-PARTNER"), id), "bithumb - id: "+id+" not in headers (public endpoints).")
+	if !EvalTruthy(IsSync()) {
+
+		<-Close(exchange)
+	}
+
+	ch <- ccxt.AsyncResult[any]{Value: true}
+	return nil
+}
+func (this *testMainClass) TestExtendedAsync() <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.testExtendedBody(ch)
+	return ch
+}
+func (this *testMainClass) testExtendedBody(ch chan ccxt.AsyncResult[any]) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	if this.Lang == "RUST" {
+
+		ch <- ccxt.AsyncResult[any]{Value: false} // the extended static request suite is disabledRS as well
+		return nil
+	}
+	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("extended")
+	exchange.SetPrivateKey("0x12345")
+	AddElementToObject(exchange.GetOptions(), "account", map[string]any{
+		"l2Key":   "0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf",
+		"l2Vault": "123456",
+	})
+	var builderId string = "257624"
+	var builderFeeRate string = "0.0001"
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "builderFee"), true), "extended - builderFee is not enabled in options")
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "builderId"), builderId), "extended - builderId: "+builderId+" not in options")
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "builderFeeRate"), builderFeeRate), "extended - builderFeeRate: "+builderFeeRate+" not in options")
+	// default: the builder code and fee rate come from options
+	var request any = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						request = JsonParse(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
+			if r.Err != nil {
+				panic(r.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	Assert(IsEqual(GetValue(request, "builderId"), builderId), Add(Add(Add("extended - builderId: ", GetValue(request, "builderId")), " different from options: "), builderId))
+	Assert(IsEqual(GetValue(request, "builderFee"), builderFeeRate), Add(Add(Add("extended - builderFee: ", GetValue(request, "builderFee")), " different from options: "), builderFeeRate))
+	Assert(IsEqual(GetValue(request, "fee"), "0.0005"), Add(Add("extended - fee: ", GetValue(request, "fee")), " should stay the base fee, the builder fee is a separate field"))
+	// params override the fee rate, the builder code stays
+	request = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						request = JsonParse(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r1 := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000, map[string]any{
+				"builderFeeRate": "0.0002",
+			})
+			if r1.Err != nil {
+				panic(r1.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	Assert(IsEqual(GetValue(request, "builderFee"), "0.0002"), Add(Add("extended - builderFee: ", GetValue(request, "builderFee")), " does not take the params value 0.0002"))
+	Assert(IsEqual(GetValue(request, "builderId"), builderId), Add(Add("extended - builderId: ", GetValue(request, "builderId")), " changed by a builderFeeRate param"))
+	Assert(!(InOp(request, "builderFeeRate")), "extended - builderFeeRate param leaked into the request")
+	// sandbox: the builder is only attached when passed explicitly in params
+	exchange.SetSandboxMode(true)
+	request = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						request = JsonParse(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r2 := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
+			if r2.Err != nil {
+				panic(r2.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	Assert(!(InOp(request, "builderId")), "extended - sandbox attached builderId from options")
+	request = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						request = JsonParse(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r3 := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000, map[string]any{
+				"builderId":      "999",
+				"builderFeeRate": "0.0003",
+			})
+			if r3.Err != nil {
+				panic(r3.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	Assert(IsEqual(GetValue(request, "builderId"), "999"), Add(Add("extended - sandbox builderId: ", GetValue(request, "builderId")), " does not take the params value 999"))
+	Assert(IsEqual(GetValue(request, "builderFee"), "0.0003"), Add(Add("extended - sandbox builderFee: ", GetValue(request, "builderFee")), " does not take the params value 0.0003"))
 	if !EvalTruthy(IsSync()) {
 
 		<-Close(exchange)
