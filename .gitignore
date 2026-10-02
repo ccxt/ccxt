@@ -113,7 +113,7 @@ cpp/ccxt/pro/*.h
 cpp/ccxt/pro/tu_*.cpp
 cpp/ccxt/prediction/*.h
 cpp/ccxt/prediction/tu_*.cpp
-cpp/ccxt/api/*.h
+cpp/ccxt/api/
 cpp/ccxt/base/*.inc
 cpp/ccxt/base/Errors.h
 cpp/ccxt/base/PredictionExchange.h
