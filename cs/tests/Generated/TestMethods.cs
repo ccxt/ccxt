@@ -2976,7 +2976,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        List<object> promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb()};
+        List<object> promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb(), this.testExtended()};
         await promiseAll(promises);
         string successMessage = (("[" + (this.lang)) + "][TEST_SUCCESS] brokerId tests passed.");
         dump(("[INFO]" + successMessage));
@@ -3334,6 +3334,80 @@ public partial class testMainClass
             reqHeaders = (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "OPEN-API-PARTNER"), id), (("bithumb - id: " + id) + " not in headers (public endpoints)."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testExtended()
+    {
+        if (isEqual(this.lang, "RUST"))
+        {
+            return false;  // the extended static request suite is disabledRS as well
+        }
+        Exchange exchange = ((Exchange)this.initOfflineExchange("extended"));
+        exchange.privateKey = "0x12345";
+        ((IDictionary<string,object>)exchange.options)["account"] = new Dictionary<string, object>() {
+            { "l2Key", "0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf" },
+            { "l2Vault", "123456" },
+        };
+        string builderId = "257624";
+        string builderFeeRate = "0.0001";
+        assert(isEqual(getValue(exchange.options, "builderFee"), true), "extended - builderFee is not enabled in options");
+        assert(isEqual(getValue(exchange.options, "builderId"), builderId), (("extended - builderId: " + builderId) + " not in options"));
+        assert(isEqual(getValue(exchange.options, "builderFeeRate"), builderFeeRate), (("extended - builderFeeRate: " + builderFeeRate) + " not in options"));
+        // default: the builder code and fee rate come from options
+        object request = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        assert(isEqual(getValue(request, "builderId"), builderId), ((("extended - builderId: " + (getValue(request, "builderId"))) + " different from options: ") + builderId));
+        assert(isEqual(getValue(request, "builderFee"), builderFeeRate), ((("extended - builderFee: " + (getValue(request, "builderFee"))) + " different from options: ") + builderFeeRate));
+        assert(isEqual(getValue(request, "fee"), "0.0005"), (("extended - fee: " + (getValue(request, "fee"))) + " should stay the base fee, the builder fee is a separate field"));
+        // params override the fee rate, the builder code stays
+        request = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
+                { "builderFeeRate", "0.0002" },
+            });
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        assert(isEqual(getValue(request, "builderFee"), "0.0002"), (("extended - builderFee: " + (getValue(request, "builderFee"))) + " does not take the params value 0.0002"));
+        assert(isEqual(getValue(request, "builderId"), builderId), (("extended - builderId: " + (getValue(request, "builderId"))) + " changed by a builderFeeRate param"));
+        assert(!(inOp(request, "builderFeeRate")), "extended - builderFeeRate param leaked into the request");
+        // sandbox: the builder is only attached when passed explicitly in params
+        exchange.setSandboxMode(true);
+        request = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        assert(!(inOp(request, "builderId")), "extended - sandbox attached builderId from options");
+        request = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
+                { "builderId", "999" },
+                { "builderFeeRate", "0.0003" },
+            });
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        assert(isEqual(getValue(request, "builderId"), "999"), (("extended - sandbox builderId: " + (getValue(request, "builderId"))) + " does not take the params value 999"));
+        assert(isEqual(getValue(request, "builderFee"), "0.0003"), (("extended - sandbox builderFee: " + (getValue(request, "builderFee"))) + " does not take the params value 0.0003"));
         if (!isTrue(isSync()))
         {
             await close(exchange);

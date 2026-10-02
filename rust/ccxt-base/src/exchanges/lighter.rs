@@ -4307,6 +4307,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("account_index".to_string(), accountIndex);
             m
         });
+        if (symbol != Value::Null) {
+            let mut market: Value = self.market(symbol);
+            if let Value::Dict(__d) = &mut signRaw { std::sync::Arc::make_mut(__d).insert("cancel_all_market_index".into(), self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))); }
+        }
         let __ws_arg_25 = self.extend(signRaw, &[paramsAccountIndex]);
         let mut txTypetxInfoVariable = self.lighter_sign_cancel_all_orders(signer, __ws_arg_25);
         let mut txType: Value = txTypetxInfoVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);

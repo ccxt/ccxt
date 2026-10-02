@@ -520,7 +520,6 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'private': {
                             'get': {
-                                'swap/trace/currentTrack': {'cost': 2},
                                 'PFutures/traderDetail': {'cost': 2},
                                 'PFutures/profitHistorySummarys': {'cost': 2},
                                 'PFutures/profitDetail': {'cost': 2},
@@ -531,7 +530,6 @@ class bingx(Exchange, ImplicitAPI):
                                 'spot/historyOrder': {'cost': 2},
                             },
                             'post': {
-                                'swap/trace/closeTrackOrder': {'cost': 2},
                                 'swap/trace/setTPSL': {'cost': 2},
                                 'PFutures/setCommission': {'cost': 2},
                                 'spot/trader/sellOrder': {'cost': 10},
@@ -3242,8 +3240,8 @@ class bingx(Exchange, ImplicitAPI):
         :param str [params.timeInForce]: spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
         :param bool [params.reduceOnly]: *swap only* True or False whether the order is reduce only
         :param float [params.triggerPrice]: triggerPrice at which the attached take profit / stop loss order will be triggered
-        :param float [params.stopLossPrice]: stop loss trigger price
-        :param float [params.takeProfitPrice]: take profit trigger price
+        :param float [params.stopLossPrice]: stop loss trigger price, a spot order is placed and parsed back with triggerPrice
+        :param float [params.takeProfitPrice]: take profit trigger price, a spot order is placed and parsed back with triggerPrice
         :param float [params.cost]: *spot only* the quote quantity that can be used as an alternative for the amount
         :param float [params.quoteOrderQty]: *spot only* the quote quantity, an alternative to params.cost
         :param float [params.trailingAmount]: *swap only* the quote amount to trail away from the current market price
@@ -3489,7 +3487,12 @@ class bingx(Exchange, ImplicitAPI):
             'stop_limit': 'limit',
             'stop_market': 'market',
             'take_profit_market': 'market',
+            'take_profit': 'limit',
             'stop': 'limit',
+            'take_stop_limit': 'limit',
+            'take_stop_market': 'market',
+            'trailing_stop_market': 'market',
+            'trailing_tp_sl': 'market',
         }
         return self.safe_string(types, type, type)
 
@@ -3787,6 +3790,10 @@ class bingx(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId if (market is None) else None, market, None, marketType)
         side = self.safe_string_lower_2(orderData, 'side', 'S')
         timestamp = self.safe_integer_n(orderData, ['time', 'transactTime', 'E', 'createdTime'])
+        transactTime = self.safe_string(orderData, 'transactTime', '')
+        if len(transactTime) == 10:
+            # spot conditional orders are created with transactTime in seconds
+            timestamp = self.safe_timestamp(orderData, 'transactTime')
         lastTradeTimestamp = self.safe_integer_2(orderData, 'updateTime', 'T')
         statusId = self.safe_string_upper_n(orderData, ['status', 'X', 'orderStatus'])
         feeCurrencyCode = self.safe_string_2(orderData, 'feeAsset', 'N')
@@ -3820,7 +3827,9 @@ class bingx(Exchange, ImplicitAPI):
         rawType = self.safe_string_lower_2(orderData, 'type', 'o')
         stopPrice = self.omit_zero(self.safe_string_2(orderData, 'StopPrice', 'stopPrice'))
         triggerPrice = stopPrice
-        if stopPrice is not None:
+        # spot TAKE_STOP_* is a plain conditional order, the venue does not say whether it protects a position
+        isTakeStop = (rawType is not None) and (rawType.find('take_stop') > -1)
+        if (stopPrice is not None) and not isTakeStop:
             if (rawType.find('stop') > -1) and (stopLossPrice is None):
                 stopLossPrice = stopPrice
                 triggerPrice = None
@@ -5036,12 +5045,12 @@ class bingx(Exchange, ImplicitAPI):
         subType, paramsSubType = self.handle_sub_type_and_params('transfer', None, params)
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
-        if fromId == 'swap':
+        if fromAccount == 'swap':
             if subType == 'inverse':
                 fromId = 'coinMPerp'
             else:
                 fromId = 'USDTMPerp'
-        if toId == 'swap':
+        if toAccount == 'swap':
             if subType == 'inverse':
                 toId = 'coinMPerp'
             else:
@@ -6387,7 +6396,7 @@ class bingx(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' editOrder() is not supported for inverse swap markets')
         request = self.create_order_request(symbol, type, side, amount, price, params)
         request['cancelOrderId'] = id
-        request['cancelReplaceMode'] = 'STOP_ON_FAILURE'
+        request['cancelReplaceMode'] = self.safe_string(params, 'cancelReplaceMode', 'STOP_ON_FAILURE')
         response: dict
         if market['swap'] is True:
             response = await self.swapV1PrivatePostTradeCancelReplace(request)

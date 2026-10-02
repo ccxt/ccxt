@@ -57,7 +57,7 @@ public partial class pacifica : Exchange
                 { "fetchCurrencies", false },
                 { "fetchDepositAddress", false },
                 { "fetchDepositAddresses", false },
-                { "fetchDeposits", false },
+                { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", false },
                 { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", true },
@@ -101,7 +101,7 @@ public partial class pacifica : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "fetchWithdrawal", false },
-                { "fetchWithdrawals", false },
+                { "fetchWithdrawals", true },
                 { "reduceMargin", false },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
@@ -3602,6 +3602,112 @@ public partial class pacifica : Exchange
             { "payout", "payout" },
         };
         return this.safeString(ledgerType, type, type);
+    }
+
+    /**
+     * @method
+     * @name pacifica#fetchDeposits
+     * @description fetch all USDC deposits made to an account, spot asset deposits are not included
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> userAddressparamsAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchDeposits", parameters);
+        string? userAddress = (string)userAddressparamsAddressVariable[0];
+        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)userAddressparamsAddressVariable[1]);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "account", userAddress },
+        };
+        Dictionary<string, object> response = await this.publicGetAccountBalanceHistory(this.extend(request, paramsAddress));
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        IList<object> transactions = this.parseTransactions(data, this.safeCurrency(code));
+        List<object> deposits = this.filterBy(transactions, "type", "deposit");
+        return ccxt.BaseExchange.ToTransactionList(this.filterBySinceLimit(deposits, since, limit, "timestamp"));
+    }
+
+    /**
+     * @method
+     * @name pacifica#fetchWithdrawals
+     * @description fetch all USDC withdrawals made from an account, spot asset withdrawals are not included
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> userAddressparamsAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchWithdrawals", parameters);
+        string? userAddress = (string)userAddressparamsAddressVariable[0];
+        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)userAddressparamsAddressVariable[1]);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "account", userAddress },
+        };
+        Dictionary<string, object> response = await this.publicGetAccountBalanceHistory(this.extend(request, paramsAddress));
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        IList<object> transactions = this.parseTransactions(data, this.safeCurrency(code));
+        List<object> withdrawals = this.filterBy(transactions, "type", "withdrawal");
+        return ccxt.BaseExchange.ToTransactionList(this.filterBySinceLimit(withdrawals, since, limit, "timestamp"));
+    }
+
+    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    {
+        //
+        //     {
+        //         "amount": "5000",
+        //         "balance": "5000",
+        //         "pending_balance": "0",
+        //         "event_type": "deposit",
+        //         "created_at": 1789199771373
+        //     }
+        //
+        Int64? timestamp = this.safeInteger(transaction, "created_at");
+        Dictionary<string, object> types = new Dictionary<string, object>() {
+            { "deposit", "deposit" },
+            { "withdraw", "withdrawal" },
+        };
+        string? eventType = this.safeString(transaction, "event_type");
+        string? amount = this.safeString(transaction, "amount");
+        return new Dictionary<string, object>() {
+            { "info", transaction },
+            { "id", null },
+            { "txid", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "network", null },
+            { "address", null },
+            { "addressTo", null },
+            { "addressFrom", null },
+            { "tag", null },
+            { "tagTo", null },
+            { "tagFrom", null },
+            { "type", this.safeString(types, eventType) },
+            { "amount", this.parseNumber(Precise.stringAbs(amount)) },
+            { "currency", this.safeCurrencyCode("USDC", currency) },
+            { "status", null },
+            { "updated", null },
+            { "comment", null },
+            { "internal", null },
+            { "fee", null },
+        };
     }
 
     /**

@@ -2509,15 +2509,17 @@ class extended(Exchange, ImplicitAPI):
         fee = self.safe_string(params, 'fee', '0.0005')
         builderFeeRate = None
         builderId = None
-        paramsBuilder = None
-        if self.isSandboxModeEnabled:
-            builderFeeRate = self.safe_string_2(params, 'builderFeeRate', 'defaultBuilderFeeRate')
-            builderId = self.safe_string_2(params, 'builderId', 'defaultBuilderId')
-            paramsBuilder = self.omit(params, ['builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId'])
-        else:
-            paramsBuilderFeeRate = None
-            builderFeeRate, paramsBuilderFeeRate = self.handle_option_string_and_params(params, 'createOrder', 'builderFeeRate', '0.0001')
-            builderId, paramsBuilder = self.handle_option_string_and_params(paramsBuilderFeeRate, 'createOrder', 'builderId')
+        paramsBuilder = params
+        builderEnabled = self.safe_bool(self.options, 'builderFee')
+        if builderEnabled is True:
+            if self.isSandboxModeEnabled:
+                builderFeeRate = self.safe_string_2(params, 'builderFeeRate', 'defaultBuilderFeeRate')
+                builderId = self.safe_string_2(params, 'builderId', 'defaultBuilderId')
+                paramsBuilder = self.omit(params, ['builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId'])
+            else:
+                paramsBuilderFeeRate = None
+                builderFeeRate, paramsBuilderFeeRate = self.handle_option_string_and_params(params, 'createOrder', 'builderFeeRate', '0.0001')
+                builderId, paramsBuilder = self.handle_option_string_and_params(paramsBuilderFeeRate, 'createOrder', 'builderId')
         totalFee = fee
         if builderFeeRate is not None:
             totalFee = Precise.string_add(fee, builderFeeRate)

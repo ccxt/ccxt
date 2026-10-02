@@ -252,7 +252,7 @@ impl crate::exchange_generated::ExchangeBase for BitgetCore {
                 "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_transaction_type" => self.parse_transaction_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_uta_balance" => self.parse_uta_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_uta_balance" => self.parse_uta_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "reduce_margin" => self.reduce_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "repay_cross_margin" => self.repay_cross_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "repay_isolated_margin" => self.repay_isolated_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
@@ -450,7 +450,7 @@ impl BitgetCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://www.bitget.com".into()));
-        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://www.bitget.com/api-doc/common/intro".into()), Value::Str("https://www.bitget.com/api-doc/spot/intro".into()), Value::Str("https://www.bitget.com/api-doc/contract/intro".into()), Value::Str("https://www.bitget.com/api-doc/broker/intro".into()), Value::Str("https://www.bitget.com/api-doc/margin/intro".into()), Value::Str("https://www.bitget.com/api-doc/copytrading/intro".into()), Value::Str("https://www.bitget.com/api-doc/earn/intro".into()), Value::Str("https://bitgetlimited.github.io/apidoc/en/mix".into()), Value::Str("https://bitgetlimited.github.io/apidoc/en/spot".into()), Value::Str("https://bitgetlimited.github.io/apidoc/en/broker".into()), Value::Str("https://bitgetlimited.github.io/apidoc/en/margin".into())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://www.bitget.com/docs/uta/Introduction".into()), Value::Str("https://www.bitget.com/docs/classic/Introduction".into())]));
         m.insert("fees".to_string(), Value::Str("https://www.bitget.cc/zh-CN/rate?tab=1".into()));
         m.insert("referral".to_string(), Value::Str("https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j".into()));
     m
@@ -8941,14 +8941,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name bitget#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Assets
- * @see https://www.bitget.com/api-doc/contract/account/Get-Account-List
- * @see https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Assets
- * @see https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets
- * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
- * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
- * @see https://www.bitget.com/api-doc/uta/account/Get-Account
- * @see https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
+ * @see https://www.bitget.com/docs/catalog/classic-spot-account/classic-spot-account#get-account-assets
+ * @see https://www.bitget.com/docs/catalog/classic-contract-account/classic-contract-account#get-account-list
+ * @see https://www.bitget.com/docs/catalog/classic-margin-cross-account/classic-margin-cross-account#get-cross-account-assets
+ * @see https://www.bitget.com/docs/catalog/classic-margin-isolated-account/classic-margin-isolated-account#get-isolated-account-asset
+ * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-assets
+ * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-funding-assets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -8990,7 +8988,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
                 assets = self.safe_list_k(results, "assets", &[Value::from(vec![])]);
             }
-            return self.parse_uta_balance(assets);
+            return self.parse_uta_balance(assets, &[response.clone()]);
         }  else if (marketType.as_str() == Some("swap")) || (marketType.as_str() == Some("future")) {
             let mut productType: Value = Value::Null;
             { let __destr_tmp = self.handle_product_type_and_params(&[Value::Null, paramsUTA.clone()]); productType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsUTA = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -9107,10 +9105,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn parse_uta_balance(&self, mut balance: Value) -> Value {
+    pub fn parse_uta_balance(&self, mut balance: Value, optional_args: &[Value]) -> Value {
+        let mut response = get_arg(optional_args, 0, Value::Null);
+        let mut info: Value = (if (response != Value::Null) { response } else { balance.clone() });
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), balance.clone());
+                m.insert("info".to_string(), info);
             m
         });
         {

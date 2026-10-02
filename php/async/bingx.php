@@ -512,7 +512,6 @@ class bingx extends Exchange {
                     'v1' => array(
                         'private' => array(
                             'get' => array(
-                                'swap/trace/currentTrack' => array( 'cost' => 2 ),
                                 'PFutures/traderDetail' => array( 'cost' => 2 ),
                                 'PFutures/profitHistorySummarys' => array( 'cost' => 2 ),
                                 'PFutures/profitDetail' => array( 'cost' => 2 ),
@@ -523,7 +522,6 @@ class bingx extends Exchange {
                                 'spot/historyOrder' => array( 'cost' => 2 ),
                             ),
                             'post' => array(
-                                'swap/trace/closeTrackOrder' => array( 'cost' => 2 ),
                                 'swap/trace/setTPSL' => array( 'cost' => 2 ),
                                 'PFutures/setCommission' => array( 'cost' => 2 ),
                                 'spot/trader/sellOrder' => array( 'cost' => 10 ),
@@ -3508,8 +3506,8 @@ class bingx extends Exchange {
          * @param {string} [$params->timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
          * @param {bool} [$params->reduceOnly] *swap only* true or false whether the order is reduce only
          * @param {float} [$params->triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
-         * @param {float} [$params->stopLossPrice] stop loss trigger $price
-         * @param {float} [$params->takeProfitPrice] take profit trigger $price
+         * @param {float} [$params->stopLossPrice] stop loss trigger $price, a spot order is placed and parsed back with triggerPrice
+         * @param {float} [$params->takeProfitPrice] take profit trigger $price, a spot order is placed and parsed back with triggerPrice
          * @param {float} [$params->cost] *spot only* the quote quantity that can be used as an alternative for the $amount
          * @param {float} [$params->quoteOrderQty] *spot only* the quote quantity, an alternative to $params->cost
          * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
@@ -3776,7 +3774,12 @@ class bingx extends Exchange {
             'stop_limit' => 'limit',
             'stop_market' => 'market',
             'take_profit_market' => 'market',
+            'take_profit' => 'limit',
             'stop' => 'limit',
+            'take_stop_limit' => 'limit',
+            'take_stop_market' => 'market',
+            'trailing_stop_market' => 'market',
+            'trailing_tp_sl' => 'market',
         );
         return $this->safe_string($types, $type, $type);
     }
@@ -4076,6 +4079,11 @@ class bingx extends Exchange {
         $marketResolved = $this->safe_market(($market === null) ? $marketId : null, $market, null, $marketType);
         $side = $this->safe_string_lower_2($orderData, 'side', 'S');
         $timestamp = $this->safe_integer_n($orderData, array( 'time', 'transactTime', 'E', 'createdTime' ));
+        $transactTime = $this->safe_string($orderData, 'transactTime', '');
+        if (strlen($transactTime) === 10) {
+            // spot conditional orders are created with transactTime in seconds
+            $timestamp = $this->safe_timestamp($orderData, 'transactTime');
+        }
         $lastTradeTimestamp = $this->safe_integer_2($orderData, 'updateTime', 'T');
         $statusId = $this->safe_string_upper_n($orderData, array( 'status', 'X', 'orderStatus' ));
         $feeCurrencyCode = $this->safe_string_2($orderData, 'feeAsset', 'N');
@@ -4118,7 +4126,9 @@ class bingx extends Exchange {
         $rawType = $this->safe_string_lower_2($orderData, 'type', 'o');
         $stopPrice = $this->omit_zero($this->safe_string_2($orderData, 'StopPrice', 'stopPrice'));
         $triggerPrice = $stopPrice;
-        if ($stopPrice !== null) {
+        // spot TAKE_STOP_* is a plain conditional order, the venue does not say whether it protects a position
+        $isTakeStop = ($rawType !== null) && (mb_strpos($rawType, 'take_stop') > -1);
+        if (($stopPrice !== null) && !$isTakeStop) {
             if ((mb_strpos($rawType, 'stop') > -1) && ($stopLossPrice === null)) {
                 $stopLossPrice = $stopPrice;
                 $triggerPrice = null;
@@ -5432,14 +5442,14 @@ class bingx extends Exchange {
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('transfer', null, $params);
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-        if ($fromId === 'swap') {
+        if ($fromAccount === 'swap') {
             if ($subType === 'inverse') {
                 $fromId = 'coinMPerp';
             } else {
                 $fromId = 'USDTMPerp';
             }
         }
-        if ($toId === 'swap') {
+        if ($toAccount === 'swap') {
             if ($subType === 'inverse') {
                 $toId = 'coinMPerp';
             } else {
@@ -6972,7 +6982,7 @@ class bingx extends Exchange {
         }
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $request['cancelOrderId'] = $id;
-        $request['cancelReplaceMode'] = 'STOP_ON_FAILURE';
+        $request['cancelReplaceMode'] = $this->safe_string($params, 'cancelReplaceMode', 'STOP_ON_FAILURE');
         if ($market['swap'] === true) {
             $response = Async\await($this->swapV1PrivatePostTradeCancelReplace($request));
             //

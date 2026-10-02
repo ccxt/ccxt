@@ -77,7 +77,7 @@ class pacifica(Exchange, ImplicitAPI):
                 'fetchCurrencies': False,
                 'fetchDepositAddress': False,
                 'fetchDepositAddresses': False,
-                'fetchDeposits': False,
+                'fetchDeposits': True,
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
@@ -121,7 +121,7 @@ class pacifica(Exchange, ImplicitAPI):
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
-                'fetchWithdrawals': False,
+                'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
@@ -2988,6 +2988,96 @@ class pacifica(Exchange, ImplicitAPI):
             'payout': 'payout',
         }
         return self.safe_string(ledgerType, type, type)
+
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
+        """
+        fetch all USDC deposits made to an account, spot asset deposits are not included
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+
+        :param str [code]: unified currency code
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.account]: will default to walletAddress if not provided
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        userAddress, paramsAddress = self.handle_origin_and_single_address('fetchDeposits', params)
+        request = {
+            'account': userAddress,
+        }
+        response = self.publicGetAccountBalanceHistory(self.extend(request, paramsAddress))
+        data = self.safe_list(response, 'data', [])
+        transactions = self.parse_transactions(data, self.safe_currency(code))
+        deposits = self.filter_by(transactions, 'type', 'deposit')
+        return self.filter_by_since_limit(deposits, since, limit, 'timestamp')
+
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
+        """
+        fetch all USDC withdrawals made from an account, spot asset withdrawals are not included
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+
+        :param str [code]: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.account]: will default to walletAddress if not provided
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        userAddress, paramsAddress = self.handle_origin_and_single_address('fetchWithdrawals', params)
+        request = {
+            'account': userAddress,
+        }
+        response = self.publicGetAccountBalanceHistory(self.extend(request, paramsAddress))
+        data = self.safe_list(response, 'data', [])
+        transactions = self.parse_transactions(data, self.safe_currency(code))
+        withdrawals = self.filter_by(transactions, 'type', 'withdrawal')
+        return self.filter_by_since_limit(withdrawals, since, limit, 'timestamp')
+
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
+        #
+        #     {
+        #         "amount": "5000",
+        #         "balance": "5000",
+        #         "pending_balance": "0",
+        #         "event_type": "deposit",
+        #         "created_at": 1789199771373
+        #     }
+        #
+        timestamp = self.safe_integer(transaction, 'created_at')
+        types = {
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
+        }
+        eventType = self.safe_string(transaction, 'event_type')
+        amount = self.safe_string(transaction, 'amount')
+        return {
+            'info': transaction,
+            'id': None,
+            'txid': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'network': None,
+            'address': None,
+            'addressTo': None,
+            'addressFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
+            'type': self.safe_string(types, eventType),
+            'amount': self.parse_number(Precise.string_abs(amount)),
+            'currency': self.safe_currency_code('USDC', currency),
+            'status': None,
+            'updated': None,
+            'comment': None,
+            'internal': None,
+            'fee': None,
+        }
 
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """

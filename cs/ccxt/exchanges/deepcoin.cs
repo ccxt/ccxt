@@ -826,10 +826,16 @@ public partial class deepcoin : Exchange
         {
             await this.loadMarkets();
         }
-        int maxLimit = 300;
+        Dictionary<string, object> market = this.market(symbol);
         (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        string? price = this.safeString(paramsPaginate, "price");
+        int maxLimit = 300;
+        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true) && (price == null))
+        {
+            maxLimit = 1000;
+        }
         if ((paginate == true))
         {
             Dictionary<string, object> paramsExtended = this.extend(paramsPaginate, new Dictionary<string, object>() {
@@ -837,8 +843,6 @@ public partial class deepcoin : Exchange
             });
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsExtended, maxLimit));
         }
-        Dictionary<string, object> market = this.market(symbol);
-        string? price = this.safeString(paramsPaginate, "price");
         string? bar = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
@@ -846,7 +850,7 @@ public partial class deepcoin : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = limit;
+            request["limit"] = mathMin(limit, maxLimit);
         }
         Int64? until = this.safeInteger(paramsPaginate, "until");
         if ((until != null))

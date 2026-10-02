@@ -507,7 +507,6 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'swap/trace/currentTrack': { 'cost': 2 } as Endpoint<Dict>,
                                 'PFutures/traderDetail': { 'cost': 2 } as Endpoint<Dict>,
                                 'PFutures/profitHistorySummarys': { 'cost': 2 } as Endpoint<Dict>,
                                 'PFutures/profitDetail': { 'cost': 2 } as Endpoint<Dict>,
@@ -518,7 +517,6 @@ export default class bingx extends Exchange {
                                 'spot/historyOrder': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'swap/trace/closeTrackOrder': { 'cost': 2 } as Endpoint<Dict>,
                                 'swap/trace/setTPSL': { 'cost': 2 } as Endpoint<Dict>,
                                 'PFutures/setCommission': { 'cost': 2 } as Endpoint<Dict>,
                                 'spot/trader/sellOrder': { 'cost': 10 } as Endpoint<Dict>,
@@ -3425,8 +3423,8 @@ export default class bingx extends Exchange {
      * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
      * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
      * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
-     * @param {float} [params.stopLossPrice] stop loss trigger price
-     * @param {float} [params.takeProfitPrice] take profit trigger price
+     * @param {float} [params.stopLossPrice] stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
+     * @param {float} [params.takeProfitPrice] take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
      * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
      * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
@@ -3692,7 +3690,12 @@ export default class bingx extends Exchange {
             'stop_limit': 'limit',
             'stop_market': 'market',
             'take_profit_market': 'market',
+            'take_profit': 'limit',
             'stop': 'limit',
+            'take_stop_limit': 'limit',
+            'take_stop_market': 'market',
+            'trailing_stop_market': 'market',
+            'trailing_tp_sl': 'market',
         };
         return this.safeString (types, (type as string), type);
     }
@@ -3991,7 +3994,12 @@ export default class bingx extends Exchange {
         const marketId = this.safeString2 (orderData, 'symbol', 's');
         const marketResolved: Market = this.safeMarket ((market === undefined) ? marketId : undefined, market, undefined, marketType);
         const side = this.safeStringLower2 (orderData, 'side', 'S');
-        const timestamp = this.safeIntegerN (orderData, [ 'time', 'transactTime', 'E', 'createdTime' ]);
+        let timestamp = this.safeIntegerN (orderData, [ 'time', 'transactTime', 'E', 'createdTime' ]);
+        const transactTime = this.safeString (orderData, 'transactTime', '') as string;
+        if (transactTime.length === 10) {
+            // spot conditional orders are created with transactTime in seconds
+            timestamp = this.safeTimestamp (orderData, 'transactTime');
+        }
         const lastTradeTimestamp = this.safeInteger2 (orderData, 'updateTime', 'T');
         const statusId = this.safeStringUpperN (orderData, [ 'status', 'X', 'orderStatus' ]);
         let feeCurrencyCode = this.safeString2 (orderData, 'feeAsset', 'N');
@@ -4034,7 +4042,9 @@ export default class bingx extends Exchange {
         const rawType = this.safeStringLower2 (orderData, 'type', 'o') as string;
         const stopPrice = this.omitZero (this.safeString2 (orderData, 'StopPrice', 'stopPrice'));
         let triggerPrice = stopPrice;
-        if (stopPrice !== undefined) {
+        // spot TAKE_STOP_* is a plain conditional order, the venue does not say whether it protects a position
+        const isTakeStop = (rawType !== undefined) && (rawType.indexOf ('take_stop') > -1);
+        if ((stopPrice !== undefined) && !isTakeStop) {
             if ((rawType.indexOf ('stop') > -1) && (stopLossPrice === undefined)) {
                 stopLossPrice = stopPrice;
                 triggerPrice = undefined;
@@ -5310,14 +5320,14 @@ export default class bingx extends Exchange {
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('transfer', undefined, params);
         let fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         let toId = this.safeString (accountsByType, toAccount, toAccount);
-        if (fromId === 'swap') {
+        if (fromAccount === 'swap') {
             if (subType === 'inverse') {
                 fromId = 'coinMPerp';
             } else {
                 fromId = 'USDTMPerp';
             }
         }
-        if (toId === 'swap') {
+        if (toAccount === 'swap') {
             if (subType === 'inverse') {
                 toId = 'coinMPerp';
             } else {
@@ -6776,7 +6786,7 @@ export default class bingx extends Exchange {
         }
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         request['cancelOrderId'] = id;
-        request['cancelReplaceMode'] = 'STOP_ON_FAILURE';
+        request['cancelReplaceMode'] = this.safeString (params, 'cancelReplaceMode', 'STOP_ON_FAILURE');
         let response: Dict;
         if (market['swap'] === true) {
             response = await this.swapV1PrivatePostTradeCancelReplace (request);

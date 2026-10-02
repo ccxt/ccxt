@@ -3127,7 +3127,7 @@ public class TestMain extends BaseTest
             //  -----------------------------------------------------------------------------
             //  --- Init of brokerId tests functions-----------------------------------------
             //  -----------------------------------------------------------------------------
-            List<Object> promises = new ArrayList<Object>(Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb()));
+            List<Object> promises = new ArrayList<Object>(Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb(), this.testExtended()));
             (Helpers.promiseAll(promises)).join();
             String successMessage = (("[" + this.lang) + "][TEST_SUCCESS] brokerId tests passed.");
             dump(("[INFO]" + successMessage));
@@ -3510,6 +3510,85 @@ public class TestMain extends BaseTest
                 reqHeaders = (((!java.util.Objects.equals(exchange.last_request_headers, null) && !java.util.Objects.equals(exchange.last_request_headers, null)))) ? exchange.last_request_headers : new HashMap<String, Object>() {{}};
             }
             Assert(java.util.Objects.equals(((Map<String, Object>)reqHeaders).get("OPEN-API-PARTNER"), id), (("bithumb - id: " + id) + " not in headers (public endpoints)."));
+            if (!Helpers.isTrue(isSync()))
+            {
+                (close(exchange)).join();
+            }
+            return true;
+        });
+
+    }
+
+    public CompletableFuture<Object> testExtended()
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.lang, "RUST"))
+            {
+                return false;  // the extended static request suite is disabledRS as well
+            }
+            BaseExchange exchange = this.initOfflineExchange("extended", false);
+            exchange.privateKey = "0x12345";
+            ((Map<String, Object>)exchange.options).put("account", new HashMap<String, Object>() {{
+        put( "l2Key", "0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf" );
+        put( "l2Vault", "123456" );
+    }});
+            String builderId = "257624";
+            String builderFeeRate = "0.0001";
+            Assert(java.util.Objects.equals(((Map<String, Object>)exchange.options).get("builderFee"), true), "extended - builderFee is not enabled in options");
+            Assert(java.util.Objects.equals(((Map<String, Object>)exchange.options).get("builderId"), builderId), (("extended - builderId: " + builderId) + " not in options"));
+            Assert(java.util.Objects.equals(((Map<String, Object>)exchange.options).get("builderFeeRate"), builderFeeRate), (("extended - builderFeeRate: " + builderFeeRate) + " not in options"));
+            // default: the builder code and fee rate come from options
+            Object request = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDC:USDC", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
+            } catch(Exception e)
+            {
+                request = jsonParse(exchange.last_request_body);
+            }
+            Assert(java.util.Objects.equals(((Map<String, Object>)request).get("builderId"), builderId), ((("extended - builderId: " + ((Map<String, Object>)request).get("builderId")) + " different from options: ") + builderId));
+            Assert(java.util.Objects.equals(((Map<String, Object>)request).get("builderFee"), builderFeeRate), ((("extended - builderFee: " + ((Map<String, Object>)request).get("builderFee")) + " different from options: ") + builderFeeRate));
+            Assert(java.util.Objects.equals(((Map<String, Object>)request).get("fee"), "0.0005"), (("extended - fee: " + ((Map<String, Object>)request).get("fee")) + " should stay the base fee, the builder fee is a separate field"));
+            // params override the fee rate, the builder code stays
+            request = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDC:USDC", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{
+                    put( "builderFeeRate", "0.0002" );
+                }}})).join();
+            } catch(Exception e)
+            {
+                request = jsonParse(exchange.last_request_body);
+            }
+            Assert(java.util.Objects.equals(((Map<String, Object>)request).get("builderFee"), "0.0002"), (("extended - builderFee: " + ((Map<String, Object>)request).get("builderFee")) + " does not take the params value 0.0002"));
+            Assert(java.util.Objects.equals(((Map<String, Object>)request).get("builderId"), builderId), (("extended - builderId: " + ((Map<String, Object>)request).get("builderId")) + " changed by a builderFeeRate param"));
+            Assert(!(((Map<?, ?>)request).containsKey("builderFeeRate")), "extended - builderFeeRate param leaked into the request");
+            // sandbox: the builder is only attached when passed explicitly in params
+            exchange.setSandboxMode(true);
+            request = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDC:USDC", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
+            } catch(Exception e)
+            {
+                request = jsonParse(exchange.last_request_body);
+            }
+            Assert(!(((Map<?, ?>)request).containsKey("builderId")), "extended - sandbox attached builderId from options");
+            request = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDC:USDC", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{
+                    put( "builderId", "999" );
+                    put( "builderFeeRate", "0.0003" );
+                }}})).join();
+            } catch(Exception e)
+            {
+                request = jsonParse(exchange.last_request_body);
+            }
+            Assert(java.util.Objects.equals(((Map<String, Object>)request).get("builderId"), "999"), (("extended - sandbox builderId: " + ((Map<String, Object>)request).get("builderId")) + " does not take the params value 999"));
+            Assert(java.util.Objects.equals(((Map<String, Object>)request).get("builderFee"), "0.0003"), (("extended - sandbox builderFee: " + ((Map<String, Object>)request).get("builderFee")) + " does not take the params value 0.0003"));
             if (!Helpers.isTrue(isSync()))
             {
                 (close(exchange)).join();

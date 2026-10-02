@@ -67,7 +67,7 @@ class pacifica extends pacifica$1["default"] {
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
@@ -111,7 +111,7 @@ class pacifica extends pacifica$1["default"] {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -3128,6 +3128,98 @@ class pacifica extends pacifica$1["default"] {
             'payout': 'payout',
         };
         return this.safeString(ledgerType, type, type);
+    }
+    /**
+     * @method
+     * @name pacifica#fetchDeposits
+     * @description fetch all USDC deposits made to an account, spot asset deposits are not included
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [userAddress, paramsAddress] = this.handleOriginAndSingleAddress('fetchDeposits', params);
+        const request = {
+            'account': userAddress,
+        };
+        const response = await this.publicGetAccountBalanceHistory(this.extend(request, paramsAddress));
+        const data = this.safeList(response, 'data', []);
+        const transactions = this.parseTransactions(data, this.safeCurrency(code));
+        const deposits = this.filterBy(transactions, 'type', 'deposit');
+        return this.filterBySinceLimit(deposits, since, limit, 'timestamp');
+    }
+    /**
+     * @method
+     * @name pacifica#fetchWithdrawals
+     * @description fetch all USDC withdrawals made from an account, spot asset withdrawals are not included
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [userAddress, paramsAddress] = this.handleOriginAndSingleAddress('fetchWithdrawals', params);
+        const request = {
+            'account': userAddress,
+        };
+        const response = await this.publicGetAccountBalanceHistory(this.extend(request, paramsAddress));
+        const data = this.safeList(response, 'data', []);
+        const transactions = this.parseTransactions(data, this.safeCurrency(code));
+        const withdrawals = this.filterBy(transactions, 'type', 'withdrawal');
+        return this.filterBySinceLimit(withdrawals, since, limit, 'timestamp');
+    }
+    parseTransaction(transaction, currency = undefined) {
+        //
+        //     {
+        //         "amount": "5000",
+        //         "balance": "5000",
+        //         "pending_balance": "0",
+        //         "event_type": "deposit",
+        //         "created_at": 1789199771373
+        //     }
+        //
+        const timestamp = this.safeInteger(transaction, 'created_at');
+        const types = {
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
+        };
+        const eventType = this.safeString(transaction, 'event_type');
+        const amount = this.safeString(transaction, 'amount');
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': this.safeString(types, eventType),
+            'amount': this.parseNumber(Precise["default"].stringAbs(amount)),
+            'currency': this.safeCurrencyCode('USDC', currency),
+            'status': undefined,
+            'updated': undefined,
+            'comment': undefined,
+            'internal': undefined,
+            'fee': undefined,
+        };
     }
     /**
      * @method

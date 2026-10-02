@@ -2644,15 +2644,18 @@ export default class extended extends Exchange {
         const fee = this.safeString (params, 'fee', '0.0005');
         let builderFeeRate: Str = undefined;
         let builderId: Str = undefined;
-        let paramsBuilder = undefined;
-        if (this.isSandboxModeEnabled) {
-            builderFeeRate = this.safeString2 (params, 'builderFeeRate', 'defaultBuilderFeeRate');
-            builderId = this.safeString2 (params, 'builderId', 'defaultBuilderId');
-            paramsBuilder = this.omit (params, [ 'builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId' ]);
-        } else {
-            let paramsBuilderFeeRate = undefined;
-            [ builderFeeRate, paramsBuilderFeeRate ] = this.handleOptionStringAndParams (params, 'createOrder', 'builderFeeRate', '0.0001');
-            [ builderId, paramsBuilder ] = this.handleOptionStringAndParams (paramsBuilderFeeRate, 'createOrder', 'builderId');
+        let paramsBuilder = params;
+        const builderEnabled = this.safeBool (this.options, 'builderFee');
+        if (builderEnabled === true) {
+            if (this.isSandboxModeEnabled) {
+                builderFeeRate = this.safeString2 (params, 'builderFeeRate', 'defaultBuilderFeeRate');
+                builderId = this.safeString2 (params, 'builderId', 'defaultBuilderId');
+                paramsBuilder = this.omit (params, [ 'builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId' ]);
+            } else {
+                let paramsBuilderFeeRate = undefined;
+                [ builderFeeRate, paramsBuilderFeeRate ] = this.handleOptionStringAndParams (params, 'createOrder', 'builderFeeRate', '0.0001');
+                [ builderId, paramsBuilder ] = this.handleOptionStringAndParams (paramsBuilderFeeRate, 'createOrder', 'builderId');
+            }
         }
         let totalFee = fee;
         if (builderFeeRate !== undefined) {

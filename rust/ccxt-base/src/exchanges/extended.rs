@@ -3765,15 +3765,18 @@ impl ExtendedCore {
         let mut fee: Value = self.safe_string_k(params.clone(), "fee", &[Value::Str("0.0005".into())]);
         let mut builderFeeRate: Value = Value::Null;
         let mut builderId: Value = Value::Null;
-        let mut paramsBuilder: Value = Value::Null;
-        if is_true(&self.isSandboxModeEnabled) {
-            builderFeeRate = self.safe_string2(params.clone(), Value::Str("builderFeeRate".into()), Value::Str("defaultBuilderFeeRate".into()), &[]);
-            builderId = self.safe_string2(params.clone(), Value::Str("builderId".into()), Value::Str("defaultBuilderId".into()), &[]);
-            paramsBuilder = self.omit(params.clone(), Value::from(vec![Value::Str("builderFeeRate".into()), Value::Str("defaultBuilderFeeRate".into()), Value::Str("builderId".into()), Value::Str("defaultBuilderId".into())]), &[]);
-        }  else {
-            let mut paramsBuilderFeeRate: Value = Value::Null;
-            { let __destr_tmp = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("builderFeeRate".into()), &[Value::Str("0.0001".into())]); builderFeeRate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsBuilderFeeRate = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            { let __destr_tmp = self.handle_option_string_and_params(paramsBuilderFeeRate, Value::Str("createOrder".into()), Value::Str("builderId".into()), &[]); builderId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsBuilder = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut paramsBuilder: Value = params.clone();
+        let mut builderEnabled: Value = self.safe_bool_k(self.options.clone(), "builderFee", &[]);
+        if (builderEnabled.as_bool() == Some(true)) {
+            if is_true(&self.isSandboxModeEnabled) {
+                builderFeeRate = self.safe_string2(params.clone(), Value::Str("builderFeeRate".into()), Value::Str("defaultBuilderFeeRate".into()), &[]);
+                builderId = self.safe_string2(params.clone(), Value::Str("builderId".into()), Value::Str("defaultBuilderId".into()), &[]);
+                paramsBuilder = self.omit(params.clone(), Value::from(vec![Value::Str("builderFeeRate".into()), Value::Str("defaultBuilderFeeRate".into()), Value::Str("builderId".into()), Value::Str("defaultBuilderId".into())]), &[]);
+            }  else {
+                let mut paramsBuilderFeeRate: Value = Value::Null;
+                { let __destr_tmp = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("builderFeeRate".into()), &[Value::Str("0.0001".into())]); builderFeeRate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsBuilderFeeRate = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+                { let __destr_tmp = self.handle_option_string_and_params(paramsBuilderFeeRate, Value::Str("createOrder".into()), Value::Str("builderId".into()), &[]); builderId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsBuilder = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+            }
         }
         let mut totalFee: Value = fee.clone();
         if (builderFeeRate != Value::Null) {

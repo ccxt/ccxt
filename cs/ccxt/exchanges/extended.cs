@@ -2958,21 +2958,25 @@ public partial class extended : Exchange
         string? fee = this.safeString(parameters, "fee", "0.0005");
         string? builderFeeRate = null;
         string? builderId = null;
-        object paramsBuilder = null;
-        if (this.isSandboxModeEnabled)
+        object paramsBuilder = parameters;
+        bool? builderEnabled = this.safeBool(this.options, "builderFee");
+        if ((builderEnabled == true))
         {
-            builderFeeRate = this.safeString2(parameters, "builderFeeRate", "defaultBuilderFeeRate");
-            builderId = this.safeString2(parameters, "builderId", "defaultBuilderId");
-            paramsBuilder = this.omit(parameters, new List<object>() {"builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"});
-        } else
-        {
-            object paramsBuilderFeeRate = null;
-            (string?, object) builderFeeRateparamsBuilderFeeRateVariable = this.handleOptionStringAndParams(parameters, "createOrder", "builderFeeRate", "0.0001");
-            builderFeeRate = builderFeeRateparamsBuilderFeeRateVariable.Item1;
-            paramsBuilderFeeRate = builderFeeRateparamsBuilderFeeRateVariable.Item2;
-            (string?, object) builderIdparamsBuilderVariable = this.handleOptionStringAndParams(paramsBuilderFeeRate, "createOrder", "builderId");
-            builderId = builderIdparamsBuilderVariable.Item1;
-            paramsBuilder = builderIdparamsBuilderVariable.Item2;
+            if (this.isSandboxModeEnabled)
+            {
+                builderFeeRate = this.safeString2(parameters, "builderFeeRate", "defaultBuilderFeeRate");
+                builderId = this.safeString2(parameters, "builderId", "defaultBuilderId");
+                paramsBuilder = this.omit(parameters, new List<object>() {"builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"});
+            } else
+            {
+                object paramsBuilderFeeRate = null;
+                (string?, object) builderFeeRateparamsBuilderFeeRateVariable = this.handleOptionStringAndParams(parameters, "createOrder", "builderFeeRate", "0.0001");
+                builderFeeRate = builderFeeRateparamsBuilderFeeRateVariable.Item1;
+                paramsBuilderFeeRate = builderFeeRateparamsBuilderFeeRateVariable.Item2;
+                (string?, object) builderIdparamsBuilderVariable = this.handleOptionStringAndParams(paramsBuilderFeeRate, "createOrder", "builderId");
+                builderId = builderIdparamsBuilderVariable.Item1;
+                paramsBuilder = builderIdparamsBuilderVariable.Item2;
+            }
         }
         string? totalFee = fee;
         if ((builderFeeRate != null))

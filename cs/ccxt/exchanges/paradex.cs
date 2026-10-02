@@ -676,7 +676,7 @@ public partial class paradex : Exchange
                     } },
                     { "fetchClosedOrders", null },
                     { "fetchOHLCV", new Dictionary<string, object>() {
-                        { "limit", null },
+                        { "limit", 1000 },
                     } },
                 } },
                 { "swap", new Dictionary<string, object>() {
@@ -1112,37 +1112,35 @@ public partial class paradex : Exchange
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        Int64 now = this.milliseconds();
+        int maxLimit = 1000; // exchange has undocumented limit slightly above, but this is reliable limit
         int duration = this.parseTimeframe(timeframeVar);
-        Int64? until = this.safeInteger2(parameters, "until", "till", now);
         string? price = this.safeString(parameters, "price");
         if ((price != null))
         {
             request["price_kind"] = price;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"until", "till", "price"});
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end_at", request, parameters);
+        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
+        bool hasEnd = (request.ContainsKey("end_at"));
+        Dictionary<string, object> paramsOmitted = this.omit(paramsUntil, new List<object>() {"price"});
+        object limitResolved = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);
         if ((since != null))
         {
-            request["start_at"] = since;
-            if ((limit != null))
+            requestUntil["start_at"] = since;
+            if (!hasEnd)
             {
-                request["end_at"] = subtract(add(since, ((duration * ((limit + 1))) * 1000)), 1);
-            } else
-            {
-                request["end_at"] = until;
+                requestUntil["end_at"] = subtract(add(since, multiply(multiply(duration, (add(limitResolved, 1))), 1000)), 1);
             }
         } else
         {
-            request["end_at"] = until;
-            if ((limit != null))
+            if (!hasEnd)
             {
-                request["start_at"] = add(subtract(until, ((duration * ((limit + 1))) * 1000)), 1);
-            } else
-            {
-                request["start_at"] = add((until - ((duration * 101L) * 1000)), 1);
+                requestUntil["end_at"] = this.milliseconds();
             }
+            requestUntil["start_at"] = add(subtract(GetValue(requestUntil, "end_at"), multiply(multiply(duration, (add(limitResolved, 1))), 1000)), 1);
         }
-        Dictionary<string, object> response = await this.publicGetMarketsKlines(this.extend(request, paramsOmitted));
+        Dictionary<string, object> response = await this.publicGetMarketsKlines(this.extend(requestUntil, paramsOmitted));
         //
         //     {
         //         "results": [

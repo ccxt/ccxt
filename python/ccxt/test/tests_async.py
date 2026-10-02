@@ -2059,7 +2059,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit(), self.test_bithumb()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit(), self.test_bithumb(), self.test_extended()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -2335,6 +2335,62 @@ class testMainClass:
         except Exception as e:
             req_headers = exchange.last_request_headers if (exchange.last_request_headers is not None and exchange.last_request_headers is not None) else {}
         assert req_headers['OPEN-API-PARTNER'] == id, 'bithumb - id: ' + id + ' not in headers (public endpoints).'
+        if not is_sync():
+            await close(exchange)
+        return True
+
+    async def test_extended(self):
+        if self.lang == 'RUST':
+            return False   # the extended static request suite is disabledRS as well
+        exchange = self.init_offline_exchange('extended')
+        exchange.privateKey = '0x12345'
+        exchange.options['account'] = {
+            'l2Key': '0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf',
+            'l2Vault': '123456',
+        }
+        builder_id = '257624'
+        builder_fee_rate = '0.0001'
+        assert exchange.options['builderFee'], 'extended - builderFee is not enabled in options'
+        assert exchange.options['builderId'] == builder_id, 'extended - builderId: ' + builder_id + ' not in options'
+        assert exchange.options['builderFeeRate'] == builder_fee_rate, 'extended - builderFeeRate: ' + builder_fee_rate + ' not in options'
+        # default: the builder code and fee rate come from options
+        request = {}
+        try:
+            await exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        assert request['builderId'] == builder_id, 'extended - builderId: ' + request['builderId'] + ' different from options: ' + builder_id
+        assert request['builderFee'] == builder_fee_rate, 'extended - builderFee: ' + request['builderFee'] + ' different from options: ' + builder_fee_rate
+        assert request['fee'] == '0.0005', 'extended - fee: ' + request['fee'] + ' should stay the base fee, the builder fee is a separate field'
+        # params override the fee rate, the builder code stays
+        request = {}
+        try:
+            await exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000, {
+                'builderFeeRate': '0.0002',
+            })
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        assert request['builderFee'] == '0.0002', 'extended - builderFee: ' + request['builderFee'] + ' does not take the params value 0.0002'
+        assert request['builderId'] == builder_id, 'extended - builderId: ' + request['builderId'] + ' changed by a builderFeeRate param'
+        assert not ('builderFeeRate' in request), 'extended - builderFeeRate param leaked into the request'
+        # sandbox: the builder is only attached when passed explicitly in params
+        exchange.set_sandbox_mode(True)
+        request = {}
+        try:
+            await exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        assert not ('builderId' in request), 'extended - sandbox attached builderId from options'
+        request = {}
+        try:
+            await exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000, {
+                'builderId': '999',
+                'builderFeeRate': '0.0003',
+            })
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        assert request['builderId'] == '999', 'extended - sandbox builderId: ' + request['builderId'] + ' does not take the params value 999'
+        assert request['builderFee'] == '0.0003', 'extended - sandbox builderFee: ' + request['builderFee'] + ' does not take the params value 0.0003'
         if not is_sync():
             await close(exchange)
         return True

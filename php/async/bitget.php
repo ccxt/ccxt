@@ -187,17 +187,8 @@ class bitget extends Exchange {
                 ),
                 'www' => 'https://www.bitget.com',
                 'doc' => array(
-                    'https://www.bitget.com/api-doc/common/intro',
-                    'https://www.bitget.com/api-doc/spot/intro',
-                    'https://www.bitget.com/api-doc/contract/intro',
-                    'https://www.bitget.com/api-doc/broker/intro',
-                    'https://www.bitget.com/api-doc/margin/intro',
-                    'https://www.bitget.com/api-doc/copytrading/intro',
-                    'https://www.bitget.com/api-doc/earn/intro',
-                    'https://bitgetlimited.github.io/apidoc/en/mix',
-                    'https://bitgetlimited.github.io/apidoc/en/spot',
-                    'https://bitgetlimited.github.io/apidoc/en/broker',
-                    'https://bitgetlimited.github.io/apidoc/en/margin',
+                    'https://www.bitget.com/docs/uta/Introduction',
+                    'https://www.bitget.com/docs/classic/Introduction',
                 ),
                 'fees' => 'https://www.bitget.cc/zh-CN/rate?tab=1',
                 'referral' => 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
@@ -4965,14 +4956,12 @@ class bitget extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Assets
-         * @see https://www.bitget.com/api-doc/contract/account/Get-Account-List
-         * @see https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Assets
-         * @see https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-$assets
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-$assets
-         * @see https://www.bitget.com/api-doc/uta/account/Get-Account
-         * @see https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
+         * @see https://www.bitget.com/docs/catalog/classic-spot-account/classic-spot-account#get-account-$assets
+         * @see https://www.bitget.com/docs/catalog/classic-contract-account/classic-contract-account#get-account-list
+         * @see https://www.bitget.com/docs/catalog/classic-margin-cross-account/classic-margin-cross-account#get-cross-account-$assets
+         * @see https://www.bitget.com/docs/catalog/classic-margin-isolated-account/classic-margin-isolated-account#get-isolated-account-asset
+         * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-$assets
+         * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-funding-$assets
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
@@ -5002,7 +4991,7 @@ class bitget extends Exchange {
                 $results = $this->safe_dict($response, 'data', array());
                 $assets = $this->safe_list($results, 'assets', array());
             }
-            return $this->parse_uta_balance($assets);
+            return $this->parse_uta_balance($assets, $response);
         } elseif (($marketType === 'swap') || ($marketType === 'future')) {
             $productType = null;
             list($productType, $paramsUTA) = $this->handle_product_type_and_params(null, $paramsUTA);
@@ -5156,8 +5145,9 @@ class bitget extends Exchange {
         return $this->parse_balance($data);
     }
 
-    public function parse_uta_balance(array $balance): array {
-        $result = array( 'info' => $balance );
+    public function parse_uta_balance(array $balance, ?array $response = null): array {
+        $info = ($response !== null) ? $response : $balance;
+        $result = array( 'info' => $info );
         //
         // uta
         //
