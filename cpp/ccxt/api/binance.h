@@ -2361,6 +2361,16 @@ public:
         return this->callEndpoint (std::string ("dapiPrivateGetOpenAlgoOrders"), parameters);
     }
 
+    // Calls the dapiPrivateGetAlgoOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> dapiPrivateGetAlgoOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("dapiPrivateGetAlgoOrder"), parameters);
+    }
+
+    // Calls the dapiPrivateGetAllAlgoOrders endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> dapiPrivateGetAllAlgoOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("dapiPrivateGetAllAlgoOrders"), parameters);
+    }
+
     // Calls the dapiPrivateGetAllOrders endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> dapiPrivateGetAllOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("dapiPrivateGetAllOrders"), parameters);
@@ -2524,6 +2534,11 @@ public:
     // Calls the dapiPrivateDeleteAlgoOrder endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> dapiPrivateDeleteAlgoOrder (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("dapiPrivateDeleteAlgoOrder"), parameters);
+    }
+
+    // Calls the dapiPrivateDeleteAlgoOpenOrders endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> dapiPrivateDeleteAlgoOpenOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("dapiPrivateDeleteAlgoOpenOrders"), parameters);
     }
 
     // Calls the dapiPrivateDeleteAllOpenOrders endpoint. Returns a JSON array.

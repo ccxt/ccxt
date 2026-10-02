@@ -2503,8 +2503,9 @@ virtual ccxt::any isEmptyOutputValue(ccxt::any exchange, ccxt::any value) {
 }
 
 virtual ccxt::any isVacantValue(ccxt::any exchange, ccxt::any value) {
-  // C# only. The unified types are structs, so the two sides of the comparison
-  // carry different key sets for reasons that are structural, not behavioural:
+  // C# and Go only. The unified types are structs, so the two sides of the
+  // comparison carry different key sets for reasons that are structural, not
+  // behavioural:
   //   - a struct field the venue never populated is still a field, and comes
   //     back as an explicit null the fixture may not carry (Balance.debt);
   //   - a unified key the struct has no field for cannot come back at all,
@@ -2596,7 +2597,8 @@ assertNewAndStoredOutputInner(ccxt::any exchange, ccxt::any skipKeys,
   if (isTrue(isTrue(newOutputIsEmpty) && isTrue(storedOutputIsEmpty))) {
     return true;
   }
-  if (isTrue(isTrue((isEqual(this->lang, std::string("C#")))) ||
+  if (isTrue(isTrue(isTrue((isEqual(this->lang, std::string("C#")))) ||
+                    isTrue((isEqual(this->lang, std::string("GO"))))) ||
              isTrue((isEqual(this->lang, std::string("C++")))))) {
     // a struct is never null: an absent `fee` comes back as a Fee whose every
     // field is null, and an absent `fees` as []. The stored fixture writes the
@@ -2623,7 +2625,8 @@ assertNewAndStoredOutputInner(ccxt::any exchange, ccxt::any skipKeys,
     ccxt::any newOutputKeys = getObjectKeys(newOutput);
     ccxt::any storedKeysLength = getArrayLength(storedOutputKeys);
     ccxt::any newKeysLength = getArrayLength(newOutputKeys);
-    if (isTrue(isTrue((isEqual(this->lang, std::string("C#")))) ||
+    if (isTrue(isTrue(isTrue((isEqual(this->lang, std::string("C#")))) ||
+                      isTrue((isEqual(this->lang, std::string("GO"))))) ||
                isTrue((isEqual(this->lang, std::string("C++")))))) {
       // the unified types are structs there, so an unpopulated field still
       // comes back (as an explicit null) and a unified key with no struct
@@ -2643,8 +2646,10 @@ assertNewAndStoredOutputInner(ccxt::any exchange, ccxt::any skipKeys,
       if (!isTrue((callDynamically(exchange, std::string("inArray"),
                                    ccxt::list{key, newOutputKeys})))) {
         if (isTrue(
-                isTrue((isTrue((isEqual(this->lang, std::string("C#")))) ||
-                        isTrue((isEqual(this->lang, std::string("C++")))))) &&
+                isTrue(
+                    (isTrue(isTrue((isEqual(this->lang, std::string("C#")))) ||
+                            isTrue((isEqual(this->lang, std::string("GO"))))) ||
+                     isTrue((isEqual(this->lang, std::string("C++")))))) &&
                 isTrue(this->isVacantValue(exchange,
                                            ::getValue(storedOutput, key))))) {
           continue;
@@ -2735,29 +2740,35 @@ assertNewAndStoredOutputInner(ccxt::any exchange, ccxt::any skipKeys,
                  isTrue((isEqual(isComputedString, isStoredString)))) &&
           isTrue((isEqual(isComputedUndefined, isStoredUndefined)));
       if (isTrue(
-              isTrue(isTrue(isTrue(isTrue(!isTrue(shouldBeSame) &&
-                                          isTrue((isTrue((isEqual(
-                                                      this->lang,
-                                                      std::string("PY")))) ||
-                                                  isTrue((isEqual(
-                                                      this->lang,
-                                                      std::string("C#"))))))) &&
-                                   !isTrue(isComputedBool)) &&
-                            !isTrue(isStoredBool)) &&
-                     !isTrue(isComputedUndefined)) &&
+              isTrue(
+                  isTrue(
+                      isTrue(
+                          isTrue(
+                              !isTrue(shouldBeSame) &&
+                              isTrue((
+                                  isTrue(isTrue((isEqual(this->lang,
+                                                         std::string("PY")))) ||
+                                         isTrue((
+                                             isEqual(this->lang,
+                                                     std::string("C#"))))) ||
+                                  isTrue((isEqual(this->lang,
+                                                  std::string("GO"))))))) &&
+                          !isTrue(isComputedBool)) &&
+                      !isTrue(isStoredBool)) &&
+                  !isTrue(isComputedUndefined)) &&
               !isTrue(isStoredUndefined))) {
         // python parses json numbers natively (arbitrary-precision ints), while
         // fixtures captured under number-quoting store them as strings -
         // compare numerically like C#/GO c#: a typed core returns the unified
         // `Num` fields as a real double, whereas the fixture was captured
         // through the untyped path and kept the venue's quoted string (cost
-        // "0.02" vs 0.02) - same value, different json spelling pass the
-        // sanitized VALUES, not their string forms: C# renders a small double
-        // as "6.79E-05", which parseToNumeric cannot parse. And only the STRING
-        // side needs parsing - parseToNumeric round-trips a double through
-        // numberToString/decimal and drops its last significant digit, so a
-        // real 81003.30644700001 stopped matching the stored
-        // "81003.306447000009".
+        // "0.02" vs 0.02) - same value, different json spelling; go structs
+        // likewise pass the sanitized VALUES, not their string forms: C#
+        // renders a small double as "6.79E-05", which parseToNumeric cannot
+        // parse. And only the STRING side needs parsing - parseToNumeric
+        // round-trips a double through numberToString/decimal and drops its
+        // last significant digit, so a real 81003.30644700001 stopped matching
+        // the stored "81003.306447000009".
         ccxt::any isNumber = false;
         ccxt::any computedNumeric = sanitizedNewOutput;
         ccxt::any storedNumeric = sanitizedStoredOutput;
@@ -4299,7 +4310,8 @@ virtual std::shared_future<ccxt::any> runBrokerIdTests() {
                               this->testToobit(),
                               this->testWeex(),
                               this->testFoxbit(),
-                              this->testBithumb()};
+                              this->testBithumb(),
+                              this->testExtended()};
                awaitValue(promiseAll(promises));
                ccxt::any successMessage =
                    add(add(std::string("["), this->lang),
@@ -4312,253 +4324,399 @@ virtual std::shared_future<ccxt::any> runBrokerIdTests() {
 }
 
 virtual std::shared_future<ccxt::any> testBinance() {
-  return std::async(
-             std::launch::deferred,
-             [=]() mutable -> ccxt::any {
-               ccxt::any exchange =
-                   this->initOfflineExchange(std::string("binance"));
-               ccxt::any spotId = std::string("x-TKT5PX2F");
-               ccxt::any swapId = std::string("x-cvBPrNm9");
-               ccxt::any inverseSwapId = std::string("x-xcKtGhcu");
-               ccxt::any spotOrderRequest = ccxt::dict{};
-               try {
-                 awaitValue(callDynamically(
-                     exchange, std::string("createOrder"),
-                     ccxt::list{std::string("BTC/USDT"), std::string("limit"),
-                                std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
-                 spotOrderRequest = this->urlencodedToDict(
-                     getProperty(exchange, std::string("last_request_body")));
-               }
-               ccxt::any clientOrderId = ::getValue(
-                   spotOrderRequest, std::string("newClientOrderId"));
-               ccxt::any spotIdString = toString(spotId);
-               assertTrue(
-                   isEqual(startsWith(clientOrderId, spotIdString), true),
-                   add(add(add(std::string("binance - spot clientOrderId: "),
-                               clientOrderId),
-                           std::string(" does not start with spotId")),
-                       spotIdString));
-               ccxt::any swapOrderRequest = ccxt::dict{};
-               try {
-                 awaitValue(
-                     callDynamically(exchange, std::string("createOrder"),
-                                     ccxt::list{std::string("BTC/USDT:USDT"),
-                                                std::string("limit"),
-                                                std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
-                 swapOrderRequest = this->urlencodedToDict(
-                     getProperty(exchange, std::string("last_request_body")));
-               }
-               ccxt::any swapInverseOrderRequest = ccxt::dict{};
-               try {
-                 awaitValue(
-                     callDynamically(exchange, std::string("createOrder"),
-                                     ccxt::list{std::string("BTC/USD:BTC"),
-                                                std::string("limit"),
-                                                std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
-                 swapInverseOrderRequest = this->urlencodedToDict(
-                     getProperty(exchange, std::string("last_request_body")));
-               }
-               // linear swap
-               ccxt::any clientOrderIdSwap = ::getValue(
-                   swapOrderRequest, std::string("newClientOrderId"));
-               ccxt::any swapIdString = toString(swapId);
-               assertTrue(
-                   isEqual(startsWith(clientOrderIdSwap, swapIdString), true),
-                   add(add(add(std::string("binance - swap clientOrderId: "),
-                               clientOrderIdSwap),
-                           std::string(" does not start with swapId")),
-                       swapIdString));
-               // inverse swap
-               ccxt::any clientOrderIdInverse = ::getValue(
-                   swapInverseOrderRequest, std::string("newClientOrderId"));
-               assertTrue(
-                   isEqual(startsWith(clientOrderIdInverse, inverseSwapId),
-                           true),
-                   add(add(add(std::string(
-                                   "binance - swap clientOrderIdInverse: "),
-                               clientOrderIdInverse),
-                           std::string(" does not start with swapId")),
-                       inverseSwapId));
-               // linear swap conditional order
-               ccxt::any swapAlgoOrderRequest = ccxt::dict{};
-               try {
-                 awaitValue(callDynamically(
-                     exchange, std::string("createOrder"),
-                     ccxt::list{std::string("BTC/USDT:USDT"),
-                                std::string("limit"), std::string("buy"), 0.002,
-                                102000,
-                                ccxt::dict{
-                                    {std::string("triggerPrice"), 101000},
-                                }}));
-               } catch (const std::exception &e) {
-                 swapAlgoOrderRequest = this->urlencodedToDict(
-                     getProperty(exchange, std::string("last_request_body")));
-               }
-               ccxt::any clientAlgoIdSwap = ::getValue(
-                   swapAlgoOrderRequest, std::string("clientAlgoId"));
-               assertTrue(!isEqual(clientAlgoIdSwap, ccxt::any{}),
-                          std::string("binance - swap conditional order must "
-                                      "send clientAlgoId"));
-               assertTrue(
-                   isEqual(startsWith(clientAlgoIdSwap, swapIdString), true),
-                   add(add(add(std::string("binance - swap clientAlgoId: "),
-                               clientAlgoIdSwap),
-                           std::string(" does not start with swapId")),
-                       swapIdString));
-               // inverse swap conditional order
-               ccxt::any inverseAlgoOrderRequest = ccxt::dict{};
-               try {
-                 awaitValue(callDynamically(
-                     exchange, std::string("createOrder"),
-                     ccxt::list{std::string("BTC/USD:BTC"),
-                                std::string("limit"), std::string("buy"), 1,
-                                20000,
-                                ccxt::dict{
-                                    {std::string("triggerPrice"), 21000},
-                                }}));
-               } catch (const std::exception &e) {
-                 inverseAlgoOrderRequest = this->urlencodedToDict(
-                     getProperty(exchange, std::string("last_request_body")));
-               }
-               ccxt::any clientAlgoIdInverse = ::getValue(
-                   inverseAlgoOrderRequest, std::string("clientAlgoId"));
-               assertTrue(!isEqual(clientAlgoIdInverse, ccxt::any{}),
-                          std::string("binance - inverse swap conditional "
-                                      "order must send clientAlgoId"));
-               assertTrue(
-                   isEqual(startsWith(clientAlgoIdInverse, inverseSwapId),
-                           true),
-                   add(add(add(std::string(
-                                   "binance - inverse swap clientAlgoId: "),
-                               clientAlgoIdInverse),
-                           std::string(" does not start with inverseSwapId")),
-                       inverseSwapId));
-               ccxt::any createOrdersRequest = ccxt::dict{};
-               try {
-                 ccxt::any orders = ccxt::list{
+  return std::
+      async(std::launch::deferred,
+            [=]() mutable -> ccxt::any {
+              ccxt::any exchange =
+                  this->initOfflineExchange(std::string("binance"));
+              ccxt::any spotId = std::string("x-TKT5PX2F");
+              ccxt::any swapId = std::string("x-cvBPrNm9");
+              ccxt::any inverseSwapId = std::string("x-xcKtGhcu");
+              ccxt::any spotOrderRequest = ccxt::dict{};
+              try {
+                awaitValue(callDynamically(
+                    exchange, std::string("createOrder"),
+                    ccxt::list{std::string("BTC/USDT"), std::string("limit"),
+                               std::string("buy"), 1, 20000}));
+              } catch (const std::exception &e) {
+                spotOrderRequest = this->urlencodedToDict(
+                    getProperty(exchange, std::string("last_request_body")));
+              }
+              ccxt::any clientOrderId =
+                  ::getValue(spotOrderRequest, std::string("newClientOrderId"));
+              assertTrue(
+                  isEqual(startsWith(clientOrderId, spotId), true),
+                  add(add(add(std::string("binance - spot clientOrderId: "),
+                              clientOrderId),
+                          std::string(" does not start with spotId")),
+                      spotId));
+              ccxt::any swapOrderRequest = ccxt::dict{};
+              try {
+                awaitValue(
+                    callDynamically(exchange, std::string("createOrder"),
+                                    ccxt::list{std::string("BTC/USDT:USDT"),
+                                               std::string("limit"),
+                                               std::string("buy"), 1, 20000}));
+              } catch (const std::exception &e) {
+                swapOrderRequest = this->urlencodedToDict(
+                    getProperty(exchange, std::string("last_request_body")));
+              }
+              ccxt::any swapInverseOrderRequest = ccxt::dict{};
+              try {
+                awaitValue(callDynamically(
+                    exchange, std::string("createOrder"),
+                    ccxt::list{std::string("BTC/USD:BTC"), std::string("limit"),
+                               std::string("buy"), 1, 20000}));
+              } catch (const std::exception &e) {
+                swapInverseOrderRequest = this->urlencodedToDict(
+                    getProperty(exchange, std::string("last_request_body")));
+              }
+              // linear swap
+              ccxt::any clientOrderIdSwap =
+                  ::getValue(swapOrderRequest, std::string("newClientOrderId"));
+              assertTrue(
+                  isEqual(startsWith(clientOrderIdSwap, swapId), true),
+                  add(add(add(std::string("binance - swap clientOrderId: "),
+                              clientOrderIdSwap),
+                          std::string(" does not start with swapId")),
+                      swapId));
+              // inverse swap
+              ccxt::any clientOrderIdInverse = ::getValue(
+                  swapInverseOrderRequest, std::string("newClientOrderId"));
+              assertTrue(
+                  isEqual(startsWith(clientOrderIdInverse, inverseSwapId),
+                          true),
+                  add(add(add(std::string(
+                                  "binance - swap clientOrderIdInverse: "),
+                              clientOrderIdInverse),
+                          std::string(" does not start with swapId")),
+                      inverseSwapId));
+              // linear swap conditional order
+              ccxt::any swapAlgoOrderRequest = ccxt::dict{};
+              try {
+                awaitValue(callDynamically(
+                    exchange, std::string("createOrder"),
+                    ccxt::list{std::string("BTC/USDT:USDT"),
+                               std::string("limit"), std::string("buy"), 0.002,
+                               102000,
+                               ccxt::dict{
+                                   {std::string("triggerPrice"), 101000},
+                               }}));
+              } catch (const std::exception &e) {
+                swapAlgoOrderRequest = this->urlencodedToDict(
+                    getProperty(exchange, std::string("last_request_body")));
+              }
+              ccxt::any clientAlgoIdSwap =
+                  ::getValue(swapAlgoOrderRequest, std::string("clientAlgoId"));
+              assertTrue(!isEqual(clientAlgoIdSwap, ccxt::any{}),
+                         std::string("binance - swap conditional order must "
+                                     "send clientAlgoId"));
+              assertTrue(
+                  isEqual(startsWith(clientAlgoIdSwap, swapId), true),
+                  add(add(add(std::string("binance - swap clientAlgoId: "),
+                              clientAlgoIdSwap),
+                          std::string(" does not start with swapId")),
+                      swapId));
+              // inverse swap conditional order
+              ccxt::any inverseAlgoOrderRequest = ccxt::dict{};
+              try {
+                awaitValue(callDynamically(
+                    exchange, std::string("createOrder"),
+                    ccxt::list{std::string("BTC/USD:BTC"), std::string("limit"),
+                               std::string("buy"), 1, 20000,
+                               ccxt::dict{
+                                   {std::string("triggerPrice"), 21000},
+                               }}));
+              } catch (const std::exception &e) {
+                inverseAlgoOrderRequest = this->urlencodedToDict(
+                    getProperty(exchange, std::string("last_request_body")));
+              }
+              ccxt::any clientAlgoIdInverse = ::getValue(
+                  inverseAlgoOrderRequest, std::string("clientAlgoId"));
+              assertTrue(!isEqual(clientAlgoIdInverse, ccxt::any{}),
+                         std::string("binance - inverse swap conditional order "
+                                     "must send clientAlgoId"));
+              assertTrue(
+                  isEqual(startsWith(clientAlgoIdInverse, inverseSwapId), true),
+                  add(add(add(std::string(
+                                  "binance - inverse swap clientAlgoId: "),
+                              clientAlgoIdInverse),
+                          std::string(" does not start with inverseSwapId")),
+                      inverseSwapId));
+              ccxt::any createOrdersRequest = ccxt::dict{};
+              try {
+                ccxt::any orders = ccxt::list{
+                    ccxt::dict{
+                        {std::string("symbol"), std::string("BTC/USDT:USDT")},
+                        {std::string("type"), std::string("limit")},
+                        {std::string("side"), std::string("sell")},
+                        {std::string("amount"), 1},
+                        {std::string("price"), 100000},
+                    },
+                    ccxt::dict{
+                        {std::string("symbol"), std::string("BTC/USDT:USDT")},
+                        {std::string("type"), std::string("market")},
+                        {std::string("side"), std::string("buy")},
+                        {std::string("amount"), 1},
+                    }};
+                awaitValue(callDynamically(
+                    exchange, std::string("createOrders"), ccxt::list{orders}));
+              } catch (const std::exception &e) {
+                createOrdersRequest = this->urlencodedToDict(
+                    getProperty(exchange, std::string("last_request_body")));
+              }
+              ccxt::any batchOrders =
+                  ::getValue(createOrdersRequest, std::string("batchOrders"));
+              for (ccxt::any i = 0; isLessThan(i, getArrayLength(batchOrders));
+                   postFixIncrement(i)) {
+                ccxt::any current = ::getValue(batchOrders, i);
+                ccxt::any currentClientOrderId =
+                    ::getValue(current, std::string("newClientOrderId"));
+                assertTrue(
+                    isEqual(startsWith(currentClientOrderId, swapId), true),
+                    add(add(add(std::string(
+                                    "binance createOrders - clientOrderId: "),
+                                currentClientOrderId),
+                            std::string(" does not start with swapId")),
+                        swapId));
+              }
+              // linear conditional orders cannot be batched
+              ccxt::any linearConditionalBatchNotSupported = false;
+              try {
+                ccxt::any linearConditionalOrders = ccxt::list{ccxt::dict{
+                    {std::string("symbol"), std::string("BTC/USDT:USDT")},
+                    {std::string("type"), std::string("limit")},
+                    {std::string("side"), std::string("buy")},
+                    {std::string("amount"), 1},
+                    {std::string("price"), 20000},
+                    {std::string("params"),
                      ccxt::dict{
-                         {std::string("symbol"), std::string("BTC/USDT:USDT")},
-                         {std::string("type"), std::string("limit")},
-                         {std::string("side"), std::string("sell")},
-                         {std::string("amount"), 1},
-                         {std::string("price"), 100000},
-                     },
+                         {std::string("triggerPrice"), 21000},
+                     }},
+                }};
+                awaitValue(
+                    callDynamically(exchange, std::string("createOrders"),
+                                    ccxt::list{linearConditionalOrders}));
+              } catch (const std::exception &e) {
+                linearConditionalBatchNotSupported =
+                    (isInstanceOf<NotSupported>(e));
+              }
+              assertTrue(
+                  linearConditionalBatchNotSupported,
+                  std::string("binance createOrders - linear conditional order "
+                              "must throw NotSupported"));
+              // inverse conditional orders are batched in the regular
+              // (non-algo) format
+              ccxt::any inverseConditionalBatchRequest = ccxt::dict{};
+              ccxt::any inverseConditionalBatchNotSupported = false;
+              try {
+                ccxt::any inverseConditionalOrders = ccxt::list{ccxt::dict{
+                    {std::string("symbol"), std::string("BTC/USD:BTC")},
+                    {std::string("type"), std::string("limit")},
+                    {std::string("side"), std::string("buy")},
+                    {std::string("amount"), 1},
+                    {std::string("price"), 20000},
+                    {std::string("params"),
                      ccxt::dict{
-                         {std::string("symbol"), std::string("BTC/USDT:USDT")},
-                         {std::string("type"), std::string("market")},
-                         {std::string("side"), std::string("buy")},
-                         {std::string("amount"), 1},
-                     }};
-                 awaitValue(callDynamically(exchange,
-                                            std::string("createOrders"),
-                                            ccxt::list{orders}));
-               } catch (const std::exception &e) {
-                 createOrdersRequest = this->urlencodedToDict(
-                     getProperty(exchange, std::string("last_request_body")));
-               }
-               ccxt::any batchOrders =
-                   ::getValue(createOrdersRequest, std::string("batchOrders"));
-               for (ccxt::any i = 0; isLessThan(i, getArrayLength(batchOrders));
-                    postFixIncrement(i)) {
-                 ccxt::any current = ::getValue(batchOrders, i);
-                 ccxt::any currentClientOrderId =
-                     ::getValue(current, std::string("newClientOrderId"));
-                 assertTrue(
-                     isEqual(startsWith(currentClientOrderId, swapIdString),
-                             true),
-                     add(add(add(std::string(
-                                     "binance createOrders - clientOrderId: "),
-                                 currentClientOrderId),
-                             std::string(" does not start with swapId")),
-                         swapIdString));
-               }
-               // linear conditional orders cannot be batched
-               ccxt::any linearConditionalBatchNotSupported = false;
-               try {
-                 ccxt::any linearConditionalOrders = ccxt::list{ccxt::dict{
-                     {std::string("symbol"), std::string("BTC/USDT:USDT")},
-                     {std::string("type"), std::string("limit")},
-                     {std::string("side"), std::string("buy")},
-                     {std::string("amount"), 1},
-                     {std::string("price"), 20000},
-                     {std::string("params"),
-                      ccxt::dict{
-                          {std::string("triggerPrice"), 21000},
-                      }},
-                 }};
-                 awaitValue(
-                     callDynamically(exchange, std::string("createOrders"),
-                                     ccxt::list{linearConditionalOrders}));
-               } catch (const std::exception &e) {
-                 linearConditionalBatchNotSupported =
-                     (isInstanceOf<NotSupported>(e));
-               }
-               assertTrue(
-                   linearConditionalBatchNotSupported,
-                   std::string("binance createOrders - linear conditional "
-                               "order must throw NotSupported"));
-               // inverse conditional orders are batched in the regular
-               // (non-algo) format
-               ccxt::any inverseConditionalBatchRequest = ccxt::dict{};
-               ccxt::any inverseConditionalBatchNotSupported = false;
-               try {
-                 ccxt::any inverseConditionalOrders = ccxt::list{ccxt::dict{
-                     {std::string("symbol"), std::string("BTC/USD:BTC")},
-                     {std::string("type"), std::string("limit")},
-                     {std::string("side"), std::string("buy")},
-                     {std::string("amount"), 1},
-                     {std::string("price"), 20000},
-                     {std::string("params"),
-                      ccxt::dict{
-                          {std::string("triggerPrice"), 21000},
-                      }},
-                 }};
-                 awaitValue(
-                     callDynamically(exchange, std::string("createOrders"),
-                                     ccxt::list{inverseConditionalOrders}));
-               } catch (const std::exception &e) {
-                 inverseConditionalBatchNotSupported =
-                     (isInstanceOf<NotSupported>(e));
-                 inverseConditionalBatchRequest = this->urlencodedToDict(
-                     getProperty(exchange, std::string("last_request_body")));
-               }
-               assertTrue(
-                   !isTrue(inverseConditionalBatchNotSupported),
-                   std::string("binance createOrders - inverse conditional "
-                               "order must not throw NotSupported"));
-               ccxt::any inverseConditionalBatchOrders = callDynamically(
-                   exchange, std::string("safeList"),
-                   ccxt::list{inverseConditionalBatchRequest,
-                              std::string("batchOrders"), ccxt::list{}});
-               ccxt::any inverseConditionalBatchOrder = callDynamically(
-                   exchange, std::string("safeDict"),
-                   ccxt::list{inverseConditionalBatchOrders, 0, ccxt::dict{}});
-               ccxt::any inverseConditionalClientOrderId =
-                   callDynamically(exchange, std::string("safeString"),
-                                   ccxt::list{inverseConditionalBatchOrder,
-                                              std::string("newClientOrderId")});
-               assertTrue(
-                   !isEqual(inverseConditionalClientOrderId, ccxt::any{}),
-                   std::string("binance createOrders - inverse conditional "
-                               "order must send newClientOrderId"));
-               assertTrue(
-                   isEqual(startsWith(inverseConditionalClientOrderId,
-                                      inverseSwapId),
-                           true),
-                   add(add(add(std::string("binance createOrders - inverse "
-                                           "conditional clientOrderId: "),
-                               inverseConditionalClientOrderId),
-                           std::string(" does not start with inverseSwapId")),
-                       inverseSwapId));
-               if (!isTrue(isSync())) {
-                 awaitValue(close(exchange));
-               }
-               return true;
-             })
-      .share();
+                         {std::string("triggerPrice"), 21000},
+                     }},
+                }};
+                awaitValue(
+                    callDynamically(exchange, std::string("createOrders"),
+                                    ccxt::list{inverseConditionalOrders}));
+              } catch (const std::exception &e) {
+                inverseConditionalBatchNotSupported =
+                    (isInstanceOf<NotSupported>(e));
+                inverseConditionalBatchRequest = this->urlencodedToDict(
+                    getProperty(exchange, std::string("last_request_body")));
+              }
+              assertTrue(
+                  !isTrue(inverseConditionalBatchNotSupported),
+                  std::string("binance createOrders - inverse conditional "
+                              "order must not throw NotSupported"));
+              ccxt::any inverseConditionalBatchOrders = callDynamically(
+                  exchange, std::string("safeList"),
+                  ccxt::list{inverseConditionalBatchRequest,
+                             std::string("batchOrders"), ccxt::list{}});
+              ccxt::any inverseConditionalBatchOrder = callDynamically(
+                  exchange, std::string("safeDict"),
+                  ccxt::list{inverseConditionalBatchOrders, 0, ccxt::dict{}});
+              ccxt::any inverseConditionalClientOrderId =
+                  callDynamically(exchange, std::string("safeString"),
+                                  ccxt::list{inverseConditionalBatchOrder,
+                                             std::string("newClientOrderId")});
+              assertTrue(
+                  !isEqual(inverseConditionalClientOrderId, ccxt::any{}),
+                  std::string("binance createOrders - inverse conditional "
+                              "order must send newClientOrderId"));
+              assertTrue(
+                  isEqual(startsWith(inverseConditionalClientOrderId,
+                                     inverseSwapId),
+                          true),
+                  add(add(add(std::string("binance createOrders - inverse "
+                                          "conditional clientOrderId: "),
+                              inverseConditionalClientOrderId),
+                          std::string(" does not start with inverseSwapId")),
+                      inverseSwapId));
+              // quarterly futures use the prefix of their fapi/dapi side, not
+              // the inverse one
+              ccxt::any linearFutureOrderRequest = ccxt::dict{};
+              try {
+                awaitValue(callDynamically(
+                    exchange, std::string("createOrder"),
+                    ccxt::list{std::string("ETH/USDT:USDT-261225"),
+                               std::string("limit"), std::string("buy"), 1,
+                               2000}));
+              } catch (const std::exception &e) {
+                linearFutureOrderRequest = this->urlencodedToDict(
+                    getProperty(exchange, std::string("last_request_body")));
+              }
+              ccxt::any clientOrderIdLinearFuture = ::getValue(
+                  linearFutureOrderRequest, std::string("newClientOrderId"));
+              assertTrue(
+                  isEqual(startsWith(clientOrderIdLinearFuture, swapId), true),
+                  add(add(add(std::string(
+                                  "binance - linear future clientOrderId: "),
+                              clientOrderIdLinearFuture),
+                          std::string(" does not start with swapId")),
+                      swapId));
+              ccxt::any inverseFutureOrderRequest = ccxt::dict{};
+              try {
+                awaitValue(callDynamically(
+                    exchange, std::string("createOrder"),
+                    ccxt::list{std::string("ETH/USD:ETH-261225"),
+                               std::string("limit"), std::string("buy"), 1,
+                               2000}));
+              } catch (const std::exception &e) {
+                inverseFutureOrderRequest = this->urlencodedToDict(
+                    getProperty(exchange, std::string("last_request_body")));
+              }
+              ccxt::any clientOrderIdInverseFuture = ::getValue(
+                  inverseFutureOrderRequest, std::string("newClientOrderId"));
+              assertTrue(
+                  isEqual(startsWith(clientOrderIdInverseFuture, inverseSwapId),
+                          true),
+                  add(add(add(std::string(
+                                  "binance - inverse future clientOrderId: "),
+                              clientOrderIdInverseFuture),
+                          std::string(" does not start with inverseSwapId")),
+                      inverseSwapId));
+              // the implicit order endpoints inject the broker id of their api
+              // section skipped in the sync flavours:
+              // callExchangeMethodDynamically is async-only there
+              if (!isTrue(isSync())) {
+                ccxt::any implicitDapiOrderRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("dapiPrivatePostOrder"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("ETHUSD_PERP")},
+                          {std::string("side"), std::string("SELL")},
+                          {std::string("type"), std::string("LIMIT")},
+                          {std::string("quantity"), std::string("1")},
+                          {std::string("price"), std::string("4100")},
+                          {std::string("timeInForce"), std::string("GTC")},
+                      }}));
+                } catch (const std::exception &e) {
+                  implicitDapiOrderRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any implicitDapiClientOrderId = ::getValue(
+                    implicitDapiOrderRequest, std::string("newClientOrderId"));
+                assertTrue(
+                    isEqual(
+                        startsWith(implicitDapiClientOrderId, inverseSwapId),
+                        true),
+                    add(add(add(std::string(
+                                    "binance - implicit dapi clientOrderId: "),
+                                implicitDapiClientOrderId),
+                            std::string(" does not start with inverseSwapId")),
+                        inverseSwapId));
+                ccxt::any implicitDapiBatchRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("dapiPrivatePostBatchOrders"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("batchOrders"),
+                           ccxt::list{ccxt::dict{
+                               {std::string("symbol"),
+                                std::string("ETHUSD_PERP")},
+                               {std::string("side"), std::string("SELL")},
+                               {std::string("type"), std::string("LIMIT")},
+                               {std::string("quantity"), std::string("1")},
+                               {std::string("price"), std::string("4100")},
+                               {std::string("timeInForce"), std::string("GTC")},
+                           }}},
+                      }}));
+                } catch (const std::exception &e) {
+                  implicitDapiBatchRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any implicitDapiBatchOrders = callDynamically(
+                    exchange, std::string("safeList"),
+                    ccxt::list{implicitDapiBatchRequest,
+                               std::string("batchOrders"), ccxt::list{}});
+                ccxt::any implicitDapiBatchOrder = callDynamically(
+                    exchange, std::string("safeDict"),
+                    ccxt::list{implicitDapiBatchOrders, 0, ccxt::dict{}});
+                ccxt::any implicitDapiBatchClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitDapiBatchOrder,
+                               std::string("newClientOrderId")});
+                assertTrue(
+                    !isEqual(implicitDapiBatchClientOrderId, ccxt::any{}),
+                    std::string("binance - implicit dapi batch order must "
+                                "inject newClientOrderId"));
+                assertTrue(
+                    isEqual(startsWith(implicitDapiBatchClientOrderId,
+                                       inverseSwapId),
+                            true),
+                    add(add(add(std::string("binance - implicit dapi batch "
+                                            "clientOrderId: "),
+                                implicitDapiBatchClientOrderId),
+                            std::string(" does not start with inverseSwapId")),
+                        inverseSwapId));
+                // the implicit algo order endpoints take clientAlgoId instead
+                // of newClientOrderId
+                ccxt::any implicitFapiAlgoOrderRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("fapiPrivatePostAlgoOrder"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("ETHUSDT")},
+                          {std::string("side"), std::string("SELL")},
+                          {std::string("type"), std::string("STOP")},
+                          {std::string("algoType"), std::string("CONDITIONAL")},
+                          {std::string("quantity"), std::string("1")},
+                          {std::string("price"), std::string("4100")},
+                          {std::string("triggerPrice"), std::string("4200")},
+                          {std::string("timeInForce"), std::string("GTC")},
+                      }}));
+                } catch (const std::exception &e) {
+                  implicitFapiAlgoOrderRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any implicitFapiClientAlgoId =
+                    callDynamically(exchange, std::string("safeString"),
+                                    ccxt::list{implicitFapiAlgoOrderRequest,
+                                               std::string("clientAlgoId")});
+                assertTrue(!isEqual(implicitFapiClientAlgoId, ccxt::any{}),
+                           std::string("binance - implicit fapi algo order "
+                                       "must inject clientAlgoId"));
+                assertTrue(
+                    isEqual(startsWith(implicitFapiClientAlgoId, swapId), true),
+                    add(add(add(std::string(
+                                    "binance - implicit fapi clientAlgoId: "),
+                                implicitFapiClientAlgoId),
+                            std::string(" does not start with swapId")),
+                        swapId));
+              }
+              if (!isTrue(isSync())) {
+                awaitValue(close(exchange));
+              }
+              return true;
+            })
+          .share();
 }
 
 virtual std::shared_future<ccxt::any> testOkx() {
@@ -4803,6 +4961,169 @@ virtual std::shared_future<ccxt::any> testBithumb() {
                        id),
                    add(add(std::string("bithumb - id: "), id),
                        std::string(" not in headers (public endpoints).")));
+               if (!isTrue(isSync())) {
+                 awaitValue(close(exchange));
+               }
+               return true;
+             })
+      .share();
+}
+
+virtual std::shared_future<ccxt::any> testExtended() {
+  return std::async(
+             std::launch::deferred,
+             [=]() mutable -> ccxt::any {
+               if (isTrue(isEqual(this->lang, std::string("RUST")))) {
+                 return false; // the extended static request suite is
+                               // disabledRS as well
+               }
+               ccxt::any exchange =
+                   this->initOfflineExchange(std::string("extended"));
+               setProperty(exchange, std::string("privateKey"),
+                           std::string("0x12345"));
+               ::setValue(getProperty(exchange, std::string("options")),
+                          std::string("account"),
+                          ccxt::dict{
+                              {std::string("l2Key"),
+                               std::string("0x2c8d6a606f3b2752584aadc186f7034db"
+                                           "784dd59ed60ff1dc50695257fc61cf")},
+                              {std::string("l2Vault"), std::string("123456")},
+                          });
+               ccxt::any builderId = std::string("257624");
+               ccxt::any builderFeeRate = std::string("0.0001");
+               assertTrue(
+                   isEqual(
+                       ::getValue(getProperty(exchange, std::string("options")),
+                                  std::string("builderFee")),
+                       true),
+                   std::string(
+                       "extended - builderFee is not enabled in options"));
+               assertTrue(
+                   isEqual(
+                       ::getValue(getProperty(exchange, std::string("options")),
+                                  std::string("builderId")),
+                       builderId),
+                   add(add(std::string("extended - builderId: "), builderId),
+                       std::string(" not in options")));
+               assertTrue(
+                   isEqual(
+                       ::getValue(getProperty(exchange, std::string("options")),
+                                  std::string("builderFeeRate")),
+                       builderFeeRate),
+                   add(add(std::string("extended - builderFeeRate: "),
+                           builderFeeRate),
+                       std::string(" not in options")));
+               // default: the builder code and fee rate come from options
+               ccxt::any request = ccxt::dict{};
+               try {
+                 awaitValue(
+                     callDynamically(exchange, std::string("createOrder"),
+                                     ccxt::list{std::string("BTC/USDC:USDC"),
+                                                std::string("limit"),
+                                                std::string("buy"), 1, 20000}));
+               } catch (const std::exception &e) {
+                 request = jsonParse(
+                     getProperty(exchange, std::string("last_request_body")));
+               }
+               assertTrue(
+                   isEqual(::getValue(request, std::string("builderId")),
+                           builderId),
+                   add(add(add(std::string("extended - builderId: "),
+                               ::getValue(request, std::string("builderId"))),
+                           std::string(" different from options: ")),
+                       builderId));
+               assertTrue(
+                   isEqual(::getValue(request, std::string("builderFee")),
+                           builderFeeRate),
+                   add(add(add(std::string("extended - builderFee: "),
+                               ::getValue(request, std::string("builderFee"))),
+                           std::string(" different from options: ")),
+                       builderFeeRate));
+               assertTrue(isEqual(::getValue(request, std::string("fee")),
+                                  std::string("0.0005")),
+                          add(add(std::string("extended - fee: "),
+                                  ::getValue(request, std::string("fee"))),
+                              std::string(" should stay the base fee, the "
+                                          "builder fee is a separate field")));
+               // params override the fee rate, the builder code stays
+               request = ccxt::dict{};
+               try {
+                 awaitValue(callDynamically(
+                     exchange, std::string("createOrder"),
+                     ccxt::list{std::string("BTC/USDC:USDC"),
+                                std::string("limit"), std::string("buy"), 1,
+                                20000,
+                                ccxt::dict{
+                                    {std::string("builderFeeRate"),
+                                     std::string("0.0002")},
+                                }}));
+               } catch (const std::exception &e) {
+                 request = jsonParse(
+                     getProperty(exchange, std::string("last_request_body")));
+               }
+               assertTrue(
+                   isEqual(::getValue(request, std::string("builderFee")),
+                           std::string("0.0002")),
+                   add(add(std::string("extended - builderFee: "),
+                           ::getValue(request, std::string("builderFee"))),
+                       std::string(" does not take the params value 0.0002")));
+               assertTrue(
+                   isEqual(::getValue(request, std::string("builderId")),
+                           builderId),
+                   add(add(std::string("extended - builderId: "),
+                           ::getValue(request, std::string("builderId"))),
+                       std::string(" changed by a builderFeeRate param")));
+               assertTrue(
+                   !isTrue((inOp(request, std::string("builderFeeRate")))),
+                   std::string("extended - builderFeeRate param leaked into "
+                               "the request"));
+               // sandbox: the builder is only attached when passed explicitly
+               // in params
+               callDynamically(exchange, std::string("setSandboxMode"),
+                               ccxt::list{true});
+               request = ccxt::dict{};
+               try {
+                 awaitValue(
+                     callDynamically(exchange, std::string("createOrder"),
+                                     ccxt::list{std::string("BTC/USDC:USDC"),
+                                                std::string("limit"),
+                                                std::string("buy"), 1, 20000}));
+               } catch (const std::exception &e) {
+                 request = jsonParse(
+                     getProperty(exchange, std::string("last_request_body")));
+               }
+               assertTrue(
+                   !isTrue((inOp(request, std::string("builderId")))),
+                   std::string(
+                       "extended - sandbox attached builderId from options"));
+               request = ccxt::dict{};
+               try {
+                 awaitValue(callDynamically(
+                     exchange, std::string("createOrder"),
+                     ccxt::list{
+                         std::string("BTC/USDC:USDC"), std::string("limit"),
+                         std::string("buy"), 1, 20000,
+                         ccxt::dict{
+                             {std::string("builderId"), std::string("999")},
+                             {std::string("builderFeeRate"),
+                              std::string("0.0003")},
+                         }}));
+               } catch (const std::exception &e) {
+                 request = jsonParse(
+                     getProperty(exchange, std::string("last_request_body")));
+               }
+               assertTrue(
+                   isEqual(::getValue(request, std::string("builderId")),
+                           std::string("999")),
+                   add(add(std::string("extended - sandbox builderId: "),
+                           ::getValue(request, std::string("builderId"))),
+                       std::string(" does not take the params value 999")));
+               assertTrue(
+                   isEqual(::getValue(request, std::string("builderFee")),
+                           std::string("0.0003")),
+                   add(add(std::string("extended - sandbox builderFee: "),
+                           ::getValue(request, std::string("builderFee"))),
+                       std::string(" does not take the params value 0.0003")));
                if (!isTrue(isSync())) {
                  awaitValue(close(exchange));
                }
