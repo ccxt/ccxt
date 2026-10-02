@@ -1030,12 +1030,6 @@ abstract class bingx extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
-    public function copytrading_v1_private_get_swap_trace_currenttrack($params = array()) {
-        return $this->request('swap/trace/currentTrack', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
     public function copytrading_v1_private_get_pfutures_traderdetail($params = array()) {
         return $this->request('PFutures/traderDetail', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -1080,12 +1074,6 @@ abstract class bingx extends \ccxt\async\Exchange {
      */
     public function copytrading_v1_private_get_spot_historyorder($params = array()) {
         return $this->request('spot/historyOrder', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function copytrading_v1_private_post_swap_trace_closetrackorder($params = array()) {
-        return $this->request('swap/trace/closeTrackOrder', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -2248,12 +2236,6 @@ abstract class bingx extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
-    public function copyTradingV1PrivateGetSwapTraceCurrentTrack($params = array()) {
-        return $this->request('swap/trace/currentTrack', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
     public function copyTradingV1PrivateGetPFuturesTraderDetail($params = array()) {
         return $this->request('PFutures/traderDetail', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -2298,12 +2280,6 @@ abstract class bingx extends \ccxt\async\Exchange {
      */
     public function copyTradingV1PrivateGetSpotHistoryOrder($params = array()) {
         return $this->request('spot/historyOrder', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function copyTradingV1PrivatePostSwapTraceCloseTrackOrder($params = array()) {
-        return $this->request('swap/trace/closeTrackOrder', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

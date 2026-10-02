@@ -512,7 +512,6 @@ class bingx extends Exchange {
                     'v1' => array(
                         'private' => array(
                             'get' => array(
-                                'swap/trace/currentTrack' => array( 'cost' => 2 ),
                                 'PFutures/traderDetail' => array( 'cost' => 2 ),
                                 'PFutures/profitHistorySummarys' => array( 'cost' => 2 ),
                                 'PFutures/profitDetail' => array( 'cost' => 2 ),
@@ -523,7 +522,6 @@ class bingx extends Exchange {
                                 'spot/historyOrder' => array( 'cost' => 2 ),
                             ),
                             'post' => array(
-                                'swap/trace/closeTrackOrder' => array( 'cost' => 2 ),
                                 'swap/trace/setTPSL' => array( 'cost' => 2 ),
                                 'PFutures/setCommission' => array( 'cost' => 2 ),
                                 'spot/trader/sellOrder' => array( 'cost' => 10 ),
