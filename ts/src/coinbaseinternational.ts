@@ -2810,6 +2810,8 @@ export default class coinbaseinternational extends Exchange {
      * @ignore
      * @method
      * @description signs a short-lived CDP JWT that public/auth exchanges for a gateway access token
+     * @see https://docs.cdp.coinbase.com/api-reference/v2/authentication
+     * @see https://docs.cdp.coinbase.com/get-started/authentication/jwt-authentication
      * @see https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
      * @see https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication#generating-a-jwt
      * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/access-and-refresh-tokens
@@ -2819,11 +2821,12 @@ export default class coinbaseinternational extends Exchange {
      * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/intx-partners#authentication
      * @param {int} seconds current timestamp in seconds
      * @param {boolean} [useEddsa] true for Ed25519 keys, false for ECDSA PEM keys
+     * @param {string} [uri] request URI in the format "METHOD host/path"
      * @returns {string} signed JWT
      */
-    createAuthToken (seconds: Int, useEddsa = false) {
+    createAuthToken (seconds: Int, useEddsa = false, uri: Str = undefined) {
         const nonce = this.randomBytes (16);
-        // public/auth exchanges this short-lived CDP JWT for the gateway access token
+        const uriResolved = (uri === undefined) ? 'POST drb.coinbase.com/api/v2/public/auth' : uri;
         const request: Dict = {
             'aud': [ 'cdp_service' ],
             'sub': this.apiKey,
@@ -2832,6 +2835,7 @@ export default class coinbaseinternational extends Exchange {
             'exp': (seconds as number) + 120,
             'iat': seconds,
         };
+        request['uri'] = uriResolved;
         if (useEddsa) {
             const byteArray = this.base64ToBinary (this.secret);
             const seed = this.arraySlice (byteArray, 0, 32);
@@ -2847,6 +2851,7 @@ export default class coinbaseinternational extends Exchange {
      * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/technical#authentication
      * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/overview
      * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/access-and-refresh-tokens
+     * @see https://docs.cdp.coinbase.com/api-reference/v2/authentication#generate-bearer-token
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.forceRefresh] ignore the cached token and request a new one
      * @returns {string} a Deribit gateway access token
@@ -2932,7 +2937,7 @@ export default class coinbaseinternational extends Exchange {
             } else {
                 requestParams = this.extend ({
                     'grant_type': 'coinbase_cdp',
-                    'token': this.createAuthToken (this.seconds (), this.isEddsaSecret ()),
+                    'token': this.createAuthToken (this.seconds (), this.isEddsaSecret (), method + ' drb.coinbase.com' + '/api/v2/' + rpcMethod),
                 }, params);
             }
         } else if ((access === 'private') && isNativeDeribit) {
