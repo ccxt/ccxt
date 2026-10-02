@@ -6296,14 +6296,14 @@ func (this *Bingx) transferBody(ch chan AsyncResult[map[string]any], code string
 	subType, paramsSubType := this.HandleSubTypeAndParams("transfer", nil, params)
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
-	if fromId != nil && *fromId == "swap" {
+	if IsEqual(fromAccount, "swap") {
 		if subType != nil && *subType == "inverse" {
 			fromId = SafeStringPtr("coinMPerp")
 		} else {
 			fromId = SafeStringPtr("USDTMPerp")
 		}
 	}
-	if toId != nil && *toId == "swap" {
+	if toAccount == "swap" {
 		if subType != nil && *subType == "inverse" {
 			toId = SafeStringPtr("coinMPerp")
 		} else {
