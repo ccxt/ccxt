@@ -2249,7 +2249,6 @@ const WS_HANDLER_DICT_MESSAGE: Record<string, string[]> = {
     coinbase: [ 'handleHeartbeats', 'handleOrder', 'handleOrderBook', 'handleSubscriptionStatus', 'handleTickers', 'handleTrade' ],
     coinbaseexchange: [ 'handleErrorMessage', 'handleMyTrade', 'handleOrder', 'handleOrderBook', 'handleSubscriptionStatus', 'handleTicker', 'handleTrade' ],
     coinbaseinternational: [ 'handleFundingRate', 'handleInstrument', 'handleOHLCV', 'handleOrderBook', 'handleSubscriptionStatus', 'handleTicker', 'handleTrade' ],
-    coinex: [ 'handleAuthenticationMessage', 'handleBalance', 'handleBidAsk', 'handleMyTrades', 'handleOrderBook', 'handleOrders', 'handleSubscriptionStatus', 'handleTicker', 'handleTrades' ],
     coinone: [ 'handleOrderBook', 'handlePong', 'handleTicker', 'handleTrades' ],
     cryptocom: [ 'handleAuthenticate', 'handleCancelAllOrders', 'handleOrder', 'handlePing', 'handleSubscribe', 'handleUnsubscribe' ],
     deepcoin: [ 'handleErrorMessage', 'handleMyTrade', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handleOrderBookSnapshot', 'handlePosition', 'handleSubscriptionStatus', 'handleTicker', 'handleTrades' ],
