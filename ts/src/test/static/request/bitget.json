@@ -2041,6 +2041,36 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "uta history limit capped at 100",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v3/market/history-candles?symbol=BTCUSDT&interval=1H&startTime=1780720000000&endTime=1781080000000&limit=100&category=SPOT",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1780000000000,
+                    300,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta spot fetchOHLCV history endpoint",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v3/market/history-candles?symbol=BTCUSDT&interval=1H&startTime=1780000000000&endTime=1780007200000&limit=2&category=SPOT",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1780000000000,
+                    2,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "futures 2h candle",
                 "method": "fetchOHLCV",
                 "url": "https://api.bitget.com/api/v2/mix/market/candles?symbol=BTCUSDT&granularity=2H&limit=10&productType=USDT-FUTURES",
