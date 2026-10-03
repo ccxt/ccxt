@@ -470,6 +470,8 @@ class bitteam(Exchange, ImplicitAPI):
         quoteId = self.safe_string(parts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         active = self.safe_bool(market, 'active')
         timeStart = self.safe_string(market, 'timeStart')
         created = self.parse8601(timeStart)
@@ -1297,7 +1299,7 @@ class bitteam(Exchange, ImplicitAPI):
         #
         id = self.safe_string(order, 'id')
         marketId = self.safe_string(order, 'pair')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         clientOrderId = self.safe_string(order, 'orderCid')
         timestamp = None
         createdAt = self.safe_string(order, 'createdAt')
@@ -1331,7 +1333,7 @@ class bitteam(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': 'GTC',
             'side': side,
@@ -1346,7 +1348,7 @@ class bitteam(Exchange, ImplicitAPI):
             'trades': None,
             'info': order,
             'postOnly': False,
-        }, market)
+        }, marketResolved)
 
     def parse_order_status(self, status: Str):
         statuses = {
@@ -1368,7 +1370,7 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_value_to_pricision(self, valueObject: dict, valueKey: str, preciseObject: object, precisionKey: str):
+    def parse_value_to_pricision(self, valueObject: dict, valueKey: str, preciseObject: dict, precisionKey: str):
         valueRawString = self.safe_string(valueObject, valueKey)
         precisionRawString = self.safe_string(preciseObject, precisionKey)
         if valueRawString is None or precisionRawString is None:
@@ -1715,7 +1717,7 @@ class bitteam(Exchange, ImplicitAPI):
         #         "lowest_price_24h": 37574.894999
         #     }
         marketId = self.safe_string_lower(ticker, 'trading_pairs')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         bestBidPrice = None
         bestAskPrice = None
         bestBidVolume = None
@@ -1739,7 +1741,7 @@ class bitteam(Exchange, ImplicitAPI):
         close = self.safe_string_2(ticker, 'lastPrice', 'last_price')
         changePcnt = self.safe_string_2(ticker, 'change24', 'price_change_percent_24h')
         return self.safe_ticker({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': None,
             'datetime': None,
             'open': None,
@@ -1758,7 +1760,7 @@ class bitteam(Exchange, ImplicitAPI):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -2017,8 +2019,8 @@ class bitteam(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(trade, 'pair')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         id = self.safe_string_2(trade, 'id', 'trade_id')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string_2(trade, 'quantity', 'base_volume')
@@ -2062,7 +2064,7 @@ class bitteam(Exchange, ImplicitAPI):
             'cost': cost,
             'fee': fee,
             'info': trade,
-        }, market)
+        }, marketResolved)
 
     def fetch_balance(self, params: dict = {}) -> Balances:
         """
@@ -2360,27 +2362,34 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
-        url = self.urls['api'][api] + endpoint
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + endpoint
         query = self.urlencode(request)
+        requestBody = None
+        requestHeaders = None
         if api == 'private':
             self.check_required_credentials()
             if method == 'POST':
-                body = self.json(request)
+                requestBody = self.json(request)
             elif len(query) != 0:
                 url += '?' + query
             auth = self.apiKey + ':' + self.secret
             auth64 = self.string_to_base64(auth)
             signature = 'Basic ' + auth64
-            headers = {
+            requestHeaders = {
                 'Authorization': signature,
                 'Content-Type': 'application/json',
             }
         elif len(query) != 0:
             url += '?' + query
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        bodyResolved = body if (requestBody is None) else requestBody
+        headersResolved = headers if (requestHeaders is None) else requestHeaders
+        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

@@ -308,7 +308,7 @@
                 "method": "cancelOrder",
                 "url": "https://api.foxbit.com.br/rest/v3/orders/cancel",
                 "input": [
-                    3916418841
+                    "3916418841"
                 ],
                 "output": { "id": 3916418841, "type": "ID" }
             }
@@ -604,7 +604,7 @@
                 "method": "editOrder",
                 "url": "https://api.foxbit.com.br/rest/v3/orders/cancel-replace",
                 "input": [
-                    4071391945,
+                    "4071391945",
                     "BTC/BRL",
                     "MARKET",
                     "SELL",

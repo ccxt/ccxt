@@ -131,3 +131,4 @@ class IndexedOrderBook extends OrderBook {
 exports.CountedOrderBook = CountedOrderBook;
 exports.IndexedOrderBook = IndexedOrderBook;
 exports.OrderBook = OrderBook;
+exports.WsOrderBook = OrderBook;

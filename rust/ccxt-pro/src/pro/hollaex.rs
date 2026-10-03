@@ -371,8 +371,10 @@ impl HollaexCore {
             }
             orderbook.reset(snapshot);
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId).into());
-        client.resolve(&[orderbook, messageHash]);
+        if (channel != Value::Null) {
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId).into());
+            client.resolve(&[orderbook, messageHash]);
+        }
 }
 
 /*
@@ -396,14 +398,15 @@ impl HollaexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
-        symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut market: Value = self.market(symbol);
+        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
         let mut trades: Value = self.watch_public(messageHash, &[params]).await;
+        let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
-            limit = trades.get_limit(symbol, limit.clone());
+            limitResolved = trades.get_limit(symbolValue, limit);
         }
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
 
     Value::Null
 }
@@ -440,13 +443,15 @@ impl HollaexCore {
         let mut parsedTrades: Value = self.parse_trades(data, &[market]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_373: bool = true;
-            while { if !__for_first_373 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_373 = false; j.as_f64().unwrap_or(f64::NAN) < ((parsedTrades.len() as i64) as f64) } {
+            let mut __for_first_374: bool = true;
+            while { if !__for_first_374 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_374 = false; j.as_f64().unwrap_or(f64::NAN) < ((parsedTrades.len() as i64) as f64) } {
             stored.append(parsedTrades.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId).into());
-        client.resolve(&[stored.clone(), messageHash]);
+        if (channel != Value::Null) {
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId).into());
+            client.resolve(&[stored.clone(), messageHash]);
+        }
         client.resolve(&[stored, channel]);
 }
 
@@ -474,16 +479,18 @@ impl HollaexCore {
         }
         let mut messageHash: Value = Value::Str("usertrade".into());
         let mut market: Value = Value::Null;
+        let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
-            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            market = self.market(symbol);
+            symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into())).into());
         }
         let mut trades: Value = self.watch_private(messageHash, &[params]).await;
+        let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
-            limit = trades.get_limit(symbol.clone(), limit.clone());
+            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbol, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
 
     Value::Null
 }
@@ -519,7 +526,7 @@ impl HollaexCore {
         // usually the first message is an empty array
         // when the user does not have any trades yet
         let mut dataLength: Value = get_array_length(&rawTrades);
-        if is_equal(&dataLength, &Value::Int(0)) {
+        if (dataLength.as_f64() == Some(0.0)) {
             return;
         }
         if (self.myTrades.clone() == Value::Null) {
@@ -533,8 +540,8 @@ impl HollaexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_374: bool = true;
-            while { if !__for_first_374 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_374 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&rawTrades).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_375: bool = true;
+            while { if !__for_first_375 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_375 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&rawTrades).as_f64().unwrap_or(f64::NAN) } {
             let mut trade: Value = get_value(&rawTrades, &i);
             let mut trade: Value = get_value(&rawTrades, &i);
             let mut parsed: Value = self.parse_trade(trade.clone(), &[]);
@@ -552,11 +559,13 @@ impl HollaexCore {
         let mut keys: Value = object_keys(&marketIds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_375: bool = true;
-            while { if !__for_first_375 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_375 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_376: bool = true;
+            while { if !__for_first_376 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_376 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut marketId: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId).into());
-            client.resolve(&[self.myTrades.clone(), messageHash]);
+            if (channel != Value::Null) {
+                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId).into());
+                client.resolve(&[self.myTrades.clone(), messageHash]);
+            }
         }
         }
 }
@@ -585,16 +594,18 @@ impl HollaexCore {
         }
         let mut messageHash: Value = Value::Str("order".into());
         let mut market: Value = Value::Null;
+        let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
-            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            market = self.market(symbol);
+            symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into())).into());
         }
         let mut orders: Value = self.watch_private(messageHash, &[params]).await;
+        let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
-            limit = orders.get_limit(symbol.clone(), limit.clone());
+            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
 
     Value::Null
 }
@@ -667,7 +678,7 @@ impl HollaexCore {
 }) });
         // usually the first message is an empty array
         let mut dataLength: Value = get_array_length(&data);
-        if is_equal(&dataLength, &Value::Int(0)) {
+        if (dataLength.as_f64() == Some(0.0)) {
             return;
         }
         if (self.orders.clone() == Value::Null) {
@@ -687,8 +698,8 @@ impl HollaexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_376: bool = true;
-            while { if !__for_first_376 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_376 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrders.len() as i64) as f64) } {
+            let mut __for_first_377: bool = true;
+            while { if !__for_first_377 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_377 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrders.len() as i64) as f64) } {
             let mut order: Value = rawOrders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_order(order.clone(), &[]);
             stored.append(parsed);
@@ -705,11 +716,13 @@ impl HollaexCore {
         let mut keys: Value = object_keys(&marketIds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_377: bool = true;
-            while { if !__for_first_377 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_377 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_378: bool = true;
+            while { if !__for_first_378 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_378 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut marketId: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId).into());
-            client.resolve(&[self.orders.clone(), messageHash]);
+            if (channel != Value::Null) {
+                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId).into());
+                client.resolve(&[self.orders.clone(), messageHash]);
+            }
         }
         }
 }
@@ -761,8 +774,8 @@ impl HollaexCore {
         { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_378: bool = true;
-            while { if !__for_first_378 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_378 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_379: bool = true;
+            while { if !__for_first_379 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_379 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parts: Value = split(&key, &Value::Str("_".into()));
             let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
@@ -829,7 +842,7 @@ impl HollaexCore {
                 m.insert("api-expires".to_string(), expires);
             m
         });
-        let mut signedUrl: Value = Value::Str(format!("{}{}", add(&url, &Value::Str("?".into())), self.urlencode(authParams, &[])).into());
+        let mut signedUrl: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), self.urlencode(authParams, &[])).into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
@@ -843,11 +856,13 @@ impl HollaexCore {
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     { error: "Bearer or HMAC authentication required" }
         //     { error: "Error: wrong input" }
         //
-        let mut error: Value = self.safe_integer_k(message.clone(), "error", &[]);
+        let mut error: Value = (match __pro_message.get("error").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (error != Value::Null) {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message)).into());

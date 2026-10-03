@@ -7,6 +7,7 @@
 
 package io.github.ccxt.api.prediction;
 import io.github.ccxt.PredictionExchange;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class SxbetApi extends PredictionExchange
@@ -24,9 +25,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPublicGetMetadataObv3 endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPublicGetMetadataObv3 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPublicGetMetadataObv3 (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPublicGetMetadataObv3", optionalArgs);
     }
@@ -35,9 +36,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPublicGetOrderbookV3Snapshot endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPublicGetOrderbookV3Snapshot (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPublicGetOrderbookV3Snapshot (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPublicGetOrderbookV3Snapshot", optionalArgs);
     }
@@ -46,9 +47,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPublicGetTradesV3Public endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPublicGetTradesV3Public (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPublicGetTradesV3Public (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPublicGetTradesV3Public", optionalArgs);
     }
@@ -57,9 +58,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPublicGetMarketsActive endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPublicGetMarketsActive (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPublicGetMarketsActive (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPublicGetMarketsActive", optionalArgs);
     }
@@ -200,9 +201,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPrivateGetUserRealtimeTokenV3ApiKey endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPrivateGetUserRealtimeTokenV3ApiKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPrivateGetUserRealtimeTokenV3ApiKey (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPrivateGetUserRealtimeTokenV3ApiKey", optionalArgs);
     }
@@ -211,9 +212,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPrivateGetUserProxy endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPrivateGetUserProxy (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPrivateGetUserProxy (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPrivateGetUserProxy", optionalArgs);
     }
@@ -222,9 +223,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPrivateGetUserBalanceV3 endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPrivateGetUserBalanceV3 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPrivateGetUserBalanceV3 (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPrivateGetUserBalanceV3", optionalArgs);
     }
@@ -255,9 +256,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPrivateGetOrdersV3 endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPrivateGetOrdersV3 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPrivateGetOrdersV3 (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPrivateGetOrdersV3", optionalArgs);
     }
@@ -266,9 +267,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPrivateGetOrdersV3OrderId endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPrivateGetOrdersV3OrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPrivateGetOrdersV3OrderId (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPrivateGetOrdersV3OrderId", optionalArgs);
     }
@@ -277,9 +278,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPrivateGetOrdersV3OddsBest endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPrivateGetOrdersV3OddsBest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPrivateGetOrdersV3OddsBest (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPrivateGetOrdersV3OddsBest", optionalArgs);
     }
@@ -288,9 +289,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPrivateGetTradesV3 endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPrivateGetTradesV3 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPrivateGetTradesV3 (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPrivateGetTradesV3", optionalArgs);
     }
@@ -299,9 +300,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPrivateGetFillsV3 endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPrivateGetFillsV3 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPrivateGetFillsV3 (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPrivateGetFillsV3", optionalArgs);
     }
@@ -310,9 +311,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPrivateGetPositionsV3 endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPrivateGetPositionsV3 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPrivateGetPositionsV3 (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPrivateGetPositionsV3", optionalArgs);
     }
@@ -321,9 +322,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPrivateDeleteOrdersV3 endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPrivateDeleteOrdersV3 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPrivateDeleteOrdersV3 (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPrivateDeleteOrdersV3", optionalArgs);
     }
@@ -332,9 +333,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPrivateDeleteOrdersV3Event endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPrivateDeleteOrdersV3Event (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPrivateDeleteOrdersV3Event (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPrivateDeleteOrdersV3Event", optionalArgs);
     }
@@ -343,9 +344,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPrivateDeleteOrdersV3All endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPrivateDeleteOrdersV3All (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPrivateDeleteOrdersV3All (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPrivateDeleteOrdersV3All", optionalArgs);
     }
@@ -354,9 +355,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPrivatePostOrdersV3 endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPrivatePostOrdersV3 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPrivatePostOrdersV3 (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPrivatePostOrdersV3", optionalArgs);
     }
@@ -376,9 +377,9 @@ public class SxbetApi extends PredictionExchange
      * Calls the sxbetPrivatePostUserTransferToProxy endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  sxbetPrivatePostUserTransferToProxy (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sxbetPrivatePostUserTransferToProxy (Object... optionalArgs)
     {
         return this.callAsync ("sxbetPrivatePostUserTransferToProxy", optionalArgs);
     }

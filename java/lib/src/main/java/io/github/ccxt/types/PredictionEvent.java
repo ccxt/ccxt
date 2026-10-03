@@ -31,6 +31,9 @@ public final class PredictionEvent extends TypedMap {
     public String endDatetime;
     public String image;
     public String url;
+    public String resolutionSource;
+    public Long lastUpdatedAt;
+    public String lastUpdatedAtDatetime;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
@@ -62,6 +65,9 @@ public final class PredictionEvent extends TypedMap {
         this.endDatetime = TypeHelper.safeString(data, "endDatetime");
         this.image = TypeHelper.safeString(data, "image");
         this.url = TypeHelper.safeString(data, "url");
+        this.resolutionSource = TypeHelper.safeString(data, "resolutionSource");
+        this.lastUpdatedAt = TypeHelper.safeInteger(data, "lastUpdatedAt");
+        this.lastUpdatedAtDatetime = TypeHelper.safeString(data, "lastUpdatedAtDatetime");
         this.info = TypeHelper.getInfo(data);
     }
 }

@@ -1,5 +1,5 @@
 import Exchange from './abstract/digifinex.js';
-import type { Balances, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict, CurrencyInterface, DepositWithdrawFees, Status, FundingHistory } from './base/types.js';
+import type { Balances, BorrowInterest, CancellationRequest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict, CurrencyInterface, DepositWithdrawFees, Status, FundingHistory } from './base/types.js';
 /**
  * @class digifinex
  * @augments Exchange
@@ -180,18 +180,32 @@ export default class digifinex extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
-    parseCancelOrders(response: Dict): Order[];
+    parseCancelOrders(response: Dict, symbolsById?: Dict): Order[];
     /**
      * @method
      * @name digifinex#cancelOrders
      * @description cancel multiple orders
      * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by cancelOrders ()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [symbol] unified market symbol, required for swap markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
+     * @param {string} [params.type] 'spot', 'margin' or 'swap', defaults to the type of the symbol's market or options.defaultType
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrders(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
+    /**
+     * @method
+     * @name digifinex#cancelOrdersForSymbols
+     * @description cancel multiple orders for multiple symbols
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
+     * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, all orders must be of the same market type (spot or swap), example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
+     * @param {string} [params.type] 'spot' or 'margin' for spot markets, defaults to 'spot'
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    cancelOrdersForSymbols(orders: CancellationRequest[], params?: Dict): Promise<Order[]>;
     parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
@@ -245,7 +259,7 @@ export default class digifinex extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    parseLedgerEntryType(type: any): string;
+    parseLedgerEntryType(type: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**
      * @method
@@ -260,7 +274,7 @@ export default class digifinex extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name digifinex#fetchDepositAddress
@@ -337,7 +351,7 @@ export default class digifinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
      */
-    fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
+    fetchCrossBorrowRate(code: string, params?: Dict): Promise<CrossBorrowRate>;
     /**
      * @method
      * @name digifinex#fetchCrossBorrowRates
@@ -365,7 +379,7 @@ export default class digifinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     /**
      * @method
      * @name digifinex#fetchFundingInterval
@@ -470,7 +484,7 @@ export default class digifinex extends Exchange {
      */
     fetchMarketLeverageTiers(symbol: string, params?: Dict): Promise<LeverageTier[]>;
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
-    handleMarginModeAndParams(methodName: string, params?: Dict, defaultValue?: any): [any, Dict];
+    handleMarginModeAndParams(methodName: string, params?: Dict, defaultValue?: Str): [Str, Dict];
     /**
      * @method
      * @name digifinex#fetchDepositWithdrawFees
@@ -521,7 +535,7 @@ export default class digifinex extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseIncome(income: any, market?: Market): object;
+    parseIncome(income: Dict, market?: Market): object;
     /**
      * @method
      * @name digifinex#setMarginMode
@@ -533,6 +547,6 @@ export default class digifinex extends Exchange {
      * @returns {object} response from the exchange
      */
     setMarginMode(marginMode: string, symbol?: Str, params?: Dict): Promise<Dict>;
-    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

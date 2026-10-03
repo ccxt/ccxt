@@ -288,7 +288,7 @@ export default class krakenfutures extends Exchange {
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseIncome(income: any, market?: Market): object;
+    parseIncome(income: Dict, market?: Market): object;
     parseLedgerEntryType(type: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**
@@ -301,7 +301,7 @@ export default class krakenfutures extends Exchange {
      * @param {string} [params.symbol] A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
      * @returns A [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -359,7 +359,7 @@ export default class krakenfutures extends Exchange {
      * @param {string} [params.continuation_token] the token of a previous response, to fetch the next page
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): {
         info: Dict;
         id: Str;
@@ -382,7 +382,7 @@ export default class krakenfutures extends Exchange {
         markPrice: undefined;
         lastPrice: Num;
         collateral: undefined;
-        marginType: string;
+        marginMode: string;
         side: Str;
         percentage: undefined;
     };
@@ -422,7 +422,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
     /**
      * @method
      * @name krakenfutures#setLeverage
@@ -456,5 +456,5 @@ export default class krakenfutures extends Exchange {
     fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
 }

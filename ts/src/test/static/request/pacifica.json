@@ -8,6 +8,15 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "fetchDeposits": [
+            {
+                "description": "fetch USDC deposits from balance history",
+                "method": "fetchDeposits",
+                "url": "https://test-api.pacifica.fi/api/v1/account/balance/history?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchOpenInterests": [
             {
                 "description": "open interest for all markets",
@@ -71,6 +80,19 @@
                 "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"5MrUVrWfDRm3UKSU4oa11brK8Lhe3f6DbD1zApikDnTDjKtKp14RyPm4ojv7SfGJSPRpmRW6vqVKLmwaxMZCepGG\",\"timestamp\":1789202095104,\"expiry_window\":5000,\"to_account\":\"B9AJ1AD23xkhgoJn4dBtUn8iGpHTXa9Rj4DoH5R5S6FJ\",\"amount\":\"10\"}"
             }
         ],
+        "withdraw": [
+            {
+                "description": "withdraw a small amount as a plain decimal string",
+                "method": "withdraw",
+                "url": "https://test-api.pacifica.fi/api/v1/account/withdraw",
+                "input": [
+                    "USDC",
+                    0.0000001,
+                    "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt"
+                ],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"2M4jwfEjfcddGgNewsBvQK1Qa7fodiNuLMxDKysnpFqLT98qrMh4DEEcRRndHDdYq59a9XDyHbtC1Zn9ieVc472M\",\"timestamp\":1790590926778,\"expiry_window\":5000,\"amount\":\"0.0000001\"}"
+            }
+        ],
         "cancelOrders": [
             {
                 "description": "Cancel Orders with ids",
@@ -78,8 +100,8 @@
                 "url": "https://test-api.pacifica.fi/api/v1/orders/batch",
                 "input": [
                     [
-                        241524077,
-                        241567560
+                        "241524077",
+                        "241567560"
                     ],
                     "BTC/USDC:USDC",
                     {}
@@ -120,7 +142,7 @@
                 "method": "editOrder",
                 "url": "https://test-api.pacifica.fi/api/v1/orders/edit",
                 "input": [
-                    241146145,
+                    "241146145",
                     "BTC/USDC:USDC",
                     "null",
                     "null",

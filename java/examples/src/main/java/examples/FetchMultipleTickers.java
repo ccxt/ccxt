@@ -23,7 +23,7 @@ public class FetchMultipleTickers {
                 "BTC/USDT", "ETH/USDT", "SOL/USDT", "XRP/USDT", "DOGE/USDT"
         );
 
-        Tickers tickers = exchange.fetchTickers(symbols, null);
+        Tickers tickers = exchange.fetchTickers(symbols, null).join();
 
         System.out.printf("%-12s %12s %12s %12s %10s %12s%n",
                 "Symbol", "Last", "Bid", "Ask", "Change%", "Volume");

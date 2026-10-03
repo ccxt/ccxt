@@ -2196,8 +2196,8 @@ func (this *OrderRouter) addPosition(positions []map[string]any, exchangeId stri
 // or a price onto a market's grid. It is not declared on IExchange, but every
 // concrete ccxt exchange embeds Exchange and therefore carries both methods.
 type orderRouterPrecision interface {
-	AmountToPrecision(symbol any, amount any) any
-	PriceToPrecision(symbol any, price any) any
+	AmountToPrecision(symbol any, amount any) *string
+	PriceToPrecision(symbol any, price any) *string
 }
 
 // orderRouterSink collects everything one step wants to write into the shared

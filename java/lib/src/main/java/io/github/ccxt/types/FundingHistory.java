@@ -12,6 +12,8 @@ public final class FundingHistory extends TypedMap {
     public Long timestamp;
     public String datetime;
     public Double amount;
+    public Double rate;
+    public String type;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
@@ -24,6 +26,8 @@ public final class FundingHistory extends TypedMap {
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");
         this.datetime = TypeHelper.safeString(data, "datetime");
         this.amount = TypeHelper.safeFloat(data, "amount");
+        this.rate = TypeHelper.safeFloat(data, "rate");
+        this.type = TypeHelper.safeString(data, "type");
         this.info = TypeHelper.getInfo(data);
     }
 }
