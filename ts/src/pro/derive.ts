@@ -1135,15 +1135,20 @@ export default class derive extends deriveRest {
         }
         if ('id' in message) {
             const id = this.safeString (message, 'id');
-            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-            const subscription = (id === undefined) ? {} : this.safeDict (subscriptionsById, id, {});
-            if ('method' in subscription) {
-                if (this.safeString (subscription, 'method') === 'public/login') {
-                    this.handleAuth (client, message);
-                } else if (this.safeString (subscription, 'method') === 'unsubscribe') {
-                    this.handleUnSubscribe (client, message);
+            // the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
+            const subscriptionKeys = Object.keys (client.subscriptions);
+            for (let i = 0; i < subscriptionKeys.length; i++) {
+                const subscription = this.safeDict (client.subscriptions, subscriptionKeys[i], {});
+                const subscriptionId = this.safeString (subscription, 'id');
+                if ((subscriptionId !== undefined) && (subscriptionId === id)) {
+                    const subscriptionMethod = this.safeString (subscription, 'method');
+                    if (subscriptionMethod === 'public/login') {
+                        this.handleAuth (client, message);
+                    } else if (subscriptionMethod === 'unsubscribe') {
+                        this.handleUnSubscribe (client, message);
+                    }
+                    // could handleSubscribe
                 }
-                // could handleSubscribe
             }
         }
     }
@@ -1157,7 +1162,8 @@ export default class derive extends deriveRest {
         //
         const messageHash = 'authenticated';
         const ids = this.safeList (message, 'result', []);
-        if (ids.length > 0) {
+        const idsLength = ids.length;
+        if (idsLength > 0) {
             // client.resolve (message, messageHash);
             const future = this.safeValue (client.futures, 'authenticated');
             future.resolve (true);
