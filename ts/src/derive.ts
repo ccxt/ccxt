@@ -5,7 +5,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/derive.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict, Endpoint, OHLCV, OpenInterest, Account, TransferEntry } from './base/types.js';
+import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict, Endpoint, OHLCV, OpenInterest, Account, TransferEntry, Greeks, Option } from './base/types.js';
 import { BadRequest, InvalidOrder, ExchangeError, OrderNotFound, ArgumentsRequired, InsufficientFunds, RateLimitExceeded, AuthenticationError } from './base/errors.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -81,6 +81,7 @@ export default class derive extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
+                'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -99,6 +100,7 @@ export default class derive extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': true,
                 'fetchOrder': false,
                 'fetchOrderBook': false,
                 'fetchOrders': false,
@@ -986,7 +988,7 @@ export default class derive extends Exchange {
         const request: Dict = {
             'instrument_name': market['id'],
         };
-        const response = await this.publicPostGetTicker (this.extend (request, params)); // todo: check on main net
+        const response = await this.publicPostGetTicker (this.extend (request, params)); // todo: check on main-net
         //
         //     {
         //         "id": "a24f964a-4c80-4389-950e-1f68b9bfb40f",
@@ -1037,6 +1039,153 @@ export default class derive extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': interest,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name derive#fetchGreeks
+     * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+     * @see https://docs.derive.xyz/api-reference/market-data/publicget_ticker
+     * @param {string} symbol unified symbol of the market to fetch greeks for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     */
+    override async fetchGreeks (symbol: string, params: Dict = {}): Promise<Greeks> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        if (market['option'] !== true) {
+            throw new BadRequest (this.id + ' fetchGreeks() supports option markets only');
+        }
+        const request: Dict = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.publicPostGetTicker (this.extend (request, params)); // todo: check on main-net
+        //
+        //     {
+        //         "id": "b9c8e59e-aa05-4517-8412-0a119f561cfb",
+        //         "result": {
+        //             "t": 1791031771524,
+        //             "A": "0",
+        //             "a": "0",
+        //             "B": "0",
+        //             "b": "0",
+        //             "f": null,
+        //             "option_pricing": {
+        //                 "d": "-0.43348",
+        //                 "t": "-18.65575",
+        //                 "g": "0.00001213",
+        //                 "v": "346.49060",
+        //                 "i": "0.38273",
+        //                 "r": "12976.52088",
+        //                 "f": "89232",
+        //                 "m": "13312",
+        //                 "df": "0.950",
+        //                 "bi": "0",
+        //                 "ai": "0"
+        //             },
+        //             "I": "84812",
+        //             "M": "13312",
+        //             "stats": {
+        //                 "c": "0",
+        //                 "v": "0",
+        //                 "pr": "0",
+        //                 "n": 0,
+        //                 "oi": "0",
+        //                 "h": "0",
+        //                 "l": "0",
+        //                 "p": "0"
+        //             },
+        //             "minp": "10610",
+        //             "maxp": "16397"
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseGreeks (result, market);
+    }
+
+    override parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
+        const timestamp = this.safeInteger (greeks, 't');
+        const pricing = this.safeDict (greeks, 'option_pricing', {});
+        return {
+            'symbol': this.safeSymbol (undefined, market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'delta': this.safeNumber (pricing, 'd'),
+            'gamma': this.safeNumber (pricing, 'g'),
+            'theta': this.safeNumber (pricing, 't'),
+            'vega': this.safeNumber (pricing, 'v'),
+            'rho': this.safeNumber (pricing, 'r'),
+            'bidSize': this.safeNumber (greeks, 'B'),
+            'askSize': this.safeNumber (greeks, 'A'),
+            'bidImpliedVolatility': this.safeNumber (pricing, 'bi'),
+            'askImpliedVolatility': this.safeNumber (pricing, 'ai'),
+            'markImpliedVolatility': this.safeNumber (pricing, 'i'),
+            'bidPrice': this.safeNumber (greeks, 'b'),
+            'askPrice': this.safeNumber (greeks, 'a'),
+            'markPrice': this.safeNumber (pricing, 'm'),
+            'lastPrice': undefined,
+            'underlyingPrice': this.safeNumber (greeks, 'I'),
+            'info': greeks,
+        };
+    }
+
+    /**
+     * @method
+     * @name derive#fetchOption
+     * @description fetches option data that is commonly found in an option chain
+     * @see https://docs.derive.xyz/api-reference/market-data/publicget_ticker
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [option structure]{@link https://docs.ccxt.com/?id=option-structure}
+     */
+    override async fetchOption (symbol: string, params: Dict = {}): Promise<Option> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        if (market['option'] !== true) {
+            throw new BadRequest (this.id + ' fetchOption() supports option markets only');
+        }
+        const request: Dict = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.publicPostGetTicker (this.extend (request, params)); // todo: check on main-net
+        // the response sample is listed in fetchGreeks, both methods read the same endpoint
+        const result = this.safeDict (response, 'result', {});
+        return this.parseOption (result, undefined, market);
+    }
+
+    override parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
+        const timestamp = this.safeInteger (chain, 't');
+        const pricing = this.safeDict (chain, 'option_pricing', {});
+        const stats = this.safeDict (chain, 'stats', {});
+        const change = this.safeString (stats, 'p');
+        let percentage: Str = undefined;
+        if (change !== undefined) {
+            percentage = Precise.stringMul (change, '100');
+        }
+        return {
+            'info': chain,
+            'currency': this.safeString (market, 'base'),
+            'symbol': this.safeSymbol (undefined, market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'impliedVolatility': this.safeNumber (pricing, 'i'),
+            'openInterest': this.safeNumber (stats, 'oi'),
+            'bidPrice': this.safeNumber (chain, 'b'),
+            'askPrice': this.safeNumber (chain, 'a'),
+            'midPrice': undefined,
+            'markPrice': this.safeNumber (chain, 'M'),
+            'lastPrice': undefined,
+            'underlyingPrice': this.safeNumber (chain, 'I'),
+            'change': undefined,
+            'percentage': this.parseNumber (percentage),
+            'baseVolume': this.safeNumber (stats, 'c'),
+            'quoteVolume': this.safeNumber (stats, 'v'),
+        };
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -1494,7 +1643,7 @@ export default class derive extends Exchange {
         if (until !== undefined) {
             request['end_timestamp'] = until; // the venue silently ignores the to_timestamp spelling other endpoints use
         }
-        const response = await this.publicPostGetFundingRateHistory (this.extend (request, paramsOmitted));
+        const response = await this.publicPostGetFundingRateHistory (this.extend (request, paramsOmitted)); // todo: check on main-net
         //
         //     {
         //         "id": "6dcdcdd2-1523-4d48-9b45-e1f3e61b3711",
@@ -1806,9 +1955,9 @@ export default class derive extends Exchange {
         const paramsOmitted = this.omit (paramsDeriveWalletAddress, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLossPrice', 'takeProfitPrice', 'trigger_price_type' ]);
         let response: Dict;
         if (test === true) {
-            response = await this.privatePostOrderDebug (this.extend (request, paramsOmitted));
+            response = await this.privatePostOrderDebug (this.extend (request, paramsOmitted)); // todo: check on main-net
         } else {
-            response = await this.privatePostOrder (this.extend (request, paramsOmitted));
+            response = await this.privatePostOrder (this.extend (request, paramsOmitted)); // todo: check on main-net
         }
         //
         //     {
@@ -1951,7 +2100,7 @@ export default class derive extends Exchange {
         }
         request['signature'] = signature;
         const paramsOmitted = this.omit (paramsDeriveWalletAddress, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId' ]);
-        const response = await this.privatePostReplace (this.extend (request, paramsOmitted));
+        const response = await this.privatePostReplace (this.extend (request, paramsOmitted)); // todo: check on main-net
         //
         //     {
         //         "id": "bdeaa36f-5eae-4193-a1d2-81fb7f0dfd9d",
@@ -2075,13 +2224,13 @@ export default class derive extends Exchange {
         if (isByClientOrder) {
             request['label'] = clientOrderIdExchangeSpecific;
             const paramsLabel: Dict = this.omit (paramsOmitted, [ 'clientOrderId', 'label' ]);
-            response = await this.privatePostCancelByLabel (this.extend (request, paramsLabel));
+            response = await this.privatePostCancelByLabel (this.extend (request, paramsLabel)); // todo: check on main-net
         } else {
             request['order_id'] = id;
             if (isTrigger === true) {
-                response = await this.privatePostCancelTriggerOrder (this.extend (request, paramsOmitted));
+                response = await this.privatePostCancelTriggerOrder (this.extend (request, paramsOmitted)); // todo: check on main-net
             } else {
-                response = await this.privatePostCancel (this.extend (request, paramsOmitted));
+                response = await this.privatePostCancel (this.extend (request, paramsOmitted)); // todo: check on main-net
             }
         }
         //
@@ -2160,9 +2309,9 @@ export default class derive extends Exchange {
         let response: Dict;
         if (market !== undefined) {
             request['instrument_name'] = market['id'];
-            response = await this.privatePostCancelByInstrument (this.extend (request, paramsDeriveSubaccountId));
+            response = await this.privatePostCancelByInstrument (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
         } else {
-            response = await this.privatePostCancelAll (this.extend (request, paramsDeriveSubaccountId));
+            response = await this.privatePostCancelAll (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
         }
         //
         //     {
@@ -2218,7 +2367,7 @@ export default class derive extends Exchange {
         if (until !== undefined) {
             request['to_timestamp'] = until;
         }
-        const response = await this.privatePostGetOrderHistory (this.extend (request, paramsDeriveSubaccountId));
+        const response = await this.privatePostGetOrderHistory (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
         //
         //     {
         //         "id": "c55b1f4e-7263-4045-ac9f-158da9a97c5c",
@@ -2314,9 +2463,9 @@ export default class derive extends Exchange {
         }
         let response: Dict;
         if (isTrigger === true) {
-            response = await this.privatePostGetTriggerOrders (this.extend (request, paramsDeriveSubaccountId));
+            response = await this.privatePostGetTriggerOrders (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
         } else {
-            response = await this.privatePostGetOpenOrders (this.extend (request, paramsDeriveSubaccountId));
+            response = await this.privatePostGetOpenOrders (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
         }
         //
         //     {
@@ -2579,7 +2728,7 @@ export default class derive extends Exchange {
         if (since !== undefined) {
             request['from_timestamp'] = since;
         }
-        const response = await this.privatePostGetTradeHistory (this.extend (request, paramsDeriveSubaccountId));
+        const response = await this.privatePostGetTradeHistory (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
         //
         //     {
         //         "id": "41517b29-67b3-4ed8-845d-ef4bde9b79aa",
@@ -2660,7 +2809,7 @@ export default class derive extends Exchange {
         if (since !== undefined) {
             request['from_timestamp'] = since;
         }
-        const response = await this.privatePostGetTradeHistory (this.extend (request, paramsDeriveSubaccountId));
+        const response = await this.privatePostGetTradeHistory (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
         //
         //     {
         //         "id": "c375c303-2356-4ba0-acea-32411e33b3f6",
@@ -2757,7 +2906,7 @@ export default class derive extends Exchange {
             'subaccount_id': subaccountId,
         };
         const paramsOmitted: Dict = this.omit (paramsDeriveSubaccountId, [ 'subaccount_id' ]);
-        const response = await this.privatePostGetPositions (this.extend (request, paramsOmitted));
+        const response = await this.privatePostGetPositions (this.extend (request, paramsOmitted)); // todo: check on main-net
         //
         //     {
         //         "id": "64af0eeb-5b8f-4aa9-bc6b-c5029f47ac27",
@@ -2920,7 +3069,7 @@ export default class derive extends Exchange {
         if (until !== undefined) {
             request['end_timestamp'] = until;
         }
-        const response = await this.privatePostGetFundingHistory (this.extend (request, paramsOmitted));
+        const response = await this.privatePostGetFundingHistory (this.extend (request, paramsOmitted)); // todo: check on main-net
         //
         //     {
         //         "id": "05a90234-63dd-4769-b66b-3256fe4c3336",
@@ -3393,7 +3542,7 @@ export default class derive extends Exchange {
             'signature': signature,
             'signature_expiry_sec': signatureExpiry,
         };
-        const response = await this.privatePostTransferSpot (this.extend (request, paramsDeriveWalletAddress));
+        const response = await this.privatePostTransferSpot (this.extend (request, paramsDeriveWalletAddress)); // todo: check on main-net
         const result = this.safeDict (response, 'result', {});
         const transferEntry = this.parseTransfer (result, currency);
         // normalized through the int ids: the raw arguments arrive as strings in some languages and as numbers in others
@@ -3441,7 +3590,7 @@ export default class derive extends Exchange {
         if (since !== undefined) {
             request['start_timestamp'] = since;
         }
-        const response = await this.privatePostGetDepositHistory (this.extend (request, paramsDeriveSubaccountId));
+        const response = await this.privatePostGetDepositHistory (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
         //
         //     {
         //         "id": "4ba60e41-fa05-490c-b849-9ead5aef63c8",
@@ -3500,7 +3649,7 @@ export default class derive extends Exchange {
         if (since !== undefined) {
             request['start_timestamp'] = since;
         }
-        const response = await this.privatePostGetWithdrawalHistory (this.extend (request, paramsDeriveSubaccountId));
+        const response = await this.privatePostGetWithdrawalHistory (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
         //
         //     {
         //         "id": "f3d46c05-5c8f-4e4a-9d2f-5a86d26124b3",

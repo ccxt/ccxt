@@ -807,6 +807,208 @@
                 }
             }
         ],
+        "fetchGreeks": [
+            {
+                "description": "fetchGreeks",
+                "method": "fetchGreeks",
+                "input": [
+                    "BTC/USDC:USDC-270924-90000-P"
+                ],
+                "httpResponse": {
+                    "id": "5a3578ea-ed2b-4e30-9a24-46abad511b69",
+                    "result": {
+                        "t": 1791031976134,
+                        "A": "5",
+                        "a": "13315",
+                        "B": "5",
+                        "b": "13275",
+                        "f": null,
+                        "option_pricing": {
+                            "d": "-0.43314",
+                            "t": "-18.66515",
+                            "g": "0.00000943",
+                            "v": "346.56393",
+                            "i": "0.38270",
+                            "r": "12960.72797",
+                            "f": "89268",
+                            "m": "13295",
+                            "df": "0.950",
+                            "bi": "0.38760",
+                            "ai": "0.38882"
+                        },
+                        "I": "84825",
+                        "M": "13295",
+                        "stats": {
+                            "c": "0",
+                            "v": "0",
+                            "pr": "0",
+                            "n": 0,
+                            "oi": "0",
+                            "h": "0",
+                            "l": "0",
+                            "p": "0"
+                        },
+                        "minp": "10594",
+                        "maxp": "16381"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC-270924-90000-P",
+                    "timestamp": 1791031976134,
+                    "datetime": "2026-10-03T12:52:56.134Z",
+                    "delta": -0.43314,
+                    "gamma": 9.43e-06,
+                    "theta": -18.66515,
+                    "vega": 346.56393,
+                    "rho": 12960.72797,
+                    "bidSize": 5,
+                    "askSize": 5,
+                    "bidImpliedVolatility": 0.3876,
+                    "askImpliedVolatility": 0.38882,
+                    "markImpliedVolatility": 0.3827,
+                    "bidPrice": 13275,
+                    "askPrice": 13315,
+                    "markPrice": 13295,
+                    "lastPrice": null,
+                    "underlyingPrice": 84825,
+                    "info": {
+                        "t": 1791031976134,
+                        "A": "5",
+                        "a": "13315",
+                        "B": "5",
+                        "b": "13275",
+                        "f": null,
+                        "option_pricing": {
+                            "d": "-0.43314",
+                            "t": "-18.66515",
+                            "g": "0.00000943",
+                            "v": "346.56393",
+                            "i": "0.38270",
+                            "r": "12960.72797",
+                            "f": "89268",
+                            "m": "13295",
+                            "df": "0.950",
+                            "bi": "0.38760",
+                            "ai": "0.38882"
+                        },
+                        "I": "84825",
+                        "M": "13295",
+                        "stats": {
+                            "c": "0",
+                            "v": "0",
+                            "pr": "0",
+                            "n": 0,
+                            "oi": "0",
+                            "h": "0",
+                            "l": "0",
+                            "p": "0"
+                        },
+                        "minp": "10594",
+                        "maxp": "16381"
+                    }
+                }
+            }
+        ],
+        "fetchOption": [
+            {
+                "description": "fetchOption",
+                "method": "fetchOption",
+                "input": [
+                    "BTC/USDC:USDC-270924-90000-P"
+                ],
+                "httpResponse": {
+                    "id": "71e177f2-3c58-414a-a9cf-a3a6125934eb",
+                    "result": {
+                        "t": 1791031976134,
+                        "A": "5",
+                        "a": "13315",
+                        "B": "5",
+                        "b": "13275",
+                        "f": null,
+                        "option_pricing": {
+                            "d": "-0.43314",
+                            "t": "-18.66515",
+                            "g": "0.00000943",
+                            "v": "346.56393",
+                            "i": "0.38270",
+                            "r": "12960.72797",
+                            "f": "89268",
+                            "m": "13295",
+                            "df": "0.950",
+                            "bi": "0.38760",
+                            "ai": "0.38882"
+                        },
+                        "I": "84825",
+                        "M": "13295",
+                        "stats": {
+                            "c": "0",
+                            "v": "0",
+                            "pr": "0",
+                            "n": 0,
+                            "oi": "0",
+                            "h": "0",
+                            "l": "0",
+                            "p": "0"
+                        },
+                        "minp": "10594",
+                        "maxp": "16381"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "t": 1791031976134,
+                        "A": "5",
+                        "a": "13315",
+                        "B": "5",
+                        "b": "13275",
+                        "f": null,
+                        "option_pricing": {
+                            "d": "-0.43314",
+                            "t": "-18.66515",
+                            "g": "0.00000943",
+                            "v": "346.56393",
+                            "i": "0.38270",
+                            "r": "12960.72797",
+                            "f": "89268",
+                            "m": "13295",
+                            "df": "0.950",
+                            "bi": "0.38760",
+                            "ai": "0.38882"
+                        },
+                        "I": "84825",
+                        "M": "13295",
+                        "stats": {
+                            "c": "0",
+                            "v": "0",
+                            "pr": "0",
+                            "n": 0,
+                            "oi": "0",
+                            "h": "0",
+                            "l": "0",
+                            "p": "0"
+                        },
+                        "minp": "10594",
+                        "maxp": "16381"
+                    },
+                    "currency": "BTC",
+                    "symbol": "BTC/USDC:USDC-270924-90000-P",
+                    "timestamp": 1791031976134,
+                    "datetime": "2026-10-03T12:52:56.134Z",
+                    "impliedVolatility": 0.3827,
+                    "openInterest": 0,
+                    "bidPrice": 13275,
+                    "askPrice": 13315,
+                    "midPrice": null,
+                    "markPrice": 13295,
+                    "lastPrice": null,
+                    "underlyingPrice": 84825,
+                    "change": null,
+                    "percentage": 0,
+                    "baseVolume": 0,
+                    "quoteVolume": 0
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "fetchTrades BTC perp mainnet",
