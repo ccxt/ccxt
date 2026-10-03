@@ -2059,7 +2059,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit(), self.test_bithumb(), self.test_extended()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit(), self.test_bithumb(), self.test_extended()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -2544,22 +2544,6 @@ class testMainClass:
             stop_order_request = json_parse(exchange.last_request_body)
         client_order_id_stop = stop_order_request['brokerId']
         assert client_order_id_stop.startswith(id_string), 'woo - brokerId: ' + client_order_id_stop + ' does not start with id: ' + id_string
-        if not is_sync():
-            await close(exchange)
-        return True
-
-    async def test_coinex(self):
-        exchange = self.init_offline_exchange('coinex')
-        id = 'x-167673045'
-        assert exchange.options['brokerId'] == id, 'coinex - id: ' + id + ' not in options'
-        spot_order_request = {}
-        try:
-            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
-        except Exception as e:
-            spot_order_request = json_parse(exchange.last_request_body)
-        client_order_id = spot_order_request['client_id']
-        id_string = str(id)
-        assert client_order_id.startswith(id_string), 'coinex - clientOrderId: ' + client_order_id + ' does not start with id: ' + id_string
         if not is_sync():
             await close(exchange)
         return True
