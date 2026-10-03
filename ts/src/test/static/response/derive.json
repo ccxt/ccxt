@@ -942,6 +942,115 @@
                 ]
             }
         ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV with since and limit",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    1790725320000,
+                    10
+                ],
+                "httpResponse": {
+                    "id": "3d5a782a-0e46-4f98-b735-681c83f6d28a",
+                    "result": [
+                        {
+                            "open_price": "83628.5",
+                            "high_price": "83628.5",
+                            "low_price": "83628.5",
+                            "close_price": "83628.5",
+                            "volume_usd": "920.02165302276944",
+                            "volume_contracts": "0.011",
+                            "timestamp": 1790725320,
+                            "timestamp_bucket": 1790725320
+                        },
+                        {
+                            "open_price": "83639",
+                            "high_price": "83639",
+                            "low_price": "83639",
+                            "close_price": "83639",
+                            "volume_usd": "920.28100646415065",
+                            "volume_contracts": "0.011",
+                            "timestamp": 1790725860,
+                            "timestamp_bucket": 1790725860
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1790725320000,
+                        83628.5,
+                        83628.5,
+                        83628.5,
+                        83628.5,
+                        0.011
+                    ],
+                    [
+                        1790725860000,
+                        83639,
+                        83639,
+                        83639,
+                        83639,
+                        0.011
+                    ]
+                ]
+            },
+            {
+                "description": "fetchOHLCV index price variant",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1h",
+                    1791018000000,
+                    2,
+                    {
+                        "price": "index"
+                    }
+                ],
+                "httpResponse": {
+                    "id": "b9db22af-2089-4a6a-8571-e9a2828128a5",
+                    "result": [
+                        {
+                            "price": "84578.92705944818",
+                            "open_price": "84599.10866056278",
+                            "high_price": "84653.70797324124",
+                            "low_price": "84563.95002564388",
+                            "close_price": "84578.92705944818",
+                            "timestamp": 1791018000,
+                            "timestamp_bucket": 1791018000
+                        },
+                        {
+                            "price": "84616.87503645716",
+                            "open_price": "84578.32393792931",
+                            "high_price": "84627.82853203741",
+                            "low_price": "84550.33789748965",
+                            "close_price": "84616.87503645716",
+                            "timestamp": 1791021600,
+                            "timestamp_bucket": 1791021600
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1791018000000,
+                        84599.10866056278,
+                        84653.70797324124,
+                        84563.95002564388,
+                        84578.92705944818,
+                        null
+                    ],
+                    [
+                        1791021600000,
+                        84578.32393792931,
+                        84627.82853203741,
+                        84550.33789748965,
+                        84616.87503645716,
+                        null
+                    ]
+                ]
+            }
+        ],
         "fetchFundingRateHistory": [
             {
                 "description": "fetchFundingRateHistory testnet",

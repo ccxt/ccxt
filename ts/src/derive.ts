@@ -5,7 +5,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/derive.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict, Endpoint } from './base/types.js';
+import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict, Endpoint, OHLCV } from './base/types.js';
 import { BadRequest, InvalidOrder, ExchangeError, OrderNotFound, ArgumentsRequired, InsufficientFunds, RateLimitExceeded, AuthenticationError } from './base/errors.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -81,7 +81,7 @@ export default class derive extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
-                'fetchIndexOHLCV': false,
+                'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchLedger': false,
@@ -94,7 +94,7 @@ export default class derive extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': true,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
@@ -129,20 +129,15 @@ export default class derive extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '2h': '2h',
-                '4h': '4h',
-                '8h': '8h',
-                '12h': '12h',
-                '1d': '1d',
-                '3d': '3d',
-                '1w': '1w',
-                '1M': '1M',
+                '1m': '60',
+                '5m': '300',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '4h': '14400',
+                '8h': '28800',
+                '1d': '86400',
+                '1w': '604800',
             },
             'features': {
                 'default': {
@@ -200,7 +195,9 @@ export default class derive extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOHLCV': undefined,
+                    'fetchOHLCV': {
+                        'limit': 5000,
+                    },
                 },
                 'spot': {
                     'extends': 'default',
@@ -1160,6 +1157,123 @@ export default class derive extends Exchange {
         result = this.sortBy2 (result, 'timestamp', 'id');
         const symbol = this.safeString (market, 'symbol');
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
+    }
+
+    /**
+     * @method
+     * @name derive#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.derive.xyz/api-reference/market-data/publicget_tradingview_chart_data      // trade candles
+     * @see https://docs.derive.xyz/api-reference/market-data/publicget_index_chart_data           // params.price = 'index'
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch; a single request covers at most 5000 candles from since, use params.paginate for wider ranges
+     * @param {int} [limit] the maximum amount of candles to fetch, also sizes the request window when since is not provided
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {string} [params.price] "index" to fetch candles of the index price instead of trades, their volume is undefined
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 5000) as OHLCV[];
+        }
+        // todo: check active spot markets after launch of v3
+        const market = this.market (symbol);
+        const period = this.safeString (this.timeframes, timeframe, timeframe);
+        const [ priceType, paramsPrice ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'price');
+        const until = this.safeInteger (paramsPrice, 'until');
+        const paramsOmitted: Dict = this.omit (paramsPrice, [ 'until' ]);
+        const duration = this.parseTimeframe (timeframe);
+        let end: Int = undefined;
+        if (until !== undefined) {
+            end = this.parseToInt (until / 1000);
+        } else {
+            end = this.seconds ();
+        }
+        let limitResolved = limit;
+        if (limitResolved === undefined) {
+            limitResolved = (since !== undefined) ? 5000 : 1000;
+        }
+        if (limitResolved > 5000) {
+            limitResolved = 5000; // the venue keeps only the latest 5000 buckets of the requested window
+        }
+        let start: Int = undefined;
+        if (since !== undefined) {
+            start = this.parseToInt (since / 1000);
+            // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
+            const calculatedEnd = limitResolved * duration;
+            const maxEnd = this.sum (start, calculatedEnd);
+            if (maxEnd < end) {
+                end = maxEnd;
+            }
+        } else {
+            start = end - limitResolved * duration;
+        }
+        const request: Dict = {
+            'period': period,
+            'start_timestamp': start,
+            'end_timestamp': end,
+        };
+        let response = undefined;
+        if (priceType === 'index') {
+            request['currency'] = market['baseId'];
+            response = await this.publicPostGetIndexChartData (this.extend (request, paramsOmitted));
+            //
+            //     {
+            //         "id": "310e67cd-b53c-4bb7-9ec5-886515e8fa4f",
+            //         "result": [
+            //             {
+            //                 "price": "84578.92705944818",
+            //                 "open_price": "84599.10866056278",
+            //                 "high_price": "84653.70797324124",
+            //                 "low_price": "84563.95002564388",
+            //                 "close_price": "84578.92705944818",
+            //                 "timestamp": 1791018000,
+            //                 "timestamp_bucket": 1791018000
+            //             }
+            //         ]
+            //     }
+            //
+        } else {
+            request['instrument_name'] = market['id'];
+            response = await this.publicPostGetTradingviewChartData (this.extend (request, paramsOmitted));
+            //
+            //     {
+            //         "id": "da5c0d45-4ab1-4c78-9def-20d40deae699",
+            //         "result": [
+            //             {
+            //                 "open_price": "83628.5",
+            //                 "high_price": "83628.5",
+            //                 "low_price": "83628.5",
+            //                 "close_price": "83628.5",
+            //                 "volume_usd": "920.02165302276944",
+            //                 "volume_contracts": "0.011",
+            //                 "timestamp": 1790725320,
+            //                 "timestamp_bucket": 1790725320
+            //             }
+            //         ]
+            //     }
+            //
+        }
+        const result = this.safeList (response, 'result', []);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
+    }
+
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
+        return [
+            this.safeTimestamp (ohlcv, 'timestamp'),
+            this.safeNumber (ohlcv, 'open_price'),
+            this.safeNumber (ohlcv, 'high_price'),
+            this.safeNumber (ohlcv, 'low_price'),
+            this.safeNumber (ohlcv, 'close_price'),
+            this.safeNumber (ohlcv, 'volume_contracts'), // index candles carry no volume
+        ];
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
