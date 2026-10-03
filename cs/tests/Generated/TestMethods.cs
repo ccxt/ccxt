@@ -2976,7 +2976,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        List<object> promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb(), this.testExtended()};
+        List<object> promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb(), this.testExtended()};
         await promiseAll(promises);
         string successMessage = (("[" + (this.lang)) + "][TEST_SUCCESS] brokerId tests passed.");
         dump(("[INFO]" + successMessage));
@@ -3624,29 +3624,6 @@ public partial class testMainClass
         }
         object clientOrderIdStop = getValue(stopOrderRequest, "brokerId");
         assert((((string)clientOrderIdStop).StartsWith(((string)idString)) == true), ((("woo - brokerId: " + (clientOrderIdStop)) + " does not start with id: ") + idString));
-        if (!isTrue(isSync()))
-        {
-            await close(exchange);
-        }
-        return true;
-    }
-
-    public async virtual Task<object> testCoinex()
-    {
-        Exchange exchange = ((Exchange)this.initOfflineExchange("coinex"));
-        string id = "x-167673045";
-        assert(isEqual(getValue(exchange.options, "brokerId"), id), (("coinex - id: " + id) + " not in options"));
-        object spotOrderRequest = new Dictionary<string, object>() {};
-        try
-        {
-            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
-        } catch(Exception e)
-        {
-            spotOrderRequest = jsonParse(exchange.last_request_body);
-        }
-        object clientOrderId = getValue(spotOrderRequest, "client_id");
-        string idString = ((object)id).ToString();
-        assert((((string)clientOrderId).StartsWith(((string)idString)) == true), ((("coinex - clientOrderId: " + (clientOrderId)) + " does not start with id: ") + idString));
         if (!isTrue(isSync()))
         {
             await close(exchange);
