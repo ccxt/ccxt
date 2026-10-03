@@ -1,0 +1,1408 @@
+{
+    "exchange": "umx",
+    "skipKeys": [
+        "accountName",
+        "timestamp",
+        "pid",
+        "uid",
+        "cid"
+    ],
+    "options": {},
+    "methods": {
+        "cancelOrder": [
+            {
+                "description": "cancel a trigger order",
+                "method": "cancelOrder",
+                "url": "https://api.umx.com/api/v1/trade/cancelComplex",
+                "input": [
+                    "1552711983719727104",
+                    "ETH/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"complexOId\":\"1552711983719727104\",\"symbol\":\"ETH-USDT-PERP\"}"
+            },
+            {
+                "description": "cancel a swap limit order",
+                "method": "cancelOrder",
+                "url": "https://api.umx.com/api/v1/trade/cancelOrder",
+                "input": [
+                    "3538113582066216960",
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"orderId\":\"3538113582066216960\"}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "open trigger orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.umx.com/api/v2/trade/openOrderComplex?symbol=ETH-USDT-PERP&complexType=trigger",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "open swap orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.umx.com/api/v2/trade/openOrders?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "order info of a canceled order",
+                "method": "fetchOrder",
+                "url": "https://api.umx.com/api/v2/trade/order/info?orderId=3538113582066216960",
+                "input": [
+                    "3538113582066216960"
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "option limit order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    "limit",
+                    "buy",
+                    0.1,
+                    66
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-27SEP26-2560-C\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"66\",\"qty\":\"0.1\"}"
+            },
+            {
+                "description": "future limit order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT-260925",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1900
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-25SEP26\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"1900\",\"qty\":\"0.001\"}"
+            },
+            {
+                "description": "spot market order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "sell",
+                    0.002
+                ],
+                "output": "{\"symbol\":\"ETH-USDT\",\"side\":\"sell\",\"orderType\":\"market\",\"qty\":\"0.002\",\"isLeverage\":false}"
+            },
+            {
+                "description": "spot market order by cost",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    0,
+                    null,
+                    {
+                        "cost": 6
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-USDT\",\"side\":\"buy\",\"orderType\":\"market\",\"qty\":\"6\",\"marketUnit\":\"quoteCoin\",\"isLeverage\":false}"
+            },
+            {
+                "description": "spot limit order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.003,
+                    1900
+                ],
+                "output": "{\"symbol\":\"ETH-USDT\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"1900\",\"qty\":\"0.003\",\"isLeverage\":false}"
+            },
+            {
+                "description": "swap trigger order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/orderComplex",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    3400,
+                    {
+                        "triggerPrice": 3500,
+                        "triggerDirection": "above"
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"complexType\":\"trigger\",\"qty\":\"0.001\",\"triggerOrder\":{\"triggerDirection\":\"rising\",\"triggerPriceType\":\"last_price\",\"triggerPrice\":\"3500\",\"triggerOrderType\":\"limit\",\"triggerOrderPrice\":\"3400\"}}"
+            },
+            {
+                "description": "swap reduce only market order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.001,
+                    null,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"sell\",\"orderType\":\"market\",\"qty\":\"0.001\",\"reduceOnly\":true}"
+            },
+            {
+                "description": "swap market order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.001
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"orderType\":\"market\",\"qty\":\"0.001\"}"
+            },
+            {
+                "description": "swap post only order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1900,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"orderType\":\"post_only\",\"price\":\"1900\",\"qty\":\"0.001\"}"
+            },
+            {
+                "description": "swap limit order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1900
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"1900\",\"qty\":\"0.001\"}"
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw",
+                "method": "withdraw",
+                "url": "https://api.umx.com/api/v1/asset/withdrawal",
+                "input": [
+                    "USDT",
+                    10,
+                    "0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6",
+                    null,
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": "{\"currency\":\"USDT\",\"chainType\":\"eth\",\"address\":\"0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6\",\"amount\":\"10\",\"timestamp\":\"1790235602460\"}"
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "margin mode of the account",
+                "method": "fetchMarginMode",
+                "url": "https://api.umx.com/api/v1/asset/account/info",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set the margin mode of the account",
+                "method": "setMarginMode",
+                "url": "https://api.umx.com/api/v1/account/marginModeSet",
+                "input": [
+                    "cross"
+                ],
+                "output": "{\"accountMode\":\"multi_currency\"}"
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "set the leverage of a perpetual",
+                "method": "setLeverage",
+                "url": "https://api.umx.com/api/v1/trade/lever",
+                "input": [
+                    5,
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"lever\":\"5\"}"
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "leverage of a perpetual",
+                "method": "fetchLeverage",
+                "url": "https://api.umx.com/api/v1/trade/lever?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "leverage of a delivery future",
+                "method": "fetchLeverage",
+                "url": "https://api.umx.com/api/v1/trade/lever?symbol=ETH-USDT-25SEP26",
+                "input": [
+                    "ETH/USDT:USDT-260925"
+                ],
+                "output": null
+            }
+        ],
+        "fetchDepositAddressesByNetwork": [
+            {
+                "description": "deposit address of a single chain",
+                "method": "fetchDepositAddressesByNetwork",
+                "url": "https://api.umx.com/api/v1/asset/deposit/address?currency=USDT&chainType=trx",
+                "input": [
+                    "USDT",
+                    {
+                        "chainType": "trx"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "deposit addresses of every chain",
+                "method": "fetchDepositAddressesByNetwork",
+                "url": "https://api.umx.com/api/v1/asset/deposit/address?currency=USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "withdrawals of a single currency since with limit",
+                "method": "fetchWithdrawals",
+                "url": "https://api.umx.com/api/v1/asset/withdrawal/record?currency=USDT&beginTime=1790000000000",
+                "input": [
+                    "USDT",
+                    1790000000000,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "all withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.umx.com/api/v1/asset/withdrawal/record",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "deposits since with limit",
+                "method": "fetchDeposits",
+                "url": "https://api.umx.com/api/v1/asset/deposit/record?beginTime=1790000000000",
+                "input": [
+                    null,
+                    1790000000000,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "deposits of a single currency",
+                "method": "fetchDeposits",
+                "url": "https://api.umx.com/api/v1/asset/deposit/record?currency=USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "all deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.umx.com/api/v1/asset/deposit/record",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "transfers since with limit",
+                "method": "fetchTransfers",
+                "url": "https://api.umx.com/api/v1/asset/transfer/history?beginTime=1790196000000",
+                "input": [
+                    null,
+                    1790196000000,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "transfers of a single currency",
+                "method": "fetchTransfers",
+                "url": "https://api.umx.com/api/v1/asset/transfer/history?currency=USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "all transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.umx.com/api/v1/asset/transfer/history",
+                "input": [],
+                "output": null
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from the funding to the trading account",
+                "method": "transfer",
+                "url": "https://api.umx.com/api/v1/asset/transfer",
+                "input": [
+                    "USDT",
+                    5,
+                    "funding",
+                    "trading"
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"fromAccountType\":\"funding\",\"toAccountType\":\"trading\"}"
+            },
+            {
+                "description": "transfer from the trading to the funding account",
+                "method": "transfer",
+                "url": "https://api.umx.com/api/v1/asset/transfer",
+                "input": [
+                    "USDT",
+                    5,
+                    "trading",
+                    "funding",
+                    {
+                        "clientTransferId": "test transfer from trading to funding"
+                    }
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"fromAccountType\":\"trading\",\"toAccountType\":\"funding\",\"clientTransferId\":\"test transfer from trading to funding\"}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "funding account balance",
+                "method": "fetchBalance",
+                "url": "https://api.umx.com/api/v1/asset/balances",
+                "input": [
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "trading account balance",
+                "method": "fetchBalance",
+                "url": "https://api.umx.com/api/v1/account/balance",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchCrossBorrowRates": [
+            {
+                "description": "cross borrow rate of one currency",
+                "method": "fetchCrossBorrowRates",
+                "url": "https://api.umx.com/api/v1/public/baseRates?currency=BTC",
+                "input": [
+                    {
+                        "currency": "BTC"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "cross borrow rates",
+                "method": "fetchCrossBorrowRates",
+                "url": "https://api.umx.com/api/v1/public/baseRates",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchSettlementHistory": [
+            {
+                "description": "future settlements",
+                "method": "fetchSettlementHistory",
+                "url": "https://api.umx.com/api/v1/market/deliveryExercise/history?businessType=linear_futures&symbolFamily=ETH-USDT",
+                "input": [
+                    "ETH/USDT:USDT-260925"
+                ],
+                "output": null
+            },
+            {
+                "description": "option settlements since, until and limit",
+                "method": "fetchSettlementHistory",
+                "url": "https://api.umx.com/api/v1/market/deliveryExercise/history?businessType=options&symbolFamily=ETH-USDT&endTime=1789862400000&beginTime=1789603200000",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    1789603200000,
+                    2,
+                    {
+                        "until": 1789862400000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "option settlements since and until",
+                "method": "fetchSettlementHistory",
+                "url": "https://api.umx.com/api/v1/market/deliveryExercise/history?businessType=options&symbolFamily=ETH-USDT&endTime=1789862400000&beginTime=1789603200000",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    1789603200000,
+                    null,
+                    {
+                        "until": 1789862400000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "option settlements with limit",
+                "method": "fetchSettlementHistory",
+                "url": "https://api.umx.com/api/v1/market/deliveryExercise/history?businessType=options&symbolFamily=ETH-USDT&limit=100",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    null,
+                    100
+                ],
+                "output": null
+            },
+            {
+                "description": "option settlements",
+                "method": "fetchSettlementHistory",
+                "url": "https://api.umx.com/api/v1/market/deliveryExercise/history?businessType=options&symbolFamily=ETH-USDT",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C"
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.umx.com/api/v1/market/fundingRate/history?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "funding rate history since, until and limit",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.umx.com/api/v1/market/fundingRate/history?symbol=ETH-USDT-PERP&endTime=1788307200000&beginTime=1788220800000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1788220800000,
+                    2,
+                    {
+                        "until": 1788307200000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "funding rate history since and until",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.umx.com/api/v1/market/fundingRate/history?symbol=ETH-USDT-PERP&endTime=1788249600000&beginTime=1788220800000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1788220800000,
+                    null,
+                    {
+                        "until": 1788249600000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "funding rate history with limit",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.umx.com/api/v1/market/fundingRate/history?symbol=ETH-USDT-PERP&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchIndexOHLCV": [
+            {
+                "description": "index price ohlcv for a spot market",
+                "method": "fetchIndexOHLCV",
+                "url": "https://api.umx.com/api/v1/market/indexPriceKline?period=1h&symbolFamily=ETH-USDT&limit=2",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "index price ohlcv",
+                "method": "fetchIndexOHLCV",
+                "url": "https://api.umx.com/api/v1/market/indexPriceKline?period=1h&symbolFamily=ETH-USDT&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "mark price ohlcv for a delivery future",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api.umx.com/api/v1/market/markPriceKline?period=1h&symbol=ETH-USDT-25SEP26&limit=2",
+                "input": [
+                    "ETH/USDT:USDT-260925",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "mark price ohlcv",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api.umx.com/api/v1/market/markPriceKline?period=1h&symbol=ETH-USDT-PERP&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "funding rates for every perpetual market",
+                "method": "fetchFundingRates",
+                "url": "https://api.umx.com/api/v1/market/fundingRate",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "funding rates for a single market",
+                "method": "fetchFundingRates",
+                "url": "https://api.umx.com/api/v1/market/fundingRate?symbol=ETH-USDT-PERP",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.umx.com/api/v1/market/fundingRate?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "ohlcv since and until narrower than limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.umx.com/api/v1/market/kline?symbol=ETH-USDT&period=1h&limit=5&endTime=1789354800000&startTime=1789344000000",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    1789344000000,
+                    5,
+                    {
+                        "until": 1789354800000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "ohlcv since and until wider than limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.umx.com/api/v1/market/kline?symbol=ETH-USDT&period=1h&limit=2&endTime=1789351200000&startTime=1789344000000",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    1789344000000,
+                    2,
+                    {
+                        "until": 1790208000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "ohlcv since, end time derived from limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.umx.com/api/v1/market/kline?symbol=ETH-USDT&period=1h&limit=2&startTime=1789344000000&endTime=1789351200000",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    1789344000000,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "option ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.umx.com/api/v1/market/kline?symbol=ETH-USDT-25SEP26-2700-C&period=1h&limit=2",
+                "input": [
+                    "ETH/USDT:USDT-260925-2700-C",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "future ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.umx.com/api/v1/market/kline?symbol=ETH-USDT-25SEP26&period=1d&limit=2",
+                "input": [
+                    "ETH/USDT:USDT-260925",
+                    "1d",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.umx.com/api/v1/market/kline?symbol=ETH-USDT-PERP&period=5m&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "5m",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.umx.com/api/v1/market/kline?symbol=ETH-USDT&period=1h&limit=2",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "trades of a market that has never traded",
+                "method": "fetchTrades",
+                "url": "https://api.umx.com/api/v1/market/trade?symbol=ETH-USDT-27SEP26-2560-C&limit=2",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "option trades",
+                "method": "fetchTrades",
+                "url": "https://api.umx.com/api/v1/market/trade?symbol=ETH-USDT-25SEP26-2700-C&limit=2",
+                "input": [
+                    "ETH/USDT:USDT-260925-2700-C",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "future trades",
+                "method": "fetchTrades",
+                "url": "https://api.umx.com/api/v1/market/trade?symbol=ETH-USDT-25SEP26&limit=2",
+                "input": [
+                    "ETH/USDT:USDT-260925",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "swap trades",
+                "method": "fetchTrades",
+                "url": "https://api.umx.com/api/v1/market/trade?symbol=ETH-USDT-PERP&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "spot trades",
+                "method": "fetchTrades",
+                "url": "https://api.umx.com/api/v1/market/trade?symbol=ETH-USDT&limit=2",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "ticker of a market that has never traded",
+                "method": "fetchTicker",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=options&symbol=ETH-USDT-27SEP26-2560-C",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C"
+                ],
+                "output": null
+            },
+            {
+                "description": "option ticker",
+                "method": "fetchTicker",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=options&symbol=ETH-USDT-25SEP26-2700-C",
+                "input": [
+                    "ETH/USDT:USDT-260925-2700-C"
+                ],
+                "output": null
+            },
+            {
+                "description": "future ticker",
+                "method": "fetchTicker",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=linear_futures&symbol=ETH-USDT-25SEP26",
+                "input": [
+                    "ETH/USDT:USDT-260925"
+                ],
+                "output": null
+            },
+            {
+                "description": "swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=linear_perpetual&symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=spot&symbol=ETH-USDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "future tickers",
+                "method": "fetchTickers",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=linear_futures",
+                "input": [
+                    [
+                        "ETH/USDT:USDT-260925"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=linear_perpetual",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=spot",
+                "input": [
+                    [
+                        "ETH/USDT"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "option order book",
+                "method": "fetchOrderBook",
+                "url": "https://api.umx.com/api/v1/market/depth?symbol=ETH-USDT-27SEP26-2560-C&limit=2",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "future order book",
+                "method": "fetchOrderBook",
+                "url": "https://api.umx.com/api/v1/market/depth?symbol=ETH-USDT-25SEP26&limit=2",
+                "input": [
+                    "ETH/USDT:USDT-260925",
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "swap order book",
+                "method": "fetchOrderBook",
+                "url": "https://api.umx.com/api/v1/market/depth?symbol=ETH-USDT-PERP&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "spot order book",
+                "method": "fetchOrderBook",
+                "url": "https://api.umx.com/api/v1/market/depth?symbol=ETH-USDT&limit=2",
+                "input": [
+                    "ETH/USDT",
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetch currencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.umx.com/api/v2/asset/currencies",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetch server time",
+                "method": "fetchTime",
+                "url": "https://api.umx.com/api/v1/market/time",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "settled order history across all markets",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.umx.com/api/v2/history/orders",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "settled order history for a single swap market",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.umx.com/api/v2/history/orders?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "settled order history with since and limit, the limit stays off the wire when since is present",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.umx.com/api/v2/history/orders?symbol=ETH-USDT-PERP&beginTime=1790150400000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1790150400000,
+                    5
+                ],
+                "output": null
+            },
+            {
+                "description": "settled trigger order history",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.umx.com/api/v2/history/orderComplexs?symbol=ETH-USDT-PERP&complexType=trigger",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "trade history for a single swap market",
+                "method": "fetchMyTrades",
+                "url": "https://api.umx.com/api/v2/history/trades?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "trade history across all markets",
+                "method": "fetchMyTrades",
+                "url": "https://api.umx.com/api/v2/history/trades",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "trade history with since and limit, the limit stays off the wire when since is present",
+                "method": "fetchMyTrades",
+                "url": "https://api.umx.com/api/v2/history/trades?symbol=ETH-USDT-PERP&beginTime=1790150400000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1790150400000,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancel several orders in a batch by their ids",
+                "method": "cancelOrders",
+                "url": "https://api.umx.com/api/v1/trade/batchCancelOrder",
+                "input": [
+                    [
+                        "3538122818192056320"
+                    ],
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"orderCreateReq\":[{\"symbol\":\"ETH-USDT-PERP\",\"orderId\":\"3538122818192056320\"}]}"
+            },
+            {
+                "description": "a batch cancel with one nonexistent order id",
+                "method": "cancelOrders",
+                "url": "https://api.umx.com/api/v1/trade/batchCancelOrder",
+                "input": [
+                    [
+                        "3538142730667081728",
+                        "1234567890123456789"
+                    ],
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"orderCreateReq\":[{\"symbol\":\"ETH-USDT-PERP\",\"orderId\":\"3538142730667081728\"},{\"symbol\":\"ETH-USDT-PERP\",\"orderId\":\"1234567890123456789\"}]}"
+            }
+        ],
+        "createOrderWithTakeProfitAndStopLoss": [
+            {
+                "description": "attached take profit and stop loss with non-default mark and index price types",
+                "method": "createOrderWithTakeProfitAndStopLoss",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1900,
+                    3500,
+                    1500,
+                    {
+                        "takeProfitPriceType": "mark",
+                        "stopLossPriceType": "index",
+                        "takeProfit": {
+                            "triggerPrice": 3500,
+                            "priceType": "mark"
+                        },
+                        "stopLoss": {
+                            "triggerPrice": 1500,
+                            "priceType": "index"
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"1900\",\"qty\":\"0.001\",\"tpslOrder\":{\"takeProfit\":\"3500\",\"takeProfitType\":\"mark_price\",\"tpOrderType\":\"market\",\"stopLoss\":\"1500\",\"stopLossType\":\"index_price\",\"slOrderType\":\"market\"}}"
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "two limit orders in one batch",
+                "method": "createOrders",
+                "url": "https://api.umx.com/api/v2/trade/batchOrder",
+                "input": [
+                    [
+                        {
+                            "symbol": "ETH/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.001,
+                            "price": 1900
+                        },
+                        {
+                            "symbol": "ETH/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.001,
+                            "price": 1850
+                        }
+                    ]
+                ],
+                "output": "{\"orderReqList\":[{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"1900\",\"qty\":\"0.001\"},{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"1850\",\"qty\":\"0.001\"}]}"
+            }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "arm the dead man switch for 15 seconds",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.umx.com/api/v1/trade/countdownCancelAll",
+                "input": [
+                    15000
+                ],
+                "output": "{\"countdown\":\"15\"}"
+            },
+            {
+                "description": "disarm the dead man switch",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.umx.com/api/v1/trade/countdownCancelAll",
+                "input": [
+                    0
+                ],
+                "output": "{\"countdown\":\"0\"}"
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "all open positions",
+                "method": "fetchPositions",
+                "url": "https://api.umx.com/api/v2/trade/positions",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "positions of a single market, the venue filter is used",
+                "method": "fetchPositions",
+                "url": "https://api.umx.com/api/v2/trade/positions?symbol=ETH-USDT-PERP",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "closePosition": [
+            {
+                "description": "close the swap position of one symbol family",
+                "method": "closePosition",
+                "url": "https://api.umx.com/api/v2/trade/close-positions",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"symbolFamily\":\"ETH-USDT\",\"businessType\":\"linear_perpetual\"}"
+            }
+        ],
+        "closeAllPositions": [
+            {
+                "description": "close every open position",
+                "method": "closeAllPositions",
+                "url": "https://api.umx.com/api/v2/trade/close-positions",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "the whole borrow interest history",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.umx.com/api/v1/account/interest/history",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "borrow interest of one currency with since and limit, the limit stays off the wire when since is present",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.umx.com/api/v1/account/interest/history?currencyList=USDT&beginTime=1790150400000",
+                "input": [
+                    "USDT",
+                    null,
+                    1790150400000,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchDepositWithdrawFee": [
+            {
+                "description": "deposit and withdrawal fees of one currency",
+                "method": "fetchDepositWithdrawFee",
+                "url": "https://api.umx.com/api/v2/asset/chains?currency=USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchConvertQuote": [
+            {
+                "description": "a quote for converting the quote currency of a listed pair, the buy path",
+                "method": "fetchConvertQuote",
+                "url": "https://api.umx.com/api/v1/account/convert/getQuote",
+                "input": [
+                    "USDT",
+                    "ETH",
+                    5.5
+                ],
+                "output": "{\"baseCurrency\":\"ETH\",\"quoteCurrency\":\"USDT\",\"side\":\"buy\",\"quoteQty\":\"5.5\"}"
+            }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "accept a quote by its id",
+                "method": "createConvertTrade",
+                "url": "https://api.umx.com/api/v1/account/convert/acceptQuote",
+                "input": [
+                    "1552745025575464960",
+                    "USDT",
+                    "ETH"
+                ],
+                "output": "{\"quoteTxId\":\"1552745025575464960\"}"
+            }
+        ],
+        "fetchConvertTrade": [
+            {
+                "description": "the state of one conversion",
+                "method": "fetchConvertTrade",
+                "url": "https://api.umx.com/api/v1/account/convert/orderStatus?quoteTxId=1552745025575464960",
+                "input": [
+                    "1552745025575464960"
+                ],
+                "output": null
+            }
+        ],
+        "fetchConvertTradeHistory": [
+            {
+                "description": "the whole conversion history",
+                "method": "fetchConvertTradeHistory",
+                "url": "https://api.umx.com/api/v1/account/convert/history/orders",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "conversion history with a code, since and limit, the code filter is client side and the limit stays off the wire when since is present",
+                "method": "fetchConvertTradeHistory",
+                "url": "https://api.umx.com/api/v1/account/convert/history/orders?beginTime=1790150400000",
+                "input": [
+                    "USDT",
+                    1790150400000,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "the trading account bill",
+                "method": "fetchLedger",
+                "url": "https://api.umx.com/api/v1/history/bill?limit=3",
+                "input": [
+                    null,
+                    null,
+                    3
+                ],
+                "output": null
+            },
+            {
+                "description": "the funding account bill",
+                "method": "fetchLedger",
+                "url": "https://api.umx.com/api/v1/asset/bill?limit=2",
+                "input": [
+                    null,
+                    null,
+                    2,
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "the bill of one currency with since and limit, the limit stays off the wire when since is present",
+                "method": "fetchLedger",
+                "url": "https://api.umx.com/api/v1/history/bill?currency=USDT&beginTime=1790150400000",
+                "input": [
+                    "USDT",
+                    1790150400000,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "the funding fee view of the trading bill",
+                "method": "fetchFundingHistory",
+                "url": "https://api.umx.com/api/v1/history/bill?actionType=18",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "greeks of every traded option",
+                "method": "fetchAllGreeks",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=options",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchCrossBorrowRate": [
+            {
+                "description": "the borrow rate of one currency",
+                "method": "fetchCrossBorrowRate",
+                "url": "https://api.umx.com/api/v1/public/baseRates?currency=USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchConvertCurrencies": [
+            {
+                "description": "currencies of the conversion service",
+                "method": "fetchConvertCurrencies",
+                "url": "https://api.umx.com/api/v1/account/convert/exchangeInfo",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "the position of one perpetual",
+                "method": "fetchPosition",
+                "url": "https://api.umx.com/api/v2/trade/positions?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchGreeks": [
+            {
+                "description": "greeks of a traded option",
+                "method": "fetchGreeks",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=options&symbol=BTC-USDT-30OCT26-45000-C",
+                "input": [
+                    "BTC/USDT:USDT-261030-45000-C"
+                ],
+                "output": null
+            }
+        ],
+        "fetchLastPrices": [
+            {
+                "description": "last prices of one perpetual, the venue filter is used",
+                "method": "fetchLastPrices",
+                "url": "https://api.umx.com/api/v1/market/ticker/mini?businessType=linear_perpetual&symbol=ETH-USDT-PERP",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "last prices of every spot market",
+                "method": "fetchLastPrices",
+                "url": "https://api.umx.com/api/v1/market/ticker/mini?businessType=spot",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarkPrices": [
+            {
+                "description": "mark prices of one perpetual, the venue filter is used",
+                "method": "fetchMarkPrices",
+                "url": "https://api.umx.com/api/v1/market/index?businessType=linear_perpetual&symbol=ETH-USDT-PERP",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "mark prices of every dated future",
+                "method": "fetchMarkPrices",
+                "url": "https://api.umx.com/api/v1/market/index?businessType=linear_futures",
+                "input": [
+                    null,
+                    {
+                        "type": "future"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchMySettlementHistory": [
+            {
+                "description": "settlements from the trading account bill",
+                "method": "fetchMySettlementHistory",
+                "url": "https://api.umx.com/api/v1/history/bill?actionType=53",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "settlements with since and limit, the limit stays off the wire when since is present",
+                "method": "fetchMySettlementHistory",
+                "url": "https://api.umx.com/api/v1/history/bill?actionType=53&beginTime=1790150400000",
+                "input": [
+                    null,
+                    1790150400000,
+                    5
+                ],
+                "output": null
+            }
+        ]
+    },
+    "outputType": "both"
+}
