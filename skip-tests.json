@@ -1212,7 +1212,6 @@
     },
     "derive": {
         "skipMethods": {
-            "features": "not implemented",
             "loadMarkets": {
                 "currency": "messed",
                 "currencyIdAndCode": "messed"
@@ -1229,7 +1228,9 @@
             "fetchTrades": {
                 "takerOrMaker": "todo fix",
                 "sideSequence": "todo check"
-            }
+            },
+            "watchOrderBook": "spot books are empty on mainnet, bid sorting assert fails",
+            "watchBidsAsks": "spot books are empty on mainnet, bid/ask are zero"
         }
     },
     "digifinex": {
