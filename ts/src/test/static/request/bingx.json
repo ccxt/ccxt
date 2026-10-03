@@ -1538,15 +1538,30 @@
         ],
         "transfer": [
             {
-                "description": "transfer LTC from inverse swap to spot using the subType parameter",
+                "description": "transfer XRP from inverse swap to spot using the subType parameter",
                 "disabledGO": true,
                 "method": "transfer",
-                "url": "https://open-api.bingx.com/openApi/api/asset/v1/transfer?amount=0.05&asset=LTC&fromAccount=USDTMPerp&timestamp=1752202170056&toAccount=spot&signature=1759012ec5ebbca1ad6a823da98ce4689dbf667aa5a01ee9ea553e23f2f1e010",       
+                "url": "https://open-api.bingx.com/openApi/api/asset/v1/transfer?amount=1&asset=XRP&fromAccount=coinMPerp&timestamp=1790873599567&toAccount=spot&signature=33832570dab98c247777fd3eb14175b1f208ac75b7353ad5e7e86ebfb879bfdf",
                 "input": [
-                    "LTC",
-                    0.05,
+                    "XRP",
+                    1,
                     "swap",
                     "spot",
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            },
+            {
+                "description": "transfer XRP from spot to inverse swap using the subType parameter",
+                "disabledGO": true,
+                "method": "transfer",
+                "url": "https://open-api.bingx.com/openApi/api/asset/v1/transfer?amount=1&asset=XRP&fromAccount=spot&timestamp=1790873597997&toAccount=coinMPerp&signature=c988f9c3996be4387895a7c1a2490b1b388bc11dcfb94dff7c8df77a2b78b667",
+                "input": [
+                    "XRP",
+                    1,
+                    "spot",
+                    "swap",
                     {
                         "subType": "inverse"
                     }
@@ -1651,6 +1666,22 @@
             }
         ],
         "editOrder": [
+            {
+                "description": "spot edit order with cancelReplaceMode",
+                "method": "editOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order/cancelReplace?cancelOrderId=2105697526710435840&cancelReplaceMode=ALLOW_FAILURE&price=29000&quantity=0.0002&side=BUY&symbol=BTC-USDT&timestamp=1790872390993&type=LIMIT&signature=847bac298ae237333917a1b7f57d9bd4c59f48360d5caf3c690f64c60cbbee97",
+                "input": [
+                    "2105697526710435840",
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0002,
+                    29000,
+                    {
+                        "cancelReplaceMode": "ALLOW_FAILURE"
+                    }
+                ]
+            },
             {
                 "disabled": true,
                 "description": "trigger order with stoploss & takeprofit",

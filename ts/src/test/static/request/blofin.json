@@ -3,6 +3,83 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "deposit address for USDT on TRC20",
+                "method": "fetchDepositAddress",
+                "url": "https://openapi.blofin.com/api/v1/asset/deposit-address?currency=USDT&chain=Tron%20%28TRC20%29",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ]
+            },
+            {
+                "description": "deposit address for USDT on OPTIMISM resolves the currency-scoped chain id",
+                "method": "fetchDepositAddress",
+                "url": "https://openapi.blofin.com/api/v1/asset/deposit-address?currency=USDT&chain=Optimism%20%28USDT0%29",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "OPTIMISM"
+                    }
+                ]
+            },
+            {
+                "description": "deposit address for USDT with the legacy OP network alias",
+                "method": "fetchDepositAddress",
+                "url": "https://openapi.blofin.com/api/v1/asset/deposit-address?currency=USDT&chain=Optimism%20%28USDT0%29",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "OP"
+                    }
+                ]
+            },
+            {
+                "description": "deposit address for ETH on OPTIMISM",
+                "method": "fetchDepositAddress",
+                "url": "https://openapi.blofin.com/api/v1/asset/deposit-address?currency=ETH&chain=Optimism",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "OPTIMISM"
+                    }
+                ]
+            },
+            {
+                "description": "deposit address for BTC with the default network",
+                "method": "fetchDepositAddress",
+                "url": "https://openapi.blofin.com/api/v1/asset/deposit-address?currency=BTC&chain=Bitcoin",
+                "input": [
+                    "BTC"
+                ]
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "deposit and withdraw fees for USDT and BTC",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://openapi.blofin.com/api/v1/asset/currencies",
+                "input": [
+                    [
+                        "USDT",
+                        "BTC"
+                    ]
+                ]
+            }
+        ],
+        "fetchWithdrawal": [
+            {
+                "description": "fetch a withdrawal by id",
+                "method": "fetchWithdrawal",
+                "url": "https://openapi.blofin.com/api/v1/asset/withdrawal-history?withdrawId=4925a43661d14db7b5a11c608d04ec8c",
+                "input": [
+                    "4925a43661d14db7b5a11c608d04ec8c"
+                ]
+            }
+        ],
         "fetchPositionsHistory": [
             {
                 "description": "default",
@@ -216,7 +293,7 @@
                 "method": "cancelOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/cancel-algo",
                 "input": [
-                    61322087,
+                    "61322087",
                     "LTC/USDT:USDT",
                     {
                         "trigger": true

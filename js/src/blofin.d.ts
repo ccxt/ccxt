@@ -1,5 +1,5 @@
 import Exchange from './abstract/blofin.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, NullableDict, PositionModeInfo } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Currencies, CurrencyInterface, DepositAddress, DepositWithdrawFees, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, NullableDict, PositionModeInfo } from './base/types.js';
 /**
  * @class blofin
  * @augments Exchange
@@ -113,7 +113,7 @@ export default class blofin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     parseBalanceByType(response: Dict): Balances;
     parseBalance(response: any): Balances;
     parseFundingBalance(response: Dict): Balances;
@@ -163,7 +163,7 @@ export default class blofin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
-    createTpslOrderRequest(symbol: Str, type: Str, side: Str, amount?: Num, price?: Num, params?: Dict): Dict;
+    createTpslOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name blofin#cancelOrder
@@ -248,8 +248,65 @@ export default class blofin extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
-    networkCodeToChainId(networkCode: string): Str;
+    networkCodeToChainId(networkCode: string, currency?: Currency): Str;
     chainIdToNetworkCode(chainId: Str): Str;
+    /**
+     * @method
+     * @name blofin#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.blofin.com/index.html#get-currencies
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    fetchCurrencies(params?: Dict): Promise<Currencies>;
+    parseCurrency(currency: Dict): CurrencyInterface;
+    /**
+     * @method
+     * @name blofin#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://docs.blofin.com/index.html#get-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] unified network code, required unless the currency has a single network or a default in options['defaultNetworks']
+     * @param {string} [params.chain] the exchange-specific chain id, takes precedence over params.network
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
+    /**
+     * @method
+     * @name blofin#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://docs.blofin.com/index.html#get-currencies
+     * @param {string[]} [codes] list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
+    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    /**
+     * @method
+     * @name blofin#fetchDeposit
+     * @description fetch information on a deposit
+     * @see https://docs.blofin.com/index.html#get-deposit-history
+     * @param {string} id deposit id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    fetchDeposit(id: string, code?: Str, params?: Dict): Promise<Transaction>;
+    /**
+     * @method
+     * @name blofin#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id
+     * @see https://docs.blofin.com/index.html#get-withdraw-history
+     * @param {string} id withdrawal id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    fetchWithdrawal(id: string, code?: Str, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name blofin#withdraw
@@ -406,7 +463,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    closePosition(symbol: string, side?: OrderSide, params?: Dict): Promise<Order>;
+    closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name blofin#fetchClosedOrders
@@ -477,5 +534,5 @@ export default class blofin extends Exchange {
     fetchPositionsADLRank(symbols?: Strings, params?: Dict): Promise<ADL[]>;
     parseADLRank(info: Dict, market?: Market): ADL;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: any, api?: string, method?: any, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: any, params?: Dict, headers?: NullableDict, body?: Str): Dict;
 }

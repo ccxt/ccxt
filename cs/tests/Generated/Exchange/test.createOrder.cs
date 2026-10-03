@@ -87,7 +87,7 @@ public partial class testMainClass : BaseTest
                 limitSellPrice_nonFillable = maximumPrice;
             }
             object createdOrder = null;
-            if (isEqual(buyOrSell, "buy"))
+            if ((buyOrSell is "buy"))
             {
                 object orderAmount = tcoGetMinimumAmountForLimitPrice(exchange, market, limitBuyPrice_nonFillable, predefinedAmount);
                 createdOrder = await tcoCreateOrderSafe(exchange, symbol, "limit", "buy", orderAmount, limitBuyPrice_nonFillable, new Dictionary<string, object>() {}, skippedProperties);
@@ -120,7 +120,7 @@ public partial class testMainClass : BaseTest
         try
         {
             bool isSwapFuture = (isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true));
-            bool isBuy = (isEqual(buyOrSellString, "buy"));
+            bool isBuy = ((buyOrSellString is "buy"));
             string entrySide = isBuy ? "buy" : "sell";
             string exitSide = isBuy ? "sell" : "buy";
             object entryorderPrice = isBuy ? multiply(bestAsk, limitPriceSafetyMultiplierFromMedian) : divide(bestBid, limitPriceSafetyMultiplierFromMedian);
@@ -143,7 +143,7 @@ public partial class testMainClass : BaseTest
             // as we want to close position, we should use 'reduceOnly' to ensure we don't open a margined position accidentally, because some exchanges might have automatically enabled margin-mode (on spot) or hedge-mode (on contracts)
             if (isSwapFuture)
             {
-                ((IDictionary<string,object>)parameters)["reduceOnly"] = true;
+                parameters["reduceOnly"] = true;
             }
             object exitorderPriceArg = (isEqual(getValue(market, "spot"), true)) ? null : exitorderPrice;
             object exitorderFilled = await tcoCreateOrderSafe(exchange, symbol, "market", exitSide, amountToClose, exitorderPriceArg, parameters, skippedProperties);
@@ -151,7 +151,7 @@ public partial class testMainClass : BaseTest
             tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
         } catch(Exception e)
         {
-            throw new Exception ((string)("failed for Scenario 2: " + ((object)e).ToString())) ;
+            throw new Exception (("failed for Scenario 2: " + ((object)e).ToString())) ;
         }
         return true;
     }
@@ -213,7 +213,7 @@ public partial class testMainClass : BaseTest
             testOrder(exchange, skippedProperties, "createOrder", order, symbol, (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds());
         } catch(Exception e)
         {
-            if (!isEqual(orderType, "market"))
+            if (!(orderType is "market"))
             {
                 // if it was limit order, try to cancel it before exiting the script
                 await tcoTryCancelOrder(exchange, symbol, order, skippedProperties);
@@ -284,7 +284,7 @@ public partial class testMainClass : BaseTest
         }
         object needsCancel = exchange.inArray(getValue(orderFetched, "status"), new List<object>() {"open", "pending", null});
         // if it was not reported as closed/filled, then try to cancel it
-        if (isEqual(needsCancel, true))
+        if ((needsCancel is true))
         {
             tcoDebug(exchange, symbol, "trying to cancel the remaining amount of partially filled order...");
             try

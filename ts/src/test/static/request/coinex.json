@@ -634,7 +634,7 @@
                 "method": "cancelOrder",
                 "url": "https://api.coinex.com/v2/spot/cancel-order",
                 "input": [
-                  117401168172,
+                  "117401168172",
                   "BTC/USDT"
                 ],
                 "output": "{\"market\":\"BTCUSDT\",\"market_type\":\"SPOT\",\"order_id\":117401168172}"
@@ -644,7 +644,7 @@
                 "method": "cancelOrder",
                 "url": "https://api.coinex.com/v2/spot/cancel-stop-order",
                 "input": [
-                  117401897954,
+                  "117401897954",
                   "BTC/USDT",
                   {
                     "trigger": true
@@ -657,7 +657,7 @@
                 "method": "cancelOrder",
                 "url": "https://api.coinex.com/v2/futures/cancel-order",
                 "input": [
-                  137174472136,
+                  "137174472136",
                   "BTC/USDT:USDT"
                 ],
                 "output": "{\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"order_id\":137174472136}"
@@ -667,7 +667,7 @@
                 "method": "cancelOrder",
                 "url": "https://api.coinex.com/v2/futures/cancel-stop-order",
                 "input": [
-                  137175039001,
+                  "137175039001",
                   "BTC/USDT:USDT",
                   {
                     "trigger": true
@@ -940,7 +940,7 @@
                 "method": "fetchOrder",
                 "url": "https://api.coinex.com/v2/spot/order-status?market=BTCUSDT&order_id=117492012985",
                 "input": [
-                  117492012985,
+                  "117492012985",
                   "BTC/USDT"
                 ]
             },
@@ -949,7 +949,7 @@
                 "method": "fetchOrder",
                 "url": "https://api.coinex.com/v2/futures/order-status?market=BTCUSDT&order_id=137319868771",
                 "input": [
-                  137319868771,
+                  "137319868771",
                   "BTC/USDT:USDT"
                 ]
             }
@@ -1109,7 +1109,7 @@
                 "method": "editOrder",
                 "url": "https://api.coinex.com/v2/spot/modify-order",
                 "input": [
-                  117336840432,
+                  "117336840432",
                   "BTC/USDT",
                   "limit",
                   "buy",
@@ -1123,7 +1123,7 @@
                 "method": "editOrder",
                 "url": "https://api.coinex.com/v2/spot/modify-stop-order",
                 "input": [
-                  117337149743,
+                  "117337149743",
                   "BTC/USDT",
                   "limit",
                   "buy",
@@ -1140,7 +1140,7 @@
                 "method": "editOrder",
                 "url": "https://api.coinex.com/v2/futures/modify-order",
                 "input": [
-                  137091531608,
+                  "137091531608",
                   "BTC/USDT:USDT",
                   "limit",
                   "buy",
@@ -1154,7 +1154,7 @@
                 "method": "editOrder",
                 "url": "https://api.coinex.com/v2/futures/modify-stop-order",
                 "input": [
-                  137091809783,
+                  "137091809783",
                   "BTC/USDT:USDT",
                   "limit",
                   "buy",

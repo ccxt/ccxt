@@ -26,9 +26,9 @@ Current feature list:
 
 ## CCXT Terminal
 
-[![CCXT Terminal: One App. Every Market. High-performance trading with real-time sync](https://github.com/user-attachments/assets/5bfe1227-860c-45ad-b43c-884e899b70e1)](https://terminal.ccxt.com)
+[![CCXT Terminal: One App. Every Market. High-performance trading with real-time sync](https://github.com/user-attachments/assets/11f1ead4-24bb-49d5-bb67-cd8f4be35ad6)](https://terminal.ccxt.com/?utm_source=github&utm_medium=referral&utm_campaign=web_terminal_launch&utm_content=readme_banner)
 
-[**CCXT Terminal**](https://terminal.ccxt.com) is a non-custodial trading platform built on the same open-source CCXT library you already use. It takes you from market analysis to order execution in one place, pairing a scalper DOM and real-time liquidity visualization with low-latency order routing across multiple exchanges.
+[**CCXT Terminal**](https://terminal.ccxt.com/?utm_source=github&utm_medium=referral&utm_campaign=web_terminal_launch&utm_content=readme_text_link) is a non-custodial trading platform built on the same open-source CCXT library you already use. It takes you from market analysis to order execution in one place, pairing a scalper DOM and real-time liquidity visualization with low-latency order routing across multiple exchanges.
 
 ## See Also
 
@@ -49,7 +49,7 @@ Current feature list:
 | [![gate](https://github.com/user-attachments/assets/b4fd9d41-eaed-46fe-8a7b-b2677edface0)](https://www.gate.com/share/CCXTGATE)                                             | gate          | [Gate](https://www.gate.com/share/CCXTGATE)                                             | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://www.gate.com/docs/developers/apiv4/en)                         | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) | [![Sign up with Gate using CCXT's referral link for a 20% discount!](https://img.shields.io/static/v1?label=Fee&message=%2d20%25&color=orange)](https://www.gate.com/share/CCXTGATE)                         |
 | [![kucoin](https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg)](https://www.kucoin.com/ucenter/signup?rcode=E5wkqe)       | kucoin        | [KuCoin](https://www.kucoin.com/ucenter/signup?rcode=E5wkqe)                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.kucoin.com)                                               | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |                                                                                                                                                                                                              |
 | [![kucoinfutures](https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg)](https://futures.kucoin.com/?rcode=E5wkqe)          | kucoinfutures | [KuCoin Futures](https://futures.kucoin.com/?rcode=E5wkqe)                              | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.kucoin.com)                                               | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |                                                                                                                                                                                                              |
-| [![bitget](https://github.com/user-attachments/assets/b54bb4c2-416d-4231-8968-85a77748ba45)](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j) | bitget        | [Bitget](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j) | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.bitget.com/api-doc/common/intro)                           | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |                                                                                                                                                                                                              |
+| [![bitget](https://github.com/user-attachments/assets/b54bb4c2-416d-4231-8968-85a77748ba45)](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j) | bitget        | [Bitget](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j) | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.bitget.com/docs/uta/Introduction)                          | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |                                                                                                                                                                                                              |
 | [![hyperliquid](https://github.com/user-attachments/assets/550769b3-d270-461e-9e02-8e8b8c0210b8)](https://app.hyperliquid.xyz/)                                             | hyperliquid   | [Hyperliquid](https://app.hyperliquid.xyz/)                                             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api)    | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |                                                                                                                                                                                                              |
 | [![bingx](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg)](https://bingx.com/invite/OHETOM)        | bingx         | [BingX](https://bingx.com/invite/OHETOM)                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://bingx-api.github.io/docs/)                                     | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |                                                                                                                                                                                                              |
 | [![htx](https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg)](https://www.htx.com/invite/en-us/1h?invite_code=6rmm2223)     | htx           | [HTX](https://www.htx.com/invite/en-us/1h?invite_code=6rmm2223)                         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://huobiapi.github.io/docs/spot/v1/en/)                           | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) | [![Sign up with HTX using CCXT's referral link for a 15% discount!](https://img.shields.io/static/v1?label=Fee&message=%2d15%25&color=orange)](https://www.htx.com/invite/en-us/1h?invite_code=6rmm2223)     |
@@ -81,7 +81,7 @@ Current feature list:
 | [![bitbns](https://github.com/user-attachments/assets/a5b9a562-cdd8-4bea-9fa7-fd24c1dad3d9)](https://ref.bitbns.com/1090961)                                                                        | bitbns                | [Bitbns](https://ref.bitbns.com/1090961)                                                    | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://bitbns.com/trade/#/api-trading/)                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![bitfinex](https://github.com/user-attachments/assets/4a8e947f-ab46-481a-a8ae-8b20e9b03178)](https://www.bitfinex.com)                                                                            | bitfinex              | [Bitfinex](https://www.bitfinex.com)                                                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.bitfinex.com/v2/docs/)                                                 | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![bitflyer](https://github.com/user-attachments/assets/d0217747-e54d-4533-8416-0d553dca74bb)](https://bitflyer.com)                                                                                | bitflyer              | [bitFlyer](https://bitflyer.com)                                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://lightning.bitflyer.com/docs?lang=en)                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
-| [![bitget](https://github.com/user-attachments/assets/b54bb4c2-416d-4231-8968-85a77748ba45)](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j)                         | bitget                | [Bitget](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j)     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.bitget.com/api-doc/common/intro)                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
+| [![bitget](https://github.com/user-attachments/assets/b54bb4c2-416d-4231-8968-85a77748ba45)](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j)                         | bitget                | [Bitget](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j)     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.bitget.com/docs/uta/Introduction)                                       | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![bithumb](https://github.com/user-attachments/assets/c9e0eefb-4777-46b9-8f09-9d7f7c4af82d)](https://www.bithumb.com)                                                                              | bithumb               | [Bithumb](https://www.bithumb.com)                                                          | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://apidocs.bithumb.com)                                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![bitopro](https://github.com/user-attachments/assets/affc6337-b95a-44bf-aacd-04f9722364f6)](https://www.bitopro.com)                                                                              | bitopro               | [BitoPro](https://www.bitopro.com)                                                          | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/rest.md) | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![bitrue](https://github.com/user-attachments/assets/67abe346-1273-461a-bd7c-42fa32907c8e)](https://www.bitrue.com/affiliate/landing?cn=600000&inviteCode=EZWETQE)                                 | bitrue                | [Bitrue](https://www.bitrue.com/affiliate/landing?cn=600000&inviteCode=EZWETQE)             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/Bitrue-exchange/bitrue-official-api-docs)                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
@@ -237,11 +237,11 @@ This library is shipped as an all-in-one module implementation with minimalistic
 You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt):
 
 ```shell
-git clone https://github.com/ccxt/ccxt.git  # including 1GB of commit history
+git clone https://github.com/ccxt/ccxt.git  # including several GBs of commit history
 
 # or
 
-git clone https://github.com/ccxt/ccxt.git --depth 1  # avoid downloading 1GB of commit history
+git clone https://github.com/ccxt/ccxt.git --depth 1  # avoid downloading the commit history
 ```
 
 ### JavaScript (NPM)
@@ -269,13 +269,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.84/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.5.84/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.85/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.5.85/dist/ccxt.browser.min.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.84/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.85/dist/ccxt.browser.min.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -805,7 +805,7 @@ public class Example {
         System.out.println(ticker.symbol + " last=" + ticker.last);
 
         // Fetch OHLCV
-        var candles = binance.fetchOHLCV("BTC/USDT", "1h", null, 10L, null);
+        var candles = binance.fetchOHLCV("BTC/USDT", "1h", null, 10L);
         System.out.println("Got " + candles.size() + " candles");
 
         // Private API (requires API keys)
@@ -817,7 +817,7 @@ public class Example {
         System.out.println("Order id: " + order.id + " status: " + order.status);
 
         // Cancel it
-        binance.cancelOrder(order.id, "BTC/USDT", null);
+        binance.cancelOrder(order.id, "BTC/USDT");
     }
 }
 ```
@@ -901,15 +901,16 @@ WebSocket support is available via the pro exchange classes:
 ```Java
 import io.github.ccxt.Exchange;
 import io.github.ccxt.exchanges.pro.Binance;
+import io.github.ccxt.types.Ticker;
 
 import java.util.concurrent.TimeUnit;
 
 Exchange exchange = new Binance();
-exchange.loadMarkets().join();
+exchange.loadMarkets(false);
 
 // stream live ticker updates
 for (int i = 0; i < 10; i++) {
-    Object ticker = exchange.watchTicker("BTC/USDT").get(30, TimeUnit.SECONDS);
+    Ticker ticker = exchange.watchTickerAsync("BTC/USDT").get(30, TimeUnit.SECONDS);
     System.out.println(ticker);
 }
 ```

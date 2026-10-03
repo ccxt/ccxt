@@ -102,7 +102,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;
+    fetchDeposit(id: string, code?: Str, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name bitget#withdraw
@@ -147,7 +147,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
+    fetchWithdrawal(id: string, code?: Str, params?: Dict): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionType(type: Str): Str;
     parseTransactionStatus(status: Str): Str;
@@ -163,7 +163,7 @@ export default class bitget extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name bitget#fetchOrderBook
@@ -296,14 +296,12 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Assets
-     * @see https://www.bitget.com/api-doc/contract/account/Get-Account-List
-     * @see https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Assets
-     * @see https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets
-     * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
-     * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
-     * @see https://www.bitget.com/api-doc/uta/account/Get-Account
-     * @see https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
+     * @see https://www.bitget.com/docs/catalog/classic-spot-account/classic-spot-account#get-account-assets
+     * @see https://www.bitget.com/docs/catalog/classic-contract-account/classic-contract-account#get-account-list
+     * @see https://www.bitget.com/docs/catalog/classic-margin-cross-account/classic-margin-cross-account#get-cross-account-assets
+     * @see https://www.bitget.com/docs/catalog/classic-margin-isolated-account/classic-margin-isolated-account#get-isolated-account-asset
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-assets
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-funding-assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -311,7 +309,7 @@ export default class bitget extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseUtaBalance(balance: Dict[]): Balances;
+    parseUtaBalance(balance: Dict[], response?: Dict | undefined): Balances;
     parseBalance(balance: any): Balances;
     parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
@@ -745,8 +743,8 @@ export default class bitget extends Exchange {
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseFundingHistory(contract: any, market?: Market): {
-        info: any;
+    parseFundingHistory(contract: NullableDict, market?: Market): {
+        info: NullableDict;
         symbol: string;
         timestamp: Int;
         datetime: string | undefined;
@@ -1009,7 +1007,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    closePosition(symbol: string, side?: OrderSide, params?: Dict): Promise<Order>;
+    closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bitget#closeAllPositions
@@ -1109,7 +1107,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingInterval(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingInterval(symbol: string, params?: Dict): Promise<FundingRate>;
     /**
      * @method
      * @name bitget#fetchLongShortRatioHistory
@@ -1127,5 +1125,5 @@ export default class bitget extends Exchange {
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     nonce(): number;
-    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
 }

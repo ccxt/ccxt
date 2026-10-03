@@ -1574,7 +1574,7 @@
                 "description": "Edit order by clientOrderId",
                 "method": "editOrder",
                 "input": [
-                    123,
+                    "123",
                     "USDT/USDC",
                     "limit",
                     "buy",
