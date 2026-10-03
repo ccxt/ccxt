@@ -210,6 +210,49 @@
         ],
         "createOrder": [
             {
+                "description": "swap trigger order with a unified trigger price type",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&price=60000&quantity=0.0001&side=BUY&stopPrice=61000&symbol=BTC-USDT&timestamp=1790928062870&type=TRIGGER_LIMIT&workingType=CONTRACT_PRICE&signature=d1ea38e6929f447431322d35e6a833ab4d4b2be76b330090bd59fa706962c263",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    60000,
+                    {
+                        "hedged": true,
+                        "triggerPrice": 61000,
+                        "triggerPriceType": "last"
+                    }
+                ]
+            },
+            {
+                "description": "swap order with attached stop loss and take profit using unified trigger price types",
+                "disabledGO": true,
+                "disabledJava": true,
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&price=60000&quantity=0.0001&side=BUY&stopLoss=%7B%22stopPrice%22%3A55000%2C%22workingType%22%3A%22CONTRACT_PRICE%22%2C%22type%22%3A%22STOP%22%2C%22price%22%3A54900%2C%22quantity%22%3A0.0001%7D&symbol=BTC-USDT&takeProfit=%7B%22stopPrice%22%3A70000%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A0.0001%7D&timestamp=1790928030655&type=LIMIT&signature=b41240b1a415fb649e102cf936783c80ea4af3bd238953c7217110b5b2e18cdc",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    60000,
+                    {
+                        "hedged": true,
+                        "stopLoss": {
+                            "triggerPrice": 55000,
+                            "price": 54900,
+                            "triggerPriceType": "last"
+                        },
+                        "takeProfit": {
+                            "triggerPrice": 70000,
+                            "triggerPriceType": "mark"
+                        }
+                    }
+                ]
+            },
+            {
                 "description": "with stopLoss (exchange-specific)",
                 "disabledGO": true,
                 "disabledJava": true,
