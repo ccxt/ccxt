@@ -4039,9 +4039,9 @@ export default class derive extends Exchange {
     }
 
     handleDeriveSubaccountId (methodName: string, params: Dict): [any, Dict] {
-        const [ derivesubAccountId, paramsSubaccountId ] = this.handleOptionAndParams (params, methodName, 'subaccount_id');
+        const [ derivesubAccountId, paramsSubaccountId ] = this.handleOptionAndParams2 (params, methodName, 'subaccount_id', 'subaccountId');
         if ((derivesubAccountId !== undefined) && (derivesubAccountId !== '')) {
-            if (!('subaccount_id' in this.options)) {
+            if (!('subaccount_id' in this.options) && !('subaccountId' in this.options)) {
                 // remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
                 this.options['subaccount_id'] = derivesubAccountId;
             }
