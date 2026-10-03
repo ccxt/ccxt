@@ -403,6 +403,21 @@
                 "output": { "subaccount_id": 130837 }
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_order",
+                "input": [
+                    "50351ad6-934a-4c2e-9651-6cb6dbfdd09e",
+                    null,
+                    {
+                        "subaccount_id": 86815
+                    }
+                ],
+                "output": "{\"order_id\":\"50351ad6-934a-4c2e-9651-6cb6dbfdd09e\",\"subaccount_id\":86815}"
+            }
+        ],
         "fetchCanceledAndClosedOrders": [
             {
                 "description": "fetchCanceledAndClosedOrders",
