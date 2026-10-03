@@ -367,6 +367,7 @@ public class Latoken extends LatokenApi
                     put( "INTERNAL_ERROR", ExchangeError.class );
                     put( "SERVICE_UNAVAILABLE", ExchangeNotAvailable.class );
                     put( "NOT_AUTHORIZED", AuthenticationError.class );
+                    put( "UNAUTHORIZED", AuthenticationError.class );
                     put( "FORBIDDEN", PermissionDenied.class );
                     put( "BAD_REQUEST", BadRequest.class );
                     put( "NOT_FOUND", ExchangeError.class );
@@ -389,6 +390,7 @@ public class Latoken extends LatokenApi
                 }} );
                 put( "broad", new HashMap<String, Object>() {{
                     put( "invalid API key, signature or digest", AuthenticationError.class );
+                    put( "Invalid API key specified", AuthenticationError.class );
                     put( "The API key was revoked", AuthenticationError.class );
                     put( "request expired or bad", InvalidNonce.class );
                     put( "For input string", BadRequest.class );
@@ -2264,9 +2266,8 @@ public class Latoken extends LatokenApi
             this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
         }
-        Object error = this.safeValue(response, "error");
-        String errorMessage = this.safeString(error, "message");
-        if ((!java.util.Objects.equals(error, null)) || (!java.util.Objects.equals(errorMessage, null)))
+        String error = this.safeString(response, "error");
+        if (!java.util.Objects.equals(error, null))
         {
             this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
