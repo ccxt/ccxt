@@ -24,6 +24,7 @@ import { goGofmtBinarySpacing } from "./goGofmtLayout.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { goNativeArithmetic, g10kArithSelfTest } from './go-native-arith.js';
 import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES } from './go-local-types.js';
+import { installCacheRemoveCall } from './cache-remove-call.js';
 
 type dict = { [key: string]: string };
 
@@ -4868,6 +4869,7 @@ class NewTranspiler {
         // typed locals for the hand-written CCXT Go helpers (see build/go-local-types.js);
         // build/go-worker.ts installs the same hooks for the Piscina path
         installCcxtGoLocalTypes (this.transpiler.goTranspiler, GO_UNIFIED_INT64_PARAMS);
+        installCacheRemoveCall (this.transpiler, 'go');
         installCcxtGoIndexableTypes (this.transpiler.goTranspiler);
     }
 

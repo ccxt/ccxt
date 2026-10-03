@@ -347,6 +347,31 @@ class ArrayCacheByOutcomeById extends ArrayCacheBySymbolById {
 
 class ArrayCacheBySymbolBySide extends ArrayCache {
 
+    remove (symbol: string) {
+        if (this.hashmap[symbol] === undefined) {
+            return
+        }
+        // Compact in place: preserve retained references and their polling state.
+        let retained = 0
+        for (let i = 0; i < this.length; i++) {
+            const item = this[i]
+            if (item.symbol !== symbol) {
+                this[retained] = item
+                retained++
+            }
+        }
+        this.length = retained
+        delete this.hashmap[symbol]
+        const globalSides = this.seenUpdatesAll[symbol]
+        if (globalSides !== undefined) {
+            this.allNewUpdates -= globalSides.size
+        }
+        delete this.seenUpdatesAll[symbol]
+        delete this.seenUpdatesBySymbol[symbol]
+        delete this.clearUpdatesBySymbol[symbol]
+        this.newUpdatesBySymbol[symbol] = 0
+    }
+
     constructor () {
         super ()
         this.nestedNewUpdatesBySymbol = true
