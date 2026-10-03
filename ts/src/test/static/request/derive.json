@@ -614,8 +614,8 @@
                 "input": [
                     "USDC",
                     5,
-                    86815,
-                    86820
+                    "86815",
+                    "86820"
                 ],
                 "output": "{\"subaccount_id\":86815,\"to_subaccount_id\":86820,\"new_subaccount_manager\":0,\"asset_name\":\"USDC\",\"sub_id\":0,\"amount\":\"5\",\"max_fee_usd\":\"0\",\"nonce\":\"1791030590669947694\",\"signer\":\"0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee\",\"signature\":\"0x3bfd82a2ed1d1c4ced41a0c81839d9a6076feb31830cea179eaa03b5c30ee93e3e17935e154bf64a56840711eae07a2f89ab9bacb7b633b57c6a518162afd9021b\",\"signature_expiry_sec\":1798806590}"
             }

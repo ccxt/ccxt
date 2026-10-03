@@ -477,5 +477,158 @@
         "max": null
       }
     }
-  }
+  },
+
+    "ETH": {
+        "info": {
+            "currency": "ETH",
+            "market_type": "ALL",
+            "spot_price": "2681.4703630032486",
+            "spot_price_24h": "2696.862435358125",
+            "managers": [
+                {
+                    "risk_universe_id": 1,
+                    "risk_universe_name": "PRIME",
+                    "sm": 1,
+                    "pm": 5
+                },
+                {
+                    "risk_universe_id": 2,
+                    "risk_universe_name": "MIDCAP",
+                    "sm": 2
+                },
+                {
+                    "risk_universe_id": 3,
+                    "risk_universe_name": "ALT",
+                    "sm": 3
+                },
+                {
+                    "risk_universe_id": 4,
+                    "risk_universe_name": "RWA",
+                    "sm": 4
+                }
+            ],
+            "option": {
+                "name": "ETH-OPTION",
+                "address": "0x4BB4C3CDc7562f08e9910A0C7D8bB7e108861eB4",
+                "universes": [
+                    {
+                        "risk_universe_id": 1,
+                        "risk_universe_name": "PRIME",
+                        "oi": {
+                            "current_open_interest": "305417.723502152879",
+                            "interest_cap": "6000000"
+                        }
+                    }
+                ]
+            },
+            "perp": {
+                "name": "ETH-PERP",
+                "address": "0xAf65752C4643E25C02F693f9D4FE19cF23a095E3",
+                "universes": [
+                    {
+                        "risk_universe_id": 1,
+                        "risk_universe_name": "PRIME",
+                        "oi": {
+                            "current_open_interest": "15135.166442960228",
+                            "interest_cap": "750000"
+                        },
+                        "srm_perp_margin_requirements": {
+                            "im_perp_req": "0.066",
+                            "mm_perp_req": "0.05",
+                            "max_leverage": "15.15"
+                        }
+                    }
+                ]
+            },
+            "spot": [
+                {
+                    "name": "ETH",
+                    "address": "0xE201fCEfD4852f96810C069f66560dc25B2C7A55",
+                    "erc20": {
+                        "decimals": 18,
+                        "underlying_erc20": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+                    },
+                    "min_deposit_usd": "5",
+                    "universes": [
+                        {
+                            "risk_universe_id": 1,
+                            "srm_im_discount": "0.75",
+                            "srm_mm_discount": "0.8",
+                            "pm2_im_discount": "0.07",
+                            "pm2_mm_discount": "0.06",
+                            "lending": {
+                                "borrow_apy": "0",
+                                "supply_apy": "0",
+                                "total_borrow": "0",
+                                "total_borrow_cap": "0"
+                            },
+                            "oi": {
+                                "current_open_interest": "8758.148405783542",
+                                "interest_cap": "32000"
+                            }
+                        },
+                        {
+                            "risk_universe_id": 2,
+                            "srm_im_discount": "0.75",
+                            "srm_mm_discount": "0.8",
+                            "pm2_im_discount": "0.23",
+                            "pm2_mm_discount": "0.188",
+                            "lending": {
+                                "borrow_apy": "0",
+                                "supply_apy": "0",
+                                "total_borrow": "0",
+                                "total_borrow_cap": "0"
+                            },
+                            "oi": {
+                                "current_open_interest": "150.667478322175",
+                                "interest_cap": "32000"
+                            }
+                        },
+                        {
+                            "risk_universe_id": 3,
+                            "srm_im_discount": "0.75",
+                            "srm_mm_discount": "0.8",
+                            "pm2_im_discount": "0.23",
+                            "pm2_mm_discount": "0.188",
+                            "lending": {
+                                "borrow_apy": "0",
+                                "supply_apy": "0",
+                                "total_borrow": "0",
+                                "total_borrow_cap": "0"
+                            },
+                            "oi": {
+                                "current_open_interest": "86.827891636145",
+                                "interest_cap": "32000"
+                            }
+                        },
+                        {
+                            "risk_universe_id": 4,
+                            "srm_im_discount": "0.75",
+                            "srm_mm_discount": "0.8",
+                            "pm2_im_discount": "0.23",
+                            "pm2_mm_discount": "0.188",
+                            "lending": {
+                                "borrow_apy": "0",
+                                "supply_apy": "0",
+                                "total_borrow": "0",
+                                "total_borrow_cap": "0"
+                            },
+                            "oi": {
+                                "current_open_interest": "40.912156538019",
+                                "interest_cap": "32000"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "id": "ETH",
+        "code": "ETH",
+        "fees": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    }
 }

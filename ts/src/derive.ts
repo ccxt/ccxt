@@ -3493,7 +3493,8 @@ export default class derive extends Exchange {
             throw new BadRequest (this.id + ' transfer() ' + code + ' has no deposit-enabled spot asset');
         }
         const fromId = this.parseToInt (fromAccount);
-        const toId = this.parseToInt (toAccount);
+        // the destination is optional on the subaccount-creation path, an undefined must not reach the int conversion
+        const toId = (toAccount === undefined) ? 0 : this.parseToInt (toAccount);
         const amountString = this.numberToString (amount);
         const maxFeeUsd = this.safeString (params, 'max_fee_usd', '0');
         const newSubaccountManager = this.safeInteger (params, 'new_subaccount_manager', 0);
