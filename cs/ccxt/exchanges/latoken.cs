@@ -338,6 +338,7 @@ public partial class latoken : Exchange
                     { "INTERNAL_ERROR", typeof(ExchangeError) },
                     { "SERVICE_UNAVAILABLE", typeof(ExchangeNotAvailable) },
                     { "NOT_AUTHORIZED", typeof(AuthenticationError) },
+                    { "UNAUTHORIZED", typeof(AuthenticationError) },
                     { "FORBIDDEN", typeof(PermissionDenied) },
                     { "BAD_REQUEST", typeof(BadRequest) },
                     { "NOT_FOUND", typeof(ExchangeError) },
@@ -360,6 +361,7 @@ public partial class latoken : Exchange
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "invalid API key, signature or digest", typeof(AuthenticationError) },
+                    { "Invalid API key specified", typeof(AuthenticationError) },
                     { "The API key was revoked", typeof(AuthenticationError) },
                     { "request expired or bad", typeof(InvalidNonce) },
                     { "For input string", typeof(BadRequest) },
@@ -2136,9 +2138,8 @@ public partial class latoken : Exchange
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
         }
-        object error = this.safeValue(response, "error");
-        string? errorMessage = this.safeString(error, "message");
-        if (((error != null)) || ((errorMessage != null)))
+        string? error = this.safeString(response, "error");
+        if ((error != null))
         {
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
