@@ -8,6 +8,15 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "fetchTradingFees": [
+            {
+                "description": "fetch trading fees for all markets",
+                "method": "fetchTradingFees",
+                "url": "https://test-api.pacifica.fi/api/v1/account?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchDeposits": [
             {
                 "description": "fetch USDC deposits from balance history",
