@@ -102,7 +102,7 @@ export default class derive extends Exchange {
                 'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
                 'fetchOption': true,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': false,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
@@ -180,7 +180,12 @@ export default class derive extends Exchange {
                         'untilDays': undefined,
                         'symbolRequired': false,
                     },
-                    'fetchOrder': undefined,
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
@@ -2556,6 +2561,35 @@ export default class derive extends Exchange {
         const orders: Dict[] = this.safeList (data, 'orders', []);
         const parsedOrders = this.parseOrders (orders, market);
         return this.filterBySymbolSinceLimit (parsedOrders, symbol, since, limit) as Order[];
+    }
+
+    /**
+     * @method
+     * @name derive#fetchOrder
+     * @description fetches information on an order made by the user, a standalone trigger order is not visible here until it triggers, list those through fetchOpenOrders with params.trigger instead
+     * @see https://docs.derive.xyz/api-reference/orderbook/privateget_order
+     * @param {string} id the order id
+     * @param {string} [symbol] not used by derive.fetchOrder
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('fetchOrder', params);
+        const request: Dict = {
+            'order_id': id,
+            'subaccount_id': subaccountId,
+        };
+        const response = await this.privatePostGetOrder (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
+        const result = this.safeDict (response, 'result', {});
+        return this.parseOrder (result, market);
     }
 
     /**

@@ -2300,6 +2300,132 @@
                 ]
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder canceled limit order",
+                "method": "fetchOrder",
+                "input": [
+                    "50351ad6-934a-4c2e-9651-6cb6dbfdd09e",
+                    null,
+                    {
+                        "subaccount_id": 86815
+                    }
+                ],
+                "httpResponse": {
+                    "id": "7e226017-d7e9-4f42-9acb-97e1486a28ce",
+                    "result": {
+                        "subaccount_id": 86815,
+                        "order_id": "50351ad6-934a-4c2e-9651-6cb6dbfdd09e",
+                        "instrument_name": "BTC-PERP",
+                        "direction": "buy",
+                        "label": "",
+                        "quote_id": null,
+                        "amount": "0.01",
+                        "average_price": "0",
+                        "cancel_reason": "user_request",
+                        "creation_timestamp": 1791038042658,
+                        "filled_amount": "0",
+                        "is_transfer": false,
+                        "last_update_timestamp": 1791038043077,
+                        "limit_price": "60000",
+                        "signed_limit_price": null,
+                        "max_fee": "100",
+                        "mmp": false,
+                        "nonce": "1791038042393000502",
+                        "order_fee": "0",
+                        "order_status": "cancelled",
+                        "order_type": "limit",
+                        "replaced_order_id": null,
+                        "signature": "",
+                        "signature_expiry_sec": 1798814042,
+                        "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                        "time_in_force": "gtc",
+                        "trigger_type": null,
+                        "trigger_price": null,
+                        "trigger_price_type": null,
+                        "trigger_reject_message": null,
+                        "extra_fee": "0",
+                        "algo_type": null,
+                        "algo_duration_sec": null,
+                        "algo_num_slices": null,
+                        "algo_slices_completed": null
+                    }
+                },
+                "parsedResponse": {
+                    "id": "50351ad6-934a-4c2e-9651-6cb6dbfdd09e",
+                    "clientOrderId": null,
+                    "timestamp": 1791038042658,
+                    "datetime": "2026-10-03T14:34:02.658Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1791038043077,
+                    "status": "canceled",
+                    "symbol": "BTC/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 60000,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "average": null,
+                    "amount": 0.01,
+                    "filled": 0,
+                    "remaining": 0.01,
+                    "cost": 0,
+                    "trades": [],
+                    "fee": {
+                        "cost": "0",
+                        "currency": "USDC"
+                    },
+                    "info": {
+                        "subaccount_id": 86815,
+                        "order_id": "50351ad6-934a-4c2e-9651-6cb6dbfdd09e",
+                        "instrument_name": "BTC-PERP",
+                        "direction": "buy",
+                        "label": "",
+                        "quote_id": null,
+                        "amount": "0.01",
+                        "average_price": "0",
+                        "cancel_reason": "user_request",
+                        "creation_timestamp": 1791038042658,
+                        "filled_amount": "0",
+                        "is_transfer": false,
+                        "last_update_timestamp": 1791038043077,
+                        "limit_price": "60000",
+                        "signed_limit_price": null,
+                        "max_fee": "100",
+                        "mmp": false,
+                        "nonce": "1791038042393000502",
+                        "order_fee": "0",
+                        "order_status": "cancelled",
+                        "order_type": "limit",
+                        "replaced_order_id": null,
+                        "signature": "",
+                        "signature_expiry_sec": 1798814042,
+                        "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                        "time_in_force": "gtc",
+                        "trigger_type": null,
+                        "trigger_price": null,
+                        "trigger_price_type": null,
+                        "trigger_reject_message": null,
+                        "extra_fee": "0",
+                        "algo_type": null,
+                        "algo_duration_sec": null,
+                        "algo_num_slices": null,
+                        "algo_slices_completed": null
+                    },
+                    "fees": [
+                        {
+                            "cost": 0,
+                            "currency": "USDC"
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            }
+        ],
         "fetchCanceledAndClosedOrders": [
             {
                 "description": "fetchCanceledAndClosedOrders testnet",
